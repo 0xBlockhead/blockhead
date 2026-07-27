@@ -7,14 +7,12 @@
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		data,
-		params,
 	}: PageProps = $props()
 
 	const pageSelection = $derived(select(EntityType.XrplTrustline, data.selector, {
@@ -32,20 +30,12 @@
 
 
 <svelte:head>
-	<title>{(data.title ?? (pageSelection.entity == null ? 'XRPL trustline' : 'XRPL trustline'))} • XRPL trustline • Blockhead</title>
+	<title>{(data.title ?? ('XRPL trustline'))} • XRPL trustline • Blockhead</title>
 </svelte:head>
 
 
 <Page>
 	<XrplTrustlineView
-		href={
-			resolve('/network/[network=networkCaip2OrNetworkSlug]/trustline/[account=stringSegment]/[currency=stringSegment]/[issuer=stringSegment]', {
-				network: params.network,
-				account: params.account,
-				currency: params.currency,
-				issuer: params.issuer,
-			})
-		}
 		selection={pageSelection}
 	/>
 </Page>

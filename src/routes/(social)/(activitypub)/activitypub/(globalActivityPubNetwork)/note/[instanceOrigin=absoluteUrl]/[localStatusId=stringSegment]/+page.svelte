@@ -9,14 +9,12 @@
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		data,
-		params,
 	}: PageProps = $props()
 
 	const pageSelection = $derived(select(EntityType.ActivityPubNote, data.selector, {
@@ -24,11 +22,11 @@
 			Source.Mastodon_Rest,
 		],
 		fields: {
-			activityStreamsUri: true,
 			content: true,
 			createdAt: true,
 			$author: true,
 			statusUrl: true,
+			activityStreamsUri: true,
 		},
 	}))
 
@@ -40,18 +38,12 @@
 
 
 <svelte:head>
-	<title>{(data.title ?? (pageSelection.entity == null ? [String((data.selector.localStatusId) ?? '')].filter(Boolean).join(' ') || 'ActivityPub note' : [({ ...data.selector, ...pageSelection.entity }).content == null ? '' : String((htmlToPlainText((({ ...data.selector, ...pageSelection.entity }).content))) ?? ''), String((({ ...data.selector, ...pageSelection.entity }).localStatusId) ?? '')].filter(Boolean).join(' ') || 'ActivityPub note'))} • ActivityPub note • Blockhead</title>
+	<title>{(data.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.localStatusId ?? '') || 'ActivityPub note' : ([pageSelection.entity.content == null ? '' : String((htmlToPlainText(pageSelection.entity.content)) ?? ''), pageSelection.entitySelector.localStatusId].filter(Boolean).join(' ')) || 'ActivityPub note'))} • ActivityPub note • Blockhead</title>
 </svelte:head>
 
 
 <Page>
 	<ActivityPubNoteView
-		href={
-			resolve('/activitypub/note/[instanceOrigin=absoluteUrl]/[localStatusId=stringSegment]', {
-				instanceOrigin: params.instanceOrigin,
-				localStatusId: params.localStatusId,
-			})
-		}
 		selection={pageSelection}
 	/>
 </Page>

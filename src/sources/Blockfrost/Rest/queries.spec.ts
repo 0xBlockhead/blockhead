@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import blockFixture from '$/sources/Blockfrost/Rest/fixtures/block.json'
 import type { BlockfrostBlock } from '$/sources/Blockfrost/Rest/types.ts'
 import { Source } from '$/sources/Source.ts'
-import { sourceProviderDefinitions } from '$/sources/$sourceProviders.ts'
+import bindings from '$/sources/Blockfrost/bindings.ts'
 
 const { sourceFetch } = vi.hoisted(() => ({
 	sourceFetch: vi.fn(),
@@ -37,12 +37,7 @@ const {
 	listStakePools,
 } = await import('$/sources/Blockfrost/Rest/queries.ts')
 
-const binding = sourceProviderDefinitions
-	.flatMap((provider) => provider.bindings)
-	.find((candidate) => candidate.source === Source.Blockfrost_Rest)
-
-if (binding == null)
-	throw new Error('Blockfrost_Rest spec missing source binding')
+const binding = bindings[Source.Blockfrost_Rest]
 
 const block = blockFixture satisfies BlockfrostBlock
 
@@ -61,11 +56,11 @@ describe('Blockfrost REST transport', () => {
 				outputs: [],
 			}))
 
-		await expect(getBlock(binding, 'hash/with delimiter')).resolves.toEqual(block)
-		await expect(getTransaction(binding, 'hash/with delimiter')).resolves.toMatchObject({
+		await expect(getBlock('hash/with delimiter')).resolves.toEqual(block)
+		await expect(getTransaction('hash/with delimiter')).resolves.toMatchObject({
 			hash: 'hash/with delimiter',
 		})
-		await expect(getTransactionUtxos(binding, 'hash/with delimiter')).resolves.toMatchObject({
+		await expect(getTransactionUtxos('hash/with delimiter')).resolves.toMatchObject({
 			hash: 'hash/with delimiter',
 			inputs: [],
 			outputs: [],
@@ -99,7 +94,7 @@ describe('Blockfrost REST transport', () => {
 				},
 			]))
 
-		await expect(listBlocks(binding, 2)).resolves.toMatchObject([
+		await expect(listBlocks(2)).resolves.toMatchObject([
 			{ hash: 'block-hash' },
 			{ hash: 'previous-block-hash' },
 		])
@@ -135,14 +130,14 @@ describe('Blockfrost REST transport', () => {
 			]))
 			.mockResolvedValueOnce(Response.json([]))
 
-		await expect(getAddress(binding, 'addr/example')).resolves.toMatchObject({
+		await expect(getAddress('addr/example')).resolves.toMatchObject({
 			address: 'addr/example',
 		})
-		await expect(getAddressTotal(binding, 'addr/example')).resolves.toMatchObject({
+		await expect(getAddressTotal('addr/example')).resolves.toMatchObject({
 			tx_count: 2,
 		})
-		await expect(listAddressTransactions(binding, 'addr/example', 16)).resolves.toHaveLength(1)
-		await expect(listAddressUtxos(binding, 'addr/example', 16)).resolves.toEqual([])
+		await expect(listAddressTransactions('addr/example', 16)).resolves.toHaveLength(1)
+		await expect(listAddressUtxos('addr/example', 16)).resolves.toEqual([])
 		expect(sourceFetch.mock.calls.map(([, url]) => url)).toEqual([
 			'https://cardano-mainnet.blockfrost.io/api/v0/addresses/addr%2Fexample',
 			'https://cardano-mainnet.blockfrost.io/api/v0/addresses/addr%2Fexample/total',
@@ -152,10 +147,10 @@ describe('Blockfrost REST transport', () => {
 	})
 
 	it('rejects invalid limits before transport', async () => {
-		await expect(listBlocks(binding, -1)).rejects.toThrow(
+		await expect(listBlocks(-1)).rejects.toThrow(
 			'Blockfrost_Rest: block list count must be an integer from 0 through 100'
 		)
-		await expect(listBlocks(binding, 101)).rejects.toThrow(
+		await expect(listBlocks(101)).rejects.toThrow(
 			'Blockfrost_Rest: block list count must be an integer from 0 through 100'
 		)
 		expect(sourceFetch).not.toHaveBeenCalled()
@@ -201,9 +196,9 @@ describe('Blockfrost REST transport', () => {
 				},
 			]))
 
-		await expect(listLatestBlockTransactions(binding, 16)).resolves.toEqual(['transaction-hash'])
-		await expect(listStakePools(binding, 16)).resolves.toEqual(['pool1example'])
-		await expect(listDReps(binding, 16)).resolves.toEqual([
+		await expect(listLatestBlockTransactions(16)).resolves.toEqual(['transaction-hash'])
+		await expect(listStakePools(16)).resolves.toEqual(['pool1example'])
+		await expect(listDReps(16)).resolves.toEqual([
 			{
 				drep_id: 'drep1example',
 				hex: 'ab',
@@ -215,8 +210,8 @@ describe('Blockfrost REST transport', () => {
 				displayName: 'Example DRep',
 			},
 		])
-		await expect(listGovernanceProposals(binding, 16, 3)).resolves.toHaveLength(1)
-		await expect(listAssets(binding, 16)).resolves.toHaveLength(1)
+		await expect(listGovernanceProposals(16, 3)).resolves.toHaveLength(1)
+		await expect(listAssets(16)).resolves.toHaveLength(1)
 		expect(sourceFetch.mock.calls.map(([, url]) => url)).toEqual([
 			'https://cardano-mainnet.blockfrost.io/api/v0/blocks/latest/txs?count=16',
 			'https://cardano-mainnet.blockfrost.io/api/v0/pools?count=16',
@@ -282,7 +277,7 @@ describe('Blockfrost REST transport', () => {
 			},
 		]))
 
-		await expect(listDReps(binding, 2)).resolves.toEqual([
+		await expect(listDReps(2)).resolves.toEqual([
 			expect.not.objectContaining({ displayName: expect.anything() }),
 			expect.not.objectContaining({ displayName: expect.anything() }),
 		])
@@ -315,12 +310,12 @@ describe('Blockfrost REST transport', () => {
 				bytes: null,
 			}))
 
-		await expect(getDRepMetadata(binding, 'drep1example')).resolves.toEqual({
+		await expect(getDRepMetadata('drep1example')).resolves.toEqual({
 			url: 'https://example.com/drep.json',
 			hash: 'metadata-hash',
 			displayName: 'Example DRep',
 		})
-		await expect(getDRepMetadata(binding, 'drep1malformed')).resolves.toEqual({
+		await expect(getDRepMetadata('drep1malformed')).resolves.toEqual({
 			url: 'https://example.com/malformed.json',
 			hash: 'malformed-metadata-hash',
 		})
@@ -347,10 +342,10 @@ describe('Blockfrost REST transport', () => {
 			.mockRejectedValueOnce(new Error('metadata transport unavailable'))
 			.mockResolvedValueOnce(new Response(null, { status: 404 }))
 
-		await expect(listCommitteeVotes(binding, 16)).resolves.toHaveLength(1)
-		await expect(getGovernanceProposalMetadata(binding, 'proposal-hash', 1)).resolves.toBeUndefined()
-		await expect(getDRepMetadata(binding, 'drep1example')).resolves.toBeUndefined()
-		await expect(getStakePoolMetadata(binding, 'pool1example')).resolves.toBeUndefined()
+		await expect(listCommitteeVotes(16)).resolves.toHaveLength(1)
+		await expect(getGovernanceProposalMetadata('proposal-hash', 1)).resolves.toBeUndefined()
+		await expect(getDRepMetadata('drep1example')).resolves.toBeUndefined()
+		await expect(getStakePoolMetadata('pool1example')).resolves.toBeUndefined()
 		expect(sourceFetch.mock.calls.map(([, url]) => url)).toEqual([
 			'https://cardano-mainnet.blockfrost.io/api/v0/governance/committee/votes?count=16',
 			'https://cardano-mainnet.blockfrost.io/api/v0/governance/proposals/proposal-hash/1/metadata',
@@ -359,15 +354,104 @@ describe('Blockfrost REST transport', () => {
 		])
 	})
 
-	it('preserves exact on-chain governance proposal payloads', async () => {
+	it.each([
+		['parameter_change', {
+			tag: 'ParameterChange',
+			contents: [
+				{
+					txId: 'parameter-change-parent',
+					govActionIx: 0,
+				},
+				{
+					committeeMinSize: 5,
+					maxTxExecutionUnits: {
+						steps: 10_000_000_000,
+						memory: 17_500_000,
+					},
+				},
+				'parameter-policy-hash',
+			],
+		}],
+		['hard_fork_initiation', {
+			tag: 'HardForkInitiation',
+			contents: [
+				{
+					txId: 'hard-fork-parent',
+					govActionIx: 1,
+				},
+				{
+					major: 11,
+					minor: 0,
+				},
+			],
+		}],
+		['treasury_withdrawals', {
+			tag: 'TreasuryWithdrawals',
+			contents: [
+				[[
+					{
+						network: 'Mainnet',
+						credential: {
+							scriptHash: 'treasury-script-hash',
+						},
+					},
+					120_000_000_000_000,
+				]],
+				'treasury-policy-hash',
+			],
+		}],
+		['no_confidence', {
+			tag: 'NoConfidence',
+			contents: {
+				txId: 'committee-parent',
+				govActionIx: 2,
+			},
+		}],
+		['new_committee', {
+			tag: 'UpdateCommittee',
+			contents: [
+				{
+					txId: 'committee-parent',
+					govActionIx: 3,
+				},
+				[{
+					keyHash: 'retiring-committee-key',
+				}],
+				{
+					'scriptHash-new-committee-script': 653,
+				},
+				{
+					numerator: 2,
+					denominator: 3,
+				},
+			],
+		}],
+		['new_constitution', {
+			tag: 'NewConstitution',
+			contents: [
+				{
+					txId: 'constitution-parent',
+					govActionIx: 4,
+				},
+				{
+					anchor: {
+						url: 'ipfs://constitution',
+						dataHash: 'constitution-data-hash',
+					},
+					script: 'constitution-script-hash',
+				},
+			],
+		}],
+		['info_action', {
+			tag: 'InfoAction',
+		}],
+	] as const)('validates the %s governance action outer wire shape', async (governanceType, governanceDescription) => {
 		sourceFetch.mockResolvedValueOnce(Response.json({
 			id: 'gov_action1example',
 			tx_hash: 'proposal/hash',
 			cert_index: 1,
-			governance_type: 'info_action',
-			governance_description: {
-				tag: 'InfoAction',
-			},
+			governance_type: governanceType,
+			governance_description: governanceDescription,
 			deposit: '1000000',
 			return_address: 'stake1return',
 			ratified_epoch: null,
@@ -377,11 +461,9 @@ describe('Blockfrost REST transport', () => {
 			expiration: 600,
 		}))
 
-		await expect(getGovernanceProposal(binding, 'proposal/hash', 1)).resolves.toMatchObject({
+		await expect(getGovernanceProposal('proposal/hash', 1)).resolves.toMatchObject({
 			id: 'gov_action1example',
-			governance_description: {
-				tag: 'InfoAction',
-			},
+			governance_description: governanceDescription,
 		})
 		expect(sourceFetch).toHaveBeenCalledWith(
 			binding,
@@ -389,9 +471,63 @@ describe('Blockfrost REST transport', () => {
 		)
 	})
 
+	it.each([
+		['mismatched provider type and tag', {
+			governance_type: 'info_action',
+			governance_description: {
+				tag: 'NoConfidence',
+				contents: null,
+			},
+		}],
+		['unknown constructor tag', {
+			governance_type: 'info_action',
+			governance_description: {
+				tag: 'UnknownAction',
+			},
+		}],
+		['malformed constructor arity', {
+			governance_type: 'hard_fork_initiation',
+			governance_description: {
+				tag: 'HardForkInitiation',
+				contents: [null],
+			},
+		}],
+		['malformed constructor component', {
+			governance_type: 'new_constitution',
+			governance_description: {
+				tag: 'NewConstitution',
+				contents: [
+					null,
+					{
+						anchor: {
+							url: 'ipfs://constitution',
+						},
+						script: null,
+					},
+				],
+			},
+		}],
+	])('rejects a governance action with %s', async (_case, proposal) => {
+		sourceFetch.mockResolvedValueOnce(Response.json({
+			id: 'gov_action1example',
+			tx_hash: 'proposal/hash',
+			cert_index: 1,
+			...proposal,
+			deposit: '1000000',
+			return_address: 'stake1return',
+			ratified_epoch: null,
+			enacted_epoch: null,
+			dropped_epoch: null,
+			expired_epoch: null,
+			expiration: 600,
+		}))
+
+		await expect(getGovernanceProposal('proposal/hash', 1)).rejects.toThrow()
+	})
+
 	it('skips zero-count list transport and rejects malformed list limits', async () => {
-		await expect(listAssets(binding, 0)).resolves.toEqual([])
-		expect(() => listStakePools(binding, 101)).toThrow(
+		await expect(listAssets(0)).resolves.toEqual([])
+		expect(() => listStakePools(101)).toThrow(
 			'Blockfrost_Rest: list count must be an integer from 0 through 100'
 		)
 		expect(sourceFetch).not.toHaveBeenCalled()
@@ -406,6 +542,6 @@ describe('Blockfrost REST transport', () => {
 			}
 		))
 
-		await expect(getBlock(binding, 'missing')).rejects.toThrow(/Blockfrost_Rest/)
+		await expect(getBlock('missing')).rejects.toThrow(/Blockfrost_Rest/)
 	})
 })

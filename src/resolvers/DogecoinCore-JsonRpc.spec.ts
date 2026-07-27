@@ -2,10 +2,9 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { networkBySlug } from '$/constants/Network.ts'
 import { EntityMetaKey } from '$/schema/$schema.ts'
-import { DogecoinAuxPowMerkleBranchSelector } from '$/schema/DogecoinAuxPowMerkleBranch.ts'
-import { DogecoinAuxPowParentBlockHeaderSelector } from '$/schema/DogecoinAuxPowParentBlockHeader.ts'
-import { DogecoinBlockAuxPowSelector } from '$/schema/DogecoinBlockAuxPow.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import bindings from '$/sources/DogecoinCore/bindings.ts'
+import { Source } from '$/sources/Source.ts'
 
 const getBlock = vi.fn()
 
@@ -14,6 +13,8 @@ vi.mock('$/sources/DogecoinCore/JsonRpc/queries.ts', () => ({
 }))
 
 const { default: dogecoinCoreResolvers } = await import('$/resolvers/DogecoinCore-JsonRpc.ts')
+
+const dogecoinMainnetBinding = bindings[Source.DogecoinCore_JsonRpc]
 
 const resolverContext = {
 	filters: [],
@@ -107,7 +108,7 @@ describe('Dogecoin Core AuxPoW resolvers', () => {
 	it('materializes the parent and both branch identities from an AuxPoW block', async () => {
 		getBlock.mockResolvedValueOnce(auxPowBlock)
 
-		const auxPow = await auxPowResolver.resolve[DogecoinBlockAuxPowSelector.Block].resolve(
+		const auxPow = await auxPowResolver.resolve['Block'].resolve(
 			{
 				$block: blockSelector,
 			},
@@ -115,7 +116,6 @@ describe('Dogecoin Core AuxPoW resolvers', () => {
 		)
 
 		expect(getBlock).toHaveBeenCalledWith({
-			rpcUrl: 'http://127.0.0.1:22555',
 			blockHash: blockSelector.hash,
 		})
 		expect(auxPowResolver.projections.$parentBlockHeader(auxPow)).toEqual({
@@ -143,7 +143,7 @@ describe('Dogecoin Core AuxPoW resolvers', () => {
 			.mockResolvedValueOnce(auxPowBlock)
 
 		const coinbaseBranch = await branchResolver.resolve[
-			DogecoinAuxPowMerkleBranchSelector.AuxPowBranchKind
+			'AuxPowBranchKind'
 		].resolve(
 			{
 				$auxPow: auxPowSelector,
@@ -152,7 +152,7 @@ describe('Dogecoin Core AuxPoW resolvers', () => {
 			resolverContext
 		)
 		const chainBranch = await branchResolver.resolve[
-			DogecoinAuxPowMerkleBranchSelector.AuxPowBranchKind
+			'AuxPowBranchKind'
 		].resolve(
 			{
 				$auxPow: auxPowSelector,
@@ -176,7 +176,7 @@ describe('Dogecoin Core AuxPoW resolvers', () => {
 		getBlock.mockResolvedValueOnce(auxPowBlock)
 
 		const parentHeader = await parentHeaderResolver.resolve[
-			DogecoinAuxPowParentBlockHeaderSelector.AuxPow
+			'AuxPow'
 		].resolve(
 			{
 				$auxPow: auxPowSelector,
@@ -196,14 +196,14 @@ describe('Dogecoin Core AuxPoW resolvers', () => {
 	it('rejects non-AuxPoW blocks and non-Dogecoin parents', async () => {
 		getBlock.mockResolvedValueOnce({})
 
-		await expect(auxPowResolver.resolve[DogecoinBlockAuxPowSelector.Block].resolve(
+		await expect(auxPowResolver.resolve['Block'].resolve(
 			{
 				$block: blockSelector,
 			},
 			resolverContext
 		)).rejects.toThrow('does not contain AuxPoW')
 
-		await expect(auxPowResolver.resolve[DogecoinBlockAuxPowSelector.Block].resolve(
+		await expect(auxPowResolver.resolve['Block'].resolve(
 			{
 				$block: {
 					...blockSelector,

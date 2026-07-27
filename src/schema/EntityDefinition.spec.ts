@@ -23,8 +23,6 @@ import {
 import { NetworkNamespace, networks } from '$/constants/Network.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { schema } from '$/schema/index.ts'
-import { ActivityPubActorSelector } from '$/schema/ActivityPubActor.ts'
-import { ActivityPubNoteSelector } from '$/schema/ActivityPubNote.ts'
 
 enum ParentSelector {
 	Slug = 'slug',
@@ -388,12 +386,16 @@ describe('entity selectors', () => {
 				))
 				.flatMap((fileName) => {
 					const source = readFileSync(new URL(fileName, import.meta.url), 'utf8')
-					if (!source.includes(' = entity({'))
+					const entityCallIndex = Math.max(
+						source.indexOf(' = entity({'),
+						source.indexOf('export default entity({')
+					)
+					if (entityCallIndex === -1)
 						return []
 
 					const entityMetadataSource = source.slice(
-						source.indexOf(' = entity({'),
-						source.indexOf('\n})({', source.indexOf(' = entity({'))
+						entityCallIndex,
+						source.indexOf('\n})({', entityCallIndex)
 					)
 					return [
 						...(/\n\tid:/u.test(entityMetadataSource) ? [`${fileName}: top-level id`] : []),
@@ -420,7 +422,10 @@ describe('entity selectors', () => {
 					if (!source.includes('\n\tentityType:'))
 						return []
 
-					const metadataIndex = source.indexOf(' = entity({')
+					const metadataIndex = Math.max(
+						source.indexOf(' = entity({'),
+						source.indexOf('export default entity({')
+					)
 					const fieldsIndex = source.indexOf('\n})({', metadataIndex)
 					const selectorsAndFacetsIndex = source.indexOf('\n})({', fieldsIndex + 1)
 					const selectorsIndex = source.indexOf('\n\tselectors: {', selectorsAndFacetsIndex)
@@ -826,7 +831,6 @@ describe('entity selectors', () => {
 			NetworkNamespace.Logos,
 			NetworkNamespace.Near,
 			NetworkNamespace.Quilibrium,
-			NetworkNamespace.Tron,
 			NetworkNamespace.ZeroG,
 		])
 		const provisionalNetworkEntityTypes = new Set([
@@ -1157,12 +1161,12 @@ describe('entity selectors', () => {
 		if (activityPubActor == null)
 			throw new Error('ActivityPub actor schema row missing')
 
-		expect(activityPubActor.selectors.find((selector) => selector.name === ActivityPubActorSelector.ActivityStreamsUri)?.fields).toEqual([
+		expect(activityPubActor.selectors.find((selector) => selector.name === 'ActivityStreamsUri')?.fields).toEqual([
 			'activityStreamsUri',
 		])
 		expect(validateEntitySelector(schema, activityPubActor, {
 			activityStreamsUri: 'https://mastodon.social/users/Gargron',
-		}).name).toBe(ActivityPubActorSelector.ActivityStreamsUri)
+		}).name).toBe('ActivityStreamsUri')
 		expect(entityFieldDefinitions(activityPubActor).find((fieldDefinition) => fieldDefinition.name === 'activityStreamsUri')?.cardinality).toBe(EntityFieldCardinality.One)
 		expect(activityPubActor.selectors.some((selector) => selector.fields.includes('profileUrl'))).toBe(false)
 	})
@@ -1195,12 +1199,12 @@ describe('entity selectors', () => {
 		if (activityPubNote == null)
 			throw new Error('ActivityPub note schema row missing')
 
-		expect(activityPubNote.selectors.find((selector) => selector.name === ActivityPubNoteSelector.ActivityStreamsUri)?.fields).toEqual([
+		expect(activityPubNote.selectors.find((selector) => selector.name === 'ActivityStreamsUri')?.fields).toEqual([
 			'activityStreamsUri',
 		])
 		expect(validateEntitySelector(schema, activityPubNote, {
 			activityStreamsUri: 'https://mastodon.social/users/Gargron/statuses/116539053870420123',
-		}).name).toBe(ActivityPubNoteSelector.ActivityStreamsUri)
+		}).name).toBe('ActivityStreamsUri')
 		expect(entityFieldDefinitions(activityPubNote).find((fieldDefinition) => fieldDefinition.name === 'activityStreamsUri')?.cardinality).toBe(EntityFieldCardinality.One)
 		expect(activityPubNote.selectors.some((selector) => selector.fields.includes('statusUrl'))).toBe(false)
 	})

@@ -2,13 +2,9 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -20,42 +16,27 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.BlockheadAgentConnection_Timestamp>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.BlockheadAgentConnection_Timestamp>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.BlockheadAgentConnection_Timestamp> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const blockheadAgentConnectionTimestamp = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {
-			health: true,
-			latencyMs: true,
-		},
-	} : {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const viewSelection = $derived(selection({
+		sources: selection.sources ?? [
+			Source.Anthropic_Rest,
+			Source.Local_Internal,
+			Source.McpDeclared_Protocol,
+			Source.OpenAI_Rest,
+		],
+	}))
+	const blockheadAgentConnectionTimestamp = $derived(viewSelection({
 		fields: {
 			health: true,
 			latencyMs: true,
 		},
 	}))
-	const titleFallback = $derived([String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || 'blockhead agent connection timestamp')
-	const viewDomId = $derived('blockhead-agent-connection-timestamp-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const titleFallback = $derived(String(pendingEntity.timestampMs ?? '') || 'blockhead agent connection timestamp')
 
 
 	// Components
@@ -68,71 +49,37 @@
 
 <EntityView
 	entityType={EntityType.BlockheadAgentConnection_Timestamp}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'health') && Object.hasOwn(prefetched, 'latencyMs')}
-			{@const timestampMs0 = pendingEntity.timestampMs}
-			{#if timestampMs0 !== undefined && timestampMs0 !== null}
-				<Timestamp timestamp={Number(timestampMs0)} />
-			{/if}
-		{:else}
-			<ResourceBoundary resource={blockheadAgentConnectionTimestamp}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const timestampMs0 = resolvedEntity.timestampMs}
-					{#if timestampMs0 !== undefined && timestampMs0 !== null}
-						<Timestamp timestamp={Number(timestampMs0)} />
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
 	{/snippet}
 
 	{#snippet Value()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'health') && Object.hasOwn(prefetched, 'latencyMs')}
-			{[String((pendingEntity.health) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || titleFallback}
-		{:else}
-			<ResourceBoundary resource={blockheadAgentConnectionTimestamp}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.health) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={blockheadAgentConnectionTimestamp}>
+			{#snippet children(entity)}
+				{(entity.health ?? '') || String(pendingEntity.timestampMs) || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'health') && Object.hasOwn(prefetched, 'latencyMs')}
-			{@const latencyMs0 = pendingEntity.latencyMs}
-			{#if latencyMs0 !== undefined && latencyMs0 !== null}
-				<span data-text="muted">
-					<NumberValue
-						value={latencyMs0}
-					/>
-				</span>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={blockheadAgentConnectionTimestamp}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const latencyMs0 = resolvedEntity.latencyMs}
-					{#if latencyMs0 !== undefined && latencyMs0 !== null}
-						<span data-text="muted">
-							<NumberValue
-								value={latencyMs0}
-							/>
-						</span>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={blockheadAgentConnectionTimestamp}>
+			{#snippet children(entity)}
+				{@const latencyMs0 = entity.latencyMs}
+				{#if latencyMs0 != null}
+					<span data-text="muted">
+						<NumberValue
+							value={latencyMs0}
+						/>
+					</span>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -151,69 +98,27 @@
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									timestampMs: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const timestampMs = resolvedEntity.timestampMs}
-							{#if timestampMs !== undefined && timestampMs !== null}
-								<Timestamp timestamp={Number(timestampMs)} />
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									source: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const source = resolvedEntity.source}
-							{#if source !== undefined && source !== null}
-								{String((source) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{pendingEntity.source}
 				</dd>
 			</div>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							health: true,
-						},
-					})
-				}
+				resource={blockheadAgentConnectionTimestamp}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const health = resolvedEntity.health}
-					{#if health !== undefined && health !== null}
+					{@const health = entity.health}
+					{#if health != null}
 						<div>
 							<dt>health</dt>
 							<dd>
-								{String((health) ?? '')}
+								{health}
 							</dd>
 						</div>
 					{/if}
@@ -223,19 +128,11 @@
 
 		<dl data-column-item="center">
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							latencyMs: true,
-						},
-					})
-				}
+				resource={blockheadAgentConnectionTimestamp}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const latencyMs = resolvedEntity.latencyMs}
-					{#if latencyMs !== undefined && latencyMs !== null}
+					{@const latencyMs = entity.latencyMs}
+					{#if latencyMs != null}
 						<div>
 							<dt>latency ms</dt>
 							<dd>
@@ -250,8 +147,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							statusCode: true,
 						},
@@ -259,9 +155,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const statusCode = resolvedEntity.statusCode}
-					{#if statusCode !== undefined && statusCode !== null}
+					{@const statusCode = entity.statusCode}
+					{#if statusCode != null}
 						<div>
 							<dt>status code</dt>
 							<dd>
@@ -276,8 +171,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							error: true,
 						},
@@ -285,13 +179,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const error = resolvedEntity.error}
-					{#if error !== undefined && error !== null}
+					{@const error = entity.error}
+					{#if error != null}
 						<div>
 							<dt>error</dt>
 							<dd>
-								{String((error) ?? '')}
+								{error}
 							</dd>
 						</div>
 					{/if}

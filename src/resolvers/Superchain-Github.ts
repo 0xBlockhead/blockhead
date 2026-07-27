@@ -11,8 +11,6 @@ import {
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
-import { NetworkSelector } from '$/schema/Network.ts'
-
 const superchainNetworkApplicability = [
 	{
 		caip2: networkBySlug.base.caip2,
@@ -29,7 +27,7 @@ export default {
 		defineResolver(Source.Superchain_Github, {
 			entityType: EntityType.Network,
 			resolve: {
-				[NetworkSelector.Caip2]: {
+				Caip2: {
 					appliesTo: superchainNetworkApplicability,
 					resolve: async ({ caip2 }) => {
 
@@ -74,7 +72,7 @@ export default {
 		defineResolver(Source.Superchain_Github, {
 			entityType: EntityType.Network,
 			resolve: {
-				[NetworkSelector.Caip2]: {
+				Caip2: {
 					appliesTo: superchainNetworkApplicability,
 					resolve: async ({ caip2 }) => {
 						const { superchainMainnetIdentifier } = await import('$/sources/Superchain/Github/constants.ts')
@@ -134,7 +132,7 @@ export default {
 		defineResolver(Source.Superchain_Github, {
 			entityType: EntityType.Network,
 			resolve: {
-				[NetworkSelector.Caip2]: {
+				Caip2: {
 					appliesTo: superchainNetworkApplicability,
 					resolve: async ({ caip2 }) => {
 						const { superchainMainnetIdentifier } = await import('$/sources/Superchain/Github/constants.ts')

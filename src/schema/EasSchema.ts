@@ -1,15 +1,12 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { entity, facet } from '$/schema/$schema.ts'
+import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { EvmAddress, ZeroExHex } from '$/schema/ZeroExHex.ts'
 import { type } from 'arktype'
 
-export enum EasSchemaSelector {
-	NetworkSchemaUid = 'NetworkSchemaUid',
-}
-export const EasSchema = entity({
+export default entity({
 	entityType: EntityType.EasSchema,
 	labels: {
 		singular: 'EAS schema',
@@ -25,7 +22,7 @@ export const EasSchema = entity({
 	schemaUid: {
 		label: 'Schema UID',
 		type: EntityFieldType.Primitive,
-		primitiveType: (ZeroExHex),
+		primitiveType: ZeroExHex,
 		cardinality: EntityFieldCardinality.One,
 	},
 	schema: {
@@ -37,7 +34,7 @@ export const EasSchema = entity({
 	resolver: {
 		label: 'Resolver',
 		type: EntityFieldType.Primitive,
-		primitiveType: (EvmAddress),
+		primitiveType: EvmAddress,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$resolverContract: {
@@ -55,7 +52,7 @@ export const EasSchema = entity({
 	registerer: {
 		label: 'Registerer',
 		type: EntityFieldType.Primitive,
-		primitiveType: (EvmAddress),
+		primitiveType: EvmAddress,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$registererAccount: {
@@ -73,7 +70,7 @@ export const EasSchema = entity({
 	registeredTransactionHash: {
 		label: 'Registered transaction hash',
 		type: EntityFieldType.Primitive,
-		primitiveType: (ZeroExHex),
+		primitiveType: ZeroExHex,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	registeredLogIndex: {

@@ -7,7 +7,6 @@
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
@@ -32,40 +31,12 @@
 
 
 <svelte:head>
-	<title>{(data.title ?? (pageSelection.entity == null ? (String(({
-		$network: data.selector,
-		slot: Number(params.slot),
-		kind: params.kind,
-		indexInSlot: Number(params.index),
-	}.indexInSlot) ?? '') ? 'Slashing #' + String(({
-		$network: data.selector,
-		slot: Number(params.slot),
-		kind: params.kind,
-		indexInSlot: Number(params.index),
-	}.indexInSlot) ?? '') : '') || 'beacon slashing' : (String((({ ...{
-		$network: data.selector,
-		slot: Number(params.slot),
-		kind: params.kind,
-		indexInSlot: Number(params.index),
-	}, ...pageSelection.entity }).indexInSlot) ?? '') ? 'Slashing #' + String((({ ...{
-		$network: data.selector,
-		slot: Number(params.slot),
-		kind: params.kind,
-		indexInSlot: Number(params.index),
-	}, ...pageSelection.entity }).indexInSlot) ?? '') : '') || 'beacon slashing'))} • beacon slashing • Blockhead</title>
+	<title>{(data.title ?? ((String(pageSelection.entitySelector.indexInSlot ?? '') ? 'Slashing #' + String(pageSelection.entitySelector.indexInSlot ?? '') : '') || 'beacon slashing'))} • beacon slashing • Blockhead</title>
 </svelte:head>
 
 
 <Page>
 	<BeaconSlashingView
-		href={
-			resolve('/network/[network=networkCaip2OrNetworkSlug]/slot/[slot=nonNegativeInteger]/slashing/[kind=stringSegment]/[index=nonNegativeInteger]', {
-				network: params.network,
-				slot: params.slot,
-				kind: params.kind,
-				index: params.index,
-			})
-		}
 		selection={pageSelection}
 	/>
 </Page>

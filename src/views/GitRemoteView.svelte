@@ -2,13 +2,8 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
 
 
 	// Context
@@ -20,44 +15,20 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.GitRemote>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.GitRemote>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.GitRemote> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const gitRemote = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {
-			url: true,
-			transportKind: true,
-			hostKind: true,
-		},
-	} : {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const gitRemote = $derived(selection({
 		fields: {
 			url: true,
 			transportKind: true,
 			hostKind: true,
 		},
 	}))
-	const titleFallback = $derived([String((pendingEntity.remoteName) ?? '')].filter(Boolean).join(' ') || 'Git remote')
-	const viewDomId = $derived('git-remote-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const titleFallback = $derived((pendingEntity.remoteName ?? '') || 'Git remote')
 
 
 	// Components
@@ -69,93 +40,44 @@
 
 <EntityView
 	entityType={EntityType.GitRemote}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'url') && Object.hasOwn(prefetched, 'transportKind') && Object.hasOwn(prefetched, 'hostKind')}
-			{[String((pendingEntity.remoteName) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-		{:else}
-			<ResourceBoundary resource={gitRemote}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.remoteName) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		{(pendingEntity.remoteName ?? '') || 'Git remote'}
 	{/snippet}
 
 	{#snippet Value()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'url') && Object.hasOwn(prefetched, 'transportKind') && Object.hasOwn(prefetched, 'hostKind')}
-			{@const url0 = pendingEntity.url}
-			{#if url0 !== undefined && url0 !== null}
-				<svelte:element
-					this={'a'}
-					href={String(url0)}
+		<ResourceBoundary resource={gitRemote}>
+			{#snippet children(entity)}
+				<a
+					href={String(entity.url)}
 					target="_blank"
 					rel="noreferrer noopener"
 				>
-					<TruncatedValue value={String(url0)} />
-				</svelte:element>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={gitRemote}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const url0 = resolvedEntity.url}
-					{#if url0 !== undefined && url0 !== null}
-						<svelte:element
-							this={'a'}
-							href={String(url0)}
-							target="_blank"
-							rel="noreferrer noopener"
-						>
-							<TruncatedValue value={String(url0)} />
-						</svelte:element>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+					<TruncatedValue value={String(entity.url)} />
+				</a>
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'url') && Object.hasOwn(prefetched, 'transportKind') && Object.hasOwn(prefetched, 'hostKind')}
-			{@const transportKind0 = pendingEntity.transportKind}
-			{#if transportKind0 !== undefined && transportKind0 !== null}
+		<ResourceBoundary resource={gitRemote}>
+			{#snippet children(entity)}
 				<span data-text="muted">
-					{String((transportKind0) ?? '')}
+					{entity.transportKind}
 				</span>
-			{/if}
-			{@const hostKind1 = pendingEntity.hostKind}
-			{#if hostKind1 !== undefined && hostKind1 !== null}
-				<span data-text="muted">
-					{String((hostKind1) ?? '')}
-				</span>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={gitRemote}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const transportKind0 = resolvedEntity.transportKind}
-					{#if transportKind0 !== undefined && transportKind0 !== null}
-						<span data-text="muted">
-							{String((transportKind0) ?? '')}
-						</span>
-					{/if}
-					{@const hostKind1 = resolvedEntity.hostKind}
-					{#if hostKind1 !== undefined && hostKind1 !== null}
-						<span data-text="muted">
-							{String((hostKind1) ?? '')}
-						</span>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+				{@const hostKind1 = entity.hostKind}
+				{#if hostKind1 != null}
+					<span data-text="muted">
+						{hostKind1}
+					</span>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -174,24 +96,7 @@
 			<div>
 				<dt>remote name</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									remoteName: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const remoteName = resolvedEntity.remoteName}
-							{#if remoteName !== undefined && remoteName !== null}
-								{String((remoteName) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{pendingEntity.remoteName}
 				</dd>
 			</div>
 
@@ -199,28 +104,16 @@
 				<dt>URL</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									url: true,
-								},
-							})
-						}
+						resource={gitRemote}
 					>
 						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const url = resolvedEntity.url}
-							{#if url !== undefined && url !== null}
-								<svelte:element
-									this={'a'}
-									href={String(url)}
-									target="_blank"
-									rel="noreferrer noopener"
-								>
-									<TruncatedValue value={String(url)} />
-								</svelte:element>
-							{/if}
+							<a
+								href={String(entity.url)}
+								target="_blank"
+								rel="noreferrer noopener"
+							>
+								<TruncatedValue value={String(entity.url)} />
+							</a>
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -230,44 +123,25 @@
 				<dt>transport kind</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									transportKind: true,
-								},
-							})
-						}
+						resource={gitRemote}
 					>
 						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const transportKind = resolvedEntity.transportKind}
-							{#if transportKind !== undefined && transportKind !== null}
-								{String((transportKind) ?? '')}
-							{/if}
+							{entity.transportKind}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
 			</div>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							hostKind: true,
-						},
-					})
-				}
+				resource={gitRemote}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const hostKind = resolvedEntity.hostKind}
-					{#if hostKind !== undefined && hostKind !== null}
+					{@const hostKind = entity.hostKind}
+					{#if hostKind != null}
 						<div>
 							<dt>host kind</dt>
 							<dd>
-								{String((hostKind) ?? '')}
+								{hostKind}
 							</dd>
 						</div>
 					{/if}
@@ -277,7 +151,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							source: true,
 						},
@@ -285,13 +158,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const source = resolvedEntity.source}
-					{#if source !== undefined && source !== null}
+					{@const source = entity.source}
+					{#if source != null}
 						<div>
 							<dt>Source</dt>
 							<dd>
-								{String((source) ?? '')}
+								{source}
 							</dd>
 						</div>
 					{/if}

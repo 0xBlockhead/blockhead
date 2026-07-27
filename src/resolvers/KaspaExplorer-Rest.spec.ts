@@ -6,9 +6,17 @@ import {
 	EntityMetaKey,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import { KaspaAddressSelector } from '$/schema/KaspaAddress.ts'
 import { Source } from '$/sources/Source.ts'
-import { sourceProviderDefinitions } from '$/sources/$sourceProviders.ts'
+import bindings from '$/sources/KaspaExplorer/bindings.ts'
+import {
+	ApiFamily,
+	SourceCredentialScope,
+	SourceDelivery,
+	SourceEndpointKind,
+	SourceOperationGroup,
+	SourceTargetKind,
+	WireProtocol,
+} from '$/sources/SourceBinding.ts'
 
 const {
 	getAddressBalance,
@@ -51,12 +59,7 @@ if (
 )
 	throw new Error('KaspaExplorer-Rest spec missing address resolvers')
 
-const binding = sourceProviderDefinitions
-	.flatMap((provider) => provider.bindings)
-	.find((candidate) => candidate.source === Source.KaspaExplorer_Rest)
-
-if (binding == null)
-	throw new Error('KaspaExplorer-Rest spec missing source binding')
+const binding = bindings[Source.KaspaExplorer_Rest]
 
 const network = {
 	$network: {
@@ -86,8 +89,28 @@ describe('Kaspa Explorer address resolver', () => {
 	})
 
 	it('declares canonical Kaspa selector applicability and source authority', () => {
+		expect(binding).toEqual(expect.objectContaining({
+			source: Source.KaspaExplorer_Rest,
+			target: {
+				kind: SourceTargetKind.Global,
+				key: 'kaspa-explorer-api',
+			},
+			endpoints: [{
+				endpointKind: SourceEndpointKind.HttpUrl,
+				locator: 'https://{kaspa-explorer-api-host}',
+				origin: 'https://{kaspa-explorer-api-host}',
+				corsEnabled: false,
+			}],
+			wireProtocol: WireProtocol.HttpRest,
+			apiFamily: ApiFamily.RestJson,
+			operationGroups: [SourceOperationGroup.GenericRead],
+			delivery: SourceDelivery.RemoteQuery,
+			credentials: [{
+				scope: SourceCredentialScope.None,
+			}],
+		}))
 		expect(observationsResolver.resolve[
-			KaspaAddressSelector.NetworkAddress
+			'NetworkAddress'
 		].appliesTo).toEqual([{
 			$network: {
 				$network: {
@@ -111,14 +134,14 @@ describe('Kaspa Explorer address resolver', () => {
 		})
 
 		const observations = await observationsResolver.resolve[
-			KaspaAddressSelector.NetworkAddress
+			'NetworkAddress'
 		].resolve(address, resolverContext)
 		const projection = observationsResolver.projections.$$timestamps
 		if (typeof projection !== 'function')
 			throw new Error('KaspaExplorer-Rest spec missing timestamp projection')
 		const [observation] = projection(observations, address, resolverContext)
 
-		expect(getAddressBalance).toHaveBeenCalledWith(binding, address.address)
+		expect(getAddressBalance).toHaveBeenCalledWith(address.address)
 		expect(observation[EntityMetaKey.Selector]).toEqual({
 			$address: address,
 			timestampMs: 1_720_000_000_000,
@@ -162,7 +185,7 @@ describe('Kaspa Explorer address resolver', () => {
 		])
 
 		const utxos = await utxosResolver.resolve[
-			KaspaAddressSelector.NetworkAddress
+			'NetworkAddress'
 		].resolve(address, resolverContext)
 		const projection = utxosResolver.projections.$$utxos
 		if (typeof projection !== 'function')
@@ -205,7 +228,7 @@ describe('Kaspa Explorer address resolver', () => {
 		])
 
 		const page = await transactionsResolver.resolve[
-			KaspaAddressSelector.NetworkAddress
+			'NetworkAddress'
 		].resolve(address, {
 			...resolverContext,
 			providerContinuationToken: '1720000001000',
@@ -220,7 +243,6 @@ describe('Kaspa Explorer address resolver', () => {
 		const transactions = projection.select(page, address, resolverContext)
 
 		expect(getAddressTransactionsPage).toHaveBeenCalledWith(
-			binding,
 			{
 				address: address.address,
 				limit: 2,
@@ -250,7 +272,7 @@ describe('Kaspa Explorer address resolver', () => {
 
 	it('fails before transport for foreign networks and refuses partial UTXO snapshots', async () => {
 		await expect(observationsResolver.resolve[
-			KaspaAddressSelector.NetworkAddress
+			'NetworkAddress'
 		].resolve({
 			$network: {
 				$network: {
@@ -267,7 +289,7 @@ describe('Kaspa Explorer address resolver', () => {
 			{},
 		])
 		await expect(utxosResolver.resolve[
-			KaspaAddressSelector.NetworkAddress
+			'NetworkAddress'
 		].resolve(address, resolverContext)).rejects.toThrow('exceeds the requested row limit')
 	})
 })

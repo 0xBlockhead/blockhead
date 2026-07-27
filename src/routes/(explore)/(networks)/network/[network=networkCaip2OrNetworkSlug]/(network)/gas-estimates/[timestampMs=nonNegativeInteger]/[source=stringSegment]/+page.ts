@@ -6,7 +6,7 @@ import { networkByCaip2, networkBySlug } from '$/constants/Network.ts'
 import { match as matchNonNegativeInteger } from '$/params/nonNegativeInteger.ts'
 import { match as matchStringSegment } from '$/params/stringSegment.ts'
 import { parseEntitySelector } from '$/schema/$schema.ts'
-import { EvmNetwork_GasEstimate_Timestamp as EvmNetwork_GasEstimate_TimestampSchema } from '$/schema/EvmNetwork_GasEstimate_Timestamp.ts'
+import EvmNetwork_GasEstimate_TimestampSchema from '$/schema/EvmNetwork_GasEstimate_Timestamp.ts'
 import { schema } from '$/schema/index.ts'
 import { type as arktype } from 'arktype'
 

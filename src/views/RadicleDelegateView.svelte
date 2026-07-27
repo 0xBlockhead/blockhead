@@ -2,13 +2,8 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
 
 
 	// Context
@@ -20,35 +15,13 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.RadicleDelegate>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.RadicleDelegate>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.RadicleDelegate> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const radicleDelegate = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {},
-	} : {
-		sources: selection.sources,
-	}))
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const titleFallback = 'radicle delegate'
-	const viewDomId = $derived('radicle-delegate-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -59,24 +32,14 @@
 
 <EntityView
 	entityType={EntityType.RadicleDelegate}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails}
-			{title || titleFallback}
-		{:else}
-			<ResourceBoundary resource={radicleDelegate}>
-				{#snippet children(entity)}
-					{title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		radicle delegate
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -95,31 +58,13 @@
 			<div>
 				<dt>DID</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									did: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const did = resolvedEntity.did}
-							{#if did !== undefined && did !== null}
-								{String((did) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{pendingEntity.did}
 				</dd>
 			</div>
 
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							role: true,
 						},
@@ -127,13 +72,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const role = resolvedEntity.role}
-					{#if role !== undefined && role !== null}
+					{@const role = entity.role}
+					{#if role != null}
 						<div>
 							<dt>role</dt>
 							<dd>
-								{String((role) ?? '')}
+								{role}
 							</dd>
 						</div>
 					{/if}
@@ -143,7 +87,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							validFromRevision: true,
 						},
@@ -151,13 +94,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const validFromRevision = resolvedEntity.validFromRevision}
-					{#if validFromRevision !== undefined && validFromRevision !== null}
+					{@const validFromRevision = entity.validFromRevision}
+					{#if validFromRevision != null}
 						<div>
 							<dt>valid from revision</dt>
 							<dd>
-								{String((validFromRevision) ?? '')}
+								{validFromRevision}
 							</dd>
 						</div>
 					{/if}
@@ -167,7 +109,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							validToRevision: true,
 						},
@@ -175,13 +116,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const validToRevision = resolvedEntity.validToRevision}
-					{#if validToRevision !== undefined && validToRevision !== null}
+					{@const validToRevision = entity.validToRevision}
+					{#if validToRevision != null}
 						<div>
 							<dt>valid to revision</dt>
 							<dd>
-								{String((validToRevision) ?? '')}
+								{validToRevision}
 							</dd>
 						</div>
 					{/if}

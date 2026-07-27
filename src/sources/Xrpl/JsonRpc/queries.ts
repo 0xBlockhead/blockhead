@@ -13,17 +13,20 @@ import type {
 	XrplMarker,
 	XrplServerInfoResult,
 } from '$/sources/Xrpl/JsonRpc/types.ts'
+import bindings from '$/sources/Xrpl/bindings.ts'
+import { Source } from '$/sources/Source.ts'
 
-export const getServerInfo = (binding: SourceBinding) => (
+const binding = bindings[Source.Xrpl_Rippled]
+
+export const getServerInfo = () => (
 	jsonRpc2<XrplServerInfoResult>(binding, 'server_info')
 )
 
-export const getValidatedLedger = (binding: SourceBinding) => (
+export const getValidatedLedger = () => (
 	jsonRpc2<XrplLedgerResult>(binding, 'ledger', [{ ledger_index: 'validated' }])
 )
 
 export const getValidatedLedgerData = (
-	binding: SourceBinding,
 	limit: number,
 	ledgerIndex: XrplLedgerSpecifier = 'validated',
 	marker?: XrplMarker
@@ -41,7 +44,7 @@ export const getValidatedLedgerData = (
 	}])
 }
 
-export const getValidatedLedgerTransactions = (binding: SourceBinding) => (
+export const getValidatedLedgerTransactions = () => (
 	jsonRpc2<XrplLedgerWithTransactionsResult>(binding, 'ledger', [{
 		ledger_index: 'validated',
 		transactions: true,
@@ -49,12 +52,11 @@ export const getValidatedLedgerTransactions = (binding: SourceBinding) => (
 	}])
 )
 
-export const getFeatures = (binding: SourceBinding) => (
+export const getFeatures = () => (
 	jsonRpc2<XrplFeatureResult>(binding, 'feature')
 )
 
 export const getAccountInfo = (
-	binding: SourceBinding,
 	account: string,
 	ledgerIndex: XrplLedgerSpecifier = 'validated'
 ) => (
@@ -65,7 +67,6 @@ export const getAccountInfo = (
 )
 
 export const getAccountObjects = (
-	binding: SourceBinding,
 	account: string,
 	limit: number,
 	marker?: XrplMarker
@@ -84,7 +85,6 @@ export const getAccountObjects = (
 }
 
 export const getAccountLines = (
-	binding: SourceBinding,
 	account: string,
 	limit: number,
 	marker?: XrplMarker
@@ -103,7 +103,6 @@ export const getAccountLines = (
 }
 
 export const getAccountTransactions = (
-	binding: SourceBinding,
 	account: string,
 	limit: number,
 	marker?: XrplMarker

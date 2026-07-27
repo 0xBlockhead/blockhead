@@ -5,7 +5,7 @@ import {
 	SourceDelivery,
 	SourceTargetKind,
 } from '$/sources/SourceBinding.ts'
-import { sourceProviderDefinitions } from '$/sources/$sourceProviders.ts'
+import bindings from '$/sources/Sui/bindings.ts'
 
 const graphql = vi.hoisted(() => vi.fn())
 
@@ -18,11 +18,7 @@ const {
 	getAddressTransactions,
 } = await import('$/sources/Sui/Graphql/queries.ts')
 
-const binding = sourceProviderDefinitions
-	.flatMap((provider) => provider.bindings)
-	.find((candidate) => candidate.source === Source.Sui_Graphql)
-if (binding == null)
-	throw new Error('Sui GraphQL source binding is missing')
+const binding = bindings[Source.Sui_Graphql]
 
 const address = `0x${'1'.repeat(64)}`
 const pageInfo = {
@@ -53,7 +49,7 @@ describe('Sui GraphQL account portfolio queries', () => {
 			},
 		})
 
-		await expect(getAddressBalances(binding, {
+		await expect(getAddressBalances({
 			address,
 			limit: 10,
 			after: 'current-cursor',
@@ -106,7 +102,7 @@ describe('Sui GraphQL account portfolio queries', () => {
 			},
 		})
 
-		await expect(getAddressTransactions(binding, {
+		await expect(getAddressTransactions({
 			address,
 			limit: 1,
 		})).resolves.toEqual({
@@ -143,7 +139,7 @@ describe('Sui GraphQL account portfolio queries', () => {
 			},
 		})
 
-		await expect(getAddressBalances(binding, {
+		await expect(getAddressBalances({
 			address: '0x2',
 			limit: 1,
 		})).resolves.toMatchObject({
@@ -201,7 +197,7 @@ describe('Sui GraphQL account portfolio queries', () => {
 		]
 		for (const payload of balanceFailures) {
 			graphql.mockResolvedValueOnce(payload)
-			await expect(getAddressBalances(binding, {
+			await expect(getAddressBalances({
 				address,
 				limit: 2,
 			})).rejects.toThrow()
@@ -240,7 +236,7 @@ describe('Sui GraphQL account portfolio queries', () => {
 			},
 		]) {
 			graphql.mockResolvedValueOnce(payload)
-			await expect(getAddressTransactions(binding, {
+			await expect(getAddressTransactions({
 				address,
 				limit: 2,
 			})).rejects.toThrow()
@@ -258,7 +254,7 @@ describe('Sui GraphQL account portfolio queries', () => {
 				nodes: [],
 			},
 		})
-		await expect(getAddressTransactions(binding, {
+		await expect(getAddressTransactions({
 			address,
 			limit: 2,
 			after: 'current-cursor',
@@ -275,20 +271,9 @@ describe('Sui GraphQL account portfolio queries', () => {
 			{ address, limit: 0.5 },
 			{ address, limit: 1, after: '' },
 		])
-			await expect(getAddressBalances(binding, request)).rejects.toThrow()
+			await expect(getAddressBalances(request)).rejects.toThrow()
 
-		await expect(getAddressBalances({
-			...binding,
-			target: {
-				kind: SourceTargetKind.Global,
-				key: 'sui',
-			},
-		}, {
-			address,
-			limit: 1,
-		})).rejects.toThrow('canonical Sui network binding')
-
-		await expect(getAddressTransactions(binding, {
+		await expect(getAddressTransactions({
 			address,
 			limit: 0,
 			after: 'cursor',

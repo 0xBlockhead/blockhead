@@ -1,14 +1,11 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { entity, facet } from '$/schema/$schema.ts'
+import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { type } from 'arktype'
 
-export enum SolanaTokenAccount_TimestampSelector {
-	TokenAccountSlotSource = 'TokenAccountSlotSource',
-}
-export const SolanaTokenAccount_Timestamp = entity({
+export default entity({
 	entityType: EntityType.SolanaTokenAccount_Timestamp,
 	labels: {
 		singular: 'solana token account timestamp',

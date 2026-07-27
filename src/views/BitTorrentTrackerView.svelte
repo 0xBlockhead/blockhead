@@ -2,13 +2,8 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
 
 
 	// State
@@ -16,40 +11,18 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.BitTorrentTracker>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.BitTorrentTracker>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.BitTorrentTracker> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const bitTorrentTracker = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {
-			trackerKind: true,
-		},
-	} : {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const bitTorrentTracker = $derived(selection({
 		fields: {
 			trackerKind: true,
 		},
 	}))
-	const titleFallback = $derived([String((pendingEntity.trackerUrl) ?? '')].filter(Boolean).join(' ') || 'bit torrent tracker')
-	const viewDomId = $derived('bit-torrent-tracker-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const titleFallback = $derived((pendingEntity.trackerUrl ?? '') || 'bit torrent tracker')
 
 
 	// Components
@@ -62,38 +35,22 @@
 
 <EntityView
 	entityType={EntityType.BitTorrentTracker}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'trackerKind')}
-			{[String((pendingEntity.trackerUrl) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-		{:else}
-			<ResourceBoundary resource={bitTorrentTracker}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.trackerUrl) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		{(pendingEntity.trackerUrl ?? '') || 'bit torrent tracker'}
 	{/snippet}
 
 	{#snippet Value()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'trackerKind')}
-			{[String((pendingEntity.trackerKind) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.trackerUrl) ?? '')].filter(Boolean).join(' ') || titleFallback}
-		{:else}
-			<ResourceBoundary resource={bitTorrentTracker}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.trackerKind) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.trackerUrl) ?? '')].filter(Boolean).join(' ') || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={bitTorrentTracker}>
+			{#snippet children(entity)}
+				{entity.trackerKind || pendingEntity.trackerUrl || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -101,31 +58,13 @@
 			<div>
 				<dt>tracker URL</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									trackerUrl: true,
-								},
-							})
-						}
+					<a
+						href={String(pendingEntity.trackerUrl)}
+						target="_blank"
+						rel="noreferrer noopener"
 					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const trackerUrl = resolvedEntity.trackerUrl}
-							{#if trackerUrl !== undefined && trackerUrl !== null}
-								<svelte:element
-									this={'a'}
-									href={String(trackerUrl)}
-									target="_blank"
-									rel="noreferrer noopener"
-								>
-									<TruncatedValue value={String(trackerUrl)} />
-								</svelte:element>
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+						<TruncatedValue value={String(pendingEntity.trackerUrl)} />
+					</a>
 				</dd>
 			</div>
 
@@ -133,21 +72,10 @@
 				<dt>tracker kind</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									trackerKind: true,
-								},
-							})
-						}
+						resource={bitTorrentTracker}
 					>
 						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const trackerKind = resolvedEntity.trackerKind}
-							{#if trackerKind !== undefined && trackerKind !== null}
-								{String((trackerKind) ?? '')}
-							{/if}
+							{entity.trackerKind}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -162,12 +90,12 @@
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
-				<BitTorrentAnnounce_TimestampsView
-					selection={bitTorrentTrackerBitTorrentAnnounceTimestampsViewAnnouncesResource}
-					countResource={bitTorrentTrackerBitTorrentAnnounceTimestampsViewAnnouncesResource.count}
-					title='announces'
-					id='BitTorrentAnnounce_TimestampsView-announces'
-				/>
+					<BitTorrentAnnounce_TimestampsView
+						selection={bitTorrentTrackerBitTorrentAnnounceTimestampsViewAnnouncesResource}
+						countResource={bitTorrentTrackerBitTorrentAnnounceTimestampsViewAnnouncesResource.count}
+						title='announces'
+						id='announces'
+					/>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>
@@ -177,12 +105,12 @@
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
-				<BitTorrentTrackerScrape_TimestampsView
-					selection={bitTorrentTrackerBitTorrentTrackerScrapeTimestampsViewScrapesResource}
-					countResource={bitTorrentTrackerBitTorrentTrackerScrapeTimestampsViewScrapesResource.count}
-					title='scrapes'
-					id='BitTorrentTrackerScrape_TimestampsView-scrapes'
-				/>
+					<BitTorrentTrackerScrape_TimestampsView
+						selection={bitTorrentTrackerBitTorrentTrackerScrapeTimestampsViewScrapesResource}
+						countResource={bitTorrentTrackerBitTorrentTrackerScrapeTimestampsViewScrapesResource.count}
+						title='scrapes'
+						id='scrapes'
+					/>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>

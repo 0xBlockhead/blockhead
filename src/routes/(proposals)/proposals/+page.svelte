@@ -2,12 +2,11 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
@@ -23,29 +22,15 @@
 
 
 <Page>
+	{@const collectionSelection = select(EntityType._Global, {
+		scope: '$$specificationRealms',
+	}).$$specificationRealms}
+
 	<SpecificationRealmsView
-		href={resolve('/proposals')}
+		href={resolve('/(proposals)/proposals')}
 		title='Proposals'
-		selection={
-			select(EntityType._Global, {
-				scope: '$$specificationRealms',
-			})
-				.$$specificationRealms({
-					sources: [
-						Source.Constants_Internal,
-					],
-				})
-		}
-		countResource={
-			select(EntityType._Global, {
-				scope: '$$specificationRealms',
-			})
-				.$$specificationRealms({
-					sources: [
-						Source.Constants_Internal,
-					],
-				}).count
-		}
+		selection={collectionSelection}
+		countResource={collectionSelection.count}
 		id='specification-realms'
 		data-column-item="flexible"
 		data-card

@@ -4,12 +4,14 @@ import type {
 	CometBftBlockResponse,
 	CometBftTxResponse,
 } from '$/sources/CometBft/Rest/types.ts'
+import bindings from '$/sources/CometBft/bindings.ts'
+import { Source } from '$/sources/Source.ts'
+
+const binding = bindings[Source.CometBft_Rest]
 
 export const getBlock = ({
-	binding,
 	height,
 }: {
-	binding: SourceBinding
 	height: bigint
 }) => (
 	getJson<CometBftBlockResponse>(
@@ -19,10 +21,8 @@ export const getBlock = ({
 )
 
 export const getTx = ({
-	binding,
 	txHash,
 }: {
-	binding: SourceBinding
 	txHash: string
 }) => (
 	getJson<CometBftTxResponse>(

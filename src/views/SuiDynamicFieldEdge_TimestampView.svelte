@@ -2,13 +2,8 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
 
 
 	// Context
@@ -20,35 +15,13 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.SuiDynamicFieldEdge_Timestamp>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.SuiDynamicFieldEdge_Timestamp>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.SuiDynamicFieldEdge_Timestamp> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const suiDynamicFieldEdgeTimestamp = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {},
-	} : {
-		sources: selection.sources,
-	}))
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const titleFallback = 'Sui dynamic field edge timestamp'
-	const viewDomId = $derived('sui-dynamic-field-edge-timestamp-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -60,24 +33,14 @@
 
 <EntityView
 	entityType={EntityType.SuiDynamicFieldEdge_Timestamp}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails}
-			{title || titleFallback}
-		{:else}
-			<ResourceBoundary resource={suiDynamicFieldEdgeTimestamp}>
-				{#snippet children(entity)}
-					{title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		Sui dynamic field edge timestamp
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -96,55 +59,20 @@
 			<div>
 				<dt>checkpoint sequence</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									checkpointSequence: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const checkpointSequence = resolvedEntity.checkpointSequence}
-							{#if checkpointSequence !== undefined && checkpointSequence !== null}
-								{String((checkpointSequence) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{String(pendingEntity.checkpointSequence)}
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									source: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const source = resolvedEntity.source}
-							{#if source !== undefined && source !== null}
-								{String((source) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{pendingEntity.source}
 				</dd>
 			</div>
 
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							timestampMs: true,
 						},
@@ -152,9 +80,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const timestampMs = resolvedEntity.timestampMs}
-					{#if timestampMs !== undefined && timestampMs !== null}
+					{@const timestampMs = entity.timestampMs}
+					{#if timestampMs != null}
 						<div>
 							<dt>Timestamp</dt>
 							<dd>
@@ -168,7 +95,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							fieldType: true,
 						},
@@ -176,13 +102,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const fieldType = resolvedEntity.fieldType}
-					{#if fieldType !== undefined && fieldType !== null}
+					{@const fieldType = entity.fieldType}
+					{#if fieldType != null}
 						<div>
 							<dt>field type</dt>
 							<dd>
-								{String((fieldType) ?? '')}
+								{fieldType}
 							</dd>
 						</div>
 					{/if}
@@ -192,7 +117,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							childObjectType: true,
 						},
@@ -200,13 +124,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const childObjectType = resolvedEntity.childObjectType}
-					{#if childObjectType !== undefined && childObjectType !== null}
+					{@const childObjectType = entity.childObjectType}
+					{#if childObjectType != null}
 						<div>
 							<dt>child object type</dt>
 							<dd>
-								{String((childObjectType) ?? '')}
+								{childObjectType}
 							</dd>
 						</div>
 					{/if}
@@ -216,7 +139,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							deleted: true,
 						},
@@ -224,9 +146,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const deleted = resolvedEntity.deleted}
-					{#if deleted !== undefined && deleted !== null}
+					{@const deleted = entity.deleted}
+					{#if deleted != null}
 						<div>
 							<dt>deleted</dt>
 							<dd>

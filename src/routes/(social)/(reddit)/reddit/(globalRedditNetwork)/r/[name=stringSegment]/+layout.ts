@@ -5,7 +5,7 @@ import { error } from '@sveltejs/kit'
 import { match as matchStringSegment } from '$/params/stringSegment.ts'
 import { parseEntitySelector } from '$/schema/$schema.ts'
 import { schema } from '$/schema/index.ts'
-import { RedditSubreddit as RedditSubredditSchema } from '$/schema/RedditSubreddit.ts'
+import RedditSubredditSchema from '$/schema/RedditSubreddit.ts'
 import { type as arktype } from 'arktype'
 
 export const load: LayoutLoad = ({ params }) => {

@@ -30,22 +30,28 @@
 {#key params.specificationRealmSlug}
 	<ParentPageCollapsible
 		href={
-			resolve('/proposals/[specificationRealmSlug=specificationRealmSlug]', {
-				specificationRealmSlug: params.specificationRealmSlug,
-			})
+			resolve(
+				'/(proposals)/proposals/[specificationRealmSlug=specificationRealmSlug]',
+				{
+					specificationRealmSlug: String(params.specificationRealmSlug),
+				}
+			)
 		}
 	>
 		{#snippet Summary()}
-			{@const DetailView = SpecificationRealmView}
-
-			<DetailView
-				selection={select(EntityType.SpecificationRealm, data.selector, { sources: [
-		Source.Constants_Internal,
-	] })}
+			<SpecificationRealmView
+				selection={
+					select(EntityType.SpecificationRealm, data.selector, { sources: [
+						Source.Constants_Internal,
+					] })
+				}
 				href={
-					resolve('/proposals/[specificationRealmSlug=specificationRealmSlug]', {
-						specificationRealmSlug: params.specificationRealmSlug,
-					})
+					resolve(
+						'/(proposals)/proposals/[specificationRealmSlug=specificationRealmSlug]',
+						{
+							specificationRealmSlug: String(params.specificationRealmSlug),
+						}
+					)
 				}
 				layout={EntityLayout.SummaryInline}
 			/>

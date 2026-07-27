@@ -2,13 +2,9 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -20,42 +16,24 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.McpServer_Timestamp>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.McpServer_Timestamp>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.McpServer_Timestamp> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const mcpServerTimestamp = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {
-			health: true,
-			error: true,
-		},
-	} : {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const viewSelection = $derived(selection({
+		sources: selection.sources ?? [
+			Source.McpDeclared_Protocol,
+		],
+	}))
+	const mcpServerTimestamp = $derived(viewSelection({
 		fields: {
 			health: true,
 			error: true,
 		},
 	}))
-	const titleFallback = $derived([String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || 'mcp server timestamp')
-	const viewDomId = $derived('mcp-server-timestamp-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const titleFallback = $derived(String(pendingEntity.timestampMs ?? '') || 'mcp server timestamp')
 
 
 	// Components
@@ -68,67 +46,35 @@
 
 <EntityView
 	entityType={EntityType.McpServer_Timestamp}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'health') && Object.hasOwn(prefetched, 'error')}
-			{@const timestampMs0 = pendingEntity.timestampMs}
-			{#if timestampMs0 !== undefined && timestampMs0 !== null}
-				<Timestamp timestamp={Number(timestampMs0)} />
-			{/if}
-		{:else}
-			<ResourceBoundary resource={mcpServerTimestamp}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const timestampMs0 = resolvedEntity.timestampMs}
-					{#if timestampMs0 !== undefined && timestampMs0 !== null}
-						<Timestamp timestamp={Number(timestampMs0)} />
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
 	{/snippet}
 
 	{#snippet Value()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'health') && Object.hasOwn(prefetched, 'error')}
-			{[String((pendingEntity.health) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || titleFallback}
-		{:else}
-			<ResourceBoundary resource={mcpServerTimestamp}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.health) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={mcpServerTimestamp}>
+			{#snippet children(entity)}
+				{(entity.health ?? '') || String(pendingEntity.timestampMs) || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'health') && Object.hasOwn(prefetched, 'error')}
-			{@const error0 = pendingEntity.error}
-			{#if error0 !== undefined && error0 !== null}
-				<span data-text="muted">
-					{String((error0) ?? '')}
-				</span>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={mcpServerTimestamp}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const error0 = resolvedEntity.error}
-					{#if error0 !== undefined && error0 !== null}
-						<span data-text="muted">
-							{String((error0) ?? '')}
-						</span>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={mcpServerTimestamp}>
+			{#snippet children(entity)}
+				{@const error0 = entity.error}
+				{#if error0 != null}
+					<span data-text="muted">
+						{error0}
+					</span>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -147,69 +93,27 @@
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									timestampMs: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const timestampMs = resolvedEntity.timestampMs}
-							{#if timestampMs !== undefined && timestampMs !== null}
-								<Timestamp timestamp={Number(timestampMs)} />
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									source: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const source = resolvedEntity.source}
-							{#if source !== undefined && source !== null}
-								{String((source) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{pendingEntity.source}
 				</dd>
 			</div>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							health: true,
-						},
-					})
-				}
+				resource={mcpServerTimestamp}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const health = resolvedEntity.health}
-					{#if health !== undefined && health !== null}
+					{@const health = entity.health}
+					{#if health != null}
 						<div>
 							<dt>health</dt>
 							<dd>
-								{String((health) ?? '')}
+								{health}
 							</dd>
 						</div>
 					{/if}
@@ -218,8 +122,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							protocolVersion: true,
 						},
@@ -227,13 +130,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const protocolVersion = resolvedEntity.protocolVersion}
-					{#if protocolVersion !== undefined && protocolVersion !== null}
+					{@const protocolVersion = entity.protocolVersion}
+					{#if protocolVersion != null}
 						<div>
 							<dt>protocol version</dt>
 							<dd>
-								{String((protocolVersion) ?? '')}
+								{protocolVersion}
 							</dd>
 						</div>
 					{/if}
@@ -244,8 +146,7 @@
 		<dl data-column-item="center">
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							toolCount: true,
 						},
@@ -253,9 +154,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const toolCount = resolvedEntity.toolCount}
-					{#if toolCount !== undefined && toolCount !== null}
+					{@const toolCount = entity.toolCount}
+					{#if toolCount != null}
 						<div>
 							<dt>tool count</dt>
 							<dd>
@@ -270,8 +170,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							resourceCount: true,
 						},
@@ -279,9 +178,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const resourceCount = resolvedEntity.resourceCount}
-					{#if resourceCount !== undefined && resourceCount !== null}
+					{@const resourceCount = entity.resourceCount}
+					{#if resourceCount != null}
 						<div>
 							<dt>resource count</dt>
 							<dd>
@@ -296,8 +194,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							promptCount: true,
 						},
@@ -305,9 +202,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const promptCount = resolvedEntity.promptCount}
-					{#if promptCount !== undefined && promptCount !== null}
+					{@const promptCount = entity.promptCount}
+					{#if promptCount != null}
 						<div>
 							<dt>prompt count</dt>
 							<dd>
@@ -322,8 +218,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							nextCursor: true,
 						},
@@ -331,13 +226,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const nextCursor = resolvedEntity.nextCursor}
-					{#if nextCursor !== undefined && nextCursor !== null}
+					{@const nextCursor = entity.nextCursor}
+					{#if nextCursor != null}
 						<div>
 							<dt>next cursor</dt>
 							<dd>
-								{String((nextCursor) ?? '')}
+								{nextCursor}
 							</dd>
 						</div>
 					{/if}
@@ -345,23 +239,15 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							error: true,
-						},
-					})
-				}
+				resource={mcpServerTimestamp}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const error = resolvedEntity.error}
-					{#if error !== undefined && error !== null}
+					{@const error = entity.error}
+					{#if error != null}
 						<div>
 							<dt>error</dt>
 							<dd>
-								{String((error) ?? '')}
+								{error}
 							</dd>
 						</div>
 					{/if}
@@ -372,8 +258,7 @@
 		<dl data-column-item="center">
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							toolsListChanged: true,
 						},
@@ -381,9 +266,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const toolsListChanged = resolvedEntity.toolsListChanged}
-					{#if toolsListChanged !== undefined && toolsListChanged !== null}
+					{@const toolsListChanged = entity.toolsListChanged}
+					{#if toolsListChanged != null}
 						<div>
 							<dt>tools list changed</dt>
 							<dd>
@@ -396,8 +280,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							resourcesListChanged: true,
 						},
@@ -405,9 +288,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const resourcesListChanged = resolvedEntity.resourcesListChanged}
-					{#if resourcesListChanged !== undefined && resourcesListChanged !== null}
+					{@const resourcesListChanged = entity.resourcesListChanged}
+					{#if resourcesListChanged != null}
 						<div>
 							<dt>resources list changed</dt>
 							<dd>
@@ -420,8 +302,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							resourcesSubscribe: true,
 						},
@@ -429,9 +310,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const resourcesSubscribe = resolvedEntity.resourcesSubscribe}
-					{#if resourcesSubscribe !== undefined && resourcesSubscribe !== null}
+					{@const resourcesSubscribe = entity.resourcesSubscribe}
+					{#if resourcesSubscribe != null}
 						<div>
 							<dt>resources subscribe</dt>
 							<dd>
@@ -444,8 +324,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							promptsListChanged: true,
 						},
@@ -453,9 +332,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const promptsListChanged = resolvedEntity.promptsListChanged}
-					{#if promptsListChanged !== undefined && promptsListChanged !== null}
+					{@const promptsListChanged = entity.promptsListChanged}
+					{#if promptsListChanged != null}
 						<div>
 							<dt>prompts list changed</dt>
 							<dd>

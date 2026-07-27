@@ -2,13 +2,8 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
 
 
 	// Context
@@ -20,40 +15,18 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.BitTorrentPiece>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.BitTorrentPiece>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.BitTorrentPiece> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const bitTorrentPiece = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {
-			length: true,
-		},
-	} : {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const bitTorrentPiece = $derived(selection({
 		fields: {
 			length: true,
 		},
 	}))
-	const titleFallback = $derived([String((pendingEntity.pieceIndex) ?? '')].filter(Boolean).join(' ') || 'bit torrent piece')
-	const viewDomId = $derived('bit-torrent-piece-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const titleFallback = $derived(String(pendingEntity.pieceIndex ?? '') || 'bit torrent piece')
 
 
 	// Components
@@ -66,58 +39,29 @@
 
 <EntityView
 	entityType={EntityType.BitTorrentPiece}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'length')}
-			{@const pieceIndex0 = pendingEntity.pieceIndex}
-			{#if pieceIndex0 !== undefined && pieceIndex0 !== null}
-				<NumberValue
-					value={pieceIndex0}
-				/>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={bitTorrentPiece}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const pieceIndex0 = resolvedEntity.pieceIndex}
-					{#if pieceIndex0 !== undefined && pieceIndex0 !== null}
-						<NumberValue
-							value={pieceIndex0}
-						/>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<NumberValue
+			value={pendingEntity.pieceIndex}
+		/>
 	{/snippet}
 
 	{#snippet Value()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'length')}
-			{@const length0 = pendingEntity.length}
-			{#if length0 !== undefined && length0 !== null}
-				<NumberValue
-					value={length0}
-				/>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={bitTorrentPiece}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const length0 = resolvedEntity.length}
-					{#if length0 !== undefined && length0 !== null}
-						<NumberValue
-							value={length0}
-						/>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={bitTorrentPiece}>
+			{#snippet children(entity)}
+				{@const length0 = entity.length}
+				{#if length0 != null}
+					<NumberValue
+						value={length0}
+					/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -136,33 +80,15 @@
 			<div>
 				<dt>piece index</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									pieceIndex: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const pieceIndex = resolvedEntity.pieceIndex}
-							{#if pieceIndex !== undefined && pieceIndex !== null}
-								<NumberValue
-									value={pieceIndex}
-								/>
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					<NumberValue
+						value={pendingEntity.pieceIndex}
+					/>
 				</dd>
 			</div>
 
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							pieceHashV1: true,
 						},
@@ -170,13 +96,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const pieceHashV1 = resolvedEntity.pieceHashV1}
-					{#if pieceHashV1 !== undefined && pieceHashV1 !== null}
+					{@const pieceHashV1 = entity.pieceHashV1}
+					{#if pieceHashV1 != null}
 						<div>
 							<dt>piece hash v1</dt>
 							<dd>
-								<TruncatedValue value={String((pieceHashV1) ?? '')} />
+								<TruncatedValue value={pieceHashV1} />
 							</dd>
 						</div>
 					{/if}
@@ -186,7 +111,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							pieceRootV2: true,
 						},
@@ -194,13 +118,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const pieceRootV2 = resolvedEntity.pieceRootV2}
-					{#if pieceRootV2 !== undefined && pieceRootV2 !== null}
+					{@const pieceRootV2 = entity.pieceRootV2}
+					{#if pieceRootV2 != null}
 						<div>
 							<dt>piece root v2</dt>
 							<dd>
-								{String((pieceRootV2) ?? '')}
+								{pieceRootV2}
 							</dd>
 						</div>
 					{/if}
@@ -210,7 +133,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							pieceLayerHash: true,
 						},
@@ -218,13 +140,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const pieceLayerHash = resolvedEntity.pieceLayerHash}
-					{#if pieceLayerHash !== undefined && pieceLayerHash !== null}
+					{@const pieceLayerHash = entity.pieceLayerHash}
+					{#if pieceLayerHash != null}
 						<div>
 							<dt>piece layer hash</dt>
 							<dd>
-								<TruncatedValue value={String((pieceLayerHash) ?? '')} />
+								<TruncatedValue value={pieceLayerHash} />
 							</dd>
 						</div>
 					{/if}
@@ -234,19 +155,11 @@
 
 		<dl data-column-item="center">
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							length: true,
-						},
-					})
-				}
+				resource={bitTorrentPiece}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const length = resolvedEntity.length}
-					{#if length !== undefined && length !== null}
+					{@const length = entity.length}
+					{#if length != null}
 						<div>
 							<dt>length</dt>
 							<dd>
@@ -262,7 +175,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							offset: true,
 						},
@@ -270,9 +182,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const offset = resolvedEntity.offset}
-					{#if offset !== undefined && offset !== null}
+					{@const offset = entity.offset}
+					{#if offset != null}
 						<div>
 							<dt>offset</dt>
 							<dd>

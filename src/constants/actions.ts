@@ -67,7 +67,7 @@ export const actionTypeDefinitions = [
 			tokenOut: EvmAddress.default(zeroAddress),
 			amount: type('bigint').default(0n),
 			slippage: type('0 <= number < 1').default(0.005),
-		}),
+		}).onUndeclaredKey('reject'),
 	},
 	{
 		type: ActionType.Bridge,
@@ -112,7 +112,7 @@ export const actionTypeDefinitions = [
 			tokenAddress: EvmAddress.default(zeroAddress),
 			amount: type('bigint').default(0n),
 			slippage: type('0 <= number < 1').default(0.005),
-		}),
+		}).onUndeclaredKey('reject'),
 	},
 	{
 		type: ActionType.Transfer,
@@ -157,7 +157,7 @@ export const actionTypeDefinitions = [
 			chainId: type('number.integer > 0').default(1),
 			tokenAddress: EvmAddress.default(zeroAddress),
 			amount: type('bigint').default(0n),
-		}),
+		}).onUndeclaredKey('reject'),
 	},
 ] as const
 

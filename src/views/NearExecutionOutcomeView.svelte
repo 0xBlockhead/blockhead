@@ -2,13 +2,8 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -21,42 +16,24 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.NearExecutionOutcome>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.NearExecutionOutcome>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.NearExecutionOutcome> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const nearExecutionOutcome = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {
-			status: true,
-			gasBurnt: true,
-		},
-	} : {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const viewSelection = $derived(selection({
+		sources: selection.sources ?? [
+			Source.NearRpc_JsonRpc,
+		],
+	}))
+	const nearExecutionOutcome = $derived(viewSelection({
 		fields: {
 			status: true,
 			gasBurnt: true,
 		},
 	}))
-	const titleFallback = $derived([String((pendingEntity.outcomeId) ?? '')].filter(Boolean).join(' ') || 'near execution outcome')
-	const viewDomId = $derived('near-execution-outcome-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const titleFallback = $derived((pendingEntity.outcomeId ?? '') || 'near execution outcome')
 
 
 	// Components
@@ -70,71 +47,37 @@
 
 <EntityView
 	entityType={EntityType.NearExecutionOutcome}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'status') && Object.hasOwn(prefetched, 'gasBurnt')}
-			{@const outcomeId0 = pendingEntity.outcomeId}
-			{#if outcomeId0 !== undefined && outcomeId0 !== null}
-				<TruncatedValue value={String((outcomeId0) ?? '')} />
-			{/if}
-		{:else}
-			<ResourceBoundary resource={nearExecutionOutcome}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const outcomeId0 = resolvedEntity.outcomeId}
-					{#if outcomeId0 !== undefined && outcomeId0 !== null}
-						<TruncatedValue value={String((outcomeId0) ?? '')} />
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<TruncatedValue value={pendingEntity.outcomeId} />
 	{/snippet}
 
 	{#snippet Value()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'status') && Object.hasOwn(prefetched, 'gasBurnt')}
-			{[String((pendingEntity.status) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.outcomeId) ?? '')].filter(Boolean).join(' ') || titleFallback}
-		{:else}
-			<ResourceBoundary resource={nearExecutionOutcome}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.status) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.outcomeId) ?? '')].filter(Boolean).join(' ') || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={nearExecutionOutcome}>
+			{#snippet children(entity)}
+				{(entity.status ?? '') || pendingEntity.outcomeId || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'status') && Object.hasOwn(prefetched, 'gasBurnt')}
-			{@const gasBurnt0 = pendingEntity.gasBurnt}
-			{#if gasBurnt0 !== undefined && gasBurnt0 !== null}
-				<span data-text="muted">
-					<NumberValue
-						value={gasBurnt0}
-					/>
-				</span>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={nearExecutionOutcome}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const gasBurnt0 = resolvedEntity.gasBurnt}
-					{#if gasBurnt0 !== undefined && gasBurnt0 !== null}
-						<span data-text="muted">
-							<NumberValue
-								value={gasBurnt0}
-							/>
-						</span>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={nearExecutionOutcome}>
+			{#snippet children(entity)}
+				{@const gasBurnt0 = entity.gasBurnt}
+				{#if gasBurnt0 != null}
+					<span data-text="muted">
+						<NumberValue
+							value={gasBurnt0}
+						/>
+					</span>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -153,45 +96,20 @@
 			<div>
 				<dt>Outcome ID</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									outcomeId: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const outcomeId = resolvedEntity.outcomeId}
-							{#if outcomeId !== undefined && outcomeId !== null}
-								<TruncatedValue value={String((outcomeId) ?? '')} />
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					<TruncatedValue value={pendingEntity.outcomeId} />
 				</dd>
 			</div>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							status: true,
-						},
-					})
-				}
+				resource={nearExecutionOutcome}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const status = resolvedEntity.status}
-					{#if status !== undefined && status !== null}
+					{@const status = entity.status}
+					{#if status != null}
 						<div>
 							<dt>Status</dt>
 							<dd>
-								{String((status) ?? '')}
+								{status}
 							</dd>
 						</div>
 					{/if}
@@ -199,19 +117,11 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							gasBurnt: true,
-						},
-					})
-				}
+				resource={nearExecutionOutcome}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const gasBurnt = resolvedEntity.gasBurnt}
-					{#if gasBurnt !== undefined && gasBurnt !== null}
+					{@const gasBurnt = entity.gasBurnt}
+					{#if gasBurnt != null}
 						<div>
 							<dt>Gas burnt</dt>
 							<dd>
@@ -227,25 +137,20 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-				{@const nearExecutionOutcomeNearReceiptsViewReceiptsResource = selection
-		.$$receipts({
-			sources: [
-				Source.NearRpc_JsonRpc,
-			],
-		})}
-				<ResourceBoundary
-					resource={nearExecutionOutcomeNearReceiptsViewReceiptsResource}
-				>
-					{#snippet children(entities)}
-						{#if entities.values.length > 0}
-						<NearReceiptsView
-							selection={nearExecutionOutcomeNearReceiptsViewReceiptsResource}
-							countResource={nearExecutionOutcomeNearReceiptsViewReceiptsResource.count}
-							title='Receipts'
-							id='NearReceiptsView-receipts'
-						/>
-						{/if}
-					{/snippet}
-				</ResourceBoundary>
+		{@const nearExecutionOutcomeNearReceiptsViewReceiptsResource = selection.$$receipts}
+		<ResourceBoundary
+			resource={nearExecutionOutcomeNearReceiptsViewReceiptsResource}
+		>
+			{#snippet children(entities)}
+				{#if entities.values.length > 0}
+					<NearReceiptsView
+						selection={nearExecutionOutcomeNearReceiptsViewReceiptsResource}
+						countResource={nearExecutionOutcomeNearReceiptsViewReceiptsResource.count}
+						title='Receipts'
+						id='receipts'
+					/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 </EntityView>

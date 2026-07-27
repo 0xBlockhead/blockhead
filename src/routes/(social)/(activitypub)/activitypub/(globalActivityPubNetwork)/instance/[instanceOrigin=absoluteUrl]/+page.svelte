@@ -9,14 +9,12 @@
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		data,
-		params,
 	}: PageProps = $props()
 
 	const pageSelection = $derived(select(EntityType.ActivityPubInstance, data.selector, {
@@ -33,17 +31,12 @@
 
 
 <svelte:head>
-	<title>{(data.title ?? (pageSelection.entity == null ? [String((data.selector.instanceOrigin) ?? '')].filter(Boolean).join(' ') || 'ActivityPub instance' : [String((({ ...data.selector, ...pageSelection.entity }).instanceOrigin) ?? '')].filter(Boolean).join(' ') || 'ActivityPub instance'))} • ActivityPub instance • Blockhead</title>
+	<title>{(data.title ?? (String(pageSelection.entitySelector.instanceOrigin) || 'ActivityPub instance'))} • ActivityPub instance • Blockhead</title>
 </svelte:head>
 
 
 <Page>
 	<ActivityPubInstanceView
-		href={
-			resolve('/activitypub/instance/[instanceOrigin=absoluteUrl]', {
-				instanceOrigin: params.instanceOrigin,
-			})
-		}
 		selection={pageSelection}
 	/>
 </Page>

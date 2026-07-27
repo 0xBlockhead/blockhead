@@ -28,16 +28,16 @@
 
 
 <ParentPageCollapsible
-	href={resolve('/lens')}
+	href={resolve('/(social)/(lens)/lens')}
 >
 	{#snippet Summary()}
-		{@const DetailView = LensNetworkView}
-
-		<DetailView
-			selection={select(EntityType.LensNetwork, data.selector, { sources: [
-	Source.Constants_Internal,
-] })}
-			href={resolve('/lens')}
+		<LensNetworkView
+			selection={
+				select(EntityType.LensNetwork, data.selector, { sources: [
+					Source.Constants_Internal,
+				] })
+			}
+			href={resolve('/(social)/(lens)/lens')}
 			layout={EntityLayout.SummaryInline}
 		/>
 	{/snippet}

@@ -21,14 +21,6 @@ import type {
 } from '$/sources/Primal/Rest/types.ts'
 import type { JsonValue } from '$/typescript/JsonValue.ts'
 import { isJsonObject } from '$/typescript/JsonValue.ts'
-import { NostrProfileSelector } from '$/schema/NostrProfile.ts'
-import { NostrNoteSelector } from '$/schema/NostrNote.ts'
-import { NostrRelaySelector } from '$/schema/NostrRelay.ts'
-import { NostrRepostSelector } from '$/schema/NostrRepost.ts'
-import { NostrReactionSelector } from '$/schema/NostrReaction.ts'
-import { NostrArticleSelector } from '$/schema/NostrArticle.ts'
-import { NostrArticleEventSelector } from '$/schema/NostrArticleEvent.ts'
-import { NostrProfileMetadataEventSelector } from '$/schema/NostrProfileMetadataEvent.ts'
 import {
 	type NostrEventExpectation,
 	validateNostrEvent,
@@ -664,7 +656,7 @@ export default {
 		defineResolver(Source.Primal_Rest, {
 			entityType: EntityType.NostrNote,
 			resolve: {
-				[NostrNoteSelector.CanonicalEventId]: {
+				CanonicalEventId: {
 					resolve: async ({ eventId: eventIdSelector }, context) => {
 						const { getEventById } = await import('$/sources/Primal/Rest/queries.ts')
 						const publicEnv = context.publicEnv
@@ -700,7 +692,7 @@ export default {
 		defineResolver(Source.Primal_Rest, {
 			entityType: EntityType.NostrRepost,
 			resolve: {
-				[NostrRepostSelector.CanonicalEventId]: {
+				CanonicalEventId: {
 					resolve: async ({ eventId: eventIdSelector }, context) => {
 						const { getEventById } = await import('$/sources/Primal/Rest/queries.ts')
 						const publicEnv = context.publicEnv
@@ -756,7 +748,7 @@ export default {
 		defineResolver(Source.Primal_Rest, {
 			entityType: EntityType.NostrReaction,
 			resolve: {
-				[NostrReactionSelector.CanonicalEventId]: {
+				CanonicalEventId: {
 					resolve: async ({ eventId: eventIdSelector }, context) => {
 						const { getEventById } = await import('$/sources/Primal/Rest/queries.ts')
 						const publicEnv = context.publicEnv
@@ -801,7 +793,7 @@ export default {
 		defineResolver(Source.Primal_Rest, {
 			entityType: EntityType.NostrArticleEvent,
 			resolve: {
-				[NostrArticleEventSelector.CanonicalEventId]: {
+				CanonicalEventId: {
 					resolve: async ({ eventId }, context) => {
 						const { getEventById } = await import('$/sources/Primal/Rest/queries.ts')
 						const event = eventFromWire(await getEventById(context.publicEnv, eventId), {
@@ -836,7 +828,7 @@ export default {
 		defineResolver(Source.Primal_Rest, {
 			entityType: EntityType.NostrArticle,
 			resolve: {
-				[NostrArticleSelector.CanonicalCoordinate]: {
+				CanonicalCoordinate: {
 					resolve: async ({ identifier: identifierSelector, kind, pubkey: pubkeySelector }, context) => {
 						const { getProfileArticles } = await import('$/sources/Primal/Rest/queries.ts')
 						const publicEnv = context.publicEnv
@@ -882,7 +874,7 @@ export default {
 		defineResolver(Source.Primal_Rest, {
 			entityType: EntityType.NostrProfileMetadataEvent,
 			resolve: {
-				[NostrProfileMetadataEventSelector.CanonicalEventId]: {
+				CanonicalEventId: {
 					resolve: async ({ eventId }, context) => {
 						const { getEventById } = await import('$/sources/Primal/Rest/queries.ts')
 						const event = eventFromWire(await getEventById(context.publicEnv, eventId), {
@@ -917,7 +909,7 @@ export default {
 		defineResolver(Source.Primal_Rest, {
 			entityType: EntityType.NostrProfile,
 			resolve: {
-				[NostrProfileSelector.CanonicalPubkey]: {
+				CanonicalPubkey: {
 					resolve: async ({ pubkey: pubkeySelector }, context) => {
 						const { getProfile } = await import('$/sources/Primal/Rest/queries.ts')
 						const pubkey = normalizePubkey(pubkeySelector)
@@ -927,11 +919,14 @@ export default {
 							await getProfile(context.publicEnv, pubkey),
 							pubkey
 						)
-						if (events.length === 0)
-							throw new Error('Primal_Rest: profile metadata not found')
 						return {
 							pubkey,
-							$latestMetadataEvent: profileMetadataEventReference(events[0]),
+							$latestMetadataEvent: (
+								events.length === 0 ?
+									undefined
+								:
+									profileMetadataEventReference(events[0])
+							),
 							$$metadataEvents: events.map(profileMetadataEventReference),
 						}
 					},
@@ -945,7 +940,7 @@ export default {
 		defineResolver(Source.Primal_Rest, {
 			entityType: EntityType.NostrProfile,
 			resolve: {
-				[NostrProfileSelector.CanonicalPubkey]: {
+				CanonicalPubkey: {
 					resolve: async ({ pubkey }, context) => {
 						const { getProfileNotes } = await import('$/sources/Primal/Rest/queries.ts')
 						const publicEnv = context.publicEnv
@@ -979,7 +974,7 @@ export default {
 		defineResolver(Source.Primal_Rest, {
 			entityType: EntityType.NostrProfile,
 			resolve: {
-				[NostrProfileSelector.CanonicalPubkey]: {
+				CanonicalPubkey: {
 					resolve: async ({ pubkey }, context) => {
 						const { getProfileReposts } = await import('$/sources/Primal/Rest/queries.ts')
 						const publicEnv = context.publicEnv
@@ -1013,7 +1008,7 @@ export default {
 		defineResolver(Source.Primal_Rest, {
 			entityType: EntityType.NostrProfile,
 			resolve: {
-				[NostrProfileSelector.CanonicalPubkey]: {
+				CanonicalPubkey: {
 					resolve: async ({ pubkey }, context) => {
 						const { getProfileArticles } = await import('$/sources/Primal/Rest/queries.ts')
 						const publicEnv = context.publicEnv
@@ -1038,7 +1033,7 @@ export default {
 		defineResolver(Source.Primal_Rest, {
 			entityType: EntityType.NostrNote,
 			resolve: {
-				[NostrNoteSelector.CanonicalEventId]: {
+				CanonicalEventId: {
 					resolve: async ({ eventId }, context) => {
 						const { getNoteReplies } = await import('$/sources/Primal/Rest/queries.ts')
 						const publicEnv = context.publicEnv
@@ -1073,7 +1068,7 @@ export default {
 		defineResolver(Source.Primal_Rest, {
 			entityType: EntityType.NostrNote,
 			resolve: {
-				[NostrNoteSelector.CanonicalEventId]: {
+				CanonicalEventId: {
 					resolve: async ({ eventId }, context) => {
 						const { getNoteReactions } = await import('$/sources/Primal/Rest/queries.ts')
 						const publicEnv = context.publicEnv
@@ -1108,7 +1103,7 @@ export default {
 		defineResolver(Source.Primal_Rest, {
 			entityType: EntityType.NostrNote,
 			resolve: {
-				[NostrNoteSelector.CanonicalEventId]: {
+				CanonicalEventId: {
 					resolve: async ({ eventId }, context) => {
 						const { getEventById } = await import('$/sources/Primal/Rest/queries.ts')
 						const publicEnv = context.publicEnv

@@ -2,13 +2,8 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
 
 
 	// Context
@@ -20,42 +15,19 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.MoveStruct>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.MoveStruct>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.MoveStruct> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const moveStruct = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {
-			isEvent: true,
-			isNative: true,
-		},
-	} : {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const moveStruct = $derived(selection({
 		fields: {
 			isEvent: true,
 			isNative: true,
 		},
 	}))
-	const titleFallback = $derived([String((pendingEntity.structName) ?? '')].filter(Boolean).join(' ') || 'move struct')
-	const viewDomId = $derived('move-struct-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const titleFallback = $derived((pendingEntity.structName ?? '') || 'move struct')
 
 
 	// Components
@@ -66,45 +38,32 @@
 
 <EntityView
 	entityType={EntityType.MoveStruct}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={moveStruct}>
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.structName) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{(pendingEntity.structName ?? '') || 'move struct'}
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={moveStruct}>
 			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.isEvent) ?? ''), String((resolvedEntity.isNative) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.structName) ?? '')].filter(Boolean).join(' ') || titleFallback}
+				{[String(entity.isEvent ?? ''), String(entity.isNative ?? '')].filter(Boolean).join(' ') || pendingEntity.structName || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		<ResourceBoundary resource={moveStruct}>
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				<span data-text="muted">
-					<MoveModuleView
-						selection={select(EntityType.MoveModule, selection.entitySelector.$module)}
-						layout={EntityLayout.Title}
-						open={false}
-					/>
-				</span>
-			{/snippet}
-		</ResourceBoundary>
+		<span data-text="muted">
+			<MoveModuleView
+				selection={select(EntityType.MoveModule, selection.entitySelector.$module)}
+				layout={EntityLayout.Title}
+				open={false}
+			/>
+		</span>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -123,41 +82,16 @@
 			<div>
 				<dt>struct name</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									structName: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const structName = resolvedEntity.structName}
-							{#if structName !== undefined && structName !== null}
-								{String((structName) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{pendingEntity.structName}
 				</dd>
 			</div>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							isEvent: true,
-						},
-					})
-				}
+				resource={moveStruct}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const isEvent = resolvedEntity.isEvent}
-					{#if isEvent !== undefined && isEvent !== null}
+					{@const isEvent = entity.isEvent}
+					{#if isEvent != null}
 						<div>
 							<dt>is event</dt>
 							<dd>
@@ -169,19 +103,11 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							isNative: true,
-						},
-					})
-				}
+				resource={moveStruct}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const isNative = resolvedEntity.isNative}
-					{#if isNative !== undefined && isNative !== null}
+					{@const isNative = entity.isNative}
+					{#if isNative != null}
 						<div>
 							<dt>is native</dt>
 							<dd>
@@ -198,7 +124,6 @@
 					<ResourceBoundary
 						resource={
 							selection({
-								sources: selection.sources,
 								fields: {
 									abilities: true,
 								},
@@ -206,11 +131,7 @@
 						}
 					>
 						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const abilities = resolvedEntity.abilities}
-							{#if abilities !== undefined && abilities !== null}
-								{abilities.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')}
-							{/if}
+							{entity.abilities.values.join(', ')}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>

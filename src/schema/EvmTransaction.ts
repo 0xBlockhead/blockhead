@@ -7,10 +7,7 @@ import { EntityType } from '$/schema/EntityType.ts'
 import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 import { type } from 'arktype'
 
-export enum EvmTransactionSelector {
-	EvmNetworkTxHash = 'EvmNetworkTxHash',
-}
-export const EvmTransaction = entity({
+export default entity({
 	entityType: EntityType.EvmTransaction,
 	labels: {
 		singular: 'EVM transaction',
@@ -107,19 +104,19 @@ export const EvmTransaction = entity({
 	input: {
 		label: 'Input data',
 		type: EntityFieldType.Primitive,
-		primitiveType: (ZeroExHex),
+		primitiveType: ZeroExHex,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	r: {
 		label: 'Signature r',
 		type: EntityFieldType.Primitive,
-		primitiveType: (ZeroExHex),
+		primitiveType: ZeroExHex,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	s: {
 		label: 'Signature s',
 		type: EntityFieldType.Primitive,
-		primitiveType: (ZeroExHex),
+		primitiveType: ZeroExHex,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	v: {

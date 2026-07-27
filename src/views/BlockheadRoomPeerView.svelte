@@ -2,14 +2,11 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -25,32 +22,15 @@
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.BlockheadRoomPeer>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.BlockheadRoomPeer>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.BlockheadRoomPeer> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const blockheadRoomPeer = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {
-			displayName: true,
-			peerId: true,
-			isConnected: true,
-		},
-	} : {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const viewSelection = $derived(selection({
+		sources: selection.sources ?? [
+			Source.Local_Internal,
+		],
+	}))
+	const blockheadRoomPeer = $derived(viewSelection({
 		fields: {
 			displayName: true,
 			peerId: true,
@@ -58,8 +38,7 @@
 			joinedAt: true,
 		},
 	}))
-	const titleFallback = $derived([String((pendingEntity.displayName) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.peerId) ?? '')].filter(Boolean).join(' ') || 'contact')
-	const viewDomId = $derived('blockhead-room-peer-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const titleFallback = $derived((pendingEntity.displayName ?? '') || (pendingEntity.peerId ?? '') || 'contact')
 
 
 	// Components
@@ -72,18 +51,14 @@
 
 <EntityView
 	entityType={EntityType.BlockheadRoomPeer}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
 	href={
-		href ?? (
-			selection.entitySelector != null && 'id' in selection.entitySelector
-			&& selection.entitySelector.id != null ?
-				resolve('/~/multiplayer/contact/[contactId=stringSegment]', {
-			contactId: String(selection.entitySelector.id ?? ''),
-		})
-		:
-				undefined
+		href ?? resolve(
+			'/~/multiplayer/contact/[contactId=stringSegment]',
+			{
+				contactId: String(selection.entitySelector.id),
+			}
 		)
 	}
 	{layout}
@@ -91,29 +66,19 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'displayName') && Object.hasOwn(prefetched, 'isConnected') && Object.hasOwn(prefetched, 'peerId')}
-			{[String((pendingEntity.displayName) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-		{:else}
-			<ResourceBoundary resource={blockheadRoomPeer}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.displayName) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={blockheadRoomPeer}>
+			{#snippet children(entity)}
+				{(entity.displayName ?? '') || title || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Value()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'displayName') && Object.hasOwn(prefetched, 'isConnected') && Object.hasOwn(prefetched, 'peerId')}
-			{[String((pendingEntity.isConnected) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.displayName) ?? '')].filter(Boolean).join(' ') || titleFallback}
-		{:else}
-			<ResourceBoundary resource={blockheadRoomPeer}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.isConnected) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.displayName) ?? '')].filter(Boolean).join(' ') || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={blockheadRoomPeer}>
+			{#snippet children(entity)}
+				{String(entity.isConnected) || (entity.displayName ?? '') || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -125,25 +90,12 @@
 						resource={selection.$room}
 					>
 						{#snippet children(blockheadRoom)}
-							{#if blockheadRoom != null && blockheadRoom[EntityMetaKey.Selector] != null}
-								<BlockheadRoomView
-									selection={select(EntityType.BlockheadRoom, blockheadRoom[EntityMetaKey.Selector])}
-									prefetched={blockheadRoom}
-									href={
-										(
-											blockheadRoom[EntityMetaKey.Selector] != null && 'id' in blockheadRoom[EntityMetaKey.Selector]
-											&& blockheadRoom[EntityMetaKey.Selector].id != null ?
-												resolve('/~/multiplayer/room/[roomId=stringSegment]', {
-											roomId: String(blockheadRoom[EntityMetaKey.Selector].id ?? ''),
-										})
-										:
-												undefined
-										)
-									}
-									layout={EntityLayout.Value}
-									open={false}
-								/>
-							{/if}
+							<BlockheadRoomView
+								selection={select(EntityType.BlockheadRoom, blockheadRoom[EntityMetaKey.Selector])}
+								prefetched={blockheadRoom}
+								layout={EntityLayout.Value}
+								open={false}
+							/>
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -153,21 +105,10 @@
 				<dt>Peer ID</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									peerId: true,
-								},
-							})
-						}
+						resource={blockheadRoomPeer}
 					>
 						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const peerId = resolvedEntity.peerId}
-							{#if peerId !== undefined && peerId !== null}
-								{String((peerId) ?? '')}
-							{/if}
+							{entity.peerId}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -177,21 +118,10 @@
 				<dt>Connected</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									isConnected: true,
-								},
-							})
-						}
+						resource={blockheadRoomPeer}
 					>
 						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const isConnected = resolvedEntity.isConnected}
-							{#if isConnected !== undefined && isConnected !== null}
-								{isConnected ? 'Yes' : 'No'}
-							{/if}
+							{entity.isConnected ? 'Yes' : 'No'}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -203,21 +133,10 @@
 				<dt>Joined</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									joinedAt: true,
-								},
-							})
-						}
+						resource={blockheadRoomPeer}
 					>
 						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const joinedAt = resolvedEntity.joinedAt}
-							{#if joinedAt !== undefined && joinedAt !== null}
-								<Timestamp timestamp={Number(joinedAt)} />
-							{/if}
+							<Timestamp timestamp={Number(entity.joinedAt)} />
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -225,8 +144,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							lastSeenAt: true,
 						},
@@ -234,9 +152,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const lastSeenAt = resolvedEntity.lastSeenAt}
-					{#if lastSeenAt !== undefined && lastSeenAt !== null}
+					{@const lastSeenAt = entity.lastSeenAt}
+					{#if lastSeenAt != null}
 						<div>
 							<dt>Last seen</dt>
 							<dd>
@@ -249,8 +166,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							connectedAt: true,
 						},
@@ -258,9 +174,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const connectedAt = resolvedEntity.connectedAt}
-					{#if connectedAt !== undefined && connectedAt !== null}
+					{@const connectedAt = entity.connectedAt}
+					{#if connectedAt != null}
 						<div>
 							<dt>Connected</dt>
 							<dd>
@@ -273,8 +188,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							disconnectedAt: true,
 						},
@@ -282,9 +196,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const disconnectedAt = resolvedEntity.disconnectedAt}
-					{#if disconnectedAt !== undefined && disconnectedAt !== null}
+					{@const disconnectedAt = entity.disconnectedAt}
+					{#if disconnectedAt != null}
 						<div>
 							<dt>Disconnected</dt>
 							<dd>

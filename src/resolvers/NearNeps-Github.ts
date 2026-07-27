@@ -12,9 +12,6 @@ import {
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
-import { _GlobalSelector } from '$/schema/_Global.ts'
-import { SpecificationProposalSelector } from '$/schema/SpecificationProposal.ts'
-
 const nearNepRows = async (entries: { type: string, name: string }[]) => {
 	const { ProposalCategory, SpecificationRealm } = await import('$/constants/SpecificationProposal.ts')
 	return entries.flatMap((githubContent) => {
@@ -39,7 +36,7 @@ export default {
 		defineResolver(Source.NearNeps_Github, {
 			entityType: EntityType.SpecificationProposal,
 			resolve: {
-				[SpecificationProposalSelector.RealmCategoryNumber]: {
+				RealmCategoryNumber: {
 					appliesTo: [
 						{
 							realm: OwnedSpecificationRealm.Near,
@@ -52,7 +49,9 @@ export default {
 						throw new Error('NearNeps_Github: proposal resolver only supports NEAR NEPs')
 					}
 					const { getMarkdownText } = await import('$/sources/NearNeps/Github/queries.ts')
-					const text = await getMarkdownText({ number: number })
+					const text = await getMarkdownText({
+						number: number,
+					})
 					const frontmatter = parseFrontmatter(text)
 					const body = stripFrontmatter(text)
 					return {
@@ -74,7 +73,7 @@ export default {
 		defineResolver(Source.NearNeps_Github, {
 			entityType: EntityType._Global,
 			resolve: {
-				[_GlobalSelector.Scope]: {
+				Scope: {
 					resolve: async () => {
 					const { getContents } = await import('$/sources/NearNeps/Github/queries.ts')
 					return nearNepRows(await getContents())

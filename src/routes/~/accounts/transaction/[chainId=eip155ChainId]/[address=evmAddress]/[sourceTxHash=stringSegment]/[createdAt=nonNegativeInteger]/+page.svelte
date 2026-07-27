@@ -8,7 +8,6 @@
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
@@ -48,48 +47,12 @@
 
 
 <svelte:head>
-	<title>{(pageSelection.entity == null ? [String(({
-		$account: {
-			interopAddress: 'eip155:' + String(Number(params.chainId)) + ':' + String(params.address),
-		},
-		$sourceTx: {
-			$network: {
-				caip2: {
-					namespace: 'eip155',
-					reference: params.chainId,
-				},
-			},
-			txHash: params.sourceTxHash,
-		},
-		createdAt: Number(params.createdAt),
-	}.createdAt) ?? '')].filter(Boolean).join(' ') || 'bridge transaction' : [String((({ ...{
-		$account: {
-			interopAddress: 'eip155:' + String(Number(params.chainId)) + ':' + String(params.address),
-		},
-		$sourceTx: {
-			$network: {
-				caip2: {
-					namespace: 'eip155',
-					reference: params.chainId,
-				},
-			},
-			txHash: params.sourceTxHash,
-		},
-		createdAt: Number(params.createdAt),
-	}, ...pageSelection.entity }).createdAt) ?? '')].filter(Boolean).join(' ') || 'bridge transaction')} • bridge transaction • Blockhead</title>
+	<title>{(String(pageSelection.entitySelector.createdAt) || 'bridge transaction')} • bridge transaction • Blockhead</title>
 </svelte:head>
 
 
 <Page>
 	<BlockheadBridgeTransactionView
-		href={
-			resolve('/~/accounts/transaction/[chainId=eip155ChainId]/[address=evmAddress]/[sourceTxHash=stringSegment]/[createdAt=nonNegativeInteger]', {
-				chainId: params.chainId,
-				address: params.address,
-				sourceTxHash: params.sourceTxHash,
-				createdAt: params.createdAt,
-			})
-		}
 		selection={pageSelection}
 	/>
 </Page>

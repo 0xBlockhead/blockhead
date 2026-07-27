@@ -2,13 +2,9 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
 
 
 	// Context
@@ -20,35 +16,13 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.NftToken>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.NftToken>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.NftToken> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const nftToken = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {},
-	} : {
-		sources: selection.sources,
-	}))
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const titleFallback = 'NFT token'
-	const viewDomId = $derived('nft-token-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -62,24 +36,14 @@
 
 <EntityView
 	entityType={EntityType.NftToken}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails}
-			{title || titleFallback}
-		{:else}
-			<ResourceBoundary resource={nftToken}>
-				{#snippet children(entity)}
-					{title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		NFT token
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -98,31 +62,13 @@
 			<div>
 				<dt>token key</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									tokenKey: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const tokenKey = resolvedEntity.tokenKey}
-							{#if tokenKey !== undefined && tokenKey !== null}
-								{String((tokenKey) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{pendingEntity.tokenKey}
 				</dd>
 			</div>
 
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							tokenId: true,
 						},
@@ -130,13 +76,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const tokenId = resolvedEntity.tokenId}
-					{#if tokenId !== undefined && tokenId !== null}
+					{@const tokenId = entity.tokenId}
+					{#if tokenId != null}
 						<div>
 							<dt>Token ID</dt>
 							<dd>
-								{String((tokenId) ?? '')}
+								{String(tokenId)}
 							</dd>
 						</div>
 					{/if}
@@ -149,7 +94,7 @@
 				resource={selection.$assetObject}
 			>
 				{#snippet children(assetObject)}
-					{#if assetObject != null && assetObject[EntityMetaKey.Selector] != null}
+					{#if assetObject != null}
 						<div>
 							<dt>asset object</dt>
 							<dd>
@@ -169,7 +114,7 @@
 				resource={selection.$metadata}
 			>
 				{#snippet children(tokenMetadataDocument)}
-					{#if tokenMetadataDocument != null && tokenMetadataDocument[EntityMetaKey.Selector] != null}
+					{#if tokenMetadataDocument != null}
 						<div>
 							<dt>metadata</dt>
 							<dd>
@@ -194,12 +139,12 @@
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
-				<UsageRight_TimestampsView
-					selection={nftTokenUsageRightTimestampsViewUsageRightTimestampsResource}
-					countResource={nftTokenUsageRightTimestampsViewUsageRightTimestampsResource.count}
-					title='usage right timestamps'
-					id='UsageRight_TimestampsView-usage-right-timestamps'
-				/>
+					<UsageRight_TimestampsView
+						selection={nftTokenUsageRightTimestampsViewUsageRightTimestampsResource}
+						countResource={nftTokenUsageRightTimestampsViewUsageRightTimestampsResource.count}
+						title='usage right timestamps'
+						id='usage-right-timestamps'
+					/>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>

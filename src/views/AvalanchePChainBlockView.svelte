@@ -2,15 +2,8 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
-	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -22,40 +15,20 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.AvalanchePChainBlock>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.AvalanchePChainBlock>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.AvalanchePChainBlock> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const avalanchePChainBlock = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const avalanchePChainBlock = $derived(selection({
 		fields: {
+			height: true,
 			timestampMs: true,
-		},
-	} : {
-		sources: selection.sources,
-		fields: {
-			timestampMs: true,
+			blockId: true,
 		},
 	}))
-	const titleFallback = $derived([String((pendingEntity.height) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.blockId) ?? '')].filter(Boolean).join(' ') || 'avalanche p chain block')
-	const viewDomId = $derived('avalanche-pchain-block-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const titleFallback = $derived(String(pendingEntity.height ?? '') || (pendingEntity.blockId ?? '') || 'avalanche p chain block')
 
 
 	// Components
@@ -70,54 +43,31 @@
 
 <EntityView
 	entityType={EntityType.AvalanchePChainBlock}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'height') && Object.hasOwn(prefetched, 'timestampMs') && Object.hasOwn(prefetched, 'blockId')}
-			{@const height0 = pendingEntity.height}
-			{#if height0 !== undefined && height0 !== null}
+		<ResourceBoundary resource={avalanchePChainBlock}>
+			{#snippet children(entity)}
 				<NumberValue
-					value={height0}
+					value={entity.height}
 				/>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={avalanchePChainBlock}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const height0 = resolvedEntity.height}
-					{#if height0 !== undefined && height0 !== null}
-						<NumberValue
-							value={height0}
-						/>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Value()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'height') && Object.hasOwn(prefetched, 'timestampMs') && Object.hasOwn(prefetched, 'blockId')}
-			{@const timestampMs0 = pendingEntity.timestampMs}
-			{#if timestampMs0 !== undefined && timestampMs0 !== null}
-				<Timestamp timestamp={Number(timestampMs0)} />
-			{/if}
-		{:else}
-			<ResourceBoundary resource={avalanchePChainBlock}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const timestampMs0 = resolvedEntity.timestampMs}
-					{#if timestampMs0 !== undefined && timestampMs0 !== null}
-						<Timestamp timestamp={Number(timestampMs0)} />
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={avalanchePChainBlock}>
+			{#snippet children(entity)}
+				{@const timestampMs0 = entity.timestampMs}
+				{#if timestampMs0 != null}
+					<Timestamp timestamp={Number(timestampMs0)} />
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -127,23 +77,6 @@
 				<dd>
 					<NetworkView
 						selection={select(EntityType.Network, selection.entitySelector.$network)}
-						href={
-							(
-								selection.entitySelector.$network != null && 'caip2' in selection.entitySelector.$network
-								&& selection.entitySelector.$network.caip2 != null ?
-									resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-								network: String(caip2StringFromValue(selection.entitySelector.$network.caip2) ?? ''),
-							})
-							:
-									selection.entitySelector.$network != null && 'slug' in selection.entitySelector.$network
-									&& selection.entitySelector.$network.slug != null ?
-										resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-									network: String(selection.entitySelector.$network.slug ?? ''),
-								})
-								:
-									undefined
-							)
-						}
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -154,23 +87,12 @@
 				<dt>Height</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									height: true,
-								},
-							})
-						}
+						resource={avalanchePChainBlock}
 					>
 						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const height = resolvedEntity.height}
-							{#if height !== undefined && height !== null}
-								<NumberValue
-									value={height}
-								/>
-							{/if}
+							<NumberValue
+								value={entity.height}
+							/>
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -180,21 +102,10 @@
 				<dt>block ID</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									blockId: true,
-								},
-							})
-						}
+						resource={avalanchePChainBlock}
 					>
 						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const blockId = resolvedEntity.blockId}
-							{#if blockId !== undefined && blockId !== null}
-								<TruncatedValue value={String((blockId) ?? '')} />
-							{/if}
+							<TruncatedValue value={entity.blockId} />
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -203,7 +114,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							parentBlockId: true,
 						},
@@ -211,13 +121,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const parentBlockId = resolvedEntity.parentBlockId}
-					{#if parentBlockId !== undefined && parentBlockId !== null}
+					{@const parentBlockId = entity.parentBlockId}
+					{#if parentBlockId != null}
 						<div>
 							<dt>parent block ID</dt>
 							<dd>
-								<TruncatedValue value={String((parentBlockId) ?? '')} />
+								<TruncatedValue value={parentBlockId} />
 							</dd>
 						</div>
 					{/if}
@@ -227,19 +136,11 @@
 
 		<dl data-column-item="center">
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							timestampMs: true,
-						},
-					})
-				}
+				resource={avalanchePChainBlock}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const timestampMs = resolvedEntity.timestampMs}
-					{#if timestampMs !== undefined && timestampMs !== null}
+					{@const timestampMs = entity.timestampMs}
+					{#if timestampMs != null}
 						<div>
 							<dt>Timestamp</dt>
 							<dd>
@@ -253,7 +154,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							encoding: true,
 						},
@@ -261,13 +161,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const encoding = resolvedEntity.encoding}
-					{#if encoding !== undefined && encoding !== null}
+					{@const encoding = entity.encoding}
+					{#if encoding != null}
 						<div>
 							<dt>encoding</dt>
 							<dd>
-								{String((encoding) ?? '')}
+								{encoding}
 							</dd>
 						</div>
 					{/if}
@@ -277,7 +176,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							txCount: true,
 						},
@@ -285,9 +183,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const txCount = resolvedEntity.txCount}
-					{#if txCount !== undefined && txCount !== null}
+					{@const txCount = entity.txCount}
+					{#if txCount != null}
 						<div>
 							<dt>transaction count</dt>
 							<dd>
@@ -309,12 +206,12 @@
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
-				<AvalanchePChainTransactionsView
-					selection={avalanchePChainBlockAvalanchePChainTransactionsViewTransactionsResource}
-					countResource={avalanchePChainBlockAvalanchePChainTransactionsViewTransactionsResource.count}
-					title='transactions'
-					id='AvalanchePChainTransactionsView-transactions'
-				/>
+					<AvalanchePChainTransactionsView
+						selection={avalanchePChainBlockAvalanchePChainTransactionsViewTransactionsResource}
+						countResource={avalanchePChainBlockAvalanchePChainTransactionsViewTransactionsResource.count}
+						title='transactions'
+						id='transactions'
+					/>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>

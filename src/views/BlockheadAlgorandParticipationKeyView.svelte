@@ -2,13 +2,10 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -20,40 +17,23 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.BlockheadAlgorandParticipationKey>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.BlockheadAlgorandParticipationKey>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.BlockheadAlgorandParticipationKey> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const blockheadAlgorandParticipationKey = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {
-			firstValidRound: true,
-		},
-	} : {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const viewSelection = $derived(selection({
+		sources: selection.sources ?? [
+			Source.Local_Internal,
+		],
+	}))
+	const blockheadAlgorandParticipationKey = $derived(viewSelection({
 		fields: {
 			firstValidRound: true,
 		},
 	}))
-	const titleFallback = $derived([String((pendingEntity.participationId) ?? '')].filter(Boolean).join(' ') || 'blockhead algorand participation key')
-	const viewDomId = $derived('blockhead-algorand-participation-key-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const titleFallback = $derived((pendingEntity.participationId ?? '') || 'blockhead algorand participation key')
 
 
 	// Components
@@ -68,65 +48,33 @@
 
 <EntityView
 	entityType={EntityType.BlockheadAlgorandParticipationKey}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'firstValidRound')}
-			{[String((pendingEntity.participationId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-		{:else}
-			<ResourceBoundary resource={blockheadAlgorandParticipationKey}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.participationId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		{(pendingEntity.participationId ?? '') || 'blockhead algorand participation key'}
 	{/snippet}
 
 	{#snippet Value()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'firstValidRound')}
-			{[String((pendingEntity.nodeId) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.participationId) ?? '')].filter(Boolean).join(' ') || titleFallback}
-		{:else}
-			<ResourceBoundary resource={blockheadAlgorandParticipationKey}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.nodeId) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.participationId) ?? '')].filter(Boolean).join(' ') || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		{(pendingEntity.nodeId ?? '') || (pendingEntity.participationId ?? '') || titleFallback}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'firstValidRound')}
-			{@const firstValidRound0 = pendingEntity.firstValidRound}
-			{#if firstValidRound0 !== undefined && firstValidRound0 !== null}
-				<span data-text="muted">
-					<NumberValue
-						value={firstValidRound0}
-					/>
-				</span>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={blockheadAlgorandParticipationKey}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const firstValidRound0 = resolvedEntity.firstValidRound}
-					{#if firstValidRound0 !== undefined && firstValidRound0 !== null}
-						<span data-text="muted">
-							<NumberValue
-								value={firstValidRound0}
-							/>
-						</span>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={blockheadAlgorandParticipationKey}>
+			{#snippet children(entity)}
+				{@const firstValidRound0 = entity.firstValidRound}
+				{#if firstValidRound0 != null}
+					<span data-text="muted">
+						<NumberValue
+							value={firstValidRound0}
+						/>
+					</span>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -134,48 +82,14 @@
 			<div>
 				<dt>node ID</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									nodeId: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const nodeId = resolvedEntity.nodeId}
-							{#if nodeId !== undefined && nodeId !== null}
-								{String((nodeId) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{pendingEntity.nodeId}
 				</dd>
 			</div>
 
 			<div>
 				<dt>participation ID</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									participationId: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const participationId = resolvedEntity.participationId}
-							{#if participationId !== undefined && participationId !== null}
-								{String((participationId) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{pendingEntity.participationId}
 				</dd>
 			</div>
 
@@ -183,7 +97,7 @@
 				resource={selection.$account}
 			>
 				{#snippet children(algorandAccount)}
-					{#if algorandAccount != null && algorandAccount[EntityMetaKey.Selector] != null}
+					{#if algorandAccount != null}
 						<div>
 							<dt>account</dt>
 							<dd>
@@ -203,7 +117,7 @@
 				resource={selection.$network}
 			>
 				{#snippet children(algorandNetwork)}
-					{#if algorandNetwork != null && algorandNetwork[EntityMetaKey.Selector] != null}
+					{#if algorandNetwork != null}
 						<div>
 							<dt>network</dt>
 							<dd>
@@ -222,19 +136,11 @@
 
 		<dl data-column-item="center">
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							firstValidRound: true,
-						},
-					})
-				}
+				resource={blockheadAlgorandParticipationKey}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const firstValidRound = resolvedEntity.firstValidRound}
-					{#if firstValidRound !== undefined && firstValidRound !== null}
+					{@const firstValidRound = entity.firstValidRound}
+					{#if firstValidRound != null}
 						<div>
 							<dt>first valid round</dt>
 							<dd>
@@ -249,8 +155,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							lastValidRound: true,
 						},
@@ -258,9 +163,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const lastValidRound = resolvedEntity.lastValidRound}
-					{#if lastValidRound !== undefined && lastValidRound !== null}
+					{@const lastValidRound = entity.lastValidRound}
+					{#if lastValidRound != null}
 						<div>
 							<dt>last valid round</dt>
 							<dd>
@@ -275,8 +179,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							keyDilution: true,
 						},
@@ -284,9 +187,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const keyDilution = resolvedEntity.keyDilution}
-					{#if keyDilution !== undefined && keyDilution !== null}
+					{@const keyDilution = entity.keyDilution}
+					{#if keyDilution != null}
 						<div>
 							<dt>key dilution</dt>
 							<dd>
@@ -303,8 +205,7 @@
 		<dl data-column-item="center">
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							selectionKey: true,
 						},
@@ -312,13 +213,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const selectionKey = resolvedEntity.selectionKey}
-					{#if selectionKey !== undefined && selectionKey !== null}
+					{@const selectionKey = entity.selectionKey}
+					{#if selectionKey != null}
 						<div>
 							<dt>selection key</dt>
 							<dd>
-								{String((selectionKey) ?? '')}
+								{selectionKey}
 							</dd>
 						</div>
 					{/if}
@@ -327,8 +227,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							votingKey: true,
 						},
@@ -336,13 +235,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const votingKey = resolvedEntity.votingKey}
-					{#if votingKey !== undefined && votingKey !== null}
+					{@const votingKey = entity.votingKey}
+					{#if votingKey != null}
 						<div>
 							<dt>voting key</dt>
 							<dd>
-								{String((votingKey) ?? '')}
+								{votingKey}
 							</dd>
 						</div>
 					{/if}
@@ -351,8 +249,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							stateProofKey: true,
 						},
@@ -360,13 +257,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const stateProofKey = resolvedEntity.stateProofKey}
-					{#if stateProofKey !== undefined && stateProofKey !== null}
+					{@const stateProofKey = entity.stateProofKey}
+					{#if stateProofKey != null}
 						<div>
 							<dt>state proof key</dt>
 							<dd>
-								{String((stateProofKey) ?? '')}
+								{stateProofKey}
 							</dd>
 						</div>
 					{/if}
@@ -377,8 +273,7 @@
 		<dl data-column-item="center">
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							effectiveFirstRound: true,
 						},
@@ -386,9 +281,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const effectiveFirstRound = resolvedEntity.effectiveFirstRound}
-					{#if effectiveFirstRound !== undefined && effectiveFirstRound !== null}
+					{@const effectiveFirstRound = entity.effectiveFirstRound}
+					{#if effectiveFirstRound != null}
 						<div>
 							<dt>effective first round</dt>
 							<dd>
@@ -403,8 +297,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							effectiveLastRound: true,
 						},
@@ -412,9 +305,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const effectiveLastRound = resolvedEntity.effectiveLastRound}
-					{#if effectiveLastRound !== undefined && effectiveLastRound !== null}
+					{@const effectiveLastRound = entity.effectiveLastRound}
+					{#if effectiveLastRound != null}
 						<div>
 							<dt>effective last round</dt>
 							<dd>
@@ -429,8 +321,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							lastSyncedAt: true,
 						},
@@ -438,9 +329,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const lastSyncedAt = resolvedEntity.lastSyncedAt}
-					{#if lastSyncedAt !== undefined && lastSyncedAt !== null}
+					{@const lastSyncedAt = entity.lastSyncedAt}
+					{#if lastSyncedAt != null}
 						<div>
 							<dt>last synced AT</dt>
 							<dd>

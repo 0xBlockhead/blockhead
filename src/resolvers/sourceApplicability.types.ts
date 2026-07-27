@@ -1,11 +1,14 @@
 import { type as arktype } from 'arktype'
 
 import type { SourceResolverModule } from '$/resolvers/$resolvers.ts'
+import { defineResolver } from '$/resolvers/defineResolver.ts'
 import { entity } from '$/schema/$schema.ts'
 import {
 	EntityFieldCardinality,
 	EntityFieldType,
 } from '$/schema/EntityField.ts'
+import { EntityType } from '$/schema/EntityType.ts'
+import { Source } from '$/sources/Source.ts'
 
 
 const fixtureSchema = [
@@ -161,3 +164,24 @@ void absentSelectorField
 void invalidLiteral
 void wrongSelector
 void emptyPatterns
+
+defineResolver(Source.Constants_Internal, {
+	entityType: EntityType.Network,
+	resolve: {
+		Caip2: {
+			resolve: async ({ caip2 }) => ({
+				caip2,
+			}),
+		},
+	},
+})({})
+
+defineResolver(Source.Constants_Internal, {
+	entityType: EntityType.Network,
+	resolve: {
+		// @ts-expect-error A resolver definition cannot introduce a key absent from the entity's selectors.
+		Missing: {
+			resolve: async () => ({}),
+		},
+	},
+})({})

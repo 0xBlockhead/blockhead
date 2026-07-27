@@ -2,13 +2,9 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -20,42 +16,24 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.BlockheadRadiclePeer>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.BlockheadRadiclePeer>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.BlockheadRadiclePeer> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const blockheadRadiclePeer = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {
-			connectionKind: true,
-			remoteAlias: true,
-		},
-	} : {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const viewSelection = $derived(selection({
+		sources: selection.sources ?? [
+			Source.Local_Internal,
+		],
+	}))
+	const blockheadRadiclePeer = $derived(viewSelection({
 		fields: {
 			connectionKind: true,
 			remoteAlias: true,
 		},
 	}))
-	const titleFallback = $derived([String((pendingEntity.peerNodeId) ?? '')].filter(Boolean).join(' ') || 'blockhead radicle peer')
-	const viewDomId = $derived('blockhead-radicle-peer-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const titleFallback = $derived((pendingEntity.peerNodeId ?? '') || 'blockhead radicle peer')
 
 
 	// Components
@@ -68,61 +46,35 @@
 
 <EntityView
 	entityType={EntityType.BlockheadRadiclePeer}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'connectionKind') && Object.hasOwn(prefetched, 'remoteAlias')}
-			{[String((pendingEntity.peerNodeId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-		{:else}
-			<ResourceBoundary resource={blockheadRadiclePeer}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.peerNodeId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		{(pendingEntity.peerNodeId ?? '') || 'blockhead radicle peer'}
 	{/snippet}
 
 	{#snippet Value()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'connectionKind') && Object.hasOwn(prefetched, 'remoteAlias')}
-			{[String((pendingEntity.connectionKind) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.peerNodeId) ?? '')].filter(Boolean).join(' ') || titleFallback}
-		{:else}
-			<ResourceBoundary resource={blockheadRadiclePeer}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.connectionKind) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.peerNodeId) ?? '')].filter(Boolean).join(' ') || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={blockheadRadiclePeer}>
+			{#snippet children(entity)}
+				{(entity.connectionKind ?? '') || pendingEntity.peerNodeId || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'connectionKind') && Object.hasOwn(prefetched, 'remoteAlias')}
-			{@const remoteAlias0 = pendingEntity.remoteAlias}
-			{#if remoteAlias0 !== undefined && remoteAlias0 !== null}
-				<span data-text="muted">
-					{String((remoteAlias0) ?? '')}
-				</span>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={blockheadRadiclePeer}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const remoteAlias0 = resolvedEntity.remoteAlias}
-					{#if remoteAlias0 !== undefined && remoteAlias0 !== null}
-						<span data-text="muted">
-							{String((remoteAlias0) ?? '')}
-						</span>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={blockheadRadiclePeer}>
+			{#snippet children(entity)}
+				{@const remoteAlias0 = entity.remoteAlias}
+				{#if remoteAlias0 != null}
+					<span data-text="muted">
+						{remoteAlias0}
+					</span>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -141,45 +93,20 @@
 			<div>
 				<dt>peer node ID</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									peerNodeId: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const peerNodeId = resolvedEntity.peerNodeId}
-							{#if peerNodeId !== undefined && peerNodeId !== null}
-								{String((peerNodeId) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{pendingEntity.peerNodeId}
 				</dd>
 			</div>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							connectionKind: true,
-						},
-					})
-				}
+				resource={blockheadRadiclePeer}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const connectionKind = resolvedEntity.connectionKind}
-					{#if connectionKind !== undefined && connectionKind !== null}
+					{@const connectionKind = entity.connectionKind}
+					{#if connectionKind != null}
 						<div>
 							<dt>connection kind</dt>
 							<dd>
-								{String((connectionKind) ?? '')}
+								{connectionKind}
 							</dd>
 						</div>
 					{/if}
@@ -191,8 +118,7 @@
 				<dd>
 					<ResourceBoundary
 						resource={
-							selection({
-								sources: selection.sources,
+							viewSelection({
 								fields: {
 									addresses: true,
 								},
@@ -200,11 +126,7 @@
 						}
 					>
 						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const addresses = resolvedEntity.addresses}
-							{#if addresses !== undefined && addresses !== null}
-								<TruncatedValue value={addresses.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')} />
-							{/if}
+							<TruncatedValue value={entity.addresses.values.join(', ')} />
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -212,8 +134,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							lastSeenMs: true,
 						},
@@ -221,9 +142,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const lastSeenMs = resolvedEntity.lastSeenMs}
-					{#if lastSeenMs !== undefined && lastSeenMs !== null}
+					{@const lastSeenMs = entity.lastSeenMs}
+					{#if lastSeenMs != null}
 						<div>
 							<dt>last seen ms</dt>
 							<dd>
@@ -235,23 +155,15 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							remoteAlias: true,
-						},
-					})
-				}
+				resource={blockheadRadiclePeer}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const remoteAlias = resolvedEntity.remoteAlias}
-					{#if remoteAlias !== undefined && remoteAlias !== null}
+					{@const remoteAlias = entity.remoteAlias}
+					{#if remoteAlias != null}
 						<div>
 							<dt>remote alias</dt>
 							<dd>
-								{String((remoteAlias) ?? '')}
+								{remoteAlias}
 							</dd>
 						</div>
 					{/if}
@@ -260,8 +172,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							remoteDid: true,
 						},
@@ -269,13 +180,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const remoteDid = resolvedEntity.remoteDid}
-					{#if remoteDid !== undefined && remoteDid !== null}
+					{@const remoteDid = entity.remoteDid}
+					{#if remoteDid != null}
 						<div>
 							<dt>remote DID</dt>
 							<dd>
-								{String((remoteDid) ?? '')}
+								{remoteDid}
 							</dd>
 						</div>
 					{/if}

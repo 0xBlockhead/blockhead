@@ -1,20 +1,7 @@
 import { defineResolver } from '$/resolvers/defineResolver.ts'
 import { EntityMetaKey } from '$/schema/$schema.ts'
-import { AiArtifactSelector } from '$/schema/AiArtifact.ts'
-import { AiDocumentSelector } from '$/schema/AiDocument.ts'
-import { AiModelSelector } from '$/schema/AiModel.ts'
-import { AiModelVersionSelector } from '$/schema/AiModelVersion.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import { sourceProviderDefinitions } from '$/sources/$sourceProviders.ts'
 import { Source } from '$/sources/Source.ts'
-
-const huggingFaceBinding = sourceProviderDefinitions
-	.flatMap((provider) => provider.bindings)
-	.find((binding) => binding.source === Source.HuggingFaceHub_Rest)
-
-if (huggingFaceBinding == null)
-	throw new Error('HuggingFaceHub_Rest: source binding is missing')
-
 const providerSelector = {
 	providerId: 'huggingface',
 } as const
@@ -65,12 +52,11 @@ export const huggingFaceHubResolvers = [
 		defineResolver(Source.HuggingFaceHub_Rest, {
 			entityType: EntityType.AiModel,
 			resolve: {
-				[AiModelSelector.ProviderModelId]: {
+				ProviderModelId: {
 					resolve: async ({ $provider, providerModelId }) => {
 						assertProvider($provider)
 						const { retrieveModel } = await import('$/sources/HuggingFace/Rest/queries.ts')
 						return retrieveModel({
-							binding: huggingFaceBinding,
 							repoId: providerModelId,
 						})
 					},
@@ -94,11 +80,10 @@ export const huggingFaceHubResolvers = [
 		defineResolver(Source.HuggingFaceHub_Rest, {
 			entityType: EntityType.AiModelVersion,
 			resolve: {
-				[AiModelVersionSelector.HuggingFaceRepoRevision]: {
+				HuggingFaceRepoRevision: {
 					resolve: async ({ huggingFaceRepo, revision }) => {
 						const { retrieveModel } = await import('$/sources/HuggingFace/Rest/queries.ts')
 						return retrieveModel({
-							binding: huggingFaceBinding,
 							repoId: huggingFaceRepo,
 							revision,
 						})
@@ -121,7 +106,7 @@ export const huggingFaceHubResolvers = [
 		defineResolver(Source.HuggingFaceHub_Rest, {
 			entityType: EntityType.AiArtifact,
 			resolve: {
-				[AiArtifactSelector.ProviderArtifactId]: {
+				ProviderArtifactId: {
 					resolve: async ({ $provider, providerArtifactId }) => {
 						assertProvider($provider)
 						const artifact = parseArtifactId(providerArtifactId)
@@ -129,7 +114,6 @@ export const huggingFaceHubResolvers = [
 						return {
 							...artifact,
 							model: await retrieveModel({
-								binding: huggingFaceBinding,
 								repoId: artifact.repoId,
 								revision: artifact.revision,
 							}),
@@ -154,7 +138,7 @@ export const huggingFaceHubResolvers = [
 		defineResolver(Source.HuggingFaceHub_Rest, {
 			entityType: EntityType.AiDocument,
 			resolve: {
-				[AiDocumentSelector.DocumentUrl]: {
+				DocumentUrl: {
 					resolve: async ({ documentUrl }) => {
 						const match = /^https:\/\/huggingface\.co\/(.+)\/blob\/([^/]+)\/(.+)$/.exec(documentUrl)
 						if (match == null)
@@ -162,7 +146,6 @@ export const huggingFaceHubResolvers = [
 
 						const { retrieveFileText } = await import('$/sources/HuggingFace/Rest/queries.ts')
 						await retrieveFileText({
-							binding: huggingFaceBinding,
 							repoId: match[1],
 							revision: match[2],
 							path: match[3],

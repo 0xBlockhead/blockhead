@@ -9,7 +9,6 @@
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
@@ -38,13 +37,12 @@
 
 
 <svelte:head>
-	<title>{(data.title ?? (pageSelection.entity == null ? [String('AT Protocol')].filter(Boolean).join(' ') || 'AT Protocol' : [String((({ ...data.selector, ...pageSelection.entity }).protocolName) ?? '')].filter(Boolean).join(' ') || [String('AT Protocol')].filter(Boolean).join(' ') || 'AT Protocol'))} • AT Protocol • Blockhead</title>
+	<title>{(data.title ?? (pageSelection.entity == null ? 'AT Protocol' : pageSelection.entity.protocolName || 'AT Protocol'))} • AT Protocol • Blockhead</title>
 </svelte:head>
 
 
 <Page>
 	<GlobalAtprotoNetworkView
-		href={resolve('/atproto')}
 		selection={pageSelection}
 	/>
 </Page>

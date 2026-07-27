@@ -7,7 +7,6 @@
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
@@ -47,36 +46,12 @@
 
 
 <svelte:head>
-	<title>{(data.title ?? (pageSelection.entity == null ? [String(({
-		$relay: data.selector,
-		timestampMs: Number(params.timestampMs),
-		source: params.source,
-	}.timestampMs) ?? '')].filter(Boolean).join(' ') || 'MEV relay timestamp' : [String((({ ...{
-		$relay: data.selector,
-		timestampMs: Number(params.timestampMs),
-		source: params.source,
-	}, ...pageSelection.entity }).reachable) ?? ''), String((({ ...{
-		$relay: data.selector,
-		timestampMs: Number(params.timestampMs),
-		source: params.source,
-	}, ...pageSelection.entity }).statusCode) ?? ''), String((({ ...{
-		$relay: data.selector,
-		timestampMs: Number(params.timestampMs),
-		source: params.source,
-	}, ...pageSelection.entity }).timestampMs) ?? '')].filter(Boolean).join(' ') || 'MEV relay timestamp'))} • MEV relay timestamp • Blockhead</title>
+	<title>{(data.title ?? (pageSelection.entity == null ? String(pageSelection.entitySelector.timestampMs ?? '') || 'MEV relay timestamp' : [String(pageSelection.entity.reachable ?? ''), String(pageSelection.entity.statusCode ?? ''), String(pageSelection.entitySelector.timestampMs)].filter(Boolean).join(' ') || 'MEV relay timestamp'))} • MEV relay timestamp • Blockhead</title>
 </svelte:head>
 
 
 <Page>
 	<MevRelay_TimestampView
-		href={
-			resolve('/network/[network=networkCaip2OrNetworkSlug]/mev/relay/[host=stringSegment]/timestamp/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
-				network: params.network,
-				host: params.host,
-				timestampMs: params.timestampMs,
-				source: params.source,
-			})
-		}
 		selection={pageSelection}
 	/>
 </Page>

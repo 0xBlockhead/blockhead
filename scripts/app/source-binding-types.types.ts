@@ -45,13 +45,13 @@ defineSources([
 	},
 ])([
 	{
-		source: Source.A2aWellKnown_Http,
+		source: Source.Across_Rest,
 		provider: 'Fixture',
 		label: 'Valid fixture',
 		binding: validHttpBinding,
 	},
 	{
-		source: Source.A2aService_Http,
+		source: Source.Algod_Rest,
 		// @ts-expect-error Source rows must reference a captured provider identifier.
 		provider: 'Missing',
 		label: 'Invalid provider fixture',
@@ -397,8 +397,8 @@ const invalidEvmArtifact = {
 const invalidHandwrittenOfficialArtifact = {
 	...validHttpBinding,
 	artifacts: [
+		// @ts-expect-error Handwritten types cite documentation with referenceUrl, never officialUrl.
 		{
-			// @ts-expect-error Handwritten types cite documentation with referenceUrl, never officialUrl.
 			kind: SourceArtifactKind.HandwrittenTypes,
 			path: 'types.ts',
 			generated: false,
@@ -410,12 +410,11 @@ const invalidHandwrittenOfficialArtifact = {
 const invalidGeneratedReferenceArtifact = {
 	...validHttpBinding,
 	artifacts: [
+		// @ts-expect-error Generated official artifacts use officialUrl, never referenceUrl.
 		{
-			// @ts-expect-error Generated official artifacts use officialUrl, never referenceUrl.
 			kind: SourceArtifactKind.OpenApiTypes,
 			path: 'openapi.d.ts',
 			generated: true,
-			// @ts-expect-error Generated official artifacts use officialUrl, never referenceUrl.
 			referenceUrl: 'https://example.test/docs',
 		},
 	],

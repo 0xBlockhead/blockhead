@@ -1,7 +1,7 @@
 // Generated from APP.ts. Do not edit by hand.
 
 import { CoinId } from '$/constants/Coin.ts'
-import { entity, facet } from '$/schema/$schema.ts'
+import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { type } from 'arktype'
@@ -12,10 +12,8 @@ export enum AssetInstanceKind {
 	Denom = 'Denom',
 	Mint = 'Mint',
 }
-export enum AssetInstanceSelector {
-	NetworkKindAssetKey = 'NetworkKindAssetKey',
-}
-export const AssetInstance = entity({
+
+export default entity({
 	entityType: EntityType.AssetInstance,
 	labels: {
 		singular: 'Asset instance',

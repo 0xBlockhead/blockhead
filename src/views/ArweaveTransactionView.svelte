@@ -2,13 +2,9 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
 
 
 	// Context
@@ -20,40 +16,18 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.ArweaveTransaction>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.ArweaveTransaction>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.ArweaveTransaction> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const arweaveTransaction = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {
-			quantityWinston: true,
-		},
-	} : {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const arweaveTransaction = $derived(selection({
 		fields: {
 			quantityWinston: true,
 		},
 	}))
-	const titleFallback = $derived([String((pendingEntity.transactionId) ?? '')].filter(Boolean).join(' ') || 'arweave transaction')
-	const viewDomId = $derived('arweave-transaction-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const titleFallback = $derived((pendingEntity.transactionId ?? '') || 'arweave transaction')
 
 
 	// Components
@@ -68,32 +42,21 @@
 
 <EntityView
 	entityType={EntityType.ArweaveTransaction}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={arweaveTransaction}>
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const transactionId0 = resolvedEntity.transactionId}
-				{#if transactionId0 !== undefined && transactionId0 !== null}
-					<TruncatedValue value={String((transactionId0) ?? '')} />
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		<TruncatedValue value={pendingEntity.transactionId} />
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={arweaveTransaction}>
 			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const quantityWinston0 = resolvedEntity.quantityWinston}
-				{#if quantityWinston0 !== undefined && quantityWinston0 !== null}
+				{@const quantityWinston0 = entity.quantityWinston}
+				{#if quantityWinston0 != null}
 					<NumberValue
 						value={quantityWinston0}
 					/>
@@ -103,42 +66,37 @@
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		<ResourceBoundary resource={arweaveTransaction}>
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				<ResourceBoundary
-					resource={selection.$block}
-				>
-					{#snippet children(arweaveBlock)}
-						{#if arweaveBlock != null && arweaveBlock[EntityMetaKey.Selector] != null}
-							<span data-text="muted">
-								<ArweaveBlockView
-									selection={select(EntityType.ArweaveBlock, arweaveBlock[EntityMetaKey.Selector])}
-									prefetched={arweaveBlock}
-									layout={EntityLayout.Title}
-									open={false}
-								/>
-							</span>
-						{/if}
-					{/snippet}
-				</ResourceBoundary>
+		<ResourceBoundary
+			resource={selection.$block}
+		>
+			{#snippet children(arweaveBlock)}
+				{#if arweaveBlock != null}
+					<span data-text="muted">
+						<ArweaveBlockView
+							selection={select(EntityType.ArweaveBlock, arweaveBlock[EntityMetaKey.Selector])}
+							prefetched={arweaveBlock}
+							layout={EntityLayout.Title}
+							open={false}
+						/>
+					</span>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 
-				<ResourceBoundary
-					resource={selection.$resource}
-				>
-					{#snippet children(arweaveResource)}
-						{#if arweaveResource != null && arweaveResource[EntityMetaKey.Selector] != null}
-							<span data-text="muted">
-								<ArweaveResourceView
-									selection={select(EntityType.ArweaveResource, arweaveResource[EntityMetaKey.Selector])}
-									prefetched={arweaveResource}
-									layout={EntityLayout.Title}
-									open={false}
-								/>
-							</span>
-						{/if}
-					{/snippet}
-				</ResourceBoundary>
+		<ResourceBoundary
+			resource={selection.$resource}
+		>
+			{#snippet children(arweaveResource)}
+				{#if arweaveResource != null}
+					<span data-text="muted">
+						<ArweaveResourceView
+							selection={select(EntityType.ArweaveResource, arweaveResource[EntityMetaKey.Selector])}
+							prefetched={arweaveResource}
+							layout={EntityLayout.Title}
+							open={false}
+						/>
+					</span>
+				{/if}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -159,24 +117,7 @@
 			<div>
 				<dt>transaction ID</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									transactionId: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const transactionId = resolvedEntity.transactionId}
-							{#if transactionId !== undefined && transactionId !== null}
-								<TruncatedValue value={String((transactionId) ?? '')} />
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					<TruncatedValue value={pendingEntity.transactionId} />
 				</dd>
 			</div>
 
@@ -184,7 +125,7 @@
 				resource={selection.$block}
 			>
 				{#snippet children(arweaveBlock)}
-					{#if arweaveBlock != null && arweaveBlock[EntityMetaKey.Selector] != null}
+					{#if arweaveBlock != null}
 						<div>
 							<dt>block</dt>
 							<dd>
@@ -204,7 +145,7 @@
 				resource={selection.$resource}
 			>
 				{#snippet children(arweaveResource)}
-					{#if arweaveResource != null && arweaveResource[EntityMetaKey.Selector] != null}
+					{#if arweaveResource != null}
 						<div>
 							<dt>resource</dt>
 							<dd>
@@ -225,7 +166,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							ownerAddress: true,
 						},
@@ -233,13 +173,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const ownerAddress = resolvedEntity.ownerAddress}
-					{#if ownerAddress !== undefined && ownerAddress !== null}
+					{@const ownerAddress = entity.ownerAddress}
+					{#if ownerAddress != null}
 						<div>
 							<dt>owner address</dt>
 							<dd>
-								<TruncatedValue value={String((ownerAddress) ?? '')} />
+								<TruncatedValue value={ownerAddress} />
 							</dd>
 						</div>
 					{/if}
@@ -249,7 +188,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							targetAddress: true,
 						},
@@ -257,13 +195,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const targetAddress = resolvedEntity.targetAddress}
-					{#if targetAddress !== undefined && targetAddress !== null}
+					{@const targetAddress = entity.targetAddress}
+					{#if targetAddress != null}
 						<div>
 							<dt>target address</dt>
 							<dd>
-								<TruncatedValue value={String((targetAddress) ?? '')} />
+								<TruncatedValue value={targetAddress} />
 							</dd>
 						</div>
 					{/if}
@@ -271,19 +208,11 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							quantityWinston: true,
-						},
-					})
-				}
+				resource={arweaveTransaction}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const quantityWinston = resolvedEntity.quantityWinston}
-					{#if quantityWinston !== undefined && quantityWinston !== null}
+					{@const quantityWinston = entity.quantityWinston}
+					{#if quantityWinston != null}
 						<div>
 							<dt>quantity winston</dt>
 							<dd>
@@ -299,7 +228,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							rewardWinston: true,
 						},
@@ -307,9 +235,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const rewardWinston = resolvedEntity.rewardWinston}
-					{#if rewardWinston !== undefined && rewardWinston !== null}
+					{@const rewardWinston = entity.rewardWinston}
+					{#if rewardWinston != null}
 						<div>
 							<dt>reward winston</dt>
 							<dd>
@@ -327,7 +254,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							signature: true,
 						},
@@ -335,13 +261,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const signature = resolvedEntity.signature}
-					{#if signature !== undefined && signature !== null}
+					{@const signature = entity.signature}
+					{#if signature != null}
 						<div>
 							<dt>signature</dt>
 							<dd>
-								<TruncatedValue value={String((signature) ?? '')} />
+								<TruncatedValue value={signature} />
 							</dd>
 						</div>
 					{/if}
@@ -351,7 +276,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							lastTx: true,
 						},
@@ -359,13 +283,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const lastTx = resolvedEntity.lastTx}
-					{#if lastTx !== undefined && lastTx !== null}
+					{@const lastTx = entity.lastTx}
+					{#if lastTx != null}
 						<div>
 							<dt>last transaction</dt>
 							<dd>
-								{String((lastTx) ?? '')}
+								{lastTx}
 							</dd>
 						</div>
 					{/if}
@@ -375,7 +298,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							dataRoot: true,
 						},
@@ -383,13 +305,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const dataRoot = resolvedEntity.dataRoot}
-					{#if dataRoot !== undefined && dataRoot !== null}
+					{@const dataRoot = entity.dataRoot}
+					{#if dataRoot != null}
 						<div>
 							<dt>data root</dt>
 							<dd>
-								{String((dataRoot) ?? '')}
+								{dataRoot}
 							</dd>
 						</div>
 					{/if}
@@ -399,7 +320,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							dataSizeBytes: true,
 						},
@@ -407,9 +327,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const dataSizeBytes = resolvedEntity.dataSizeBytes}
-					{#if dataSizeBytes !== undefined && dataSizeBytes !== null}
+					{@const dataSizeBytes = entity.dataSizeBytes}
+					{#if dataSizeBytes != null}
 						<div>
 							<dt>data size bytes</dt>
 							<dd>
@@ -427,7 +346,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							format: true,
 						},
@@ -435,9 +353,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const format = resolvedEntity.format}
-					{#if format !== undefined && format !== null}
+					{@const format = entity.format}
+					{#if format != null}
 						<div>
 							<dt>format</dt>
 							<dd>
@@ -453,7 +370,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							denomination: true,
 						},
@@ -461,9 +377,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const denomination = resolvedEntity.denomination}
-					{#if denomination !== undefined && denomination !== null}
+					{@const denomination = entity.denomination}
+					{#if denomination != null}
 						<div>
 							<dt>denomination</dt>
 							<dd>

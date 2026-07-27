@@ -7,14 +7,12 @@
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		data,
-		params,
 	}: PageProps = $props()
 
 	const pageSelection = $derived(select(EntityType.EthereumBeaconFinality_Timestamp, data.selector, {
@@ -36,18 +34,12 @@
 
 
 <svelte:head>
-	<title>{(data.title ?? (pageSelection.entity == null ? 'ethereum beacon finality timestamp' : [(String((({ ...data.selector, ...pageSelection.entity }).finalizedCheckpointEpoch) ?? '') ? 'Finalized epoch ' + String((({ ...data.selector, ...pageSelection.entity }).finalizedCheckpointEpoch) ?? '') : '')].filter(Boolean).join(' ') || 'ethereum beacon finality timestamp'))} • ethereum beacon finality timestamp • Blockhead</title>
+	<title>{(data.title ?? (pageSelection.entity == null ? 'ethereum beacon finality timestamp' : (String(pageSelection.entity.finalizedCheckpointEpoch) ? 'Finalized epoch ' + String(pageSelection.entity.finalizedCheckpointEpoch) : '') || 'ethereum beacon finality timestamp'))} • ethereum beacon finality timestamp • Blockhead</title>
 </svelte:head>
 
 
 <Page>
 	<EthereumBeaconFinality_TimestampView
-		href={
-			resolve('/network/[network=networkCaip2OrNetworkSlug]/finality/[timestampMs=nonNegativeInteger]', {
-				network: params.network,
-				timestampMs: params.timestampMs,
-			})
-		}
 		selection={pageSelection}
 	/>
 </Page>

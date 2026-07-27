@@ -30,24 +30,30 @@
 {#key params.eventId}
 	<ParentPageCollapsible
 		href={
-			resolve('/nostr/note/[eventId=stringSegment]', {
-				eventId: params.eventId,
-			})
+			resolve(
+				'/(social)/(nostr)/nostr/(globalNostrNetwork)/note/[eventId=stringSegment]',
+				{
+					eventId: String(params.eventId),
+				}
+			)
 		}
 	>
 		{#snippet Summary()}
-			{@const DetailView = NostrNoteView}
-
-			<DetailView
-				selection={select(EntityType.NostrNote, data.selector, { sources: [
-		Source.Constants_Internal,
-		Source.NostrBand_Rest,
-		Source.Primal_Rest,
-	] })}
+			<NostrNoteView
+				selection={
+					select(EntityType.NostrNote, data.selector, { sources: [
+						Source.Constants_Internal,
+						Source.NostrBand_Rest,
+						Source.Primal_Rest,
+					] })
+				}
 				href={
-					resolve('/nostr/note/[eventId=stringSegment]', {
-						eventId: params.eventId,
-					})
+					resolve(
+						'/(social)/(nostr)/nostr/(globalNostrNetwork)/note/[eventId=stringSegment]',
+						{
+							eventId: String(params.eventId),
+						}
+					)
 				}
 				layout={EntityLayout.SummaryInline}
 			/>

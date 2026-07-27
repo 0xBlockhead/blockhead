@@ -2,69 +2,30 @@
 
 <script lang="ts">
 	// Types/constants
-	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
-	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
-	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
+	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-
-
 
 
 	// State
 	let {
 		selection,
-		countResource,
-		title = 'Move structs',
-		typeAnnotationParagraphs = [],
-		placeholderText = undefined,
-		emptyText = undefined,
 		open = $bindable(true),
-		collapsible = true,
-		showTypeAnnotation = true,
-		id = 'MoveStructs-list',
 		...EntitiesListProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyEntitiesSelection<EntityType.MoveStruct>
-			countResource?: SvelteKitResource<number>
-			title?: string
-			typeAnnotationParagraphs?: string[]
-			placeholderText?: string
-			emptyText?: string
-			open?: boolean
-			collapsible?: boolean
-			showTypeAnnotation?: boolean
-			id?: string
-		},
-		EntitiesListForwardProps
-	> = $props()
+	}: EntityListViewProps<EntityType.MoveStruct> = $props()
 
 
 	// Components
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView from '$/components/EntityView.svelte'
 </script>
 
-
-{#snippet TypeAnnotationParagraphs()}
-	{#each typeAnnotationParagraphs as paragraph (paragraph)}
-		<p>{paragraph}</p>
-	{/each}
-{/snippet}
 
 <EntitiesList
 	{...EntitiesListProps}
 	entityType={EntityType.MoveStruct}
-	{id}
-	{title}
 	bind:open
-	{collapsible}
-	{showTypeAnnotation}
-	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
 	resource={
 		selection({
-			sources: selection.sources,
 			fields: {
 				structName: true,
 				isEvent: true,
@@ -73,38 +34,23 @@
 			},
 		})
 	}
-	{countResource}
-	getResourceItems={(moveStructs) => [...new Map(moveStructs.values.map((moveStruct) => [moveStruct[EntityMetaKey.SelectorKey], moveStruct])).values()]}
-	getKey={(moveStruct) => moveStruct[EntityMetaKey.SelectorKey]}
-	{placeholderText}
 >
-	{#snippet Empty()}
-		{#if emptyText != null}
-			<p data-text="muted">{emptyText}</p>
-		{:else}
-			<p data-text="muted">No Move structs yet.</p>
-		{/if}
-	{/snippet}
-
 	{#snippet Item({ item: moveStruct })}
-		{@const moveStructFields = { ...moveStruct[EntityMetaKey.Selector], ...moveStruct }}
+		{@const moveStructSelector = moveStruct[EntityMetaKey.Selector]}
 		<EntityView
 			entityType={EntityType.MoveStruct}
-			entitySelector={moveStruct[EntityMetaKey.Selector]}
-			layout={EntityLayout.Summary}
-			open={false}
-			showTypeAnnotation={false}
+			entitySelector={moveStructSelector}
 		>
 			{#snippet Title()}
-				{[String((moveStructFields.structName) ?? '')].filter(Boolean).join(' ') || 'move struct'}
+				{moveStructSelector.structName || 'move struct'}
 			{/snippet}
 
 			{#snippet Value()}
-				{[String((moveStructFields.isEvent) ?? ''), String((moveStructFields.isNative) ?? '')].filter(Boolean).join(' ')}
+				{[String(moveStruct.isEvent ?? ''), String(moveStruct.isNative ?? '')].filter(Boolean).join(' ')}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{[[String((moveStructFields.$module.moduleName) ?? '')].filter(Boolean).join(' ') || 'move module'].filter(Boolean).join(' ')}</span>
+				<span data-text="annotation">{moveStructSelector.$module.moduleName || 'move module'}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

@@ -8,14 +8,12 @@
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		data,
-		params,
 	}: PageProps = $props()
 
 	const pageSelection = $derived(select(EntityType.YoutubeChannel, data.selector, {
@@ -41,17 +39,12 @@
 
 
 <svelte:head>
-	<title>{(data.title ?? (pageSelection.entity == null ? [String((data.selector.channelId) ?? '')].filter(Boolean).join(' ') || 'YouTube channel' : [String((({ ...data.selector, ...pageSelection.entity }).title) ?? '')].filter(Boolean).join(' ') || [String((({ ...data.selector, ...pageSelection.entity }).channelId) ?? '')].filter(Boolean).join(' ') || 'YouTube channel'))} • YouTube channel • Blockhead</title>
+	<title>{(data.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.channelId ?? '') || 'YouTube channel' : (pageSelection.entity.title ?? '') || pageSelection.entitySelector.channelId || 'YouTube channel'))} • YouTube channel • Blockhead</title>
 </svelte:head>
 
 
 <Page>
 	<YoutubeChannelView
-		href={
-			resolve('/youtube/channel/[channelId=stringSegment]', {
-				channelId: params.channelId,
-			})
-		}
 		selection={pageSelection}
 	/>
 </Page>

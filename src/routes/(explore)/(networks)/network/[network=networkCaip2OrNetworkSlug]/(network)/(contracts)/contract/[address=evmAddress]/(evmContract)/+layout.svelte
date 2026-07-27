@@ -30,25 +30,31 @@
 {#key [params.network, params.address].join(':')}
 	<ParentPageCollapsible
 		href={
-			resolve('/network/[network=networkCaip2OrNetworkSlug]/contract/[address=evmAddress]', {
-				network: params.network,
-				address: params.address,
-			})
+			resolve(
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(contracts)/contract/[address=evmAddress]',
+				{
+					network: String(params.network),
+					address: String(params.address),
+				}
+			)
 		}
 	>
 		{#snippet Summary()}
-			{@const DetailView = EvmContractView}
-
-			<DetailView
-				selection={select(EntityType.EvmContract, data.selector, { sources: [
-		Source.Constants_Internal,
-		Source.Blockscout_Rest,
-	] })}
+			<EvmContractView
+				selection={
+					select(EntityType.EvmContract, data.selector, { sources: [
+						Source.Constants_Internal,
+						Source.Blockscout_Rest,
+					] })
+				}
 				href={
-					resolve('/network/[network=networkCaip2OrNetworkSlug]/contract/[address=evmAddress]', {
-						network: params.network,
-						address: params.address,
-					})
+					resolve(
+						'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(contracts)/contract/[address=evmAddress]',
+						{
+							network: String(params.network),
+							address: String(params.address),
+						}
+					)
 				}
 				layout={EntityLayout.SummaryInline}
 			/>

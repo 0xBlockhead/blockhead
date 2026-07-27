@@ -2,102 +2,48 @@
 
 <script lang="ts">
 	// Types/constants
-	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
-	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
-	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
+	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-
-
 
 
 	// State
 	let {
 		selection,
-		countResource,
-		title = 'Cashu mints',
-		typeAnnotationParagraphs = [],
-		placeholderText = undefined,
-		emptyText = undefined,
 		open = $bindable(true),
-		collapsible = true,
-		showTypeAnnotation = true,
-		id = 'CashuMints-list',
 		...EntitiesListProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyEntitiesSelection<EntityType.CashuMint>
-			countResource?: SvelteKitResource<number>
-			title?: string
-			typeAnnotationParagraphs?: string[]
-			placeholderText?: string
-			emptyText?: string
-			open?: boolean
-			collapsible?: boolean
-			showTypeAnnotation?: boolean
-			id?: string
-		},
-		EntitiesListForwardProps
-	> = $props()
+	}: EntityListViewProps<EntityType.CashuMint> = $props()
 
 
 	// Components
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView from '$/components/EntityView.svelte'
 </script>
 
-
-{#snippet TypeAnnotationParagraphs()}
-	{#each typeAnnotationParagraphs as paragraph (paragraph)}
-		<p>{paragraph}</p>
-	{/each}
-{/snippet}
 
 <EntitiesList
 	{...EntitiesListProps}
 	entityType={EntityType.CashuMint}
-	{id}
-	{title}
 	bind:open
-	{collapsible}
-	{showTypeAnnotation}
-	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
 	resource={
 		selection({
-			sources: selection.sources,
 			fields: {
 				mintUrl: true,
 			},
 		})
 	}
-	{countResource}
-	getResourceItems={(cashuMints) => [...new Map(cashuMints.values.map((cashuMint) => [cashuMint[EntityMetaKey.SelectorKey], cashuMint])).values()]}
-	getKey={(cashuMint) => cashuMint[EntityMetaKey.SelectorKey]}
-	{placeholderText}
 >
-	{#snippet Empty()}
-		{#if emptyText != null}
-			<p data-text="muted">{emptyText}</p>
-		{:else}
-			<p data-text="muted">No Cashu mints yet.</p>
-		{/if}
-	{/snippet}
-
 	{#snippet Item({ item: cashuMint })}
-		{@const cashuMintFields = { ...cashuMint[EntityMetaKey.Selector], ...cashuMint }}
+		{@const cashuMintSelector = cashuMint[EntityMetaKey.Selector]}
 		<EntityView
 			entityType={EntityType.CashuMint}
-			entitySelector={cashuMint[EntityMetaKey.Selector]}
-			layout={EntityLayout.Summary}
-			open={false}
-			showTypeAnnotation={false}
+			entitySelector={cashuMintSelector}
 		>
 			{#snippet Title()}
-				{[String((cashuMintFields.mintUrl) ?? '')].filter(Boolean).join(' ') || 'Cashu mint'}
+				{cashuMintSelector.mintUrl || 'Cashu mint'}
 			{/snippet}
 
 			{#snippet Value()}
-				{[String((cashuMintFields.mintUrl) ?? '')].filter(Boolean).join(' ')}
+				{cashuMintSelector.mintUrl}
 			{/snippet}
 		</EntityView>
 	{/snippet}

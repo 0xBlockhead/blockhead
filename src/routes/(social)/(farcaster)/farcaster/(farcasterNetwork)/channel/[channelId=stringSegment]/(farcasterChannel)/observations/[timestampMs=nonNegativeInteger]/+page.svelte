@@ -8,7 +8,6 @@
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
@@ -41,18 +40,12 @@
 
 
 <svelte:head>
-	<title>{(pageSelection.entity == null ? 'Farcaster channel observation' : 'Farcaster channel observation')} • Farcaster channel observation • Blockhead</title>
+	<title>{('Farcaster channel observation')} • Farcaster channel observation • Blockhead</title>
 </svelte:head>
 
 
 <Page>
 	<FarcasterChannel_TimestampView
-		href={
-			resolve('/farcaster/channel/[channelId=stringSegment]/observations/[timestampMs=nonNegativeInteger]', {
-				channelId: params.channelId,
-				timestampMs: params.timestampMs,
-			})
-		}
 		selection={pageSelection}
 	/>
 </Page>

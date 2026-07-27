@@ -1,9 +1,3 @@
-<script module lang="ts">
-	import Projection from '$/components/Projection.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-</script>
-
-
 <script lang="ts" generics="
 	Value
 ">
@@ -27,15 +21,20 @@
 		Blocked?: Snippet<[dependencies: readonly EntityFieldAddress[]]>
 		Unsupported?: Snippet
 	} = $props()
+
+
+	// Components
+	import Projection from '$/components/Projection.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 </script>
 
 
 <ResourceBoundary
-	resource={resource}
+	{resource}
 >
 	{#snippet children(projection)}
 		<Projection
-			projection={projection}
+			{projection}
 			{Applicable}
 			{NotApplicable}
 			{Blocked}

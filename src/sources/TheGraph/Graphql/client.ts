@@ -3,35 +3,35 @@ import type {
 	TadaDocumentNode,
 } from 'gql.tada'
 
-import { getJson } from '$/lib/http.ts'
 import {
 	optionalPublicEnvString,
 } from '$/sources/$sources.ts'
 import type { SourcePublicEnv } from '$/sources/$sources.ts'
-import { theGraphOrigins } from '$/sources/TheGraph/Graphql/constants.ts'
+import {
+	firstHttpUrlForBinding,
+	sourceFetch,
+} from '$/sources/_runtime/http.ts'
+import { Source } from '$/sources/Source.ts'
+import bindings from '$/sources/TheGraph/bindings.ts'
+
+const binding = bindings[Source.TheGraph_Graphql]
 
 export const queryTheGraph = async <
 	_Result extends object,
 	_Variables extends object,
 	>({
 	document,
-	endpointUrl,
 	publicEnv,
 	variables,
 }: {
 	document: TadaDocumentNode<_Result, _Variables>
-	endpointUrl: string
 	publicEnv: SourcePublicEnv
 	variables?: _Variables
 }): Promise<_Result> => {
 	const apiKey = optionalPublicEnvString(publicEnv, 'PUBLIC_THEGRAPH_API_KEY')
 
-	if (
-		apiKey == null
-		&& endpointUrl.includes('gateway.thegraph.com')
-	) {
+	if (apiKey == null)
 		throw new Error('PUBLIC_THEGRAPH_API_KEY is required for The Graph gateway queries')
-	}
 
 	type TheGraphPayloadWire = {
 		data?: _Result
@@ -40,21 +40,26 @@ export const queryTheGraph = async <
 		}[]
 	}
 
-	const payload = await getJson<TheGraphPayloadWire>(endpointUrl, {
-		origins: theGraphOrigins,
-		init: {
+	const response = await sourceFetch(
+		binding,
+		firstHttpUrlForBinding(binding),
+		{
 			method: 'POST',
-			headers: {
-				Accept: 'application/json',
-				'Content-Type': 'application/json',
-				...(apiKey != null && { Authorization: `Bearer ${apiKey}` }),
-			},
+				headers: {
+					Accept: 'application/json',
+					'Content-Type': 'application/json',
+					Authorization: `Bearer ${apiKey}`,
+				},
 			body: JSON.stringify({
 				query: print(document),
 				variables,
 			}),
-		},
-	})
+		}
+	)
+	if (!response.ok)
+		throw new Error(`The Graph query failed: ${response.status} ${response.statusText}`)
+
+	const payload: TheGraphPayloadWire = await response.json()
 
 	if ((payload.errors?.length ?? 0) > 0) {
 		const errors = payload.errors ?? []

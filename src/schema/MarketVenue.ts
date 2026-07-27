@@ -1,16 +1,13 @@
 // Generated from APP.ts. Do not edit by hand.
 
 import { MarketVenueId } from '$/constants/MarketVenue.ts'
-import { entity, facet } from '$/schema/$schema.ts'
+import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
-export enum MarketVenueSelector {
-	MarketVenueId = 'MarketVenueId',
-}
-export const MarketVenue = entity({
+export default entity({
 	entityType: EntityType.MarketVenue,
 	labels: {
 		singular: 'Market venue',

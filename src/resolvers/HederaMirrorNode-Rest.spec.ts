@@ -12,15 +12,19 @@ import {
 	entitySelectorKey,
 	indexSchema,
 } from '$/schema/$schema.ts'
-import { HederaAccountSelector } from '$/schema/HederaAccount.ts'
-import { HederaBlockSelector } from '$/schema/HederaBlock.ts'
-import { HederaTransactionSelector } from '$/schema/HederaTransaction.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import { NetworkSelector } from '$/schema/Network.ts'
 import { schema } from '$/schema/index.ts'
-import { sourceProviderDefinitions } from '$/sources/$sourceProviders.ts'
+import bindings from '$/sources/HederaMirrorNode/bindings.ts'
 import { Source } from '$/sources/Source.ts'
-import { SourceTargetKind } from '$/sources/SourceBinding.ts'
+import {
+	ApiFamily,
+	SourceCredentialScope,
+	SourceDelivery,
+	SourceEndpointKind,
+	SourceOperationGroup,
+	SourceTargetKind,
+	WireProtocol,
+} from '$/sources/SourceBinding.ts'
 import {
 	getAccount,
 	getAccountAllowances,
@@ -186,16 +190,7 @@ const nftFixture = {
 	token_id: '0.0.701',
 }
 
-const binding = sourceProviderDefinitions
-	.flatMap((provider) => provider.bindings)
-	.find((candidate) => (
-		candidate.source === Source.HederaMirrorNode_Rest
-		&& candidate.target.kind === SourceTargetKind.Caip2Network
-		&& candidate.target.key === 'hedera:mainnet'
-	))
-
-if (binding == null)
-	throw new Error('HederaMirrorNode_Rest spec missing source binding')
+const binding = bindings[Source.HederaMirrorNode_Rest]
 
 const network = {
 	slug: 'hedera',
@@ -219,7 +214,7 @@ describe('Hedera Mirror Node block query', () => {
 	it('addresses a block selector without losing integer precision at the call site', async () => {
 		sourceFetch.mockResolvedValueOnce(new Response(JSON.stringify(fixture)))
 
-		await expect(getBlock(binding, '77')).resolves.toEqual(fixture)
+		await expect(getBlock('77')).resolves.toEqual(fixture)
 		expect(sourceFetch).toHaveBeenCalledWith(
 			binding,
 			'https://mainnet-public.mirrornode.hedera.com/api/v1/blocks/77'
@@ -235,7 +230,7 @@ describe('Hedera Mirror Node block query', () => {
 		} satisfies HederaMirrorNodeBlocks
 		sourceFetch.mockResolvedValueOnce(new Response(JSON.stringify(blocks)))
 
-		await expect(getBlocks(binding, 16)).resolves.toEqual(blocks)
+		await expect(getBlocks(16)).resolves.toEqual(blocks)
 		expect(sourceFetch).toHaveBeenCalledWith(
 			binding,
 			'https://mainnet-public.mirrornode.hedera.com/api/v1/blocks?limit=16&order=desc'
@@ -243,24 +238,32 @@ describe('Hedera Mirror Node block query', () => {
 	})
 
 	it('selects the one canonical Hedera mainnet binding', () => {
-		expect(sourceProviderDefinitions
-			.flatMap((provider) => provider.bindings)
-			.filter((candidate) => (
-				candidate.source === Source.HederaMirrorNode_Rest
-				&& candidate.target.kind === SourceTargetKind.Caip2Network
-				&& candidate.target.key === 'hedera:mainnet'
-			))).toEqual([binding])
+		expect(binding).toMatchObject({
+			endpoints: [{
+				endpointKind: SourceEndpointKind.HttpUrl,
+				locator: 'https://mainnet-public.mirrornode.hedera.com',
+				origin: 'https://mainnet-public.mirrornode.hedera.com',
+				corsEnabled: false,
+			}],
+			wireProtocol: WireProtocol.HttpRest,
+			apiFamily: ApiFamily.RestJson,
+			operationGroups: [SourceOperationGroup.GenericRead],
+			delivery: SourceDelivery.HttpProxy,
+			credentials: [{
+				scope: SourceCredentialScope.None,
+			}],
+		})
 	})
 
 	it('accepts documented hash selectors and rejects invalid selectors before transport', async () => {
 		sourceFetch.mockResolvedValueOnce(new Response(JSON.stringify(fixture)))
 
-		await getBlock(binding, fixture.hash.slice(2))
+		await getBlock(fixture.hash.slice(2))
 		expect(sourceFetch.mock.calls[0][1]).toBe(
 			`https://mainnet-public.mirrornode.hedera.com/api/v1/blocks/${fixture.hash.slice(2)}`
 		)
-		expect(() => getBlock(binding, 'hash/value')).toThrow('invalid block selector')
-		expect(() => getBlock(binding, ' ')).toThrow('invalid block selector')
+		expect(() => getBlock('hash/value')).toThrow('invalid block selector')
+		expect(() => getBlock(' ')).toThrow('invalid block selector')
 	})
 })
 
@@ -272,7 +275,7 @@ describe('Hedera Mirror Node account query and resolver', () => {
 	it('addresses a canonical account ID through the registered binding', async () => {
 		sourceFetch.mockResolvedValueOnce(new Response(JSON.stringify(accountFixture)))
 
-		await expect(getAccount(binding, accountFixture.account)).resolves.toEqual(accountFixture)
+		await expect(getAccount(accountFixture.account)).resolves.toEqual(accountFixture)
 		expect(sourceFetch).toHaveBeenCalledWith(
 			binding,
 			'https://mainnet-public.mirrornode.hedera.com/api/v1/accounts/0.0.98?transactions=false'
@@ -285,7 +288,7 @@ describe('Hedera Mirror Node account query and resolver', () => {
 			'"balance":9007199254740993'
 		)))
 
-		await expect(getAccount(binding, accountFixture.account)).resolves.toMatchObject({
+		await expect(getAccount(accountFixture.account)).resolves.toMatchObject({
 			balance: {
 				balance: '9007199254740993',
 			},
@@ -293,8 +296,8 @@ describe('Hedera Mirror Node account query and resolver', () => {
 	})
 
 	it('rejects malformed account selectors before transport', () => {
-		expect(() => getAccount(binding, '0.0.account')).toThrow('invalid account selector')
-		expect(() => getAccount(binding, '0.0.1/path')).toThrow('invalid account selector')
+		expect(() => getAccount('0.0.account')).toThrow('invalid account selector')
+		expect(() => getAccount('0.0.1/path')).toThrow('invalid account selector')
 		expect(sourceFetch).not.toHaveBeenCalled()
 	})
 
@@ -302,7 +305,7 @@ describe('Hedera Mirror Node account query and resolver', () => {
 		sourceFetch.mockResolvedValueOnce(new Response(JSON.stringify(accountFixture)))
 
 		await expect(hederaMirrorNode.resolvers[0].resolve[
-			HederaAccountSelector.NetworkAccountId
+			'NetworkAccountId'
 		].resolve({
 			$network: network,
 			accountId: '0.0.98',
@@ -336,7 +339,7 @@ describe('Hedera Mirror Node account query and resolver', () => {
 			account: '0.0.99',
 		} satisfies HederaMirrorNodeAccount)))
 		await expect(hederaMirrorNode.resolvers[0].resolve[
-			HederaAccountSelector.NetworkAccountId
+			'NetworkAccountId'
 		].resolve({
 			$network: network,
 			accountId: '0.0.98',
@@ -345,7 +348,7 @@ describe('Hedera Mirror Node account query and resolver', () => {
 
 	it('rejects unsupported networks before account transport', async () => {
 		await expect(hederaMirrorNode.resolvers[0].resolve[
-			HederaAccountSelector.NetworkAccountId
+			'NetworkAccountId'
 		].resolve({
 			$network: {
 				slug: 'ethereum',
@@ -365,7 +368,7 @@ describe('Hedera Mirror Node block resolver', () => {
 		sourceFetch.mockResolvedValueOnce(new Response(JSON.stringify(fixture)))
 
 		await expect(hederaMirrorNode.resolvers[2].resolve[
-			HederaBlockSelector.NetworkBlockNumber
+			'NetworkBlockNumber'
 		].resolve({
 			$network: network,
 			blockNumber: 77n,
@@ -392,7 +395,7 @@ describe('Hedera Mirror Node block resolver', () => {
 	it('resolves block hashes case-insensitively and rejects mismatched responses', async () => {
 		sourceFetch.mockResolvedValueOnce(new Response(JSON.stringify(fixture)))
 		await expect(hederaMirrorNode.resolvers[2].resolve[
-			HederaBlockSelector.NetworkBlockHash
+			'NetworkBlockHash'
 		].resolve({
 			$network: network,
 			blockHash: fixture.hash.slice(2).toUpperCase(),
@@ -405,7 +408,7 @@ describe('Hedera Mirror Node block resolver', () => {
 			number: 78,
 		})))
 		await expect(hederaMirrorNode.resolvers[2].resolve[
-			HederaBlockSelector.NetworkBlockNumber
+			'NetworkBlockNumber'
 		].resolve({
 			$network: network,
 			blockNumber: 77n,
@@ -414,7 +417,7 @@ describe('Hedera Mirror Node block resolver', () => {
 
 	it('rejects unsupported networks before transport', async () => {
 		await expect(hederaMirrorNode.resolvers[2].resolve[
-			HederaBlockSelector.NetworkBlockNumber
+			'NetworkBlockNumber'
 		].resolve({
 			$network: {
 				slug: 'ethereum',
@@ -430,7 +433,7 @@ describe('Hedera Mirror Node block resolver', () => {
 			gas_used: -1,
 		})))
 		await expect(hederaMirrorNode.resolvers[2].resolve[
-			HederaBlockSelector.NetworkBlockNumber
+			'NetworkBlockNumber'
 		].resolve({
 			$network: network,
 			blockNumber: 77n,
@@ -444,7 +447,7 @@ describe('Hedera Mirror Node block resolver', () => {
 		})))
 
 		await expect(hederaMirrorNode.resolvers[2].resolve[
-			HederaBlockSelector.NetworkBlockNumber
+			'NetworkBlockNumber'
 		].resolve({
 			$network: network,
 			blockNumber: 77n,
@@ -472,20 +475,18 @@ describe('Hedera Mirror Node account collections', () => {
 				},
 			} satisfies HederaMirrorNodeTransactions)))
 
-		await getAccounts(binding, 16)
-		await getAccountTransactions(binding, '0.0.98', 16)
+		await getAccounts(16)
+		await getAccountTransactions('0.0.98', 16)
 		expect(sourceFetch.mock.calls.map(([, url]) => url)).toEqual([
 			'https://mainnet-public.mirrornode.hedera.com/api/v1/accounts?limit=16&order=desc',
 			'https://mainnet-public.mirrornode.hedera.com/api/v1/transactions?account.id=0.0.98&limit=16&order=desc',
 		])
 		expect(() => getAccountTransactions(
-			binding,
 			'0.0.98',
 			16,
 			'/api/v1/transactions?account.id=0.0.99'
 		)).toThrow('continuation account does not match request')
 		expect(() => getAccounts(
-			binding,
 			16,
 			'https://example.com/api/v1/accounts?limit=16'
 		)).toThrow('invalid continuation')
@@ -511,7 +512,7 @@ describe('Hedera Mirror Node account collections', () => {
 			accountId: '0.0.98',
 		}
 		const firstPage = await hederaMirrorNode.resolvers[3].resolve[
-			HederaAccountSelector.NetworkAccountId
+			'NetworkAccountId'
 		].resolve(hederaAccount, {
 			...context,
 			pagination: {
@@ -545,7 +546,7 @@ describe('Hedera Mirror Node account collections', () => {
 		})
 
 		const emptyPage = await hederaMirrorNode.resolvers[3].resolve[
-			HederaAccountSelector.NetworkAccountId
+			'NetworkAccountId'
 		].resolve(hederaAccount, context)
 		expect(hederaMirrorNode.resolvers[3].projections.$$transactions.select(
 			emptyPage,
@@ -585,7 +586,7 @@ describe('Hedera Mirror Node account collections', () => {
 			accountId: '0.0.98',
 		}
 		const page = await hederaMirrorNode.resolvers[3].resolve[
-			HederaAccountSelector.NetworkAccountId
+			'NetworkAccountId'
 		].resolve(hederaAccount, context)
 		expect(() => hederaMirrorNode.resolvers[3].projections.$$transactions.select(
 			page,
@@ -613,7 +614,7 @@ describe('Hedera Mirror Node account collections', () => {
 			caip2: networkBySlug.hedera.caip2,
 		}
 		const accountPage = await hederaMirrorNode.resolvers[4].resolve[
-			NetworkSelector.Caip2
+			'Caip2'
 		].resolve(hederaNetwork, context)
 		expect(hederaMirrorNode.resolvers[4].projections.Hedera.$$accounts.select(
 			accountPage,
@@ -629,7 +630,7 @@ describe('Hedera Mirror Node account collections', () => {
 		])
 
 		const emptyPage = await hederaMirrorNode.resolvers[4].resolve[
-			NetworkSelector.Caip2
+			'Caip2'
 		].resolve(hederaNetwork, context)
 		expect(hederaMirrorNode.resolvers[4].projections.Hedera.$$accounts.select(
 			emptyPage,
@@ -668,7 +669,7 @@ describe('Hedera Mirror Node account collections', () => {
 
 	it('rejects non-mainnet subjects before account collection transport', async () => {
 		await expect(hederaMirrorNode.resolvers[3].resolve[
-			HederaAccountSelector.NetworkAccountId
+			'NetworkAccountId'
 		].resolve({
 			$network: {
 				slug: 'ethereum',
@@ -676,7 +677,7 @@ describe('Hedera Mirror Node account collections', () => {
 			accountId: '0.0.98',
 		}, context)).rejects.toThrow('unsupported network')
 		await expect(hederaMirrorNode.resolvers[4].resolve[
-			NetworkSelector.Caip2
+			'Caip2'
 		].resolve({
 			caip2: networkBySlug.ethereum.caip2,
 		}, context)).rejects.toThrow('unsupported network')
@@ -728,7 +729,7 @@ describe('Hedera Mirror Node account assets and allowances', () => {
 				'"serial_number":9007199254740997'
 			)))
 
-		await expect(getAccountAllowances(binding, '0.0.98', 16)).resolves.toMatchObject({
+		await expect(getAccountAllowances('0.0.98', 16)).resolves.toMatchObject({
 			allowanceKind: 'crypto',
 			page: {
 				allowances: [
@@ -738,10 +739,10 @@ describe('Hedera Mirror Node account assets and allowances', () => {
 				],
 			},
 		})
-		await getAccountAllowances(binding, '0.0.98', 16, '/api/v1/accounts/0.0.98/allowances/tokens')
-		await getAccountAllowances(binding, '0.0.98', 16, '/api/v1/accounts/0.0.98/allowances/nfts')
-		await getAccountTokens(binding, '0.0.98', 16)
-		await expect(getAccountNfts(binding, '0.0.98', 16)).resolves.toMatchObject({
+		await getAccountAllowances('0.0.98', 16, '/api/v1/accounts/0.0.98/allowances/tokens')
+		await getAccountAllowances('0.0.98', 16, '/api/v1/accounts/0.0.98/allowances/nfts')
+		await getAccountTokens('0.0.98', 16)
+		await expect(getAccountNfts('0.0.98', 16)).resolves.toMatchObject({
 			nfts: [
 				expect.objectContaining({
 					serial_number: '9007199254740997',
@@ -757,42 +758,35 @@ describe('Hedera Mirror Node account assets and allowances', () => {
 			'https://mainnet-public.mirrornode.hedera.com/api/v1/accounts/0.0.98/nfts?limit=16&order=desc',
 		])
 		expect(() => getAccountTokens(
-			binding,
 			'0.0.98',
 			16,
 			'/api/v1/accounts/0.0.99/tokens?limit=16'
 		)).toThrow('invalid continuation')
 		await expect(() => getAccountAllowances(
-			binding,
 			'0.0.98',
 			16,
 			'https://example.com/api/v1/accounts/0.0.98/allowances/crypto'
 		)).rejects.toThrow('invalid continuation')
 		expect(() => getAccountTokens(
-			binding,
 			'0.0.98',
 			16,
 			'/api/v1/accounts/0.0.98/tokens'
 		)).toThrow('invalid account collection continuation')
 		expect(() => getAccountTokens(
-			binding,
 			'0.0.98',
 			16,
 			'/api/v1/accounts/0.0.98/tokens?limit=16&order=asc&token.id=gt:0.0.700&unexpected=true'
 		)).toThrow('invalid account collection continuation')
 		expect(() => getAccountNfts(
-			binding,
 			'0.0.98',
 			16,
 			'/api/v1/accounts/0.0.98/nfts?limit=16&order=asc&token.id=lt:0.0.701&serialnumber=lt:10'
 		)).toThrow('invalid account collection continuation')
 		expect(() => getAccounts(
-			binding,
 			16,
 			'/api/v1/accounts?limit=16&order=desc&account.id=lt:0.0.98&account.id=lt:0.0.97'
 		)).toThrow('invalid account list continuation')
 		expect(() => getAccountTransactions(
-			binding,
 			'0.0.98',
 			16,
 			'/api/v1/transactions?account.id=0.0.98&limit=16&order=desc&timestamp=lt:1710000001.0&result=success'
@@ -826,7 +820,7 @@ describe('Hedera Mirror Node account assets and allowances', () => {
 		}
 		const allowanceResolver = hederaMirrorNode.resolvers[5]
 		const cryptoPage = await allowanceResolver.resolve[
-			HederaAccountSelector.NetworkAccountId
+			'NetworkAccountId'
 		].resolve(hederaAccount, context)
 		const cryptoRows = allowanceResolver.projections.$$allowances.select(
 			cryptoPage,
@@ -882,7 +876,7 @@ describe('Hedera Mirror Node account assets and allowances', () => {
 		})
 
 		const tokenPage = await allowanceResolver.resolve[
-			HederaAccountSelector.NetworkAccountId
+			'NetworkAccountId'
 		].resolve(hederaAccount, {
 			...context,
 			providerContinuationToken: '/api/v1/accounts/0.0.98/allowances/tokens',
@@ -897,7 +891,7 @@ describe('Hedera Mirror Node account assets and allowances', () => {
 		})
 
 		const nftPage = await allowanceResolver.resolve[
-			HederaAccountSelector.NetworkAccountId
+			'NetworkAccountId'
 		].resolve(hederaAccount, {
 			...context,
 			providerContinuationToken: '/api/v1/accounts/0.0.98/allowances/nfts',
@@ -979,7 +973,7 @@ describe('Hedera Mirror Node account assets and allowances', () => {
 		}
 		const tokenResolver = hederaMirrorNode.resolvers[6]
 		const tokenPage = await tokenResolver.resolve[
-			HederaAccountSelector.NetworkAccountId
+			'NetworkAccountId'
 		].resolve(hederaAccount, context)
 		const tokenRows = tokenResolver.projections.$$tokens.select(
 			tokenPage,
@@ -1003,7 +997,7 @@ describe('Hedera Mirror Node account assets and allowances', () => {
 		})
 
 		const emptyTokenPage = await tokenResolver.resolve[
-			HederaAccountSelector.NetworkAccountId
+			'NetworkAccountId'
 		].resolve(hederaAccount, context)
 		expect(tokenResolver.projections.$$tokens.select(
 			emptyTokenPage,
@@ -1020,7 +1014,7 @@ describe('Hedera Mirror Node account assets and allowances', () => {
 
 		const nftResolver = hederaMirrorNode.resolvers[7]
 		const nftPage = await nftResolver.resolve[
-			HederaAccountSelector.NetworkAccountId
+			'NetworkAccountId'
 		].resolve(hederaAccount, context)
 		const nftRows = nftResolver.projections.$$nfts.select(
 			nftPage,
@@ -1043,7 +1037,7 @@ describe('Hedera Mirror Node account assets and allowances', () => {
 		})
 
 		const emptyNftPage = await nftResolver.resolve[
-			HederaAccountSelector.NetworkAccountId
+			'NetworkAccountId'
 		].resolve(hederaAccount, context)
 		expect(nftResolver.projections.$$nfts.select(
 			emptyNftPage,
@@ -1062,7 +1056,7 @@ describe('Hedera Mirror Node account assets and allowances', () => {
 	it('rejects non-mainnet and mismatched account-scoped rows', async () => {
 		for (const resolver of hederaMirrorNode.resolvers.slice(5, 8))
 			await expect(resolver.resolve[
-				HederaAccountSelector.NetworkAccountId
+				'NetworkAccountId'
 			].resolve({
 				$network: {
 					slug: 'ethereum',
@@ -1087,7 +1081,7 @@ describe('Hedera Mirror Node account assets and allowances', () => {
 			accountId: '0.0.98',
 		}
 		const page = await hederaMirrorNode.resolvers[7].resolve[
-			HederaAccountSelector.NetworkAccountId
+			'NetworkAccountId'
 		].resolve(hederaAccount, context)
 		expect(() => hederaMirrorNode.resolvers[7].projections.$$nfts.select(
 			page,
@@ -1144,7 +1138,6 @@ describe('Hedera Mirror Node transaction detail', () => {
 			})))
 
 		await expect(getTransactionByConsensusTimestamp(
-			binding,
 			detailedTransaction.consensus_timestamp
 		)).resolves.toMatchObject({
 			transactions: [{
@@ -1152,7 +1145,6 @@ describe('Hedera Mirror Node transaction detail', () => {
 			}],
 		})
 		await expect(getTransactionByIdNonce(
-			binding,
 			detailedTransaction.transaction_id,
 			detailedTransaction.nonce
 		)).resolves.toMatchObject({
@@ -1172,7 +1164,7 @@ describe('Hedera Mirror Node transaction detail', () => {
 			},
 		} satisfies HederaMirrorNodeTransactions)))
 		const snapshot = await transactionResolver.resolve[
-			HederaTransactionSelector.NetworkConsensusTimestamp
+			'NetworkConsensusTimestamp'
 		].resolve({
 			$network: network,
 			consensusTimestamp: detailedTransaction.consensus_timestamp,
@@ -1215,10 +1207,10 @@ describe('Hedera Mirror Node transaction detail', () => {
 	})
 
 	it('rejects ambiguous identities, malformed selectors, and unrepresentable children', async () => {
-		expect(() => getTransactionByConsensusTimestamp(binding, 'not-a-timestamp')).toThrow(
+		expect(() => getTransactionByConsensusTimestamp('not-a-timestamp')).toThrow(
 			'invalid transaction consensus timestamp'
 		)
-		expect(() => getTransactionByIdNonce(binding, '0.0.98/path', 0)).toThrow(
+		expect(() => getTransactionByIdNonce('0.0.98/path', 0)).toThrow(
 			'invalid transaction ID'
 		)
 		expect(sourceFetch).not.toHaveBeenCalled()
@@ -1233,7 +1225,7 @@ describe('Hedera Mirror Node transaction detail', () => {
 			},
 		} satisfies HederaMirrorNodeTransactions)))
 		await expect(transactionResolver.resolve[
-			HederaTransactionSelector.NetworkConsensusTimestamp
+			'NetworkConsensusTimestamp'
 		].resolve({
 			$network: network,
 			consensusTimestamp: detailedTransaction.consensus_timestamp,
@@ -1250,7 +1242,7 @@ describe('Hedera Mirror Node transaction detail', () => {
 			}],
 		})))
 		await expect(transactionResolver.resolve[
-			HederaTransactionSelector.NetworkTransactionIdNonce
+			'NetworkTransactionIdNonce'
 		].resolve({
 			$network: network,
 			transactionId: detailedTransaction.transaction_id,
@@ -1273,7 +1265,7 @@ describe('Hedera Mirror Node network blocks resolver', () => {
 		} satisfies HederaMirrorNodeBlocks)))
 
 		await expect(hederaMirrorNode.resolvers[1].resolve[
-			NetworkSelector.Caip2
+			'Caip2'
 		].resolve({
 			caip2: networkBySlug.hedera.caip2,
 		}, {
@@ -1308,7 +1300,7 @@ describe('Hedera Mirror Node network blocks resolver', () => {
 
 	it('rejects non-Hedera CAIP-2 subjects before transport', async () => {
 		await expect(hederaMirrorNode.resolvers[1].resolve[
-			NetworkSelector.Caip2
+			'Caip2'
 		].resolve({
 			caip2: networkBySlug.ethereum.caip2,
 		}, context)).rejects.toThrow('unsupported network')

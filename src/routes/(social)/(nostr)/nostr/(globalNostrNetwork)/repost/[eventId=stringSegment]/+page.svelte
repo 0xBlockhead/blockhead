@@ -8,7 +8,6 @@
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
@@ -43,19 +42,12 @@
 
 
 <svelte:head>
-	<title>{(pageSelection.entity == null ? 'Nostr repost' : [String((({ ...{
-		eventId: params.eventId,
-	}, ...pageSelection.entity }).repostedEventId) ?? '')].filter(Boolean).join(' ') || 'Nostr repost')} • Nostr repost • Blockhead</title>
+	<title>{(pageSelection.entity == null ? 'Nostr repost' : (pageSelection.entity.repostedEventId ?? '') || 'Nostr repost')} • Nostr repost • Blockhead</title>
 </svelte:head>
 
 
 <Page>
 	<NostrRepostView
-		href={
-			resolve('/nostr/repost/[eventId=stringSegment]', {
-				eventId: params.eventId,
-			})
-		}
 		selection={pageSelection}
 	/>
 </Page>

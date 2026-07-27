@@ -8,7 +8,6 @@
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
@@ -36,23 +35,12 @@
 
 
 <svelte:head>
-	<title>{(pageSelection.entity == null ? [String(({
-		networkStackId: params.networkStackId,
-	}.networkStackId) ?? '')].filter(Boolean).join(' ') || 'network stack' : [String((({ ...{
-		networkStackId: params.networkStackId,
-	}, ...pageSelection.entity }).label) ?? '')].filter(Boolean).join(' ') || [String((({ ...{
-		networkStackId: params.networkStackId,
-	}, ...pageSelection.entity }).networkStackId) ?? '')].filter(Boolean).join(' ') || 'network stack')} • network stack • Blockhead</title>
+	<title>{(pageSelection.entity == null ? (pageSelection.entitySelector.networkStackId ?? '') || 'network stack' : pageSelection.entity.label || pageSelection.entitySelector.networkStackId || 'network stack')} • network stack • Blockhead</title>
 </svelte:head>
 
 
 <Page>
 	<NetworkStackView
-		href={
-			resolve('/network-stack/[networkStackId=stringSegment]', {
-				networkStackId: params.networkStackId,
-			})
-		}
 		selection={pageSelection}
 	/>
 </Page>

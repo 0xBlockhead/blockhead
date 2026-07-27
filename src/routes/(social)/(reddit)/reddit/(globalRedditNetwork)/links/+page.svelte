@@ -2,12 +2,11 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
@@ -23,29 +22,15 @@
 
 
 <Page>
+	{@const collectionSelection = select(EntityType._GlobalRedditNetwork, {
+		scope: '_GlobalRedditNetwork',
+	}).$$observedLinks}
+
 	<RedditLinksView
-		href={resolve('/reddit/links')}
+		href={resolve('/(social)/(reddit)/reddit/(globalRedditNetwork)/links')}
 		title='Popular submissions'
-		selection={
-			select(EntityType._GlobalRedditNetwork, {
-				scope: '_GlobalRedditNetwork',
-			})
-				.$$observedLinks({
-					sources: [
-						Source.Reddit_PublicJson,
-					],
-				})
-		}
-		countResource={
-			select(EntityType._GlobalRedditNetwork, {
-				scope: '_GlobalRedditNetwork',
-			})
-				.$$observedLinks({
-					sources: [
-						Source.Reddit_PublicJson,
-					],
-				}).count
-		}
+		selection={collectionSelection}
+		countResource={collectionSelection.count}
 		id='observed-links'
 		data-column-item="flexible"
 		data-card

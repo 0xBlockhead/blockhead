@@ -2,69 +2,33 @@
 
 <script lang="ts">
 	// Types/constants
-	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
-	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
-	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
+	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-
-
+	import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 
 
 	// State
 	let {
 		selection,
-		countResource,
 		title = 'Storage reads',
-		typeAnnotationParagraphs = [],
-		placeholderText = undefined,
-		emptyText = undefined,
 		open = $bindable(true),
-		collapsible = true,
-		showTypeAnnotation = true,
-		id = 'EvmStorageRead_Timestamps-list',
 		...EntitiesListProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyEntitiesSelection<EntityType.EvmStorageRead_Timestamp>
-			countResource?: SvelteKitResource<number>
-			title?: string
-			typeAnnotationParagraphs?: string[]
-			placeholderText?: string
-			emptyText?: string
-			open?: boolean
-			collapsible?: boolean
-			showTypeAnnotation?: boolean
-			id?: string
-		},
-		EntitiesListForwardProps
-	> = $props()
+	}: EntityListViewProps<EntityType.EvmStorageRead_Timestamp> = $props()
 
 
 	// Components
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView from '$/components/EntityView.svelte'
 </script>
 
-
-{#snippet TypeAnnotationParagraphs()}
-	{#each typeAnnotationParagraphs as paragraph (paragraph)}
-		<p>{paragraph}</p>
-	{/each}
-{/snippet}
 
 <EntitiesList
 	{...EntitiesListProps}
 	entityType={EntityType.EvmStorageRead_Timestamp}
-	{id}
 	{title}
 	bind:open
-	{collapsible}
-	{showTypeAnnotation}
-	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
 	resource={
 		selection({
-			sources: selection.sources,
 			fields: {
 				slot: true,
 				value: true,
@@ -72,38 +36,23 @@
 			},
 		})
 	}
-	{countResource}
-	getResourceItems={(evmStorageReadTimestamps) => [...new Map(evmStorageReadTimestamps.values.map((evmStorageReadTimestamp) => [evmStorageReadTimestamp[EntityMetaKey.SelectorKey], evmStorageReadTimestamp])).values()]}
-	getKey={(evmStorageReadTimestamp) => evmStorageReadTimestamp[EntityMetaKey.SelectorKey]}
-	{placeholderText}
 >
-	{#snippet Empty()}
-		{#if emptyText != null}
-			<p data-text="muted">{emptyText}</p>
-		{:else}
-			<p data-text="muted">No EVM storage read observations yet.</p>
-		{/if}
-	{/snippet}
-
 	{#snippet Item({ item: evmStorageReadTimestamp })}
-		{@const evmStorageReadTimestampFields = { ...evmStorageReadTimestamp[EntityMetaKey.Selector], ...evmStorageReadTimestamp }}
+		{@const evmStorageReadTimestampSelector = evmStorageReadTimestamp[EntityMetaKey.Selector]}
 		<EntityView
 			entityType={EntityType.EvmStorageRead_Timestamp}
-			entitySelector={evmStorageReadTimestamp[EntityMetaKey.Selector]}
-			layout={EntityLayout.Summary}
-			open={false}
-			showTypeAnnotation={false}
+			entitySelector={evmStorageReadTimestampSelector}
 		>
 			{#snippet Title()}
-				{[String((evmStorageReadTimestampFields.slot) ?? '')].filter(Boolean).join(' ') || 'EVM storage read timestamp'}
+				{String(evmStorageReadTimestampSelector.slot) || 'EVM storage read timestamp'}
 			{/snippet}
 
 			{#snippet Value()}
-				{[String((evmStorageReadTimestampFields.value) ?? '')].filter(Boolean).join(' ')}
+				{String(evmStorageReadTimestamp.value ?? '')}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{[String((evmStorageReadTimestampFields.source) ?? '')].filter(Boolean).join(' ')}</span>
+				<span data-text="annotation">{evmStorageReadTimestampSelector.source}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

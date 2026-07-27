@@ -13,10 +13,6 @@ import { MediaType } from '$/schema/Media.ts'
 import { UrlString } from '$/schema/UrlString.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
-import { XUserSelector } from '$/schema/XUser.ts'
-import { XPostSelector } from '$/schema/XPost.ts'
-import { _GlobalXNetworkSelector } from '$/schema/_GlobalXNetwork.ts'
-import { XNetworkSelector } from '$/schema/XNetwork.ts'
 
 export default {
 	source: Source.X_FxEmbed_Rest,
@@ -25,7 +21,7 @@ export default {
 		defineResolver(Source.X_FxEmbed_Rest, {
 			entityType: EntityType.XUser,
 			resolve: {
-				[XUserSelector.Id]: {
+				Id: {
 					resolve: async ({ id }) => {
 						const { getUser } = await import('$/sources/FxEmbed/Rest/queries.ts')
 						const response = await getUser(id)
@@ -75,7 +71,7 @@ export default {
 						}
 					},
 				},
-				[XUserSelector.Username]: {
+				Username: {
 					resolve: async ({ username }) => {
 						const { getUser } = await import('$/sources/FxEmbed/Rest/queries.ts')
 						const response = await getUser(username)
@@ -139,7 +135,7 @@ export default {
 		defineResolver(Source.X_FxEmbed_Rest, {
 			entityType: EntityType.XPost,
 			resolve: {
-				[XPostSelector.Id]: {
+				Id: {
 					resolve: async ({ id }) => {
 						const { getStatus } = await import('$/sources/FxEmbed/Rest/queries.ts')
 						const response = await getStatus(id)
@@ -241,7 +237,7 @@ export default {
 			defineResolver(Source.X_FxEmbed_Rest, {
 				entityType: EntityType.XNetwork,
 				resolve: {
-					[XNetworkSelector.Scope]: {
+					Scope: {
 						resolve: async (_entitySelector, context) => {
 						const { searchStatuses } = await import('$/sources/FxEmbed/Rest/queries.ts')
 						const limit = resolverContextRowLimit(context)
@@ -277,7 +273,7 @@ export default {
 			defineResolver(Source.X_FxEmbed_Rest, {
 				entityType: EntityType.XNetwork,
 				resolve: {
-					[XNetworkSelector.Scope]: {
+					Scope: {
 						resolve: async (_entitySelector, context) => {
 						const { searchStatuses } = await import('$/sources/FxEmbed/Rest/queries.ts')
 						const limit = resolverContextRowLimit(context)
@@ -338,7 +334,7 @@ export default {
 		defineResolver(Source.X_FxEmbed_Rest, {
 			entityType: EntityType.XPost,
 			resolve: {
-				[XPostSelector.Id]: {
+				Id: {
 					resolve: async ({ id }) => {
 						const { getStatus } = await import('$/sources/FxEmbed/Rest/queries.ts')
 						const status = (await getStatus(id)).status
@@ -382,7 +378,7 @@ export default {
 		defineResolver(Source.X_FxEmbed_Rest, {
 			entityType: EntityType.XUser,
 			resolve: {
-				[XUserSelector.Id]: {
+				Id: {
 					resolve: async ({ id }) => {
 						const { getUser } = await import('$/sources/FxEmbed/Rest/queries.ts')
 						const user = (await getUser(id)).user
@@ -415,7 +411,7 @@ export default {
 						]
 					},
 				},
-				[XUserSelector.Username]: {
+				Username: {
 					resolve: async ({ username }) => {
 						const { getUser } = await import('$/sources/FxEmbed/Rest/queries.ts')
 						const user = (await getUser(username)).user
@@ -455,7 +451,7 @@ export default {
 		defineResolver(Source.X_FxEmbed_Rest, {
 			entityType: EntityType.XUser,
 			resolve: {
-				[XUserSelector.Id]: {
+				Id: {
 					resolve: async ({ id }, context) => {
 						const { getUserStatuses } = await import('$/sources/FxEmbed/Rest/queries.ts')
 						const limit = resolverContextRowLimit(context)
@@ -476,11 +472,10 @@ export default {
 												[entityFieldAddressKey(EntityType.XPost, [], 'createdAt')]:
 													wirePost.created_timestamp * 1000,
 											}),
-											[entityFieldAddressKey(EntityType.XPost, [], 'postUrl')]:
-												`https://x.com/i/web/status/${wirePost.id}`,
-											[entityFieldAddressKey(EntityType.XPost, [], '$author')]: {
-												[EntityMetaKey.Selector]: { id },
-												...(wirePost.author != null && {
+												[entityFieldAddressKey(EntityType.XPost, [], 'postUrl')]:
+													`https://x.com/i/web/status/${wirePost.id}`,
+												[entityFieldAddressKey(EntityType.XPost, [], '$author')]: {
+													[EntityMetaKey.Selector]: { id },
 													[EntityMetaKey.Fields]: {
 														...(optionalNonemptyString(wirePost.author.screen_name) != null && {
 															[entityFieldAddressKey(EntityType.XUser, [], 'username')]:
@@ -491,17 +486,16 @@ export default {
 																optionalNonemptyString(wirePost.author.name),
 														}),
 													},
-												}),
+												},
 											},
-										},
-									}]
+										}]
 								:
 									[]
 								))
 						)
 					},
 				},
-				[XUserSelector.Username]: {
+				Username: {
 					resolve: async ({ username }, context) => {
 						const { getUserStatuses } = await import('$/sources/FxEmbed/Rest/queries.ts')
 						const limit = resolverContextRowLimit(context)
@@ -552,13 +546,19 @@ export default {
 		defineResolver(Source.X_FxEmbed_Rest, {
 			entityType: EntityType._GlobalXNetwork,
 			resolve: {
-				[_GlobalXNetworkSelector.Scope]: {
+				Scope: {
 					resolve: async ({ scope }, context) => {
 						if (scope !== EntityType._GlobalXNetwork)
 							throw new Error(`X_FxEmbed_Rest: unsupported global X scope ${scope}`)
 
 						const { searchStatuses } = await import('$/sources/FxEmbed/Rest/queries.ts')
-						return ((await searchStatuses(resolverContextRowLimit(context))).results ?? [])
+						return (
+							(
+								await searchStatuses(
+									resolverContextRowLimit(context)
+								)
+							).results ?? []
+						)
 							.flatMap((status) => (
 								status.type === 'status'
 								&& status.author?.id != null
@@ -587,13 +587,19 @@ export default {
 		defineResolver(Source.X_FxEmbed_Rest, {
 			entityType: EntityType._GlobalXNetwork,
 			resolve: {
-				[_GlobalXNetworkSelector.Scope]: {
+				Scope: {
 					resolve: async ({ scope }, context) => {
 						if (scope !== EntityType._GlobalXNetwork)
 							throw new Error(`X_FxEmbed_Rest: unsupported global X scope ${scope}`)
 
 						const { searchStatuses } = await import('$/sources/FxEmbed/Rest/queries.ts')
-						return ((await searchStatuses(resolverContextRowLimit(context))).results ?? [])
+						return (
+							(
+								await searchStatuses(
+									resolverContextRowLimit(context)
+								)
+							).results ?? []
+						)
 							.flatMap((status) => (
 								status.type === 'status' && status.id != null ?
 									[{

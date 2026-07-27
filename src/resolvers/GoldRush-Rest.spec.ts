@@ -3,8 +3,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { EvmTransactionExecutionStatus } from '$/constants/Evm.ts'
 import { EntityMetaKey } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import { EvmTransactionSelector } from '$/schema/EvmTransaction.ts'
-import { sourceProviderDefinitions } from '$/sources/$sourceProviders.ts'
+import bindings from '$/sources/Covalent/bindings.ts'
 import { Source } from '$/sources/Source.ts'
 import { getTransaction } from '$/sources/Covalent/GoldRush/Rest/queries.ts'
 import type { GoldRushTransactionResponse } from '$/sources/Covalent/GoldRush/Rest/types.ts'
@@ -24,12 +23,7 @@ vi.mock('$/sources/_runtime/http.ts', async (importOriginal) => ({
 const { default: goldRushResolvers } = await import('$/resolvers/GoldRush-Rest.ts')
 
 const transactionResolver = goldRushResolvers.resolvers[0]
-const goldRushBinding = sourceProviderDefinitions
-	.flatMap((provider) => provider.bindings)
-	.find((binding) => (
-		binding.source === Source.GoldRushFoundational_Rest
-		&& binding.target.key === '1'
-	))
+const goldRushBinding = bindings[Source.GoldRushFoundational_Rest]
 const transactionResponse = transactionFixture satisfies GoldRushTransactionResponse
 const transactionEmptyResponse = transactionEmptyFixture satisfies GoldRushTransactionResponse
 const transactionErrorResponse = transactionErrorFixture satisfies GoldRushTransactionResponse
@@ -122,7 +116,7 @@ describe('GoldRush Foundational transaction source', () => {
 		sourceGetJson.mockResolvedValueOnce(transactionResponse)
 		const txHash = transactionResponse.data.items[0].tx_hash
 		const resolved = await transactionResolver.resolve[
-			EvmTransactionSelector.EvmNetworkTxHash
+			'EvmNetworkTxHash'
 		].resolve(
 			{
 				$network: {
@@ -201,7 +195,7 @@ describe('GoldRush Foundational transaction source', () => {
 		})
 
 		await expect(transactionResolver.resolve[
-			EvmTransactionSelector.EvmNetworkTxHash
+			'EvmNetworkTxHash'
 		].resolve(
 			{
 				$network: {
@@ -226,7 +220,7 @@ describe('GoldRush Foundational transaction source', () => {
 
 	it('rejects unsupported EIP-155 networks before transport', async () => {
 		await expect(transactionResolver.resolve[
-			EvmTransactionSelector.EvmNetworkTxHash
+			'EvmNetworkTxHash'
 		].resolve(
 			{
 				$network: {

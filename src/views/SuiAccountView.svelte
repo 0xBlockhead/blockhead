@@ -2,11 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { stringify } from 'devalue'
 
@@ -20,35 +16,14 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.SuiAccount>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.SuiAccount>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.SuiAccount> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const suiAccount = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {},
-	} : {
-		sources: selection.sources,
-	}))
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const titleFallback = 'Sui account'
-	const viewDomId = $derived('sui-account-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const viewDomId = $derived('sui-account-' + encodeURIComponent(stringify(selection.entitySelector)))
 
 
 	// Components
@@ -65,24 +40,15 @@
 
 <EntityView
 	entityType={EntityType.SuiAccount}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
+	entitySelector={selection.entitySelector}
 	id={viewDomId}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails}
-			{title || titleFallback}
-		{:else}
-			<ResourceBoundary resource={suiAccount}>
-				{#snippet children(entity)}
-					{title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		Sui account
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -101,24 +67,7 @@
 			<div>
 				<dt>Address</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									address: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const address = resolvedEntity.address}
-							{#if address !== undefined && address !== null}
-								<TruncatedValue value={String((address) ?? '')} />
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					<TruncatedValue value={pendingEntity.address} />
 				</dd>
 			</div>
 		</dl>
@@ -133,12 +82,10 @@
 					{
 						id: 'sui-account-balances',
 						label: 'Balances',
-						ownsSection: true,
 					},
 					{
 						id: 'sui-account-objects',
 						label: 'Objects',
-						ownsSection: true,
 					},
 				]
 			}
@@ -151,136 +98,34 @@
 				</header>
 			{/snippet}
 
-			{#snippet MarkerSuiAccountBalances(_context, Content)}
-				{@const suiAccountActivityASuiAccountBalancesResource = selection.$$balances}
-				<ResourceBoundary
-					resource={suiAccountActivityASuiAccountBalancesResource}
-				>
-					{#snippet children(_resolved)}
-						{@render Content()}
-					{/snippet}
-
-					{#snippet PendingContent()}
-						{@render Content()}
-					{/snippet}
-
-					{#snippet FailedContent(_error, _retry)}
-						{@render Content()}
-					{/snippet}
-				</ResourceBoundary>
+			{#snippet SectionSuiAccountBalances({ id, label, open })}
+				<SuiCoinBalance_TimestampsView
+					selection={selection.$$balances}
+					CollapsibleProps={{ canToggle: false }}
+					collapsible={false}
+					data-column-item="flexible"
+					data-card
+					data-scroll-container
+					open={open}
+					title={label}
+					emptyText='No balances.'
+					id={`${id}-list`}
+				/>
 			{/snippet}
 
-			{#snippet SectionSuiAccountBalances({ id, label, open, active })}
-				{@const suiAccountActivityASuiAccountBalancesResource = selection.$$balances}
-				<ResourceBoundary
-					resource={suiAccountActivityASuiAccountBalancesResource}
-				>
-					{#snippet children(suiCoinBalanceTimestamp)}
-						<section
-							id={id}
-							aria-labelledby={`${id}:marker`}
-							data-scroll-marker-label={label}
-							data-column-item="flexible"
-							data-column
-							data-active={active}
-						>
-							<SuiCoinBalance_TimestampsView
-								selection={suiAccountActivityASuiAccountBalancesResource}
-								CollapsibleProps={{ canToggle: false }}
-								collapsible={false}
-								data-column-item="flexible"
-								data-card
-								data-scroll-container
-								open={open}
-								title={label}
-								emptyText='No balances.'
-								id={`${id}-list`}
-							/>
-						</section>
-					{/snippet}
-
-					{#snippet Pending()}
-						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
-							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
-								<span data-tag data-text="muted" data-resource-state="pending" class="loading inline-placeholder" aria-busy="true" aria-label="Loading…">•••</span>
-							</article>
-						</section>
-					{/snippet}
-
-					{#snippet Failed(_error, _retry)}
-						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
-							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
-								<span data-tag data-resource-state="failed" class="inline-placeholder" aria-label="Failed to load">•••</span>
-							</article>
-						</section>
-					{/snippet}
-				</ResourceBoundary>
-			{/snippet}
-
-			{#snippet MarkerSuiAccountObjects(_context, Content)}
-				{@const suiAccountActivityASuiAccountObjectsResource = selection.$$objects}
-				<ResourceBoundary
-					resource={suiAccountActivityASuiAccountObjectsResource}
-				>
-					{#snippet children(_resolved)}
-						{@render Content()}
-					{/snippet}
-
-					{#snippet PendingContent()}
-						{@render Content()}
-					{/snippet}
-
-					{#snippet FailedContent(_error, _retry)}
-						{@render Content()}
-					{/snippet}
-				</ResourceBoundary>
-			{/snippet}
-
-			{#snippet SectionSuiAccountObjects({ id, label, open, active })}
-				{@const suiAccountActivityASuiAccountObjectsResource = selection.$$objects}
-				<ResourceBoundary
-					resource={suiAccountActivityASuiAccountObjectsResource}
-				>
-					{#snippet children(suiObject)}
-						<section
-							id={id}
-							aria-labelledby={`${id}:marker`}
-							data-scroll-marker-label={label}
-							data-column-item="flexible"
-							data-column
-							data-active={active}
-						>
-							<SuiObjectsView
-								selection={suiAccountActivityASuiAccountObjectsResource}
-								CollapsibleProps={{ canToggle: false }}
-								collapsible={false}
-								data-column-item="flexible"
-								data-card
-								data-scroll-container
-								open={open}
-								title={label}
-								emptyText='No objects.'
-								id={`${id}-list`}
-							/>
-						</section>
-					{/snippet}
-
-					{#snippet Pending()}
-						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
-							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
-								<span data-tag data-text="muted" data-resource-state="pending" class="loading inline-placeholder" aria-busy="true" aria-label="Loading…">•••</span>
-							</article>
-						</section>
-					{/snippet}
-
-					{#snippet Failed(_error, _retry)}
-						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
-							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
-								<span data-tag data-resource-state="failed" class="inline-placeholder" aria-label="Failed to load">•••</span>
-							</article>
-						</section>
-					{/snippet}
-				</ResourceBoundary>
+			{#snippet SectionSuiAccountObjects({ id, label, open })}
+				<SuiObjectsView
+					selection={selection.$$objects}
+					CollapsibleProps={{ canToggle: false }}
+					collapsible={false}
+					data-column-item="flexible"
+					data-card
+					data-scroll-container
+					open={open}
+					title={label}
+					emptyText='No objects.'
+					id={`${id}-list`}
+				/>
 			{/snippet}
 
 		</CollapsibleTabs>
@@ -293,7 +138,6 @@
 					{
 						id: 'sui-account-transactions',
 						label: 'Transactions',
-						ownsSection: true,
 					},
 				]
 			}
@@ -306,70 +150,19 @@
 				</header>
 			{/snippet}
 
-			{#snippet MarkerSuiAccountTransactions(_context, Content)}
-				{@const suiAccountActivityBSuiAccountTransactionsResource = selection.$$transactions}
-				<ResourceBoundary
-					resource={suiAccountActivityBSuiAccountTransactionsResource}
-				>
-					{#snippet children(_resolved)}
-						{@render Content()}
-					{/snippet}
-
-					{#snippet PendingContent()}
-						{@render Content()}
-					{/snippet}
-
-					{#snippet FailedContent(_error, _retry)}
-						{@render Content()}
-					{/snippet}
-				</ResourceBoundary>
-			{/snippet}
-
-			{#snippet SectionSuiAccountTransactions({ id, label, open, active })}
-				{@const suiAccountActivityBSuiAccountTransactionsResource = selection.$$transactions}
-				<ResourceBoundary
-					resource={suiAccountActivityBSuiAccountTransactionsResource}
-				>
-					{#snippet children(suiTransaction)}
-						<section
-							id={id}
-							aria-labelledby={`${id}:marker`}
-							data-scroll-marker-label={label}
-							data-column-item="flexible"
-							data-column
-							data-active={active}
-						>
-							<SuiTransactionsView
-								selection={suiAccountActivityBSuiAccountTransactionsResource}
-								CollapsibleProps={{ canToggle: false }}
-								collapsible={false}
-								data-column-item="flexible"
-								data-card
-								data-scroll-container
-								open={open}
-								title={label}
-								emptyText='No transactions.'
-								id={`${id}-list`}
-							/>
-						</section>
-					{/snippet}
-
-					{#snippet Pending()}
-						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
-							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
-								<span data-tag data-text="muted" data-resource-state="pending" class="loading inline-placeholder" aria-busy="true" aria-label="Loading…">•••</span>
-							</article>
-						</section>
-					{/snippet}
-
-					{#snippet Failed(_error, _retry)}
-						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
-							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
-								<span data-tag data-resource-state="failed" class="inline-placeholder" aria-label="Failed to load">•••</span>
-							</article>
-						</section>
-					{/snippet}
-				</ResourceBoundary>
+			{#snippet SectionSuiAccountTransactions({ id, label, open })}
+				<SuiTransactionsView
+					selection={selection.$$transactions}
+					CollapsibleProps={{ canToggle: false }}
+					collapsible={false}
+					data-column-item="flexible"
+					data-card
+					data-scroll-container
+					open={open}
+					title={label}
+					emptyText='No transactions.'
+					id={`${id}-list`}
+				/>
 			{/snippet}
 
 		</CollapsibleTabs>

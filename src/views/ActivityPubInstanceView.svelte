@@ -2,16 +2,10 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
 	import { UrlString } from '$/schema/UrlString.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// State
@@ -23,31 +17,10 @@
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.ActivityPubInstance>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.ActivityPubInstance>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.ActivityPubInstance> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const activityPubInstance = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {},
-	} : {
-		sources: selection.sources,
-	}))
-	const titleFallback = $derived([String((pendingEntity.instanceOrigin) ?? '')].filter(Boolean).join(' ') || 'ActivityPub instance')
-	const viewDomId = $derived('activity-pub-instance-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const titleFallback = $derived(String(pendingEntity.instanceOrigin ?? '') || 'ActivityPub instance')
 
 
 	// Components
@@ -59,18 +32,14 @@
 
 <EntityView
 	entityType={EntityType.ActivityPubInstance}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
 	href={
-		href ?? (
-			selection.entitySelector != null && 'instanceOrigin' in selection.entitySelector
-			&& selection.entitySelector.instanceOrigin != null ?
-				resolve('/activitypub/instance/[instanceOrigin=absoluteUrl]', {
-			instanceOrigin: encodeURIComponent(String(selection.entitySelector.instanceOrigin ?? '')),
-		})
-		:
-				undefined
+		href ?? resolve(
+			'/(social)/(activitypub)/activitypub/(globalActivityPubNetwork)/instance/[instanceOrigin=absoluteUrl]',
+			{
+				instanceOrigin: encodeURIComponent(String(selection.entitySelector.instanceOrigin)),
+			}
 		)
 	}
 	{layout}
@@ -78,36 +47,13 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails}
-			{@const instanceOrigin0 = pendingEntity.instanceOrigin}
-			{#if instanceOrigin0 !== undefined && instanceOrigin0 !== null}
-				<svelte:element
-					this={'a'}
-					href={String(instanceOrigin0)}
-					target="_blank"
-					rel="noreferrer noopener"
-				>
-					<TruncatedValue value={String(instanceOrigin0)} />
-				</svelte:element>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={activityPubInstance}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const instanceOrigin0 = resolvedEntity.instanceOrigin}
-					{#if instanceOrigin0 !== undefined && instanceOrigin0 !== null}
-						<svelte:element
-							this={'a'}
-							href={String(instanceOrigin0)}
-							target="_blank"
-							rel="noreferrer noopener"
-						>
-							<TruncatedValue value={String(instanceOrigin0)} />
-						</svelte:element>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<a
+			href={String(pendingEntity.instanceOrigin)}
+			target="_blank"
+			rel="noreferrer noopener"
+		>
+			<TruncatedValue value={String(pendingEntity.instanceOrigin)} />
+		</a>
 	{/snippet}
 
 	{#snippet TypeAnnotationTooltip()}
@@ -121,56 +67,33 @@
 			<div>
 				<dt>Instance origin</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									instanceOrigin: true,
-								},
-							})
-						}
+					<a
+						href={String(pendingEntity.instanceOrigin)}
+						target="_blank"
+						rel="noreferrer noopener"
 					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const instanceOrigin = resolvedEntity.instanceOrigin}
-							{#if instanceOrigin !== undefined && instanceOrigin !== null}
-								<svelte:element
-									this={'a'}
-									href={String(instanceOrigin)}
-									target="_blank"
-									rel="noreferrer noopener"
-								>
-									<TruncatedValue value={String(instanceOrigin)} />
-								</svelte:element>
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+						<TruncatedValue value={String(pendingEntity.instanceOrigin)} />
+					</a>
 				</dd>
 			</div>
 		</dl>
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-				{@const activityPubInstanceActivityPubInstanceTimestampsViewTimestampsResource = selection
-		.$$timestamps({
-			sources: [
-				Source.Mastodon_Rest,
-			],
-		})}
-				<ResourceBoundary
-					resource={activityPubInstanceActivityPubInstanceTimestampsViewTimestampsResource}
-				>
-					{#snippet children(entities)}
-						{#if entities.values.length > 0}
-						<ActivityPubInstance_TimestampsView
-							selection={activityPubInstanceActivityPubInstanceTimestampsViewTimestampsResource}
-							countResource={activityPubInstanceActivityPubInstanceTimestampsViewTimestampsResource.count}
-							title='Observations'
-							id='ActivityPubInstance_TimestampsView-timestamps'
-						/>
-						{/if}
-					{/snippet}
-				</ResourceBoundary>
+		{@const activityPubInstanceActivityPubInstanceTimestampsViewTimestampsResource = selection.$$timestamps}
+		<ResourceBoundary
+			resource={activityPubInstanceActivityPubInstanceTimestampsViewTimestampsResource}
+		>
+			{#snippet children(entities)}
+				{#if entities.values.length > 0}
+					<ActivityPubInstance_TimestampsView
+						selection={activityPubInstanceActivityPubInstanceTimestampsViewTimestampsResource}
+						countResource={activityPubInstanceActivityPubInstanceTimestampsViewTimestampsResource.count}
+						title='Observations'
+						id='timestamps'
+					/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 </EntityView>

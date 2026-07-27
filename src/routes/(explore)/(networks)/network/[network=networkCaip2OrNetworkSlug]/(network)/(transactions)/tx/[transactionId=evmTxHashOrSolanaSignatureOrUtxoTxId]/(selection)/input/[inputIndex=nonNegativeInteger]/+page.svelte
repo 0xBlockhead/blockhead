@@ -8,39 +8,58 @@
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		data,
-		params,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(data.entityType === EntityType.CardanoTxInput && data.selectorName === 'TransactionInputIndex' ? select(EntityType.CardanoTxInput, data.selector, {
-		sources: [
-			Source.Blockfrost_Rest,
-		],
-		fields: {
-			inputKind: true,
-			spentTxHash: true,
-			spentOutputIndex: true,
-			$spentOutput: true,
-			redeemerIndex: true,
+	const pageSelection = $derived(
+		(
+			data.entityType === EntityType.CardanoTxInput && data.selectorName === 'TransactionInputIndex' ?
+				select(EntityType.CardanoTxInput, data.selector, {
+					sources: [
+						Source.Blockfrost_Rest,
+					],
+					fields: {
+						inputKind: true,
+						spentTxHash: true,
+						spentOutputIndex: true,
+						$spentOutput: true,
+						redeemerIndex: true,
+					},
+				})
+			:
+				select(EntityType.UtxoInput, data.selector, {
+					fields: {
+						$spentOutput: true,
+						coinbaseScript: true,
+						scriptSigAsm: true,
+						sequence: true,
+						witness: true,
+					},
+				})
+		)
+	)
+	const pageTitle = $derived(
+		(
+			data.entityType === EntityType.CardanoTxInput && data.selectorName === 'TransactionInputIndex' ?
+				((String(data.selector.inputIndex) ? 'Input ' + String(data.selector.inputIndex) : '') || 'Cardano transaction input')
+			:
+				((String(data.selector.indexInTransaction ?? '') ? 'Input #' + String(data.selector.indexInTransaction ?? '') : '') || 'UTXO input')
+		)
+	)
+	const entityViewByType = {
+		[EntityType.CardanoTxInput]: {
+			Component: CardanoTxInputView,
+			label: 'Cardano transaction input',
 		},
-	}) : select(EntityType.UtxoInput, data.selector, {
-		fields: {
-			$spentOutput: true,
-			coinbaseScript: true,
-			scriptSigAsm: true,
-			sequence: true,
-			witness: true,
+		[EntityType.UtxoInput]: {
+			Component: UtxoInputView,
+			label: 'UTXO input',
 		},
-	}))
-	const entityViewComponentByType = {
-		[EntityType.CardanoTxInput]: CardanoTxInputView,
-		[EntityType.UtxoInput]: UtxoInputView,
 	}
 
 	// Components
@@ -51,21 +70,14 @@
 
 
 <svelte:head>
-	<title>{data.entityType === EntityType.CardanoTxInput && data.selectorName === 'TransactionInputIndex' ? (pageSelection.entity == null ? [(String((data.selector.inputIndex) ?? '') ? 'Input ' + String((data.selector.inputIndex) ?? '') : '')].filter(Boolean).join(' ') || 'Cardano transaction input' : [(String((({ ...data.selector, ...pageSelection.entity }).inputIndex) ?? '') ? 'Input ' + String((({ ...data.selector, ...pageSelection.entity }).inputIndex) ?? '') : '')].filter(Boolean).join(' ') || 'Cardano transaction input') : (pageSelection.entity == null ? (String((data.selector.indexInTransaction) ?? '') ? 'Input #' + String((data.selector.indexInTransaction) ?? '') : '') || 'UTXO input' : (String((({ ...data.selector, ...pageSelection.entity }).indexInTransaction) ?? '') ? 'Input #' + String((({ ...data.selector, ...pageSelection.entity }).indexInTransaction) ?? '') : '') || 'UTXO input')} • {data.entityType === EntityType.CardanoTxInput && data.selectorName === 'TransactionInputIndex' ? 'Cardano transaction input' : 'UTXO input'} • Blockhead</title>
+	<title>{pageTitle} • {entityViewByType[data.entityType].label} • Blockhead</title>
 </svelte:head>
 
 
 <Page>
-	{@const EntityView = entityViewComponentByType[data.entityType]}
+	{@const EntityView = entityViewByType[data.entityType].Component}
 
 	<EntityView
-		href={
-			resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/input/[inputIndex=nonNegativeInteger]', {
-				network: params.network,
-				transactionId: params.transactionId,
-				inputIndex: params.inputIndex,
-			})
-		}
 		selection={pageSelection}
 	/>
 </Page>

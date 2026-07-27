@@ -2,13 +2,9 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -20,42 +16,24 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.NearValidator_Timestamp>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.NearValidator_Timestamp>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.NearValidator_Timestamp> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const nearValidatorTimestamp = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {
-			validatorSetRole: true,
-			timestampMs: true,
-		},
-	} : {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const viewSelection = $derived(selection({
+		sources: selection.sources ?? [
+			Source.NearRpc_JsonRpc,
+		],
+	}))
+	const nearValidatorTimestamp = $derived(viewSelection({
 		fields: {
 			validatorSetRole: true,
 			timestampMs: true,
 		},
 	}))
-	const titleFallback = $derived([String((pendingEntity.epochId) ?? '')].filter(Boolean).join(' ') || 'near validator timestamp')
-	const viewDomId = $derived('near-validator-timestamp-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const titleFallback = $derived((pendingEntity.epochId ?? '') || 'near validator timestamp')
 
 
 	// Components
@@ -69,61 +47,35 @@
 
 <EntityView
 	entityType={EntityType.NearValidator_Timestamp}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'validatorSetRole') && Object.hasOwn(prefetched, 'timestampMs')}
-			{[String((pendingEntity.epochId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-		{:else}
-			<ResourceBoundary resource={nearValidatorTimestamp}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.epochId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		{(pendingEntity.epochId ?? '') || 'near validator timestamp'}
 	{/snippet}
 
 	{#snippet Value()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'validatorSetRole') && Object.hasOwn(prefetched, 'timestampMs')}
-			{[String((pendingEntity.validatorSetRole) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.epochId) ?? '')].filter(Boolean).join(' ') || titleFallback}
-		{:else}
-			<ResourceBoundary resource={nearValidatorTimestamp}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.validatorSetRole) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.epochId) ?? '')].filter(Boolean).join(' ') || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={nearValidatorTimestamp}>
+			{#snippet children(entity)}
+				{(entity.validatorSetRole ?? '') || pendingEntity.epochId || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'validatorSetRole') && Object.hasOwn(prefetched, 'timestampMs')}
-			{@const timestampMs0 = pendingEntity.timestampMs}
-			{#if timestampMs0 !== undefined && timestampMs0 !== null}
-				<span data-text="muted">
-					<Timestamp timestamp={Number(timestampMs0)} />
-				</span>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={nearValidatorTimestamp}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const timestampMs0 = resolvedEntity.timestampMs}
-					{#if timestampMs0 !== undefined && timestampMs0 !== null}
-						<span data-text="muted">
-							<Timestamp timestamp={Number(timestampMs0)} />
-						</span>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={nearValidatorTimestamp}>
+			{#snippet children(entity)}
+				{@const timestampMs0 = entity.timestampMs}
+				{#if timestampMs0 != null}
+					<span data-text="muted">
+						<Timestamp timestamp={Number(timestampMs0)} />
+					</span>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -142,65 +94,23 @@
 			<div>
 				<dt>Epoch ID</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									epochId: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const epochId = resolvedEntity.epochId}
-							{#if epochId !== undefined && epochId !== null}
-								{String((epochId) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{pendingEntity.epochId}
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									source: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const source = resolvedEntity.source}
-							{#if source !== undefined && source !== null}
-								{String((source) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{pendingEntity.source}
 				</dd>
 			</div>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							timestampMs: true,
-						},
-					})
-				}
+				resource={nearValidatorTimestamp}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const timestampMs = resolvedEntity.timestampMs}
-					{#if timestampMs !== undefined && timestampMs !== null}
+					{@const timestampMs = entity.timestampMs}
+					{#if timestampMs != null}
 						<div>
 							<dt>Timestamp</dt>
 							<dd>
@@ -213,8 +123,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							epochHeight: true,
 						},
@@ -222,9 +131,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const epochHeight = resolvedEntity.epochHeight}
-					{#if epochHeight !== undefined && epochHeight !== null}
+					{@const epochHeight = entity.epochHeight}
+					{#if epochHeight != null}
 						<div>
 							<dt>Epoch height</dt>
 							<dd>
@@ -239,8 +147,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							epochStartHeight: true,
 						},
@@ -248,9 +155,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const epochStartHeight = resolvedEntity.epochStartHeight}
-					{#if epochStartHeight !== undefined && epochStartHeight !== null}
+					{@const epochStartHeight = entity.epochStartHeight}
+					{#if epochStartHeight != null}
 						<div>
 							<dt>Epoch start height</dt>
 							<dd>
@@ -264,23 +170,15 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							validatorSetRole: true,
-						},
-					})
-				}
+				resource={nearValidatorTimestamp}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const validatorSetRole = resolvedEntity.validatorSetRole}
-					{#if validatorSetRole !== undefined && validatorSetRole !== null}
+					{@const validatorSetRole = entity.validatorSetRole}
+					{#if validatorSetRole != null}
 						<div>
 							<dt>Validator set role</dt>
 							<dd>
-								{String((validatorSetRole) ?? '')}
+								{validatorSetRole}
 							</dd>
 						</div>
 					{/if}
@@ -289,8 +187,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							publicKey: true,
 						},
@@ -298,13 +195,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const publicKey = resolvedEntity.publicKey}
-					{#if publicKey !== undefined && publicKey !== null}
+					{@const publicKey = entity.publicKey}
+					{#if publicKey != null}
 						<div>
 							<dt>Public key</dt>
 							<dd>
-								<TruncatedValue value={String((publicKey) ?? '')} />
+								<TruncatedValue value={publicKey} />
 							</dd>
 						</div>
 					{/if}
@@ -313,8 +209,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							stakeYoctoNear: true,
 						},
@@ -322,9 +217,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const stakeYoctoNear = resolvedEntity.stakeYoctoNear}
-					{#if stakeYoctoNear !== undefined && stakeYoctoNear !== null}
+					{@const stakeYoctoNear = entity.stakeYoctoNear}
+					{#if stakeYoctoNear != null}
 						<div>
 							<dt>Stake yocto near</dt>
 							<dd>
@@ -339,8 +233,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							isSlashed: true,
 						},
@@ -348,9 +241,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const isSlashed = resolvedEntity.isSlashed}
-					{#if isSlashed !== undefined && isSlashed !== null}
+					{@const isSlashed = entity.isSlashed}
+					{#if isSlashed != null}
 						<div>
 							<dt>Slashed</dt>
 							<dd>
@@ -365,8 +257,7 @@
 		<dl data-column-item="center">
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							expectedBlocks: true,
 						},
@@ -374,9 +265,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const expectedBlocks = resolvedEntity.expectedBlocks}
-					{#if expectedBlocks !== undefined && expectedBlocks !== null}
+					{@const expectedBlocks = entity.expectedBlocks}
+					{#if expectedBlocks != null}
 						<div>
 							<dt>Expected blocks</dt>
 							<dd>
@@ -391,8 +281,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							producedBlocks: true,
 						},
@@ -400,9 +289,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const producedBlocks = resolvedEntity.producedBlocks}
-					{#if producedBlocks !== undefined && producedBlocks !== null}
+					{@const producedBlocks = entity.producedBlocks}
+					{#if producedBlocks != null}
 						<div>
 							<dt>Produced blocks</dt>
 							<dd>
@@ -417,8 +305,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							expectedChunks: true,
 						},
@@ -426,9 +313,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const expectedChunks = resolvedEntity.expectedChunks}
-					{#if expectedChunks !== undefined && expectedChunks !== null}
+					{@const expectedChunks = entity.expectedChunks}
+					{#if expectedChunks != null}
 						<div>
 							<dt>Expected chunks</dt>
 							<dd>
@@ -443,8 +329,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							producedChunks: true,
 						},
@@ -452,9 +337,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const producedChunks = resolvedEntity.producedChunks}
-					{#if producedChunks !== undefined && producedChunks !== null}
+					{@const producedChunks = entity.producedChunks}
+					{#if producedChunks != null}
 						<div>
 							<dt>Produced chunks</dt>
 							<dd>
@@ -472,8 +356,7 @@
 				<dd>
 					<ResourceBoundary
 						resource={
-							selection({
-								sources: selection.sources,
+							viewSelection({
 								fields: {
 									shards: true,
 								},
@@ -481,11 +364,7 @@
 						}
 					>
 						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const shards = resolvedEntity.shards}
-							{#if shards !== undefined && shards !== null}
-								{shards.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')}
-							{/if}
+							{entity.shards.values.join(', ')}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>

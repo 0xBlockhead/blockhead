@@ -3,11 +3,11 @@
 <script lang="ts">
 	// Types/constants
 	import type { PageProps } from './$types.ts'
+	import { resolve } from '$app/paths'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
@@ -16,8 +16,6 @@
 		data,
 		params,
 	}: PageProps = $props()
-
-
 	// Components
 	import Page from '$/components/Page.svelte'
 	import UrlsView from '$/views/UrlsView.svelte'
@@ -30,15 +28,20 @@
 
 
 <Page>
+	{@const collectionSelection = select(EntityType.Network, data.selector).$$faucetUrls}
+
 	<UrlsView
 		href={
-			resolve('/network/[network=networkCaip2OrNetworkSlug]/faucets', {
-				network: params.network,
-			})
+			resolve(
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/faucets',
+				{
+					network: String(params.network),
+				}
+			)
 		}
 		title='Faucets'
-		selection={select(EntityType.Network, data.selector).$$faucetUrls}
-		countResource={select(EntityType.Network, data.selector).$$faucetUrls.count}
+		selection={collectionSelection}
+		countResource={collectionSelection.count}
 		id='faucet-urls'
 		data-column-item="flexible"
 		data-card

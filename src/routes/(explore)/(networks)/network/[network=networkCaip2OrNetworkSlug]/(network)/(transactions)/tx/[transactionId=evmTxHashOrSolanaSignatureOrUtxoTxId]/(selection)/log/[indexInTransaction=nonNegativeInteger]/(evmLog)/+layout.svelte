@@ -30,26 +30,32 @@
 {#key [params.network, params.transactionId, params.indexInTransaction].join(':')}
 	<ParentPageCollapsible
 		href={
-			resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/log/[indexInTransaction=nonNegativeInteger]', {
-				network: params.network,
-				transactionId: params.transactionId,
-				indexInTransaction: params.indexInTransaction,
-			})
+			resolve(
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(transactions)/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/(selection)/log/[indexInTransaction=nonNegativeInteger]',
+				{
+					network: String(params.network),
+					transactionId: String(params.transactionId),
+					indexInTransaction: String(params.indexInTransaction),
+				}
+			)
 		}
 	>
 		{#snippet Summary()}
-			{@const DetailView = EvmLogView}
-
-			<DetailView
-				selection={select(EntityType.EvmLog, data.selector, { sources: [
-		Source.Blockscout_Rest,
-	] })}
+			<EvmLogView
+				selection={
+					select(EntityType.EvmLog, data.selector, { sources: [
+						Source.Blockscout_Rest,
+					] })
+				}
 				href={
-					resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/log/[indexInTransaction=nonNegativeInteger]', {
-						network: params.network,
-						transactionId: params.transactionId,
-						indexInTransaction: params.indexInTransaction,
-					})
+					resolve(
+						'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(transactions)/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/(selection)/log/[indexInTransaction=nonNegativeInteger]',
+						{
+							network: String(params.network),
+							transactionId: String(params.transactionId),
+							indexInTransaction: String(params.indexInTransaction),
+						}
+					)
 				}
 				layout={EntityLayout.SummaryInline}
 			/>

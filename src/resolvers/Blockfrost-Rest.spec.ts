@@ -1,21 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import blockFixture from '$/sources/Blockfrost/Rest/fixtures/block.json'
-import { CardanoAddressSelector } from '$/schema/CardanoAddress.ts'
-import { CardanoBlockSelector } from '$/schema/CardanoBlock.ts'
-import { CardanoCommittee_EpochSelector } from '$/schema/CardanoCommittee_Epoch.ts'
-import { CardanoDRepSelector } from '$/schema/CardanoDRep.ts'
-import { CardanoGovernanceProposalSelector } from '$/schema/CardanoGovernanceProposal.ts'
-import { CardanoGovernanceProposal_TimestampSelector } from '$/schema/CardanoGovernanceProposal_Timestamp.ts'
-import { CardanoNetwork_TimestampSelector } from '$/schema/CardanoNetwork_Timestamp.ts'
-import { CardanoStakePoolSelector } from '$/schema/CardanoStakePool.ts'
-import { CardanoTransactionSelector } from '$/schema/CardanoTransaction.ts'
-import { CardanoTxInputSelector } from '$/schema/CardanoTxInput.ts'
-import { CardanoTxOutputSelector } from '$/schema/CardanoTxOutput.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { entityFieldAddressKey, EntityMetaKey } from '$/schema/$schema.ts'
 import { NetworkNamespace, networkBySlug } from '$/constants/Network.ts'
-import { NetworkSelector } from '$/schema/Network.ts'
 import type {
 	BlockfrostAddress,
 	BlockfrostAddressTotal,
@@ -33,7 +21,7 @@ import type {
 	BlockfrostTransactions,
 } from '$/sources/Blockfrost/Rest/types.ts'
 import { Source } from '$/sources/Source.ts'
-import { sourceProviderDefinitions } from '$/sources/$sourceProviders.ts'
+import bindings from '$/sources/Blockfrost/bindings.ts'
 
 const getHealth = vi.fn()
 const getAddress = vi.fn()
@@ -183,12 +171,7 @@ const cardanoCommitteeEpochResolver = blockfrostResolvers.resolvers.find((
 if (cardanoCommitteeEpochResolver == null)
 	throw new Error('Blockfrost-Rest spec missing CardanoCommittee_Epoch resolver')
 
-const blockfrostBinding = sourceProviderDefinitions
-	.flatMap((provider) => provider.bindings)
-	.find((binding) => binding.source === Source.Blockfrost_Rest)
-
-if (blockfrostBinding == null)
-	throw new Error('Blockfrost-Rest spec missing source binding')
+const blockfrostBinding = bindings[Source.Blockfrost_Rest]
 
 const resolverContext = {
 	filters: [],
@@ -380,7 +363,7 @@ const resolveCardanoField = async (fieldName: string) => {
 	if (resolver == null)
 		throw new Error(`Blockfrost-Rest spec missing Network.Cardano.${fieldName} resolver`)
 
-	return resolver.resolve[NetworkSelector.Caip2].resolve(
+	return resolver.resolve['Caip2'].resolve(
 		cardanoNetwork,
 		resolverContext
 	)
@@ -417,7 +400,7 @@ describe('Blockfrost Cardano address facet', () => {
 		getLatestBlock.mockResolvedValueOnce(latestBlock)
 
 		await expect(cardanoAddressResolver.resolve[
-			CardanoAddressSelector.NetworkAddress
+			'NetworkAddress'
 		].resolve(
 			cardanoAddress,
 			resolverContext
@@ -444,8 +427,8 @@ describe('Blockfrost Cardano address facet', () => {
 				},
 			],
 		})
-		expect(getAddress).toHaveBeenCalledWith(blockfrostBinding, cardanoAddress.address)
-		expect(getAddressTotal).toHaveBeenCalledWith(blockfrostBinding, cardanoAddress.address)
+		expect(getAddress).toHaveBeenCalledWith(cardanoAddress.address)
+		expect(getAddressTotal).toHaveBeenCalledWith(cardanoAddress.address)
 	})
 
 	it('preserves the absence of a stake credential for addresses without one', async () => {
@@ -465,7 +448,7 @@ describe('Blockfrost Cardano address facet', () => {
 		getLatestBlock.mockResolvedValueOnce(latestBlock)
 
 		const address = await cardanoAddressResolver.resolve[
-			CardanoAddressSelector.NetworkAddress
+			'NetworkAddress'
 		].resolve(
 			cardanoAddress,
 			resolverContext
@@ -541,7 +524,7 @@ describe('Blockfrost Cardano address facet', () => {
 		] satisfies BlockfrostAddressUtxos)
 
 		const transactionSnapshot = await cardanoAddressTransactionsResolver.resolve[
-			CardanoAddressSelector.NetworkAddress
+			'NetworkAddress'
 		].resolve(
 			cardanoAddress,
 			{
@@ -585,14 +568,13 @@ describe('Blockfrost Cardano address facet', () => {
 			token: '3',
 		})
 		expect(listAddressTransactions).toHaveBeenCalledWith(
-			blockfrostBinding,
 			cardanoAddress.address,
 			2,
 			2
 		)
 
 		const utxoSnapshot = await cardanoAddressUtxosResolver.resolve[
-			CardanoAddressSelector.NetworkAddress
+			'NetworkAddress'
 		].resolve(
 			cardanoAddress,
 			{
@@ -673,7 +655,6 @@ describe('Blockfrost Cardano address facet', () => {
 			terminal: true,
 		})
 		expect(listAddressUtxos).toHaveBeenCalledWith(
-			blockfrostBinding,
 			cardanoAddress.address,
 			3,
 			1
@@ -708,13 +689,13 @@ describe('Blockfrost Cardano address facet', () => {
 		} satisfies BlockfrostTransaction)
 
 		const transaction = await cardanoTransactionResolver.resolve[
-			CardanoTransactionSelector.NetworkHash
+			'NetworkHash'
 		].resolve(
 			cardanoTransaction,
 			resolverContext
 		)
 
-		expect(getTransaction).toHaveBeenCalledWith(blockfrostBinding, cardanoTransaction.hash)
+		expect(getTransaction).toHaveBeenCalledWith(cardanoTransaction.hash)
 		expect(cardanoTransactionResolver.projections.blockSlot(transaction, cardanoTransaction, resolverContext)).toBe(130_000_000n)
 		expect(cardanoTransactionResolver.projections.fee(transaction, cardanoTransaction, resolverContext)).toBe(182_485n)
 		expect(cardanoTransactionResolver.projections.deposit(transaction, cardanoTransaction, resolverContext)).toBe(2_000_000n)
@@ -727,14 +708,13 @@ describe('Blockfrost Cardano address facet', () => {
 		getTransactionUtxos.mockResolvedValueOnce(cardanoTransactionUtxos)
 
 		const transactionUtxos = await cardanoTransactionRelationshipsResolver.resolve[
-			CardanoTransactionSelector.NetworkHash
+			'NetworkHash'
 		].resolve(
 			cardanoTransaction,
 			resolverContext
 		)
 
 		expect(getTransactionUtxos).toHaveBeenCalledWith(
-			blockfrostBinding,
 			cardanoTransaction.hash
 		)
 		expect(cardanoTransactionRelationshipsResolver.projections.$$inputs(
@@ -810,7 +790,7 @@ describe('Blockfrost Cardano address facet', () => {
 			inputIndex: 0,
 		}
 		const input = await cardanoTxInputResolver.resolve[
-			CardanoTxInputSelector.TransactionInputIndex
+			'TransactionInputIndex'
 		].resolve(
 			cardanoTxInput,
 			resolverContext
@@ -839,7 +819,7 @@ describe('Blockfrost Cardano address facet', () => {
 			outputIndex: 1,
 		}
 		const output = await cardanoTxOutputResolver.resolve[
-			CardanoTxOutputSelector.TransactionOutputIndex
+			'TransactionOutputIndex'
 		].resolve(
 			cardanoTxOutput,
 			resolverContext
@@ -892,8 +872,8 @@ describe('Blockfrost Cardano network facet', () => {
 		for (const resolver of blockfrostResolvers.resolvers.filter(({ entityType }) => (
 			entityType === EntityType.Network
 		))) {
-			expect(resolver.resolve).toHaveProperty(NetworkSelector.Slug)
-			expect(resolver.resolve).toHaveProperty(NetworkSelector.Caip2)
+			expect(resolver.resolve).toHaveProperty('Slug')
+			expect(resolver.resolve).toHaveProperty('Caip2')
 		}
 	})
 
@@ -954,7 +934,7 @@ describe('Blockfrost Cardano network facet', () => {
 			|| resolver.projections.Cardano.$$governanceProposals.select == null
 		)
 			throw new Error('Blockfrost-Rest spec missing governance proposal pagination')
-		const snapshot = await resolver.resolve[NetworkSelector.Caip2].resolve(
+		const snapshot = await resolver.resolve['Caip2'].resolve(
 			cardanoNetwork,
 			resolverContext
 		)
@@ -978,7 +958,7 @@ describe('Blockfrost Cardano network facet', () => {
 				},
 			},
 		])
-		expect(listGovernanceProposals).toHaveBeenCalledWith(blockfrostBinding, 64, 1)
+		expect(listGovernanceProposals).toHaveBeenCalledWith(64, 1)
 	})
 
 	it('continues governance proposal pages and rejects malformed or duplicate pages', async () => {
@@ -999,11 +979,11 @@ describe('Blockfrost Cardano network facet', () => {
 			pagination: { limit: 1 },
 			providerContinuationToken: 'after=previous-hash%3A0&page=2',
 		}
-		const snapshot = await resolver.resolve[NetworkSelector.Caip2].resolve(
+		const snapshot = await resolver.resolve['Caip2'].resolve(
 			cardanoNetwork,
 			context
 		)
-		expect(listGovernanceProposals).toHaveBeenCalledWith(blockfrostBinding, 1, 2)
+		expect(listGovernanceProposals).toHaveBeenCalledWith(1, 2)
 		expect(resolver.projections.Cardano.$$governanceProposals.continuation(
 			snapshot,
 			cardanoNetwork,
@@ -1015,7 +995,7 @@ describe('Blockfrost Cardano network facet', () => {
 			token: 'after=proposal-transaction-hash%3A1&page=3',
 		})
 
-		await expect(resolver.resolve[NetworkSelector.Caip2].resolve(
+		await expect(resolver.resolve['Caip2'].resolve(
 			cardanoNetwork,
 			{
 				...resolverContext,
@@ -1023,7 +1003,7 @@ describe('Blockfrost Cardano network facet', () => {
 			}
 		)).rejects.toThrow('invalid governance proposals continuation')
 		listGovernanceProposals.mockResolvedValueOnce(governanceProposals)
-		await expect(resolver.resolve[NetworkSelector.Caip2].resolve(
+		await expect(resolver.resolve['Caip2'].resolve(
 			cardanoNetwork,
 			{
 				...resolverContext,
@@ -1034,7 +1014,7 @@ describe('Blockfrost Cardano network facet', () => {
 			governanceProposals[0],
 			governanceProposals[0],
 		])
-		await expect(resolver.resolve[NetworkSelector.Caip2].resolve(
+		await expect(resolver.resolve['Caip2'].resolve(
 			cardanoNetwork,
 			resolverContext
 		)).rejects.toThrow('governance proposals page contains duplicate identities')
@@ -1133,7 +1113,7 @@ describe('Blockfrost Cardano network facet', () => {
 		})
 
 		await expect(cardanoCommitteeEpochResolver.resolve[
-			CardanoCommittee_EpochSelector.NetworkEpochSource
+			'NetworkEpochSource'
 		].resolve(
 			{
 				$network: cardanoNetwork,
@@ -1152,7 +1132,7 @@ describe('Blockfrost Cardano network facet', () => {
 
 	it('rejects unsupported and historical committee epoch identities', async () => {
 		await expect(cardanoCommitteeEpochResolver.resolve[
-			CardanoCommittee_EpochSelector.NetworkEpochSource
+			'NetworkEpochSource'
 		].resolve(
 			{
 				$network: cardanoNetwork,
@@ -1170,7 +1150,7 @@ describe('Blockfrost Cardano network facet', () => {
 		})
 
 		await expect(cardanoCommitteeEpochResolver.resolve[
-			CardanoCommittee_EpochSelector.NetworkEpochSource
+			'NetworkEpochSource'
 		].resolve(
 			{
 				$network: cardanoNetwork,
@@ -1241,7 +1221,7 @@ describe('Blockfrost Cardano network facet', () => {
 		getHealth.mockResolvedValueOnce({ is_healthy: true })
 
 		expect(await cardanoNetworkObservationResolver.resolve[
-			CardanoNetwork_TimestampSelector.NetworkTimestampMsSource
+			'NetworkTimestampMsSource'
 		].resolve(
 			{
 				$network: { slug: 'cardano' },
@@ -1269,7 +1249,7 @@ describe('Blockfrost Cardano network facet', () => {
 
 	it('rejects unsupported or stale observation identities', async () => {
 		await expect(cardanoNetworkObservationResolver.resolve[
-			CardanoNetwork_TimestampSelector.NetworkTimestampMsSource
+			'NetworkTimestampMsSource'
 		].resolve(
 			{
 				$network: { slug: 'cardano' },
@@ -1299,7 +1279,7 @@ describe('Blockfrost Cardano network facet', () => {
 		getHealth.mockResolvedValueOnce({ is_healthy: true })
 
 		await expect(cardanoNetworkObservationResolver.resolve[
-			CardanoNetwork_TimestampSelector.NetworkTimestampMsSource
+			'NetworkTimestampMsSource'
 		].resolve(
 			{
 				$network: { slug: 'cardano' },
@@ -1331,7 +1311,7 @@ describe('Blockfrost Cardano network facet', () => {
 		getHealth.mockResolvedValueOnce({ is_healthy: true })
 
 		await expect(cardanoNetworkObservationResolver.resolve[
-			CardanoNetwork_TimestampSelector.NetworkTimestampMsSource
+			'NetworkTimestampMsSource'
 		].resolve(
 			{
 				$network: { slug: 'cardano' },
@@ -1344,7 +1324,7 @@ describe('Blockfrost Cardano network facet', () => {
 
 	it('rejects non-Cardano network selectors before transport calls', async () => {
 		await expect(cardanoNetworkObservationResolver.resolve[
-			CardanoNetwork_TimestampSelector.NetworkTimestampMsSource
+			'NetworkTimestampMsSource'
 		].resolve(
 			{
 				$network: { slug: 'bitcoin' },
@@ -1359,7 +1339,7 @@ describe('Blockfrost Cardano network facet', () => {
 	it('maps generated Blockfrost block coordinates by hash', async () => {
 		getBlock.mockResolvedValueOnce(latestBlock)
 
-		await expect(cardanoBlockResolver.resolve[CardanoBlockSelector.NetworkHash].resolve(
+		await expect(cardanoBlockResolver.resolve['NetworkHash'].resolve(
 			{
 				$network: { slug: 'cardano' },
 				hash: 'block-hash',
@@ -1372,7 +1352,6 @@ describe('Blockfrost Cardano network facet', () => {
 			epoch: 500,
 		})
 		expect(getBlock).toHaveBeenLastCalledWith(
-			blockfrostBinding,
 			'block-hash'
 		)
 	})
@@ -1380,14 +1359,14 @@ describe('Blockfrost Cardano network facet', () => {
 	it('passes slot and block-number selectors through without precision loss', async () => {
 		getBlock.mockResolvedValueOnce(latestBlock).mockResolvedValueOnce(latestBlock)
 
-		await cardanoBlockResolver.resolve[CardanoBlockSelector.NetworkSlot].resolve(
+		await cardanoBlockResolver.resolve['NetworkSlot'].resolve(
 			{
 				$network: { slug: 'cardano' },
 				slot: 130_000_000n,
 			},
 			resolverContext
 		)
-		await cardanoBlockResolver.resolve[CardanoBlockSelector.NetworkBlockNo].resolve(
+		await cardanoBlockResolver.resolve['NetworkBlockNo'].resolve(
 			{
 				$network: { slug: 'cardano' },
 				blockNo: 10_000_000n,
@@ -1397,19 +1376,17 @@ describe('Blockfrost Cardano network facet', () => {
 
 		expect(getBlock).toHaveBeenNthCalledWith(
 			1,
-			blockfrostBinding,
 			'130000000'
 		)
 		expect(getBlock).toHaveBeenNthCalledWith(
 			2,
-			blockfrostBinding,
 			'10000000'
 		)
 	})
 
 	it('keeps missing and malformed blocks distinct from unsupported networks', async () => {
 		getBlock.mockRejectedValueOnce(new Error('Blockfrost_Rest: block not found'))
-		await expect(cardanoBlockResolver.resolve[CardanoBlockSelector.NetworkHash].resolve(
+		await expect(cardanoBlockResolver.resolve['NetworkHash'].resolve(
 			{
 				$network: { slug: 'cardano' },
 				hash: 'missing-block',
@@ -1421,7 +1398,7 @@ describe('Blockfrost Cardano network facet', () => {
 			...latestBlock,
 			slot: null,
 		})
-		await expect(cardanoBlockResolver.resolve[CardanoBlockSelector.NetworkHash].resolve(
+		await expect(cardanoBlockResolver.resolve['NetworkHash'].resolve(
 			{
 				$network: { slug: 'cardano' },
 				hash: 'malformed-block',
@@ -1429,7 +1406,7 @@ describe('Blockfrost Cardano network facet', () => {
 			resolverContext
 		)).rejects.toThrow('Blockfrost_Rest: block is missing its Cardano ledger coordinates')
 
-		await expect(cardanoBlockResolver.resolve[CardanoBlockSelector.NetworkHash].resolve(
+		await expect(cardanoBlockResolver.resolve['NetworkHash'].resolve(
 			{
 				$network: { slug: 'bitcoin' },
 				hash: 'block-hash',
@@ -1443,7 +1420,7 @@ describe('Blockfrost Cardano network facet', () => {
 			...latestBlock,
 			hash: 'different-block-hash',
 		})
-		await expect(cardanoBlockResolver.resolve[CardanoBlockSelector.NetworkHash].resolve(
+		await expect(cardanoBlockResolver.resolve['NetworkHash'].resolve(
 			{
 				$network: { slug: 'cardano' },
 				hash: 'block-hash',
@@ -1455,7 +1432,7 @@ describe('Blockfrost Cardano network facet', () => {
 			...latestBlock,
 			slot: latestBlock.slot + 1,
 		})
-		await expect(cardanoBlockResolver.resolve[CardanoBlockSelector.NetworkSlot].resolve(
+		await expect(cardanoBlockResolver.resolve['NetworkSlot'].resolve(
 			{
 				$network: { slug: 'cardano' },
 				slot: BigInt(latestBlock.slot),
@@ -1467,7 +1444,7 @@ describe('Blockfrost Cardano network facet', () => {
 			...latestBlock,
 			height: latestBlock.height + 1,
 		})
-		await expect(cardanoBlockResolver.resolve[CardanoBlockSelector.NetworkBlockNo].resolve(
+		await expect(cardanoBlockResolver.resolve['NetworkBlockNo'].resolve(
 			{
 				$network: { slug: 'cardano' },
 				blockNo: BigInt(latestBlock.height),
@@ -1481,7 +1458,7 @@ describe('Blockfrost Cardano network facet', () => {
 			...latestBlock,
 			slot: Number.MAX_SAFE_INTEGER + 1,
 		})
-		await expect(cardanoBlockResolver.resolve[CardanoBlockSelector.NetworkHash].resolve(
+		await expect(cardanoBlockResolver.resolve['NetworkHash'].resolve(
 			{
 				$network: { slug: 'cardano' },
 				hash: 'block-hash',
@@ -1493,7 +1470,7 @@ describe('Blockfrost Cardano network facet', () => {
 			...latestBlock,
 			height: -1,
 		})
-		await expect(cardanoBlockResolver.resolve[CardanoBlockSelector.NetworkHash].resolve(
+		await expect(cardanoBlockResolver.resolve['NetworkHash'].resolve(
 			{
 				$network: { slug: 'cardano' },
 				hash: 'block-hash',
@@ -1510,7 +1487,7 @@ describe('Blockfrost Cardano governance details', () => {
 	})
 
 	it('materializes proposal metadata and an empty vote list', async () => {
-		getGovernanceProposal.mockResolvedValueOnce({
+		getGovernanceProposal.mockResolvedValue({
 			id: 'gov_action1example',
 			tx_hash: 'proposal-hash',
 			cert_index: 1,
@@ -1541,7 +1518,7 @@ describe('Blockfrost Cardano governance details', () => {
 		if (resolver == null || metadataResolver == null)
 			throw new Error('missing proposal resolver')
 
-		const resolvedProposal = await resolver.resolve[CardanoGovernanceProposalSelector.NetworkProposalTxHashProposalIndex].resolve(
+		const resolvedProposal = await resolver.resolve['NetworkProposalTxHashProposalIndex'].resolve(
 			{
 				$network: cardanoNetwork,
 				proposalTxHash: 'proposal-hash',
@@ -1553,15 +1530,19 @@ describe('Blockfrost Cardano governance details', () => {
 			governanceActionId: 'gov_action1example',
 			proposalKind: 'info_action',
 			$$timestamps: [{
-				epoch: 599,
-				source: Source.Blockfrost_Rest,
-				status: 'active',
-				expirationEpoch: 600,
+				[EntityMetaKey.Selector]: {
+					epoch: 599,
+					source: Source.Blockfrost_Rest,
+				},
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.CardanoGovernanceProposal_Timestamp, [], 'expirationEpoch')]: 600,
+				},
 			}],
 			$$votes: [],
 		})
 		expect(resolvedProposal).not.toHaveProperty('proposalPayload')
-		await expect(metadataResolver.resolve[CardanoGovernanceProposalSelector.NetworkProposalTxHashProposalIndex].resolve(
+		expect(resolvedProposal.$$timestamps[0]).not.toHaveProperty('status')
+		await expect(metadataResolver.resolve['NetworkProposalTxHashProposalIndex'].resolve(
 			{
 				$network: cardanoNetwork,
 				proposalTxHash: 'proposal-hash',
@@ -1574,7 +1555,7 @@ describe('Blockfrost Cardano governance details', () => {
 	})
 
 	it('keeps proposal lifecycle on one current-epoch observation and never relabels history', async () => {
-		getGovernanceProposal.mockResolvedValueOnce({
+		getGovernanceProposal.mockResolvedValue({
 			id: 'gov_action1example',
 			tx_hash: 'proposal-hash',
 			cert_index: 1,
@@ -1598,24 +1579,43 @@ describe('Blockfrost Cardano governance details', () => {
 		if (proposalResolver == null || observationResolver == null)
 			throw new Error('missing proposal lifecycle resolver')
 
-		await expect(proposalResolver.resolve[CardanoGovernanceProposalSelector.NetworkProposalTxHashProposalIndex].resolve({
+		const proposal = await proposalResolver.resolve['NetworkProposalTxHashProposalIndex'].resolve({
 			$network: cardanoNetwork,
 			proposalTxHash: 'proposal-hash',
 			proposalIndex: 1,
-		}, resolverContext)).resolves.toMatchObject({
+		}, resolverContext)
+		expect(proposal).toMatchObject({
 			governanceActionId: 'gov_action1example',
-			proposalPayload: {
-				tag: 'InfoAction',
-			},
 			$$timestamps: [{
-				epoch: 599,
-				status: 'enacted',
-				ratifiedEpoch: 590,
-				enactedEpoch: 591,
-				expirationEpoch: 600,
+				[EntityMetaKey.Selector]: {
+					epoch: 599,
+					source: Source.Blockfrost_Rest,
+				},
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.CardanoGovernanceProposal_Timestamp, [], 'ratifiedEpoch')]: 590,
+					[entityFieldAddressKey(EntityType.CardanoGovernanceProposal_Timestamp, [], 'enactedEpoch')]: 591,
+					[entityFieldAddressKey(EntityType.CardanoGovernanceProposal_Timestamp, [], 'expirationEpoch')]: 600,
+				},
 			}],
 		})
-		await expect(observationResolver.resolve[CardanoGovernanceProposal_TimestampSelector.ProposalEpochSource].resolve({
+		expect(proposal).not.toHaveProperty('proposalPayload')
+		expect(proposal.$$timestamps[0]).not.toHaveProperty('status')
+		await expect(observationResolver.resolve['ProposalEpochSource'].resolve({
+			$proposal: {
+				$network: cardanoNetwork,
+				proposalTxHash: 'proposal-hash',
+				proposalIndex: 1,
+			},
+			epoch: 599,
+			source: Source.Blockfrost_Rest,
+		}, resolverContext)).resolves.toMatchObject({
+			epoch: 599,
+			source: Source.Blockfrost_Rest,
+			ratifiedEpoch: 590,
+			enactedEpoch: 591,
+			expirationEpoch: 600,
+		})
+		await expect(observationResolver.resolve['ProposalEpochSource'].resolve({
 			$proposal: {
 				$network: cardanoNetwork,
 				proposalTxHash: 'proposal-hash',
@@ -1624,10 +1624,124 @@ describe('Blockfrost Cardano governance details', () => {
 			epoch: 598,
 			source: Source.Blockfrost_Rest,
 		}, resolverContext)).rejects.toThrow('historical proposal observation is unavailable')
-		expect(getGovernanceProposal).toHaveBeenCalledOnce()
+		expect(getGovernanceProposal).toHaveBeenCalledTimes(3)
 	})
 
-	it('distinguishes natural expiry from an earlier dropped proposal', async () => {
+	it('projects every typed governance action into named semantic fields', async () => {
+		const proposalResolver = blockfrostResolvers.resolvers.find((candidate) => (
+			candidate.entityType === EntityType.CardanoGovernanceProposal
+			&& '$$timestamps' in candidate.projections
+		))
+
+		if (proposalResolver == null)
+			throw new Error('missing proposal resolver')
+
+		for (const [governanceType, governanceDescription, expected] of [
+			[
+				'parameter_change',
+				{
+					tag: 'ParameterChange',
+					contents: [{ txId: 'prior-parameter', govActionIx: 2 }, {}, 'parameter-policy'],
+				},
+				{
+					$previousAction: { proposalTxHash: 'prior-parameter', proposalIndex: 2 },
+					policyHash: 'parameter-policy',
+				},
+			],
+			[
+				'hard_fork_initiation',
+				{
+					tag: 'HardForkInitiation',
+					contents: [{ txId: 'prior-fork', govActionIx: 3 }, { major: 11, minor: 2 }],
+				},
+				{
+					$previousAction: { proposalTxHash: 'prior-fork', proposalIndex: 3 },
+					hardForkMajor: 11,
+					hardForkMinor: 2,
+				},
+			],
+			[
+				'treasury_withdrawals',
+				{
+					tag: 'TreasuryWithdrawals',
+					contents: [[[{ network: 'Mainnet', credential: { keyHash: 'treasury-key' } }, 42]], 'treasury-policy'],
+				},
+				{
+					policyHash: 'treasury-policy',
+					treasuryWithdrawals: [{ recipientNetwork: 'Mainnet', recipientCredential: 'key:treasury-key', lovelace: 42n }],
+				},
+			],
+			[
+				'no_confidence',
+				{
+					tag: 'NoConfidence',
+					contents: { txId: 'prior-confidence', govActionIx: 4 },
+				},
+				{
+					$previousAction: { proposalTxHash: 'prior-confidence', proposalIndex: 4 },
+				},
+			],
+			[
+				'new_committee',
+				{
+					tag: 'UpdateCommittee',
+					contents: [{ txId: 'prior-committee', govActionIx: 5 }, [{ scriptHash: 'removed-script' }], { 'added-cold': 777 }, { numerator: 2, denominator: 3 }],
+				},
+				{
+					$previousAction: { proposalTxHash: 'prior-committee', proposalIndex: 5 },
+					committeeRemovedCredentials: ['script:removed-script'],
+					committeeAdditions: [{ credential: 'added-cold', expirationEpoch: 777 }],
+					committeeQuorumNumerator: 2,
+					committeeQuorumDenominator: 3,
+				},
+			],
+			[
+				'new_constitution',
+				{
+					tag: 'NewConstitution',
+					contents: [{ txId: 'prior-constitution', govActionIx: 6 }, { anchor: { url: 'https://constitution.example', dataHash: 'constitution-hash' }, script: 'constitution-script' }],
+				},
+				{
+					$previousAction: { proposalTxHash: 'prior-constitution', proposalIndex: 6 },
+					constitutionAnchorUrl: 'https://constitution.example',
+					constitutionAnchorHash: 'constitution-hash',
+					constitutionScript: 'constitution-script',
+				},
+			],
+			[
+				'info_action',
+				{ tag: 'InfoAction' },
+				{},
+			],
+		] as const) {
+			const proposalTxHash = `proposal-${governanceType}`
+			getGovernanceProposal.mockResolvedValueOnce({
+				id: `gov_action1${governanceType}`,
+				tx_hash: proposalTxHash,
+				cert_index: 0,
+				governance_type: governanceType,
+				governance_description: governanceDescription,
+				deposit: '1000000',
+				return_address: 'stake1return',
+				ratified_epoch: null,
+				enacted_epoch: null,
+				dropped_epoch: null,
+				expired_epoch: null,
+				expiration: 600,
+			})
+			listGovernanceProposalVotes.mockResolvedValueOnce([])
+
+			const proposal = await proposalResolver.resolve['NetworkProposalTxHashProposalIndex'].resolve({
+				$network: cardanoNetwork,
+				proposalTxHash,
+				proposalIndex: 0,
+			}, resolverContext)
+			expect(proposal).toMatchObject(expected)
+			expect(proposal).not.toHaveProperty('proposalPayload')
+		}
+	})
+
+	it('preserves natural expiry and dropped lifecycle facts without inferring status', async () => {
 		getGovernanceProposal
 			.mockResolvedValueOnce({
 				id: 'gov_action1expired',
@@ -1666,27 +1780,33 @@ describe('Blockfrost Cardano governance details', () => {
 		if (proposalResolver == null)
 			throw new Error('missing proposal lifecycle resolver')
 
-		await expect(proposalResolver.resolve[CardanoGovernanceProposalSelector.NetworkProposalTxHashProposalIndex].resolve({
-				$network: cardanoNetwork,
-				proposalTxHash: 'expired-proposal-hash',
-				proposalIndex: 0,
-			}, resolverContext)).resolves.toEqual(expect.objectContaining({
+		const expiredProposal = await proposalResolver.resolve['NetworkProposalTxHashProposalIndex'].resolve({
+			$network: cardanoNetwork,
+			proposalTxHash: 'expired-proposal-hash',
+			proposalIndex: 0,
+		}, resolverContext)
+		expect(expiredProposal).toEqual(expect.objectContaining({
 			$$timestamps: [expect.objectContaining({
-				status: 'expired',
-				droppedEpoch: 594,
-				expiredEpoch: 593,
+				[EntityMetaKey.Fields]: expect.objectContaining({
+					[entityFieldAddressKey(EntityType.CardanoGovernanceProposal_Timestamp, [], 'droppedEpoch')]: 594,
+					[entityFieldAddressKey(EntityType.CardanoGovernanceProposal_Timestamp, [], 'expiredEpoch')]: 593,
+				}),
 			})],
 		}))
-		await expect(proposalResolver.resolve[CardanoGovernanceProposalSelector.NetworkProposalTxHashProposalIndex].resolve({
-				$network: cardanoNetwork,
-				proposalTxHash: 'dropped-proposal-hash',
-				proposalIndex: 0,
-			}, resolverContext)).resolves.toEqual(expect.objectContaining({
+		expect(expiredProposal.$$timestamps[0]).not.toHaveProperty('status')
+		const droppedProposal = await proposalResolver.resolve['NetworkProposalTxHashProposalIndex'].resolve({
+			$network: cardanoNetwork,
+			proposalTxHash: 'dropped-proposal-hash',
+			proposalIndex: 0,
+		}, resolverContext)
+		expect(droppedProposal).toEqual(expect.objectContaining({
 			$$timestamps: [expect.objectContaining({
-				status: 'dropped',
-				droppedEpoch: 592,
+				[EntityMetaKey.Fields]: expect.objectContaining({
+					[entityFieldAddressKey(EntityType.CardanoGovernanceProposal_Timestamp, [], 'droppedEpoch')]: 592,
+				}),
 			})],
 		}))
+		expect(droppedProposal.$$timestamps[0]).not.toHaveProperty('status')
 	})
 
 	it('rejects governance proposal detail for a different transaction occurrence', async () => {
@@ -1712,7 +1832,7 @@ describe('Blockfrost Cardano governance details', () => {
 		if (proposalResolver == null)
 			throw new Error('missing proposal lifecycle resolver')
 
-		await expect(proposalResolver.resolve[CardanoGovernanceProposalSelector.NetworkProposalTxHashProposalIndex].resolve({
+		await expect(proposalResolver.resolve['NetworkProposalTxHashProposalIndex'].resolve({
 			$network: cardanoNetwork,
 			proposalTxHash: 'proposal-hash',
 			proposalIndex: 1,
@@ -1751,7 +1871,7 @@ describe('Blockfrost Cardano governance details', () => {
 		if (resolver == null || metadataResolver == null)
 			throw new Error('missing proposal resolver')
 
-		await expect(resolver.resolve[CardanoGovernanceProposalSelector.NetworkProposalTxHashProposalIndex].resolve(
+		await expect(resolver.resolve['NetworkProposalTxHashProposalIndex'].resolve(
 			{
 				$network: cardanoNetwork,
 				proposalTxHash: 'proposal-hash',
@@ -1775,7 +1895,7 @@ describe('Blockfrost Cardano governance details', () => {
 				}),
 			],
 		})
-		await expect(metadataResolver.resolve[CardanoGovernanceProposalSelector.NetworkProposalTxHashProposalIndex].resolve(
+		await expect(metadataResolver.resolve['NetworkProposalTxHashProposalIndex'].resolve(
 			{
 				$network: cardanoNetwork,
 				proposalTxHash: 'proposal-hash',
@@ -1821,7 +1941,7 @@ describe('Blockfrost Cardano governance details', () => {
 			providerContinuationToken: 'after=previous-vote%3A0%3Adrep%3Adrep1previous&page=2',
 		}
 		const snapshot = await proposalResolver.resolve[
-			CardanoGovernanceProposalSelector.NetworkProposalTxHashProposalIndex
+			'NetworkProposalTxHashProposalIndex'
 		].resolve({
 			$network: cardanoNetwork,
 			proposalTxHash: 'proposal-hash',
@@ -1840,7 +1960,6 @@ describe('Blockfrost Cardano governance details', () => {
 			}],
 		})
 		expect(listGovernanceProposalVotes).toHaveBeenCalledWith(
-			blockfrostBinding,
 			'proposal-hash',
 			1,
 			1,
@@ -1887,7 +2006,7 @@ describe('Blockfrost Cardano governance details', () => {
 			vote: 'no',
 		}])
 		await expect(proposalResolver.resolve[
-			CardanoGovernanceProposalSelector.NetworkProposalTxHashProposalIndex
+			'NetworkProposalTxHashProposalIndex'
 		].resolve({
 			$network: cardanoNetwork,
 			proposalTxHash: 'proposal-hash',
@@ -1917,7 +2036,7 @@ describe('Blockfrost Cardano governance details', () => {
 			throw new Error('missing proposal metadata resolver')
 
 		await expect(metadataResolver.resolve[
-			CardanoGovernanceProposalSelector.NetworkProposalTxHashProposalIndex
+			'NetworkProposalTxHashProposalIndex'
 		].resolve({
 			$network: cardanoNetwork,
 			proposalTxHash: 'proposal-hash',
@@ -1937,7 +2056,7 @@ describe('Blockfrost Cardano governance details', () => {
 		if (poolResolver == null || drepResolver == null)
 			throw new Error('missing Cardano detail resolver')
 
-		await expect(poolResolver.resolve[CardanoStakePoolSelector.NetworkPoolId].resolve(
+		await expect(poolResolver.resolve['NetworkPoolId'].resolve(
 			{
 				$network: cardanoNetwork,
 				poolId: 'pool1example',
@@ -1946,7 +2065,7 @@ describe('Blockfrost Cardano governance details', () => {
 		)).resolves.toMatchObject({
 			vrf_key: 'vrf-key',
 		})
-		await expect(drepResolver.resolve[CardanoDRepSelector.NetworkDrepCredential].resolve(
+		await expect(drepResolver.resolve['NetworkDrepCredential'].resolve(
 			{
 				$network: { slug: 'ethereum' },
 				drepCredential: 'drep1example',
@@ -1969,7 +2088,7 @@ describe('Blockfrost Cardano governance details', () => {
 		if (drepIdentityResolver == null)
 			throw new Error('missing Cardano DRep identity resolver')
 
-		await expect(drepIdentityResolver.resolve[CardanoDRepSelector.NetworkDrepCredential].resolve(
+		await expect(drepIdentityResolver.resolve['NetworkDrepCredential'].resolve(
 			{
 				$network: cardanoNetwork,
 				drepCredential: 'drep1example',

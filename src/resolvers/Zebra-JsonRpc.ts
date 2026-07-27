@@ -9,32 +9,12 @@ import {
 	EntityMetaKey,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import { sourceProviderDefinitions } from '$/sources/$sourceProviders.ts'
 import { Source } from '$/sources/Source.ts'
-import { SourceTargetKind } from '$/sources/SourceBinding.ts'
-import { firstHttpUrlForBinding } from '$/sources/_runtime/http.ts'
-import { UtxoBlockSelector } from '$/schema/UtxoBlock.ts'
-import { UtxoTransactionSelector } from '$/schema/UtxoTransaction.ts'
-import { UtxoInputSelector } from '$/schema/UtxoInput.ts'
-import { UtxoOutputSelector } from '$/schema/UtxoOutput.ts'
 
 type NetworkId = { caip2: {
 	namespace: string
 	reference: string
 } } | { slug: string }
-
-const zebraMainnetBindings = sourceProviderDefinitions
-	.flatMap((provider) => provider.bindings)
-	.filter((binding) => (
-		binding.source === Source.Zebra_JsonRpc
-		&& binding.target.kind === SourceTargetKind.Caip2Network
-		&& binding.target.key === `${bitcoinNetworkBySlug.zcash.caip2.namespace}:${bitcoinNetworkBySlug.zcash.caip2.reference}`
-	))
-
-if (zebraMainnetBindings.length !== 1)
-	throw new Error('Zebra_JsonRpc: canonical Zcash mainnet source binding is missing or ambiguous')
-
-const zebraMainnetRpcUrl = firstHttpUrlForBinding(zebraMainnetBindings[0])
 
 const assertZcashMainnet = (network: NetworkId) => {
 	if (
@@ -59,7 +39,6 @@ const getTransaction = async ({ $network, txId }: {
 	assertZcashMainnet($network)
 	const { getRawTransaction } = await import('$/sources/Zebra/JsonRpc/queries.ts')
 	return getRawTransaction({
-		rpcUrl: zebraMainnetRpcUrl,
 		txId: txId,
 	})
 }
@@ -71,14 +50,13 @@ export default {
 		defineResolver(Source.Zebra_JsonRpc, {
 			entityType: EntityType.UtxoBlock,
 			resolve: {
-				[UtxoBlockSelector.NetworkHeightHash]: {
+				NetworkHeightHash: {
 					resolve: async ({ $network, hash }) => {
 						assertZcashMainnet($network)
 						const {
 							getBlock,
 						} = await import('$/sources/Zebra/JsonRpc/queries.ts')
 						const block = await getBlock({
-							rpcUrl: zebraMainnetRpcUrl,
 							blockHash: hash,
 						})
 						return {
@@ -139,7 +117,7 @@ export default {
 		defineResolver(Source.Zebra_JsonRpc, {
 			entityType: EntityType.UtxoTransaction,
 			resolve: {
-				[UtxoTransactionSelector.NetworkTxId]: {
+				NetworkTxId: {
 					resolve: async (entitySelector) => {
 						const transaction = await getTransaction(entitySelector)
 						return {
@@ -183,7 +161,7 @@ export default {
 		defineResolver(Source.Zebra_JsonRpc, {
 			entityType: EntityType.UtxoInput,
 			resolve: {
-				[UtxoInputSelector.TransactionIndexInTransaction]: {
+				TransactionIndexInTransaction: {
 					resolve: async ({ $transaction, indexInTransaction }) => {
 						const input = (await getTransaction($transaction)).vin[indexInTransaction]
 						return {
@@ -227,7 +205,7 @@ export default {
 		defineResolver(Source.Zebra_JsonRpc, {
 			entityType: EntityType.UtxoOutput,
 			resolve: {
-				[UtxoOutputSelector.TransactionIndexInTransaction]: {
+				TransactionIndexInTransaction: {
 					resolve: async ({ $transaction, indexInTransaction }) => {
 						const output = (await getTransaction($transaction)).vout[indexInTransaction]
 						return {

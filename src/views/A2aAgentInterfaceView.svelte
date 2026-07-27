@@ -2,13 +2,8 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
 	import { UrlString } from '$/schema/UrlString.ts'
 
 
@@ -21,40 +16,21 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.A2aAgentInterface>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.A2aAgentInterface>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.A2aAgentInterface> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const a2aAgentInterface = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {
-			transportKind: true,
-		},
-	} : {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const viewSelection = $derived(selection({
+		sources: selection.sources ?? [],
+	}))
+	const a2aAgentInterface = $derived(viewSelection({
 		fields: {
 			transportKind: true,
 		},
 	}))
-	const titleFallback = $derived([String((pendingEntity.protocolBinding) ?? '')].filter(Boolean).join(' ') || 'A2A agent interface')
-	const viewDomId = $derived('a2a-agent-interface-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const titleFallback = $derived((pendingEntity.protocolBinding ?? '') || 'A2A agent interface')
 
 
 	// Components
@@ -66,61 +42,31 @@
 
 <EntityView
 	entityType={EntityType.A2aAgentInterface}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'transportKind')}
-			{[String((pendingEntity.protocolBinding) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-		{:else}
-			<ResourceBoundary resource={a2aAgentInterface}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.protocolBinding) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		{(pendingEntity.protocolBinding ?? '') || 'A2A agent interface'}
 	{/snippet}
 
 	{#snippet Value()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'transportKind')}
-			{[String((pendingEntity.url) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.protocolBinding) ?? '')].filter(Boolean).join(' ') || titleFallback}
-		{:else}
-			<ResourceBoundary resource={a2aAgentInterface}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.url) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.protocolBinding) ?? '')].filter(Boolean).join(' ') || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		{String(pendingEntity.url ?? '') || (pendingEntity.protocolBinding ?? '') || titleFallback}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'transportKind')}
-			{@const transportKind0 = pendingEntity.transportKind}
-			{#if transportKind0 !== undefined && transportKind0 !== null}
-				<span data-text="muted">
-					{String((transportKind0) ?? '')}
-				</span>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={a2aAgentInterface}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const transportKind0 = resolvedEntity.transportKind}
-					{#if transportKind0 !== undefined && transportKind0 !== null}
-						<span data-text="muted">
-							{String((transportKind0) ?? '')}
-						</span>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={a2aAgentInterface}>
+			{#snippet children(entity)}
+				{@const transportKind0 = entity.transportKind}
+				{#if transportKind0 != null}
+					<span data-text="muted">
+						{transportKind0}
+					</span>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -139,62 +85,26 @@
 			<div>
 				<dt>protocol binding</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									protocolBinding: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const protocolBinding = resolvedEntity.protocolBinding}
-							{#if protocolBinding !== undefined && protocolBinding !== null}
-								{String((protocolBinding) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{pendingEntity.protocolBinding}
 				</dd>
 			</div>
 
 			<div>
 				<dt>URL</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									url: true,
-								},
-							})
-						}
+					<a
+						href={String(pendingEntity.url)}
+						target="_blank"
+						rel="noreferrer noopener"
 					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const url = resolvedEntity.url}
-							{#if url !== undefined && url !== null}
-								<svelte:element
-									this={'a'}
-									href={String(url)}
-									target="_blank"
-									rel="noreferrer noopener"
-								>
-									<TruncatedValue value={String(url)} />
-								</svelte:element>
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+						<TruncatedValue value={String(pendingEntity.url)} />
+					</a>
 				</dd>
 			</div>
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							protocolVersion: true,
 						},
@@ -202,13 +112,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const protocolVersion = resolvedEntity.protocolVersion}
-					{#if protocolVersion !== undefined && protocolVersion !== null}
+					{@const protocolVersion = entity.protocolVersion}
+					{#if protocolVersion != null}
 						<div>
 							<dt>protocol version</dt>
 							<dd>
-								{String((protocolVersion) ?? '')}
+								{protocolVersion}
 							</dd>
 						</div>
 					{/if}
@@ -216,23 +125,15 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							transportKind: true,
-						},
-					})
-				}
+				resource={a2aAgentInterface}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const transportKind = resolvedEntity.transportKind}
-					{#if transportKind !== undefined && transportKind !== null}
+					{@const transportKind = entity.transportKind}
+					{#if transportKind != null}
 						<div>
 							<dt>transport kind</dt>
 							<dd>
-								{String((transportKind) ?? '')}
+								{transportKind}
 							</dd>
 						</div>
 					{/if}
@@ -241,8 +142,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							mediaType: true,
 						},
@@ -250,13 +150,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const mediaType = resolvedEntity.mediaType}
-					{#if mediaType !== undefined && mediaType !== null}
+					{@const mediaType = entity.mediaType}
+					{#if mediaType != null}
 						<div>
 							<dt>media type</dt>
 							<dd>
-								{String((mediaType) ?? '')}
+								{mediaType}
 							</dd>
 						</div>
 					{/if}

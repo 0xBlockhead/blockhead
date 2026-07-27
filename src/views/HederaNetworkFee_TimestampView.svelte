@@ -2,15 +2,8 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
-	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -22,35 +15,13 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.HederaNetworkFee_Timestamp>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.HederaNetworkFee_Timestamp>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.HederaNetworkFee_Timestamp> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const hederaNetworkFeeTimestamp = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {},
-	} : {
-		sources: selection.sources,
-	}))
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const titleFallback = 'hedera network fee timestamp'
-	const viewDomId = $derived('hedera-network-fee-timestamp-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -62,24 +33,14 @@
 
 <EntityView
 	entityType={EntityType.HederaNetworkFee_Timestamp}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails}
-			{title || titleFallback}
-		{:else}
-			<ResourceBoundary resource={hederaNetworkFeeTimestamp}>
-				{#snippet children(entity)}
-					{title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		hedera network fee timestamp
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -89,23 +50,6 @@
 				<dd>
 					<NetworkView
 						selection={select(EntityType.Network, selection.entitySelector.$network)}
-						href={
-							(
-								selection.entitySelector.$network != null && 'caip2' in selection.entitySelector.$network
-								&& selection.entitySelector.$network.caip2 != null ?
-									resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-								network: String(caip2StringFromValue(selection.entitySelector.$network.caip2) ?? ''),
-							})
-							:
-									selection.entitySelector.$network != null && 'slug' in selection.entitySelector.$network
-									&& selection.entitySelector.$network.slug != null ?
-										resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-									network: String(selection.entitySelector.$network.slug ?? ''),
-								})
-								:
-									undefined
-							)
-						}
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -115,79 +59,27 @@
 			<div>
 				<dt>transaction type</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									transactionType: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const transactionType = resolvedEntity.transactionType}
-							{#if transactionType !== undefined && transactionType !== null}
-								{String((transactionType) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{pendingEntity.transactionType}
 				</dd>
 			</div>
 
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									timestampMs: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const timestampMs = resolvedEntity.timestampMs}
-							{#if timestampMs !== undefined && timestampMs !== null}
-								<Timestamp timestamp={Number(timestampMs)} />
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									source: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const source = resolvedEntity.source}
-							{#if source !== undefined && source !== null}
-								{String((source) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{pendingEntity.source}
 				</dd>
 			</div>
 
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							gasTinybar: true,
 						},
@@ -195,13 +87,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const gasTinybar = resolvedEntity.gasTinybar}
-					{#if gasTinybar !== undefined && gasTinybar !== null}
+					{@const gasTinybar = entity.gasTinybar}
+					{#if gasTinybar != null}
 						<div>
 							<dt>gas tinybar</dt>
 							<dd>
-								{String((gasTinybar) ?? '')}
+								{String(gasTinybar)}
 							</dd>
 						</div>
 					{/if}
@@ -211,7 +102,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							baseTinycent: true,
 						},
@@ -219,13 +109,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const baseTinycent = resolvedEntity.baseTinycent}
-					{#if baseTinycent !== undefined && baseTinycent !== null}
+					{@const baseTinycent = entity.baseTinycent}
+					{#if baseTinycent != null}
 						<div>
 							<dt>base tinycent</dt>
 							<dd>
-								{String((baseTinycent) ?? '')}
+								{String(baseTinycent)}
 							</dd>
 						</div>
 					{/if}
@@ -235,7 +124,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							nodeTinycent: true,
 						},
@@ -243,13 +131,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const nodeTinycent = resolvedEntity.nodeTinycent}
-					{#if nodeTinycent !== undefined && nodeTinycent !== null}
+					{@const nodeTinycent = entity.nodeTinycent}
+					{#if nodeTinycent != null}
 						<div>
 							<dt>node tinycent</dt>
 							<dd>
-								{String((nodeTinycent) ?? '')}
+								{String(nodeTinycent)}
 							</dd>
 						</div>
 					{/if}
@@ -259,7 +146,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							networkTinycent: true,
 						},
@@ -267,13 +153,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const networkTinycent = resolvedEntity.networkTinycent}
-					{#if networkTinycent !== undefined && networkTinycent !== null}
+					{@const networkTinycent = entity.networkTinycent}
+					{#if networkTinycent != null}
 						<div>
 							<dt>network tinycent</dt>
 							<dd>
-								{String((networkTinycent) ?? '')}
+								{String(networkTinycent)}
 							</dd>
 						</div>
 					{/if}
@@ -283,7 +168,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							serviceTinycent: true,
 						},
@@ -291,13 +175,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const serviceTinycent = resolvedEntity.serviceTinycent}
-					{#if serviceTinycent !== undefined && serviceTinycent !== null}
+					{@const serviceTinycent = entity.serviceTinycent}
+					{#if serviceTinycent != null}
 						<div>
 							<dt>service tinycent</dt>
 							<dd>
-								{String((serviceTinycent) ?? '')}
+								{String(serviceTinycent)}
 							</dd>
 						</div>
 					{/if}
@@ -307,7 +190,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							totalTinycent: true,
 						},
@@ -315,13 +197,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const totalTinycent = resolvedEntity.totalTinycent}
-					{#if totalTinycent !== undefined && totalTinycent !== null}
+					{@const totalTinycent = entity.totalTinycent}
+					{#if totalTinycent != null}
 						<div>
 							<dt>total tinycent</dt>
 							<dd>
-								{String((totalTinycent) ?? '')}
+								{String(totalTinycent)}
 							</dd>
 						</div>
 					{/if}

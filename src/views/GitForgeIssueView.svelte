@@ -2,13 +2,8 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
 
 
 	// Context
@@ -20,42 +15,19 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.GitForgeIssue>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.GitForgeIssue>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.GitForgeIssue> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const gitForgeIssue = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {
-			title: true,
-			state: true,
-		},
-	} : {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const gitForgeIssue = $derived(selection({
 		fields: {
 			title: true,
 			state: true,
 		},
 	}))
-	const titleFallback = $derived([String((pendingEntity.title) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.issueNumber) ?? '')].filter(Boolean).join(' ') || 'Git forge issue')
-	const viewDomId = $derived('git-forge-issue-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const titleFallback = $derived((pendingEntity.title ?? '') || String(pendingEntity.issueNumber ?? '') || 'Git forge issue')
 
 
 	// Components
@@ -68,38 +40,26 @@
 
 <EntityView
 	entityType={EntityType.GitForgeIssue}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'title') && Object.hasOwn(prefetched, 'state')}
-			{[String((pendingEntity.title) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-		{:else}
-			<ResourceBoundary resource={gitForgeIssue}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.title) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={gitForgeIssue}>
+			{#snippet children(entity)}
+				{(entity.title ?? '') || title || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Value()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'title') && Object.hasOwn(prefetched, 'state')}
-			{[String((pendingEntity.state) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.title) ?? '')].filter(Boolean).join(' ') || titleFallback}
-		{:else}
-			<ResourceBoundary resource={gitForgeIssue}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.state) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.title) ?? '')].filter(Boolean).join(' ') || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={gitForgeIssue}>
+			{#snippet children(entity)}
+				{entity.state || (entity.title ?? '') || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -118,47 +78,22 @@
 			<div>
 				<dt>issue number</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									issueNumber: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const issueNumber = resolvedEntity.issueNumber}
-							{#if issueNumber !== undefined && issueNumber !== null}
-								<NumberValue
-									value={issueNumber}
-								/>
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					<NumberValue
+						value={pendingEntity.issueNumber}
+					/>
 				</dd>
 			</div>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							title: true,
-						},
-					})
-				}
+				resource={gitForgeIssue}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const title = resolvedEntity.title}
-					{#if title !== undefined && title !== null}
+					{@const title = entity.title}
+					{#if title != null}
 						<div>
 							<dt>title</dt>
 							<dd>
-								{String((title) ?? '')}
+								{title}
 							</dd>
 						</div>
 					{/if}
@@ -169,21 +104,10 @@
 				<dt>state</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									state: true,
-								},
-							})
-						}
+						resource={gitForgeIssue}
 					>
 						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const state = resolvedEntity.state}
-							{#if state !== undefined && state !== null}
-								{String((state) ?? '')}
-							{/if}
+							{entity.state}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -195,7 +119,6 @@
 					<ResourceBoundary
 						resource={
 							selection({
-								sources: selection.sources,
 								fields: {
 									labels: true,
 								},
@@ -203,11 +126,7 @@
 						}
 					>
 						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const labels = resolvedEntity.labels}
-							{#if labels !== undefined && labels !== null}
-								{labels.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')}
-							{/if}
+							{entity.labels.values.join(', ')}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -218,7 +137,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							createdAt: true,
 						},
@@ -226,9 +144,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const createdAt = resolvedEntity.createdAt}
-					{#if createdAt !== undefined && createdAt !== null}
+					{@const createdAt = entity.createdAt}
+					{#if createdAt != null}
 						<div>
 							<dt>Created</dt>
 							<dd>
@@ -242,7 +159,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							updatedAt: true,
 						},
@@ -250,9 +166,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const updatedAt = resolvedEntity.updatedAt}
-					{#if updatedAt !== undefined && updatedAt !== null}
+					{@const updatedAt = entity.updatedAt}
+					{#if updatedAt != null}
 						<div>
 							<dt>Updated</dt>
 							<dd>
@@ -266,7 +181,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							closedAt: true,
 						},
@@ -274,9 +188,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const closedAt = resolvedEntity.closedAt}
-					{#if closedAt !== undefined && closedAt !== null}
+					{@const closedAt = entity.closedAt}
+					{#if closedAt != null}
 						<div>
 							<dt>closed AT</dt>
 							<dd>

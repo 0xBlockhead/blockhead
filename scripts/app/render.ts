@@ -1,4 +1,5 @@
 import { parse as parseSvelte } from 'svelte/compiler'
+import ts from 'typescript'
 
 
 export type ImportName = string | {
@@ -39,6 +40,190 @@ export type GeneratedFile =
 			readonly body: readonly string[]
 		}
 
+export type GeneratedTypeScriptValue =
+	| string
+	| number
+	| bigint
+	| boolean
+	| null
+	| undefined
+	| readonly GeneratedTypeScriptValue[]
+	| {
+			readonly [key: string]: GeneratedTypeScriptValue
+		}
+
+export type TypeScriptEmission =
+	| string
+	| number
+	| bigint
+	| boolean
+	| null
+	| {
+			kind: 'array'
+			values: readonly TypeScriptEmission[]
+			multiline?: boolean
+		}
+	| {
+			kind: 'object'
+			entries: readonly [string, TypeScriptEmission | undefined][]
+			multiline?: boolean
+		}
+	| {
+			kind: 'member'
+			members: readonly [string, ...string[]]
+		}
+	| {
+			kind: 'raw'
+			source: string
+		}
+	| {
+			kind: 'call'
+			callee: TypeScriptEmission
+			arguments: readonly TypeScriptEmission[]
+		}
+	| {
+			kind: 'spread'
+			value: TypeScriptEmission
+		}
+	| {
+			kind: 'value'
+			value: GeneratedTypeScriptValue
+		}
+
+const typeScriptPrinter = ts.createPrinter({
+	newLine: ts.NewLineKind.LineFeed,
+})
+const typeScriptPrinterSourceFile = ts.createSourceFile(
+	'generated-expression.ts',
+	'',
+	ts.ScriptTarget.Latest,
+	false,
+	ts.ScriptKind.TS
+)
+const typeScriptStringLiteral = (value: string) => {
+	const literal = ts.factory.createStringLiteral(value, true)
+	ts.setEmitFlags(literal, ts.EmitFlags.NoAsciiEscaping)
+	return literal
+}
+const typeScriptExpression = (
+	emission: TypeScriptEmission,
+	rawExpressions: string[]
+): ts.Expression => {
+	if (typeof emission === 'string')
+		return typeScriptStringLiteral(emission)
+	if (typeof emission === 'number') {
+		if (Number.isNaN(emission))
+			return ts.factory.createIdentifier('NaN')
+		if (emission === Number.POSITIVE_INFINITY)
+			return ts.factory.createPropertyAccessExpression(ts.factory.createIdentifier('Number'), 'POSITIVE_INFINITY')
+		if (emission === Number.NEGATIVE_INFINITY)
+			return ts.factory.createPropertyAccessExpression(ts.factory.createIdentifier('Number'), 'NEGATIVE_INFINITY')
+		if (emission < 0 || Object.is(emission, -0))
+			return ts.factory.createPrefixUnaryExpression(
+				ts.SyntaxKind.MinusToken,
+				ts.factory.createNumericLiteral(String(Math.abs(emission)))
+			)
+
+		return ts.factory.createNumericLiteral(String(emission))
+	}
+	if (typeof emission === 'bigint')
+		return emission < 0n ?
+			ts.factory.createPrefixUnaryExpression(
+				ts.SyntaxKind.MinusToken,
+				ts.factory.createBigIntLiteral(`${-emission}n`)
+			)
+		:
+			ts.factory.createBigIntLiteral(`${emission}n`)
+	if (typeof emission === 'boolean')
+		return emission ? ts.factory.createTrue() : ts.factory.createFalse()
+	if (emission === null)
+		return ts.factory.createNull()
+	if (emission.kind === 'raw') {
+		rawExpressions.push(emission.source)
+		return ts.factory.createIdentifier(`__TYPE_SCRIPT_RAW_${rawExpressions.length - 1}__`)
+	}
+	if (emission.kind === 'value') {
+		if (emission.value === undefined)
+			return ts.factory.createIdentifier('undefined')
+		if (
+			emission.value === null
+			|| typeof emission.value === 'string'
+			|| typeof emission.value === 'number'
+			|| typeof emission.value === 'bigint'
+			|| typeof emission.value === 'boolean'
+		)
+			return typeScriptExpression(emission.value, rawExpressions)
+		if (Array.isArray(emission.value))
+			return ts.factory.createArrayLiteralExpression(
+				ts.factory.createNodeArray(emission.value.map((value) => typeScriptExpression({
+					kind: 'value',
+					value,
+				}, rawExpressions)), emission.value.length > 0),
+				emission.value.length > 0
+			)
+		if (typeof emission.value === 'object')
+			return ts.factory.createObjectLiteralExpression(
+				ts.factory.createNodeArray(Object.entries(emission.value)
+					.filter(([, value]) => value !== undefined)
+					.map(([key, value]) => ts.factory.createPropertyAssignment(
+						/^[A-Za-z_$][\w$]*$/.test(key) ? ts.factory.createIdentifier(key) : typeScriptStringLiteral(key),
+						typeScriptExpression({
+							kind: 'value',
+							value,
+						}, rawExpressions)
+					)), Object.values(emission.value).some((value) => value !== undefined)),
+				Object.values(emission.value).some((value) => value !== undefined)
+			)
+
+		throw new Error(`Unsupported generated TypeScript value: ${String(emission.value)}`)
+	}
+	if (emission.kind === 'member')
+		return emission.members.slice(1).reduce<ts.Expression>(
+			(expression, member) => ts.factory.createPropertyAccessExpression(expression, member),
+			ts.factory.createIdentifier(emission.members[0])
+		)
+	if (emission.kind === 'spread')
+		return ts.factory.createSpreadElement(typeScriptExpression(emission.value, rawExpressions))
+	if (emission.kind === 'call')
+		return ts.factory.createCallExpression(
+			typeScriptExpression(emission.callee, rawExpressions),
+			undefined,
+			emission.arguments.map((argument) => typeScriptExpression(argument, rawExpressions))
+		)
+	if (emission.kind === 'array')
+		return ts.factory.createArrayLiteralExpression(
+			ts.factory.createNodeArray(emission.values.map((value) => typeScriptExpression(value, rawExpressions)), emission.multiline ?? true),
+			emission.multiline ?? true
+		)
+
+	return ts.factory.createObjectLiteralExpression(
+		ts.factory.createNodeArray(emission.entries
+			.filter((entry): entry is [string, TypeScriptEmission] => entry[1] !== undefined)
+			.map(([key, value]) => ts.factory.createPropertyAssignment(
+				/^[A-Za-z_$][\w$]*$/.test(key) ? ts.factory.createIdentifier(key) : typeScriptStringLiteral(key),
+				typeScriptExpression(value, rawExpressions)
+			)), emission.multiline ?? true),
+		emission.multiline ?? true
+	)
+}
+
+export const emitTypeScript = (emission: TypeScriptEmission) => {
+	const rawExpressions: string[] = []
+	return typeScriptPrinter.printNode(
+		ts.EmitHint.Expression,
+		typeScriptExpression(emission, rawExpressions),
+		typeScriptPrinterSourceFile
+	)
+	.replace(/^(?: {4})+/gm, (indentation) => '\t'.repeat(indentation.length / 4))
+	.replace(/__TYPE_SCRIPT_RAW_(\d+)__/g, (placeholder, indexText: string, offset: number, source: string) => {
+		const rawExpression = rawExpressions[Number(indexText)]
+		if (rawExpression == null)
+			throw new Error(`Missing generated TypeScript raw expression for ${placeholder}`)
+
+		return rawExpression.replaceAll('\n', `\n${source.slice(source.lastIndexOf('\n', offset) + 1, offset).match(/^\s*/)?.[0] ?? ''}`)
+	})
+}
+
 const generatedHeader = '// Generated from APP.ts. Do not edit by hand.'
 const generatedSvelteHeader = '<!-- Generated from APP.ts. Do not edit by hand. -->'
 const indent = (source: string, level = 1) => source
@@ -57,7 +242,6 @@ const uniqueImportNames = (importNames: readonly ImportName[]) => [
 		importName,
 	])).values(),
 ].sort((left, right) => importNameKey(left).localeCompare(importNameKey(right)))
-const generatedImportFrom = (from: string) => from
 const generatedImportSpecFrom = (spec: ImportPlan) => {
 	const schemaMatch = spec.from.match(/^\$\/schema\/([^/]+)\.ts$/)
 	if (schemaMatch?.[1] != null && [
@@ -67,7 +251,7 @@ const generatedImportSpecFrom = (spec: ImportPlan) => {
 	].some((name) => name?.startsWith(`_${schemaMatch[1]}`)))
 		return `$/schema/_${schemaMatch[1]}.ts`
 
-	return generatedImportFrom(spec.from)
+	return spec.from
 }
 const quote = (value: string) => `'${JSON.stringify(value)
 	.slice(1, -1)
@@ -117,6 +301,12 @@ const mergeImports = (imports: readonly ImportPlan[]) => {
 			continue
 		}
 
+		if (
+			existing.defaultName != null
+			&& spec.defaultName != null
+			&& existing.defaultName !== spec.defaultName
+		)
+			throw new Error(`${from} has conflicting default imports ${existing.defaultName} and ${spec.defaultName}`)
 		if (spec.defaultName != null)
 			existing.defaultName = spec.defaultName
 		existing.names = uniqueImportNames([
@@ -130,83 +320,6 @@ const mergeImports = (imports: readonly ImportPlan[]) => {
 	}
 
 	return [...merged.values()].sort((left, right) => left.from.localeCompare(right.from))
-}
-const parseScriptImport = (line: string): ImportPlan | undefined => {
-	const match = line.match(/^import\s+(type\s+)?(.+)\s+from\s+'([^']+)'$/)
-	if (match == null)
-		return undefined
-
-	const importType = match[1]
-	const importsExpression = match[2]
-	const from = match[3]
-	const namedImportsMatch = importsExpression.match(/\{([^}]+)\}/)
-	const namedImports = namedImportsMatch?.[1]
-		.split(',')
-		.map((name) => name.trim())
-		.filter(Boolean) ?? []
-	const defaultName = importsExpression
-		.replace(/\{[^}]+\}/, '')
-		.replace(',', '')
-		.trim()
-
-	return importType == null ? {
-		from,
-		...(defaultName === '' ? {} : { defaultName }),
-		names: namedImports,
-	} : {
-		from,
-		typeNames: [
-			...(defaultName === '' ? [] : [defaultName]),
-			...namedImports,
-		],
-	}
-}
-const dedupeScriptImports = (script: readonly string[]) => {
-	const imports = new Map<string, {
-		index: number
-		importSpec: ImportPlan
-	}>()
-	const output: string[] = []
-	for (const line of script) {
-		if (!line.startsWith('import ')) {
-			output.push(line)
-			continue
-		}
-
-		const importSpec = parseScriptImport(line)
-		if (importSpec == null) {
-			if (!output.includes(line))
-				output.push(line)
-			continue
-		}
-
-		const key = generatedImportSpecFrom(importSpec)
-		const existing = imports.get(key)
-		if (existing == null) {
-			const normalizedImportSpec = {
-				...importSpec,
-				from: key,
-			}
-			imports.set(key, {
-				index: output.length,
-				importSpec: normalizedImportSpec,
-			})
-			output.push(renderImport(normalizedImportSpec))
-			continue
-		}
-
-		const mergedImportSpec = mergeImports([
-			existing.importSpec,
-			importSpec,
-		])[0]
-		imports.set(key, {
-			index: existing.index,
-			importSpec: mergedImportSpec,
-		})
-		output[existing.index] = renderImport(mergedImportSpec)
-	}
-
-	return output
 }
 const svelteLineIndent = (line: string) => line.match(/^\t*/)?.[0].length ?? 0
 const shouldSeparateSvelteSiblings = (line: string, nextLine: string) => {
@@ -253,7 +366,7 @@ export const renderGeneratedFile = (generatedFile: GeneratedFile) => {
 				]),
 				...(generatedFile.ast.script == null ? [] : [
 					'<script lang="ts">',
-					indent(dedupeScriptImports(generatedFile.ast.script).join('\n')),
+					indent(generatedFile.ast.script.join('\n')),
 					'</script>',
 					'',
 					'',

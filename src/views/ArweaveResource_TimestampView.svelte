@@ -2,14 +2,9 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
 
 
 	// Context
@@ -21,44 +16,20 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.ArweaveResource_Timestamp>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.ArweaveResource_Timestamp>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.ArweaveResource_Timestamp> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const arweaveResourceTimestamp = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {
-			contentType: true,
-			displayType: true,
-			reachable: true,
-		},
-	} : {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const arweaveResourceTimestamp = $derived(selection({
 		fields: {
 			contentType: true,
 			displayType: true,
 			reachable: true,
 		},
 	}))
-	const titleFallback = $derived([String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || 'arweave resource timestamp')
-	const viewDomId = $derived('arweave-resource-timestamp-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const titleFallback = $derived(String(pendingEntity.timestampMs ?? '') || 'arweave resource timestamp')
 
 
 	// Components
@@ -73,67 +44,35 @@
 
 <EntityView
 	entityType={EntityType.ArweaveResource_Timestamp}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'contentType') && Object.hasOwn(prefetched, 'displayType') && Object.hasOwn(prefetched, 'reachable')}
-			{@const timestampMs0 = pendingEntity.timestampMs}
-			{#if timestampMs0 !== undefined && timestampMs0 !== null}
-				<Timestamp timestamp={Number(timestampMs0)} />
-			{/if}
-		{:else}
-			<ResourceBoundary resource={arweaveResourceTimestamp}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const timestampMs0 = resolvedEntity.timestampMs}
-					{#if timestampMs0 !== undefined && timestampMs0 !== null}
-						<Timestamp timestamp={Number(timestampMs0)} />
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
 	{/snippet}
 
 	{#snippet Value()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'contentType') && Object.hasOwn(prefetched, 'displayType') && Object.hasOwn(prefetched, 'reachable')}
-			{[String((pendingEntity.contentType) ?? ''), String((pendingEntity.displayType) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || titleFallback}
-		{:else}
-			<ResourceBoundary resource={arweaveResourceTimestamp}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.contentType) ?? ''), String((resolvedEntity.displayType) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={arweaveResourceTimestamp}>
+			{#snippet children(entity)}
+				{[(entity.contentType ?? ''), (entity.displayType ?? '')].filter(Boolean).join(' ') || String(pendingEntity.timestampMs) || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'contentType') && Object.hasOwn(prefetched, 'displayType') && Object.hasOwn(prefetched, 'reachable')}
-			{@const reachable0 = pendingEntity.reachable}
-			{#if reachable0 !== undefined && reachable0 !== null}
-				<span data-text="muted">
-					{reachable0 ? 'Yes' : 'No'}
-				</span>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={arweaveResourceTimestamp}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const reachable0 = resolvedEntity.reachable}
-					{#if reachable0 !== undefined && reachable0 !== null}
-						<span data-text="muted">
-							{reachable0 ? 'Yes' : 'No'}
-						</span>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={arweaveResourceTimestamp}>
+			{#snippet children(entity)}
+				{@const reachable0 = entity.reachable}
+				{#if reachable0 != null}
+					<span data-text="muted">
+						{reachable0 ? 'Yes' : 'No'}
+					</span>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -152,48 +91,14 @@
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									timestampMs: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const timestampMs = resolvedEntity.timestampMs}
-							{#if timestampMs !== undefined && timestampMs !== null}
-								<Timestamp timestamp={Number(timestampMs)} />
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									source: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const source = resolvedEntity.source}
-							{#if source !== undefined && source !== null}
-								{String((source) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{pendingEntity.source}
 				</dd>
 			</div>
 
@@ -203,7 +108,6 @@
 					<ResourceBoundary
 						resource={
 							selection({
-								sources: selection.sources,
 								fields: {
 									gatewayOrigin: true,
 								},
@@ -211,11 +115,7 @@
 						}
 					>
 						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const gatewayOrigin = resolvedEntity.gatewayOrigin}
-							{#if gatewayOrigin !== undefined && gatewayOrigin !== null}
-								{String((gatewayOrigin) ?? '')}
-							{/if}
+							{entity.gatewayOrigin}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -227,7 +127,6 @@
 					<ResourceBoundary
 						resource={
 							selection({
-								sources: selection.sources,
 								fields: {
 									gatewayUrl: true,
 								},
@@ -235,18 +134,13 @@
 						}
 					>
 						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const gatewayUrl = resolvedEntity.gatewayUrl}
-							{#if gatewayUrl !== undefined && gatewayUrl !== null}
-								<svelte:element
-									this={'a'}
-									href={String(gatewayUrl)}
-									target="_blank"
-									rel="noreferrer noopener"
-								>
-									<TruncatedValue value={String(gatewayUrl)} />
-								</svelte:element>
-							{/if}
+							<a
+								href={String(entity.gatewayUrl)}
+								target="_blank"
+								rel="noreferrer noopener"
+							>
+								<TruncatedValue value={String(entity.gatewayUrl)} />
+							</a>
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -255,19 +149,11 @@
 
 		<dl data-column-item="center">
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							reachable: true,
-						},
-					})
-				}
+				resource={arweaveResourceTimestamp}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const reachable = resolvedEntity.reachable}
-					{#if reachable !== undefined && reachable !== null}
+					{@const reachable = entity.reachable}
+					{#if reachable != null}
 						<div>
 							<dt>reachable</dt>
 							<dd>
@@ -281,7 +167,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							fileName: true,
 						},
@@ -289,13 +174,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const fileName = resolvedEntity.fileName}
-					{#if fileName !== undefined && fileName !== null}
+					{@const fileName = entity.fileName}
+					{#if fileName != null}
 						<div>
 							<dt>file name</dt>
 							<dd>
-								{String((fileName) ?? '')}
+								{fileName}
 							</dd>
 						</div>
 					{/if}
@@ -305,7 +189,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							extension: true,
 						},
@@ -313,13 +196,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const extension = resolvedEntity.extension}
-					{#if extension !== undefined && extension !== null}
+					{@const extension = entity.extension}
+					{#if extension != null}
 						<div>
 							<dt>extension</dt>
 							<dd>
-								{String((extension) ?? '')}
+								{extension}
 							</dd>
 						</div>
 					{/if}
@@ -327,23 +209,15 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							contentType: true,
-						},
-					})
-				}
+				resource={arweaveResourceTimestamp}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const contentType = resolvedEntity.contentType}
-					{#if contentType !== undefined && contentType !== null}
+					{@const contentType = entity.contentType}
+					{#if contentType != null}
 						<div>
 							<dt>content type</dt>
 							<dd>
-								{String((contentType) ?? '')}
+								{contentType}
 							</dd>
 						</div>
 					{/if}
@@ -353,7 +227,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							contentLength: true,
 						},
@@ -361,9 +234,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const contentLength = resolvedEntity.contentLength}
-					{#if contentLength !== undefined && contentLength !== null}
+					{@const contentLength = entity.contentLength}
+					{#if contentLength != null}
 						<div>
 							<dt>content length</dt>
 							<dd>
@@ -379,23 +251,15 @@
 
 		<dl data-column-item="center">
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							displayType: true,
-						},
-					})
-				}
+				resource={arweaveResourceTimestamp}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const displayType = resolvedEntity.displayType}
-					{#if displayType !== undefined && displayType !== null}
+					{@const displayType = entity.displayType}
+					{#if displayType != null}
 						<div>
 							<dt>display type</dt>
 							<dd>
-								{String((displayType) ?? '')}
+								{displayType}
 							</dd>
 						</div>
 					{/if}
@@ -405,7 +269,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							isContentTypeInferred: true,
 						},
@@ -413,9 +276,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const isContentTypeInferred = resolvedEntity.isContentTypeInferred}
-					{#if isContentTypeInferred !== undefined && isContentTypeInferred !== null}
+					{@const isContentTypeInferred = entity.isContentTypeInferred}
+					{#if isContentTypeInferred != null}
 						<div>
 							<dt>is content type inferred</dt>
 							<dd>
@@ -429,7 +291,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							text: true,
 						},
@@ -437,13 +298,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const text = resolvedEntity.text}
-					{#if text !== undefined && text !== null}
+					{@const text = entity.text}
+					{#if text != null}
 						<div>
 							<dt>text</dt>
 							<dd>
-								{String((text) ?? '')}
+								{text}
 							</dd>
 						</div>
 					{/if}
@@ -454,24 +314,13 @@
 				resource={selection.$media}
 			>
 				{#snippet children(media)}
-					{#if media != null && media[EntityMetaKey.Selector] != null}
+					{#if media != null}
 						<div>
 							<dt>media</dt>
 							<dd>
 								<MediaView
 									selection={select(EntityType.Media, media[EntityMetaKey.Selector])}
 									prefetched={media}
-									href={
-										(
-											media[EntityMetaKey.Selector] != null && 'url' in media[EntityMetaKey.Selector]
-											&& media[EntityMetaKey.Selector].url != null ?
-												resolve('/media/[url=absoluteUrl]', {
-											url: encodeURIComponent(String(media[EntityMetaKey.Selector].url ?? '')),
-										})
-										:
-												undefined
-										)
-									}
 									layout={EntityLayout.Value}
 									open={false}
 								/>

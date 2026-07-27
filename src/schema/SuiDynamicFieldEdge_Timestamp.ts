@@ -1,14 +1,11 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { entity, facet } from '$/schema/$schema.ts'
+import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { type } from 'arktype'
 
-export enum SuiDynamicFieldEdge_TimestampSelector {
-	EdgeCheckpointSequenceSource = 'EdgeCheckpointSequenceSource',
-}
-export const SuiDynamicFieldEdge_Timestamp = entity({
+export default entity({
 	entityType: EntityType.SuiDynamicFieldEdge_Timestamp,
 	labels: {
 		singular: 'sui dynamic field edge timestamp',

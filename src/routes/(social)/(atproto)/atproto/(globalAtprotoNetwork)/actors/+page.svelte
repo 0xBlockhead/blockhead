@@ -2,12 +2,12 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
@@ -23,29 +23,20 @@
 
 
 <Page>
+	{@const collectionSelection = select(EntityType._GlobalAtprotoNetwork, {
+		scope: '_GlobalAtprotoNetwork',
+	})
+		.$$observedActors({
+			sources: [
+				Source.Constants_Internal,
+			],
+		})}
+
 	<AtprotoActorsView
-		href={resolve('/atproto/actors')}
+		href={resolve('/(social)/(atproto)/atproto/(globalAtprotoNetwork)/actors')}
 		title='AT Protocol accounts'
-		selection={
-			select(EntityType._GlobalAtprotoNetwork, {
-				scope: '_GlobalAtprotoNetwork',
-			})
-				.$$observedActors({
-					sources: [
-						Source.Constants_Internal,
-					],
-				})
-		}
-		countResource={
-			select(EntityType._GlobalAtprotoNetwork, {
-				scope: '_GlobalAtprotoNetwork',
-			})
-				.$$observedActors({
-					sources: [
-						Source.Constants_Internal,
-					],
-				}).count
-		}
+		selection={collectionSelection}
+		countResource={collectionSelection.count}
 		id='observed-actors'
 		data-column-item="flexible"
 		data-card

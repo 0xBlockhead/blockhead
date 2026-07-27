@@ -7,7 +7,7 @@ import { match as matchEvmAddress } from '$/params/evmAddress.ts'
 import { match as matchNativeCurrencySlug } from '$/params/nativeCurrencySlug.ts'
 import { parseEntitySelector, type EntitySelectorForSelectorName } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import { EvmCoinInstance as EvmCoinInstanceSchema } from '$/schema/EvmCoinInstance.ts'
+import EvmCoinInstanceSchema from '$/schema/EvmCoinInstance.ts'
 import { schema } from '$/schema/index.ts'
 import { type as arktype } from 'arktype'
 

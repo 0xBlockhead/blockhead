@@ -1,24 +1,14 @@
 import { describe, expect, it, vi } from 'vitest'
 
-import { sourceProviderDefinitions } from '$/sources/$sourceProviders.ts'
+import bindings from '$/sources/Arweave/bindings.ts'
 import { Source } from '$/sources/Source.ts'
-import { SourceTargetKind } from '$/sources/SourceBinding.ts'
 import {
 	getAccountTransactionsPage,
 	getTransactionById,
 } from '$/sources/Arweave/Graphql/queries.ts'
 import * as httpRestClient from '$/sources/_shared/wire/HttpRest/client.ts'
 
-const binding = sourceProviderDefinitions
-	.flatMap((provider) => provider.bindings)
-	.find((candidate) => (
-		candidate.source === Source.Arweave_Graphql
-		&& candidate.target.kind === SourceTargetKind.ContentAddressScheme
-		&& candidate.target.key === 'arweave'
-	))
-
-if (binding == null)
-	throw new Error('Arweave GraphQL binding is not registered')
+const binding = bindings[Source.Arweave_Graphql]
 
 const transactionId = 'A'.repeat(43)
 const ownerAddress = 'B'.repeat(43)

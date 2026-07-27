@@ -1,14 +1,11 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { entity, facet } from '$/schema/$schema.ts'
+import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { type } from 'arktype'
 
-export enum EvmActorCoinAllowance_BlockSelector {
-	AllowanceBlockNumberSource = 'AllowanceBlockNumberSource',
-}
-export const EvmActorCoinAllowance_Block = entity({
+export default entity({
 	entityType: EntityType.EvmActorCoinAllowance_Block,
 	labels: {
 		singular: 'EVM actor coin allowance block',

@@ -1,7 +1,7 @@
 import { expect, it, vi } from 'vitest'
 
 import { Source } from '$/sources/Source.ts'
-import { sourceProviderDefinitions } from '$/sources/$sourceProviders.ts'
+import bindings from '$/sources/TronGrid/bindings.ts'
 import { SourceDelivery } from '$/sources/SourceBinding.ts'
 
 const {
@@ -23,12 +23,7 @@ const {
 	getBlockByNumber,
 } = await import('$/sources/TronGrid/Rest/queries.ts')
 
-const binding = sourceProviderDefinitions
-	.flatMap((provider) => provider.bindings)
-	.find((candidate) => candidate.source === Source.TronGrid_Rest)
-
-if (binding == null)
-	throw new Error('TronGrid_Rest spec missing source binding')
+const binding = bindings[Source.TronGrid_Rest]
 
 it('routes POST and GET reads through the declared HTTP proxy binding', async () => {
 	sourceFetch.mockResolvedValueOnce(new Response('{}'))

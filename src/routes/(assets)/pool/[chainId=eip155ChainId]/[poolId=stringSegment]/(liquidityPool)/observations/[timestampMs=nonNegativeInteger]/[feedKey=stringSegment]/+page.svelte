@@ -9,7 +9,6 @@
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
@@ -65,44 +64,12 @@
 
 
 <svelte:head>
-	<title>{(pageSelection.entity == null ? 'liquidity pool timestamp' : [String((({ ...{
-		$liquidityPool: {
-			$network: {
-				caip2: {
-					namespace: 'eip155',
-					reference: params.chainId,
-				},
-			},
-			id: params.poolId,
-		},
-		timestampMs: Number(params.timestampMs),
-		feedKey: decodeURIComponent(params.feedKey),
-	}, ...pageSelection.entity }).baseTokenSymbol) ?? ''), String((({ ...{
-		$liquidityPool: {
-			$network: {
-				caip2: {
-					namespace: 'eip155',
-					reference: params.chainId,
-				},
-			},
-			id: params.poolId,
-		},
-		timestampMs: Number(params.timestampMs),
-		feedKey: decodeURIComponent(params.feedKey),
-	}, ...pageSelection.entity }).quoteTokenSymbol) ?? '')].filter(Boolean).join(' ') || 'liquidity pool timestamp')} • liquidity pool timestamp • Blockhead</title>
+	<title>{(pageSelection.entity == null ? 'liquidity pool timestamp' : [(pageSelection.entity.baseTokenSymbol ?? ''), (pageSelection.entity.quoteTokenSymbol ?? '')].filter(Boolean).join(' ') || 'liquidity pool timestamp')} • liquidity pool timestamp • Blockhead</title>
 </svelte:head>
 
 
 <Page>
 	<LiquidityPool_TimestampView
-		href={
-			resolve('/pool/[chainId=eip155ChainId]/[poolId=stringSegment]/observations/[timestampMs=nonNegativeInteger]/[feedKey=stringSegment]', {
-				chainId: params.chainId,
-				poolId: params.poolId,
-				timestampMs: params.timestampMs,
-				feedKey: params.feedKey,
-			})
-		}
 		selection={pageSelection}
 	/>
 </Page>

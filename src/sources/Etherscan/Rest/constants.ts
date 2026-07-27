@@ -1,28 +1,4 @@
 /**
- * Etherscan REST API V2 — single base URL; every request must include query **`chainid`**.
- *
- * @see https://docs.etherscan.io/introduction
- * @see https://docs.etherscan.io/v2-migration
- * @see https://docs.etherscan.io/supported-chains
- */
-
-/** API host only — CORS / hooks and {@link restBaseUrl}. */
-export const origin = 'https://api.etherscan.io' as const
-
-/** Path prefix for V2 REST (after {@link origin}). */
-export const restPath = '/v2/api' as const
-
-/** Single Etherscan API V2 base; pass target network via **`chainid`** on each request. */
-export const restBaseUrl = `${origin}${restPath}` as const
-
-export const etherscanOrigins = [
-	{
-		origin,
-		corsEnabled: false,
-	},
-] as const
-
-/**
  * Chains this client treats as Etherscan V2–capable (numeric **`chainid`** must match supported chains).
  * Derived maps are the public contract; extend this array when adding chains.
  */

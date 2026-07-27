@@ -1,16 +1,9 @@
 import { throwHttpError } from '$/lib/http.ts'
-import { jsonRpcVersion } from '$/sources/Evm/JsonRpc/constants.ts'
-import { Source } from '$/sources/Source.ts'
-import {
-	SourceEndpointKind,
-	SourceTargetKind,
-	type SourceBinding,
-} from '$/sources/SourceBinding.ts'
 import {
 	firstHttpUrlForBinding,
 	sourceFetch,
 } from '$/sources/_runtime/http.ts'
-import type { JsonValue } from '$/typescript/JsonValue.ts'
+import { jsonRpcVersion } from '$/sources/_shared/wire/JsonRpc2/constants.ts'
 import type {
 	SolanaRpcAccountInfo,
 	SolanaRpcAddressSignature,
@@ -18,23 +11,40 @@ import type {
 	SolanaRpcBlock,
 	SolanaRpcCommitment,
 	SolanaRpcEpochInfo,
-	SolanaRpcParsedTokenMintAccountInfo,
 	SolanaRpcParsedTokenAccountInfo,
+	SolanaRpcParsedTokenMintAccountInfo,
 	SolanaRpcSignatureStatus,
 	SolanaRpcTransaction,
 	SolanaRpcVersion,
 	SolanaRpcVoteAccounts,
 } from '$/sources/Solana/JsonRpc/types.ts'
+import {
+	SourceEndpointKind,
+} from '$/sources/SourceBinding.ts'
+import { Source } from '$/sources/Source.ts'
+import bindings from '$/sources/PublicNode/bindings.ts'
+import type { JsonValue } from '$/typescript/JsonValue.ts'
 
-const assertSolanaMainnetHttpBinding = (binding: SourceBinding) => {
-	if (
-		binding.source !== Source.Solana_JsonRpc
-		|| binding.target.kind !== SourceTargetKind.Caip2Network
-		|| binding.target.key !== 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp'
-		|| !binding.endpoints.some((endpoint) => endpoint.endpointKind === SourceEndpointKind.HttpUrl)
-	)
-		throw new Error('Solana_JsonRpc: expected canonical Solana mainnet HTTP binding')
-}
+const sourceBindings = bindings[Source.Solana_JsonRpc]
+const binding = sourceBindings.find(({ endpoints }) => (
+	endpoints[0].endpointKind === SourceEndpointKind.HttpUrl
+))
+
+if (binding == null)
+	throw new Error('Solana_JsonRpc: canonical HTTP binding is missing')
+
+export const solanaRpcEndpoints = sourceBindings.flatMap(({ endpoints }) => (
+	endpoints.map((endpoint) => ({
+		url: endpoint.locator,
+		transportType: (
+			endpoint.endpointKind === SourceEndpointKind.HttpUrl ?
+				'Http'
+			:
+				'WebSocket'
+		),
+		providerName: 'PublicNode',
+	}))
+))
 
 type JsonRpcResponse<_Result> = {
 	jsonrpc: typeof jsonRpcVersion
@@ -48,15 +58,12 @@ type JsonRpcResponse<_Result> = {
 }
 
 const solanaJsonRpc = async <_Result>({
-	binding,
 	method,
 	params,
 }: {
-	binding: SourceBinding
 	method: string
 	params: JsonValue[]
 }) => {
-	assertSolanaMainnetHttpBinding(binding)
 	const response = await sourceFetch(
 		binding,
 		firstHttpUrlForBinding(binding),
@@ -81,14 +88,11 @@ const solanaJsonRpc = async <_Result>({
 }
 
 export const getBlock = ({
-	binding,
 	slot,
 }: {
-	binding: SourceBinding
 	slot: bigint
 }) => (
 	solanaJsonRpc<SolanaRpcBlock | null>({
-		binding,
 		method: 'getBlock',
 		params: [
 			Number(slot),
@@ -102,13 +106,8 @@ export const getBlock = ({
 	})
 )
 
-export const getSlot = ({
-	binding,
-}: {
-	binding: SourceBinding
-}) => (
+export const getSlot = () => (
 	solanaJsonRpc<number>({
-		binding,
 		method: 'getSlot',
 		params: [
 			{
@@ -119,16 +118,13 @@ export const getSlot = ({
 )
 
 export const getBlocks = ({
-	binding,
 	startSlot,
 	endSlot,
 }: {
-	binding: SourceBinding
 	startSlot: bigint
 	endSlot: bigint
 }) => (
 	solanaJsonRpc<number[]>({
-		binding,
 		method: 'getBlocks',
 		params: [
 			Number(startSlot),
@@ -140,13 +136,8 @@ export const getBlocks = ({
 	})
 )
 
-export const getEpochInfo = ({
-	binding,
-}: {
-	binding: SourceBinding
-}) => (
+export const getEpochInfo = () => (
 	solanaJsonRpc<SolanaRpcEpochInfo>({
-		binding,
 		method: 'getEpochInfo',
 		params: [
 			{
@@ -156,41 +147,28 @@ export const getEpochInfo = ({
 	})
 )
 
-export const getHealth = ({
-	binding,
-}: {
-	binding: SourceBinding
-}) => (
+export const getHealth = () => (
 	solanaJsonRpc<string>({
-		binding,
 		method: 'getHealth',
 		params: [],
 	})
 )
 
-export const getVersion = ({
-	binding,
-}: {
-	binding: SourceBinding
-}) => (
+export const getVersion = () => (
 	solanaJsonRpc<SolanaRpcVersion>({
-		binding,
 		method: 'getVersion',
 		params: [],
 	})
 )
 
 export const getTransaction = ({
-	binding,
 	signature,
 	commitment = 'confirmed',
 }: {
-	binding: SourceBinding
 	signature: string
 	commitment?: SolanaRpcCommitment
 }) => (
 	solanaJsonRpc<SolanaRpcTransaction | null>({
-		binding,
 		method: 'getTransaction',
 		params: [
 			signature,
@@ -204,14 +182,12 @@ export const getTransaction = ({
 )
 
 export const getSignaturesForAddress = async ({
-	binding,
 	pubkey,
 	limit,
 	before,
 	until,
 	commitment = 'confirmed',
 }: {
-	binding: SourceBinding
 	pubkey: string
 	limit: number
 	before?: string
@@ -237,7 +213,6 @@ export const getSignaturesForAddress = async ({
 		}
 
 	const signatures = await solanaJsonRpc<SolanaRpcAddressSignature[]>({
-		binding,
 		method: 'getSignaturesForAddress',
 		params: [
 			pubkey,
@@ -283,14 +258,12 @@ export const getSignaturesForAddress = async ({
 }
 
 export const getTransactionsForAddress = async ({
-	binding,
 	pubkey,
 	limit,
 	before,
 	until,
 	commitment = 'confirmed',
 }: {
-	binding: SourceBinding
 	pubkey: string
 	limit: number
 	before?: string
@@ -298,7 +271,6 @@ export const getTransactionsForAddress = async ({
 	commitment?: SolanaRpcCommitment
 }) => {
 	const page = await getSignaturesForAddress({
-		binding,
 		pubkey,
 		limit,
 		before,
@@ -308,7 +280,6 @@ export const getTransactionsForAddress = async ({
 	const transactions: SolanaRpcAddressTransaction[] = await Promise.all(
 		page.signatures.map(async (signature) => {
 			const transaction = await getTransaction({
-				binding,
 				signature: signature.signature,
 				commitment,
 			})
@@ -334,14 +305,11 @@ export const getTransactionsForAddress = async ({
 }
 
 export const getAccountInfo = ({
-	binding,
 	pubkey,
 }: {
-	binding: SourceBinding
 	pubkey: string
 }) => (
 	solanaJsonRpc<SolanaRpcAccountInfo>({
-		binding,
 		method: 'getAccountInfo',
 		params: [
 			pubkey,
@@ -353,14 +321,11 @@ export const getAccountInfo = ({
 )
 
 export const getParsedTokenMintAccountInfo = ({
-	binding,
 	pubkey,
 }: {
-	binding: SourceBinding
 	pubkey: string
 }) => (
 	solanaJsonRpc<SolanaRpcParsedTokenMintAccountInfo>({
-		binding,
 		method: 'getAccountInfo',
 		params: [
 			pubkey,
@@ -372,14 +337,11 @@ export const getParsedTokenMintAccountInfo = ({
 )
 
 export const getParsedTokenAccountInfo = ({
-	binding,
 	pubkey,
 }: {
-	binding: SourceBinding
 	pubkey: string
 }) => (
 	solanaJsonRpc<SolanaRpcParsedTokenAccountInfo>({
-		binding,
 		method: 'getAccountInfo',
 		params: [
 			pubkey,
@@ -391,30 +353,24 @@ export const getParsedTokenAccountInfo = ({
 )
 
 export const getSignatureStatuses = ({
-	binding,
 	signatures,
 }: {
-	binding: SourceBinding
 	signatures: readonly string[]
 }) => (
 	solanaJsonRpc<{
 		value: (SolanaRpcSignatureStatus | null)[]
 	}>({
-		binding,
 		method: 'getSignatureStatuses',
 		params: [[...signatures]],
 	})
 )
 
 export const getVoteAccounts = ({
-	binding,
 	votePubkey,
 }: {
-	binding: SourceBinding
 	votePubkey?: string
 }) => (
 	solanaJsonRpc<SolanaRpcVoteAccounts>({
-		binding,
 		method: 'getVoteAccounts',
 		params: [
 			{

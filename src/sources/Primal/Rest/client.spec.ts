@@ -1,11 +1,12 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
-import { sourceProviderDefinitions } from '$/sources/$sourceProviders.ts'
 import { primalPost } from '$/sources/Primal/Rest/client.ts'
+import bindings from '$/sources/Primal/bindings.ts'
 import { Source } from '$/sources/Source.ts'
-import { SourceDelivery } from '$/sources/SourceBinding.ts'
 
-describe('primalPost', () => {
+const primalBinding = bindings[Source.Primal_Rest]
+
+describe('Primal REST binding authority', () => {
 	afterEach(() => {
 		vi.restoreAllMocks()
 		vi.unstubAllGlobals()
@@ -14,15 +15,8 @@ describe('primalPost', () => {
 	it('uses the registered proxy binding and serializes typed POST bodies', async () => {
 		vi.stubGlobal('window', {})
 		vi.spyOn(globalThis, 'fetch').mockImplementation(async (input, init) => {
-			const binding = sourceProviderDefinitions
-				.flatMap((provider) => provider.bindings)
-				.find(({ source }) => source === Source.Primal_Rest)
-			if (binding == null || binding.proxyId == null)
-				throw new Error('Primal REST proxy binding is not registered')
-
-			expect(binding.delivery).toBe(SourceDelivery.HttpProxy)
 			expect(String(input)).toBe(
-				`/api-proxy/${encodeURIComponent(binding.proxyId)}/0/${encodeURIComponent('https://api.primal.net/v1/search/events')}`
+				`/api-proxy/${encodeURIComponent(primalBinding.proxyId)}/0/${encodeURIComponent(`${primalBinding.endpoints[0].locator}/v1/search/events`)}`
 			)
 			expect(init?.method).toBe('POST')
 			expect(init?.headers).toEqual({

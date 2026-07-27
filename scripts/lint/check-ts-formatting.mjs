@@ -60,6 +60,19 @@ const removeTrailingComma = (edits, nodeArray) => {
 const checkNode = (file, sourceFile, node) => {
 	const edits = editsByFile.get(file)
 	if (
+		typeScriptAst.isImportDeclaration(node)
+		&& node.importClause?.namedBindings != null
+		&& typeScriptAst.isNamedImports(node.importClause.namedBindings)
+	) {
+		const importLine = sourceFile.getLineAndCharacterOfPosition(node.getStart(sourceFile)).line
+		for (const element of node.importClause.namedBindings.elements) {
+			const position = sourceFile.getLineAndCharacterOfPosition(element.getStart(sourceFile))
+			if (position.line > importLine && position.character !== 1)
+				report(file, position, 'Indent multiline import members with one tab.')
+		}
+	}
+
+	if (
 		typeScriptAst.isCallExpression(node)
 		&& node.arguments.hasTrailingComma
 	) {

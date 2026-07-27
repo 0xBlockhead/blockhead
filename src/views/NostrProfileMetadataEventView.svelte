@@ -2,14 +2,10 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
 	import { UrlString } from '$/schema/UrlString.ts'
 
 
@@ -26,33 +22,10 @@
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.NostrProfileMetadataEvent>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.NostrProfileMetadataEvent>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.NostrProfileMetadataEvent> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const nostrProfileMetadataEvent = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {
-			pubkey: true,
-			createdAt: true,
-			displayName: true,
-			nip05: true,
-		},
-	} : {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const nostrProfileMetadataEvent = $derived(selection({
 		fields: {
 			pubkey: true,
 			kind: true,
@@ -65,8 +38,7 @@
 			website: true,
 		},
 	}))
-	const titleFallback = $derived([String((pendingEntity.displayName) ?? ''), String((pendingEntity.nip05) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.pubkey) ?? '')].filter(Boolean).join(' ') || 'Nostr profile metadata event')
-	const viewDomId = $derived('nostr-profile-metadata-event-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const titleFallback = $derived([(pendingEntity.displayName ?? ''), (pendingEntity.nip05 ?? '')].filter(Boolean).join(' ') || (pendingEntity.pubkey ?? '') || 'Nostr profile metadata event')
 
 
 	// Components
@@ -80,18 +52,14 @@
 
 <EntityView
 	entityType={EntityType.NostrProfileMetadataEvent}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
 	href={
-		href ?? (
-			selection.entitySelector != null && 'eventId' in selection.entitySelector
-			&& selection.entitySelector.eventId != null ?
-				resolve('/nostr/profile-metadata-version/[eventId=stringSegment]', {
-			eventId: String(selection.entitySelector.eventId ?? ''),
-		})
-		:
-				undefined
+		href ?? resolve(
+			'/(social)/(nostr)/nostr/(globalNostrNetwork)/profile-metadata-version/[eventId=stringSegment]',
+			{
+				eventId: String(selection.entitySelector.eventId),
+			}
 		)
 	}
 	{layout}
@@ -118,34 +86,21 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={nostrProfileMetadataEvent}>
 			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.displayName) ?? ''), String((resolvedEntity.nip05) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+				{[(entity.displayName ?? ''), (entity.nip05 ?? '')].filter(Boolean).join(' ') || title || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={nostrProfileMetadataEvent}>
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const eventId0 = resolvedEntity.eventId}
-				{#if eventId0 !== undefined && eventId0 !== null}
-					<TruncatedValue value={String((eventId0) ?? '')} />
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		<TruncatedValue value={pendingEntity.eventId} />
 	{/snippet}
 
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={nostrProfileMetadataEvent}>
 			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const createdAt0 = resolvedEntity.createdAt}
-				{#if createdAt0 !== undefined && createdAt0 !== null}
-					<span data-text="muted">
-						<Timestamp timestamp={Number(createdAt0)} />
-					</span>
-				{/if}
+				<span data-text="muted">
+					<Timestamp timestamp={Number(entity.createdAt)} />
+				</span>
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -165,48 +120,27 @@
 						resource={selection.$profile}
 					>
 						{#snippet children(nostrProfile)}
-							{#if nostrProfile != null && nostrProfile[EntityMetaKey.Selector] != null}
-								<NostrProfileView
-									selection={select(EntityType.NostrProfile, nostrProfile[EntityMetaKey.Selector])}
-									prefetched={nostrProfile}
-									href={
-										(
-											nostrProfile[EntityMetaKey.Selector] != null && 'pubkey' in nostrProfile[EntityMetaKey.Selector]
-											&& nostrProfile[EntityMetaKey.Selector].pubkey != null ?
-												resolve('/nostr/profile/[pubkey=stringSegment]', {
-											pubkey: String(nostrProfile[EntityMetaKey.Selector].pubkey ?? ''),
-										})
-										:
-												undefined
-										)
-									}
-									layout={EntityLayout.Value}
-									open={false}
-								/>
-							{/if}
+							<NostrProfileView
+								selection={select(EntityType.NostrProfile, nostrProfile[EntityMetaKey.Selector])}
+								prefetched={nostrProfile}
+								layout={EntityLayout.Value}
+								open={false}
+							/>
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
 			</div>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							displayName: true,
-						},
-					})
-				}
+				resource={nostrProfileMetadataEvent}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const displayName = resolvedEntity.displayName}
-					{#if displayName !== undefined && displayName !== null}
+					{@const displayName = entity.displayName}
+					{#if displayName != null}
 						<div>
 							<dt>Display name</dt>
 							<dd>
-								{String((displayName) ?? '')}
+								{displayName}
 							</dd>
 						</div>
 					{/if}
@@ -214,23 +148,15 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							nip05: true,
-						},
-					})
-				}
+				resource={nostrProfileMetadataEvent}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const nip05 = resolvedEntity.nip05}
-					{#if nip05 !== undefined && nip05 !== null}
+					{@const nip05 = entity.nip05}
+					{#if nip05 != null}
 						<div>
 							<dt>NIP-05</dt>
 							<dd>
-								{String((nip05) ?? '')}
+								{nip05}
 							</dd>
 						</div>
 					{/if}
@@ -238,30 +164,21 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							website: true,
-						},
-					})
-				}
+				resource={nostrProfileMetadataEvent}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const website = resolvedEntity.website}
-					{#if website !== undefined && website !== null}
+					{@const website = entity.website}
+					{#if website != null}
 						<div>
 							<dt>Website</dt>
 							<dd>
-								<svelte:element
-									this={'a'}
+								<a
 									href={String(website)}
 									target="_blank"
 									rel="noreferrer noopener"
 								>
 									<TruncatedValue value={String(website)} />
-								</svelte:element>
+								</a>
 							</dd>
 						</div>
 					{/if}
@@ -269,23 +186,15 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							lud16: true,
-						},
-					})
-				}
+				resource={nostrProfileMetadataEvent}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const lud16 = resolvedEntity.lud16}
-					{#if lud16 !== undefined && lud16 !== null}
+					{@const lud16 = entity.lud16}
+					{#if lud16 != null}
 						<div>
 							<dt>Lightning address</dt>
 							<dd>
-								{String((lud16) ?? '')}
+								{lud16}
 							</dd>
 						</div>
 					{/if}
@@ -296,21 +205,10 @@
 				<dt>Created</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									createdAt: true,
-								},
-							})
-						}
+						resource={nostrProfileMetadataEvent}
 					>
 						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const createdAt = resolvedEntity.createdAt}
-							{#if createdAt !== undefined && createdAt !== null}
-								<Timestamp timestamp={Number(createdAt)} />
-							{/if}
+							<Timestamp timestamp={Number(entity.createdAt)} />
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -319,24 +217,7 @@
 			<div>
 				<dt>Event ID</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									eventId: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const eventId = resolvedEntity.eventId}
-							{#if eventId !== undefined && eventId !== null}
-								<TruncatedValue value={String((eventId) ?? '')} />
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					<TruncatedValue value={pendingEntity.eventId} />
 				</dd>
 			</div>
 
@@ -344,21 +225,10 @@
 				<dt>Signature</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									signature: true,
-								},
-							})
-						}
+						resource={nostrProfileMetadataEvent}
 					>
 						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const signature = resolvedEntity.signature}
-							{#if signature !== undefined && signature !== null}
-								<TruncatedValue value={String((signature) ?? '')} />
-							{/if}
+							<TruncatedValue value={entity.signature} />
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -366,20 +236,12 @@
 		</dl>
 
 		<ResourceBoundary
-			resource={
-				selection({
-					sources: selection.sources,
-					fields: {
-						about: true,
-					},
-				})
-			}
+			resource={nostrProfileMetadataEvent}
 		>
 			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const about = resolvedEntity.about}
-				{#if about !== undefined && about !== null && about !== ''}
-					<p data-text="long-text">{String((about) ?? '')}</p>
+				{@const about = entity.about}
+				{#if about != null && about !== ''}
+					<p data-text="long-text">{about}</p>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>

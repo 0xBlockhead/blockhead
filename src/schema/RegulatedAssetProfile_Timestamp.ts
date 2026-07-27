@@ -1,14 +1,11 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { entity, facet } from '$/schema/$schema.ts'
+import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { type } from 'arktype'
 
-export enum RegulatedAssetProfile_TimestampSelector {
-	ProfileTimestampMsSource = 'ProfileTimestampMsSource',
-}
-export const RegulatedAssetProfile_Timestamp = entity({
+export default entity({
 	entityType: EntityType.RegulatedAssetProfile_Timestamp,
 	labels: {
 		singular: 'regulated asset profile timestamp',

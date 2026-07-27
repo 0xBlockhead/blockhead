@@ -1,6 +1,8 @@
 import { throwHttpError } from '$/lib/http.ts'
-import type { SourceBinding } from '$/sources/SourceBinding.ts'
-import { firstHttpUrlForBinding, sourceFetch } from '$/sources/_runtime/http.ts'
+import { resolveEnvLocator, type SourcePublicEnv } from '$/sources/$sources.ts'
+import bindings from '$/sources/Mlflow/bindings.ts'
+import { sourceFetch } from '$/sources/_runtime/http.ts'
+import { httpUrl } from '$/sources/_shared/wire/HttpRest/client.ts'
 import type {
 	MlflowGetModelVersionResponse,
 	MlflowGetRegisteredModelResponse,
@@ -8,17 +10,27 @@ import type {
 	MlflowSearchModelVersionsResponse,
 	MlflowSearchRegisteredModelsResponse,
 } from '$/sources/Mlflow/Rest/types.ts'
+import { Source } from '$/sources/Source.ts'
 
-const getJson = async <_Result>({
-	binding,
-	path,
+const binding = bindings[Source.Mlflow_Rest]
+
+const fetchMlflowJson = async <_Result>({
 	credential,
+	path,
+	publicEnv,
 }: {
-	binding: SourceBinding
-	path: string
 	credential?: string
+	path: string
+	publicEnv: SourcePublicEnv
 }) => {
-	const response = await sourceFetch(binding, new URL(path, firstHttpUrlForBinding(binding)).toString(), {
+	const resolvedBinding = {
+		...binding,
+		endpoints: binding.endpoints.map((endpoint) => ({
+			...endpoint,
+			locator: resolveEnvLocator(endpoint.locator, publicEnv),
+		})),
+	}
+	const response = await sourceFetch(resolvedBinding, httpUrl(resolvedBinding, path), {
 		...(credential != null && credential !== '' && {
 			headers: {
 				'authorization': `Bearer ${credential}`,
@@ -27,21 +39,20 @@ const getJson = async <_Result>({
 	})
 
 	if (!response.ok)
-		await throwHttpError(binding.source, response)
+		await throwHttpError(resolvedBinding.source, response)
 
 	return response.json<_Result>()
 }
 
 export const searchRegisteredModels = ({
-	binding,
 	credential,
 	filter,
+	publicEnv,
 }: {
-	binding: SourceBinding
 	credential?: string
 	filter?: string
-}) => getJson<MlflowSearchRegisteredModelsResponse>({
-	binding,
+	publicEnv: SourcePublicEnv
+}) => fetchMlflowJson<MlflowSearchRegisteredModelsResponse>({
 	path: `/api/2.0/mlflow/registered-models/search${
 		filter == null || filter === '' ?
 			''
@@ -49,18 +60,18 @@ export const searchRegisteredModels = ({
 			`?${new URLSearchParams({ filter })}`
 	}`,
 	credential,
+	publicEnv,
 })
 
 export const searchModelVersions = ({
-	binding,
 	credential,
 	filter,
+	publicEnv,
 }: {
-	binding: SourceBinding
 	credential?: string
 	filter?: string
-}) => getJson<MlflowSearchModelVersionsResponse>({
-	binding,
+	publicEnv: SourcePublicEnv
+}) => fetchMlflowJson<MlflowSearchModelVersionsResponse>({
 	path: `/api/2.0/mlflow/model-versions/search${
 		filter == null || filter === '' ?
 			''
@@ -68,56 +79,57 @@ export const searchModelVersions = ({
 			`?${new URLSearchParams({ filter })}`
 	}`,
 	credential,
+	publicEnv,
 })
 
 export const getRegisteredModel = ({
-	binding,
 	credential,
 	name,
+	publicEnv,
 }: {
-	binding: SourceBinding
 	credential?: string
 	name: string
-}) => getJson<MlflowGetRegisteredModelResponse>({
-	binding,
+	publicEnv: SourcePublicEnv
+}) => fetchMlflowJson<MlflowGetRegisteredModelResponse>({
 	path: `/api/2.0/mlflow/registered-models/get?${new URLSearchParams({ name })}`,
 	credential,
+	publicEnv,
 })
 
 export const getModelVersion = ({
-	binding,
 	credential,
 	name,
+	publicEnv,
 	version,
 }: {
-	binding: SourceBinding
 	credential?: string
 	name: string
+	publicEnv: SourcePublicEnv
 	version: string
-}) => getJson<MlflowGetModelVersionResponse>({
-	binding,
+}) => fetchMlflowJson<MlflowGetModelVersionResponse>({
 	path: `/api/2.0/mlflow/model-versions/get?${new URLSearchParams({
 		name,
 		version,
 	})}`,
 	credential,
+	publicEnv,
 })
 
 export const listArtifacts = ({
-	binding,
 	credential,
-	runId,
 	path,
+	publicEnv,
+	runId,
 }: {
-	binding: SourceBinding
 	credential?: string
-	runId: string
 	path?: string
-}) => getJson<MlflowListArtifactsResponse>({
-	binding,
+	publicEnv: SourcePublicEnv
+	runId: string
+}) => fetchMlflowJson<MlflowListArtifactsResponse>({
 	path: `/api/2.0/mlflow/artifacts/list?${new URLSearchParams({
 		run_id: runId,
 		...(path != null && path !== '' && { path }),
 	})}`,
 	credential,
+	publicEnv,
 })

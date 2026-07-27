@@ -16,7 +16,7 @@ vi.mock('$env/dynamic/private', () => ({
 }))
 
 vi.mock('$/sources/$sourceServerCredentials.server.ts', () => ({
-	sourceServerCredentialsById: {
+	default: {
 		header: {
 			envKey: 'HEADER_SECRET',
 			injection: {
@@ -191,8 +191,12 @@ describe('runtime secret proxy', () => {
 		expect(event.fetch).toHaveBeenCalledTimes(2)
 		expect(String(event.fetch.mock.calls[1]?.[0]))
 			.toBe('https://fallback.example.test/api/blocks?height=latest')
-		expect(new TextDecoder().decode(event.fetch.mock.calls[1]?.[1]?.body as ArrayBuffer))
-			.toBe('{"jsonrpc":"2.0"}')
+		for (const call of event.fetch.mock.calls) {
+			const request = new Request(call[0], call[1])
+			expect(request.method).toBe('POST')
+			expect(await request.text()).toBe('{"jsonrpc":"2.0"}')
+			expect(request.headers.has('Host')).toBe(false)
+		}
 		expect(event.fetch.mock.calls[0]?.[1]?.signal)
 			.toBeInstanceOf(AbortSignal)
 	})

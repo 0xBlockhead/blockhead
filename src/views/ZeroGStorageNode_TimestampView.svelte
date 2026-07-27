@@ -2,13 +2,9 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -20,35 +16,18 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.ZeroGStorageNode_Timestamp>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.ZeroGStorageNode_Timestamp>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.ZeroGStorageNode_Timestamp> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const zeroGStorageNodeTimestamp = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {},
-	} : {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const viewSelection = $derived(selection({
+		sources: selection.sources ?? [
+			Source.ZeroGStorageScan_Rest,
+		],
 	}))
 	const titleFallback = 'zero g storage node timestamp'
-	const viewDomId = $derived('zero-gstorage-node-timestamp-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -61,57 +40,23 @@
 
 <EntityView
 	entityType={EntityType.ZeroGStorageNode_Timestamp}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, '$storageNode') && prefetched.$storageNode != null}
-			{@const zeroGStorageNode0 = pendingEntity.$storageNode}
-			{#if zeroGStorageNode0 != null && selection.entitySelector.$storageNode != null}
-				<ZeroGStorageNodeView
-					selection={select(EntityType.ZeroGStorageNode, selection.entitySelector.$storageNode, { sources: selection.sources })}
-					prefetched={zeroGStorageNode0}
-					href=""
-					layout={EntityLayout.Title}
-					open={false}
-				/>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={zeroGStorageNodeTimestamp}>
-				{#snippet children(entity)}
-					<ZeroGStorageNodeView
-						selection={select(EntityType.ZeroGStorageNode, selection.entitySelector.$storageNode)}
-						href=""
-						layout={EntityLayout.Title}
-						open={false}
-					/>
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ZeroGStorageNodeView
+			selection={select(EntityType.ZeroGStorageNode, selection.entitySelector.$storageNode)}
+			href=""
+			layout={EntityLayout.Title}
+			open={false}
+		/>
 	{/snippet}
 
 	{#snippet Value()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, '$storageNode') && prefetched.$storageNode != null}
-			{@const timestampMs0 = pendingEntity.timestampMs}
-			{#if timestampMs0 !== undefined && timestampMs0 !== null}
-				<Timestamp timestamp={Number(timestampMs0)} />
-			{/if}
-		{:else}
-			<ResourceBoundary resource={zeroGStorageNodeTimestamp}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const timestampMs0 = resolvedEntity.timestampMs}
-					{#if timestampMs0 !== undefined && timestampMs0 !== null}
-						<Timestamp timestamp={Number(timestampMs0)} />
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -130,48 +75,14 @@
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									timestampMs: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const timestampMs = resolvedEntity.timestampMs}
-							{#if timestampMs !== undefined && timestampMs !== null}
-								<Timestamp timestamp={Number(timestampMs)} />
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									source: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const source = resolvedEntity.source}
-							{#if source !== undefined && source !== null}
-								{String((source) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{pendingEntity.source}
 				</dd>
 			</div>
 		</dl>
@@ -179,8 +90,7 @@
 		<dl data-column-item="center">
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							balance: true,
 						},
@@ -188,13 +98,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const balance = resolvedEntity.balance}
-					{#if balance !== undefined && balance !== null}
+					{@const balance = entity.balance}
+					{#if balance != null}
 						<div>
 							<dt>balance</dt>
 							<dd>
-								{String((balance) ?? '')}
+								{balance}
 							</dd>
 						</div>
 					{/if}
@@ -203,8 +112,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							totalReward: true,
 						},
@@ -212,13 +120,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const totalReward = resolvedEntity.totalReward}
-					{#if totalReward !== undefined && totalReward !== null}
+					{@const totalReward = entity.totalReward}
+					{#if totalReward != null}
 						<div>
 							<dt>total reward</dt>
 							<dd>
-								{String((totalReward) ?? '')}
+								{totalReward}
 							</dd>
 						</div>
 					{/if}
@@ -227,8 +134,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							winCount: true,
 						},
@@ -236,9 +142,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const winCount = resolvedEntity.winCount}
-					{#if winCount !== undefined && winCount !== null}
+					{@const winCount = entity.winCount}
+					{#if winCount != null}
 						<div>
 							<dt>win count</dt>
 							<dd>
@@ -253,8 +158,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							miningAttempts: true,
 						},
@@ -262,9 +166,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const miningAttempts = resolvedEntity.miningAttempts}
-					{#if miningAttempts !== undefined && miningAttempts !== null}
+					{@const miningAttempts = entity.miningAttempts}
+					{#if miningAttempts != null}
 						<div>
 							<dt>mining attempts</dt>
 							<dd>

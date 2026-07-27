@@ -10,7 +10,6 @@
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
@@ -40,21 +39,12 @@
 
 
 <svelte:head>
-	<title>{(pageSelection.entity == null ? [String(({
-		address: params.address,
-	}.address) ?? '')].filter(Boolean).join(' ') || 'EVM account' : [String((({ ...{
-		address: params.address,
-	}, ...pageSelection.entity }).address) ?? '')].filter(Boolean).join(' ') || 'EVM account')} • EVM account • Blockhead</title>
+	<title>{(String(pageSelection.entitySelector.address) || 'EVM account')} • EVM account • Blockhead</title>
 </svelte:head>
 
 
 <Page>
 	<EvmAccountView
-		href={
-			resolve('/account/[address=evmAddress]', {
-				address: params.address,
-			})
-		}
 		selection={pageSelection}
 	/>
 </Page>

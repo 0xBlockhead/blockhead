@@ -2,13 +2,9 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -20,42 +16,24 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.AcpPermissionRequest>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.AcpPermissionRequest>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.AcpPermissionRequest> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const acpPermissionRequest = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {
-			requestKind: true,
-			decision: true,
-		},
-	} : {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const viewSelection = $derived(selection({
+		sources: selection.sources ?? [
+			Source.AcpLocal_JsonRpc,
+		],
+	}))
+	const acpPermissionRequest = $derived(viewSelection({
 		fields: {
 			requestKind: true,
 			decision: true,
 		},
 	}))
-	const titleFallback = $derived([String((pendingEntity.requestId) ?? '')].filter(Boolean).join(' ') || 'ACP permission request')
-	const viewDomId = $derived('acp-permission-request-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const titleFallback = $derived((pendingEntity.requestId ?? '') || 'ACP permission request')
 
 
 	// Components
@@ -67,61 +45,35 @@
 
 <EntityView
 	entityType={EntityType.AcpPermissionRequest}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'requestKind') && Object.hasOwn(prefetched, 'decision')}
-			{[String((pendingEntity.requestId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-		{:else}
-			<ResourceBoundary resource={acpPermissionRequest}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.requestId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		{(pendingEntity.requestId ?? '') || 'ACP permission request'}
 	{/snippet}
 
 	{#snippet Value()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'requestKind') && Object.hasOwn(prefetched, 'decision')}
-			{[String((pendingEntity.requestKind) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.requestId) ?? '')].filter(Boolean).join(' ') || titleFallback}
-		{:else}
-			<ResourceBoundary resource={acpPermissionRequest}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.requestKind) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.requestId) ?? '')].filter(Boolean).join(' ') || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={acpPermissionRequest}>
+			{#snippet children(entity)}
+				{entity.requestKind || pendingEntity.requestId || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'requestKind') && Object.hasOwn(prefetched, 'decision')}
-			{@const decision0 = pendingEntity.decision}
-			{#if decision0 !== undefined && decision0 !== null}
-				<span data-text="muted">
-					{String((decision0) ?? '')}
-				</span>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={acpPermissionRequest}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const decision0 = resolvedEntity.decision}
-					{#if decision0 !== undefined && decision0 !== null}
-						<span data-text="muted">
-							{String((decision0) ?? '')}
-						</span>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={acpPermissionRequest}>
+			{#snippet children(entity)}
+				{@const decision0 = entity.decision}
+				{#if decision0 != null}
+					<span data-text="muted">
+						{decision0}
+					</span>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -140,24 +92,7 @@
 			<div>
 				<dt>request ID</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									requestId: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const requestId = resolvedEntity.requestId}
-							{#if requestId !== undefined && requestId !== null}
-								{String((requestId) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{pendingEntity.requestId}
 				</dd>
 			</div>
 
@@ -165,44 +100,25 @@
 				<dt>request kind</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									requestKind: true,
-								},
-							})
-						}
+						resource={acpPermissionRequest}
 					>
 						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const requestKind = resolvedEntity.requestKind}
-							{#if requestKind !== undefined && requestKind !== null}
-								{String((requestKind) ?? '')}
-							{/if}
+							{entity.requestKind}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
 			</div>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							decision: true,
-						},
-					})
-				}
+				resource={acpPermissionRequest}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const decision = resolvedEntity.decision}
-					{#if decision !== undefined && decision !== null}
+					{@const decision = entity.decision}
+					{#if decision != null}
 						<div>
 							<dt>decision</dt>
 							<dd>
-								{String((decision) ?? '')}
+								{decision}
 							</dd>
 						</div>
 					{/if}
@@ -213,8 +129,7 @@
 		<dl data-column-item="center">
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							createdAt: true,
 						},
@@ -222,9 +137,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const createdAt = resolvedEntity.createdAt}
-					{#if createdAt !== undefined && createdAt !== null}
+					{@const createdAt = entity.createdAt}
+					{#if createdAt != null}
 						<div>
 							<dt>Created</dt>
 							<dd>
@@ -237,8 +151,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							resolvedAt: true,
 						},
@@ -246,9 +159,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const resolvedAt = resolvedEntity.resolvedAt}
-					{#if resolvedAt !== undefined && resolvedAt !== null}
+					{@const resolvedAt = entity.resolvedAt}
+					{#if resolvedAt != null}
 						<div>
 							<dt>resolved AT</dt>
 							<dd>

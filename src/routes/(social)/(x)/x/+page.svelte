@@ -8,7 +8,6 @@
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
@@ -38,13 +37,12 @@
 
 
 <svelte:head>
-	<title>{(data.title ?? (pageSelection.entity == null ? 'X' : [String((({ ...data.selector, ...pageSelection.entity }).protocolName) ?? '')].filter(Boolean).join(' ') || 'X'))} • X • Blockhead</title>
+	<title>{(data.title ?? (pageSelection.entity == null ? 'X' : pageSelection.entity.protocolName || 'X'))} • X • Blockhead</title>
 </svelte:head>
 
 
 <Page>
 	<XNetworkView
-		href={resolve('/x')}
 		selection={pageSelection}
 	/>
 </Page>

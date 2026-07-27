@@ -8,11 +8,7 @@ import { ConsensusProtocol } from '$/schema/NetworkUpgradeProtocols.ts'
 import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
-export enum NetworkSelector {
-	Caip2 = 'Caip2',
-	Slug = 'Slug',
-}
-export const Network = entity({
+export default entity({
 	entityType: EntityType.Network,
 	labels: {
 		singular: 'Network',
@@ -743,7 +739,6 @@ export const Network = entity({
 				defaultSources: [
 					Source.MempoolSpace_Rest,
 					Source.Blockchair_Rest,
-					Source.Zcashd_JsonRpc,
 				],
 			},
 		}),

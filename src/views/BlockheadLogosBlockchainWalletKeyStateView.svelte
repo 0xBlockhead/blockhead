@@ -2,13 +2,8 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
 	import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 
 
@@ -21,35 +16,13 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.BlockheadLogosBlockchainWalletKeyState>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.BlockheadLogosBlockchainWalletKeyState>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.BlockheadLogosBlockchainWalletKeyState> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const blockheadLogosBlockchainWalletKeyState = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {},
-	} : {
-		sources: selection.sources,
-	}))
-	const titleFallback = $derived([String((pendingEntity.publicKey) ?? '')].filter(Boolean).join(' ') || 'blockhead Logos blockchain wallet key state')
-	const viewDomId = $derived('blockhead-logos-blockchain-wallet-key-state-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const titleFallback = $derived(String(pendingEntity.publicKey ?? '') || 'blockhead Logos blockchain wallet key state')
 
 
 	// Components
@@ -61,51 +34,23 @@
 
 <EntityView
 	entityType={EntityType.BlockheadLogosBlockchainWalletKeyState}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, '$nodeState') && prefetched.$nodeState != null && Object.hasOwn(prefetched.$nodeState, 'endpoint')}
-			{[String((pendingEntity.publicKey) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-		{:else}
-			<ResourceBoundary resource={blockheadLogosBlockchainWalletKeyState}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.publicKey) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		{String(pendingEntity.publicKey ?? '') || 'blockhead Logos blockchain wallet key state'}
 	{/snippet}
 
 	{#snippet Value()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, '$nodeState') && prefetched.$nodeState != null && Object.hasOwn(prefetched.$nodeState, 'endpoint')}
-			{@const blockheadLogosBlockchainNodeState0 = pendingEntity.$nodeState}
-			{#if blockheadLogosBlockchainNodeState0 != null && selection.entitySelector.$nodeState != null}
-				<BlockheadLogosBlockchainNodeStateView
-					selection={select(EntityType.BlockheadLogosBlockchainNodeState, selection.entitySelector.$nodeState, { sources: selection.sources })}
-					prefetched={blockheadLogosBlockchainNodeState0}
-					href=""
-					layout={EntityLayout.Value}
-					open={false}
-				/>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={blockheadLogosBlockchainWalletKeyState}>
-				{#snippet children(entity)}
-					<BlockheadLogosBlockchainNodeStateView
-						selection={select(EntityType.BlockheadLogosBlockchainNodeState, selection.entitySelector.$nodeState)}
-						href=""
-						layout={EntityLayout.Value}
-						open={false}
-					/>
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<BlockheadLogosBlockchainNodeStateView
+			selection={select(EntityType.BlockheadLogosBlockchainNodeState, selection.entitySelector.$nodeState)}
+			href=""
+			layout={EntityLayout.Value}
+			open={false}
+		/>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -124,24 +69,7 @@
 			<div>
 				<dt>public key</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									publicKey: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const publicKey = resolvedEntity.publicKey}
-							{#if publicKey !== undefined && publicKey !== null}
-								{String((publicKey) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{String(pendingEntity.publicKey)}
 				</dd>
 			</div>
 		</dl>
@@ -154,12 +82,12 @@
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
-				<BlockheadLogosBlockchainWalletKeyState_TimestampsView
-					selection={blockheadLogosBlockchainWalletKeyStateBlockheadLogosBlockchainWalletKeyStateTimestampsViewTimestampsResource}
-					countResource={blockheadLogosBlockchainWalletKeyStateBlockheadLogosBlockchainWalletKeyStateTimestampsViewTimestampsResource.count}
-					title='timestamps'
-					id='BlockheadLogosBlockchainWalletKeyState_TimestampsView-timestamps'
-				/>
+					<BlockheadLogosBlockchainWalletKeyState_TimestampsView
+						selection={blockheadLogosBlockchainWalletKeyStateBlockheadLogosBlockchainWalletKeyStateTimestampsViewTimestampsResource}
+						countResource={blockheadLogosBlockchainWalletKeyStateBlockheadLogosBlockchainWalletKeyStateTimestampsViewTimestampsResource.count}
+						title='timestamps'
+						id='timestamps'
+					/>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>

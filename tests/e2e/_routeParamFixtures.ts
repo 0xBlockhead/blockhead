@@ -533,9 +533,9 @@ export const e2eRouteProbeAtomValueById = {
 	"/nostr/article/[pubkey]/[identifier]:NostrArticle.CanonicalCoordinate.1.pubkey": NOSTR_PROBE_ARTICLE_PUBKEY,
 	"/nostr/note/[eventId]:NostrNote.CanonicalEventId.1.eventId": NOSTR_PROBE_NOTE_EVENT_ID,
 	"/nostr/profile/[pubkey]:NostrProfile.CanonicalPubkey.1.pubkey": NOSTR_PROBE_ARTICLE_PUBKEY,
-	'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa': 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
-	'alice': 'alice',
-	'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb': 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
+	"/nostr/article-version/[eventId]:NostrArticleEvent.CanonicalEventId.1.eventId": 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+	"/nostr/profile-metadata-version/[eventId]:NostrProfileMetadataEvent.CanonicalEventId.1.eventId": 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
+	"/nostr/search/[query]:NostrSearchQuery.Query.1.query": 'alice',
 	"/nostr/reaction/[eventId]:NostrReaction.CanonicalEventId.1.eventId": 'cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc',
 	"/nostr/relay/[relayKey]:NostrRelay.RelayUrl.1.relayKey": NOSTR_PROBE_RELAY_URL,
 	"/nostr/relay/[relayKey]/observations/[timestampMs]/[source]:NostrRelay_Timestamp.RelayTimestampMsSource.1.relayKey": NOSTR_PROBE_RELAY_URL,
@@ -586,7 +586,6 @@ export const e2eRouteProbeAtomValueById = {
 	"/services/agent/[chainId]/[contractAddress]/[tokenId]:EvmNft.EvmContractTokenId.1.tokenId": '104776',
 	"/swarm/[reference]:SwarmResource.ResourceAddress.1.reference": swarmDocsLandingReference,
 	"/swarm/[reference]/path/[...contentPath]:SwarmResource.ResourceAddress.path.1.contentPath": 'readme',
-	"/swarm/[reference]/path/[...contentPath]:SwarmResource.ResourceAddress.path.1.reference": swarmDocsLandingReference,
 	"/swarm/access/observations/[timestampMs]/[source]:_GlobalSwarmAccess_Timestamp.HubTimestampMsSource.1.source": 'Constants_Internal',
 	"/swarm/access/observations/[timestampMs]/[source]:_GlobalSwarmAccess_Timestamp.HubTimestampMsSource.1.timestampMs": '0',
 	"/url/[url]:Url.Url.1.url": 'https://example.com',
@@ -653,7 +652,10 @@ export const e2eRouteProbeAtomValueById = {
 	"/youtube/video/[videoId]:YoutubeVideo.VideoId.1.videoId": YOUTUBE_PROBE_VIDEO_ID,
 	"/youtube/video/[videoId]/observations/[timestampMs]-[source]:YoutubeVideo_Timestamp.YoutubeVideoTimestampMsSource.1.timestampMs": '0',
 	"/youtube/video/[videoId]/observations/[timestampMs]-[source]:YoutubeVideo_Timestamp.YoutubeVideoTimestampMsSource.1.videoId": YOUTUBE_PROBE_VIDEO_ID,
-	"Youtube_Rest": 'Youtube_Rest',
+	"/youtube/channel/[channelId]/observations/[timestampMs]-[source]:YoutubeChannel_Timestamp.YoutubeChannelTimestampMsSource.1.source": 'Youtube_Rest',
+	"/youtube/comment/[videoId]/[commentId]/observations/[timestampMs]-[source]:YoutubeComment_Timestamp.YoutubeCommentTimestampMsSource.1.source": 'Youtube_Rest',
+	"/youtube/playlist/[playlistId]/observations/[timestampMs]-[source]:YoutubePlaylist_Timestamp.YoutubePlaylistTimestampMsSource.1.source": 'Youtube_Rest',
+	"/youtube/video/[videoId]/observations/[timestampMs]-[source]:YoutubeVideo_Timestamp.YoutubeVideoTimestampMsSource.1.source": 'Youtube_Rest',
 } as const satisfies Record<E2eRouteProbeAtom, string>
 
 

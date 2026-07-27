@@ -2,15 +2,14 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
 	import BlockheadSourcesView from '$/views/BlockheadSourcesView.svelte'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
@@ -29,7 +28,7 @@
 		id='manage:hub'
 		sectionIdPrefix='manage'
 		sections={[
-					{ id: 'sources', label: 'Sources' },
+			{ id: 'sources', label: 'Sources' },
 		]}
 		data-card
 	>
@@ -45,14 +44,12 @@
 		{#snippet SectionSources()}
 			<BlockheadSourcesView
 				href={resolve('/~/manage/sources')}
-				selection={select(EntityType._Global, { scope: '$$blockheadSources' }).$$blockheadSources({
-					sources: [Source.Local_Internal],
-				})}
-						id='sources'
-						open={true}
-						data-column-item='flexible'
-						data-card
-						data-scroll-container
+				selection={select(EntityType._Global, { scope: '$$blockheadSources' }).$$blockheadSources}
+				id='sources'
+				open={true}
+				data-column-item='flexible'
+				data-card
+				data-scroll-container
 			/>
 		{/snippet}
 	</CollapsibleTabs>

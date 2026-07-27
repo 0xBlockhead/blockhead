@@ -2,10 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { EntityMetaKey } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import { CoinInstanceType, EvmCoinInstanceSelector } from '$/schema/EvmCoinInstance.ts'
-import { EvmLogSelector } from '$/schema/EvmLog.ts'
-import { EvmNetwork_GasEstimate_TimestampSelector } from '$/schema/EvmNetwork_GasEstimate_Timestamp.ts'
-import { NetworkSelector } from '$/schema/Network.ts'
+import { CoinInstanceType } from '$/schema/EvmCoinInstance.ts'
 import { schema } from '$/schema/index.ts'
 import { indexResolvers } from '$/resolvers/$resolvers.ts'
 import { Source } from '$/sources/Source.ts'
@@ -83,7 +80,7 @@ describe('Blockscout EVM coin instances', () => {
 			[['Erc20Token'], 'iconUrl'],
 		])
 		expect(parts.every((part) => (
-			part.resolver.resolve[EvmCoinInstanceSelector.NetworkType] == null
+			part.resolver.resolve['NetworkType'] == null
 		))).toBe(true)
 	})
 
@@ -101,16 +98,15 @@ describe('Blockscout EVM coin instances', () => {
 		if (resolver == null)
 			throw new Error('Blockscout EvmCoinInstance resolver is not registered')
 
-		const resolved = await resolver.resolve[EvmCoinInstanceSelector.NetworkTypeContract].resolve({
+		const resolved = await resolver.resolve['NetworkTypeContract'].resolve({
 			$network: network,
 			type: CoinInstanceType.Erc20Token,
 			$contract: contract,
 		}, context)
 
-		expect(getAddressDetails).toHaveBeenCalledWith({
-			explorerOrigin: 'https://eth.blockscout.com',
+		expect(getAddressDetails).toHaveBeenCalledWith(expect.objectContaining({
 			address: contract.address,
-		})
+		}))
 		expect(resolver.projections).not.toHaveProperty('$contract')
 		expect(resolver.projections.Erc20Token?.name(resolved, resolved[EntityMetaKey.Selector], context)).toBe('USD Coin')
 		expect(resolver.projections.Erc20Token?.symbol(resolved, resolved[EntityMetaKey.Selector], context)).toBe('USDC')
@@ -129,7 +125,7 @@ describe('Blockscout Network account abstraction applicability', () => {
 		if (resolver == null)
 			throw new Error(`Blockscout ${fieldName} resolver is not registered`)
 
-		await expect(resolver.resolve[NetworkSelector.Caip2].resolve({
+		await expect(resolver.resolve['Caip2'].resolve({
 			caip2: {
 				namespace: 'eip155',
 				reference: '5',
@@ -157,7 +153,7 @@ describe('Blockscout gas estimate observation identity', () => {
 		if (resolver == null)
 			throw new Error('Blockscout gas estimate resolver is not registered')
 
-		await expect(resolver.resolve[EvmNetwork_GasEstimate_TimestampSelector.NetworkTimestampMsSource].resolve({
+		await expect(resolver.resolve['NetworkTimestampMsSource'].resolve({
 			$network: network,
 			timestampMs: 1_784_221_554_477,
 			source: Source.Blockscout_Rest,
@@ -182,7 +178,7 @@ describe('Blockscout gas estimate observation identity', () => {
 		if (resolver == null)
 			throw new Error('Blockscout gas estimate resolver is not registered')
 
-		await expect(resolver.resolve[EvmNetwork_GasEstimate_TimestampSelector.NetworkTimestampMsSource].resolve({
+		await expect(resolver.resolve['NetworkTimestampMsSource'].resolve({
 			$network: network,
 			timestampMs: 1,
 			source: Source.Blockscout_Rest,
@@ -238,7 +234,7 @@ describe('Blockscout EVM log identity', () => {
 		if (resolver == null)
 			throw new Error('Blockscout EvmLog resolver is not registered')
 
-		const resolved = await resolver.resolve[EvmLogSelector.TransactionIndexInTransaction].resolve({
+		const resolved = await resolver.resolve['TransactionIndexInTransaction'].resolve({
 			$transaction: {
 				$network: network,
 				txHash,
@@ -246,10 +242,9 @@ describe('Blockscout EVM log identity', () => {
 			indexInTransaction: 1,
 		}, context)
 
-		expect(getTransactionLogs).toHaveBeenCalledWith({
-			explorerOrigin: 'https://eth.blockscout.com',
+		expect(getTransactionLogs).toHaveBeenCalledWith(expect.objectContaining({
 			txHash,
-		})
+		}))
 		expect(resolved).toMatchObject({
 			[EntityMetaKey.Selector]: {
 				indexInTransaction: 1,

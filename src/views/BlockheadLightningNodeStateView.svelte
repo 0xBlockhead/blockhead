@@ -2,15 +2,11 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { stringify } from 'devalue'
-	import { caip2StringFromValue } from '$/lib/caip2.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -22,40 +18,26 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.BlockheadLightningNodeState>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.BlockheadLightningNodeState>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.BlockheadLightningNodeState> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const blockheadLightningNodeState = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {
-			alias: true,
-		},
-	} : {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const viewSelection = $derived(selection({
+		sources: selection.sources ?? [
+			Source.LightningLnd_Grpc,
+			Source.LightningLnd_Rest,
+			Source.Local_Internal,
+		],
+	}))
+	const blockheadLightningNodeState = $derived(viewSelection({
 		fields: {
 			alias: true,
 		},
 	}))
-	const titleFallback = $derived([String((pendingEntity.alias) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.connectionId) ?? '')].filter(Boolean).join(' ') || 'blockhead Lightning node state')
-	const viewDomId = $derived('blockhead-lightning-node-state-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const titleFallback = $derived((pendingEntity.alias ?? '') || (pendingEntity.connectionId ?? '') || 'blockhead Lightning node state')
+	const viewDomId = $derived('blockhead-lightning-node-state-' + encodeURIComponent(stringify(selection.entitySelector)))
 
 
 	// Components
@@ -74,10 +56,9 @@
 
 <EntityView
 	entityType={EntityType.BlockheadLightningNodeState}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
+	entitySelector={selection.entitySelector}
 	id={viewDomId}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -85,69 +66,35 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={blockheadLightningNodeState}>
 			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.alias) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+				{(entity.alias ?? '') || title || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={blockheadLightningNodeState}>
-			{#snippet children(entity)}
-				<LightningNetworkView
-					selection={select(EntityType.LightningNetwork, selection.entitySelector.$network)}
-					href=""
-					layout={EntityLayout.Value}
-					open={false}
-				/>
-			{/snippet}
-		</ResourceBoundary>
+		<LightningNetworkView
+			selection={select(EntityType.LightningNetwork, selection.entitySelector.$network)}
+			href=""
+			layout={EntityLayout.Value}
+			open={false}
+		/>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		<ResourceBoundary resource={blockheadLightningNodeState}>
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				<ResourceBoundary
-					resource={selection.$node}
-				>
-					{#snippet children(lightningNode)}
-						{#if lightningNode != null && lightningNode[EntityMetaKey.Selector] != null}
-							<span data-text="muted">
-								<LightningNodeView
-									selection={select(EntityType.LightningNode, lightningNode[EntityMetaKey.Selector])}
-									prefetched={lightningNode}
-									href={
-										(
-											lightningNode[EntityMetaKey.Selector] != null && 'publicKey' in lightningNode[EntityMetaKey.Selector]
-											&& lightningNode[EntityMetaKey.Selector].publicKey != null
-											&& lightningNode[EntityMetaKey.Selector] != null && '$network' in lightningNode[EntityMetaKey.Selector] ?
-												lightningNode[EntityMetaKey.Selector].$network != null && 'caip2' in lightningNode[EntityMetaKey.Selector].$network
-												&& lightningNode[EntityMetaKey.Selector].$network.caip2 != null ?
-													resolve('/network/[network=networkCaip2OrNetworkSlug]/nodes/[pubkey=stringSegment]', {
-												pubkey: String(lightningNode[EntityMetaKey.Selector].publicKey ?? ''),
-												network: String(caip2StringFromValue(lightningNode[EntityMetaKey.Selector].$network.caip2) ?? ''),
-											})
-											:
-													lightningNode[EntityMetaKey.Selector].$network != null && 'slug' in lightningNode[EntityMetaKey.Selector].$network
-													&& lightningNode[EntityMetaKey.Selector].$network.slug != null ?
-														resolve('/network/[network=networkCaip2OrNetworkSlug]/nodes/[pubkey=stringSegment]', {
-													pubkey: String(lightningNode[EntityMetaKey.Selector].publicKey ?? ''),
-													network: String(lightningNode[EntityMetaKey.Selector].$network.slug ?? ''),
-												})
-												:
-													undefined
-										:
-												undefined
-										)
-									}
-									layout={EntityLayout.Title}
-									open={false}
-								/>
-							</span>
-						{/if}
-					{/snippet}
-				</ResourceBoundary>
+		<ResourceBoundary
+			resource={selection.$node}
+		>
+			{#snippet children(lightningNode)}
+				{#if lightningNode != null}
+					<span data-text="muted">
+						<LightningNodeView
+							selection={select(EntityType.LightningNode, lightningNode[EntityMetaKey.Selector])}
+							prefetched={lightningNode}
+							layout={EntityLayout.Title}
+							open={false}
+						/>
+					</span>
+				{/if}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -157,24 +104,7 @@
 			<div>
 				<dt>connection ID</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									connectionId: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const connectionId = resolvedEntity.connectionId}
-							{#if connectionId !== undefined && connectionId !== null}
-								{String((connectionId) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{pendingEntity.connectionId}
 				</dd>
 			</div>
 
@@ -191,8 +121,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							lndPubkey: true,
 						},
@@ -200,13 +129,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const lndPubkey = resolvedEntity.lndPubkey}
-					{#if lndPubkey !== undefined && lndPubkey !== null}
+					{@const lndPubkey = entity.lndPubkey}
+					{#if lndPubkey != null}
 						<div>
 							<dt>lnd public key</dt>
 							<dd>
-								{String((lndPubkey) ?? '')}
+								{lndPubkey}
 							</dd>
 						</div>
 					{/if}
@@ -214,23 +142,15 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							alias: true,
-						},
-					})
-				}
+				resource={blockheadLightningNodeState}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const alias = resolvedEntity.alias}
-					{#if alias !== undefined && alias !== null}
+					{@const alias = entity.alias}
+					{#if alias != null}
 						<div>
 							<dt>alias</dt>
 							<dd>
-								{String((alias) ?? '')}
+								{alias}
 							</dd>
 						</div>
 					{/if}
@@ -241,37 +161,13 @@
 				resource={selection.$node}
 			>
 				{#snippet children(lightningNode)}
-					{#if lightningNode != null && lightningNode[EntityMetaKey.Selector] != null}
+					{#if lightningNode != null}
 						<div>
 							<dt>node</dt>
 							<dd>
 								<LightningNodeView
 									selection={select(EntityType.LightningNode, lightningNode[EntityMetaKey.Selector])}
 									prefetched={lightningNode}
-									href={
-										(
-											lightningNode[EntityMetaKey.Selector] != null && 'publicKey' in lightningNode[EntityMetaKey.Selector]
-											&& lightningNode[EntityMetaKey.Selector].publicKey != null
-											&& lightningNode[EntityMetaKey.Selector] != null && '$network' in lightningNode[EntityMetaKey.Selector] ?
-												lightningNode[EntityMetaKey.Selector].$network != null && 'caip2' in lightningNode[EntityMetaKey.Selector].$network
-												&& lightningNode[EntityMetaKey.Selector].$network.caip2 != null ?
-													resolve('/network/[network=networkCaip2OrNetworkSlug]/nodes/[pubkey=stringSegment]', {
-												pubkey: String(lightningNode[EntityMetaKey.Selector].publicKey ?? ''),
-												network: String(caip2StringFromValue(lightningNode[EntityMetaKey.Selector].$network.caip2) ?? ''),
-											})
-											:
-													lightningNode[EntityMetaKey.Selector].$network != null && 'slug' in lightningNode[EntityMetaKey.Selector].$network
-													&& lightningNode[EntityMetaKey.Selector].$network.slug != null ?
-														resolve('/network/[network=networkCaip2OrNetworkSlug]/nodes/[pubkey=stringSegment]', {
-													pubkey: String(lightningNode[EntityMetaKey.Selector].publicKey ?? ''),
-													network: String(lightningNode[EntityMetaKey.Selector].$network.slug ?? ''),
-												})
-												:
-													undefined
-										:
-												undefined
-										)
-									}
 									layout={EntityLayout.Value}
 									open={false}
 								/>
@@ -292,12 +188,10 @@
 					{
 						id: 'lightning-node-channel-states',
 						label: 'Channel states',
-						ownsSection: true,
 					},
 					{
 						id: 'lightning-node-channels',
 						label: 'Channels',
-						ownsSection: true,
 					},
 				]
 			}
@@ -310,136 +204,34 @@
 				</header>
 			{/snippet}
 
-			{#snippet MarkerLightningNodeChannelStates(_context, Content)}
-				{@const lightningNodeChannelsLightningNodeChannelStatesResource = selection.$$channelStates}
-				<ResourceBoundary
-					resource={lightningNodeChannelsLightningNodeChannelStatesResource}
-				>
-					{#snippet children(_resolved)}
-						{@render Content()}
-					{/snippet}
-
-					{#snippet PendingContent()}
-						{@render Content()}
-					{/snippet}
-
-					{#snippet FailedContent(_error, _retry)}
-						{@render Content()}
-					{/snippet}
-				</ResourceBoundary>
+			{#snippet SectionLightningNodeChannelStates({ id, label, open })}
+				<BlockheadLightningChannelStatesView
+					selection={selection.$$channelStates}
+					CollapsibleProps={{ canToggle: false }}
+					collapsible={false}
+					data-column-item="flexible"
+					data-card
+					data-scroll-container
+					open={open}
+					title={label}
+					emptyText='No local channel states.'
+					id={`${id}-list`}
+				/>
 			{/snippet}
 
-			{#snippet SectionLightningNodeChannelStates({ id, label, open, active })}
-				{@const lightningNodeChannelsLightningNodeChannelStatesResource = selection.$$channelStates}
-				<ResourceBoundary
-					resource={lightningNodeChannelsLightningNodeChannelStatesResource}
-				>
-					{#snippet children(blockheadLightningChannelState)}
-						<section
-							id={id}
-							aria-labelledby={`${id}:marker`}
-							data-scroll-marker-label={label}
-							data-column-item="flexible"
-							data-column
-							data-active={active}
-						>
-							<BlockheadLightningChannelStatesView
-								selection={lightningNodeChannelsLightningNodeChannelStatesResource}
-								CollapsibleProps={{ canToggle: false }}
-								collapsible={false}
-								data-column-item="flexible"
-								data-card
-								data-scroll-container
-								open={open}
-								title={label}
-								emptyText='No local channel states.'
-								id={`${id}-list`}
-							/>
-						</section>
-					{/snippet}
-
-					{#snippet Pending()}
-						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
-							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
-								<span data-tag data-text="muted" data-resource-state="pending" class="loading inline-placeholder" aria-busy="true" aria-label="Loading…">•••</span>
-							</article>
-						</section>
-					{/snippet}
-
-					{#snippet Failed(_error, _retry)}
-						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
-							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
-								<span data-tag data-resource-state="failed" class="inline-placeholder" aria-label="Failed to load">•••</span>
-							</article>
-						</section>
-					{/snippet}
-				</ResourceBoundary>
-			{/snippet}
-
-			{#snippet MarkerLightningNodeChannels(_context, Content)}
-				{@const lightningNodeChannelsLightningNodeChannelsResource = selection.$$channels}
-				<ResourceBoundary
-					resource={lightningNodeChannelsLightningNodeChannelsResource}
-				>
-					{#snippet children(_resolved)}
-						{@render Content()}
-					{/snippet}
-
-					{#snippet PendingContent()}
-						{@render Content()}
-					{/snippet}
-
-					{#snippet FailedContent(_error, _retry)}
-						{@render Content()}
-					{/snippet}
-				</ResourceBoundary>
-			{/snippet}
-
-			{#snippet SectionLightningNodeChannels({ id, label, open, active })}
-				{@const lightningNodeChannelsLightningNodeChannelsResource = selection.$$channels}
-				<ResourceBoundary
-					resource={lightningNodeChannelsLightningNodeChannelsResource}
-				>
-					{#snippet children(lightningChannel)}
-						<section
-							id={id}
-							aria-labelledby={`${id}:marker`}
-							data-scroll-marker-label={label}
-							data-column-item="flexible"
-							data-column
-							data-active={active}
-						>
-							<LightningChannelsView
-								selection={lightningNodeChannelsLightningNodeChannelsResource}
-								CollapsibleProps={{ canToggle: false }}
-								collapsible={false}
-								data-column-item="flexible"
-								data-card
-								data-scroll-container
-								open={open}
-								title={label}
-								emptyText='No public channel refs.'
-								id={`${id}-list`}
-							/>
-						</section>
-					{/snippet}
-
-					{#snippet Pending()}
-						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
-							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
-								<span data-tag data-text="muted" data-resource-state="pending" class="loading inline-placeholder" aria-busy="true" aria-label="Loading…">•••</span>
-							</article>
-						</section>
-					{/snippet}
-
-					{#snippet Failed(_error, _retry)}
-						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
-							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
-								<span data-tag data-resource-state="failed" class="inline-placeholder" aria-label="Failed to load">•••</span>
-							</article>
-						</section>
-					{/snippet}
-				</ResourceBoundary>
+			{#snippet SectionLightningNodeChannels({ id, label, open })}
+				<LightningChannelsView
+					selection={selection.$$channels}
+					CollapsibleProps={{ canToggle: false }}
+					collapsible={false}
+					data-column-item="flexible"
+					data-card
+					data-scroll-container
+					open={open}
+					title={label}
+					emptyText='No public channel refs.'
+					id={`${id}-list`}
+				/>
 			{/snippet}
 
 		</CollapsibleTabs>
@@ -452,12 +244,10 @@
 					{
 						id: 'lightning-node-invoices',
 						label: 'Invoices',
-						ownsSection: true,
 					},
 					{
 						id: 'lightning-node-payment-list',
 						label: 'Payments',
-						ownsSection: true,
 					},
 				]
 			}
@@ -470,136 +260,34 @@
 				</header>
 			{/snippet}
 
-			{#snippet MarkerLightningNodeInvoices(_context, Content)}
-				{@const lightningNodePaymentsLightningNodeInvoicesResource = selection.$$invoices}
-				<ResourceBoundary
-					resource={lightningNodePaymentsLightningNodeInvoicesResource}
-				>
-					{#snippet children(_resolved)}
-						{@render Content()}
-					{/snippet}
-
-					{#snippet PendingContent()}
-						{@render Content()}
-					{/snippet}
-
-					{#snippet FailedContent(_error, _retry)}
-						{@render Content()}
-					{/snippet}
-				</ResourceBoundary>
+			{#snippet SectionLightningNodeInvoices({ id, label, open })}
+				<BlockheadLightningInvoicesView
+					selection={selection.$$invoices}
+					CollapsibleProps={{ canToggle: false }}
+					collapsible={false}
+					data-column-item="flexible"
+					data-card
+					data-scroll-container
+					open={open}
+					title={label}
+					emptyText='No invoices.'
+					id={`${id}-list`}
+				/>
 			{/snippet}
 
-			{#snippet SectionLightningNodeInvoices({ id, label, open, active })}
-				{@const lightningNodePaymentsLightningNodeInvoicesResource = selection.$$invoices}
-				<ResourceBoundary
-					resource={lightningNodePaymentsLightningNodeInvoicesResource}
-				>
-					{#snippet children(blockheadLightningInvoice)}
-						<section
-							id={id}
-							aria-labelledby={`${id}:marker`}
-							data-scroll-marker-label={label}
-							data-column-item="flexible"
-							data-column
-							data-active={active}
-						>
-							<BlockheadLightningInvoicesView
-								selection={lightningNodePaymentsLightningNodeInvoicesResource}
-								CollapsibleProps={{ canToggle: false }}
-								collapsible={false}
-								data-column-item="flexible"
-								data-card
-								data-scroll-container
-								open={open}
-								title={label}
-								emptyText='No invoices.'
-								id={`${id}-list`}
-							/>
-						</section>
-					{/snippet}
-
-					{#snippet Pending()}
-						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
-							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
-								<span data-tag data-text="muted" data-resource-state="pending" class="loading inline-placeholder" aria-busy="true" aria-label="Loading…">•••</span>
-							</article>
-						</section>
-					{/snippet}
-
-					{#snippet Failed(_error, _retry)}
-						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
-							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
-								<span data-tag data-resource-state="failed" class="inline-placeholder" aria-label="Failed to load">•••</span>
-							</article>
-						</section>
-					{/snippet}
-				</ResourceBoundary>
-			{/snippet}
-
-			{#snippet MarkerLightningNodePaymentList(_context, Content)}
-				{@const lightningNodePaymentsLightningNodePaymentListResource = selection.$$payments}
-				<ResourceBoundary
-					resource={lightningNodePaymentsLightningNodePaymentListResource}
-				>
-					{#snippet children(_resolved)}
-						{@render Content()}
-					{/snippet}
-
-					{#snippet PendingContent()}
-						{@render Content()}
-					{/snippet}
-
-					{#snippet FailedContent(_error, _retry)}
-						{@render Content()}
-					{/snippet}
-				</ResourceBoundary>
-			{/snippet}
-
-			{#snippet SectionLightningNodePaymentList({ id, label, open, active })}
-				{@const lightningNodePaymentsLightningNodePaymentListResource = selection.$$payments}
-				<ResourceBoundary
-					resource={lightningNodePaymentsLightningNodePaymentListResource}
-				>
-					{#snippet children(blockheadLightningPayment)}
-						<section
-							id={id}
-							aria-labelledby={`${id}:marker`}
-							data-scroll-marker-label={label}
-							data-column-item="flexible"
-							data-column
-							data-active={active}
-						>
-							<BlockheadLightningPaymentsView
-								selection={lightningNodePaymentsLightningNodePaymentListResource}
-								CollapsibleProps={{ canToggle: false }}
-								collapsible={false}
-								data-column-item="flexible"
-								data-card
-								data-scroll-container
-								open={open}
-								title={label}
-								emptyText='No payments.'
-								id={`${id}-list`}
-							/>
-						</section>
-					{/snippet}
-
-					{#snippet Pending()}
-						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
-							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
-								<span data-tag data-text="muted" data-resource-state="pending" class="loading inline-placeholder" aria-busy="true" aria-label="Loading…">•••</span>
-							</article>
-						</section>
-					{/snippet}
-
-					{#snippet Failed(_error, _retry)}
-						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
-							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
-								<span data-tag data-resource-state="failed" class="inline-placeholder" aria-label="Failed to load">•••</span>
-							</article>
-						</section>
-					{/snippet}
-				</ResourceBoundary>
+			{#snippet SectionLightningNodePaymentList({ id, label, open })}
+				<BlockheadLightningPaymentsView
+					selection={selection.$$payments}
+					CollapsibleProps={{ canToggle: false }}
+					collapsible={false}
+					data-column-item="flexible"
+					data-card
+					data-scroll-container
+					open={open}
+					title={label}
+					emptyText='No payments.'
+					id={`${id}-list`}
+				/>
 			{/snippet}
 
 		</CollapsibleTabs>
@@ -612,7 +300,6 @@
 					{
 						id: 'lightning-node-timestamps',
 						label: 'Observations',
-						ownsSection: true,
 					},
 				]
 			}
@@ -625,70 +312,19 @@
 				</header>
 			{/snippet}
 
-			{#snippet MarkerLightningNodeTimestamps(_context, Content)}
-				{@const lightningNodeObservationsLightningNodeTimestampsResource = selection.$$timestamps}
-				<ResourceBoundary
-					resource={lightningNodeObservationsLightningNodeTimestampsResource}
-				>
-					{#snippet children(_resolved)}
-						{@render Content()}
-					{/snippet}
-
-					{#snippet PendingContent()}
-						{@render Content()}
-					{/snippet}
-
-					{#snippet FailedContent(_error, _retry)}
-						{@render Content()}
-					{/snippet}
-				</ResourceBoundary>
-			{/snippet}
-
-			{#snippet SectionLightningNodeTimestamps({ id, label, open, active })}
-				{@const lightningNodeObservationsLightningNodeTimestampsResource = selection.$$timestamps}
-				<ResourceBoundary
-					resource={lightningNodeObservationsLightningNodeTimestampsResource}
-				>
-					{#snippet children(blockheadLightningNodeStateTimestamp)}
-						<section
-							id={id}
-							aria-labelledby={`${id}:marker`}
-							data-scroll-marker-label={label}
-							data-column-item="flexible"
-							data-column
-							data-active={active}
-						>
-							<BlockheadLightningNodeState_TimestampsView
-								selection={lightningNodeObservationsLightningNodeTimestampsResource}
-								CollapsibleProps={{ canToggle: false }}
-								collapsible={false}
-								data-column-item="flexible"
-								data-card
-								data-scroll-container
-								open={open}
-								title={label}
-								emptyText='No node-state observations.'
-								id={`${id}-list`}
-							/>
-						</section>
-					{/snippet}
-
-					{#snippet Pending()}
-						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
-							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
-								<span data-tag data-text="muted" data-resource-state="pending" class="loading inline-placeholder" aria-busy="true" aria-label="Loading…">•••</span>
-							</article>
-						</section>
-					{/snippet}
-
-					{#snippet Failed(_error, _retry)}
-						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
-							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
-								<span data-tag data-resource-state="failed" class="inline-placeholder" aria-label="Failed to load">•••</span>
-							</article>
-						</section>
-					{/snippet}
-				</ResourceBoundary>
+			{#snippet SectionLightningNodeTimestamps({ id, label, open })}
+				<BlockheadLightningNodeState_TimestampsView
+					selection={selection.$$timestamps}
+					CollapsibleProps={{ canToggle: false }}
+					collapsible={false}
+					data-column-item="flexible"
+					data-card
+					data-scroll-container
+					open={open}
+					title={label}
+					emptyText='No node-state observations.'
+					id={`${id}-list`}
+				/>
 			{/snippet}
 
 		</CollapsibleTabs>

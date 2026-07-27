@@ -1,8 +1,6 @@
 // Generated from APP.ts. Do not edit by hand.
 
 export enum Source {
-	A2aWellKnown_Http = 'A2aWellKnown_Http',
-	A2aService_Http = 'A2aService_Http',
 	AcpLocal_JsonRpc = 'AcpLocal_JsonRpc',
 	AcpRegistry_Rest = 'AcpRegistry_Rest',
 	Across_Rest = 'Across_Rest',
@@ -111,7 +109,6 @@ export enum Source {
 	EnvioHyperRpc_JsonRpc = 'EnvioHyperRpc_JsonRpc',
 	EnvioHyperSync_RawHttp = 'EnvioHyperSync_RawHttp',
 	Farcaster_Rest = 'Farcaster_Rest',
-	Fedi_Rest = 'Fedi_Rest',
 	FedimintClient_Rpc = 'FedimintClient_Rpc',
 	FedimintGatewayd_Rest = 'FedimintGatewayd_Rest',
 	FilecoinFips_Github = 'FilecoinFips_Github',
@@ -247,7 +244,9 @@ export enum Source {
 	Reth_JsonRpc = 'Reth_JsonRpc',
 	Rss_Rest = 'Rss_Rest',
 	Rss2Json_Rest = 'Rss2Json_Rest',
+	SafeTransactionService_Rest = 'SafeTransactionService_Rest',
 	SigstoreRekor_Rest = 'SigstoreRekor_Rest',
+	SnapshotHub_Graphql = 'SnapshotHub_Graphql',
 	Snapchain_Rest = 'Snapchain_Rest',
 	SpaceAndTime_MakeInfinite = 'SpaceAndTime_MakeInfinite',
 	Solana_JsonRpc = 'Solana_JsonRpc',
@@ -270,6 +269,7 @@ export enum Source {
 	Sui_JsonRpc = 'Sui_JsonRpc',
 	Superchain_Github = 'Superchain_Github',
 	Swarm_Rest = 'Swarm_Rest',
+	Tally_Graphql = 'Tally_Graphql',
 	TezosDappetizer_Postgres = 'TezosDappetizer_Postgres',
 	TezosNode_Rpc = 'TezosNode_Rpc',
 	TheGraph_Graphql = 'TheGraph_Graphql',
@@ -302,7 +302,6 @@ export enum Source {
 	WebTorrent_Tracker = 'WebTorrent_Tracker',
 	Wormholescan_Rest = 'Wormholescan_Rest',
 	X_Rest = 'X_Rest',
-	X402_Http = 'X402_Http',
 	Xaman_Api = 'Xaman_Api',
 	Xmtp_BrowserSdk = 'Xmtp_BrowserSdk',
 	Xmtp_NodeSdk = 'Xmtp_NodeSdk',

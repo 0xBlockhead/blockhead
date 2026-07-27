@@ -9,10 +9,6 @@ import {
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 import type { SourcifyContractLookup } from '$/sources/Sourcify/Rest/types.ts'
-import { EvmContractVerificationSelector } from '$/schema/EvmContractVerification.ts'
-import { EvmContractCompilationSelector } from '$/schema/EvmContractCompilation.ts'
-import { EvmContractSourceBundleSelector } from '$/schema/EvmContractSourceBundle.ts'
-import { EvmContractSelector } from '$/schema/EvmContract.ts'
 import {
 	isJsonArray,
 	isJsonObject,
@@ -92,7 +88,7 @@ export default {
 		defineResolver(Source.Sourcify_Rest, {
 			entityType: EntityType.EvmContractVerification,
 			resolve: {
-				[EvmContractVerificationSelector.EvmContract]: {
+				EvmContract: {
 					resolve: async (entitySelector) => {
 						const contractLookup = await getSourcifyContractLookupForEntitySelector(entitySelector.$contract)
 						if (contractLookup == null) throw new Error('Sourcify_Rest: contract not verified')
@@ -134,7 +130,7 @@ export default {
 		defineResolver(Source.Sourcify_Rest, {
 			entityType: EntityType.EvmContractCompilation,
 			resolve: {
-				[EvmContractCompilationSelector.EvmContract]: {
+				EvmContract: {
 					resolve: async ({ $contract }) => {
 						const contractLookup = await getSourcifyContractLookupForEntitySelector($contract)
 						if (contractLookup == null) throw new Error('Sourcify_Rest: compilation not verified')
@@ -184,7 +180,7 @@ export default {
 		defineResolver(Source.Sourcify_Rest, {
 			entityType: EntityType.EvmContractSourceBundle,
 			resolve: {
-				[EvmContractSourceBundleSelector.EvmContract]: {
+				EvmContract: {
 					resolve: async ({ $contract }) => {
 						const contractLookup = await getSourcifyContractLookupForEntitySelector($contract)
 						if (contractLookup == null) throw new Error('Sourcify_Rest: source bundle not verified')
@@ -201,7 +197,7 @@ export default {
 		defineResolver(Source.Sourcify_Rest, {
 			entityType: EntityType.EvmContract,
 			resolve: {
-				[EvmContractSelector.EvmNetworkAddress]: {
+				EvmNetworkAddress: {
 					resolve: async (entitySelector) => {
 						const contractLookup = await getSourcifyContractLookupForEntitySelector(entitySelector)
 						if (contractLookup == null) return undefined
@@ -221,7 +217,7 @@ export default {
 		defineResolver(Source.Sourcify_Rest, {
 			entityType: EntityType.EvmContract,
 			resolve: {
-				[EvmContractSelector.EvmNetworkAddress]: {
+				EvmNetworkAddress: {
 					resolve: async (entitySelector) => {
 						if (await getSourcifyContractLookupForEntitySelector(entitySelector) == null) return undefined
 						return {
@@ -239,7 +235,7 @@ export default {
 		defineResolver(Source.Sourcify_Rest, {
 			entityType: EntityType.EvmContract,
 			resolve: {
-				[EvmContractSelector.EvmNetworkAddress]: {
+				EvmNetworkAddress: {
 					resolve: async (entitySelector) => {
 						const contractLookup = await getSourcifyContractLookupForEntitySelector(entitySelector)
 						const deployer = contractLookup?.deployment?.deployer
@@ -261,7 +257,7 @@ export default {
 		defineResolver(Source.Sourcify_Rest, {
 			entityType: EntityType.EvmContract,
 			resolve: {
-				[EvmContractSelector.EvmNetworkAddress]: {
+				EvmNetworkAddress: {
 					resolve: async (entitySelector) => {
 						const contractLookup = await getSourcifyContractLookupForEntitySelector(entitySelector)
 						const txHash = contractLookup?.deployment?.transactionHash
@@ -284,7 +280,7 @@ export default {
 		defineResolver(Source.Sourcify_Rest, {
 			entityType: EntityType.EvmContract,
 			resolve: {
-				[EvmContractSelector.EvmNetworkAddress]: {
+				EvmNetworkAddress: {
 					resolve: async (entitySelector) => {
 						const contractLookup = await getSourcifyContractLookupForEntitySelector(entitySelector)
 						const implementationAddress = contractLookup?.proxyResolution?.implementations?.[0]?.address

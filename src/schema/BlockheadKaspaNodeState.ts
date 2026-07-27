@@ -1,15 +1,12 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { entity, facet } from '$/schema/$schema.ts'
+import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { UrlString } from '$/schema/UrlString.ts'
 import { type } from 'arktype'
 
-export enum BlockheadKaspaNodeStateSelector {
-	ConnectionIdNetwork = 'ConnectionIdNetwork',
-}
-export const BlockheadKaspaNodeState = entity({
+export default entity({
 	entityType: EntityType.BlockheadKaspaNodeState,
 	labels: {
 		singular: 'blockhead kaspa node state',
@@ -31,7 +28,7 @@ export const BlockheadKaspaNodeState = entity({
 	rpcUrl: {
 		label: 'RPC URL',
 		type: EntityFieldType.Primitive,
-		primitiveType: (UrlString),
+		primitiveType: UrlString,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	encoding: {

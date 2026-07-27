@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { Source } from '$/sources/Source.ts'
-import { sourceProviderDefinitions } from '$/sources/$sourceProviders.ts'
+import bindings from '$/sources/Starkscan/bindings.ts'
 import type {
 	StarkscanAddressTransaction,
 	StarkscanTokenHoldings,
@@ -20,12 +20,7 @@ const {
 	getExactTokenHoldings,
 } = await import('$/sources/Starkscan/Rest/queries.ts')
 
-const binding = sourceProviderDefinitions
-	.flatMap((provider) => provider.bindings)
-	.find((candidate) => candidate.source === Source.Starkscan_Rest)
-
-if (binding == null)
-	throw new Error('Starkscan_Rest spec missing source binding')
+const binding = bindings[Source.Starkscan_Rest]
 
 const account = '0x01'
 const transaction = {
@@ -85,7 +80,7 @@ describe('Starkscan account portfolio transport', () => {
 			nextCursor: 'opaque:cursor+value',
 		})
 
-		await expect(getAddressTransactions(binding, {
+		await expect(getAddressTransactions({
 			address: account,
 			limit: 25,
 			cursor: 'previous+cursor',
@@ -102,7 +97,7 @@ describe('Starkscan account portfolio transport', () => {
 	it('returns only exact, complete, owner-matched indexed holdings', async () => {
 		getJson.mockResolvedValueOnce(holdings)
 
-		await expect(getExactTokenHoldings(binding, account)).resolves.toEqual(holdings)
+		await expect(getExactTokenHoldings(account)).resolves.toEqual(holdings)
 		expect(getJson).toHaveBeenCalledWith(
 			binding,
 			'/v1/SN_MAIN/address/0x01/token-holdings'
@@ -118,7 +113,7 @@ describe('Starkscan account portfolio transport', () => {
 			}],
 			nextCursor: null,
 		})
-		await expect(getAddressTransactions(binding, {
+		await expect(getAddressTransactions({
 			address: account,
 			limit: 25,
 		})).rejects.toThrow('foreign account row')
@@ -127,7 +122,7 @@ describe('Starkscan account portfolio transport', () => {
 			items: [transaction],
 			nextCursor: 'same',
 		})
-		await expect(getAddressTransactions(binding, {
+		await expect(getAddressTransactions({
 			address: account,
 			limit: 25,
 			cursor: 'same',
@@ -146,7 +141,7 @@ describe('Starkscan account portfolio transport', () => {
 			],
 			nextCursor: null,
 		})
-		await expect(getAddressTransactions(binding, {
+		await expect(getAddressTransactions({
 			address: account,
 			limit: 25,
 		})).rejects.toThrow('not newest-first')
@@ -158,7 +153,7 @@ describe('Starkscan account portfolio transport', () => {
 			}],
 			nextCursor: null,
 		})
-		await expect(getAddressTransactions(binding, {
+		await expect(getAddressTransactions({
 			address: account,
 			limit: 25,
 		})).rejects.toThrow('invalid transaction timestamp')
@@ -174,7 +169,7 @@ describe('Starkscan account portfolio transport', () => {
 			],
 			nextCursor: null,
 		})
-		await expect(getAddressTransactions(binding, {
+		await expect(getAddressTransactions({
 			address: account,
 			limit: 25,
 		})).rejects.toThrow('duplicate hash')
@@ -191,7 +186,7 @@ describe('Starkscan account portfolio transport', () => {
 				reasonCode: 'indexLag',
 			},
 		})
-		await expect(getExactTokenHoldings(binding, account)).rejects.toThrow(
+		await expect(getExactTokenHoldings(account)).rejects.toThrow(
 			'token holdings are incomplete (indexLag)'
 		)
 
@@ -202,24 +197,24 @@ describe('Starkscan account portfolio transport', () => {
 				indexedBalanceRaw: '1.5',
 			}],
 		})
-		await expect(getExactTokenHoldings(binding, account)).rejects.toThrow(
+		await expect(getExactTokenHoldings(account)).rejects.toThrow(
 			'invalid token balance'
 		)
 	})
 
 	it('bounds requests and avoids transport for zero cardinality', async () => {
-		await expect(getAddressTransactions(binding, {
+		await expect(getAddressTransactions({
 			address: account,
 			limit: 0,
 		})).resolves.toEqual({
 			items: [],
 			nextCursor: null,
 		})
-		await expect(getAddressTransactions(binding, {
+		await expect(getAddressTransactions({
 			address: account,
 			limit: 101,
 		})).rejects.toThrow('0 through 100')
-		await expect(getAddressTransactions(binding, {
+		await expect(getAddressTransactions({
 			address: account,
 			limit: 25,
 			cursor: '',

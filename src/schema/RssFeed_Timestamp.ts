@@ -1,14 +1,11 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { entity, facet } from '$/schema/$schema.ts'
+import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { type } from 'arktype'
 
-export enum RssFeed_TimestampSelector {
-	FeedTimestampMsSource = 'FeedTimestampMsSource',
-}
-export const RssFeed_Timestamp = entity({
+export default entity({
 	entityType: EntityType.RssFeed_Timestamp,
 	labels: {
 		singular: 'RSS feed observation',
@@ -24,7 +21,7 @@ export const RssFeed_Timestamp = entity({
 	timestampMs: {
 		label: 'Timestamp',
 		type: EntityFieldType.Primitive,
-		primitiveType: (type('number.integer >= 0')),
+		primitiveType: type('number.integer >= 0'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	source: {
@@ -42,7 +39,7 @@ export const RssFeed_Timestamp = entity({
 	observedItemCount: {
 		label: 'Observed items',
 		type: EntityFieldType.Primitive,
-		primitiveType: (type('number.integer >= 0')),
+		primitiveType: type('number.integer >= 0'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	fetchWindowKind: {

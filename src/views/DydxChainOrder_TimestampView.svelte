@@ -2,13 +2,9 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -20,40 +16,24 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.DydxChainOrder_Timestamp>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.DydxChainOrder_Timestamp>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.DydxChainOrder_Timestamp> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const dydxChainOrderTimestamp = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {
-			status: true,
-		},
-	} : {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const viewSelection = $derived(selection({
+		sources: selection.sources ?? [
+			Source.DydxIndexer_Rest,
+			Source.DydxValidator_Rest,
+		],
+	}))
+	const dydxChainOrderTimestamp = $derived(viewSelection({
 		fields: {
 			status: true,
 		},
 	}))
-	const titleFallback = $derived([String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || 'dydx chain order timestamp')
-	const viewDomId = $derived('dydx-chain-order-timestamp-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const titleFallback = $derived(String(pendingEntity.timestampMs ?? '') || 'dydx chain order timestamp')
 
 
 	// Components
@@ -65,44 +45,22 @@
 
 <EntityView
 	entityType={EntityType.DydxChainOrder_Timestamp}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'status')}
-			{@const timestampMs0 = pendingEntity.timestampMs}
-			{#if timestampMs0 !== undefined && timestampMs0 !== null}
-				<Timestamp timestamp={Number(timestampMs0)} />
-			{/if}
-		{:else}
-			<ResourceBoundary resource={dydxChainOrderTimestamp}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const timestampMs0 = resolvedEntity.timestampMs}
-					{#if timestampMs0 !== undefined && timestampMs0 !== null}
-						<Timestamp timestamp={Number(timestampMs0)} />
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
 	{/snippet}
 
 	{#snippet Value()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'status')}
-			{[String((pendingEntity.status) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || titleFallback}
-		{:else}
-			<ResourceBoundary resource={dydxChainOrderTimestamp}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.status) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={dydxChainOrderTimestamp}>
+			{#snippet children(entity)}
+				{(entity.status ?? '') || String(pendingEntity.timestampMs) || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -121,55 +79,20 @@
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									timestampMs: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const timestampMs = resolvedEntity.timestampMs}
-							{#if timestampMs !== undefined && timestampMs !== null}
-								<Timestamp timestamp={Number(timestampMs)} />
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									source: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const source = resolvedEntity.source}
-							{#if source !== undefined && source !== null}
-								{String((source) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{pendingEntity.source}
 				</dd>
 			</div>
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							blockHeight: true,
 						},
@@ -177,13 +100,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const blockHeight = resolvedEntity.blockHeight}
-					{#if blockHeight !== undefined && blockHeight !== null}
+					{@const blockHeight = entity.blockHeight}
+					{#if blockHeight != null}
 						<div>
 							<dt>block height</dt>
 							<dd>
-								{String((blockHeight) ?? '')}
+								{String(blockHeight)}
 							</dd>
 						</div>
 					{/if}
@@ -191,23 +113,15 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							status: true,
-						},
-					})
-				}
+				resource={dydxChainOrderTimestamp}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const status = resolvedEntity.status}
-					{#if status !== undefined && status !== null}
+					{@const status = entity.status}
+					{#if status != null}
 						<div>
 							<dt>status</dt>
 							<dd>
-								{String((status) ?? '')}
+								{status}
 							</dd>
 						</div>
 					{/if}
@@ -218,8 +132,7 @@
 		<dl data-column-item="center">
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							price: true,
 						},
@@ -227,13 +140,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const price = resolvedEntity.price}
-					{#if price !== undefined && price !== null}
+					{@const price = entity.price}
+					{#if price != null}
 						<div>
 							<dt>price</dt>
 							<dd>
-								{String((price) ?? '')}
+								{String(price)}
 							</dd>
 						</div>
 					{/if}
@@ -242,8 +154,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							size: true,
 						},
@@ -251,13 +162,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const size = resolvedEntity.size}
-					{#if size !== undefined && size !== null}
+					{@const size = entity.size}
+					{#if size != null}
 						<div>
 							<dt>size</dt>
 							<dd>
-								{String((size) ?? '')}
+								{String(size)}
 							</dd>
 						</div>
 					{/if}
@@ -266,8 +176,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							remainingSize: true,
 						},
@@ -275,13 +184,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const remainingSize = resolvedEntity.remainingSize}
-					{#if remainingSize !== undefined && remainingSize !== null}
+					{@const remainingSize = entity.remainingSize}
+					{#if remainingSize != null}
 						<div>
 							<dt>remaining size</dt>
 							<dd>
-								{String((remainingSize) ?? '')}
+								{String(remainingSize)}
 							</dd>
 						</div>
 					{/if}
@@ -290,8 +198,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							filledSize: true,
 						},
@@ -299,13 +206,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const filledSize = resolvedEntity.filledSize}
-					{#if filledSize !== undefined && filledSize !== null}
+					{@const filledSize = entity.filledSize}
+					{#if filledSize != null}
 						<div>
 							<dt>filled size</dt>
 							<dd>
-								{String((filledSize) ?? '')}
+								{String(filledSize)}
 							</dd>
 						</div>
 					{/if}
@@ -314,8 +220,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							totalFilled: true,
 						},
@@ -323,13 +228,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const totalFilled = resolvedEntity.totalFilled}
-					{#if totalFilled !== undefined && totalFilled !== null}
+					{@const totalFilled = entity.totalFilled}
+					{#if totalFilled != null}
 						<div>
 							<dt>total filled</dt>
 							<dd>
-								{String((totalFilled) ?? '')}
+								{String(totalFilled)}
 							</dd>
 						</div>
 					{/if}

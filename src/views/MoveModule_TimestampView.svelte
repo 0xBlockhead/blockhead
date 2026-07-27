@@ -2,13 +2,8 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
 
 
 	// Context
@@ -20,42 +15,19 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.MoveModule_Timestamp>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.MoveModule_Timestamp>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.MoveModule_Timestamp> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const moveModuleTimestamp = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {
-			ledgerVersion: true,
-			packageVersion: true,
-		},
-	} : {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const moveModuleTimestamp = $derived(selection({
 		fields: {
 			ledgerVersion: true,
 			packageVersion: true,
 		},
 	}))
-	const titleFallback = $derived([String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || 'move module timestamp')
-	const viewDomId = $derived('move-module-timestamp-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const titleFallback = $derived(String(pendingEntity.timestampMs ?? '') || 'move module timestamp')
 
 
 	// Components
@@ -71,67 +43,28 @@
 
 <EntityView
 	entityType={EntityType.MoveModule_Timestamp}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'ledgerVersion') && Object.hasOwn(prefetched, 'packageVersion')}
-			{@const timestampMs0 = pendingEntity.timestampMs}
-			{#if timestampMs0 !== undefined && timestampMs0 !== null}
-				<Timestamp timestamp={Number(timestampMs0)} />
-			{/if}
-		{:else}
-			<ResourceBoundary resource={moveModuleTimestamp}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const timestampMs0 = resolvedEntity.timestampMs}
-					{#if timestampMs0 !== undefined && timestampMs0 !== null}
-						<Timestamp timestamp={Number(timestampMs0)} />
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
 	{/snippet}
 
 	{#snippet Value()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'ledgerVersion') && Object.hasOwn(prefetched, 'packageVersion')}
-			{[String((pendingEntity.ledgerVersion) ?? ''), String((pendingEntity.packageVersion) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || titleFallback}
-		{:else}
-			<ResourceBoundary resource={moveModuleTimestamp}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.ledgerVersion) ?? ''), String((resolvedEntity.packageVersion) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={moveModuleTimestamp}>
+			{#snippet children(entity)}
+				{[String(entity.ledgerVersion ?? ''), String(entity.packageVersion ?? '')].filter(Boolean).join(' ') || String(pendingEntity.timestampMs) || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'ledgerVersion') && Object.hasOwn(prefetched, 'packageVersion')}
-			{@const source0 = pendingEntity.source}
-			{#if source0 !== undefined && source0 !== null}
-				<span data-text="muted">
-					{String((source0) ?? '')}
-				</span>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={moveModuleTimestamp}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const source0 = resolvedEntity.source}
-					{#if source0 !== undefined && source0 !== null}
-						<span data-text="muted">
-							{String((source0) ?? '')}
-						</span>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<span data-text="muted">
+			{pendingEntity.source}
+		</span>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -150,67 +83,25 @@
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									timestampMs: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const timestampMs = resolvedEntity.timestampMs}
-							{#if timestampMs !== undefined && timestampMs !== null}
-								<Timestamp timestamp={Number(timestampMs)} />
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									source: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const source = resolvedEntity.source}
-							{#if source !== undefined && source !== null}
-								{String((source) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{pendingEntity.source}
 				</dd>
 			</div>
 		</dl>
 
 		<dl data-column-item="center">
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							ledgerVersion: true,
-						},
-					})
-				}
+				resource={moveModuleTimestamp}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const ledgerVersion = resolvedEntity.ledgerVersion}
-					{#if ledgerVersion !== undefined && ledgerVersion !== null}
+					{@const ledgerVersion = entity.ledgerVersion}
+					{#if ledgerVersion != null}
 						<div>
 							<dt>ledger version</dt>
 							<dd>
@@ -224,19 +115,11 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							packageVersion: true,
-						},
-					})
-				}
+				resource={moveModuleTimestamp}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const packageVersion = resolvedEntity.packageVersion}
-					{#if packageVersion !== undefined && packageVersion !== null}
+					{@const packageVersion = entity.packageVersion}
+					{#if packageVersion != null}
 						<div>
 							<dt>package version</dt>
 							<dd>
@@ -252,7 +135,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							packageDigest: true,
 						},
@@ -260,13 +142,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const packageDigest = resolvedEntity.packageDigest}
-					{#if packageDigest !== undefined && packageDigest !== null}
+					{@const packageDigest = entity.packageDigest}
+					{#if packageDigest != null}
 						<div>
 							<dt>package digest</dt>
 							<dd>
-								<TruncatedValue value={String((packageDigest) ?? '')} />
+								<TruncatedValue value={packageDigest} />
 							</dd>
 						</div>
 					{/if}
@@ -276,7 +157,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							bytecode: true,
 						},
@@ -284,13 +164,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const bytecode = resolvedEntity.bytecode}
-					{#if bytecode !== undefined && bytecode !== null}
+					{@const bytecode = entity.bytecode}
+					{#if bytecode != null}
 						<div>
 							<dt>bytecode</dt>
 							<dd>
-								{String((bytecode) ?? '')}
+								{bytecode}
 							</dd>
 						</div>
 					{/if}
@@ -300,7 +179,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							sourceDigest: true,
 						},
@@ -308,13 +186,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const sourceDigest = resolvedEntity.sourceDigest}
-					{#if sourceDigest !== undefined && sourceDigest !== null}
+					{@const sourceDigest = entity.sourceDigest}
+					{#if sourceDigest != null}
 						<div>
 							<dt>source digest</dt>
 							<dd>
-								<TruncatedValue value={String((sourceDigest) ?? '')} />
+								<TruncatedValue value={sourceDigest} />
 							</dd>
 						</div>
 					{/if}
@@ -325,7 +202,6 @@
 		<ResourceBoundary
 			resource={
 				selection({
-					sources: selection.sources,
 					fields: {
 						sourceCode: true,
 					},
@@ -333,10 +209,9 @@
 			}
 		>
 			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const sourceCode = resolvedEntity.sourceCode}
-				{#if sourceCode !== undefined && sourceCode !== null && sourceCode !== ''}
-					<code>{String((sourceCode) ?? '')}</code>
+				{@const sourceCode = entity.sourceCode}
+				{#if sourceCode != null && sourceCode !== ''}
+					<code>{sourceCode}</code>
 				{:else}
 					<p data-text="muted">No source code available.</p>
 				{/if}
@@ -351,12 +226,12 @@
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
-				<MoveFunctionsView
-					selection={moveModuleTimestampMoveFunctionsViewFunctionsResource}
-					countResource={moveModuleTimestampMoveFunctionsViewFunctionsResource.count}
-					title='functions'
-					id='MoveFunctionsView-functions'
-				/>
+					<MoveFunctionsView
+						selection={moveModuleTimestampMoveFunctionsViewFunctionsResource}
+						countResource={moveModuleTimestampMoveFunctionsViewFunctionsResource.count}
+						title='functions'
+						id='functions'
+					/>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>
@@ -366,12 +241,12 @@
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
-				<MoveStructsView
-					selection={moveModuleTimestampMoveStructsViewStructsResource}
-					countResource={moveModuleTimestampMoveStructsViewStructsResource.count}
-					title='structs'
-					id='MoveStructsView-structs'
-				/>
+					<MoveStructsView
+						selection={moveModuleTimestampMoveStructsViewStructsResource}
+						countResource={moveModuleTimestampMoveStructsViewStructsResource.count}
+						title='structs'
+						id='structs'
+					/>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>

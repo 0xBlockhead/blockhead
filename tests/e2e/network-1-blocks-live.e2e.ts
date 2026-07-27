@@ -203,7 +203,7 @@ test.describe('EVM network nested routes only start route-owned field collection
 			],
 		}).toBe('ok')
 		expect((await readBlocksDiagnostics(page)).fieldRows).toBeGreaterThan(0)
-		const firstBlockLink = page.locator('#blocks-items a[href*="/block/"]').first()
+		const firstBlockLink = page.locator('#blocks a[href*="/block/"]').first()
 		await expect(firstBlockLink).toBeAttached()
 		await expect(firstBlockLink).toHaveAttribute('href', /\/block\/[0-9]+\b/)
 		await assertOnlyRouteOwnedEvmFields(page, '$$blocks')

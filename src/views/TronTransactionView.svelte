@@ -2,16 +2,9 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
-	import { caip2StringFromValue } from '$/lib/caip2.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -23,40 +16,18 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.TronTransaction>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.TronTransaction>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.TronTransaction> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const tronTransaction = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {
-			result: true,
-		},
-	} : {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const tronTransaction = $derived(selection({
 		fields: {
 			result: true,
 		},
 	}))
-	const titleFallback = $derived([String((pendingEntity.transactionId) ?? '')].filter(Boolean).join(' ') || 'tron transaction')
-	const viewDomId = $derived('tron-transaction-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const titleFallback = $derived((pendingEntity.transactionId ?? '') || 'tron transaction')
 
 
 	// Components
@@ -73,92 +44,56 @@
 
 <EntityView
 	entityType={EntityType.TronTransaction}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={tronTransaction}>
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const transactionId0 = resolvedEntity.transactionId}
-				{#if transactionId0 !== undefined && transactionId0 !== null}
-					<TruncatedValue value={String((transactionId0) ?? '')} />
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		<TruncatedValue value={pendingEntity.transactionId} />
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={tronTransaction}>
 			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.result) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.transactionId) ?? '')].filter(Boolean).join(' ') || titleFallback}
+				{(entity.result ?? '') || pendingEntity.transactionId || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		<ResourceBoundary resource={tronTransaction}>
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				<ResourceBoundary
-					resource={
-						selection
-							.$owner({
-								sources: [
-									Source.TronGrid_Rest,
-									Source.TronFullNode_Rest,
-									Source.TronSolidityNode_Rest,
-									Source.TronScan_Rest,
-								],
-							})
-					}
-				>
-					{#snippet children(tronAccount)}
-						{#if tronAccount != null && tronAccount[EntityMetaKey.Selector] != null}
-							<span data-text="muted">
-								<TronAccountView
-									selection={select(EntityType.TronAccount, tronAccount[EntityMetaKey.Selector])}
-									prefetched={tronAccount}
-									layout={EntityLayout.Title}
-									open={false}
-								/>
-							</span>
-						{/if}
-					{/snippet}
-				</ResourceBoundary>
+		<ResourceBoundary
+			resource={selection.$owner}
+		>
+			{#snippet children(tronAccount)}
+				{#if tronAccount != null}
+					<span data-text="muted">
+						<TronAccountView
+							selection={select(EntityType.TronAccount, tronAccount[EntityMetaKey.Selector])}
+							prefetched={tronAccount}
+							layout={EntityLayout.Title}
+							open={false}
+						/>
+					</span>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 
-				<ResourceBoundary
-					resource={
-						selection
-							.$to({
-								sources: [
-									Source.TronGrid_Rest,
-									Source.TronFullNode_Rest,
-									Source.TronSolidityNode_Rest,
-									Source.TronScan_Rest,
-								],
-							})
-					}
-				>
-					{#snippet children(tronAccount)}
-						{#if tronAccount != null && tronAccount[EntityMetaKey.Selector] != null}
-							<span data-text="muted">
-								<TronAccountView
-									selection={select(EntityType.TronAccount, tronAccount[EntityMetaKey.Selector])}
-									prefetched={tronAccount}
-									layout={EntityLayout.Title}
-									open={false}
-								/>
-							</span>
-						{/if}
-					{/snippet}
-				</ResourceBoundary>
+		<ResourceBoundary
+			resource={selection.$to}
+		>
+			{#snippet children(tronAccount)}
+				{#if tronAccount != null}
+					<span data-text="muted">
+						<TronAccountView
+							selection={select(EntityType.TronAccount, tronAccount[EntityMetaKey.Selector])}
+							prefetched={tronAccount}
+							layout={EntityLayout.Title}
+							open={false}
+						/>
+					</span>
+				{/if}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -170,23 +105,6 @@
 				<dd>
 					<NetworkView
 						selection={select(EntityType.Network, selection.entitySelector.$network)}
-						href={
-							(
-								selection.entitySelector.$network != null && 'caip2' in selection.entitySelector.$network
-								&& selection.entitySelector.$network.caip2 != null ?
-									resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-								network: String(caip2StringFromValue(selection.entitySelector.$network.caip2) ?? ''),
-							})
-							:
-									selection.entitySelector.$network != null && 'slug' in selection.entitySelector.$network
-									&& selection.entitySelector.$network.slug != null ?
-										resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-									network: String(selection.entitySelector.$network.slug ?? ''),
-								})
-								:
-									undefined
-							)
-						}
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -194,21 +112,10 @@
 			</div>
 
 			<ResourceBoundary
-				resource={
-					selection
-						.$block({
-							sources: [
-								Source.TronGrid_Rest,
-								Source.TronFullNode_Rest,
-								Source.TronSolidityNode_Rest,
-								Source.TronScan_Rest,
-								Source.ThreeXpl_Rest,
-							],
-						})
-				}
+				resource={selection.$block}
 			>
 				{#snippet children(tronBlock)}
-					{#if tronBlock != null && tronBlock[EntityMetaKey.Selector] != null}
+					{#if tronBlock != null}
 						<div>
 							<dt>Block</dt>
 							<dd>
@@ -227,7 +134,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							blockHeight: true,
 						},
@@ -235,13 +141,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const blockHeight = resolvedEntity.blockHeight}
-					{#if blockHeight !== undefined && blockHeight !== null}
+					{@const blockHeight = entity.blockHeight}
+					{#if blockHeight != null}
 						<div>
 							<dt>Block height</dt>
 							<dd>
-								{String((blockHeight) ?? '')}
+								{String(blockHeight)}
 							</dd>
 						</div>
 					{/if}
@@ -251,7 +156,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							timestampMs: true,
 						},
@@ -259,9 +163,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const timestampMs = resolvedEntity.timestampMs}
-					{#if timestampMs !== undefined && timestampMs !== null}
+					{@const timestampMs = entity.timestampMs}
+					{#if timestampMs != null}
 						<div>
 							<dt>Timestamp</dt>
 							<dd>
@@ -275,7 +178,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							expirationTimestampMs: true,
 						},
@@ -283,9 +185,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const expirationTimestampMs = resolvedEntity.expirationTimestampMs}
-					{#if expirationTimestampMs !== undefined && expirationTimestampMs !== null}
+					{@const expirationTimestampMs = entity.expirationTimestampMs}
+					{#if expirationTimestampMs != null}
 						<div>
 							<dt>Expiration timestamp</dt>
 							<dd>
@@ -299,7 +200,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							contractType: true,
 						},
@@ -307,13 +207,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const contractType = resolvedEntity.contractType}
-					{#if contractType !== undefined && contractType !== null}
+					{@const contractType = entity.contractType}
+					{#if contractType != null}
 						<div>
 							<dt>Contract type</dt>
 							<dd>
-								{String((contractType) ?? '')}
+								{contractType}
 							</dd>
 						</div>
 					{/if}
@@ -323,7 +222,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							feeSun: true,
 						},
@@ -331,13 +229,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const feeSun = resolvedEntity.feeSun}
-					{#if feeSun !== undefined && feeSun !== null}
+					{@const feeSun = entity.feeSun}
+					{#if feeSun != null}
 						<div>
 							<dt>Fee sun</dt>
 							<dd>
-								{String((feeSun) ?? '')}
+								{String(feeSun)}
 							</dd>
 						</div>
 					{/if}
@@ -345,20 +242,10 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={
-					selection
-						.$contract({
-							sources: [
-								Source.TronGrid_Rest,
-								Source.TronFullNode_Rest,
-								Source.TronSolidityNode_Rest,
-								Source.TronScan_Rest,
-							],
-						})
-				}
+				resource={selection.$contract}
 			>
 				{#snippet children(tronContract)}
-					{#if tronContract != null && tronContract[EntityMetaKey.Selector] != null}
+					{#if tronContract != null}
 						<div>
 							<dt>Contract</dt>
 							<dd>
@@ -377,7 +264,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							amountSun: true,
 						},
@@ -385,13 +271,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const amountSun = resolvedEntity.amountSun}
-					{#if amountSun !== undefined && amountSun !== null}
+					{@const amountSun = entity.amountSun}
+					{#if amountSun != null}
 						<div>
 							<dt>Amount sun</dt>
 							<dd>
-								{String((amountSun) ?? '')}
+								{String(amountSun)}
 							</dd>
 						</div>
 					{/if}
@@ -401,7 +286,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							assetName: true,
 						},
@@ -409,13 +293,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const assetName = resolvedEntity.assetName}
-					{#if assetName !== undefined && assetName !== null}
+					{@const assetName = entity.assetName}
+					{#if assetName != null}
 						<div>
 							<dt>Asset name</dt>
 							<dd>
-								{String((assetName) ?? '')}
+								{assetName}
 							</dd>
 						</div>
 					{/if}
@@ -425,7 +308,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							rawDataHex: true,
 						},
@@ -433,13 +315,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const rawDataHex = resolvedEntity.rawDataHex}
-					{#if rawDataHex !== undefined && rawDataHex !== null}
+					{@const rawDataHex = entity.rawDataHex}
+					{#if rawDataHex != null}
 						<div>
 							<dt>Raw data hex</dt>
 							<dd>
-								{String((rawDataHex) ?? '')}
+								{rawDataHex}
 							</dd>
 						</div>
 					{/if}
@@ -452,7 +333,6 @@
 					<ResourceBoundary
 						resource={
 							selection({
-								sources: selection.sources,
 								fields: {
 									signatures: true,
 								},
@@ -460,31 +340,17 @@
 						}
 					>
 						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const signatures = resolvedEntity.signatures}
-							{#if signatures !== undefined && signatures !== null}
-								<TruncatedValue value={signatures.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')} />
-							{/if}
+							<TruncatedValue value={entity.signatures.values.join(', ')} />
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
 			</div>
 
 			<ResourceBoundary
-				resource={
-					selection
-						.$receipt({
-							sources: [
-								Source.TronGrid_Rest,
-								Source.TronFullNode_Rest,
-								Source.TronSolidityNode_Rest,
-								Source.TronScan_Rest,
-							],
-						})
-				}
+				resource={selection.$receipt}
 			>
 				{#snippet children(tronTransactionReceipt)}
-					{#if tronTransactionReceipt != null && tronTransactionReceipt[EntityMetaKey.Selector] != null}
+					{#if tronTransactionReceipt != null}
 						<div>
 							<dt>Receipt</dt>
 							<dd>

@@ -36,10 +36,13 @@
 {#key [params.network, params.accountId].join(':')}
 	<ParentPageCollapsible
 		href={
-			resolve('/network/[network=networkCaip2OrNetworkSlug]/account/[accountId=polkadotAccountIdOrStringSegmentOrEvmAddressOrSolanaPubkey]', {
-				network: params.network,
-				accountId: params.accountId,
-			})
+			resolve(
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(accounts)/account/[accountId=polkadotAccountIdOrStringSegmentOrEvmAddressOrSolanaPubkey]',
+				{
+					network: String(params.network),
+					accountId: String(params.accountId),
+				}
+			)
 		}
 	>
 		{#snippet Summary()}
@@ -48,10 +51,13 @@
 			<DetailView
 				selection={select(data.entityType, data.selector)}
 				href={
-					resolve('/network/[network=networkCaip2OrNetworkSlug]/account/[accountId=polkadotAccountIdOrStringSegmentOrEvmAddressOrSolanaPubkey]', {
-						network: params.network,
-						accountId: params.accountId,
-					})
+					resolve(
+						'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(accounts)/account/[accountId=polkadotAccountIdOrStringSegmentOrEvmAddressOrSolanaPubkey]',
+						{
+							network: String(params.network),
+							accountId: String(params.accountId),
+						}
+					)
 				}
 				layout={EntityLayout.SummaryInline}
 			/>

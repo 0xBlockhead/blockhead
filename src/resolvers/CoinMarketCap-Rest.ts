@@ -25,13 +25,6 @@ import { MediaType } from '$/schema/Media.ts'
 import { schema } from '$/schema/index.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
-import { _GlobalSelector } from '$/schema/_Global.ts'
-import { CoinSelector } from '$/schema/Coin.ts'
-import { Market_TimestampSelector } from '$/schema/Market_Timestamp.ts'
-import { Market_TimeInterval_TimestampSelector } from '$/schema/Market_TimeInterval_Timestamp.ts'
-import { MarketSelector } from '$/schema/Market.ts'
-import { MarketPriceSelector } from '$/schema/MarketPrice.ts'
-
 const marketSelectorFromCatalogCoinCurrencyMarket = (catalogMarket: CatalogCoinCurrencyMarket) => ({
 	$base: {
 		kind: MarketAssetKind.Coin,
@@ -75,7 +68,7 @@ export default {
 		defineResolver(Source.CoinMarketCap_Rest, {
 			entityType: EntityType.Coin,
 			resolve: {
-				[CoinSelector.CoinId]: {
+				CoinId: {
 					resolve: async ({ coinId }, context) => {
 						const { coinById } = await import('$/constants/Coin.ts')
 						const { idByCoinId } = await import('$/sources/CoinMarketCap/Rest/constants.ts')
@@ -127,7 +120,7 @@ export default {
 		defineResolver(Source.CoinMarketCap_Rest, {
 			entityType: EntityType.Market_Timestamp,
 			resolve: {
-				[Market_TimestampSelector.MarketTimestampMsFeedKey]: {
+				MarketTimestampMsFeedKey: {
 					resolve: async ({ $market, feedKey, timestampMs: timestampMsSelector }, context) => {
 						if ($market.marketKind !== MarketKind.Spot)
 							throw new Error('CoinMarketCap_Rest: Market_Timestamp is spot-only')
@@ -201,7 +194,7 @@ export default {
 		defineResolver(Source.CoinMarketCap_Rest, {
 			entityType: EntityType.Market_TimeInterval_Timestamp,
 			resolve: {
-				[Market_TimeInterval_TimestampSelector.MarketTimeIntervalTimestampMs]: {
+				MarketTimeIntervalTimestampMs: {
 					resolve: async ({ $market, timeInterval, timestampMs: timestampMsSelector }, context) => {
 						if ($market.marketKind !== MarketKind.Spot)
 							throw new Error('CoinMarketCap_Rest: OHLC is spot-only')
@@ -257,7 +250,7 @@ export default {
 		defineResolver(Source.CoinMarketCap_Rest, {
 			entityType: EntityType._Global,
 			resolve: {
-				[_GlobalSelector.Scope]: {
+				Scope: {
 					resolve: async (_globalScopeEntitySelector: EntitySelector<typeof schema, EntityType._Global>) => {
 						const { CoinId, coinById } = await import('$/constants/Coin.ts')
 						const { idByCoinId } = await import('$/sources/CoinMarketCap/Rest/constants.ts')
@@ -282,7 +275,7 @@ export default {
 		defineResolver(Source.CoinMarketCap_Rest, {
 			entityType: EntityType._Global,
 			resolve: {
-				[_GlobalSelector.Scope]: {
+				Scope: {
 					resolve: async (_globalScopeEntitySelector: EntitySelector<typeof schema, EntityType._Global>, context) => {
 						const { CoinId, coinById } = await import('$/constants/Coin.ts')
 						const { idByCoinId } = await import('$/sources/CoinMarketCap/Rest/constants.ts')
@@ -334,7 +327,7 @@ export default {
 		defineResolver(Source.CoinMarketCap_Rest, {
 			entityType: EntityType.Market,
 			resolve: {
-				[MarketSelector.BaseQuoteMarketVenueKind]: {
+				BaseQuoteMarketVenueKind: {
 					resolve: async (entitySelector: EntitySelector<typeof schema, EntityType.Market>, context) => {
 						if (entitySelector.marketKind !== MarketKind.Spot)
 							return []
@@ -385,7 +378,7 @@ export default {
 		defineResolver(Source.CoinMarketCap_Rest, {
 			entityType: EntityType.MarketPrice,
 			resolve: {
-				[MarketPriceSelector.Market]: {
+				Market: {
 					resolve: async ({ $market }, context) => {
 						if ($market.marketKind !== MarketKind.Spot)
 							return []
@@ -433,7 +426,7 @@ export default {
 		defineResolver(Source.CoinMarketCap_Rest, {
 			entityType: EntityType.MarketPrice,
 			resolve: {
-				[MarketPriceSelector.Market]: {
+				Market: {
 					resolve: async ({ $market }: EntitySelector<typeof schema, EntityType.MarketPrice>) => (
 						{
 							[EntityMetaKey.Selector]: $market,
@@ -448,7 +441,7 @@ export default {
 		defineResolver(Source.CoinMarketCap_Rest, {
 			entityType: EntityType.Market_TimeInterval_Timestamp,
 			resolve: {
-				[Market_TimeInterval_TimestampSelector.MarketTimeIntervalTimestampMs]: {
+				MarketTimeIntervalTimestampMs: {
 					resolve: async ({ $market }) => (
 						{
 							[EntityMetaKey.Selector]: $market,

@@ -2,95 +2,37 @@
 
 <script lang="ts">
 	// Types/constants
-	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
-	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
-	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
+	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-
-
 
 
 	// State
 	let {
 		selection,
-		countResource,
-		title = 'Hedera contract logs',
-		typeAnnotationParagraphs = [],
-		placeholderText = undefined,
-		emptyText = undefined,
 		open = $bindable(true),
-		collapsible = true,
-		showTypeAnnotation = true,
-		id = 'HederaContractLogs-list',
 		...EntitiesListProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyEntitiesSelection<EntityType.HederaContractLog>
-			countResource?: SvelteKitResource<number>
-			title?: string
-			typeAnnotationParagraphs?: string[]
-			placeholderText?: string
-			emptyText?: string
-			open?: boolean
-			collapsible?: boolean
-			showTypeAnnotation?: boolean
-			id?: string
-		},
-		EntitiesListForwardProps
-	> = $props()
+	}: EntityListViewProps<EntityType.HederaContractLog> = $props()
 
 
 	// Components
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView from '$/components/EntityView.svelte'
 </script>
 
-
-{#snippet TypeAnnotationParagraphs()}
-	{#each typeAnnotationParagraphs as paragraph (paragraph)}
-		<p>{paragraph}</p>
-	{/each}
-{/snippet}
 
 <EntitiesList
 	{...EntitiesListProps}
 	entityType={EntityType.HederaContractLog}
-	{id}
-	{title}
 	bind:open
-	{collapsible}
-	{showTypeAnnotation}
-	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	resource={
-		selection({
-			sources: selection.sources,
-		})
-	}
-	{countResource}
-	getResourceItems={(hederaContractLogs) => [...new Map(hederaContractLogs.values.map((hederaContractLog) => [hederaContractLog[EntityMetaKey.SelectorKey], hederaContractLog])).values()]}
-	getKey={(hederaContractLog) => hederaContractLog[EntityMetaKey.SelectorKey]}
-	{placeholderText}
+	resource={selection()}
 >
-	{#snippet Empty()}
-		{#if emptyText != null}
-			<p data-text="muted">{emptyText}</p>
-		{:else}
-			<p data-text="muted">No Hedera contract logs yet.</p>
-		{/if}
-	{/snippet}
-
 	{#snippet Item({ item: hederaContractLog })}
-		{@const hederaContractLogFields = { ...hederaContractLog[EntityMetaKey.Selector], ...hederaContractLog }}
 		<EntityView
 			entityType={EntityType.HederaContractLog}
 			entitySelector={hederaContractLog[EntityMetaKey.Selector]}
-			layout={EntityLayout.Summary}
-			open={false}
-			showTypeAnnotation={false}
 		>
 			{#snippet Title()}
-				{'hedera contract log'}
+				hedera contract log
 			{/snippet}
 		</EntityView>
 	{/snippet}

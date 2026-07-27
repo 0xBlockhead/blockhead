@@ -1,15 +1,12 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { entity, facet } from '$/schema/$schema.ts'
+import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { EvmAddress, ZeroExHex } from '$/schema/ZeroExHex.ts'
 import { type } from 'arktype'
 
-export enum EigenLayerReward_TimestampSelector {
-	EarnerRewardContextKeyTimestampMsSource = 'EarnerRewardContextKeyTimestampMsSource',
-}
-export const EigenLayerReward_Timestamp = entity({
+export default entity({
 	entityType: EntityType.EigenLayerReward_Timestamp,
 	labels: {
 		singular: 'eigen layer reward timestamp',
@@ -63,7 +60,7 @@ export const EigenLayerReward_Timestamp = entity({
 	rewardToken: {
 		label: 'reward token',
 		type: EntityFieldType.Primitive,
-		primitiveType: (EvmAddress),
+		primitiveType: EvmAddress,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	rewardAmount: {
@@ -81,7 +78,7 @@ export const EigenLayerReward_Timestamp = entity({
 	merkleRoot: {
 		label: 'merkle root',
 		type: EntityFieldType.Primitive,
-		primitiveType: (ZeroExHex),
+		primitiveType: ZeroExHex,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	claimProof: {

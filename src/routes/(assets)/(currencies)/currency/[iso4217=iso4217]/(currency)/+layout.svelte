@@ -30,22 +30,28 @@
 {#key params.iso4217}
 	<ParentPageCollapsible
 		href={
-			resolve('/currency/[iso4217=iso4217]', {
-				iso4217: params.iso4217,
-			})
+			resolve(
+				'/(assets)/(currencies)/currency/[iso4217=iso4217]',
+				{
+					iso4217: String(params.iso4217),
+				}
+			)
 		}
 	>
 		{#snippet Summary()}
-			{@const DetailView = CurrencyView}
-
-			<DetailView
-				selection={select(EntityType.Currency, data.selector, { sources: [
-		Source.Constants_Internal,
-	] })}
+			<CurrencyView
+				selection={
+					select(EntityType.Currency, data.selector, { sources: [
+						Source.Constants_Internal,
+					] })
+				}
 				href={
-					resolve('/currency/[iso4217=iso4217]', {
-						iso4217: params.iso4217,
-					})
+					resolve(
+						'/(assets)/(currencies)/currency/[iso4217=iso4217]',
+						{
+							iso4217: String(params.iso4217),
+						}
+					)
 				}
 				layout={EntityLayout.SummaryInline}
 			/>

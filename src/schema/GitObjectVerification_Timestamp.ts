@@ -1,15 +1,12 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { entity, facet } from '$/schema/$schema.ts'
+import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 import { type } from 'arktype'
 
-export enum GitObjectVerification_TimestampSelector {
-	ObjectIdObjectFormatByteSourceTimestampMsSource = 'ObjectIdObjectFormatByteSourceTimestampMsSource',
-}
-export const GitObjectVerification_Timestamp = entity({
+export default entity({
 	entityType: EntityType.GitObjectVerification_Timestamp,
 	labels: {
 		singular: 'Git object verification timestamp',
@@ -19,7 +16,7 @@ export const GitObjectVerification_Timestamp = entity({
 	objectId: {
 		label: 'object ID',
 		type: EntityFieldType.Primitive,
-		primitiveType: (ZeroExHex),
+		primitiveType: ZeroExHex,
 		cardinality: EntityFieldCardinality.One,
 	},
 	objectFormat: {
@@ -63,19 +60,19 @@ export const GitObjectVerification_Timestamp = entity({
 	headerBytesHash: {
 		label: 'header bytes hash',
 		type: EntityFieldType.Primitive,
-		primitiveType: (ZeroExHex),
+		primitiveType: ZeroExHex,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	payloadBytesHash: {
 		label: 'payload bytes hash',
 		type: EntityFieldType.Primitive,
-		primitiveType: (ZeroExHex),
+		primitiveType: ZeroExHex,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	computedObjectId: {
 		label: 'computed object ID',
 		type: EntityFieldType.Primitive,
-		primitiveType: (ZeroExHex),
+		primitiveType: ZeroExHex,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	canonicalEncoding: {

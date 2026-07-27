@@ -7,10 +7,7 @@ import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
-export enum EvmTokenTransferSelector {
-	LogIndexInLog = 'LogIndexInLog',
-}
-export const EvmTokenTransfer = entity({
+export default entity({
 	entityType: EntityType.EvmTokenTransfer,
 	labels: {
 		singular: 'Token transfer',
@@ -31,7 +28,7 @@ export const EvmTokenTransfer = entity({
 	indexInLog: {
 		label: 'Index in log',
 		type: EntityFieldType.Primitive,
-		primitiveType: (type('number.integer >= 0')),
+		primitiveType: type('number.integer >= 0'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	$from: {

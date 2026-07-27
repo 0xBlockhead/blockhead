@@ -3,12 +3,12 @@
 <script lang="ts">
 	// Types/constants
 	import type { PageProps } from './$types.ts'
+	import { resolve } from '$app/paths'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
@@ -16,8 +16,6 @@
 	let {
 		params,
 	}: PageProps = $props()
-
-
 	// Components
 	import Page from '$/components/Page.svelte'
 	import LensPostsView from '$/views/LensPostsView.svelte'
@@ -30,33 +28,27 @@
 
 
 <Page>
+	{@const collectionSelection = select(EntityType.LensAccount, {
+		address: params.address,
+	})
+		.$$posts({
+			sources: [
+				Source.Lens_Graphql,
+			],
+		})}
+
 	<LensPostsView
 		href={
-			resolve('/lens/account/[address=evmAddress]/posts', {
-				address: params.address,
-			})
+			resolve(
+				'/(social)/(lens)/lens/(lensNetwork)/account/[address=evmAddress]/(lensAccount)/posts',
+				{
+					address: String(params.address),
+				}
+			)
 		}
 		title='Lens account posts'
-		selection={
-			select(EntityType.LensAccount, {
-				address: params.address,
-			})
-				.$$posts({
-					sources: [
-						Source.Lens_Graphql,
-					],
-				})
-		}
-		countResource={
-			select(EntityType.LensAccount, {
-				address: params.address,
-			})
-				.$$posts({
-					sources: [
-						Source.Lens_Graphql,
-					],
-				}).count
-		}
+		selection={collectionSelection}
+		countResource={collectionSelection.count}
 		id='posts'
 		data-column-item="flexible"
 		data-card

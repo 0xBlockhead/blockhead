@@ -3,12 +3,11 @@
 <script lang="ts">
 	// Types/constants
 	import type { PageProps } from './$types.ts'
+	import { resolve } from '$app/paths'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
@@ -17,11 +16,8 @@
 		data,
 		params,
 	}: PageProps = $props()
-
-
 	// Components
 	import Page from '$/components/Page.svelte'
-	import ProjectionBoundary from '$/components/ProjectionBoundary.svelte'
 	import Erc4337PaymastersView from '$/views/Erc4337PaymastersView.svelte'
 </script>
 
@@ -32,30 +28,20 @@
 
 
 <Page>
-	<ProjectionBoundary
-		resource={select(EntityType.Network, data.selector).Evm}
-	>
-		{#snippet Applicable(projection)}
-			<Erc4337PaymastersView
-				href={
-					resolve('/network/[network=networkCaip2OrNetworkSlug]/erc-4337/paymasters', {
-						network: params.network,
-					})
+	<Erc4337PaymastersView
+		href={
+			resolve(
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/erc-4337/paymasters',
+				{
+					network: String(params.network),
 				}
-				title='ERC-4337 paymasters'
-				selection={
-					projection
-						.$$erc4337Paymasters({
-							sources: [
-								Source.Blockscout_Rest,
-							],
-						})
-				}
-				id='account-erc4337-paymaster'
-				data-column-item="flexible"
-				data-card
-				data-scroll-container
-			/>
-		{/snippet}
-	</ProjectionBoundary>
+			)
+		}
+		title='ERC-4337 paymasters'
+		selection={select(EntityType.Network, data.selector).Evm.$$erc4337Paymasters}
+		id='erc4337-paymasters'
+		data-column-item="flexible"
+		data-card
+		data-scroll-container
+	/>
 </Page>

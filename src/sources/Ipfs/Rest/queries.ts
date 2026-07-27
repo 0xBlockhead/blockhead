@@ -4,38 +4,18 @@ import {
 	trimIpfsSlashes,
 } from '$/lib/ipfs.ts'
 import { Source } from '$/sources/Source.ts'
-import {
-	ApiFamily,
-	SourceEndpointKind,
-	SourceTargetKind,
-	type SourceBinding,
-} from '$/sources/SourceBinding.ts'
+import bindings from '$/sources/Ipfs/bindings.ts'
 import { sourceFetch } from '$/sources/_runtime/http.ts'
 import type {
 	IpfsBrowseResult,
 	IpfsNamespace,
 } from '$/sources/Ipfs/Rest/types.ts'
 
+const binding = bindings[Source.Ipfs_Rest]
+
 const gatewayUrlLastSegment = /([^/]+)$/
 
-const ipfsGatewayEndpoints = (binding: SourceBinding) => {
-	if (
-		binding.source !== Source.Ipfs_Rest
-		|| binding.target.kind !== SourceTargetKind.ContentAddressScheme
-		|| binding.target.key !== 'ipfs'
-		|| binding.apiFamily !== ApiFamily.IpfsGateway
-	)
-		throw new Error('Ipfs_Rest: expected canonical IPFS gateway binding')
-
-	const endpoints = binding.endpoints.filter((endpoint) => (
-		endpoint.endpointKind === SourceEndpointKind.HttpUrl
-		&& endpoint.origin != null
-	))
-	if (endpoints.length === 0)
-		throw new Error('Ipfs_Rest: canonical gateway binding has no HTTP endpoints')
-
-	return endpoints
-}
+const ipfsGatewayEndpoints = () => binding.endpoints
 
 const resolvedIpfsNamespace = ({
 	target,
@@ -67,13 +47,11 @@ export const getGatewayUrl = ({
 }
 
 export const fetchBrowseResult = async ({
-	binding,
 	namespace,
 	target,
 	contentPath,
 	signal,
 }: {
-	binding: SourceBinding
 	namespace?: IpfsNamespace
 	target: string
 	contentPath?: string
@@ -87,7 +65,7 @@ export const fetchBrowseResult = async ({
 	})
 	const failures: string[] = []
 
-	for (const endpoint of ipfsGatewayEndpoints(binding)) {
+	for (const endpoint of ipfsGatewayEndpoints()) {
 		const gatewayUrl = getGatewayUrl({
 			namespace: resolvedNamespace,
 			target: trimmedTarget,

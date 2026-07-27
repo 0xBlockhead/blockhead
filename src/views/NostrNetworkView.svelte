@@ -2,13 +2,8 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
 
 
 	// State
@@ -16,42 +11,19 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.NostrNetwork>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.NostrNetwork>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.NostrNetwork> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const nostrNetwork = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {
-			protocolName: true,
-			registryName: true,
-		},
-	} : {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const nostrNetwork = $derived(selection({
 		fields: {
 			protocolName: true,
 			registryName: true,
 		},
 	}))
-	const titleFallback = $derived([String((pendingEntity.protocolName) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.scope) ?? '')].filter(Boolean).join(' ') || 'Nostr network')
-	const viewDomId = $derived('nostr-network-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const titleFallback = $derived((pendingEntity.protocolName ?? '') || (pendingEntity.scope ?? '') || 'Nostr network')
 
 
 	// Components
@@ -62,38 +34,26 @@
 
 <EntityView
 	entityType={EntityType.NostrNetwork}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'protocolName') && Object.hasOwn(prefetched, 'registryName')}
-			{[String((pendingEntity.protocolName) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-		{:else}
-			<ResourceBoundary resource={nostrNetwork}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.protocolName) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={nostrNetwork}>
+			{#snippet children(entity)}
+				{entity.protocolName || title || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Value()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'protocolName') && Object.hasOwn(prefetched, 'registryName')}
-			{[String((pendingEntity.registryName) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.protocolName) ?? '')].filter(Boolean).join(' ') || titleFallback}
-		{:else}
-			<ResourceBoundary resource={nostrNetwork}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.registryName) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.protocolName) ?? '')].filter(Boolean).join(' ') || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={nostrNetwork}>
+			{#snippet children(entity)}
+				{entity.registryName || entity.protocolName || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet TypeAnnotationTooltip()}
@@ -107,24 +67,7 @@
 			<div>
 				<dt>Scope</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									scope: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const scope = resolvedEntity.scope}
-							{#if scope !== undefined && scope !== null}
-								{String((scope) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{pendingEntity.scope}
 				</dd>
 			</div>
 
@@ -132,21 +75,10 @@
 				<dt>protocol name</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									protocolName: true,
-								},
-							})
-						}
+						resource={nostrNetwork}
 					>
 						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const protocolName = resolvedEntity.protocolName}
-							{#if protocolName !== undefined && protocolName !== null}
-								{String((protocolName) ?? '')}
-							{/if}
+							{entity.protocolName}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -156,21 +88,10 @@
 				<dt>registry name</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									registryName: true,
-								},
-							})
-						}
+						resource={nostrNetwork}
 					>
 						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const registryName = resolvedEntity.registryName}
-							{#if registryName !== undefined && registryName !== null}
-								{String((registryName) ?? '')}
-							{/if}
+							{entity.registryName}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -182,7 +103,6 @@
 					<ResourceBoundary
 						resource={
 							selection({
-								sources: selection.sources,
 								fields: {
 									relationshipModel: true,
 								},
@@ -190,11 +110,7 @@
 						}
 					>
 						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const relationshipModel = resolvedEntity.relationshipModel}
-							{#if relationshipModel !== undefined && relationshipModel !== null}
-								{String((relationshipModel) ?? '')}
-							{/if}
+							{entity.relationshipModel}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -208,7 +124,6 @@
 					<ResourceBoundary
 						resource={
 							selection({
-								sources: selection.sources,
 								fields: {
 									homeUrl: true,
 								},
@@ -216,18 +131,13 @@
 						}
 					>
 						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const homeUrl = resolvedEntity.homeUrl}
-							{#if homeUrl !== undefined && homeUrl !== null}
-								<svelte:element
-									this={'a'}
-									href={String(homeUrl)}
-									target="_blank"
-									rel="noreferrer noopener"
-								>
-									<TruncatedValue value={String(homeUrl)} />
-								</svelte:element>
-							{/if}
+							<a
+								href={String(entity.homeUrl)}
+								target="_blank"
+								rel="noreferrer noopener"
+							>
+								<TruncatedValue value={String(entity.homeUrl)} />
+							</a>
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -236,7 +146,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							docsUrl: true,
 						},
@@ -244,20 +153,18 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const docsUrl = resolvedEntity.docsUrl}
-					{#if docsUrl !== undefined && docsUrl !== null}
+					{@const docsUrl = entity.docsUrl}
+					{#if docsUrl != null}
 						<div>
 							<dt>docs URL</dt>
 							<dd>
-								<svelte:element
-									this={'a'}
+								<a
 									href={String(docsUrl)}
 									target="_blank"
 									rel="noreferrer noopener"
 								>
 									<TruncatedValue value={String(docsUrl)} />
-								</svelte:element>
+								</a>
 							</dd>
 						</div>
 					{/if}

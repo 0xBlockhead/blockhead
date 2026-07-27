@@ -2,13 +2,8 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
 	import { UrlString } from '$/schema/UrlString.ts'
 
 
@@ -17,35 +12,13 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.A2aAgentCard>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.A2aAgentCard>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.A2aAgentCard> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const a2aAgentCard = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {},
-	} : {
-		sources: selection.sources,
-	}))
-	const titleFallback = $derived([String((pendingEntity.agentCardUrl) ?? '')].filter(Boolean).join(' ') || 'A2A agent card')
-	const viewDomId = $derived('a2a-agent-card-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const titleFallback = $derived(String(pendingEntity.agentCardUrl ?? '') || 'A2A agent card')
 
 
 	// Components
@@ -58,25 +31,14 @@
 
 <EntityView
 	entityType={EntityType.A2aAgentCard}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails}
-			{[String((pendingEntity.agentCardUrl) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-		{:else}
-			<ResourceBoundary resource={a2aAgentCard}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.agentCardUrl) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		{String(pendingEntity.agentCardUrl ?? '') || 'A2A agent card'}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -84,31 +46,13 @@
 			<div>
 				<dt>agent card URL</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									agentCardUrl: true,
-								},
-							})
-						}
+					<a
+						href={String(pendingEntity.agentCardUrl)}
+						target="_blank"
+						rel="noreferrer noopener"
 					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const agentCardUrl = resolvedEntity.agentCardUrl}
-							{#if agentCardUrl !== undefined && agentCardUrl !== null}
-								<svelte:element
-									this={'a'}
-									href={String(agentCardUrl)}
-									target="_blank"
-									rel="noreferrer noopener"
-								>
-									<TruncatedValue value={String(agentCardUrl)} />
-								</svelte:element>
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+						<TruncatedValue value={String(pendingEntity.agentCardUrl)} />
+					</a>
 				</dd>
 			</div>
 		</dl>
@@ -121,12 +65,12 @@
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
-				<A2aAgentCard_SnapshotsView
-					selection={a2aAgentCardA2aAgentCardSnapshotsViewSnapshotsResource}
-					countResource={a2aAgentCardA2aAgentCardSnapshotsViewSnapshotsResource.count}
-					title='snapshots'
-					id='A2aAgentCard_SnapshotsView-snapshots'
-				/>
+					<A2aAgentCard_SnapshotsView
+						selection={a2aAgentCardA2aAgentCardSnapshotsViewSnapshotsResource}
+						countResource={a2aAgentCardA2aAgentCardSnapshotsViewSnapshotsResource.count}
+						title='snapshots'
+						id='snapshots'
+					/>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>
@@ -136,12 +80,12 @@
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
-				<AiDocumentsView
-					selection={a2aAgentCardAiDocumentsViewDocumentsResource}
-					countResource={a2aAgentCardAiDocumentsViewDocumentsResource.count}
-					title='documents'
-					id='AiDocumentsView-documents'
-				/>
+					<AiDocumentsView
+						selection={a2aAgentCardAiDocumentsViewDocumentsResource}
+						countResource={a2aAgentCardAiDocumentsViewDocumentsResource.count}
+						title='documents'
+						id='documents'
+					/>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>

@@ -8,7 +8,6 @@
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
@@ -42,23 +41,12 @@
 
 
 <svelte:head>
-	<title>{(pageSelection.entity == null ? [String(({
-		id: params.sessionId,
-	}.id) ?? '')].filter(Boolean).join(' ') || 'session' : [String((({ ...{
-		id: params.sessionId,
-	}, ...pageSelection.entity }).name) ?? '')].filter(Boolean).join(' ') || [String((({ ...{
-		id: params.sessionId,
-	}, ...pageSelection.entity }).id) ?? '')].filter(Boolean).join(' ') || 'session')} • session • Blockhead</title>
+	<title>{(pageSelection.entity == null ? (pageSelection.entitySelector.id ?? '') || 'session' : (pageSelection.entity.name ?? '') || pageSelection.entitySelector.id || 'session')} • session • Blockhead</title>
 </svelte:head>
 
 
 <Page>
 	<BlockheadSessionView
-		href={
-			resolve('/~/session/[sessionId=stringSegment]', {
-				sessionId: params.sessionId,
-			})
-		}
 		selection={pageSelection}
 	/>
 </Page>

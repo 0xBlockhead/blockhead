@@ -3,11 +3,11 @@
 <script lang="ts">
 	// Types/constants
 	import type { PageProps } from './$types.ts'
+	import { resolve } from '$app/paths'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
@@ -16,8 +16,6 @@
 		data,
 		params,
 	}: PageProps = $props()
-
-
 	// Components
 	import Page from '$/components/Page.svelte'
 	import Erc4337AccountFactory_TimestampsView from '$/views/Erc4337AccountFactory_TimestampsView.svelte'
@@ -30,16 +28,21 @@
 
 
 <Page>
+	{@const collectionSelection = select(EntityType.Erc4337AccountFactory, data.selector).$$timestamps}
+
 	<Erc4337AccountFactory_TimestampsView
 		href={
-			resolve('/network/[network=networkCaip2OrNetworkSlug]/erc-4337/account-factory/[address=evmAddress]/observations', {
-				network: params.network,
-				address: params.address,
-			})
+			resolve(
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/erc-4337/account-factory/[address=evmAddress]/(erc4337AccountFactory)/observations',
+				{
+					network: String(params.network),
+					address: String(params.address),
+				}
+			)
 		}
 		title='Account factory observations'
-		selection={select(EntityType.Erc4337AccountFactory, data.selector).$$timestamps}
-		countResource={select(EntityType.Erc4337AccountFactory, data.selector).$$timestamps.count}
+		selection={collectionSelection}
+		countResource={collectionSelection.count}
 		id='timestamps'
 		data-column-item="flexible"
 		data-card

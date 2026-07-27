@@ -6,8 +6,6 @@ import {
 	EntityMetaKey,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import { StarknetContractSelector } from '$/schema/StarknetContract.ts'
-import { sourceProviderDefinitions } from '$/sources/$sourceProviders.ts'
 import { Source } from '$/sources/Source.ts'
 
 const { getAddressTransactions } = vi.hoisted(() => ({
@@ -26,12 +24,6 @@ const transactionsResolver = starkscanResolvers.resolvers.find((resolver) => (
 if (transactionsResolver == null)
 	throw new Error('Starkscan-Rest spec missing contract transactions resolver')
 
-const binding = sourceProviderDefinitions
-	.flatMap((provider) => provider.bindings)
-	.find((candidate) => candidate.source === Source.Starkscan_Rest)
-
-if (binding == null)
-	throw new Error('Starkscan-Rest spec missing source binding')
 
 const contract = {
 	$network: {
@@ -103,7 +95,7 @@ describe('Starkscan contract transaction resolver', () => {
 
 	it('declares Starknet mainnet applicability and exact source authority', () => {
 		expect(transactionsResolver.resolve[
-			StarknetContractSelector.NetworkAddress
+			'NetworkAddress'
 		].appliesTo).toEqual([
 			{
 				$network: {
@@ -130,7 +122,7 @@ describe('Starkscan contract transaction resolver', () => {
 		})
 
 		const page = await transactionsResolver.resolve[
-			StarknetContractSelector.NetworkAddress
+			'NetworkAddress'
 		].resolve(contract, resolverContext)
 		const projection = transactionsResolver.projections.$$transactions
 		if (typeof projection === 'function')
@@ -138,7 +130,6 @@ describe('Starkscan contract transaction resolver', () => {
 		const projected = projection.select(page, contract, resolverContext)
 
 		expect(getAddressTransactions).toHaveBeenCalledWith(
-			binding,
 			{
 				address: '0x1',
 				limit: 2,
@@ -197,7 +188,7 @@ describe('Starkscan contract transaction resolver', () => {
 			nextCursor: null,
 		})
 		const page = await transactionsResolver.resolve[
-			StarknetContractSelector.NetworkAddress
+			'NetworkAddress'
 		].resolve(contract, {
 			...resolverContext,
 			pagination: {
@@ -215,7 +206,7 @@ describe('Starkscan contract transaction resolver', () => {
 		})
 
 		await expect(transactionsResolver.resolve[
-			StarknetContractSelector.NetworkAddress
+			'NetworkAddress'
 		].resolve({
 			...contract,
 			$network: {

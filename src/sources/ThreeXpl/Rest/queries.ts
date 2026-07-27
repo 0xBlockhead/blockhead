@@ -36,7 +36,7 @@ export const fetchChainStats = async ({
 	mode?: 'greedy' | 'non-greedy' | 'default'
 	library?: string
 	options?: ThreeXplClientOptions
-} = {}): Promise<ThreeXplApiResponse<ThreeXplGeneralInfoData>> => (
+}): Promise<ThreeXplApiResponse<ThreeXplGeneralInfoData>> => (
 	threeXplGetJson<ThreeXplApiResponse<ThreeXplGeneralInfoData>>({
 		searchParams: {
 			from,

@@ -1,9 +1,9 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
-import { sourceProviderDefinitions } from '$/sources/$sourceProviders.ts'
-import { getJson } from '$/sources/Blockscout/Rest/client.ts'
-import { ApiFamily, SourceDelivery, SourceEndpointKind } from '$/sources/SourceBinding.ts'
+import bindings from '$/sources/Blockscout/bindings.ts'
+import { getBlockscoutJson } from '$/sources/Blockscout/Rest/client.ts'
 import { Source } from '$/sources/Source.ts'
+import { SourceDelivery } from '$/sources/SourceBinding.ts'
 
 describe('Blockscout REST client delivery', () => {
 	afterEach(() => {
@@ -18,21 +18,13 @@ describe('Blockscout REST client delivery', () => {
 		}))
 		vi.stubGlobal('fetch', fetchMock)
 		vi.stubGlobal('window', {})
-		const binding = sourceProviderDefinitions
-			.flatMap((provider) => provider.bindings)
-			.find((candidate) => (
-				candidate.source === Source.Blockscout_Rest
-				&& candidate.apiFamily === ApiFamily.BlockscoutRestV2
-				&& candidate.endpoints.some((endpoint) => (
-					endpoint.endpointKind === SourceEndpointKind.HttpUrl
-					&& endpoint.origin === 'https://eth.blockscout.com'
-				))
-			))
-		if (binding == null || binding.proxyId == null)
+		const binding = bindings[Source.Blockscout_Rest]
+			.find((candidate) => candidate.target.key === '1')
+		if (binding == null)
 			throw new Error('Ethereum Blockscout REST-v2 proxy binding is not registered')
 
-		await expect(getJson({
-			explorerOrigin: 'https://eth.blockscout.com',
+		await expect(getBlockscoutJson({
+			binding,
 			path: '/transactions/0x1234/logs',
 		})).resolves.toEqual({ items: [] })
 

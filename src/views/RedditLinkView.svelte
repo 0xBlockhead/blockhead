@@ -2,14 +2,10 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -26,38 +22,21 @@
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.RedditLink>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.RedditLink>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.RedditLink> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const redditLink = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {
-			title: true,
-			createdAt: true,
-		},
-	} : {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const viewSelection = $derived(selection({
+		sources: selection.sources ?? [
+			Source.Reddit_PublicJson,
+		],
+	}))
+	const redditLink = $derived(viewSelection({
 		fields: {
 			title: true,
 			createdAt: true,
 		},
 	}))
-	const titleFallback = $derived([String((pendingEntity.title) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.fullname) ?? '')].filter(Boolean).join(' ') || 'Reddit submission')
-	const viewDomId = $derived('reddit-link-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const titleFallback = $derived((pendingEntity.title ?? '') || (pendingEntity.fullname ?? '') || 'Reddit submission')
 
 
 	// Components
@@ -72,18 +51,14 @@
 
 <EntityView
 	entityType={EntityType.RedditLink}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
 	href={
-		href ?? (
-			selection.entitySelector != null && 'fullname' in selection.entitySelector
-			&& selection.entitySelector.fullname != null ?
-				resolve('/reddit/link/[fullname=stringSegment]', {
-			fullname: encodeURIComponent(String(selection.entitySelector.fullname ?? '')),
-		})
-		:
-				undefined
+		href ?? resolve(
+			'/(social)/(reddit)/reddit/(globalRedditNetwork)/link/[fullname=stringSegment]',
+			{
+				fullname: encodeURIComponent(String(selection.entitySelector.fullname)),
+			}
 		)
 	}
 	{layout}
@@ -91,39 +66,24 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'title') && Object.hasOwn(prefetched, 'createdAt')}
-			{[String((pendingEntity.title) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-		{:else}
-			<ResourceBoundary resource={redditLink}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.title) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={redditLink}>
+			{#snippet children(entity)}
+				{(entity.title ?? '') || title || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'title') && Object.hasOwn(prefetched, 'createdAt')}
-			{@const createdAt0 = pendingEntity.createdAt}
-			{#if createdAt0 !== undefined && createdAt0 !== null}
-				<span data-text="muted">
-					<Timestamp timestamp={Number(createdAt0)} />
-				</span>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={redditLink}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const createdAt0 = resolvedEntity.createdAt}
-					{#if createdAt0 !== undefined && createdAt0 !== null}
-						<span data-text="muted">
-							<Timestamp timestamp={Number(createdAt0)} />
-						</span>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={redditLink}>
+			{#snippet children(entity)}
+				{@const createdAt0 = entity.createdAt}
+				{#if createdAt0 != null}
+					<span data-text="muted">
+						<Timestamp timestamp={Number(createdAt0)} />
+					</span>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -131,45 +91,20 @@
 			<div>
 				<dt>Submission ID</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									fullname: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const fullname = resolvedEntity.fullname}
-							{#if fullname !== undefined && fullname !== null}
-								<TruncatedValue value={String((fullname) ?? '')} />
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					<TruncatedValue value={pendingEntity.fullname} />
 				</dd>
 			</div>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							title: true,
-						},
-					})
-				}
+				resource={redditLink}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const title = resolvedEntity.title}
-					{#if title !== undefined && title !== null}
+					{@const title = entity.title}
+					{#if title != null}
 						<div>
 							<dt>Title</dt>
 							<dd>
-								{String((title) ?? '')}
+								{title}
 							</dd>
 						</div>
 					{/if}
@@ -179,8 +114,7 @@
 			{#if contentOpen}
 				<ResourceBoundary
 					resource={
-						selection({
-							sources: selection.sources,
+						viewSelection({
 							fields: {
 								selftext: true,
 							},
@@ -188,13 +122,12 @@
 					}
 				>
 					{#snippet children(entity)}
-						{@const resolvedEntity = { ...pendingEntity, ...entity }}
-						{@const selftext = resolvedEntity.selftext}
-						{#if selftext !== undefined && selftext !== null}
+						{@const selftext = entity.selftext}
+						{#if selftext != null}
 							<div>
 								<dt>Body</dt>
 								<dd>
-									<span data-text="long-text">{String((selftext) ?? '')}</span>
+									<span data-text="long-text">{selftext}</span>
 								</dd>
 							</div>
 						{/if}
@@ -205,8 +138,7 @@
 			{#if contentOpen}
 				<ResourceBoundary
 					resource={
-						selection({
-							sources: selection.sources,
+						viewSelection({
 							fields: {
 								author: true,
 							},
@@ -214,13 +146,12 @@
 					}
 				>
 					{#snippet children(entity)}
-						{@const resolvedEntity = { ...pendingEntity, ...entity }}
-						{@const author = resolvedEntity.author}
-						{#if author !== undefined && author !== null}
+						{@const author = entity.author}
+						{#if author != null}
 							<div>
 								<dt>Author</dt>
 								<dd>
-									{String((author) ?? '')}
+									{author}
 								</dd>
 							</div>
 						{/if}
@@ -230,19 +161,11 @@
 
 			{#if contentOpen}
 				<ResourceBoundary
-					resource={
-						selection({
-							sources: selection.sources,
-							fields: {
-								createdAt: true,
-							},
-						})
-					}
+					resource={redditLink}
 				>
 					{#snippet children(entity)}
-						{@const resolvedEntity = { ...pendingEntity, ...entity }}
-						{@const createdAt = resolvedEntity.createdAt}
-						{#if createdAt !== undefined && createdAt !== null}
+						{@const createdAt = entity.createdAt}
+						{#if createdAt != null}
 							<div>
 								<dt>Created</dt>
 								<dd>
@@ -259,24 +182,13 @@
 					resource={selection.$subreddit}
 				>
 					{#snippet children(redditSubreddit)}
-						{#if redditSubreddit != null && redditSubreddit[EntityMetaKey.Selector] != null}
+						{#if redditSubreddit != null}
 							<div>
 								<dt>Subreddit</dt>
 								<dd>
 									<RedditSubredditView
 										selection={select(EntityType.RedditSubreddit, redditSubreddit[EntityMetaKey.Selector])}
 										prefetched={redditSubreddit}
-										href={
-											(
-												redditSubreddit[EntityMetaKey.Selector] != null && 'name' in redditSubreddit[EntityMetaKey.Selector]
-												&& redditSubreddit[EntityMetaKey.Selector].name != null ?
-													resolve('/reddit/r/[name=stringSegment]', {
-												name: encodeURIComponent(String(redditSubreddit[EntityMetaKey.Selector].name ?? '')),
-											})
-											:
-													undefined
-											)
-										}
 										layout={EntityLayout.Value}
 										open={false}
 									/>
@@ -290,8 +202,7 @@
 			{#if contentOpen}
 				<ResourceBoundary
 					resource={
-						selection({
-							sources: selection.sources,
+						viewSelection({
 							fields: {
 								url: true,
 							},
@@ -299,20 +210,18 @@
 					}
 				>
 					{#snippet children(entity)}
-						{@const resolvedEntity = { ...pendingEntity, ...entity }}
-						{@const url = resolvedEntity.url}
-						{#if url !== undefined && url !== null}
+						{@const url = entity.url}
+						{#if url != null}
 							<div>
 								<dt>URL</dt>
 								<dd>
-									<svelte:element
-										this={'a'}
+									<a
 										href={String(url)}
 										target="_blank"
 										rel="noreferrer noopener"
 									>
 										<TruncatedValue value={String(url)} />
-									</svelte:element>
+									</a>
 								</dd>
 							</div>
 						{/if}
@@ -323,8 +232,7 @@
 			{#if contentOpen}
 				<ResourceBoundary
 					resource={
-						selection({
-							sources: selection.sources,
+						viewSelection({
 							fields: {
 								permalink: true,
 							},
@@ -332,20 +240,18 @@
 					}
 				>
 					{#snippet children(entity)}
-						{@const resolvedEntity = { ...pendingEntity, ...entity }}
-						{@const permalink = resolvedEntity.permalink}
-						{#if permalink !== undefined && permalink !== null}
+						{@const permalink = entity.permalink}
+						{#if permalink != null}
 							<div>
 								<dt>Reddit permalink</dt>
 								<dd>
-									<svelte:element
-										this={'a'}
+									<a
 										href={String(permalink)}
 										target="_blank"
 										rel="noreferrer noopener"
 									>
 										<TruncatedValue value={String(permalink)} />
-									</svelte:element>
+									</a>
 								</dd>
 							</div>
 						{/if}
@@ -356,55 +262,51 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-				{@const redditLinkRedditCommentsViewCommentsResource = selection
-		.$$comments({
-			sources: [
-				Source.Reddit_PublicJson,
-			],
-		})}
-				<ResourceBoundary
-					resource={redditLinkRedditCommentsViewCommentsResource}
-				>
-					{#snippet children(entities)}
-						{#if entities.values.length > 0}
-						<RedditCommentsView
-							selection={redditLinkRedditCommentsViewCommentsResource}
-							countResource={redditLinkRedditCommentsViewCommentsResource.count}
-							title='Comments'
-							href={
-									(selection.entitySelector != null && 'fullname' in selection.entitySelector && selection.entitySelector.fullname != null ? resolve('/reddit/link/[fullname=stringSegment]/comments', {
-										fullname: encodeURIComponent(String(selection.entitySelector.fullname ?? '')),
-									}) : undefined)
+		{@const redditLinkRedditCommentsViewCommentsResource = selection.$$comments}
+		<ResourceBoundary
+			resource={redditLinkRedditCommentsViewCommentsResource}
+		>
+			{#snippet children(entities)}
+				{#if entities.values.length > 0}
+					<RedditCommentsView
+						selection={redditLinkRedditCommentsViewCommentsResource}
+						countResource={redditLinkRedditCommentsViewCommentsResource.count}
+						title='Comments'
+						href={
+							resolve(
+								'/(social)/(reddit)/reddit/(globalRedditNetwork)/link/[fullname=stringSegment]/(redditLink)/comments',
+								{
+									fullname: encodeURIComponent(String(selection.entitySelector.fullname)),
 								}
-							id='RedditCommentsView-comments'
-						/>
-						{/if}
-					{/snippet}
-				</ResourceBoundary>
-				{@const redditLinkRedditLinkTimestampsViewTimestampsResource = selection
-		.$$timestamps({
-			sources: [
-				Source.Reddit_PublicJson,
-			],
-		})}
-				<ResourceBoundary
-					resource={redditLinkRedditLinkTimestampsViewTimestampsResource}
-				>
-					{#snippet children(entities)}
-						{#if entities.values.length > 0}
-						<RedditLink_TimestampsView
-							selection={redditLinkRedditLinkTimestampsViewTimestampsResource}
-							countResource={redditLinkRedditLinkTimestampsViewTimestampsResource.count}
-							title='Observations'
-							href={
-									(selection.entitySelector != null && 'fullname' in selection.entitySelector && selection.entitySelector.fullname != null ? resolve('/reddit/link/[fullname=stringSegment]/observations', {
-										fullname: encodeURIComponent(String(selection.entitySelector.fullname ?? '')),
-									}) : undefined)
+							)
+						}
+						id='comments'
+					/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
+		{@const redditLinkRedditLinkTimestampsViewTimestampsResource = selection.$$timestamps}
+		<ResourceBoundary
+			resource={redditLinkRedditLinkTimestampsViewTimestampsResource}
+		>
+			{#snippet children(entities)}
+				{#if entities.values.length > 0}
+					<RedditLink_TimestampsView
+						selection={redditLinkRedditLinkTimestampsViewTimestampsResource}
+						countResource={redditLinkRedditLinkTimestampsViewTimestampsResource.count}
+						title='Observations'
+						href={
+							resolve(
+								'/(social)/(reddit)/reddit/(globalRedditNetwork)/link/[fullname=stringSegment]/(redditLink)/observations',
+								{
+									fullname: encodeURIComponent(String(selection.entitySelector.fullname)),
 								}
-							id='RedditLink_TimestampsView-timestamps'
-						/>
-						{/if}
-					{/snippet}
-				</ResourceBoundary>
+							)
+						}
+						id='timestamps'
+					/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 </EntityView>

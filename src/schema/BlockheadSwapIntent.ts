@@ -1,15 +1,12 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { entity, facet } from '$/schema/$schema.ts'
+import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { EvmAddress } from '$/schema/ZeroExHex.ts'
 import { type } from 'arktype'
 
-export enum BlockheadSwapIntentSelector {
-	SessionIdActionId = 'SessionIdActionId',
-}
-export const BlockheadSwapIntent = entity({
+export default entity({
 	entityType: EntityType.BlockheadSwapIntent,
 	labels: {
 		singular: 'blockhead swap intent',
@@ -61,13 +58,13 @@ export const BlockheadSwapIntent = entity({
 	tokenInAddress: {
 		label: 'token in address',
 		type: EntityFieldType.Primitive,
-		primitiveType: (EvmAddress),
+		primitiveType: EvmAddress,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	tokenOutAddress: {
 		label: 'token out address',
 		type: EntityFieldType.Primitive,
-		primitiveType: (EvmAddress),
+		primitiveType: EvmAddress,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$network: {

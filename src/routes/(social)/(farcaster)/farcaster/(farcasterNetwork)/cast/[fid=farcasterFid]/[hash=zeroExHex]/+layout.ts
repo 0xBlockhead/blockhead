@@ -5,7 +5,7 @@ import { error } from '@sveltejs/kit'
 import { match as matchFarcasterFid } from '$/params/farcasterFid.ts'
 import { match as matchZeroExHex } from '$/params/zeroExHex.ts'
 import { parseEntitySelector } from '$/schema/$schema.ts'
-import { FarcasterCast as FarcasterCastSchema } from '$/schema/FarcasterCast.ts'
+import FarcasterCastSchema from '$/schema/FarcasterCast.ts'
 import { schema } from '$/schema/index.ts'
 import { type as arktype } from 'arktype'
 

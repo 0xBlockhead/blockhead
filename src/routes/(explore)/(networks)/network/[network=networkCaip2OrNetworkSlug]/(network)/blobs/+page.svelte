@@ -3,12 +3,11 @@
 <script lang="ts">
 	// Types/constants
 	import type { PageProps } from './$types.ts'
+	import { resolve } from '$app/paths'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
@@ -17,11 +16,8 @@
 		data,
 		params,
 	}: PageProps = $props()
-
-
 	// Components
 	import Page from '$/components/Page.svelte'
-	import ProjectionBoundary from '$/components/ProjectionBoundary.svelte'
 	import EvmBlobsView from '$/views/EvmBlobsView.svelte'
 </script>
 
@@ -32,30 +28,20 @@
 
 
 <Page>
-	<ProjectionBoundary
-		resource={select(EntityType.Network, data.selector).Evm}
-	>
-		{#snippet Applicable(projection)}
-			<EvmBlobsView
-				href={
-					resolve('/network/[network=networkCaip2OrNetworkSlug]/blobs', {
-						network: params.network,
-					})
+	<EvmBlobsView
+		href={
+			resolve(
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/blobs',
+				{
+					network: String(params.network),
 				}
-				title='Blobs'
-				selection={
-					projection
-						.$$blobs({
-							sources: [
-								Source.Voltaire_JsonRpc,
-							],
-						})
-				}
-				id='account-evm-blob'
-				data-column-item="flexible"
-				data-card
-				data-scroll-container
-			/>
-		{/snippet}
-	</ProjectionBoundary>
+			)
+		}
+		title='Blobs'
+		selection={select(EntityType.Network, data.selector).Evm.$$blobs}
+		id='blobs'
+		data-column-item="flexible"
+		data-card
+		data-scroll-container
+	/>
 </Page>

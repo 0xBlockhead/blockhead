@@ -4,7 +4,7 @@ import type { LayoutLoad } from './$types'
 import { error } from '@sveltejs/kit'
 import { match as matchAbsoluteUrl } from '$/params/absoluteUrl.ts'
 import { parseEntitySelector } from '$/schema/$schema.ts'
-import { ActivityPubInstance as ActivityPubInstanceSchema } from '$/schema/ActivityPubInstance.ts'
+import ActivityPubInstanceSchema from '$/schema/ActivityPubInstance.ts'
 import { schema } from '$/schema/index.ts'
 import { type as arktype } from 'arktype'
 

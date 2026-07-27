@@ -2,15 +2,11 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
 	import { ZeroExHex } from '$/schema/ZeroExHex.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// State
@@ -22,31 +18,20 @@
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.EvmError>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.EvmError>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.EvmError> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const evmError = $derived(selection({
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const viewSelection = $derived(selection({
+		sources: selection.sources ?? [
+			Source.Openchain_Rest,
+		],
+	}))
+	const evmError = $derived(viewSelection({
 		fields: {
 			signatures: true,
 		},
 	}))
 	const titleFallback = 'EVM error'
-	const viewDomId = $derived('evm-error-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -58,18 +43,14 @@
 
 <EntityView
 	entityType={EntityType.EvmError}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
 	href={
-		href ?? (
-			selection.entitySelector != null && 'hex' in selection.entitySelector
-			&& selection.entitySelector.hex != null ?
-				resolve('/evm/error/[hex=zeroExHex]', {
-			hex: String(selection.entitySelector.hex ?? ''),
-		})
-		:
-				undefined
+		href ?? resolve(
+			'/(explore)/(protocols)/evm/(evmProtocol)/(errors)/error/[hex=zeroExHex]',
+			{
+				hex: String(selection.entitySelector.hex),
+			}
 		)
 	}
 	{layout}
@@ -102,24 +83,7 @@
 			<div>
 				<dt>Selector</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									hex: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const hex = resolvedEntity.hex}
-							{#if hex !== undefined && hex !== null}
-								<TruncatedValue value={String((hex) ?? '')} />
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					<TruncatedValue value={String(pendingEntity.hex)} />
 				</dd>
 			</div>
 
@@ -161,12 +125,12 @@
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
-				<EvmError_TimestampsView
-					selection={evmErrorEvmErrorTimestampsViewTimestampsResource}
-					countResource={evmErrorEvmErrorTimestampsViewTimestampsResource.count}
-					title='Observations'
-					id='EvmError_TimestampsView-timestamps'
-				/>
+					<EvmError_TimestampsView
+						selection={evmErrorEvmErrorTimestampsViewTimestampsResource}
+						countResource={evmErrorEvmErrorTimestampsViewTimestampsResource.count}
+						title='Observations'
+						id='timestamps'
+					/>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>

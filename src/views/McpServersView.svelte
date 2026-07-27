@@ -2,69 +2,33 @@
 
 <script lang="ts">
 	// Types/constants
-	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
-	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
-	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
+	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-
-
+	import { UrlString } from '$/schema/UrlString.ts'
 
 
 	// State
 	let {
 		selection,
-		countResource,
 		title = 'MCP servers',
-		typeAnnotationParagraphs = [],
-		placeholderText = undefined,
-		emptyText = undefined,
 		open = $bindable(true),
-		collapsible = true,
-		showTypeAnnotation = true,
-		id = 'McpServers-list',
 		...EntitiesListProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyEntitiesSelection<EntityType.McpServer>
-			countResource?: SvelteKitResource<number>
-			title?: string
-			typeAnnotationParagraphs?: string[]
-			placeholderText?: string
-			emptyText?: string
-			open?: boolean
-			collapsible?: boolean
-			showTypeAnnotation?: boolean
-			id?: string
-		},
-		EntitiesListForwardProps
-	> = $props()
+	}: EntityListViewProps<EntityType.McpServer> = $props()
 
 
 	// Components
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView from '$/components/EntityView.svelte'
 </script>
 
-
-{#snippet TypeAnnotationParagraphs()}
-	{#each typeAnnotationParagraphs as paragraph (paragraph)}
-		<p>{paragraph}</p>
-	{/each}
-{/snippet}
 
 <EntitiesList
 	{...EntitiesListProps}
 	entityType={EntityType.McpServer}
-	{id}
 	{title}
 	bind:open
-	{collapsible}
-	{showTypeAnnotation}
-	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
 	resource={
 		selection({
-			sources: selection.sources,
 			fields: {
 				serverKey: true,
 				transportKind: true,
@@ -72,38 +36,23 @@
 			},
 		})
 	}
-	{countResource}
-	getResourceItems={(mcpServers) => [...new Map(mcpServers.values.map((mcpServer) => [mcpServer[EntityMetaKey.SelectorKey], mcpServer])).values()]}
-	getKey={(mcpServer) => mcpServer[EntityMetaKey.SelectorKey]}
-	{placeholderText}
 >
-	{#snippet Empty()}
-		{#if emptyText != null}
-			<p data-text="muted">{emptyText}</p>
-		{:else}
-			<p data-text="muted">No Mcp servers yet.</p>
-		{/if}
-	{/snippet}
-
 	{#snippet Item({ item: mcpServer })}
-		{@const mcpServerFields = { ...mcpServer[EntityMetaKey.Selector], ...mcpServer }}
+		{@const mcpServerSelector = mcpServer[EntityMetaKey.Selector]}
 		<EntityView
 			entityType={EntityType.McpServer}
-			entitySelector={mcpServer[EntityMetaKey.Selector]}
-			layout={EntityLayout.Summary}
-			open={false}
-			showTypeAnnotation={false}
+			entitySelector={mcpServerSelector}
 		>
 			{#snippet Title()}
-				{[String((mcpServerFields.serverKey) ?? '')].filter(Boolean).join(' ') || 'mcp server'}
+				{mcpServerSelector.serverKey || 'mcp server'}
 			{/snippet}
 
 			{#snippet Value()}
-				{[String((mcpServerFields.transportKind) ?? '')].filter(Boolean).join(' ')}
+				{(mcpServer.transportKind ?? '')}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{[String((mcpServerFields.endpointUrl) ?? '')].filter(Boolean).join(' ')}</span>
+				<span data-text="annotation">{String(mcpServer.endpointUrl ?? '')}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

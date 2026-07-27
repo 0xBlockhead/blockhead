@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
-import { sourceProviderDefinitions } from '$/sources/$sourceProviders.ts'
+import bindings from '$/sources/Blockchair/bindings.ts'
+import blockchair from '$/sources/Blockchair/index.ts'
 import { indexSourceProviders } from '$/sources/$sources.ts'
 import { getBlockchairJson } from '$/sources/Blockchair/Rest/client.ts'
 import { Source } from '$/sources/Source.ts'
@@ -9,16 +10,7 @@ import {
 	SourceTargetKind,
 } from '$/sources/SourceBinding.ts'
 
-const binding = sourceProviderDefinitions
-	.flatMap((provider) => provider.bindings)
-	.find((candidate) => (
-		candidate.source === Source.Blockchair_Rest
-		&& candidate.target.kind === SourceTargetKind.Global
-		&& candidate.target.key === 'blockchair'
-	))
-
-if (binding == null || binding.proxyId == null)
-	throw new Error('Blockchair REST proxy binding is not registered')
+const binding = bindings[Source.Blockchair_Rest]
 
 describe('Blockchair REST client delivery', () => {
 	afterEach(() => {
@@ -55,8 +47,8 @@ describe('Blockchair REST client delivery', () => {
 	})
 
 	it('keeps the source disabled until its public credential is configured', () => {
-		expect(indexSourceProviders(sourceProviderDefinitions, {}).enabledSources.has(Source.Blockchair_Rest)).toBe(false)
-		expect(indexSourceProviders(sourceProviderDefinitions, {
+		expect(indexSourceProviders([blockchair], {}).enabledSources.has(Source.Blockchair_Rest)).toBe(false)
+		expect(indexSourceProviders([blockchair], {
 			PUBLIC_BLOCKCHAIR_API_KEY: 'configured',
 		}).enabledSources.has(Source.Blockchair_Rest)).toBe(true)
 	})

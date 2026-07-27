@@ -1,17 +1,6 @@
 import { CoinId } from '$/constants/Coin.ts'
 import { MarketVenueId } from '$/constants/MarketVenue.ts'
 
-export const origin = 'https://scanner.tradingview.com' as const
-
-export const baseUrl = origin
-
-export const tradingViewOrigins = [
-	{
-		origin,
-		corsEnabled: false,
-	},
-] as const
-
 export const tradingViewCryptoScannerPath = '/crypto/scan' as const
 
 export const marketVenueIdByTradingViewExchangeId: Partial<Record<string, MarketVenueId>> = {

@@ -2,69 +2,30 @@
 
 <script lang="ts">
 	// Types/constants
-	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
-	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
-	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
+	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-
-
 
 
 	// State
 	let {
 		selection,
-		countResource,
-		title = 'Bnb beacon network observations',
-		typeAnnotationParagraphs = [],
-		placeholderText = undefined,
-		emptyText = undefined,
 		open = $bindable(true),
-		collapsible = true,
-		showTypeAnnotation = true,
-		id = 'BnbBeaconNetwork_Timestamps-list',
 		...EntitiesListProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyEntitiesSelection<EntityType.BnbBeaconNetwork_Timestamp>
-			countResource?: SvelteKitResource<number>
-			title?: string
-			typeAnnotationParagraphs?: string[]
-			placeholderText?: string
-			emptyText?: string
-			open?: boolean
-			collapsible?: boolean
-			showTypeAnnotation?: boolean
-			id?: string
-		},
-		EntitiesListForwardProps
-	> = $props()
+	}: EntityListViewProps<EntityType.BnbBeaconNetwork_Timestamp> = $props()
 
 
 	// Components
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView from '$/components/EntityView.svelte'
 </script>
 
-
-{#snippet TypeAnnotationParagraphs()}
-	{#each typeAnnotationParagraphs as paragraph (paragraph)}
-		<p>{paragraph}</p>
-	{/each}
-{/snippet}
 
 <EntitiesList
 	{...EntitiesListProps}
 	entityType={EntityType.BnbBeaconNetwork_Timestamp}
-	{id}
-	{title}
 	bind:open
-	{collapsible}
-	{showTypeAnnotation}
-	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
 	resource={
 		selection({
-			sources: selection.sources,
 			fields: {
 				timestampMs: true,
 				latestArchivedHeight: true,
@@ -73,38 +34,23 @@
 			},
 		})
 	}
-	{countResource}
-	getResourceItems={(bnbBeaconNetworkTimestamps) => [...new Map(bnbBeaconNetworkTimestamps.values.map((bnbBeaconNetworkTimestamp) => [bnbBeaconNetworkTimestamp[EntityMetaKey.SelectorKey], bnbBeaconNetworkTimestamp])).values()]}
-	getKey={(bnbBeaconNetworkTimestamp) => bnbBeaconNetworkTimestamp[EntityMetaKey.SelectorKey]}
-	{placeholderText}
 >
-	{#snippet Empty()}
-		{#if emptyText != null}
-			<p data-text="muted">{emptyText}</p>
-		{:else}
-			<p data-text="muted">No Bnb beacon network observations yet.</p>
-		{/if}
-	{/snippet}
-
 	{#snippet Item({ item: bnbBeaconNetworkTimestamp })}
-		{@const bnbBeaconNetworkTimestampFields = { ...bnbBeaconNetworkTimestamp[EntityMetaKey.Selector], ...bnbBeaconNetworkTimestamp }}
+		{@const bnbBeaconNetworkTimestampSelector = bnbBeaconNetworkTimestamp[EntityMetaKey.Selector]}
 		<EntityView
 			entityType={EntityType.BnbBeaconNetwork_Timestamp}
-			entitySelector={bnbBeaconNetworkTimestamp[EntityMetaKey.Selector]}
-			layout={EntityLayout.Summary}
-			open={false}
-			showTypeAnnotation={false}
+			entitySelector={bnbBeaconNetworkTimestampSelector}
 		>
 			{#snippet Title()}
-				{[String((bnbBeaconNetworkTimestampFields.timestampMs) ?? '')].filter(Boolean).join(' ') || 'bnb beacon network timestamp'}
+				{String(bnbBeaconNetworkTimestampSelector.timestampMs) || 'bnb beacon network timestamp'}
 			{/snippet}
 
 			{#snippet Value()}
-				{[String((bnbBeaconNetworkTimestampFields.latestArchivedHeight) ?? ''), String((bnbBeaconNetworkTimestampFields.archiveCoverageStatus) ?? '')].filter(Boolean).join(' ')}
+				{[String(bnbBeaconNetworkTimestamp.latestArchivedHeight ?? ''), (bnbBeaconNetworkTimestamp.archiveCoverageStatus ?? '')].filter(Boolean).join(' ')}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{[String((bnbBeaconNetworkTimestampFields.source) ?? '')].filter(Boolean).join(' ')}</span>
+				<span data-text="annotation">{bnbBeaconNetworkTimestampSelector.source}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

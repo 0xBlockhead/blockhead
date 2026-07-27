@@ -2,12 +2,8 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { stringify } from 'devalue'
 	import { UrlString } from '$/schema/UrlString.ts'
@@ -23,28 +19,14 @@
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType._GlobalNostrNetwork>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType._GlobalNostrNetwork>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType._GlobalNostrNetwork> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const globalNostrNetwork = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {},
-	} : {
-		sources: selection.sources,
+	const viewSelection = $derived(selection({
+		sources: selection.sources ?? [
+			Source.Constants_Internal,
+		],
+	}))
+	const globalNostrNetwork = $derived(viewSelection({
 		fields: {
 			protocolName: true,
 			registryName: true,
@@ -53,8 +35,8 @@
 			relationshipModel: true,
 		},
 	}))
-	const titleFallback = $derived(['Nostr'].filter(Boolean).join(' ') || 'Nostr')
-	const viewDomId = $derived('-global-nostr-network-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const titleFallback = 'Nostr'
+	const viewDomId = $derived('-global-nostr-network-' + encodeURIComponent(stringify(selection.entitySelector)))
 
 
 	// Components
@@ -72,31 +54,16 @@
 
 <EntityView
 	entityType={EntityType._GlobalNostrNetwork}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
+	entitySelector={selection.entitySelector}
 	id={viewDomId}
 	title={title ?? titleFallback}
-	href={
-		href ?? (
-			selection.entitySelector.scope === '_GlobalNostrNetwork' ?
-				resolve('/nostr')
-		:
-				undefined
-		)
-	}
+	href={href ?? resolve('/(social)/(nostr)/nostr')}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails}
-			{['Nostr'].filter(Boolean).join(' ') || title || titleFallback}
-		{:else}
-			<ResourceBoundary resource={globalNostrNetwork}>
-				{#snippet children(entity)}
-					{['Nostr'].filter(Boolean).join(' ') || title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		Nostr
 	{/snippet}
 
 	{#snippet TypeAnnotationTooltip()}
@@ -108,23 +75,15 @@
 	{#snippet Content({ open: contentOpen })}
 		<dl data-column-item="center">
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							registryName: true,
-						},
-					})
-				}
+				resource={globalNostrNetwork}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const registryName = resolvedEntity.registryName}
-					{#if registryName !== undefined && registryName !== null}
+					{@const registryName = entity.registryName}
+					{#if registryName != null}
 						<div>
 							<dt>Registry name</dt>
 							<dd>
-								{String((registryName) ?? '')}
+								{registryName}
 							</dd>
 						</div>
 					{/if}
@@ -132,23 +91,15 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							protocolName: true,
-						},
-					})
-				}
+				resource={globalNostrNetwork}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const protocolName = resolvedEntity.protocolName}
-					{#if protocolName !== undefined && protocolName !== null}
+					{@const protocolName = entity.protocolName}
+					{#if protocolName != null}
 						<div>
 							<dt>Protocol</dt>
 							<dd>
-								{String((protocolName) ?? '')}
+								{protocolName}
 							</dd>
 						</div>
 					{/if}
@@ -157,30 +108,21 @@
 
 			{#if contentOpen}
 				<ResourceBoundary
-					resource={
-						selection({
-							sources: selection.sources,
-							fields: {
-								homeUrl: true,
-							},
-						})
-					}
+					resource={globalNostrNetwork}
 				>
 					{#snippet children(entity)}
-						{@const resolvedEntity = { ...pendingEntity, ...entity }}
-						{@const homeUrl = resolvedEntity.homeUrl}
-						{#if homeUrl !== undefined && homeUrl !== null}
+						{@const homeUrl = entity.homeUrl}
+						{#if homeUrl != null}
 							<div>
 								<dt>Home</dt>
 								<dd>
-									<svelte:element
-										this={'a'}
+									<a
 										href={String(homeUrl)}
 										target="_blank"
 										rel="noreferrer noopener"
 									>
 										<TruncatedValue value={String(homeUrl)} />
-									</svelte:element>
+									</a>
 								</dd>
 							</div>
 						{/if}
@@ -190,30 +132,21 @@
 
 			{#if contentOpen}
 				<ResourceBoundary
-					resource={
-						selection({
-							sources: selection.sources,
-							fields: {
-								docsUrl: true,
-							},
-						})
-					}
+					resource={globalNostrNetwork}
 				>
 					{#snippet children(entity)}
-						{@const resolvedEntity = { ...pendingEntity, ...entity }}
-						{@const docsUrl = resolvedEntity.docsUrl}
-						{#if docsUrl !== undefined && docsUrl !== null}
+						{@const docsUrl = entity.docsUrl}
+						{#if docsUrl != null}
 							<div>
 								<dt>NIPs</dt>
 								<dd>
-									<svelte:element
-										this={'a'}
+									<a
 										href={String(docsUrl)}
 										target="_blank"
 										rel="noreferrer noopener"
 									>
 										<TruncatedValue value={String(docsUrl)} />
-									</svelte:element>
+									</a>
 								</dd>
 							</div>
 						{/if}
@@ -223,23 +156,15 @@
 
 			{#if contentOpen}
 				<ResourceBoundary
-					resource={
-						selection({
-							sources: selection.sources,
-							fields: {
-								relationshipModel: true,
-							},
-						})
-					}
+					resource={globalNostrNetwork}
 				>
 					{#snippet children(entity)}
-						{@const resolvedEntity = { ...pendingEntity, ...entity }}
-						{@const relationshipModel = resolvedEntity.relationshipModel}
-						{#if relationshipModel !== undefined && relationshipModel !== null}
+						{@const relationshipModel = entity.relationshipModel}
+						{#if relationshipModel != null}
 							<div>
 								<dt>Connection model</dt>
 								<dd>
-									<span data-text="long-text">{String((relationshipModel) ?? '')}</span>
+									<span data-text="long-text">{relationshipModel}</span>
 								</dd>
 							</div>
 						{/if}
@@ -250,476 +175,158 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-				<CollapsibleTabs
-					id={viewDomId + '-carousel-nostr-directory'}
-					sectionIdPrefix={viewDomId}
-					sections={
-						[
-							{
-								id: 'nostr-profiles',
-								label: 'Profiles',
-								ownsSection: true,
-							},
-							{
-								id: 'nostr-relays',
-								label: 'Relays',
-								ownsSection: true,
-							},
-						]
-					}
+		<CollapsibleTabs
+			id={viewDomId + '-carousel-nostr-directory'}
+			sectionIdPrefix={viewDomId}
+			sections={
+				[
+					{
+						id: 'nostr-profiles',
+						label: 'Profiles',
+					},
+					{
+						id: 'nostr-relays',
+						label: 'Relays',
+					},
+				]
+			}
+			data-card
+			class='network-view-collapsible-directory'
+		>
+			{#snippet Summary()}
+				<header data-row-item="flexible" data-row="wrap gap-4">
+					<HeadingComponent>Directory</HeadingComponent>
+				</header>
+			{/snippet}
+
+			{#snippet SectionNostrProfiles({ id, label, open })}
+				<NostrProfilesView
+					selection={selection.$$observedProfiles}
+					href={resolve('/(social)/(nostr)/nostr/(globalNostrNetwork)/profiles')}
+					CollapsibleProps={{ canToggle: false }}
+					collapsible={false}
+					data-column-item="flexible"
 					data-card
-					class='network-view-collapsible-directory'
-				>
-					{#snippet Summary()}
-						<header data-row-item="flexible" data-row="wrap gap-4">
-							<HeadingComponent>Directory</HeadingComponent>
-						</header>
-					{/snippet}
+					data-scroll-container
+					open={open}
+					title={label}
+					emptyText='No Nostr profiles in this observed.'
+					id={`${id}-list`}
+				/>
+			{/snippet}
 
-					{#snippet MarkerNostrProfiles(_context, Content)}
-						{@const nostrDirectoryNostrProfilesResource = selection
-		.$$observedProfiles({
-			sources: [
-				Source.NostrBand_Rest,
-			],
-		})}
-						<ResourceBoundary
-							resource={nostrDirectoryNostrProfilesResource}
-						>
-							{#snippet children(_resolved)}
-								{@render Content()}
-							{/snippet}
-
-							{#snippet PendingContent()}
-								{@render Content()}
-							{/snippet}
-
-							{#snippet FailedContent(_error, _retry)}
-								{@render Content()}
-							{/snippet}
-						</ResourceBoundary>
-					{/snippet}
-
-					{#snippet SectionNostrProfiles({ id, label, open, active })}
-						{@const nostrDirectoryNostrProfilesResource = selection
-		.$$observedProfiles({
-			sources: [
-				Source.NostrBand_Rest,
-			],
-		})}
-						<ResourceBoundary
-							resource={nostrDirectoryNostrProfilesResource}
-						>
-							{#snippet children(nostrProfile)}
-								<section
-									id={id}
-									aria-labelledby={`${id}:marker`}
-									data-scroll-marker-label={label}
-									data-column-item="flexible"
-									data-column
-									data-active={active}
-								>
-									<NostrProfilesView
-										selection={nostrDirectoryNostrProfilesResource}
-										href={resolve('/nostr/profiles')}
-										CollapsibleProps={{ canToggle: false }}
-										collapsible={false}
-										data-column-item="flexible"
-										data-card
-										data-scroll-container
-										open={open}
-										title={label}
-										emptyText='No Nostr profiles in this observed.'
-										id={`${id}-list`}
-									/>
-								</section>
-							{/snippet}
-
-							{#snippet Pending()}
-								<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
-									<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
-										<span data-tag data-text="muted" data-resource-state="pending" class="loading inline-placeholder" aria-busy="true" aria-label="Loading…">•••</span>
-									</article>
-								</section>
-							{/snippet}
-
-							{#snippet Failed(_error, _retry)}
-								<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
-									<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
-										<span data-tag data-resource-state="failed" class="inline-placeholder" aria-label="Failed to load">•••</span>
-									</article>
-								</section>
-							{/snippet}
-						</ResourceBoundary>
-					{/snippet}
-
-					{#snippet MarkerNostrRelays(_context, Content)}
-						{@const nostrDirectoryNostrRelaysResource = selection
-		.$$observedRelays({
-			sources: [
-				Source.Constants_Internal,
-				Source.NostrBand_Rest,
-			],
-		})}
-						<ResourceBoundary
-							resource={nostrDirectoryNostrRelaysResource}
-						>
-							{#snippet children(_resolved)}
-								{@render Content()}
-							{/snippet}
-
-							{#snippet PendingContent()}
-								{@render Content()}
-							{/snippet}
-
-							{#snippet FailedContent(_error, _retry)}
-								{@render Content()}
-							{/snippet}
-						</ResourceBoundary>
-					{/snippet}
-
-					{#snippet SectionNostrRelays({ id, label, open, active })}
-						{@const nostrDirectoryNostrRelaysResource = selection
-		.$$observedRelays({
-			sources: [
-				Source.Constants_Internal,
-				Source.NostrBand_Rest,
-			],
-		})}
-						<ResourceBoundary
-							resource={nostrDirectoryNostrRelaysResource}
-						>
-							{#snippet children(nostrRelay)}
-								<section
-									id={id}
-									aria-labelledby={`${id}:marker`}
-									data-scroll-marker-label={label}
-									data-column-item="flexible"
-									data-column
-									data-active={active}
-								>
-									<NostrRelaysView
-										selection={nostrDirectoryNostrRelaysResource}
-										href={resolve('/nostr/relays')}
-										CollapsibleProps={{ canToggle: false }}
-										collapsible={false}
-										data-column-item="flexible"
-										data-card
-										data-scroll-container
-										open={open}
-										title={label}
-										emptyText='No Nostr relays in this observed.'
-										id={`${id}-list`}
-									/>
-								</section>
-							{/snippet}
-
-							{#snippet Pending()}
-								<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
-									<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
-										<span data-tag data-text="muted" data-resource-state="pending" class="loading inline-placeholder" aria-busy="true" aria-label="Loading…">•••</span>
-									</article>
-								</section>
-							{/snippet}
-
-							{#snippet Failed(_error, _retry)}
-								<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
-									<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
-										<span data-tag data-resource-state="failed" class="inline-placeholder" aria-label="Failed to load">•••</span>
-									</article>
-								</section>
-							{/snippet}
-						</ResourceBoundary>
-					{/snippet}
-
-				</CollapsibleTabs>
-
-				<CollapsibleTabs
-					id={viewDomId + '-carousel-nostr-content'}
-					sectionIdPrefix={viewDomId}
-					sections={
-						[
-							{
-								id: 'nostr-notes',
-								label: 'Notes',
-								ownsSection: true,
-							},
-							{
-								id: 'nostr-articles',
-								label: 'Articles',
-								ownsSection: true,
-							},
-						]
-					}
+			{#snippet SectionNostrRelays({ id, label, open })}
+				<NostrRelaysView
+					selection={selection.$$observedRelays}
+					href={resolve('/(social)/(nostr)/nostr/(globalNostrNetwork)/relays')}
+					CollapsibleProps={{ canToggle: false }}
+					collapsible={false}
+					data-column-item="flexible"
 					data-card
-					class='network-view-collapsible-content'
-				>
-					{#snippet Summary()}
-						<header data-row-item="flexible" data-row="wrap gap-4">
-							<HeadingComponent>Notes and articles</HeadingComponent>
-						</header>
-					{/snippet}
+					data-scroll-container
+					open={open}
+					title={label}
+					emptyText='No Nostr relays in this observed.'
+					id={`${id}-list`}
+				/>
+			{/snippet}
 
-					{#snippet MarkerNostrNotes(_context, Content)}
-						{@const nostrContentNostrNotesResource = selection
-		.$$observedNotes({
-			sources: [
-				Source.Constants_Internal,
-				Source.NostrBand_Rest,
-			],
-		})}
-						<ResourceBoundary
-							resource={nostrContentNostrNotesResource}
-						>
-							{#snippet children(_resolved)}
-								{@render Content()}
-							{/snippet}
+		</CollapsibleTabs>
 
-							{#snippet PendingContent()}
-								{@render Content()}
-							{/snippet}
+		<CollapsibleTabs
+			id={viewDomId + '-carousel-nostr-content'}
+			sectionIdPrefix={viewDomId}
+			sections={
+				[
+					{
+						id: 'nostr-notes',
+						label: 'Notes',
+					},
+					{
+						id: 'nostr-articles',
+						label: 'Articles',
+					},
+				]
+			}
+			data-card
+			class='network-view-collapsible-content'
+		>
+			{#snippet Summary()}
+				<header data-row-item="flexible" data-row="wrap gap-4">
+					<HeadingComponent>Notes and articles</HeadingComponent>
+				</header>
+			{/snippet}
 
-							{#snippet FailedContent(_error, _retry)}
-								{@render Content()}
-							{/snippet}
-						</ResourceBoundary>
-					{/snippet}
-
-					{#snippet SectionNostrNotes({ id, label, open, active })}
-						{@const nostrContentNostrNotesResource = selection
-		.$$observedNotes({
-			sources: [
-				Source.Constants_Internal,
-				Source.NostrBand_Rest,
-			],
-		})}
-						<ResourceBoundary
-							resource={nostrContentNostrNotesResource}
-						>
-							{#snippet children(nostrNote)}
-								<section
-									id={id}
-									aria-labelledby={`${id}:marker`}
-									data-scroll-marker-label={label}
-									data-column-item="flexible"
-									data-column
-									data-active={active}
-								>
-									<NostrNotesView
-										selection={nostrContentNostrNotesResource}
-										href={resolve('/nostr/notes')}
-										CollapsibleProps={{ canToggle: false }}
-										collapsible={false}
-										data-column-item="flexible"
-										data-card
-										data-scroll-container
-										open={open}
-										title={label}
-										emptyText='No Nostr notes in this observed.'
-										id={`${id}-list`}
-									/>
-								</section>
-							{/snippet}
-
-							{#snippet Pending()}
-								<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
-									<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
-										<span data-tag data-text="muted" data-resource-state="pending" class="loading inline-placeholder" aria-busy="true" aria-label="Loading…">•••</span>
-									</article>
-								</section>
-							{/snippet}
-
-							{#snippet Failed(_error, _retry)}
-								<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
-									<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
-										<span data-tag data-resource-state="failed" class="inline-placeholder" aria-label="Failed to load">•••</span>
-									</article>
-								</section>
-							{/snippet}
-						</ResourceBoundary>
-					{/snippet}
-
-					{#snippet MarkerNostrArticles(_context, Content)}
-						{@const nostrContentNostrArticlesResource = selection
-		.$$observedArticles({
-			sources: [
-				Source.Constants_Internal,
-				Source.NostrBand_Rest,
-			],
-		})}
-						<ResourceBoundary
-							resource={nostrContentNostrArticlesResource}
-						>
-							{#snippet children(_resolved)}
-								{@render Content()}
-							{/snippet}
-
-							{#snippet PendingContent()}
-								{@render Content()}
-							{/snippet}
-
-							{#snippet FailedContent(_error, _retry)}
-								{@render Content()}
-							{/snippet}
-						</ResourceBoundary>
-					{/snippet}
-
-					{#snippet SectionNostrArticles({ id, label, open, active })}
-						{@const nostrContentNostrArticlesResource = selection
-		.$$observedArticles({
-			sources: [
-				Source.Constants_Internal,
-				Source.NostrBand_Rest,
-			],
-		})}
-						<ResourceBoundary
-							resource={nostrContentNostrArticlesResource}
-						>
-							{#snippet children(nostrArticle)}
-								<section
-									id={id}
-									aria-labelledby={`${id}:marker`}
-									data-scroll-marker-label={label}
-									data-column-item="flexible"
-									data-column
-									data-active={active}
-								>
-									<NostrArticlesView
-										selection={nostrContentNostrArticlesResource}
-										href={resolve('/nostr/articles')}
-										CollapsibleProps={{ canToggle: false }}
-										collapsible={false}
-										data-column-item="flexible"
-										data-card
-										data-scroll-container
-										open={open}
-										title={label}
-										emptyText='No Nostr articles in this observed.'
-										id={`${id}-list`}
-									/>
-								</section>
-							{/snippet}
-
-							{#snippet Pending()}
-								<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
-									<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
-										<span data-tag data-text="muted" data-resource-state="pending" class="loading inline-placeholder" aria-busy="true" aria-label="Loading…">•••</span>
-									</article>
-								</section>
-							{/snippet}
-
-							{#snippet Failed(_error, _retry)}
-								<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
-									<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
-										<span data-tag data-resource-state="failed" class="inline-placeholder" aria-label="Failed to load">•••</span>
-									</article>
-								</section>
-							{/snippet}
-						</ResourceBoundary>
-					{/snippet}
-
-				</CollapsibleTabs>
-
-				<CollapsibleTabs
-					id={viewDomId + '-carousel-nostr-engagement'}
-					sectionIdPrefix={viewDomId}
-					sections={
-						[
-							{
-								id: 'nostr-reposts',
-								label: 'Reposts',
-								ownsSection: true,
-							},
-						]
-					}
+			{#snippet SectionNostrNotes({ id, label, open })}
+				<NostrNotesView
+					selection={selection.$$observedNotes}
+					href={resolve('/(social)/(nostr)/nostr/(globalNostrNetwork)/notes')}
+					CollapsibleProps={{ canToggle: false }}
+					collapsible={false}
+					data-column-item="flexible"
 					data-card
-					class='network-view-collapsible-engagement'
-				>
-					{#snippet Summary()}
-						<header data-row-item="flexible" data-row="wrap gap-4">
-							<HeadingComponent>Engagement</HeadingComponent>
-						</header>
-					{/snippet}
+					data-scroll-container
+					open={open}
+					title={label}
+					emptyText='No Nostr notes in this observed.'
+					id={`${id}-list`}
+				/>
+			{/snippet}
 
-					{#snippet MarkerNostrReposts(_context, Content)}
-						{@const nostrEngagementNostrRepostsResource = selection
-		.$$observedReposts({
-			sources: [
-				Source.Constants_Internal,
-				Source.NostrBand_Rest,
-			],
-		})}
-						<ResourceBoundary
-							resource={nostrEngagementNostrRepostsResource}
-						>
-							{#snippet children(_resolved)}
-								{@render Content()}
-							{/snippet}
+			{#snippet SectionNostrArticles({ id, label, open })}
+				<NostrArticlesView
+					selection={selection.$$observedArticles}
+					href={resolve('/(social)/(nostr)/nostr/(globalNostrNetwork)/articles')}
+					CollapsibleProps={{ canToggle: false }}
+					collapsible={false}
+					data-column-item="flexible"
+					data-card
+					data-scroll-container
+					open={open}
+					title={label}
+					emptyText='No Nostr articles in this observed.'
+					id={`${id}-list`}
+				/>
+			{/snippet}
 
-							{#snippet PendingContent()}
-								{@render Content()}
-							{/snippet}
+		</CollapsibleTabs>
 
-							{#snippet FailedContent(_error, _retry)}
-								{@render Content()}
-							{/snippet}
-						</ResourceBoundary>
-					{/snippet}
+		<CollapsibleTabs
+			id={viewDomId + '-carousel-nostr-engagement'}
+			sectionIdPrefix={viewDomId}
+			sections={
+				[
+					{
+						id: 'nostr-reposts',
+						label: 'Reposts',
+					},
+				]
+			}
+			data-card
+			class='network-view-collapsible-engagement'
+		>
+			{#snippet Summary()}
+				<header data-row-item="flexible" data-row="wrap gap-4">
+					<HeadingComponent>Engagement</HeadingComponent>
+				</header>
+			{/snippet}
 
-					{#snippet SectionNostrReposts({ id, label, open, active })}
-						{@const nostrEngagementNostrRepostsResource = selection
-		.$$observedReposts({
-			sources: [
-				Source.Constants_Internal,
-				Source.NostrBand_Rest,
-			],
-		})}
-						<ResourceBoundary
-							resource={nostrEngagementNostrRepostsResource}
-						>
-							{#snippet children(nostrRepost)}
-								<section
-									id={id}
-									aria-labelledby={`${id}:marker`}
-									data-scroll-marker-label={label}
-									data-column-item="flexible"
-									data-column
-									data-active={active}
-								>
-									<NostrRepostsView
-										selection={nostrEngagementNostrRepostsResource}
-										href={resolve('/nostr/reposts')}
-										CollapsibleProps={{ canToggle: false }}
-										collapsible={false}
-										data-column-item="flexible"
-										data-card
-										data-scroll-container
-										open={open}
-										title={label}
-										emptyText='No Nostr reposts in this observed.'
-										id={`${id}-list`}
-									/>
-								</section>
-							{/snippet}
+			{#snippet SectionNostrReposts({ id, label, open })}
+				<NostrRepostsView
+					selection={selection.$$observedReposts}
+					href={resolve('/(social)/(nostr)/nostr/(globalNostrNetwork)/reposts')}
+					CollapsibleProps={{ canToggle: false }}
+					collapsible={false}
+					data-column-item="flexible"
+					data-card
+					data-scroll-container
+					open={open}
+					title={label}
+					emptyText='No Nostr reposts in this observed.'
+					id={`${id}-list`}
+				/>
+			{/snippet}
 
-							{#snippet Pending()}
-								<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
-									<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
-										<span data-tag data-text="muted" data-resource-state="pending" class="loading inline-placeholder" aria-busy="true" aria-label="Loading…">•••</span>
-									</article>
-								</section>
-							{/snippet}
-
-							{#snippet Failed(_error, _retry)}
-								<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
-									<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
-										<span data-tag data-resource-state="failed" class="inline-placeholder" aria-label="Failed to load">•••</span>
-									</article>
-								</section>
-							{/snippet}
-						</ResourceBoundary>
-					{/snippet}
-
-				</CollapsibleTabs>
+		</CollapsibleTabs>
 	{/snippet}
 </EntityView>

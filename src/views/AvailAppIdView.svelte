@@ -2,13 +2,8 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
 
 
 	// Context
@@ -20,40 +15,18 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.AvailAppId>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.AvailAppId>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.AvailAppId> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const availAppId = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {
-			label: true,
-		},
-	} : {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const availAppId = $derived(selection({
 		fields: {
 			label: true,
 		},
 	}))
-	const titleFallback = $derived([String((pendingEntity.label) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.appId) ?? '')].filter(Boolean).join(' ') || 'avail app ID')
-	const viewDomId = $derived('avail-app-id-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const titleFallback = $derived((pendingEntity.label ?? '') || String(pendingEntity.appId ?? '') || 'avail app ID')
 
 
 	// Components
@@ -67,48 +40,24 @@
 
 <EntityView
 	entityType={EntityType.AvailAppId}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'label')}
-			{[String((pendingEntity.label) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-		{:else}
-			<ResourceBoundary resource={availAppId}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.label) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={availAppId}>
+			{#snippet children(entity)}
+				{(entity.label ?? '') || title || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Value()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'label')}
-			{@const appId0 = pendingEntity.appId}
-			{#if appId0 !== undefined && appId0 !== null}
-				<NumberValue
-					value={appId0}
-				/>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={availAppId}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const appId0 = resolvedEntity.appId}
-					{#if appId0 !== undefined && appId0 !== null}
-						<NumberValue
-							value={appId0}
-						/>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<NumberValue
+			value={pendingEntity.appId}
+		/>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -127,47 +76,22 @@
 			<div>
 				<dt>app ID</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									appId: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const appId = resolvedEntity.appId}
-							{#if appId !== undefined && appId !== null}
-								<NumberValue
-									value={appId}
-								/>
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					<NumberValue
+						value={pendingEntity.appId}
+					/>
 				</dd>
 			</div>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							label: true,
-						},
-					})
-				}
+				resource={availAppId}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const label = resolvedEntity.label}
-					{#if label !== undefined && label !== null}
+					{@const label = entity.label}
+					{#if label != null}
 						<div>
 							<dt>Label</dt>
 							<dd>
-								{String((label) ?? '')}
+								{label}
 							</dd>
 						</div>
 					{/if}
@@ -183,12 +107,12 @@
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
-				<AvailAppId_TimestampsView
-					selection={availAppIdAvailAppIdTimestampsViewTimestampsResource}
-					countResource={availAppIdAvailAppIdTimestampsViewTimestampsResource.count}
-					title='timestamps'
-					id='AvailAppId_TimestampsView-timestamps'
-				/>
+					<AvailAppId_TimestampsView
+						selection={availAppIdAvailAppIdTimestampsViewTimestampsResource}
+						countResource={availAppIdAvailAppIdTimestampsViewTimestampsResource.count}
+						title='timestamps'
+						id='timestamps'
+					/>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>
@@ -198,12 +122,12 @@
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
-				<AvailDataSubmissionsView
-					selection={availAppIdAvailDataSubmissionsViewDataSubmissionsResource}
-					countResource={availAppIdAvailDataSubmissionsViewDataSubmissionsResource.count}
-					title='data submissions'
-					id='AvailDataSubmissionsView-data-submissions'
-				/>
+					<AvailDataSubmissionsView
+						selection={availAppIdAvailDataSubmissionsViewDataSubmissionsResource}
+						countResource={availAppIdAvailDataSubmissionsViewDataSubmissionsResource.count}
+						title='data submissions'
+						id='data-submissions'
+					/>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>

@@ -1,15 +1,12 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { entity, facet } from '$/schema/$schema.ts'
+import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { UrlString } from '$/schema/UrlString.ts'
 import { type } from 'arktype'
 
-export enum IpfsResourceSelector {
-	ResourceAddress = 'ResourceAddress',
-}
-export const IpfsResource = entity({
+export default entity({
 	entityType: EntityType.IpfsResource,
 	labels: {
 		singular: 'IPFS resource',
@@ -20,7 +17,7 @@ export const IpfsResource = entity({
 		label: 'Namespace',
 		description: 'The namespace that qualifies the identifier.',
 		type: EntityFieldType.Primitive,
-		primitiveType: (type('"ipfs" | "ipns"')),
+		primitiveType: type('"ipfs" | "ipns"'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	target: {
@@ -38,19 +35,19 @@ export const IpfsResource = entity({
 	canonicalUri: {
 		label: 'Canonical URI',
 		type: EntityFieldType.Primitive,
-		primitiveType: (UrlString),
+		primitiveType: UrlString,
 		cardinality: EntityFieldCardinality.One,
 	},
 	gatewayOrigin: {
 		label: 'Gateway origin',
 		type: EntityFieldType.Primitive,
-		primitiveType: (UrlString),
+		primitiveType: UrlString,
 		cardinality: EntityFieldCardinality.One,
 	},
 	gatewayUrl: {
 		label: 'Gateway URL',
 		type: EntityFieldType.Primitive,
-		primitiveType: (UrlString),
+		primitiveType: UrlString,
 		cardinality: EntityFieldCardinality.One,
 	},
 	fileName: {

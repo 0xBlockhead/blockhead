@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { sourceProviderDefinitions } from '$/sources/$sourceProviders.ts'
+import bindings from '$/sources/HuggingFace/bindings.ts'
 import { Source } from '$/sources/Source.ts'
 import {
 	listModels,
@@ -17,12 +17,7 @@ vi.mock('$/sources/_runtime/http.ts', async (importOriginal) => ({
 	sourceGetText,
 }))
 
-const binding = sourceProviderDefinitions
-	.flatMap((provider) => provider.bindings)
-	.find((candidate) => candidate.source === Source.HuggingFaceHub_Rest)
-
-if (binding == null)
-	throw new Error('Hugging Face test binding is missing')
+const binding = bindings[Source.HuggingFaceHub_Rest]
 
 describe('Hugging Face typed queries', () => {
 	beforeEach(() => {
@@ -40,7 +35,6 @@ describe('Hugging Face typed queries', () => {
 		})
 
 		await expect(listModels({
-			binding,
 			search: 'model',
 		})).resolves.toEqual([{
 			id: 'org/model',
@@ -60,7 +54,6 @@ describe('Hugging Face typed queries', () => {
 			}),
 		})
 		await retrieveModel({
-			binding,
 			repoId: 'org/model',
 			revision: 'abc123',
 			credential: 'token',
@@ -80,7 +73,6 @@ describe('Hugging Face typed queries', () => {
 		sourceGetText.mockResolvedValue('# Model card')
 
 		await expect(retrieveFileText({
-			binding,
 			repoId: 'org/model',
 			revision: 'abc123',
 			path: 'README.md',

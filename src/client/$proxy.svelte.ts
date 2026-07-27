@@ -250,6 +250,10 @@ type EntityReferencePathData = {
 	entities: readonly object[]
 }
 
+type EntityReferencePathResult =
+	| EntityReferencePathData
+	| ProjectionValue<object>
+
 type EntityReferencePathStep = {
 	entityType: EntityType<Schema>
 	facetPath: readonly string[]
@@ -687,16 +691,21 @@ const mergeSelection = <
 ): SubscribeSelection<_Schema, _EntityType, _FieldRow> => ({
 	...base,
 	...override,
-	fields: {
-		...base.fields,
-		...override?.fields,
-	},
+	...((
+		base.fields !== undefined
+		|| override?.fields !== undefined
+	) && {
+		fields: {
+			...base.fields,
+			...override?.fields,
+		},
+	}),
 })
 
 const selectionForField = (
 	selection: SubscribeSelection<Schema, EntityType<Schema>, object>,
 	facetPath: readonly string[],
-	fieldName: string,
+	fieldDefinition: EntityFieldDefinition,
 	override?: SubscribeSelection<Schema, EntityType<Schema>, object>
 ): SubscribeSelection<Schema, EntityType<Schema>, object> => {
 	let projectionSelection: object | undefined = selection
@@ -718,12 +727,15 @@ const selectionForField = (
 		:
 			Object.getOwnPropertyDescriptor(
 				Object.getOwnPropertyDescriptor(projectionSelection, 'fields')?.value ?? {},
-				fieldName
+				fieldDefinition.name
 			)?.value
 	)
 	return {
 		...selection,
 		fields: undefined,
+		...(fieldDefinition.defaultSources == null ? {} : {
+			sources: undefined,
+		}),
 		...(selectedField === undefined || selectedField === true ? {} : selectedField),
 	}
 }
@@ -889,11 +901,13 @@ const entityDataFieldValue = (
 	return fieldsValue
 }
 
-const projectionConditionResolution = (
+const projectionConditionResolution = <
+	_Value extends object,
+>(
 	data: EntityResourceData<Schema, EntityType<Schema>>,
 	conditionPlan: EntityFacetConditionPlan,
-	value: Record<PropertyKey, never>
-): ProjectionValue<Record<PropertyKey, never>> | undefined => {
+	value: _Value
+): ProjectionValue<_Value> | undefined => {
 	const dependencyValues = conditionPlan.dependencies.map((dependency) => (
 		entityDataFieldValue(data, dependency.fieldName, dependency.facetPath)
 	))
@@ -1298,7 +1312,7 @@ const createEntityProjectionProxy = (
 						selectionForField(
 							selection,
 							facetPath,
-							fieldName,
+							fieldDefinition,
 							fieldSelection
 						),
 						fieldDefinition
@@ -1357,7 +1371,7 @@ const createEntityProjectionProxy = (
 						selectionForField(
 							selection,
 							facetPath,
-							property
+							fieldDefinition
 						),
 						fieldDefinition
 					)
@@ -1438,6 +1452,8 @@ const createEntityReferencePathProxy = (
 ): object => {
 	const projectionResourceByStepAndSelector = new Map<string, SvelteKitResource<ProjectionValue<Record<PropertyKey, never>>>>()
 	const fieldResourceByStepAndSelector = new Map<string, SvelteKitResource<EntityFieldResourceData<Schema, EntityType<Schema>, EntityFieldName<Schema, EntityType<Schema>>>>>()
+	const terminalProjectionResourceBySelector = new Map<string, SvelteKitResource<ProjectionValue<object>>>()
+	let proxy: object
 	const referenceValues = (
 		fieldDefinition: EntityFieldDefinition,
 		fieldValue: EntityFieldResourceData<Schema, EntityType<Schema>, EntityFieldName<Schema, EntityType<Schema>>>
@@ -1461,9 +1477,82 @@ const createEntityReferencePathProxy = (
 		return typeof fieldValue === 'object' ? [fieldValue] : []
 	}
 
+	const terminalProjectionResource = (
+		reference: object
+	) => {
+		const selector = Object.getOwnPropertyDescriptor(reference, EntityMetaKey.Selector)?.value
+			?? Object.getOwnPropertyDescriptor(reference, 'entitySelector')?.value
+			?? reference
+		const selectorKey = entitySelectorKey(
+			context.schema,
+			context.entityDefinitionByType[targetEntityType],
+			selector
+		)
+		const resourceKey = `${steps.length}:${facetPath.join('.')}:${selectorKey}`
+		if (!terminalProjectionResourceBySelector.has(resourceKey))
+			terminalProjectionResourceBySelector.set(
+				resourceKey,
+				projectResource(
+					subscribeEntity(
+						context,
+						targetEntityType,
+						selector,
+						{
+							selectorSources: [],
+							fields: projectionDependencyFields(
+								context.projectionDefinitionByEntityTypeAndPath[
+									entityFieldAddressKey(targetEntityType, facetPath, '')
+								]?.transitiveDependencies ?? []
+							),
+						}
+					),
+					(data) => projectionConditionResolution(
+						data,
+						context.projectionDefinitionByEntityTypeAndPath[
+							entityFieldAddressKey(targetEntityType, facetPath, '')
+						]?.conditionPlan ?? {
+							dependencies: [],
+							predicates: [],
+						},
+						proxy
+					) ?? {
+						resolution: ProjectionResolution.Unsupported,
+					}
+				)
+			)
+
+		return terminalProjectionResourceBySelector.get(resourceKey)!
+	}
+
+	const terminalProjection = (
+		projections: readonly ProjectionValue<object>[]
+	): ProjectionValue<object> => {
+		if (projections.some((projection) => projection.resolution === ProjectionResolution.Applicable))
+			return {
+				resolution: ProjectionResolution.Applicable,
+				value: proxy,
+			}
+
+		const blocked = projections.filter((projection) => projection.resolution === ProjectionResolution.Blocked)
+		if (blocked.length > 0)
+			return {
+				resolution: ProjectionResolution.Blocked,
+				dependencies: blocked.flatMap((projection) => projection.dependencies),
+			}
+
+		if (projections.some((projection) => projection.resolution === ProjectionResolution.NotApplicable))
+			return {
+				resolution: ProjectionResolution.NotApplicable,
+			}
+
+		return {
+			resolution: ProjectionResolution.Unsupported,
+		}
+	}
+
 	const traverse = (
 		sourceData: EntityReferencePathData
-	): EntityReferencePathData | undefined => {
+	): EntityReferencePathResult | undefined => {
 		let references = [...sourceData.values]
 		for (const [
 			stepIndex,
@@ -1491,7 +1580,7 @@ const createEntityReferencePathProxy = (
 					context.entityDefinitionByType[step.entityType],
 					selector
 				)
-				const resourceKey = `${stepIndex}:${selectorKey}`
+				const resourceKey = `${stepIndex}:${selectorKey}:${step.selection?.sources?.join(',') ?? ''}`
 				if (step.facetPath.length > 0) {
 					if (!projectionResourceByStepAndSelector.has(resourceKey))
 						projectionResourceByStepAndSelector.set(
@@ -1572,107 +1661,12 @@ const createEntityReferencePathProxy = (
 			})).values()]
 		}
 
-		return {
-			values: references,
-			entities: references,
-		}
-	}
+		if (facetPath.length > 0) {
+			const projections = references.map((reference) => terminalProjectionResource(reference))
+			if (projections.some((projection) => !projection.ready))
+				return undefined
 
-	const traverseAsync = async () => {
-		let references = [...(await source).values]
-		for (const [
-			stepIndex,
-			step,
-		] of steps.entries()) {
-			const fieldDefinition = context.entityFieldDefinitionByEntityTypePathAndName[step.entityType][
-				entityFieldAddressKey(step.entityType, step.facetPath, step.fieldName)
-			]
-			if (fieldDefinition == null)
-				throw new Error(`${step.entityType}.${[...step.facetPath, step.fieldName].join('.')} does not exist`)
-			if (
-				fieldDefinition.type !== EntityFieldType.EntityReference
-				&& fieldDefinition.type !== EntityFieldType.EntitiesReference
-			)
-				throw new Error(`${step.entityType}.${[...step.facetPath, step.fieldName].join('.')} does not reference an entity`)
-			const referencedEntityType = fieldDefinition.entityType
-
-			const nextReferences = (await Promise.all(references.map(async (reference) => {
-				const selector = Object.getOwnPropertyDescriptor(reference, EntityMetaKey.Selector)?.value
-					?? Object.getOwnPropertyDescriptor(reference, 'entitySelector')?.value
-					?? reference
-				const selectorKey = entitySelectorKey(
-					context.schema,
-					context.entityDefinitionByType[step.entityType],
-					selector
-				)
-				const resourceKey = `${stepIndex}:${selectorKey}`
-				if (step.facetPath.length > 0) {
-					if (!projectionResourceByStepAndSelector.has(resourceKey))
-						projectionResourceByStepAndSelector.set(
-							resourceKey,
-							projectResource(
-								subscribeEntity(
-									context,
-									step.entityType,
-									selector,
-									{
-										selectorSources: [],
-										fields: projectionDependencyFields(
-											context.projectionDefinitionByEntityTypeAndPath[
-												entityFieldAddressKey(step.entityType, step.facetPath, '')
-											]?.transitiveDependencies ?? []
-										),
-									}
-								),
-								(data) => projectionConditionResolution(
-									data,
-									context.projectionDefinitionByEntityTypeAndPath[
-										entityFieldAddressKey(step.entityType, step.facetPath, '')
-									]?.conditionPlan ?? {
-										dependencies: [],
-										predicates: [],
-									},
-									{}
-								) ?? {
-									resolution: ProjectionResolution.Unsupported,
-								}
-							)
-						)
-
-					if ((await projectionResourceByStepAndSelector.get(resourceKey)!).resolution !== ProjectionResolution.Applicable)
-						return []
-				}
-				if (!fieldResourceByStepAndSelector.has(resourceKey))
-					fieldResourceByStepAndSelector.set(
-						resourceKey,
-						createEntityFieldProxy(
-							context,
-							step.entityType,
-							selector,
-							fieldDefinition.name,
-							step.selection ?? {},
-							fieldDefinition
-						)
-					)
-
-				return referenceValues(
-					fieldDefinition,
-					await fieldResourceByStepAndSelector.get(resourceKey)!
-				)
-			}))).flat()
-			references = [...new Map(nextReferences.map((reference) => {
-				const selector = Object.getOwnPropertyDescriptor(reference, EntityMetaKey.Selector)?.value
-					?? Object.getOwnPropertyDescriptor(reference, 'entitySelector')?.value
-					?? reference
-				return [
-					entitySelectorKey(
-						context.schema,
-						context.entityDefinitionByType[referencedEntityType],
-						selector
-					),
-					reference,
-				]
-			})).values()]
+			return terminalProjection(projections.map((projection) => projection.current!))
 		}
 
 		return {
@@ -1680,6 +1674,7 @@ const createEntityReferencePathProxy = (
 			entities: references,
 		}
 	}
+
 	const pathSnapshot = () => {
 		const sourceData = source.current
 		const data = sourceData === undefined ? undefined : traverse(sourceData)
@@ -1702,21 +1697,38 @@ const createEntityReferencePathProxy = (
 			error,
 		} as const
 	}
-	const pathResource = new TanStackLiveQueryResource(
+	const pathResource = new TanStackLiveQueryResource<EntityReferencePathResult>(
 		pathSnapshot,
 		(update) => {
 			if (typeof window === 'undefined')
 				return () => {}
 
-			return $effect.root(() => {
+			const unsubscribeEffect = $effect.root(() => {
 				$effect(() => {
 					pathSnapshot()
 					update()
 				})
 			})
+			return unsubscribeEffect
 		},
 		async () => {
-			pathResource.set(await traverseAsync())
+			await source
+			while (pathSnapshot().isLoading) {
+				const pendingResources = [
+					...projectionResourceByStepAndSelector.values(),
+					...fieldResourceByStepAndSelector.values(),
+					...terminalProjectionResourceBySelector.values(),
+				].filter((resource) => (
+					!resource.ready
+					&& resource.error === undefined
+				))
+				if (pendingResources.length === 0)
+					return
+
+				await Promise.all(pendingResources.map((resource) => (
+					resource.catch(() => undefined)
+				)))
+			}
 		}
 	)
 	const withTerminalSelection = (
@@ -1741,7 +1753,7 @@ const createEntityReferencePathProxy = (
 		facetPath
 	)
 
-	const proxy = new Proxy((
+	proxy = new Proxy((
 		selectionOverride?: SubscribeSelection<Schema, EntityType<Schema>, object>
 	) => withTerminalSelection(selectionOverride), {
 		apply(_target, _thisArgument, argumentsList) {
@@ -1894,7 +1906,7 @@ export function createEntityProxy(
 							selectionForField(
 								selection,
 								[],
-								fieldName,
+								fieldDefinition,
 								fieldSelection
 							),
 							fieldDefinition
@@ -1924,7 +1936,7 @@ export function createEntityProxy(
 								selectionForField(
 									selection,
 									[],
-									property
+									fieldDefinition
 								),
 								fieldDefinition
 							)

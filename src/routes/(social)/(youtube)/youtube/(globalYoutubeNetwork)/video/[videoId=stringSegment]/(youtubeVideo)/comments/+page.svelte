@@ -3,12 +3,11 @@
 <script lang="ts">
 	// Types/constants
 	import type { PageProps } from './$types.ts'
+	import { resolve } from '$app/paths'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
@@ -16,8 +15,6 @@
 	let {
 		params,
 	}: PageProps = $props()
-
-
 	// Components
 	import Page from '$/components/Page.svelte'
 	import YoutubeCommentsView from '$/views/YoutubeCommentsView.svelte'
@@ -30,35 +27,22 @@
 
 
 <Page>
+	{@const collectionSelection = select(EntityType.YoutubeVideo, {
+		videoId: decodeURIComponent(params.videoId),
+	}).$$comments}
+
 	<YoutubeCommentsView
 		href={
-			resolve('/youtube/video/[videoId=stringSegment]/comments', {
-				videoId: params.videoId,
-			})
+			resolve(
+				'/(social)/(youtube)/youtube/(globalYoutubeNetwork)/video/[videoId=stringSegment]/(youtubeVideo)/comments',
+				{
+					videoId: String(params.videoId),
+				}
+			)
 		}
 		title='Video comments'
-		selection={
-			select(EntityType.YoutubeVideo, {
-				videoId: decodeURIComponent(params.videoId),
-			})
-				.$$comments({
-					sources: [
-						Source.Youtube_Rest,
-						Source.Piped_Rest,
-					],
-				})
-		}
-		countResource={
-			select(EntityType.YoutubeVideo, {
-				videoId: decodeURIComponent(params.videoId),
-			})
-				.$$comments({
-					sources: [
-						Source.Youtube_Rest,
-						Source.Piped_Rest,
-					],
-				}).count
-		}
+		selection={collectionSelection}
+		countResource={collectionSelection.count}
 		id='comments'
 		data-column-item="flexible"
 		data-card

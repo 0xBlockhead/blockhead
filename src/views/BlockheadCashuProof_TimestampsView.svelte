@@ -2,69 +2,30 @@
 
 <script lang="ts">
 	// Types/constants
-	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
-	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
-	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
+	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-
-
 
 
 	// State
 	let {
 		selection,
-		countResource,
-		title = 'Blockhead Cashu proof observations',
-		typeAnnotationParagraphs = [],
-		placeholderText = undefined,
-		emptyText = undefined,
 		open = $bindable(true),
-		collapsible = true,
-		showTypeAnnotation = true,
-		id = 'BlockheadCashuProof_Timestamps-list',
 		...EntitiesListProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyEntitiesSelection<EntityType.BlockheadCashuProof_Timestamp>
-			countResource?: SvelteKitResource<number>
-			title?: string
-			typeAnnotationParagraphs?: string[]
-			placeholderText?: string
-			emptyText?: string
-			open?: boolean
-			collapsible?: boolean
-			showTypeAnnotation?: boolean
-			id?: string
-		},
-		EntitiesListForwardProps
-	> = $props()
+	}: EntityListViewProps<EntityType.BlockheadCashuProof_Timestamp> = $props()
 
 
 	// Components
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView from '$/components/EntityView.svelte'
 </script>
 
-
-{#snippet TypeAnnotationParagraphs()}
-	{#each typeAnnotationParagraphs as paragraph (paragraph)}
-		<p>{paragraph}</p>
-	{/each}
-{/snippet}
 
 <EntitiesList
 	{...EntitiesListProps}
 	entityType={EntityType.BlockheadCashuProof_Timestamp}
-	{id}
-	{title}
 	bind:open
-	{collapsible}
-	{showTypeAnnotation}
-	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
 	resource={
 		selection({
-			sources: selection.sources,
 			fields: {
 				timestampMs: true,
 				state: true,
@@ -72,38 +33,23 @@
 			},
 		})
 	}
-	{countResource}
-	getResourceItems={(blockheadCashuProofTimestamps) => [...new Map(blockheadCashuProofTimestamps.values.map((blockheadCashuProofTimestamp) => [blockheadCashuProofTimestamp[EntityMetaKey.SelectorKey], blockheadCashuProofTimestamp])).values()]}
-	getKey={(blockheadCashuProofTimestamp) => blockheadCashuProofTimestamp[EntityMetaKey.SelectorKey]}
-	{placeholderText}
 >
-	{#snippet Empty()}
-		{#if emptyText != null}
-			<p data-text="muted">{emptyText}</p>
-		{:else}
-			<p data-text="muted">No Blockhead Cashu proof observations yet.</p>
-		{/if}
-	{/snippet}
-
 	{#snippet Item({ item: blockheadCashuProofTimestamp })}
-		{@const blockheadCashuProofTimestampFields = { ...blockheadCashuProofTimestamp[EntityMetaKey.Selector], ...blockheadCashuProofTimestamp }}
+		{@const blockheadCashuProofTimestampSelector = blockheadCashuProofTimestamp[EntityMetaKey.Selector]}
 		<EntityView
 			entityType={EntityType.BlockheadCashuProof_Timestamp}
-			entitySelector={blockheadCashuProofTimestamp[EntityMetaKey.Selector]}
-			layout={EntityLayout.Summary}
-			open={false}
-			showTypeAnnotation={false}
+			entitySelector={blockheadCashuProofTimestampSelector}
 		>
 			{#snippet Title()}
-				{[String((blockheadCashuProofTimestampFields.timestampMs) ?? '')].filter(Boolean).join(' ') || 'blockhead Cashu proof timestamp'}
+				{String(blockheadCashuProofTimestampSelector.timestampMs) || 'blockhead Cashu proof timestamp'}
 			{/snippet}
 
 			{#snippet Value()}
-				{[String((blockheadCashuProofTimestampFields.state) ?? '')].filter(Boolean).join(' ')}
+				{blockheadCashuProofTimestamp.state}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{[String((blockheadCashuProofTimestampFields.source) ?? '')].filter(Boolean).join(' ')}</span>
+				<span data-text="annotation">{blockheadCashuProofTimestampSelector.source}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

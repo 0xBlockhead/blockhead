@@ -6,10 +6,7 @@ import { EntityType } from '$/schema/EntityType.ts'
 import { EvmTopicHash, ZeroExHex } from '$/schema/ZeroExHex.ts'
 import { type } from 'arktype'
 
-export enum EvmLogSelector {
-	TransactionIndexInTransaction = 'TransactionIndexInTransaction',
-}
-export const EvmLog = entity({
+export default entity({
 	entityType: EntityType.EvmLog,
 	labels: {
 		singular: 'EVM log',
@@ -20,7 +17,7 @@ export const EvmLog = entity({
 	indexInTransaction: {
 		label: 'Index in transaction',
 		type: EntityFieldType.Primitive,
-		primitiveType: (type('number.integer >= 0')),
+		primitiveType: type('number.integer >= 0'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	$transaction: {
@@ -44,13 +41,13 @@ export const EvmLog = entity({
 	topic0: {
 		label: 'Topic 0',
 		type: EntityFieldType.Primitive,
-		primitiveType: (EvmTopicHash),
+		primitiveType: EvmTopicHash,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	data: {
 		label: 'Data',
 		type: EntityFieldType.Primitive,
-		primitiveType: (ZeroExHex),
+		primitiveType: ZeroExHex,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	removed: {
@@ -87,7 +84,7 @@ export const EvmLog = entity({
 			signatureHash: {
 				label: 'Signature hash',
 				type: EntityFieldType.Primitive,
-				primitiveType: (EvmTopicHash),
+				primitiveType: EvmTopicHash,
 				cardinality: EntityFieldCardinality.One,
 			},
 		})({

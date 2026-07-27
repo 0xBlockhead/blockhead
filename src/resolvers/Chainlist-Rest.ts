@@ -7,7 +7,7 @@ import {
 } from '$/constants/ChainlistPairing.ts'
 import { type } from 'arktype'
 
-import { coinBySymbol } from '$/constants/Coin.ts'
+import { coins } from '$/constants/Coin.ts'
 import { ExecutionRpcProvider } from '$/constants/ExecutionRpcProvider.ts'
 import { NetworkEnvironment } from '$/constants/Network.ts'
 import { TransportType } from '$/constants/TransportType.ts'
@@ -30,12 +30,9 @@ import type {
 	ChainlistExplorerLike,
 	ChainlistChainPairing,
 } from '$/sources/Chainlist/Rest/types.ts'
-import { NetworkSelector } from '$/schema/Network.ts'
-import { EvmNetworkBridgeSelector } from '$/schema/EvmNetworkBridge.ts'
-import { _GlobalSelector } from '$/schema/_Global.ts'
 
-type EvmNetworkId = EntitySelectorForSelectorName<typeof schema, EntityType.Network, NetworkSelector.Caip2>
-type NetworkId = EntitySelectorForSelectorName<typeof schema, EntityType.Network, NetworkSelector.Caip2>
+type EvmNetworkId = EntitySelectorForSelectorName<typeof schema, EntityType.Network, 'Caip2'>
+type NetworkId = EntitySelectorForSelectorName<typeof schema, EntityType.Network, 'Caip2'>
 
 const evmNetworkIdFromChainId = (chainId: number): EvmNetworkId => ({
 	caip2: {
@@ -257,7 +254,7 @@ export default {
 		defineResolver(Source.Chainlist_Rest, {
 			entityType: EntityType.EvmNetworkBridge,
 			resolve: {
-				[EvmNetworkBridgeSelector.FromToUrl]: {
+				FromToUrl: {
 					resolve: async (entitySelector) => {
 						const { fetchRpcsJson } = await import('$/sources/Chainlist/Rest/queries.ts')
 						const chain = (await fetchRpcsJson()).find((listedChain) => (
@@ -307,7 +304,7 @@ export default {
 		defineResolver(Source.Chainlist_Rest, {
 			entityType: EntityType.Network,
 			resolve: {
-				[NetworkSelector.Caip2]: {
+				Caip2: {
 					resolve: async (entitySelector) => {
 						const { fetchRpcsJson } = await import('$/sources/Chainlist/Rest/queries.ts')
 						const chains = await fetchRpcsJson()
@@ -328,7 +325,7 @@ export default {
 						const icon = resolveMediaUrlTransport(
 							chain.icons?.find((icon) => String(icon.url).length > 0)?.url ?? chain.icon
 							)?.url
-						const nativeCoin = coinBySymbol[nativeSymbol.toUpperCase()]
+						const nativeCoin = coins.find(({ symbol }) => symbol === nativeSymbol.toUpperCase())
 						const nativeCoinInstanceId = {
 							$network: entitySelector,
 							type: CoinInstanceType.NativeCurrency,
@@ -401,7 +398,7 @@ export default {
 		defineResolver(Source.Chainlist_Rest, {
 			entityType: EntityType._Global,
 			resolve: {
-				[_GlobalSelector.Scope]: {
+				Scope: {
 					resolve: async (_entitySelector) => {
 						const { fetchRpcsJson } = await import('$/sources/Chainlist/Rest/queries.ts')
 						return (await fetchRpcsJson())
@@ -418,7 +415,7 @@ export default {
 		defineResolver(Source.Chainlist_Rest, {
 			entityType: EntityType.Network,
 			resolve: {
-				[NetworkSelector.Caip2]: {
+				Caip2: {
 					resolve: async ({ caip2 }) => {
 						const { fetchRpcsJson } = await import('$/sources/Chainlist/Rest/queries.ts')
 						const chain = (await fetchRpcsJson()).find((listedChain) => listedChain.chainId === Number(caip2.reference))
@@ -453,7 +450,7 @@ export default {
 		defineResolver(Source.Chainlist_Rest, {
 			entityType: EntityType.Network,
 			resolve: {
-				[NetworkSelector.Caip2]: {
+				Caip2: {
 					resolve: async ({ caip2 }) => {
 						const { fetchRpcsJson } = await import('$/sources/Chainlist/Rest/queries.ts')
 						const chains = await fetchRpcsJson()
@@ -479,7 +476,7 @@ export default {
 		defineResolver(Source.Chainlist_Rest, {
 			entityType: EntityType.Network,
 			resolve: {
-				[NetworkSelector.Caip2]: {
+				Caip2: {
 					resolve: async ({ caip2 }) => {
 						const { fetchRpcsJson } = await import('$/sources/Chainlist/Rest/queries.ts')
 						const chains = await fetchRpcsJson()
@@ -516,7 +513,7 @@ export default {
 		defineResolver(Source.Chainlist_Rest, {
 			entityType: EntityType.Network,
 			resolve: {
-				[NetworkSelector.Caip2]: {
+				Caip2: {
 					resolve: async ({ caip2 }) => {
 						const { fetchRpcsJson } = await import('$/sources/Chainlist/Rest/queries.ts')
 						const chains = await fetchRpcsJson()
@@ -561,7 +558,7 @@ export default {
 		defineResolver(Source.Chainlist_Rest, {
 			entityType: EntityType.Network,
 			resolve: {
-				[NetworkSelector.Caip2]: {
+				Caip2: {
 					resolve: async ({ caip2 }) => {
 						const { fetchRpcsJson } = await import('$/sources/Chainlist/Rest/queries.ts')
 						const chains = await fetchRpcsJson()
@@ -599,7 +596,7 @@ export default {
 		defineResolver(Source.Chainlist_Rest, {
 			entityType: EntityType.Network,
 			resolve: {
-				[NetworkSelector.Caip2]: {
+				Caip2: {
 					resolve: async ({ caip2 }) => {
 						const { fetchRpcsJson } = await import('$/sources/Chainlist/Rest/queries.ts')
 						const chain = (await fetchRpcsJson()).find((listedChain) => listedChain.chainId === Number(caip2.reference))
@@ -620,7 +617,7 @@ export default {
 		defineResolver(Source.Chainlist_Rest, {
 			entityType: EntityType.Network,
 			resolve: {
-				[NetworkSelector.Caip2]: {
+				Caip2: {
 					resolve: async ({ caip2 }) => {
 						const { fetchRpcsJson } = await import('$/sources/Chainlist/Rest/queries.ts')
 						const chain = (await fetchRpcsJson()).find((listedChain) => listedChain.chainId === Number(caip2.reference))

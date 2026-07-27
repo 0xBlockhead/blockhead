@@ -1,14 +1,11 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { entity, facet } from '$/schema/$schema.ts'
+import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { type } from 'arktype'
 
-export enum BlockheadAgentCredentialState_TimestampSelector {
-	CredentialTimestampMsSource = 'CredentialTimestampMsSource',
-}
-export const BlockheadAgentCredentialState_Timestamp = entity({
+export default entity({
 	entityType: EntityType.BlockheadAgentCredentialState_Timestamp,
 	labels: {
 		singular: 'blockhead agent credential state timestamp',

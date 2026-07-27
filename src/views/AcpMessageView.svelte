@@ -2,13 +2,9 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -20,42 +16,24 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.AcpMessage>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.AcpMessage>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.AcpMessage> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const acpMessage = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {
-			role: true,
-			createdAt: true,
-		},
-	} : {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const viewSelection = $derived(selection({
+		sources: selection.sources ?? [
+			Source.AcpLocal_JsonRpc,
+		],
+	}))
+	const acpMessage = $derived(viewSelection({
 		fields: {
 			role: true,
 			createdAt: true,
 		},
 	}))
-	const titleFallback = $derived([String((pendingEntity.messageId) ?? '')].filter(Boolean).join(' ') || 'ACP message')
-	const viewDomId = $derived('acp-message-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const titleFallback = $derived((pendingEntity.messageId ?? '') || 'ACP message')
 
 
 	// Components
@@ -68,61 +46,35 @@
 
 <EntityView
 	entityType={EntityType.AcpMessage}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'role') && Object.hasOwn(prefetched, 'createdAt')}
-			{[String((pendingEntity.messageId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-		{:else}
-			<ResourceBoundary resource={acpMessage}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.messageId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		{(pendingEntity.messageId ?? '') || 'ACP message'}
 	{/snippet}
 
 	{#snippet Value()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'role') && Object.hasOwn(prefetched, 'createdAt')}
-			{[String((pendingEntity.role) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.messageId) ?? '')].filter(Boolean).join(' ') || titleFallback}
-		{:else}
-			<ResourceBoundary resource={acpMessage}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.role) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.messageId) ?? '')].filter(Boolean).join(' ') || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={acpMessage}>
+			{#snippet children(entity)}
+				{entity.role || pendingEntity.messageId || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'role') && Object.hasOwn(prefetched, 'createdAt')}
-			{@const createdAt0 = pendingEntity.createdAt}
-			{#if createdAt0 !== undefined && createdAt0 !== null}
-				<span data-text="muted">
-					<Timestamp timestamp={Number(createdAt0)} />
-				</span>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={acpMessage}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const createdAt0 = resolvedEntity.createdAt}
-					{#if createdAt0 !== undefined && createdAt0 !== null}
-						<span data-text="muted">
-							<Timestamp timestamp={Number(createdAt0)} />
-						</span>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={acpMessage}>
+			{#snippet children(entity)}
+				{@const createdAt0 = entity.createdAt}
+				{#if createdAt0 != null}
+					<span data-text="muted">
+						<Timestamp timestamp={Number(createdAt0)} />
+					</span>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -141,24 +93,7 @@
 			<div>
 				<dt>message ID</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									messageId: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const messageId = resolvedEntity.messageId}
-							{#if messageId !== undefined && messageId !== null}
-								{String((messageId) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{pendingEntity.messageId}
 				</dd>
 			</div>
 
@@ -166,40 +101,21 @@
 				<dt>role</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									role: true,
-								},
-							})
-						}
+						resource={acpMessage}
 					>
 						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const role = resolvedEntity.role}
-							{#if role !== undefined && role !== null}
-								{String((role) ?? '')}
-							{/if}
+							{entity.role}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
 			</div>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							createdAt: true,
-						},
-					})
-				}
+				resource={acpMessage}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const createdAt = resolvedEntity.createdAt}
-					{#if createdAt !== undefined && createdAt !== null}
+					{@const createdAt = entity.createdAt}
+					{#if createdAt != null}
 						<div>
 							<dt>Created</dt>
 							<dd>
@@ -219,12 +135,12 @@
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
-				<AcpMessagePartsView
-					selection={acpMessageAcpMessagePartsViewPartsResource}
-					countResource={acpMessageAcpMessagePartsViewPartsResource.count}
-					title='parts'
-					id='AcpMessagePartsView-parts'
-				/>
+					<AcpMessagePartsView
+						selection={acpMessageAcpMessagePartsViewPartsResource}
+						countResource={acpMessageAcpMessagePartsViewPartsResource.count}
+						title='parts'
+						id='parts'
+					/>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>

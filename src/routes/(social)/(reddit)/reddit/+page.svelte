@@ -8,7 +8,6 @@
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
@@ -31,13 +30,12 @@
 
 
 <svelte:head>
-	<title>{(data.title ?? (pageSelection.entity == null ? 'Reddit' : 'Reddit'))} • Reddit • Blockhead</title>
+	<title>{(data.title ?? ('Reddit'))} • Reddit • Blockhead</title>
 </svelte:head>
 
 
 <Page>
 	<GlobalRedditNetworkView
-		href={resolve('/reddit')}
 		selection={pageSelection}
 	/>
 </Page>

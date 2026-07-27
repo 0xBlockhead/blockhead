@@ -7,7 +7,6 @@
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
@@ -35,18 +34,12 @@
 
 
 <svelte:head>
-	<title>{(pageSelection.entity == null ? 'currency timestamp' : 'currency timestamp')} • currency timestamp • Blockhead</title>
+	<title>{('currency timestamp')} • currency timestamp • Blockhead</title>
 </svelte:head>
 
 
 <Page>
 	<Currency_TimestampView
-		href={
-			resolve('/currency/[iso4217=iso4217]/observations/[timestampMs=nonNegativeInteger]', {
-				iso4217: params.iso4217,
-				timestampMs: params.timestampMs,
-			})
-		}
 		selection={pageSelection}
 	/>
 </Page>

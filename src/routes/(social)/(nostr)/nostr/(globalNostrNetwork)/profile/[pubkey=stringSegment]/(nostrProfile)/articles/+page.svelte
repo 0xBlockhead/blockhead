@@ -3,12 +3,11 @@
 <script lang="ts">
 	// Types/constants
 	import type { PageProps } from './$types.ts'
+	import { resolve } from '$app/paths'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
@@ -17,8 +16,6 @@
 		data,
 		params,
 	}: PageProps = $props()
-
-
 	// Components
 	import Page from '$/components/Page.svelte'
 	import NostrArticlesView from '$/views/NostrArticlesView.svelte'
@@ -31,31 +28,20 @@
 
 
 <Page>
+	{@const collectionSelection = select(EntityType.NostrProfile, data.selector).$$articles}
+
 	<NostrArticlesView
 		href={
-			resolve('/nostr/profile/[pubkey=stringSegment]/articles', {
-				pubkey: params.pubkey,
-			})
+			resolve(
+				'/(social)/(nostr)/nostr/(globalNostrNetwork)/profile/[pubkey=stringSegment]/(nostrProfile)/articles',
+				{
+					pubkey: String(params.pubkey),
+				}
+			)
 		}
 		title='Profile articles'
-		selection={
-			select(EntityType.NostrProfile, data.selector)
-				.$$articles({
-					sources: [
-						Source.Constants_Internal,
-						Source.NostrBand_Rest,
-					],
-				})
-		}
-		countResource={
-			select(EntityType.NostrProfile, data.selector)
-				.$$articles({
-					sources: [
-						Source.Constants_Internal,
-						Source.NostrBand_Rest,
-					],
-				}).count
-		}
+		selection={collectionSelection}
+		countResource={collectionSelection.count}
 		id='articles'
 		data-column-item="flexible"
 		data-card

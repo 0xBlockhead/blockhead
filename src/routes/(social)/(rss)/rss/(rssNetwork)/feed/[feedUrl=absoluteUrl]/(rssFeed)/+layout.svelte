@@ -30,23 +30,29 @@
 {#key params.feedUrl}
 	<ParentPageCollapsible
 		href={
-			resolve('/rss/feed/[feedUrl=absoluteUrl]', {
-				feedUrl: params.feedUrl,
-			})
+			resolve(
+				'/(social)/(rss)/rss/(rssNetwork)/feed/[feedUrl=absoluteUrl]',
+				{
+					feedUrl: String(params.feedUrl),
+				}
+			)
 		}
 	>
 		{#snippet Summary()}
-			{@const DetailView = RssFeedView}
-
-			<DetailView
-				selection={select(EntityType.RssFeed, data.selector, { sources: [
-		Source.Rss_Rest,
-		Source.Rss2Json_Rest,
-	] })}
+			<RssFeedView
+				selection={
+					select(EntityType.RssFeed, data.selector, { sources: [
+						Source.Rss_Rest,
+						Source.Rss2Json_Rest,
+					] })
+				}
 				href={
-					resolve('/rss/feed/[feedUrl=absoluteUrl]', {
-						feedUrl: params.feedUrl,
-					})
+					resolve(
+						'/(social)/(rss)/rss/(rssNetwork)/feed/[feedUrl=absoluteUrl]',
+						{
+							feedUrl: String(params.feedUrl),
+						}
+					)
 				}
 				layout={EntityLayout.SummaryInline}
 			/>

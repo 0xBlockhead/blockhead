@@ -2,14 +2,9 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
@@ -26,38 +21,16 @@
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.EvmNetwork_Txpool_Timestamp>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.EvmNetwork_Txpool_Timestamp>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.EvmNetwork_Txpool_Timestamp> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const evmNetworkTxpoolTimestamp = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {
-			pendingCount: true,
-			queuedCount: true,
-		},
-	} : {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const evmNetworkTxpoolTimestamp = $derived(selection({
 		fields: {
 			pendingCount: true,
 			queuedCount: true,
 		},
 	}))
-	const titleFallback = $derived([(String((pendingEntity.pendingCount) ?? '') ? String((pendingEntity.pendingCount) ?? '') + ' pending' : ''), (String((pendingEntity.queuedCount) ?? '') ? String((pendingEntity.queuedCount) ?? '') + ' queued' : '')].filter(Boolean).join(' ') || 'EVM network txpool timestamp')
-	const viewDomId = $derived('evm-network-txpool-timestamp-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const titleFallback = $derived(([(String(pendingEntity.pendingCount ?? '') ? String(pendingEntity.pendingCount ?? '') + ' pending' : ''), (String(pendingEntity.queuedCount ?? '') ? String(pendingEntity.queuedCount ?? '') + ' queued' : '')].filter(Boolean).join(' ')) || 'EVM network txpool timestamp')
 
 
 	// Components
@@ -70,35 +43,21 @@
 
 <EntityView
 	entityType={EntityType.EvmNetwork_Txpool_Timestamp}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
 	href={
-		href ?? (
-			selection.entitySelector != null && 'timestampMs' in selection.entitySelector
-			&& selection.entitySelector.timestampMs != null
-			&& selection.entitySelector != null && 'source' in selection.entitySelector
-			&& selection.entitySelector.source != null
-			&& selection.entitySelector != null && '$network' in selection.entitySelector ?
-				selection.entitySelector.$network != null && 'caip2' in selection.entitySelector.$network
-				&& selection.entitySelector.$network.caip2 != null ?
-					resolve('/network/[network=networkCaip2OrNetworkSlug]/mempool/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
-				timestampMs: String(selection.entitySelector.timestampMs ?? ''),
-				source: String(selection.entitySelector.source ?? ''),
-				network: String(caip2StringFromValue(selection.entitySelector.$network.caip2) ?? ''),
-			})
-			:
-					selection.entitySelector.$network != null && 'slug' in selection.entitySelector.$network
-					&& selection.entitySelector.$network.slug != null ?
-						resolve('/network/[network=networkCaip2OrNetworkSlug]/mempool/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
-					timestampMs: String(selection.entitySelector.timestampMs ?? ''),
-					source: String(selection.entitySelector.source ?? ''),
-					network: String(selection.entitySelector.$network.slug ?? ''),
-				})
-				:
-					undefined
-		:
-				undefined
+		href ?? resolve(
+			'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/mempool/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
+			{
+				network: (
+					'caip2' in selection.entitySelector.$network ?
+						String(caip2StringFromValue(selection.entitySelector.$network.caip2))
+					:
+						String(selection.entitySelector.$network.slug)
+				),
+				timestampMs: String(selection.entitySelector.timestampMs),
+				source: String(selection.entitySelector.source),
+			}
 		)
 	}
 	{layout}
@@ -108,8 +67,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={evmNetworkTxpoolTimestamp}>
 			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[(String((resolvedEntity.pendingCount) ?? '') ? String((resolvedEntity.pendingCount) ?? '') + ' pending' : ''), (String((resolvedEntity.queuedCount) ?? '') ? String((resolvedEntity.queuedCount) ?? '') + ' queued' : '')].filter(Boolean).join(' ') || title || titleFallback}
+				{([(String(entity.pendingCount) ? String(entity.pendingCount) + ' pending' : ''), (String(entity.queuedCount) ? String(entity.queuedCount) + ' queued' : '')].filter(Boolean).join(' ')) || title || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -117,49 +75,23 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={evmNetworkTxpoolTimestamp}>
 			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const pendingCount0 = resolvedEntity.pendingCount}
-				{#if pendingCount0 !== undefined && pendingCount0 !== null}
-					<NumberValue
-						value={pendingCount0}
-					/>
+				<NumberValue
+					value={entity.pendingCount}
+				/>
 
-					<span> pending</span>
-				{/if}
+				<span> pending</span>
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		<ResourceBoundary resource={evmNetworkTxpoolTimestamp}>
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				<span data-text="muted">
-					<NetworkView
-						selection={select(EntityType.Network, selection.entitySelector.$network)}
-						href={
-							(
-								selection.entitySelector.$network != null && 'caip2' in selection.entitySelector.$network
-								&& selection.entitySelector.$network.caip2 != null ?
-									resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-								network: String(caip2StringFromValue(selection.entitySelector.$network.caip2) ?? ''),
-							})
-							:
-									selection.entitySelector.$network != null && 'slug' in selection.entitySelector.$network
-									&& selection.entitySelector.$network.slug != null ?
-										resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-									network: String(selection.entitySelector.$network.slug ?? ''),
-								})
-								:
-									undefined
-							)
-						}
-						layout={EntityLayout.Title}
-						open={false}
-					/>
-				</span>
-			{/snippet}
-		</ResourceBoundary>
+		<span data-text="muted">
+			<NetworkView
+				selection={select(EntityType.Network, selection.entitySelector.$network)}
+				layout={EntityLayout.Title}
+				open={false}
+			/>
+		</span>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -168,23 +100,12 @@
 				<dt>Pending</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									pendingCount: true,
-								},
-							})
-						}
+						resource={evmNetworkTxpoolTimestamp}
 					>
 						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const pendingCount = resolvedEntity.pendingCount}
-							{#if pendingCount !== undefined && pendingCount !== null}
-								<NumberValue
-									value={pendingCount}
-								/>
-							{/if}
+							<NumberValue
+								value={entity.pendingCount}
+							/>
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -194,23 +115,12 @@
 				<dt>Queued</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									queuedCount: true,
-								},
-							})
-						}
+						resource={evmNetworkTxpoolTimestamp}
 					>
 						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const queuedCount = resolvedEntity.queuedCount}
-							{#if queuedCount !== undefined && queuedCount !== null}
-								<NumberValue
-									value={queuedCount}
-								/>
-							{/if}
+							<NumberValue
+								value={entity.queuedCount}
+							/>
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -221,48 +131,14 @@
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									timestampMs: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const timestampMs = resolvedEntity.timestampMs}
-							{#if timestampMs !== undefined && timestampMs !== null}
-								<Timestamp timestamp={Number(timestampMs)} />
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									source: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const source = resolvedEntity.source}
-							{#if source !== undefined && source !== null}
-								{String((source) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{pendingEntity.source}
 				</dd>
 			</div>
 
@@ -271,23 +147,6 @@
 				<dd>
 					<NetworkView
 						selection={select(EntityType.Network, selection.entitySelector.$network)}
-						href={
-							(
-								selection.entitySelector.$network != null && 'caip2' in selection.entitySelector.$network
-								&& selection.entitySelector.$network.caip2 != null ?
-									resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-								network: String(caip2StringFromValue(selection.entitySelector.$network.caip2) ?? ''),
-							})
-							:
-									selection.entitySelector.$network != null && 'slug' in selection.entitySelector.$network
-									&& selection.entitySelector.$network.slug != null ?
-										resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-									network: String(selection.entitySelector.$network.slug ?? ''),
-								})
-								:
-									undefined
-							)
-						}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

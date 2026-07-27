@@ -7,7 +7,6 @@ import {
 
 import { EntityMetaKey } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import { RedditSubredditSelector } from '$/schema/RedditSubreddit.ts'
 import {
 	listSubredditLinks,
 } from '$/sources/Reddit/Rest/queries.ts'
@@ -61,7 +60,7 @@ describe('Reddit_Rest listing continuation', () => {
 		)
 			throw new Error('Reddit_Rest spec missing executable RedditSubreddit continuation')
 
-		await expect(resolver.resolve[RedditSubredditSelector.Name].resolve({
+		await expect(resolver.resolve['Name'].resolve({
 			name: 'ethereum',
 		}, {
 			...resolverContext,

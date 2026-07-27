@@ -12,10 +12,10 @@ test('rejects arbitrary FID account connection routes', async ({ page }) => {
 		waitUntil: 'load',
 		timeout: routeViewSmokeTimeoutsMs.goto,
 	})
-	await expectMainVisible(page, routeViewSmokeTimeoutsMs.mainSelector, [])
-	await expect(page.getByRole('alert', {
-		name: 'Farcaster account connections require an opaque local connection ID.',
-	})).toBeVisible()
+	await expectMainVisible(page, routeViewSmokeTimeoutsMs.mainSelector)
+	await expect(page.getByRole('alert')).toHaveText(
+		'Farcaster account connections require an opaque local connection ID.'
+	)
 	await expect(page.getByRole('button', {
 		name: 'Select viewer',
 	})).toHaveCount(0)
@@ -33,7 +33,7 @@ test('connect fails closed without verified wallet proof', async ({ page }) => {
 		waitUntil: 'load',
 		timeout: routeViewSmokeTimeoutsMs.goto,
 	})
-	await expectMainVisible(page, routeViewSmokeTimeoutsMs.mainSelector, [])
+	await expectMainVisible(page, routeViewSmokeTimeoutsMs.mainSelector)
 	await page.getByLabel('Connected wallet address').fill('0x0000000000000000000000000000000000000003')
 	await page.getByRole('button', {
 		name: 'Verify and connect',

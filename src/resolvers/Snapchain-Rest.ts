@@ -17,15 +17,6 @@ import { schema } from '$/schema/index.ts'
 import { MediaType } from '$/schema/Media.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
-import { FarcasterUserSelector } from '$/schema/FarcasterUser.ts'
-import { FarcasterUser_TimestampSelector } from '$/schema/FarcasterUser_Timestamp.ts'
-import { FarcasterVerifiedAddressSelector } from '$/schema/FarcasterVerifiedAddress.ts'
-import { FarcasterCastSelector } from '$/schema/FarcasterCast.ts'
-import { FarcasterCastEmbedSelector } from '$/schema/FarcasterCastEmbed.ts'
-import { FarcasterCast_TimestampSelector } from '$/schema/FarcasterCast_Timestamp.ts'
-import { FarcasterNetworkSelector } from '$/schema/FarcasterNetwork.ts'
-import { FarcasterChannelSelector } from '$/schema/FarcasterChannel.ts'
-import { FarcasterFeedSelector } from '$/schema/FarcasterFeed.ts'
 
 const lowerHex0xCastHash = (hash: `0x${string}`): `0x${string}` => (
 	hexLowerOfByteSize(hash, 20)
@@ -71,7 +62,7 @@ export default {
 		defineResolver(Source.Snapchain_Rest, {
 			entityType: EntityType.FarcasterUser,
 			resolve: {
-				[FarcasterUserSelector.Fid]: {
+				Fid: {
 					resolve: async ({ fid }) => {
 						type UserFields = import('$/schema/$schema.ts').EntityFieldValues<typeof schema, EntityType.FarcasterUser>
 						type SnapVerify = import('$/sources/Snapchain/Rest/types.ts').SnapchainVerification
@@ -205,7 +196,7 @@ export default {
 			defineResolver(Source.Snapchain_Rest, {
 				entityType: EntityType.FarcasterVerifiedAddress,
 				resolve: {
-					[FarcasterVerifiedAddressSelector.FidProtocolAddress]: {
+					FidProtocolAddress: {
 						resolve: async (verifiedAddress) => {
 							type SnapVerify = import('$/sources/Snapchain/Rest/types.ts').SnapchainVerification
 							const { getUserBundleByFid } = await import('$/sources/Snapchain/Rest/queries.ts')
@@ -285,7 +276,7 @@ export default {
 			defineResolver(Source.Snapchain_Rest, {
 				entityType: EntityType.FarcasterUser_Timestamp,
 			resolve: {
-				[FarcasterUser_TimestampSelector.FarcasterUserTimestampMs]: {
+				FarcasterUserTimestampMs: {
 					resolve: async ({ $user }) => {
 						const { countLinksByFid } = await import('$/sources/Snapchain/Rest/queries.ts')
 						const [followerCount, followingCount] = await Promise.all([
@@ -314,7 +305,7 @@ export default {
 		defineResolver(Source.Snapchain_Rest, {
 			entityType: EntityType.FarcasterCast,
 			resolve: {
-				[FarcasterCastSelector.FidHash]: {
+				FidHash: {
 					resolve: async ({ fid, hash }) => {
 						type CastEntity = import('$/schema/$schema.ts').Entity<typeof schema, EntityType.FarcasterCast>
 						type CastEmbedEntity = import('$/schema/$schema.ts').Entity<typeof schema, EntityType.FarcasterCastEmbed>
@@ -420,7 +411,7 @@ export default {
 		defineResolver(Source.Snapchain_Rest, {
 			entityType: EntityType.FarcasterCast,
 			resolve: {
-				[FarcasterCastSelector.FidHash]: {
+				FidHash: {
 					resolve: async ({ fid, hash }, context) => {
 						type CastEntity = import('$/schema/$schema.ts').Entity<typeof schema, EntityType.FarcasterCast>
 						type SnapCast = import('$/sources/Snapchain/Rest/types.ts').SnapchainCast
@@ -501,7 +492,7 @@ export default {
 		defineResolver(Source.Snapchain_Rest, {
 			entityType: EntityType.FarcasterCast_Timestamp,
 			resolve: {
-				[FarcasterCast_TimestampSelector.FarcasterCastTimestampMs]: {
+				FarcasterCastTimestampMs: {
 					resolve: async ({ $cast }) => {
 						const {
 							getCastById,
@@ -531,7 +522,7 @@ export default {
 		defineResolver(Source.Snapchain_Rest, {
 			entityType: EntityType.FarcasterCastEmbed,
 			resolve: {
-				[FarcasterCastEmbedSelector.CastIndexInCast]: {
+				CastIndexInCast: {
 					resolve: async ({ $cast, indexInCast }) => {
 						type CastEntity = import('$/schema/$schema.ts').Entity<typeof schema, EntityType.FarcasterCast>
 						type CastEmbedFields = import('$/schema/$schema.ts').EntityFieldValues<typeof schema, EntityType.FarcasterCastEmbed>
@@ -583,7 +574,7 @@ export default {
 		defineResolver(Source.Snapchain_Rest, {
 			entityType: EntityType.FarcasterNetwork,
 			resolve: {
-				[FarcasterNetworkSelector.Scope]: {
+				Scope: {
 					resolve: async (_entitySelector, context) => {
 						const { snapchainMaxPageSize } = await import('$/sources/Snapchain/Rest/constants.ts')
 
@@ -622,7 +613,7 @@ export default {
 		defineResolver(Source.Snapchain_Rest, {
 			entityType: EntityType.FarcasterUser,
 			resolve: {
-				[FarcasterUserSelector.Fid]: {
+				Fid: {
 					resolve: async ({ fid }) => {
 						const { countLinksByFid } = await import('$/sources/Snapchain/Rest/queries.ts')
 						const [followerCount, followingCount] = await Promise.all([
@@ -658,7 +649,7 @@ export default {
 		defineResolver(Source.Snapchain_Rest, {
 			entityType: EntityType.FarcasterUser,
 			resolve: {
-				[FarcasterUserSelector.Fid]: {
+				Fid: {
 					resolve: async ({ fid }, context) => {
 						const { snapchainMaxPageSize } = await import('$/sources/Snapchain/Rest/constants.ts')
 
@@ -708,7 +699,7 @@ export default {
 		defineResolver(Source.Snapchain_Rest, {
 			entityType: EntityType.FarcasterCast,
 			resolve: {
-				[FarcasterCastSelector.FidHash]: {
+				FidHash: {
 					resolve: async ({ fid, hash }) => {
 						const {
 							getCastById,
@@ -750,7 +741,7 @@ export default {
 		defineResolver(Source.Snapchain_Rest, {
 			entityType: EntityType.FarcasterChannel,
 			resolve: {
-				[FarcasterChannelSelector.Id]: {
+				Id: {
 					resolve: async ({ id }, context) => {
 						const { snapchainMaxPageSize } = await import('$/sources/Snapchain/Rest/constants.ts')
 
@@ -802,7 +793,7 @@ export default {
 		defineResolver(Source.Snapchain_Rest, {
 			entityType: EntityType.FarcasterFeed,
 			resolve: {
-				[FarcasterFeedSelector.Variant]: {
+				Variant: {
 					resolve: async ({ variant }, context) => {
 						if (variant !== 'trending')
 							throw new Error(`Snapchain_Rest: unsupported feed variant ${variant}`)
@@ -862,7 +853,7 @@ export default {
 						)
 					},
 				},
-				[FarcasterFeedSelector.ByUser]: {
+				ByUser: {
 					resolve: async ({ fid }, context) => {
 						const { snapchainMaxPageSize } = await import('$/sources/Snapchain/Rest/constants.ts')
 
@@ -899,7 +890,7 @@ export default {
 						)
 					},
 				},
-				[FarcasterFeedSelector.ByChannel]: {
+				ByChannel: {
 					resolve: async ({ channelId }, context) => {
 						const { snapchainMaxPageSize } = await import('$/sources/Snapchain/Rest/constants.ts')
 
@@ -947,7 +938,7 @@ export default {
 						)
 					},
 				},
-				[FarcasterFeedSelector.Following]: {
+				Following: {
 					resolve: async ({ viewerFid }, context) => {
 						const { snapchainMaxPageSize } = await import('$/sources/Snapchain/Rest/constants.ts')
 

@@ -2,11 +2,8 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { stringify } from 'devalue'
@@ -28,30 +25,15 @@
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.EvmUserOperation>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.EvmUserOperation>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.EvmUserOperation> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const evmUserOperation = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {
-			successful: true,
-		},
-	} : {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const viewSelection = $derived(selection({
+		sources: selection.sources ?? [
+			Source.Blockscout_Rest,
+		],
+	}))
+	const evmUserOperation = $derived(viewSelection({
 		fields: {
 			successful: true,
 			timestampMs: true,
@@ -59,8 +41,8 @@
 			nonce: true,
 		},
 	}))
-	const titleFallback = $derived([String((pendingEntity.hash) ?? '')].filter(Boolean).join(' ') || 'User operation')
-	const viewDomId = $derived('evm-user-operation-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const titleFallback = $derived((pendingEntity.hash ?? '') || 'User operation')
+	const viewDomId = $derived('evm-user-operation-' + encodeURIComponent(stringify(selection.entitySelector)))
 
 
 	// Components
@@ -81,31 +63,21 @@
 
 <EntityView
 	entityType={EntityType.EvmUserOperation}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
+	entitySelector={selection.entitySelector}
 	id={viewDomId}
 	title={title ?? titleFallback}
 	href={
-		href ?? (
-			selection.entitySelector != null && 'hash' in selection.entitySelector
-			&& selection.entitySelector.hash != null
-			&& selection.entitySelector != null && '$network' in selection.entitySelector ?
-				selection.entitySelector.$network != null && 'caip2' in selection.entitySelector.$network
-				&& selection.entitySelector.$network.caip2 != null ?
-					resolve('/network/[network=networkCaip2OrNetworkSlug]/user-operation/[userOperationHash=userOperationHash]', {
-				userOperationHash: String(selection.entitySelector.hash ?? ''),
-				network: String(caip2StringFromValue(selection.entitySelector.$network.caip2) ?? ''),
-			})
-			:
-					selection.entitySelector.$network != null && 'slug' in selection.entitySelector.$network
-					&& selection.entitySelector.$network.slug != null ?
-						resolve('/network/[network=networkCaip2OrNetworkSlug]/user-operation/[userOperationHash=userOperationHash]', {
-					userOperationHash: String(selection.entitySelector.hash ?? ''),
-					network: String(selection.entitySelector.$network.slug ?? ''),
-				})
-				:
-					undefined
-		:
-				undefined
+		href ?? resolve(
+			'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/user-operation/[userOperationHash=userOperationHash]',
+			{
+				network: (
+					'caip2' in selection.entitySelector.$network ?
+						String(caip2StringFromValue(selection.entitySelector.$network.caip2))
+					:
+						String(selection.entitySelector.$network.slug)
+				),
+				userOperationHash: String(selection.entitySelector.hash),
+			}
 		)
 	}
 	{layout}
@@ -113,64 +85,24 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'successful')}
-			{@const hash0 = pendingEntity.hash}
-			{#if hash0 !== undefined && hash0 !== null}
-				<TruncatedValue value={String((hash0) ?? '')} />
-			{/if}
-		{:else}
-			<ResourceBoundary resource={evmUserOperation}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const hash0 = resolvedEntity.hash}
-					{#if hash0 !== undefined && hash0 !== null}
-						<TruncatedValue value={String((hash0) ?? '')} />
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<TruncatedValue value={pendingEntity.hash} />
 	{/snippet}
 
 	{#snippet Value()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'successful')}
-			{@const hash0 = pendingEntity.hash}
-			{#if hash0 !== undefined && hash0 !== null}
-				<TruncatedValue value={String((hash0) ?? '')} />
-			{/if}
-		{:else}
-			<ResourceBoundary resource={evmUserOperation}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const hash0 = resolvedEntity.hash}
-					{#if hash0 !== undefined && hash0 !== null}
-						<TruncatedValue value={String((hash0) ?? '')} />
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<TruncatedValue value={pendingEntity.hash} />
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'successful')}
-			{@const successful0 = pendingEntity.successful}
-			{#if successful0 !== undefined && successful0 !== null}
-				<span data-text="muted">
-					{successful0 ? 'Yes' : 'No'}
-				</span>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={evmUserOperation}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const successful0 = resolvedEntity.successful}
-					{#if successful0 !== undefined && successful0 !== null}
-						<span data-text="muted">
-							{successful0 ? 'Yes' : 'No'}
-						</span>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={evmUserOperation}>
+			{#snippet children(entity)}
+				{@const successful0 = entity.successful}
+				{#if successful0 != null}
+					<span data-text="muted">
+						{successful0 ? 'Yes' : 'No'}
+					</span>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -180,23 +112,6 @@
 				<dd>
 					<NetworkView
 						selection={select(EntityType.Network, selection.entitySelector.$network)}
-						href={
-							(
-								selection.entitySelector.$network != null && 'caip2' in selection.entitySelector.$network
-								&& selection.entitySelector.$network.caip2 != null ?
-									resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-								network: String(caip2StringFromValue(selection.entitySelector.$network.caip2) ?? ''),
-							})
-							:
-									selection.entitySelector.$network != null && 'slug' in selection.entitySelector.$network
-									&& selection.entitySelector.$network.slug != null ?
-										resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-									network: String(selection.entitySelector.$network.slug ?? ''),
-								})
-								:
-									undefined
-							)
-						}
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -206,41 +121,16 @@
 			<div>
 				<dt>Operation hash</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									hash: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const hash = resolvedEntity.hash}
-							{#if hash !== undefined && hash !== null}
-								<TruncatedValue value={String((hash) ?? '')} />
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					<TruncatedValue value={pendingEntity.hash} />
 				</dd>
 			</div>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							successful: true,
-						},
-					})
-				}
+				resource={evmUserOperation}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const successful = resolvedEntity.successful}
-					{#if successful !== undefined && successful !== null}
+					{@const successful = entity.successful}
+					{#if successful != null}
 						<div>
 							<dt>Successful</dt>
 							<dd>
@@ -252,19 +142,11 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							timestampMs: true,
-						},
-					})
-				}
+				resource={evmUserOperation}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const timestampMs = resolvedEntity.timestampMs}
-					{#if timestampMs !== undefined && timestampMs !== null}
+					{@const timestampMs = entity.timestampMs}
+					{#if timestampMs != null}
 						<div>
 							<dt>Timestamp</dt>
 							<dd>
@@ -278,23 +160,15 @@
 
 		<dl data-column-item="center">
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							fee: true,
-						},
-					})
-				}
+				resource={evmUserOperation}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const fee = resolvedEntity.fee}
-					{#if fee !== undefined && fee !== null}
+					{@const fee = entity.fee}
+					{#if fee != null}
 						<div>
 							<dt>Fee</dt>
 							<dd>
-								{String((fee) ?? '')}
+								{fee}
 							</dd>
 						</div>
 					{/if}
@@ -302,19 +176,11 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							nonce: true,
-						},
-					})
-				}
+				resource={evmUserOperation}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const nonce = resolvedEntity.nonce}
-					{#if nonce !== undefined && nonce !== null}
+					{@const nonce = entity.nonce}
+					{#if nonce != null}
 						<div>
 							<dt>Nonce</dt>
 							<dd>
@@ -330,8 +196,7 @@
 			{#if contentOpen}
 				<ResourceBoundary
 					resource={
-						selection({
-							sources: selection.sources,
+						viewSelection({
 							fields: {
 								entryPointVersion: true,
 							},
@@ -339,13 +204,12 @@
 					}
 				>
 					{#snippet children(entity)}
-						{@const resolvedEntity = { ...pendingEntity, ...entity }}
-						{@const entryPointVersion = resolvedEntity.entryPointVersion}
-						{#if entryPointVersion !== undefined && entryPointVersion !== null}
+						{@const entryPointVersion = entity.entryPointVersion}
+						{#if entryPointVersion != null}
 							<div>
 								<dt>Entry point version</dt>
 								<dd>
-									{String((entryPointVersion) ?? '')}
+									{entryPointVersion}
 								</dd>
 							</div>
 						{/if}
@@ -356,8 +220,7 @@
 			{#if contentOpen}
 				<ResourceBoundary
 					resource={
-						selection({
-							sources: selection.sources,
+						viewSelection({
 							fields: {
 								sponsorType: true,
 							},
@@ -365,13 +228,12 @@
 					}
 				>
 					{#snippet children(entity)}
-						{@const resolvedEntity = { ...pendingEntity, ...entity }}
-						{@const sponsorType = resolvedEntity.sponsorType}
-						{#if sponsorType !== undefined && sponsorType !== null}
+						{@const sponsorType = entity.sponsorType}
+						{#if sponsorType != null}
 							<div>
 								<dt>Sponsor type</dt>
 								<dd>
-									{String((sponsorType) ?? '')}
+									{sponsorType}
 								</dd>
 							</div>
 						{/if}
@@ -382,47 +244,16 @@
 
 		<dl data-column-item="center">
 			<ResourceBoundary
-				resource={
-					selection
-						.$bundledTransaction({
-							sources: [
-								Source.Blockscout_Rest,
-							],
-						})
-				}
+				resource={selection.$bundledTransaction}
 			>
 				{#snippet children(evmTransaction)}
-					{#if evmTransaction != null && evmTransaction[EntityMetaKey.Selector] != null}
+					{#if evmTransaction != null}
 						<div>
 							<dt>Bundled transaction</dt>
 							<dd>
 								<EvmTransactionView
 									selection={select(EntityType.EvmTransaction, evmTransaction[EntityMetaKey.Selector])}
 									prefetched={evmTransaction}
-									href={
-										(
-											evmTransaction[EntityMetaKey.Selector] != null && 'txHash' in evmTransaction[EntityMetaKey.Selector]
-											&& evmTransaction[EntityMetaKey.Selector].txHash != null
-											&& evmTransaction[EntityMetaKey.Selector] != null && '$network' in evmTransaction[EntityMetaKey.Selector] ?
-												evmTransaction[EntityMetaKey.Selector].$network != null && 'caip2' in evmTransaction[EntityMetaKey.Selector].$network
-												&& evmTransaction[EntityMetaKey.Selector].$network.caip2 != null ?
-													resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]', {
-												transactionId: String(evmTransaction[EntityMetaKey.Selector].txHash ?? ''),
-												network: String(caip2StringFromValue(evmTransaction[EntityMetaKey.Selector].$network.caip2) ?? ''),
-											})
-											:
-													evmTransaction[EntityMetaKey.Selector].$network != null && 'slug' in evmTransaction[EntityMetaKey.Selector].$network
-													&& evmTransaction[EntityMetaKey.Selector].$network.slug != null ?
-														resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]', {
-													transactionId: String(evmTransaction[EntityMetaKey.Selector].txHash ?? ''),
-													network: String(evmTransaction[EntityMetaKey.Selector].$network.slug ?? ''),
-												})
-												:
-													undefined
-										:
-												undefined
-										)
-									}
 									layout={EntityLayout.Value}
 									open={false}
 								/>
@@ -433,47 +264,16 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={
-					selection
-						.$block({
-							sources: [
-								Source.Blockscout_Rest,
-							],
-						})
-				}
+				resource={selection.$block}
 			>
 				{#snippet children(evmBlock)}
-					{#if evmBlock != null && evmBlock[EntityMetaKey.Selector] != null}
+					{#if evmBlock != null}
 						<div>
 							<dt>Bundled block</dt>
 							<dd>
 								<EvmBlockView
 									selection={select(EntityType.EvmBlock, evmBlock[EntityMetaKey.Selector])}
 									prefetched={evmBlock}
-									href={
-										(
-											evmBlock[EntityMetaKey.Selector] != null && 'blockNumber' in evmBlock[EntityMetaKey.Selector]
-											&& evmBlock[EntityMetaKey.Selector].blockNumber != null
-											&& evmBlock[EntityMetaKey.Selector] != null && '$network' in evmBlock[EntityMetaKey.Selector] ?
-												evmBlock[EntityMetaKey.Selector].$network != null && 'caip2' in evmBlock[EntityMetaKey.Selector].$network
-												&& evmBlock[EntityMetaKey.Selector].$network.caip2 != null ?
-													resolve('/network/[network=networkCaip2OrNetworkSlug]/block/[blockNumber=nonNegativeBigInt]', {
-												blockNumber: String(evmBlock[EntityMetaKey.Selector].blockNumber ?? ''),
-												network: String(caip2StringFromValue(evmBlock[EntityMetaKey.Selector].$network.caip2) ?? ''),
-											})
-											:
-													evmBlock[EntityMetaKey.Selector].$network != null && 'slug' in evmBlock[EntityMetaKey.Selector].$network
-													&& evmBlock[EntityMetaKey.Selector].$network.slug != null ?
-														resolve('/network/[network=networkCaip2OrNetworkSlug]/block/[blockNumber=nonNegativeBigInt]', {
-													blockNumber: String(evmBlock[EntityMetaKey.Selector].blockNumber ?? ''),
-													network: String(evmBlock[EntityMetaKey.Selector].$network.slug ?? ''),
-												})
-												:
-													undefined
-										:
-												undefined
-										)
-									}
 									layout={EntityLayout.Value}
 									open={false}
 								/>
@@ -511,47 +311,16 @@
 				<article id={`${id}-participants-fields`} data-column-item="flexible" data-card data-scroll-container>
 					<dl data-column-item="center">
 						<ResourceBoundary
-							resource={
-								selection
-									.$sender({
-										sources: [
-											Source.Blockscout_Rest,
-										],
-									})
-							}
+							resource={selection.$sender}
 						>
 							{#snippet children(erc4337SmartAccount)}
-								{#if erc4337SmartAccount != null && erc4337SmartAccount[EntityMetaKey.Selector] != null}
+								{#if erc4337SmartAccount != null}
 									<div>
 										<dt>Sender</dt>
 										<dd>
 											<Erc4337SmartAccountView
 												selection={select(EntityType.Erc4337SmartAccount, erc4337SmartAccount[EntityMetaKey.Selector])}
 												prefetched={erc4337SmartAccount}
-												href={
-													(
-														erc4337SmartAccount[EntityMetaKey.Selector] != null && 'address' in erc4337SmartAccount[EntityMetaKey.Selector]
-														&& erc4337SmartAccount[EntityMetaKey.Selector].address != null
-														&& erc4337SmartAccount[EntityMetaKey.Selector] != null && '$network' in erc4337SmartAccount[EntityMetaKey.Selector] ?
-															erc4337SmartAccount[EntityMetaKey.Selector].$network != null && 'caip2' in erc4337SmartAccount[EntityMetaKey.Selector].$network
-															&& erc4337SmartAccount[EntityMetaKey.Selector].$network.caip2 != null ?
-																resolve('/network/[network=networkCaip2OrNetworkSlug]/erc-4337/smart-account/[address=evmAddress]', {
-															address: String(erc4337SmartAccount[EntityMetaKey.Selector].address ?? ''),
-															network: String(caip2StringFromValue(erc4337SmartAccount[EntityMetaKey.Selector].$network.caip2) ?? ''),
-														})
-														:
-																erc4337SmartAccount[EntityMetaKey.Selector].$network != null && 'slug' in erc4337SmartAccount[EntityMetaKey.Selector].$network
-																&& erc4337SmartAccount[EntityMetaKey.Selector].$network.slug != null ?
-																	resolve('/network/[network=networkCaip2OrNetworkSlug]/erc-4337/smart-account/[address=evmAddress]', {
-																address: String(erc4337SmartAccount[EntityMetaKey.Selector].address ?? ''),
-																network: String(erc4337SmartAccount[EntityMetaKey.Selector].$network.slug ?? ''),
-															})
-															:
-																undefined
-													:
-															undefined
-													)
-												}
 												layout={EntityLayout.Value}
 												open={false}
 											/>
@@ -562,47 +331,16 @@
 						</ResourceBoundary>
 
 						<ResourceBoundary
-							resource={
-								selection
-									.$paymaster({
-										sources: [
-											Source.Blockscout_Rest,
-										],
-									})
-							}
+							resource={selection.$paymaster}
 						>
 							{#snippet children(erc4337Paymaster)}
-								{#if erc4337Paymaster != null && erc4337Paymaster[EntityMetaKey.Selector] != null}
+								{#if erc4337Paymaster != null}
 									<div>
 										<dt>Paymaster</dt>
 										<dd>
 											<Erc4337PaymasterView
 												selection={select(EntityType.Erc4337Paymaster, erc4337Paymaster[EntityMetaKey.Selector])}
 												prefetched={erc4337Paymaster}
-												href={
-													(
-														erc4337Paymaster[EntityMetaKey.Selector] != null && 'address' in erc4337Paymaster[EntityMetaKey.Selector]
-														&& erc4337Paymaster[EntityMetaKey.Selector].address != null
-														&& erc4337Paymaster[EntityMetaKey.Selector] != null && '$network' in erc4337Paymaster[EntityMetaKey.Selector] ?
-															erc4337Paymaster[EntityMetaKey.Selector].$network != null && 'caip2' in erc4337Paymaster[EntityMetaKey.Selector].$network
-															&& erc4337Paymaster[EntityMetaKey.Selector].$network.caip2 != null ?
-																resolve('/network/[network=networkCaip2OrNetworkSlug]/erc-4337/paymaster/[address=evmAddress]', {
-															address: String(erc4337Paymaster[EntityMetaKey.Selector].address ?? ''),
-															network: String(caip2StringFromValue(erc4337Paymaster[EntityMetaKey.Selector].$network.caip2) ?? ''),
-														})
-														:
-																erc4337Paymaster[EntityMetaKey.Selector].$network != null && 'slug' in erc4337Paymaster[EntityMetaKey.Selector].$network
-																&& erc4337Paymaster[EntityMetaKey.Selector].$network.slug != null ?
-																	resolve('/network/[network=networkCaip2OrNetworkSlug]/erc-4337/paymaster/[address=evmAddress]', {
-																address: String(erc4337Paymaster[EntityMetaKey.Selector].address ?? ''),
-																network: String(erc4337Paymaster[EntityMetaKey.Selector].$network.slug ?? ''),
-															})
-															:
-																undefined
-													:
-															undefined
-													)
-												}
 												layout={EntityLayout.Value}
 												open={false}
 											/>
@@ -613,47 +351,16 @@
 						</ResourceBoundary>
 
 						<ResourceBoundary
-							resource={
-								selection
-									.$bundler({
-										sources: [
-											Source.Blockscout_Rest,
-										],
-									})
-							}
+							resource={selection.$bundler}
 						>
 							{#snippet children(erc4337Bundler)}
-								{#if erc4337Bundler != null && erc4337Bundler[EntityMetaKey.Selector] != null}
+								{#if erc4337Bundler != null}
 									<div>
 										<dt>Bundler</dt>
 										<dd>
 											<Erc4337BundlerView
 												selection={select(EntityType.Erc4337Bundler, erc4337Bundler[EntityMetaKey.Selector])}
 												prefetched={erc4337Bundler}
-												href={
-													(
-														erc4337Bundler[EntityMetaKey.Selector] != null && 'address' in erc4337Bundler[EntityMetaKey.Selector]
-														&& erc4337Bundler[EntityMetaKey.Selector].address != null
-														&& erc4337Bundler[EntityMetaKey.Selector] != null && '$network' in erc4337Bundler[EntityMetaKey.Selector] ?
-															erc4337Bundler[EntityMetaKey.Selector].$network != null && 'caip2' in erc4337Bundler[EntityMetaKey.Selector].$network
-															&& erc4337Bundler[EntityMetaKey.Selector].$network.caip2 != null ?
-																resolve('/network/[network=networkCaip2OrNetworkSlug]/erc-4337/bundler/[address=evmAddress]', {
-															address: String(erc4337Bundler[EntityMetaKey.Selector].address ?? ''),
-															network: String(caip2StringFromValue(erc4337Bundler[EntityMetaKey.Selector].$network.caip2) ?? ''),
-														})
-														:
-																erc4337Bundler[EntityMetaKey.Selector].$network != null && 'slug' in erc4337Bundler[EntityMetaKey.Selector].$network
-																&& erc4337Bundler[EntityMetaKey.Selector].$network.slug != null ?
-																	resolve('/network/[network=networkCaip2OrNetworkSlug]/erc-4337/bundler/[address=evmAddress]', {
-																address: String(erc4337Bundler[EntityMetaKey.Selector].address ?? ''),
-																network: String(erc4337Bundler[EntityMetaKey.Selector].$network.slug ?? ''),
-															})
-															:
-																undefined
-													:
-															undefined
-													)
-												}
 												layout={EntityLayout.Value}
 												open={false}
 											/>
@@ -664,47 +371,16 @@
 						</ResourceBoundary>
 
 						<ResourceBoundary
-							resource={
-								selection
-									.$entryPoint({
-										sources: [
-											Source.Blockscout_Rest,
-										],
-									})
-							}
+							resource={selection.$entryPoint}
 						>
 							{#snippet children(evmContract)}
-								{#if evmContract != null && evmContract[EntityMetaKey.Selector] != null}
+								{#if evmContract != null}
 									<div>
 										<dt>EntryPoint</dt>
 										<dd>
 											<EvmContractView
 												selection={select(EntityType.EvmContract, evmContract[EntityMetaKey.Selector])}
 												prefetched={evmContract}
-												href={
-													(
-														evmContract[EntityMetaKey.Selector] != null && 'address' in evmContract[EntityMetaKey.Selector]
-														&& evmContract[EntityMetaKey.Selector].address != null
-														&& evmContract[EntityMetaKey.Selector] != null && '$network' in evmContract[EntityMetaKey.Selector] ?
-															evmContract[EntityMetaKey.Selector].$network != null && 'caip2' in evmContract[EntityMetaKey.Selector].$network
-															&& evmContract[EntityMetaKey.Selector].$network.caip2 != null ?
-																resolve('/network/[network=networkCaip2OrNetworkSlug]/contract/[address=evmAddress]', {
-															address: String(evmContract[EntityMetaKey.Selector].address ?? ''),
-															network: String(caip2StringFromValue(evmContract[EntityMetaKey.Selector].$network.caip2) ?? ''),
-														})
-														:
-																evmContract[EntityMetaKey.Selector].$network != null && 'slug' in evmContract[EntityMetaKey.Selector].$network
-																&& evmContract[EntityMetaKey.Selector].$network.slug != null ?
-																	resolve('/network/[network=networkCaip2OrNetworkSlug]/contract/[address=evmAddress]', {
-																address: String(evmContract[EntityMetaKey.Selector].address ?? ''),
-																network: String(evmContract[EntityMetaKey.Selector].$network.slug ?? ''),
-															})
-															:
-																undefined
-													:
-															undefined
-													)
-												}
 												layout={EntityLayout.Value}
 												open={false}
 											/>
@@ -723,9 +399,6 @@
 						<ResourceBoundary
 							resource={
 								selection({
-									sources: [
-										Source.Blockscout_Rest,
-									],
 									fields: {
 										callGasLimit: true,
 									},
@@ -733,9 +406,8 @@
 							}
 						>
 							{#snippet children(entity)}
-								{@const resolvedEntity = { ...pendingEntity, ...entity }}
-								{@const callGasLimit = resolvedEntity.callGasLimit}
-								{#if callGasLimit !== undefined && callGasLimit !== null}
+								{@const callGasLimit = entity.callGasLimit}
+								{#if callGasLimit != null}
 									<div>
 										<dt>Call gas limit</dt>
 										<dd>
@@ -751,9 +423,6 @@
 						<ResourceBoundary
 							resource={
 								selection({
-									sources: [
-										Source.Blockscout_Rest,
-									],
 									fields: {
 										verificationGasLimit: true,
 									},
@@ -761,9 +430,8 @@
 							}
 						>
 							{#snippet children(entity)}
-								{@const resolvedEntity = { ...pendingEntity, ...entity }}
-								{@const verificationGasLimit = resolvedEntity.verificationGasLimit}
-								{#if verificationGasLimit !== undefined && verificationGasLimit !== null}
+								{@const verificationGasLimit = entity.verificationGasLimit}
+								{#if verificationGasLimit != null}
 									<div>
 										<dt>Verification gas limit</dt>
 										<dd>
@@ -779,9 +447,6 @@
 						<ResourceBoundary
 							resource={
 								selection({
-									sources: [
-										Source.Blockscout_Rest,
-									],
 									fields: {
 										preVerificationGas: true,
 									},
@@ -789,9 +454,8 @@
 							}
 						>
 							{#snippet children(entity)}
-								{@const resolvedEntity = { ...pendingEntity, ...entity }}
-								{@const preVerificationGas = resolvedEntity.preVerificationGas}
-								{#if preVerificationGas !== undefined && preVerificationGas !== null}
+								{@const preVerificationGas = entity.preVerificationGas}
+								{#if preVerificationGas != null}
 									<div>
 										<dt>Pre-verification gas</dt>
 										<dd>
@@ -807,9 +471,6 @@
 						<ResourceBoundary
 							resource={
 								selection({
-									sources: [
-										Source.Blockscout_Rest,
-									],
 									fields: {
 										maxFeePerGas: true,
 									},
@@ -817,9 +478,8 @@
 							}
 						>
 							{#snippet children(entity)}
-								{@const resolvedEntity = { ...pendingEntity, ...entity }}
-								{@const maxFeePerGas = resolvedEntity.maxFeePerGas}
-								{#if maxFeePerGas !== undefined && maxFeePerGas !== null}
+								{@const maxFeePerGas = entity.maxFeePerGas}
+								{#if maxFeePerGas != null}
 									<div>
 										<dt>Max fee per gas</dt>
 										<dd>
@@ -835,9 +495,6 @@
 						<ResourceBoundary
 							resource={
 								selection({
-									sources: [
-										Source.Blockscout_Rest,
-									],
 									fields: {
 										maxPriorityFeePerGas: true,
 									},
@@ -845,9 +502,8 @@
 							}
 						>
 							{#snippet children(entity)}
-								{@const resolvedEntity = { ...pendingEntity, ...entity }}
-								{@const maxPriorityFeePerGas = resolvedEntity.maxPriorityFeePerGas}
-								{#if maxPriorityFeePerGas !== undefined && maxPriorityFeePerGas !== null}
+								{@const maxPriorityFeePerGas = entity.maxPriorityFeePerGas}
+								{#if maxPriorityFeePerGas != null}
 									<div>
 										<dt>Max priority fee per gas</dt>
 										<dd>
@@ -863,9 +519,6 @@
 						<ResourceBoundary
 							resource={
 								selection({
-									sources: [
-										Source.Blockscout_Rest,
-									],
 									fields: {
 										gas: true,
 									},
@@ -873,9 +526,8 @@
 							}
 						>
 							{#snippet children(entity)}
-								{@const resolvedEntity = { ...pendingEntity, ...entity }}
-								{@const gas = resolvedEntity.gas}
-								{#if gas !== undefined && gas !== null}
+								{@const gas = entity.gas}
+								{#if gas != null}
 									<div>
 										<dt>Gas</dt>
 										<dd>
@@ -891,9 +543,6 @@
 						<ResourceBoundary
 							resource={
 								selection({
-									sources: [
-										Source.Blockscout_Rest,
-									],
 									fields: {
 										gasUsed: true,
 									},
@@ -901,9 +550,8 @@
 							}
 						>
 							{#snippet children(entity)}
-								{@const resolvedEntity = { ...pendingEntity, ...entity }}
-								{@const gasUsed = resolvedEntity.gasUsed}
-								{#if gasUsed !== undefined && gasUsed !== null}
+								{@const gasUsed = entity.gasUsed}
+								{#if gasUsed != null}
 									<div>
 										<dt>Gas used</dt>
 										<dd>
@@ -919,9 +567,6 @@
 						<ResourceBoundary
 							resource={
 								selection({
-									sources: [
-										Source.Blockscout_Rest,
-									],
 									fields: {
 										gasPrice: true,
 									},
@@ -929,9 +574,8 @@
 							}
 						>
 							{#snippet children(entity)}
-								{@const resolvedEntity = { ...pendingEntity, ...entity }}
-								{@const gasPrice = resolvedEntity.gasPrice}
-								{#if gasPrice !== undefined && gasPrice !== null}
+								{@const gasPrice = entity.gasPrice}
+								{#if gasPrice != null}
 									<div>
 										<dt>Gas price</dt>
 										<dd>
@@ -953,9 +597,6 @@
 						<ResourceBoundary
 							resource={
 								selection({
-									sources: [
-										Source.Blockscout_Rest,
-									],
 									fields: {
 										initCode: true,
 									},
@@ -963,13 +604,12 @@
 							}
 						>
 							{#snippet children(entity)}
-								{@const resolvedEntity = { ...pendingEntity, ...entity }}
-								{@const initCode = resolvedEntity.initCode}
-								{#if initCode !== undefined && initCode !== null}
+								{@const initCode = entity.initCode}
+								{#if initCode != null}
 									<div>
 										<dt>Init code</dt>
 										<dd>
-											<TruncatedValue value={String((initCode) ?? '')} />
+											<TruncatedValue value={String(initCode)} />
 										</dd>
 									</div>
 								{/if}
@@ -979,9 +619,6 @@
 						<ResourceBoundary
 							resource={
 								selection({
-									sources: [
-										Source.Blockscout_Rest,
-									],
 									fields: {
 										callData: true,
 									},
@@ -989,13 +626,12 @@
 							}
 						>
 							{#snippet children(entity)}
-								{@const resolvedEntity = { ...pendingEntity, ...entity }}
-								{@const callData = resolvedEntity.callData}
-								{#if callData !== undefined && callData !== null}
+								{@const callData = entity.callData}
+								{#if callData != null}
 									<div>
 										<dt>Call data</dt>
 										<dd>
-											<TruncatedValue value={String((callData) ?? '')} />
+											<TruncatedValue value={String(callData)} />
 										</dd>
 									</div>
 								{/if}
@@ -1005,9 +641,6 @@
 						<ResourceBoundary
 							resource={
 								selection({
-									sources: [
-										Source.Blockscout_Rest,
-									],
 									fields: {
 										paymasterAndData: true,
 									},
@@ -1015,13 +648,12 @@
 							}
 						>
 							{#snippet children(entity)}
-								{@const resolvedEntity = { ...pendingEntity, ...entity }}
-								{@const paymasterAndData = resolvedEntity.paymasterAndData}
-								{#if paymasterAndData !== undefined && paymasterAndData !== null}
+								{@const paymasterAndData = entity.paymasterAndData}
+								{#if paymasterAndData != null}
 									<div>
 										<dt>Paymaster data</dt>
 										<dd>
-											<TruncatedValue value={String((paymasterAndData) ?? '')} />
+											<TruncatedValue value={String(paymasterAndData)} />
 										</dd>
 									</div>
 								{/if}
@@ -1031,9 +663,6 @@
 						<ResourceBoundary
 							resource={
 								selection({
-									sources: [
-										Source.Blockscout_Rest,
-									],
 									fields: {
 										signature: true,
 									},
@@ -1041,13 +670,12 @@
 							}
 						>
 							{#snippet children(entity)}
-								{@const resolvedEntity = { ...pendingEntity, ...entity }}
-								{@const signature = resolvedEntity.signature}
-								{#if signature !== undefined && signature !== null}
+								{@const signature = entity.signature}
+								{#if signature != null}
 									<div>
 										<dt>Signature</dt>
 										<dd>
-											<TruncatedValue value={String((signature) ?? '')} />
+											<TruncatedValue value={String(signature)} />
 										</dd>
 									</div>
 								{/if}

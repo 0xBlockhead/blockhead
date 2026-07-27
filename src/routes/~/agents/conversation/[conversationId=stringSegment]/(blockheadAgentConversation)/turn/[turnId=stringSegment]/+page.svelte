@@ -8,7 +8,6 @@
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
@@ -46,23 +45,12 @@
 
 
 <svelte:head>
-	<title>{(pageSelection.entity == null ? 'agent conversation turn' : [String((({ ...{
-		$conversation: {
-			id: params.conversationId,
-		},
-		id: params.turnId,
-	}, ...pageSelection.entity }).userPrompt) ?? '')].filter(Boolean).join(' ') || 'agent conversation turn')} • agent conversation turn • Blockhead</title>
+	<title>{(pageSelection.entity == null ? 'agent conversation turn' : pageSelection.entity.userPrompt || 'agent conversation turn')} • agent conversation turn • Blockhead</title>
 </svelte:head>
 
 
 <Page>
 	<BlockheadAgentConversationTurnView
-		href={
-			resolve('/~/agents/conversation/[conversationId=stringSegment]/turn/[turnId=stringSegment]', {
-				conversationId: params.conversationId,
-				turnId: params.turnId,
-			})
-		}
 		selection={pageSelection}
 	/>
 </Page>

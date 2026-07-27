@@ -1,15 +1,12 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { entity, facet } from '$/schema/$schema.ts'
+import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
-export enum TronContractSelector {
-	NetworkAddress = 'NetworkAddress',
-}
-export const TronContract = entity({
+export default entity({
 	entityType: EntityType.TronContract,
 	labels: {
 		singular: 'tron contract',
@@ -34,7 +31,6 @@ export const TronContract = entity({
 		entityType: EntityType.TronAccount,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
-			Source.TronGrid_Rest,
 			Source.TronScan_Rest,
 		],
 	},

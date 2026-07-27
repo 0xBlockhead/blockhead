@@ -9,14 +9,12 @@
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		data,
-		params,
 	}: PageProps = $props()
 
 	const pageSelection = $derived(select(EntityType.RssItem, data.selector, {
@@ -44,19 +42,12 @@
 
 
 <svelte:head>
-	<title>{(data.title ?? (pageSelection.entity == null ? [String((data.selector.itemIdentity) ?? '')].filter(Boolean).join(' ') || 'RSS item' : [String((({ ...data.selector, ...pageSelection.entity }).title) ?? ''), String((({ ...data.selector, ...pageSelection.entity }).itemIdentity) ?? '')].filter(Boolean).join(' ') || 'RSS item'))} • RSS item • Blockhead</title>
+	<title>{(data.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.itemIdentity ?? '') || 'RSS item' : [(pageSelection.entity.title ?? ''), pageSelection.entitySelector.itemIdentity].filter(Boolean).join(' ') || 'RSS item'))} • RSS item • Blockhead</title>
 </svelte:head>
 
 
 <Page>
 	<RssItemView
-		href={
-			resolve('/rss/feed/[feedUrl=absoluteUrl]/item/[itemIdentityKind=rssItemIdentityKind]/[itemIdentity=stringSegment]', {
-				feedUrl: params.feedUrl,
-				itemIdentityKind: params.itemIdentityKind,
-				itemIdentity: params.itemIdentity,
-			})
-		}
 		selection={pageSelection}
 	/>
 </Page>

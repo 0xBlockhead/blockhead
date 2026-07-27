@@ -9,14 +9,6 @@ import * as Hex from 'ox/Hex'
 
 import { EntityMetaKey } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import { NostrArticleSelector } from '$/schema/NostrArticle.ts'
-import { NostrArticleEventSelector } from '$/schema/NostrArticleEvent.ts'
-import { NostrNoteSelector } from '$/schema/NostrNote.ts'
-import { NostrProfileSelector } from '$/schema/NostrProfile.ts'
-import { NostrProfileMetadataEventSelector } from '$/schema/NostrProfileMetadataEvent.ts'
-import { NostrReactionSelector } from '$/schema/NostrReaction.ts'
-import { NostrRepostSelector } from '$/schema/NostrRepost.ts'
-import { _GlobalNostrNetworkSelector } from '$/schema/_GlobalNostrNetwork.ts'
 import { nostrEventId } from '$/sources/NostrRelay/Nip01/event.ts'
 
 const getNostrBandEventById = vi.hoisted(() => vi.fn())
@@ -181,7 +173,7 @@ describe('Nostr thread references', () => {
 				const event = signedEvent(tags)
 				getEventById.mockResolvedValueOnce(wire(event))
 
-				const note = await resolver.resolve[NostrNoteSelector.CanonicalEventId].resolve({
+				const note = await resolver.resolve['CanonicalEventId'].resolve({
 					eventId: event.id,
 				}, resolverContext)
 
@@ -220,7 +212,7 @@ describe('Nostr thread references', () => {
 				.mockResolvedValueOnce(wire(genericRepost))
 				.mockResolvedValueOnce(wire(forgedTarget))
 
-			const unvalidatedRepost = await repostResolver.resolve[NostrRepostSelector.CanonicalEventId].resolve({
+			const unvalidatedRepost = await repostResolver.resolve['CanonicalEventId'].resolve({
 				eventId: genericRepost.id,
 			}, resolverContext)
 			expect(unvalidatedRepost.repostedEventId).toBe(targetNote.id)
@@ -230,7 +222,7 @@ describe('Nostr thread references', () => {
 			getEventById
 				.mockResolvedValueOnce(wire(genericRepost))
 				.mockResolvedValueOnce(wire(targetNote))
-			await expect(repostResolver.resolve[NostrRepostSelector.CanonicalEventId].resolve({
+			await expect(repostResolver.resolve['CanonicalEventId'].resolve({
 				eventId: genericRepost.id,
 			}, resolverContext)).resolves.toEqual(expect.objectContaining({
 				$repostedNote: {
@@ -240,7 +232,7 @@ describe('Nostr thread references', () => {
 
 			const noteRepost = signedEvent([['e', targetNote.id]], 6, '')
 			getEventById.mockResolvedValueOnce(wire(noteRepost))
-			await expect(repostResolver.resolve[NostrRepostSelector.CanonicalEventId].resolve({
+			await expect(repostResolver.resolve['CanonicalEventId'].resolve({
 				eventId: noteRepost.id,
 			}, resolverContext)).resolves.toEqual(expect.objectContaining({
 				$repostedNote: {
@@ -253,7 +245,7 @@ describe('Nostr thread references', () => {
 			getEventById
 				.mockResolvedValueOnce(wire(embeddedArticleRepost))
 				.mockResolvedValueOnce(undefined)
-			await expect(repostResolver.resolve[NostrRepostSelector.CanonicalEventId].resolve({
+			await expect(repostResolver.resolve['CanonicalEventId'].resolve({
 				eventId: embeddedArticleRepost.id,
 			}, resolverContext)).resolves.toEqual(expect.objectContaining({
 				repostedEventId: targetArticle.id,
@@ -274,7 +266,7 @@ describe('Nostr thread references', () => {
 				.mockResolvedValueOnce(wire(reaction))
 				.mockResolvedValueOnce(wire(wrongKindTarget))
 
-			const unvalidatedReaction = await reactionResolver.resolve[NostrReactionSelector.CanonicalEventId].resolve({
+			const unvalidatedReaction = await reactionResolver.resolve['CanonicalEventId'].resolve({
 				eventId: reaction.id,
 			}, resolverContext)
 			expect(unvalidatedReaction).not.toHaveProperty('$targetNote')
@@ -287,18 +279,18 @@ describe('Nostr thread references', () => {
 				...event,
 				content: 'mutated after signing',
 			}))
-			await expect(resolver.resolve[NostrNoteSelector.CanonicalEventId].resolve({
+			await expect(resolver.resolve['CanonicalEventId'].resolve({
 				eventId: event.id,
 			}, resolverContext)).rejects.toThrow()
 
 			getEventById.mockResolvedValueOnce(wire(event))
-			await expect(resolver.resolve[NostrNoteSelector.CanonicalEventId].resolve({
+			await expect(resolver.resolve['CanonicalEventId'].resolve({
 				eventId: '6'.repeat(64),
 			}, resolverContext)).rejects.toThrow(/requested event id/)
 
 			const reaction = signedEvent([], 7)
 			getEventById.mockResolvedValueOnce(wire(reaction))
-			await expect(resolver.resolve[NostrNoteSelector.CanonicalEventId].resolve({
+			await expect(resolver.resolve['CanonicalEventId'].resolve({
 				eventId: reaction.id,
 			}, resolverContext)).rejects.toThrow(/kind/)
 		})
@@ -334,12 +326,12 @@ describe('Nostr thread references', () => {
 				getPrimalNoteReactions.mockResolvedValueOnce({ events: [wrongReaction, validReaction] })
 			}
 
-			await expect(repliesResolver.resolve[NostrNoteSelector.CanonicalEventId].resolve({
+			await expect(repliesResolver.resolve['CanonicalEventId'].resolve({
 				eventId: replyEventId,
 			}, resolverContext)).resolves.toEqual([{
 				[EntityMetaKey.Selector]: { eventId: validReply.id },
 			}])
-			await expect(reactionsResolver.resolve[NostrNoteSelector.CanonicalEventId].resolve({
+			await expect(reactionsResolver.resolve['CanonicalEventId'].resolve({
 				eventId: replyEventId,
 			}, resolverContext)).resolves.toEqual([{
 				[EntityMetaKey.Selector]: { eventId: validReaction.id },
@@ -358,7 +350,7 @@ describe('Nostr thread references', () => {
 			else
 				getPrimalProfileArticles.mockResolvedValueOnce({ events: [sibling, invalidTarget, target] })
 
-			const resolvedArticle = articleResolver.resolve[NostrArticleSelector.CanonicalCoordinate].resolve({
+			const resolvedArticle = articleResolver.resolve['CanonicalCoordinate'].resolve({
 				identifier: 'target',
 				kind: 30_023,
 				pubkey,
@@ -371,7 +363,7 @@ describe('Nostr thread references', () => {
 			else
 				getPrimalProfileArticles.mockResolvedValueOnce({ events: [sibling, invalidTarget] })
 
-			await expect(articleResolver.resolve[NostrArticleSelector.CanonicalCoordinate].resolve({
+			await expect(articleResolver.resolve['CanonicalCoordinate'].resolve({
 				identifier: 'target',
 				kind: 30_023,
 				pubkey,
@@ -403,13 +395,13 @@ describe('Nostr thread references', () => {
 		})
 		listNostrBandRecentTextNotes.mockResolvedValueOnce({ events: [invalidNote, validNote] })
 
-		await expect(profilesResolver.resolve[_GlobalNostrNetworkSelector.Scope].resolve(
+		await expect(profilesResolver.resolve['Scope'].resolve(
 			{},
 			resolverContext
 		)).resolves.toEqual([{
 			[EntityMetaKey.Selector]: { pubkey: validProfile.pubkey },
 		}])
-		await expect(notesResolver.resolve[_GlobalNostrNetworkSelector.Scope].resolve(
+		await expect(notesResolver.resolve['Scope'].resolve(
 			{},
 			resolverContext
 		)).resolves.toEqual([{
@@ -448,7 +440,7 @@ describe('Nostr thread references', () => {
 		) throw new Error('NostrBand spec missing version materialization resolver')
 
 		listNostrBandAuthorArticles.mockResolvedValueOnce({ events: articleVersions.toReversed() })
-		const article = await articleResolver.resolve[NostrArticleSelector.CanonicalCoordinate].resolve({
+		const article = await articleResolver.resolve['CanonicalCoordinate'].resolve({
 			identifier: 'target',
 			kind: 30_023,
 			pubkey,
@@ -460,7 +452,7 @@ describe('Nostr thread references', () => {
 		)
 
 		getNostrBandEventById.mockResolvedValueOnce({ event: articleVersions[0] })
-		await expect(articleEventResolver.resolve[NostrArticleEventSelector.CanonicalEventId].resolve({
+		await expect(articleEventResolver.resolve['CanonicalEventId'].resolve({
 			eventId: articleVersions[0].id,
 		}, resolverContext)).resolves.toEqual(expect.objectContaining({
 			eventId: articleVersions[0].id,
@@ -470,7 +462,7 @@ describe('Nostr thread references', () => {
 		}))
 
 		listNostrBandAuthorMetadataEvents.mockResolvedValueOnce({ events: profileVersions.toReversed() })
-		const profile = await profileResolver.resolve[NostrProfileSelector.CanonicalPubkey].resolve({
+		const profile = await profileResolver.resolve['CanonicalPubkey'].resolve({
 			pubkey,
 		}, resolverContext)
 		expect(profile).not.toHaveProperty('displayName')
@@ -480,7 +472,7 @@ describe('Nostr thread references', () => {
 		)
 
 		getNostrBandEventById.mockResolvedValueOnce({ event: profileVersions[0] })
-		await expect(profileEventResolver.resolve[NostrProfileMetadataEventSelector.CanonicalEventId].resolve({
+		await expect(profileEventResolver.resolve['CanonicalEventId'].resolve({
 			eventId: profileVersions[0].id,
 		}, resolverContext)).resolves.toEqual(expect.objectContaining({
 			eventId: profileVersions[0].id,
@@ -529,7 +521,7 @@ describe('Nostr thread references', () => {
 		) throw new Error('Primal spec missing version materialization resolver')
 
 		getPrimalProfileArticles.mockResolvedValueOnce({ events: articleVersions.toReversed() })
-		const article = await articleResolver.resolve[NostrArticleSelector.CanonicalCoordinate].resolve({
+		const article = await articleResolver.resolve['CanonicalCoordinate'].resolve({
 			identifier: 'target',
 			kind: 30_023,
 			pubkey,
@@ -541,7 +533,7 @@ describe('Nostr thread references', () => {
 		)
 
 		getPrimalEventById.mockResolvedValueOnce({ event: articleVersions[0] })
-		await expect(articleEventResolver.resolve[NostrArticleEventSelector.CanonicalEventId].resolve({
+		await expect(articleEventResolver.resolve['CanonicalEventId'].resolve({
 			eventId: articleVersions[0].id,
 		}, resolverContext)).resolves.toEqual(expect.objectContaining({
 			eventId: articleVersions[0].id,
@@ -552,7 +544,7 @@ describe('Nostr thread references', () => {
 		}))
 
 		getPrimalProfile.mockResolvedValueOnce({ events: profileVersions.toReversed() })
-		const profile = await profileResolver.resolve[NostrProfileSelector.CanonicalPubkey].resolve({
+		const profile = await profileResolver.resolve['CanonicalPubkey'].resolve({
 			pubkey,
 		}, resolverContext)
 		expect(profile).not.toHaveProperty('displayName')
@@ -562,7 +554,7 @@ describe('Nostr thread references', () => {
 		)
 
 		getPrimalEventById.mockResolvedValueOnce({ event: profileVersions[0] })
-		await expect(profileEventResolver.resolve[NostrProfileMetadataEventSelector.CanonicalEventId].resolve({
+		await expect(profileEventResolver.resolve['CanonicalEventId'].resolve({
 			eventId: profileVersions[0].id,
 		}, resolverContext)).resolves.toEqual(expect.objectContaining({
 			eventId: profileVersions[0].id,

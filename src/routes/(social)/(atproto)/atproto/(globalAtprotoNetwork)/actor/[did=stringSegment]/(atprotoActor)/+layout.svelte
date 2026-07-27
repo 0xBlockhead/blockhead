@@ -30,22 +30,28 @@
 {#key params.did}
 	<ParentPageCollapsible
 		href={
-			resolve('/atproto/actor/[did=stringSegment]', {
-				did: params.did,
-			})
+			resolve(
+				'/(social)/(atproto)/atproto/(globalAtprotoNetwork)/actor/[did=stringSegment]',
+				{
+					did: String(params.did),
+				}
+			)
 		}
 	>
 		{#snippet Summary()}
-			{@const DetailView = AtprotoActorView}
-
-			<DetailView
-				selection={select(EntityType.AtprotoActor, data.selector, { sources: [
-		Source.Atproto_Xrpc,
-	] })}
+			<AtprotoActorView
+				selection={
+					select(EntityType.AtprotoActor, data.selector, { sources: [
+						Source.Atproto_Xrpc,
+					] })
+				}
 				href={
-					resolve('/atproto/actor/[did=stringSegment]', {
-						did: params.did,
-					})
+					resolve(
+						'/(social)/(atproto)/atproto/(globalAtprotoNetwork)/actor/[did=stringSegment]',
+						{
+							did: String(params.did),
+						}
+					)
 				}
 				layout={EntityLayout.SummaryInline}
 			/>

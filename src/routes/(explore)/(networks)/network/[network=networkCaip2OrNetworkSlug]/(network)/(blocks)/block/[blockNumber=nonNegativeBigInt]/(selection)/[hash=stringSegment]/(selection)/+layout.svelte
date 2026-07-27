@@ -30,11 +30,14 @@
 {#key [params.network, params.blockNumber, params.hash].join(':')}
 	<ParentPageCollapsible
 		href={
-			resolve('/network/[network=networkCaip2OrNetworkSlug]/block/[blockNumber=nonNegativeBigInt]/[hash=stringSegment]', {
-				network: params.network,
-				blockNumber: params.blockNumber,
-				hash: params.hash,
-			})
+			resolve(
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(blocks)/block/[blockNumber=nonNegativeBigInt]/(selection)/[hash=stringSegment]',
+				{
+					network: String(params.network),
+					blockNumber: String(params.blockNumber),
+					hash: String(params.hash),
+				}
+			)
 		}
 	>
 		{#snippet Summary()}
@@ -43,11 +46,14 @@
 			<DetailView
 				selection={select(data.entityType, data.selector)}
 				href={
-					resolve('/network/[network=networkCaip2OrNetworkSlug]/block/[blockNumber=nonNegativeBigInt]/[hash=stringSegment]', {
-						network: params.network,
-						blockNumber: params.blockNumber,
-						hash: params.hash,
-					})
+					resolve(
+						'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(blocks)/block/[blockNumber=nonNegativeBigInt]/(selection)/[hash=stringSegment]',
+						{
+							network: String(params.network),
+							blockNumber: String(params.blockNumber),
+							hash: String(params.hash),
+						}
+					)
 				}
 				layout={EntityLayout.SummaryInline}
 			/>

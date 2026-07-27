@@ -1,13 +1,45 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { EntityMetaKey } from '$/schema/$schema.ts'
-import { EvmBlockSelector } from '$/schema/EvmBlock.ts'
 import { getEvmBlockRangePage } from '$/sources/Envio/HyperSync/queries.ts'
 import evmBlockPage from '$/sources/Envio/HyperSync/fixtures/evm-block-page.json'
 import evmBlockRollback from '$/sources/Envio/HyperSync/fixtures/evm-block-rollback.json'
 import { EnvioHyperSyncResolution } from '$/sources/Envio/HyperSync/types.ts'
 
-const { sourceFetch } = vi.hoisted(() => ({
+const {
+	firstHttpUrlForBinding,
+	resolverBinding,
+	sourceFetch,
+} = vi.hoisted(() => ({
+	firstHttpUrlForBinding: vi.fn(() => 'https://eth.hypersync.xyz'),
+	resolverBinding: {
+		source: 'EnvioHyperSync_RawHttp',
+		target: {
+			kind: 'Eip155Chain',
+			key: '1',
+		},
+		endpoints: [{
+			endpointKind: 'HttpUrl',
+			locator: 'https://eth.hypersync.xyz',
+			origin: 'https://eth.hypersync.xyz',
+			corsEnabled: false,
+		}],
+		wireProtocol: 'RawHttp',
+		apiFamily: 'EnvioHyperSyncApi',
+		operationGroups: ['GenericRead'],
+		delivery: 'HttpProxy',
+		credentials: [{
+			scope: 'RuntimeSecret',
+		}],
+		proxyId: '["EnvioHyperSync_RawHttp","Eip155Chain","1","HttpProxy","EnvioHyperSyncApi"]',
+		serverCredentialId: '["EnvioHyperSync_RawHttp","Eip155Chain","1","HttpProxy","EnvioHyperSyncApi"]',
+		artifacts: [{
+			kind: 'HandwrittenTypes',
+			path: 'src/sources/Envio/HyperSync/types.ts',
+			generated: false,
+			referenceUrl: 'https://docs.envio.dev/docs/HyperSync/overview',
+		}],
+	},
 	sourceFetch: vi.fn(),
 }))
 
@@ -23,27 +55,12 @@ vi.mock('$/sources/Source.ts', async (importOriginal) => {
 })
 
 vi.mock('$/sources/_runtime/http.ts', () => ({
-	firstHttpUrlForBinding: () => 'https://eth.hypersync.xyz',
+	firstHttpUrlForBinding,
 	sourceFetch,
-}))
-
-vi.mock('$/sources/$sourceProviders.ts', () => ({
-	sourceProviderDefinitions: [{
-		bindings: [{
-			source: 'EnvioHyperSync_RawHttp',
-			target: {
-				key: '1',
-			},
-		}],
-	}],
 }))
 
 const { default: envioHyperSync } = await import('$/resolvers/Envio-HyperSync.ts')
 
-const binding = {
-	source: 'EnvioHyperSync_RawHttp',
-	endpoints: [],
-}
 const network = {
 	caip2: {
 		namespace: 'eip155',
@@ -69,7 +86,6 @@ describe('Envio HyperSync query boundary', () => {
 		sourceFetch.mockResolvedValueOnce(Response.json(evmBlockPage))
 
 		await expect(getEvmBlockRangePage({
-			binding,
 			fromBlock: 19_000_000n,
 			toBlock: 19_000_001n,
 		})).resolves.toMatchObject({
@@ -115,7 +131,6 @@ describe('Envio HyperSync query boundary', () => {
 			rollback_guard: null,
 		}))
 		await expect(getEvmBlockRangePage({
-			binding,
 			fromBlock: 19_000_000n,
 			toBlock: 19_000_001n,
 		})).resolves.toMatchObject({
@@ -133,7 +148,6 @@ describe('Envio HyperSync query boundary', () => {
 			rollback_guard: null,
 		}))
 		await expect(getEvmBlockRangePage({
-			binding,
 			fromBlock: 19_000_000n,
 			toBlock: 19_000_001n,
 		})).resolves.toMatchObject({
@@ -151,7 +165,6 @@ describe('Envio HyperSync query boundary', () => {
 			rollback_guard: null,
 		}))
 		await expect(getEvmBlockRangePage({
-			binding,
 			fromBlock: 19_000_000n,
 			toBlock: 19_000_010n,
 		})).resolves.toMatchObject({
@@ -161,7 +174,6 @@ describe('Envio HyperSync query boundary', () => {
 
 		sourceFetch.mockResolvedValueOnce(Response.json(evmBlockRollback))
 		await expect(getEvmBlockRangePage({
-			binding,
 			fromBlock: 19_000_001n,
 			toBlock: 19_000_002n,
 			rollbackGuard: {
@@ -185,7 +197,7 @@ describe('Envio HyperSync resolver', () => {
 	it('maps the approved EVM block fields and transaction selectors', async () => {
 		sourceFetch.mockResolvedValueOnce(Response.json(evmBlockPage))
 		const resolver = envioHyperSync.resolvers[0]
-		const block = await resolver.resolve[EvmBlockSelector.EvmNetworkBlockNumber].resolve({
+		const block = await resolver.resolve['EvmNetworkBlockNumber'].resolve({
 			$network: network,
 			blockNumber: 19_000_000n,
 		}, context)
@@ -216,14 +228,18 @@ describe('Envio HyperSync resolver', () => {
 				},
 			}],
 		})
+		expect(firstHttpUrlForBinding).toHaveBeenCalledWith(resolverBinding)
 	})
 
-	it('rejects unsupported networks before transport', async () => {
-		await expect(envioHyperSync.resolvers[0].resolve[EvmBlockSelector.EvmNetworkBlockNumber].resolve({
+	it.each([
+		['eip155', '137'],
+		['solana', '1'],
+	])('rejects unsupported %s:%s before transport', async (namespace, reference) => {
+		await expect(envioHyperSync.resolvers[0].resolve['EvmNetworkBlockNumber'].resolve({
 			$network: {
 				caip2: {
-					namespace: 'eip155',
-					reference: '137',
+					namespace,
+					reference,
 				},
 			},
 			blockNumber: 19_000_000n,

@@ -7,14 +7,12 @@
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		data,
-		params,
 	}: PageProps = $props()
 
 	const pageSelection = $derived(select(EntityType.SolanaProgram, data.selector, {
@@ -33,18 +31,12 @@
 
 
 <svelte:head>
-	<title>{(data.title ?? (pageSelection.entity == null ? [String((data.selector.programId) ?? '')].filter(Boolean).join(' ') || 'solana program' : [String((({ ...data.selector, ...pageSelection.entity }).programId) ?? '')].filter(Boolean).join(' ') || 'solana program'))} • solana program • Blockhead</title>
+	<title>{(data.title ?? (pageSelection.entitySelector.programId || 'solana program'))} • solana program • Blockhead</title>
 </svelte:head>
 
 
 <Page>
 	<SolanaProgramView
-		href={
-			resolve('/network/[network=networkCaip2OrNetworkSlug]/program/[programId=stringSegment]', {
-				network: params.network,
-				programId: params.programId,
-			})
-		}
 		selection={pageSelection}
 	/>
 </Page>

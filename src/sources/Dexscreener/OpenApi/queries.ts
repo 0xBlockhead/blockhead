@@ -13,7 +13,7 @@ import type {
 	DexscreenerTokenPairsResponse,
 } from '$/sources/Dexscreener/OpenApi/types.ts'
 import { Source } from '$/sources/Source.ts'
-import type { SourceBinding } from '$/sources/SourceBinding.ts'
+
 
 const maximumPairs = 100
 const maximumLabels = 32
@@ -162,12 +162,10 @@ const normalizePairs = (
 }
 
 export const getLatestPairs = async ({
-	binding,
 	chainId,
 	pairId,
 	resolvedAtMs = Date.now(),
 }: {
-	binding: SourceBinding
 	chainId: string
 	pairId: string
 	resolvedAtMs?: number
@@ -175,7 +173,6 @@ export const getLatestPairs = async ({
 	if (chainId === '' || pairId === '')
 		throw new Error('Dexscreener_OpenApi: empty requested pair identity')
 	const response = await getDexscreenerJson<DexscreenerPairsResponse>(
-		binding,
 		`/latest/dex/pairs/${encodeURIComponent(chainId)}/${encodeURIComponent(pairId)}`
 	)
 	const pairs = normalizePairs(response.pairs, resolvedAtMs)
@@ -188,12 +185,10 @@ export const getLatestPairs = async ({
 }
 
 export const getTokenPairs = async ({
-	binding,
 	chainId,
 	tokenAddress,
 	resolvedAtMs = Date.now(),
 }: {
-	binding: SourceBinding
 	chainId: string
 	tokenAddress: string
 	resolvedAtMs?: number
@@ -202,7 +197,6 @@ export const getTokenPairs = async ({
 		throw new Error('Dexscreener_OpenApi: empty requested token identity')
 	const pairs = normalizePairs(
 		await getDexscreenerJson<DexscreenerTokenPairsResponse>(
-			binding,
 			`/token-pairs/v1/${encodeURIComponent(chainId)}/${encodeURIComponent(tokenAddress)}`
 		),
 		resolvedAtMs
@@ -219,18 +213,15 @@ export const getTokenPairs = async ({
 }
 
 export const getPairSearch = async ({
-	binding,
 	q,
 	resolvedAtMs = Date.now(),
 }: {
-	binding: SourceBinding
 	q: string
 	resolvedAtMs?: number
 }): Promise<DexscreenerPairObservationsResponse> => {
 	if (q.trim() === '')
 		throw new Error('Dexscreener_OpenApi: empty pair search')
 	const response = await getDexscreenerJson<DexscreenerSearchResponse>(
-		binding,
 		`/latest/dex/search?q=${encodeURIComponent(q)}`
 	)
 	return {

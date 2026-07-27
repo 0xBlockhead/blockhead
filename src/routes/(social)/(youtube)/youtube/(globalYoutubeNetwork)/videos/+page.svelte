@@ -2,12 +2,12 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
@@ -23,29 +23,20 @@
 
 
 <Page>
+	{@const collectionSelection = select(EntityType._GlobalYoutubeNetwork, {
+		scope: '_GlobalYoutubeNetwork',
+	})
+		.$$observedVideos({
+			sources: [
+				Source.Constants_Internal,
+			],
+		})}
+
 	<YoutubeVideosView
-		href={resolve('/youtube/videos')}
+		href={resolve('/(social)/(youtube)/youtube/(globalYoutubeNetwork)/videos')}
 		title='Popular YouTube videos (bounded provider chart)'
-		selection={
-			select(EntityType._GlobalYoutubeNetwork, {
-				scope: '_GlobalYoutubeNetwork',
-			})
-				.$$observedVideos({
-					sources: [
-						Source.Constants_Internal,
-					],
-				})
-		}
-		countResource={
-			select(EntityType._GlobalYoutubeNetwork, {
-				scope: '_GlobalYoutubeNetwork',
-			})
-				.$$observedVideos({
-					sources: [
-						Source.Constants_Internal,
-					],
-				}).count
-		}
+		selection={collectionSelection}
+		countResource={collectionSelection.count}
 		id='observed-videos'
 		data-column-item="flexible"
 		data-card

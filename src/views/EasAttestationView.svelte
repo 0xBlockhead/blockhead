@@ -2,16 +2,11 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
-	import { caip2StringFromValue } from '$/lib/caip2.ts'
 	import { EvmAddress, ZeroExHex } from '$/schema/ZeroExHex.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -23,43 +18,29 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.EasAttestation>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.EasAttestation>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.EasAttestation> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const easAttestation = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {
-			recipient: true,
-			attester: true,
-		},
-	} : {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const viewSelection = $derived(selection({
+		sources: selection.sources ?? [
+			Source.Blockscout_Rest,
+			Source.EasContracts_Evm,
+			Source.EasScan_Graphql,
+			Source.Etherscan_Rest,
+			Source.Voltaire_JsonRpc,
+		],
+	}))
+	const easAttestation = $derived(viewSelection({
 		fields: {
 			schemaUid: true,
 			recipient: true,
 			attester: true,
 		},
 	}))
-	const titleFallback = $derived([String((pendingEntity.uid) ?? '')].filter(Boolean).join(' ') || 'EAS attestation')
-	const viewDomId = $derived('eas-attestation-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const titleFallback = $derived(String(pendingEntity.uid ?? '') || 'EAS attestation')
 
 
 	// Components
@@ -76,41 +57,30 @@
 
 <EntityView
 	entityType={EntityType.EasAttestation}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={easAttestation}>
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.uid) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{String(pendingEntity.uid ?? '') || 'EAS attestation'}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={easAttestation}>
-			{#snippet children(entity)}
-				<ResourceBoundary
-					resource={selection.$schema}
-				>
-					{#snippet children(easSchema)}
-						{#if easSchema != null && easSchema[EntityMetaKey.Selector] != null}
-							<EasSchemaView
-								selection={select(EntityType.EasSchema, easSchema[EntityMetaKey.Selector])}
-								prefetched={easSchema}
-								href=""
-								layout={EntityLayout.Value}
-								open={false}
-							/>
-						{/if}
-					{/snippet}
-				</ResourceBoundary>
+		<ResourceBoundary
+			resource={selection.$schema}
+		>
+			{#snippet children(easSchema)}
+				{#if easSchema != null}
+					<EasSchemaView
+						selection={select(EntityType.EasSchema, easSchema[EntityMetaKey.Selector])}
+						prefetched={easSchema}
+						href=""
+						layout={EntityLayout.Value}
+						open={false}
+					/>
+				{/if}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -118,19 +88,13 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={easAttestation}>
 			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const recipient0 = resolvedEntity.recipient}
-				{#if recipient0 !== undefined && recipient0 !== null}
-					<span data-text="muted">
-						{String((recipient0) ?? '')}
-					</span>
-				{/if}
-				{@const attester1 = resolvedEntity.attester}
-				{#if attester1 !== undefined && attester1 !== null}
-					<span data-text="muted">
-						{String((attester1) ?? '')}
-					</span>
-				{/if}
+				<span data-text="muted">
+					{String(entity.recipient)}
+				</span>
+
+				<span data-text="muted">
+					{String(entity.attester)}
+				</span>
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -140,24 +104,7 @@
 			<div>
 				<dt>UID</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									uid: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const uid = resolvedEntity.uid}
-							{#if uid !== undefined && uid !== null}
-								{String((uid) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{String(pendingEntity.uid)}
 				</dd>
 			</div>
 
@@ -166,23 +113,6 @@
 				<dd>
 					<NetworkView
 						selection={select(EntityType.Network, selection.entitySelector.$network)}
-						href={
-							(
-								selection.entitySelector.$network != null && 'caip2' in selection.entitySelector.$network
-								&& selection.entitySelector.$network.caip2 != null ?
-									resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-								network: String(caip2StringFromValue(selection.entitySelector.$network.caip2) ?? ''),
-							})
-							:
-									selection.entitySelector.$network != null && 'slug' in selection.entitySelector.$network
-									&& selection.entitySelector.$network.slug != null ?
-										resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-									network: String(selection.entitySelector.$network.slug ?? ''),
-								})
-								:
-									undefined
-							)
-						}
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -193,21 +123,10 @@
 				<dt>Schema UID</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									schemaUid: true,
-								},
-							})
-						}
+						resource={easAttestation}
 					>
 						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const schemaUid = resolvedEntity.schemaUid}
-							{#if schemaUid !== undefined && schemaUid !== null}
-								{String((schemaUid) ?? '')}
-							{/if}
+							{String(entity.schemaUid)}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -217,21 +136,10 @@
 				<dt>Recipient</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									recipient: true,
-								},
-							})
-						}
+						resource={easAttestation}
 					>
 						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const recipient = resolvedEntity.recipient}
-							{#if recipient !== undefined && recipient !== null}
-								{String((recipient) ?? '')}
-							{/if}
+							{String(entity.recipient)}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -241,21 +149,10 @@
 				<dt>Attester</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									attester: true,
-								},
-							})
-						}
+						resource={easAttestation}
 					>
 						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const attester = resolvedEntity.attester}
-							{#if attester !== undefined && attester !== null}
-								{String((attester) ?? '')}
-							{/if}
+							{String(entity.attester)}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -265,8 +162,7 @@
 		<dl data-column-item="center">
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							refUid: true,
 						},
@@ -274,13 +170,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const refUid = resolvedEntity.refUid}
-					{#if refUid !== undefined && refUid !== null}
+					{@const refUid = entity.refUid}
+					{#if refUid != null}
 						<div>
 							<dt>Ref UID</dt>
 							<dd>
-								{String((refUid) ?? '')}
+								{String(refUid)}
 							</dd>
 						</div>
 					{/if}
@@ -289,8 +184,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							attestedAt: true,
 						},
@@ -298,9 +192,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const attestedAt = resolvedEntity.attestedAt}
-					{#if attestedAt !== undefined && attestedAt !== null}
+					{@const attestedAt = entity.attestedAt}
+					{#if attestedAt != null}
 						<div>
 							<dt>Attested at</dt>
 							<dd>
@@ -313,8 +206,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							expirationTime: true,
 						},
@@ -322,9 +214,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const expirationTime = resolvedEntity.expirationTime}
-					{#if expirationTime !== undefined && expirationTime !== null}
+					{@const expirationTime = entity.expirationTime}
+					{#if expirationTime != null}
 						<div>
 							<dt>Expiration time</dt>
 							<dd>
@@ -337,8 +228,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							revocable: true,
 						},
@@ -346,9 +236,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const revocable = resolvedEntity.revocable}
-					{#if revocable !== undefined && revocable !== null}
+					{@const revocable = entity.revocable}
+					{#if revocable != null}
 						<div>
 							<dt>Revocable</dt>
 							<dd>
@@ -363,8 +252,7 @@
 		<dl data-column-item="center">
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							data: true,
 						},
@@ -372,13 +260,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const data = resolvedEntity.data}
-					{#if data !== undefined && data !== null}
+					{@const data = entity.data}
+					{#if data != null}
 						<div>
 							<dt>Data</dt>
 							<dd>
-								{String((data) ?? '')}
+								{String(data)}
 							</dd>
 						</div>
 					{/if}
@@ -389,7 +276,7 @@
 				resource={selection.$schema}
 			>
 				{#snippet children(easSchema)}
-					{#if easSchema != null && easSchema[EntityMetaKey.Selector] != null}
+					{#if easSchema != null}
 						<div>
 							<dt>Schema</dt>
 							<dd>
@@ -409,38 +296,13 @@
 				resource={selection.$recipientAccount}
 			>
 				{#snippet children(evmNetworkAccount)}
-					{#if evmNetworkAccount != null && evmNetworkAccount[EntityMetaKey.Selector] != null}
+					{#if evmNetworkAccount != null}
 						<div>
 							<dt>Recipient account</dt>
 							<dd>
 								<EvmNetworkAccountView
 									selection={select(EntityType.EvmNetworkAccount, evmNetworkAccount[EntityMetaKey.Selector])}
 									prefetched={evmNetworkAccount}
-									href={
-										(
-											evmNetworkAccount[EntityMetaKey.Selector] != null && '$actor' in evmNetworkAccount[EntityMetaKey.Selector]
-											&& evmNetworkAccount[EntityMetaKey.Selector].$actor != null && 'address' in evmNetworkAccount[EntityMetaKey.Selector].$actor
-											&& evmNetworkAccount[EntityMetaKey.Selector].$actor.address != null
-											&& evmNetworkAccount[EntityMetaKey.Selector] != null && '$network' in evmNetworkAccount[EntityMetaKey.Selector] ?
-												evmNetworkAccount[EntityMetaKey.Selector].$network != null && 'caip2' in evmNetworkAccount[EntityMetaKey.Selector].$network
-												&& evmNetworkAccount[EntityMetaKey.Selector].$network.caip2 != null ?
-													resolve('/network/[network=networkCaip2OrNetworkSlug]/account/[accountId=polkadotAccountIdOrStringSegmentOrEvmAddressOrSolanaPubkey]', {
-												accountId: String(evmNetworkAccount[EntityMetaKey.Selector].$actor.address ?? ''),
-												network: String(caip2StringFromValue(evmNetworkAccount[EntityMetaKey.Selector].$network.caip2) ?? ''),
-											})
-											:
-													evmNetworkAccount[EntityMetaKey.Selector].$network != null && 'slug' in evmNetworkAccount[EntityMetaKey.Selector].$network
-													&& evmNetworkAccount[EntityMetaKey.Selector].$network.slug != null ?
-														resolve('/network/[network=networkCaip2OrNetworkSlug]/account/[accountId=polkadotAccountIdOrStringSegmentOrEvmAddressOrSolanaPubkey]', {
-													accountId: String(evmNetworkAccount[EntityMetaKey.Selector].$actor.address ?? ''),
-													network: String(evmNetworkAccount[EntityMetaKey.Selector].$network.slug ?? ''),
-												})
-												:
-													undefined
-										:
-												undefined
-										)
-									}
 									layout={EntityLayout.Value}
 									open={false}
 								/>
@@ -454,38 +316,13 @@
 				resource={selection.$attesterAccount}
 			>
 				{#snippet children(evmNetworkAccount)}
-					{#if evmNetworkAccount != null && evmNetworkAccount[EntityMetaKey.Selector] != null}
+					{#if evmNetworkAccount != null}
 						<div>
 							<dt>Attester account</dt>
 							<dd>
 								<EvmNetworkAccountView
 									selection={select(EntityType.EvmNetworkAccount, evmNetworkAccount[EntityMetaKey.Selector])}
 									prefetched={evmNetworkAccount}
-									href={
-										(
-											evmNetworkAccount[EntityMetaKey.Selector] != null && '$actor' in evmNetworkAccount[EntityMetaKey.Selector]
-											&& evmNetworkAccount[EntityMetaKey.Selector].$actor != null && 'address' in evmNetworkAccount[EntityMetaKey.Selector].$actor
-											&& evmNetworkAccount[EntityMetaKey.Selector].$actor.address != null
-											&& evmNetworkAccount[EntityMetaKey.Selector] != null && '$network' in evmNetworkAccount[EntityMetaKey.Selector] ?
-												evmNetworkAccount[EntityMetaKey.Selector].$network != null && 'caip2' in evmNetworkAccount[EntityMetaKey.Selector].$network
-												&& evmNetworkAccount[EntityMetaKey.Selector].$network.caip2 != null ?
-													resolve('/network/[network=networkCaip2OrNetworkSlug]/account/[accountId=polkadotAccountIdOrStringSegmentOrEvmAddressOrSolanaPubkey]', {
-												accountId: String(evmNetworkAccount[EntityMetaKey.Selector].$actor.address ?? ''),
-												network: String(caip2StringFromValue(evmNetworkAccount[EntityMetaKey.Selector].$network.caip2) ?? ''),
-											})
-											:
-													evmNetworkAccount[EntityMetaKey.Selector].$network != null && 'slug' in evmNetworkAccount[EntityMetaKey.Selector].$network
-													&& evmNetworkAccount[EntityMetaKey.Selector].$network.slug != null ?
-														resolve('/network/[network=networkCaip2OrNetworkSlug]/account/[accountId=polkadotAccountIdOrStringSegmentOrEvmAddressOrSolanaPubkey]', {
-													accountId: String(evmNetworkAccount[EntityMetaKey.Selector].$actor.address ?? ''),
-													network: String(evmNetworkAccount[EntityMetaKey.Selector].$network.slug ?? ''),
-												})
-												:
-													undefined
-										:
-												undefined
-										)
-									}
 									layout={EntityLayout.Value}
 									open={false}
 								/>
@@ -499,7 +336,7 @@
 				resource={selection.$refAttestation}
 			>
 				{#snippet children(easAttestation)}
-					{#if easAttestation != null && easAttestation[EntityMetaKey.Selector] != null}
+					{#if easAttestation != null}
 						<div>
 							<dt>Ref attestation</dt>
 							<dd>
@@ -524,12 +361,12 @@
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
-				<EasAttestation_TimestampsView
-					selection={easAttestationEasAttestationTimestampsViewTimestampsResource}
-					countResource={easAttestationEasAttestationTimestampsViewTimestampsResource.count}
-					title='Timestamps'
-					id='EasAttestation_TimestampsView-timestamps'
-				/>
+					<EasAttestation_TimestampsView
+						selection={easAttestationEasAttestationTimestampsViewTimestampsResource}
+						countResource={easAttestationEasAttestationTimestampsViewTimestampsResource.count}
+						title='Timestamps'
+						id='timestamps'
+					/>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>

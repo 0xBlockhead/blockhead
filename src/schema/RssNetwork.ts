@@ -1,16 +1,13 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { entity, facet } from '$/schema/$schema.ts'
+import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { UrlString } from '$/schema/UrlString.ts'
 import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
-export enum RssNetworkSelector {
-	Scope = 'Scope',
-}
-export const RssNetwork = entity({
+export default entity({
 	entityType: EntityType.RssNetwork,
 	labels: {
 		singular: 'RSS / Atom',
@@ -34,13 +31,13 @@ export const RssNetwork = entity({
 	homeUrl: {
 		label: 'Home URL',
 		type: EntityFieldType.Primitive,
-		primitiveType: (UrlString),
+		primitiveType: UrlString,
 		cardinality: EntityFieldCardinality.One,
 	},
 	docsUrl: {
 		label: 'Docs URL',
 		type: EntityFieldType.Primitive,
-		primitiveType: (UrlString),
+		primitiveType: UrlString,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	registryName: {

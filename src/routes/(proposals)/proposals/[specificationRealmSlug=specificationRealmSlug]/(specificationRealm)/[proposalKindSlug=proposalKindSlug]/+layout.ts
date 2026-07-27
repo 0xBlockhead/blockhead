@@ -7,7 +7,7 @@ import { match as matchProposalKindSlug } from '$/params/proposalKindSlug.ts'
 import { match as matchSpecificationRealmSlug } from '$/params/specificationRealmSlug.ts'
 import { parseEntitySelector } from '$/schema/$schema.ts'
 import { schema } from '$/schema/index.ts'
-import { SpecificationProposalKind as SpecificationProposalKindSchema } from '$/schema/SpecificationProposalKind.ts'
+import SpecificationProposalKindSchema from '$/schema/SpecificationProposalKind.ts'
 import { type as arktype } from 'arktype'
 
 export const load: LayoutLoad = ({ params }) => {

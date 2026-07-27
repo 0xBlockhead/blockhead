@@ -2,15 +2,10 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
-	import { caip2StringFromValue } from '$/lib/caip2.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -22,40 +17,23 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.QuilibriumFrame>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.QuilibriumFrame>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.QuilibriumFrame> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const quilibriumFrame = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {
-			frameHash: true,
-		},
-	} : {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const viewSelection = $derived(selection({
+		sources: selection.sources ?? [
+			Source.QuilibriumNode_Grpc,
+		],
+	}))
+	const quilibriumFrame = $derived(viewSelection({
 		fields: {
 			frameHash: true,
 		},
 	}))
-	const titleFallback = $derived([String((pendingEntity.frameNumber) ?? '')].filter(Boolean).join(' ') || 'quilibrium frame')
-	const viewDomId = $derived('quilibrium-frame-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const titleFallback = $derived(String(pendingEntity.frameNumber ?? '') || 'quilibrium frame')
 
 
 	// Components
@@ -71,71 +49,33 @@
 
 <EntityView
 	entityType={EntityType.QuilibriumFrame}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'frameHash')}
-			{@const frameNumber0 = pendingEntity.frameNumber}
-			{#if frameNumber0 !== undefined && frameNumber0 !== null}
-				<NumberValue
-					value={frameNumber0}
-				/>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={quilibriumFrame}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const frameNumber0 = resolvedEntity.frameNumber}
-					{#if frameNumber0 !== undefined && frameNumber0 !== null}
-						<NumberValue
-							value={frameNumber0}
-						/>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<NumberValue
+			value={pendingEntity.frameNumber}
+		/>
 	{/snippet}
 
 	{#snippet Value()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'frameHash')}
-			{[String((pendingEntity.shardKey) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.frameNumber) ?? '')].filter(Boolean).join(' ') || titleFallback}
-		{:else}
-			<ResourceBoundary resource={quilibriumFrame}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.shardKey) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.frameNumber) ?? '')].filter(Boolean).join(' ') || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		{(pendingEntity.shardKey ?? '') || String(pendingEntity.frameNumber ?? '') || titleFallback}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'frameHash')}
-			{@const frameHash0 = pendingEntity.frameHash}
-			{#if frameHash0 !== undefined && frameHash0 !== null}
-				<span data-text="muted">
-					<TruncatedValue value={String((frameHash0) ?? '')} />
-				</span>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={quilibriumFrame}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const frameHash0 = resolvedEntity.frameHash}
-					{#if frameHash0 !== undefined && frameHash0 !== null}
-						<span data-text="muted">
-							<TruncatedValue value={String((frameHash0) ?? '')} />
-						</span>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={quilibriumFrame}>
+			{#snippet children(entity)}
+				{@const frameHash0 = entity.frameHash}
+				{#if frameHash0 != null}
+					<span data-text="muted">
+						<TruncatedValue value={frameHash0} />
+					</span>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -145,23 +85,6 @@
 				<dd>
 					<NetworkView
 						selection={select(EntityType.Network, selection.entitySelector.$network)}
-						href={
-							(
-								selection.entitySelector.$network != null && 'caip2' in selection.entitySelector.$network
-								&& selection.entitySelector.$network.caip2 != null ?
-									resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-								network: String(caip2StringFromValue(selection.entitySelector.$network.caip2) ?? ''),
-							})
-							:
-									selection.entitySelector.$network != null && 'slug' in selection.entitySelector.$network
-									&& selection.entitySelector.$network.slug != null ?
-										resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-									network: String(selection.entitySelector.$network.slug ?? ''),
-								})
-								:
-									undefined
-							)
-						}
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -171,71 +94,29 @@
 			<div>
 				<dt>frame number</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									frameNumber: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const frameNumber = resolvedEntity.frameNumber}
-							{#if frameNumber !== undefined && frameNumber !== null}
-								<NumberValue
-									value={frameNumber}
-								/>
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					<NumberValue
+						value={pendingEntity.frameNumber}
+					/>
 				</dd>
 			</div>
 
 			<div>
 				<dt>shard key</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									shardKey: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const shardKey = resolvedEntity.shardKey}
-							{#if shardKey !== undefined && shardKey !== null}
-								{String((shardKey) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{pendingEntity.shardKey}
 				</dd>
 			</div>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							frameHash: true,
-						},
-					})
-				}
+				resource={quilibriumFrame}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const frameHash = resolvedEntity.frameHash}
-					{#if frameHash !== undefined && frameHash !== null}
+					{@const frameHash = entity.frameHash}
+					{#if frameHash != null}
 						<div>
 							<dt>frame hash</dt>
 							<dd>
-								<TruncatedValue value={String((frameHash) ?? '')} />
+								<TruncatedValue value={frameHash} />
 							</dd>
 						</div>
 					{/if}
@@ -244,8 +125,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							timestampMs: true,
 						},
@@ -253,9 +133,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const timestampMs = resolvedEntity.timestampMs}
-					{#if timestampMs !== undefined && timestampMs !== null}
+					{@const timestampMs = entity.timestampMs}
+					{#if timestampMs != null}
 						<div>
 							<dt>Timestamp</dt>
 							<dd>
@@ -270,8 +149,7 @@
 		<dl data-column-item="center">
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							difficulty: true,
 						},
@@ -279,9 +157,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const difficulty = resolvedEntity.difficulty}
-					{#if difficulty !== undefined && difficulty !== null}
+					{@const difficulty = entity.difficulty}
+					{#if difficulty != null}
 						<div>
 							<dt>difficulty</dt>
 							<dd>
@@ -298,7 +175,7 @@
 				resource={selection.$shard}
 			>
 				{#snippet children(quilibriumShard)}
-					{#if quilibriumShard != null && quilibriumShard[EntityMetaKey.Selector] != null}
+					{#if quilibriumShard != null}
 						<div>
 							<dt>shard</dt>
 							<dd>
@@ -318,7 +195,7 @@
 				resource={selection.$prover}
 			>
 				{#snippet children(quilibriumProver)}
-					{#if quilibriumProver != null && quilibriumProver[EntityMetaKey.Selector] != null}
+					{#if quilibriumProver != null}
 						<div>
 							<dt>prover</dt>
 							<dd>

@@ -1,4 +1,8 @@
 import type { JsonValue } from '$/typescript/JsonValue.ts'
+import type {
+	CardanoGovernanceAction,
+	CardanoGovernanceActionTag,
+} from '$/sources/_shared/interfaces/CardanoGovernance/types.ts'
 import {
 	type as arktype,
 	type Type,
@@ -77,24 +81,31 @@ export interface CardanoKoiosTransactionVotingProcedure {
 }
 
 export interface CardanoKoiosTransactionProposalProcedure {
-	type: string
+	type: CardanoGovernanceActionTag
 	index: number
 	deposit: string
 	meta_url: string | null
 	meta_hash: string | null
-	description: JsonValue
+	description: CardanoGovernanceAction
 	return_address: string
 }
 
+type CardanoKoiosTransactionProposalProcedureWire = Omit<
+	CardanoKoiosTransactionProposalProcedure,
+	'description'
+> & {
+	description: unknown
+}
+
 export const cardanoKoiosTransactionProposalProcedure = arktype({
-	type: 'string',
+	type: "'ParameterChange' | 'HardForkInitiation' | 'TreasuryWithdrawals' | 'NoConfidence' | 'UpdateCommittee' | 'NewConstitution' | 'InfoAction'",
 	index: 'number.integer >= 0',
 	deposit: '/^(0|[1-9][0-9]*)$/',
 	meta_url: 'string | null',
 	meta_hash: 'string | null',
 	description: 'unknown',
 	return_address: 'string',
-})
+}) satisfies Type<CardanoKoiosTransactionProposalProcedureWire>
 
 export interface CardanoKoiosTransactionInfo {
 	tx_hash: string

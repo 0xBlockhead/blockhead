@@ -42,10 +42,6 @@ const domainTargetBySource = {
 		kind: 'LocalDevice',
 		key: 'erigon-node',
 	},
-	[Source.Fedi_Rest]: {
-		kind: 'LocalDevice',
-		key: 'fedi-rest-service',
-	},
 	[Source.FedimintClient_Rpc]: {
 		kind: 'LocalDevice',
 		key: 'fedimint-client',

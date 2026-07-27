@@ -1,16 +1,13 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { entity, facet } from '$/schema/$schema.ts'
+import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { UrlString } from '$/schema/UrlString.ts'
 import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 import { type } from 'arktype'
 
-export enum Eip8004CrossRegistrationSelector {
-	RegistrationFileTargetKindTargetSelectorHashAlgorithmTargetSelectorHash = 'RegistrationFileTargetKindTargetSelectorHashAlgorithmTargetSelectorHash',
-}
-export const Eip8004CrossRegistration = entity({
+export default entity({
 	entityType: EntityType.Eip8004CrossRegistration,
 	labels: {
 		singular: 'EIP-8004 cross registration',
@@ -38,7 +35,7 @@ export const Eip8004CrossRegistration = entity({
 	targetSelectorHash: {
 		label: 'Target selector hash',
 		type: EntityFieldType.Primitive,
-		primitiveType: (ZeroExHex),
+		primitiveType: ZeroExHex,
 		cardinality: EntityFieldCardinality.One,
 	},
 	targetSelector: {
@@ -50,7 +47,7 @@ export const Eip8004CrossRegistration = entity({
 	evidenceUri: {
 		label: 'Evidence URI',
 		type: EntityFieldType.Primitive,
-		primitiveType: (UrlString),
+		primitiveType: UrlString,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	signature: {

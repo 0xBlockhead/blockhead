@@ -1,15 +1,11 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { entity, facet } from '$/schema/$schema.ts'
+import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { type } from 'arktype'
 
-export enum AvailBlockSelector {
-	NetworkBlockNumber = 'NetworkBlockNumber',
-	NetworkBlockHash = 'NetworkBlockHash',
-}
-export const AvailBlock = entity({
+export default entity({
 	entityType: EntityType.AvailBlock,
 	labels: {
 		singular: 'avail block',

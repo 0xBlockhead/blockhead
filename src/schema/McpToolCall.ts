@@ -1,15 +1,12 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { entity, facet } from '$/schema/$schema.ts'
+import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 import { type } from 'arktype'
 
-export enum McpToolCallSelector {
-	ServerCallId = 'ServerCallId',
-}
-export const McpToolCall = entity({
+export default entity({
 	entityType: EntityType.McpToolCall,
 	labels: {
 		singular: 'mcp tool call',
@@ -55,7 +52,7 @@ export const McpToolCall = entity({
 	inputHash: {
 		label: 'input hash',
 		type: EntityFieldType.Primitive,
-		primitiveType: (ZeroExHex),
+		primitiveType: ZeroExHex,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	outputHashAlgorithm: {
@@ -67,7 +64,7 @@ export const McpToolCall = entity({
 	outputHash: {
 		label: 'output hash',
 		type: EntityFieldType.Primitive,
-		primitiveType: (ZeroExHex),
+		primitiveType: ZeroExHex,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$$timestamps: {

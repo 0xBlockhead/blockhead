@@ -8,14 +8,12 @@
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		data,
-		params,
 	}: PageProps = $props()
 
 	const pageSelection = $derived(select(EntityType.AtprotoPost, data.selector, {
@@ -42,17 +40,12 @@
 
 
 <svelte:head>
-	<title>{(data.title ?? (pageSelection.entity == null ? [String((data.selector.uri) ?? '')].filter(Boolean).join(' ') || 'AT Protocol post' : [String((({ ...data.selector, ...pageSelection.entity }).text) ?? '')].filter(Boolean).join(' ') || [String((({ ...data.selector, ...pageSelection.entity }).uri) ?? '')].filter(Boolean).join(' ') || 'AT Protocol post'))} • AT Protocol post • Blockhead</title>
+	<title>{(data.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.uri ?? '') || 'AT Protocol post' : (pageSelection.entity.text ?? '') || pageSelection.entitySelector.uri || 'AT Protocol post'))} • AT Protocol post • Blockhead</title>
 </svelte:head>
 
 
 <Page>
 	<AtprotoPostView
-		href={
-			resolve('/atproto/post/[...uri=stringSegment]', {
-				uri: params.uri,
-			})
-		}
 		selection={pageSelection}
 	/>
 </Page>

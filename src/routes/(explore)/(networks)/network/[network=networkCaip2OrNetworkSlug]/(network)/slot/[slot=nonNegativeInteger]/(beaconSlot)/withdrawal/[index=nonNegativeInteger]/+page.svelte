@@ -8,7 +8,6 @@
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
@@ -42,35 +41,12 @@
 
 
 <svelte:head>
-	<title>{(data.title ?? (pageSelection.entity == null ? (String(({
-		$network: data.selector,
-		slot: Number(params.slot),
-		indexInSlot: Number(params.index),
-	}.indexInSlot) ?? '') ? 'Withdrawal #' + String(({
-		$network: data.selector,
-		slot: Number(params.slot),
-		indexInSlot: Number(params.index),
-	}.indexInSlot) ?? '') : '') || 'beacon withdrawal' : (String((({ ...{
-		$network: data.selector,
-		slot: Number(params.slot),
-		indexInSlot: Number(params.index),
-	}, ...pageSelection.entity }).indexInSlot) ?? '') ? 'Withdrawal #' + String((({ ...{
-		$network: data.selector,
-		slot: Number(params.slot),
-		indexInSlot: Number(params.index),
-	}, ...pageSelection.entity }).indexInSlot) ?? '') : '') || 'beacon withdrawal'))} • beacon withdrawal • Blockhead</title>
+	<title>{(data.title ?? ((String(pageSelection.entitySelector.indexInSlot ?? '') ? 'Withdrawal #' + String(pageSelection.entitySelector.indexInSlot ?? '') : '') || 'beacon withdrawal'))} • beacon withdrawal • Blockhead</title>
 </svelte:head>
 
 
 <Page>
 	<BeaconWithdrawalView
-		href={
-			resolve('/network/[network=networkCaip2OrNetworkSlug]/slot/[slot=nonNegativeInteger]/withdrawal/[index=nonNegativeInteger]', {
-				network: params.network,
-				slot: params.slot,
-				index: params.index,
-			})
-		}
 		selection={pageSelection}
 	/>
 </Page>

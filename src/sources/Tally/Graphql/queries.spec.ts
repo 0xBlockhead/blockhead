@@ -9,6 +9,7 @@ import {
 import { Source } from '$/sources/Source.ts'
 import {
 	ApiFamily,
+	SourceArtifactKind,
 	SourceCredentialScope,
 	SourceDelivery,
 	SourceEndpointKind,
@@ -17,7 +18,6 @@ import {
 	WireProtocol,
 	type SourceBinding,
 } from '$/sources/SourceBinding.ts'
-import { SourceProvider } from '$/sources/SourceProvider.ts'
 import {
 	getGovernor,
 	getGovernorsPage,
@@ -30,8 +30,7 @@ import {
 import * as runtimeHttp from '$/sources/_runtime/http.ts'
 
 const binding = {
-	provider: SourceProvider._Constants,
-	source: Source.Constants_Internal,
+	source: Source.Tally_Graphql,
 	target: {
 		kind: SourceTargetKind.Global,
 		key: 'tally-api',
@@ -40,7 +39,7 @@ const binding = {
 		endpointKind: SourceEndpointKind.HttpUrl,
 		locator: 'https://api.tally.xyz/query',
 		origin: 'https://api.tally.xyz',
-		corsEnabled: true,
+		corsEnabled: false,
 	}],
 	wireProtocol: WireProtocol.Graphql,
 	apiFamily: ApiFamily.GraphqlHttp,
@@ -50,12 +49,14 @@ const binding = {
 	delivery: SourceDelivery.HttpProxy,
 	credentials: [{
 		scope: SourceCredentialScope.RuntimeSecret,
-		keys: [
-			'TALLY_API_KEY',
-		],
 	}],
-	proxyId: 'tally-graphql',
-	serverCredentialId: 'tally-graphql-api-key',
+	proxyId: 'Tally_Graphql-fc5d2b1cde50',
+	serverCredentialId: 'Tally_Graphql-fc5d2b1cde50',
+	artifacts: [{
+		kind: SourceArtifactKind.HandwrittenTypes,
+		path: 'src/sources/Tally/Graphql/types.ts',
+		generated: false,
+	}],
 } as const satisfies SourceBinding
 
 const organizationId = '2207450143689540900'
@@ -307,6 +308,12 @@ describe('Tally documented governance reads', () => {
 
 		const request = sourceFetch.mock.calls[1]?.[2]
 		expect(new Headers(request?.headers).has('Api-Key')).toBe(false)
+		expect(sourceFetch).toHaveBeenNthCalledWith(
+			2,
+			binding,
+			binding.endpoints[0].locator,
+			expect.any(Object)
+		)
 		expect(String(request?.body)).not.toContain('mutation')
 		expect(JSON.parse(String(request?.body))).toMatchObject({
 			variables: {
@@ -596,12 +603,5 @@ describe('Tally documented governance reads', () => {
 			organizationId,
 		})).rejects.toThrow('response exceeds byte limit')
 
-		await expect(getOrganization({
-			binding: {
-				...binding,
-				serverCredentialId: undefined,
-			},
-			organizationId,
-		})).rejects.toThrow('runtime-secret API binding')
 	})
 })

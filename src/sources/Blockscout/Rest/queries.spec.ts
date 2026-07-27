@@ -1,12 +1,22 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
-import { sourceProviderDefinitions } from '$/sources/$sourceProviders.ts'
+import bindings from '$/sources/Blockscout/bindings.ts'
 import {
 	getStats,
 	getUserOperationsPage,
 } from '$/sources/Blockscout/Rest/queries.ts'
-import { ApiFamily, SourceEndpointKind } from '$/sources/SourceBinding.ts'
 import { Source } from '$/sources/Source.ts'
+import {
+	SourceOperationGroup,
+} from '$/sources/SourceBinding.ts'
+
+const ethereumBlockscoutRestV2Binding = bindings[Source.Blockscout_Rest].find((binding) => (
+	binding.target.key === '1'
+	&& binding.operationGroups.includes(SourceOperationGroup.BlockscoutAccountAbstraction)
+))
+
+if (ethereumBlockscoutRestV2Binding == null)
+	throw new Error('Blockscout REST spec missing Ethereum account-abstraction binding')
 
 describe('Blockscout account-abstraction queries', () => {
 	afterEach(() => {
@@ -29,21 +39,8 @@ describe('Blockscout account-abstraction queries', () => {
 		}))
 		vi.stubGlobal('fetch', fetchMock)
 		vi.stubGlobal('window', {})
-		const binding = sourceProviderDefinitions
-			.flatMap((provider) => provider.bindings)
-			.find((candidate) => (
-				candidate.source === Source.Blockscout_Rest
-				&& candidate.apiFamily === ApiFamily.BlockscoutRestV2
-				&& candidate.endpoints.some((endpoint) => (
-					endpoint.endpointKind === SourceEndpointKind.HttpUrl
-					&& endpoint.origin === 'https://eth.blockscout.com'
-				))
-			))
-		if (binding == null || binding.proxyId == null)
-			throw new Error('Ethereum Blockscout REST-v2 proxy binding is not registered')
-
 		await expect(getStats({
-			explorerOrigin: 'https://eth.blockscout.com',
+			binding: ethereumBlockscoutRestV2Binding,
 		})).resolves.toMatchObject({
 			gas_prices: {
 				slow: 0.12,
@@ -52,7 +49,7 @@ describe('Blockscout account-abstraction queries', () => {
 			},
 		})
 		expect(fetchMock).toHaveBeenCalledWith(
-			`/api-proxy/${encodeURIComponent(binding.proxyId)}/0/${encodeURIComponent('https://eth.blockscout.com/api/v2/stats')}`,
+			expect.stringMatching(/^\/api-proxy\/.+\/0\/https%3A%2F%2Feth\.blockscout\.com%2Fapi%2Fv2%2Fstats$/),
 			expect.objectContaining({
 				signal: expect.any(AbortSignal),
 			})
@@ -70,7 +67,7 @@ describe('Blockscout account-abstraction queries', () => {
 		}))
 
 		await expect(getUserOperationsPage({
-			explorerOrigin: 'https://eth.blockscout.com',
+			binding: ethereumBlockscoutRestV2Binding,
 			limit: 3,
 		})).rejects.toThrow(
 			'Blockscout GET /proxy/account-abstraction/operations: account abstraction disabled'
@@ -95,7 +92,7 @@ describe('Blockscout account-abstraction queries', () => {
 		}))
 
 		await expect(getUserOperationsPage({
-			explorerOrigin: 'https://eth.blockscout.com',
+			binding: ethereumBlockscoutRestV2Binding,
 			limit: 3,
 		})).resolves.toEqual([
 			{

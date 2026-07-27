@@ -1,15 +1,12 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { entity, facet } from '$/schema/$schema.ts'
+import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { UrlString } from '$/schema/UrlString.ts'
 import { type } from 'arktype'
 
-export enum ZeroGConsensusNetwork_TimestampSelector {
-	ConsensusNetworkTimestampMsSource = 'ConsensusNetworkTimestampMsSource',
-}
-export const ZeroGConsensusNetwork_Timestamp = entity({
+export default entity({
 	entityType: EntityType.ZeroGConsensusNetwork_Timestamp,
 	labels: {
 		singular: 'zero g consensus network timestamp',
@@ -39,7 +36,7 @@ export const ZeroGConsensusNetwork_Timestamp = entity({
 	sharedStakingStatusSource: {
 		label: 'shared staking status source',
 		type: EntityFieldType.Primitive,
-		primitiveType: (UrlString),
+		primitiveType: UrlString,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 })({

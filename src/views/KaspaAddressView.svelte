@@ -2,11 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { stringify } from 'devalue'
 
@@ -20,35 +16,14 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.KaspaAddress>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.KaspaAddress>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.KaspaAddress> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const kaspaAddress = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {},
-	} : {
-		sources: selection.sources,
-	}))
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const titleFallback = 'kaspa address'
-	const viewDomId = $derived('kaspa-address-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const viewDomId = $derived('kaspa-address-' + encodeURIComponent(stringify(selection.entitySelector)))
 
 
 	// Components
@@ -65,24 +40,15 @@
 
 <EntityView
 	entityType={EntityType.KaspaAddress}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
+	entitySelector={selection.entitySelector}
 	id={viewDomId}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails}
-			{title || titleFallback}
-		{:else}
-			<ResourceBoundary resource={kaspaAddress}>
-				{#snippet children(entity)}
-					{title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		kaspa address
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -101,24 +67,7 @@
 			<div>
 				<dt>Address</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									address: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const address = resolvedEntity.address}
-							{#if address !== undefined && address !== null}
-								<TruncatedValue value={String((address) ?? '')} />
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					<TruncatedValue value={pendingEntity.address} />
 				</dd>
 			</div>
 		</dl>
@@ -133,12 +82,10 @@
 					{
 						id: 'kaspa-address-transactions',
 						label: 'Transactions',
-						ownsSection: true,
 					},
 					{
 						id: 'kaspa-address-utxos',
 						label: 'UTXOs',
-						ownsSection: true,
 					},
 				]
 			}
@@ -151,136 +98,34 @@
 				</header>
 			{/snippet}
 
-			{#snippet MarkerKaspaAddressTransactions(_context, Content)}
-				{@const kaspaAddressActivityKaspaAddressTransactionsResource = selection.$$transactions}
-				<ResourceBoundary
-					resource={kaspaAddressActivityKaspaAddressTransactionsResource}
-				>
-					{#snippet children(_resolved)}
-						{@render Content()}
-					{/snippet}
-
-					{#snippet PendingContent()}
-						{@render Content()}
-					{/snippet}
-
-					{#snippet FailedContent(_error, _retry)}
-						{@render Content()}
-					{/snippet}
-				</ResourceBoundary>
+			{#snippet SectionKaspaAddressTransactions({ id, label, open })}
+				<KaspaTransactionsView
+					selection={selection.$$transactions}
+					CollapsibleProps={{ canToggle: false }}
+					collapsible={false}
+					data-column-item="flexible"
+					data-card
+					data-scroll-container
+					open={open}
+					title={label}
+					emptyText='No Kaspa transactions.'
+					id={`${id}-list`}
+				/>
 			{/snippet}
 
-			{#snippet SectionKaspaAddressTransactions({ id, label, open, active })}
-				{@const kaspaAddressActivityKaspaAddressTransactionsResource = selection.$$transactions}
-				<ResourceBoundary
-					resource={kaspaAddressActivityKaspaAddressTransactionsResource}
-				>
-					{#snippet children(kaspaTransaction)}
-						<section
-							id={id}
-							aria-labelledby={`${id}:marker`}
-							data-scroll-marker-label={label}
-							data-column-item="flexible"
-							data-column
-							data-active={active}
-						>
-							<KaspaTransactionsView
-								selection={kaspaAddressActivityKaspaAddressTransactionsResource}
-								CollapsibleProps={{ canToggle: false }}
-								collapsible={false}
-								data-column-item="flexible"
-								data-card
-								data-scroll-container
-								open={open}
-								title={label}
-								emptyText='No Kaspa transactions.'
-								id={`${id}-list`}
-							/>
-						</section>
-					{/snippet}
-
-					{#snippet Pending()}
-						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
-							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
-								<span data-tag data-text="muted" data-resource-state="pending" class="loading inline-placeholder" aria-busy="true" aria-label="Loading…">•••</span>
-							</article>
-						</section>
-					{/snippet}
-
-					{#snippet Failed(_error, _retry)}
-						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
-							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
-								<span data-tag data-resource-state="failed" class="inline-placeholder" aria-label="Failed to load">•••</span>
-							</article>
-						</section>
-					{/snippet}
-				</ResourceBoundary>
-			{/snippet}
-
-			{#snippet MarkerKaspaAddressUtxos(_context, Content)}
-				{@const kaspaAddressActivityKaspaAddressUtxosResource = selection.$$utxos}
-				<ResourceBoundary
-					resource={kaspaAddressActivityKaspaAddressUtxosResource}
-				>
-					{#snippet children(_resolved)}
-						{@render Content()}
-					{/snippet}
-
-					{#snippet PendingContent()}
-						{@render Content()}
-					{/snippet}
-
-					{#snippet FailedContent(_error, _retry)}
-						{@render Content()}
-					{/snippet}
-				</ResourceBoundary>
-			{/snippet}
-
-			{#snippet SectionKaspaAddressUtxos({ id, label, open, active })}
-				{@const kaspaAddressActivityKaspaAddressUtxosResource = selection.$$utxos}
-				<ResourceBoundary
-					resource={kaspaAddressActivityKaspaAddressUtxosResource}
-				>
-					{#snippet children(kaspaAddressUtxoTimestamp)}
-						<section
-							id={id}
-							aria-labelledby={`${id}:marker`}
-							data-scroll-marker-label={label}
-							data-column-item="flexible"
-							data-column
-							data-active={active}
-						>
-							<KaspaAddressUtxo_TimestampsView
-								selection={kaspaAddressActivityKaspaAddressUtxosResource}
-								CollapsibleProps={{ canToggle: false }}
-								collapsible={false}
-								data-column-item="flexible"
-								data-card
-								data-scroll-container
-								open={open}
-								title={label}
-								emptyText='No Kaspa UTXO observations.'
-								id={`${id}-list`}
-							/>
-						</section>
-					{/snippet}
-
-					{#snippet Pending()}
-						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
-							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
-								<span data-tag data-text="muted" data-resource-state="pending" class="loading inline-placeholder" aria-busy="true" aria-label="Loading…">•••</span>
-							</article>
-						</section>
-					{/snippet}
-
-					{#snippet Failed(_error, _retry)}
-						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
-							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
-								<span data-tag data-resource-state="failed" class="inline-placeholder" aria-label="Failed to load">•••</span>
-							</article>
-						</section>
-					{/snippet}
-				</ResourceBoundary>
+			{#snippet SectionKaspaAddressUtxos({ id, label, open })}
+				<KaspaAddressUtxo_TimestampsView
+					selection={selection.$$utxos}
+					CollapsibleProps={{ canToggle: false }}
+					collapsible={false}
+					data-column-item="flexible"
+					data-card
+					data-scroll-container
+					open={open}
+					title={label}
+					emptyText='No Kaspa UTXO observations.'
+					id={`${id}-list`}
+				/>
 			{/snippet}
 
 		</CollapsibleTabs>
@@ -293,7 +138,6 @@
 					{
 						id: 'kaspa-address-timestamps',
 						label: 'Observations',
-						ownsSection: true,
 					},
 				]
 			}
@@ -306,70 +150,19 @@
 				</header>
 			{/snippet}
 
-			{#snippet MarkerKaspaAddressTimestamps(_context, Content)}
-				{@const kaspaAddressObservationsKaspaAddressTimestampsResource = selection.$$timestamps}
-				<ResourceBoundary
-					resource={kaspaAddressObservationsKaspaAddressTimestampsResource}
-				>
-					{#snippet children(_resolved)}
-						{@render Content()}
-					{/snippet}
-
-					{#snippet PendingContent()}
-						{@render Content()}
-					{/snippet}
-
-					{#snippet FailedContent(_error, _retry)}
-						{@render Content()}
-					{/snippet}
-				</ResourceBoundary>
-			{/snippet}
-
-			{#snippet SectionKaspaAddressTimestamps({ id, label, open, active })}
-				{@const kaspaAddressObservationsKaspaAddressTimestampsResource = selection.$$timestamps}
-				<ResourceBoundary
-					resource={kaspaAddressObservationsKaspaAddressTimestampsResource}
-				>
-					{#snippet children(kaspaAddressTimestamp)}
-						<section
-							id={id}
-							aria-labelledby={`${id}:marker`}
-							data-scroll-marker-label={label}
-							data-column-item="flexible"
-							data-column
-							data-active={active}
-						>
-							<KaspaAddress_TimestampsView
-								selection={kaspaAddressObservationsKaspaAddressTimestampsResource}
-								CollapsibleProps={{ canToggle: false }}
-								collapsible={false}
-								data-column-item="flexible"
-								data-card
-								data-scroll-container
-								open={open}
-								title={label}
-								emptyText='No Kaspa address observations.'
-								id={`${id}-list`}
-							/>
-						</section>
-					{/snippet}
-
-					{#snippet Pending()}
-						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
-							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
-								<span data-tag data-text="muted" data-resource-state="pending" class="loading inline-placeholder" aria-busy="true" aria-label="Loading…">•••</span>
-							</article>
-						</section>
-					{/snippet}
-
-					{#snippet Failed(_error, _retry)}
-						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
-							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
-								<span data-tag data-resource-state="failed" class="inline-placeholder" aria-label="Failed to load">•••</span>
-							</article>
-						</section>
-					{/snippet}
-				</ResourceBoundary>
+			{#snippet SectionKaspaAddressTimestamps({ id, label, open })}
+				<KaspaAddress_TimestampsView
+					selection={selection.$$timestamps}
+					CollapsibleProps={{ canToggle: false }}
+					collapsible={false}
+					data-column-item="flexible"
+					data-card
+					data-scroll-container
+					open={open}
+					title={label}
+					emptyText='No Kaspa address observations.'
+					id={`${id}-list`}
+				/>
 			{/snippet}
 
 		</CollapsibleTabs>

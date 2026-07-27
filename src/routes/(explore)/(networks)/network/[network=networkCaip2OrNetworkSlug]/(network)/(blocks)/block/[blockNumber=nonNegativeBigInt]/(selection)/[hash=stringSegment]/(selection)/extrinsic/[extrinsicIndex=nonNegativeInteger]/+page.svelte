@@ -7,7 +7,6 @@
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
@@ -38,32 +37,12 @@
 
 
 <svelte:head>
-	<title>{(data.title ?? (pageSelection.entity == null ? (String(({
-		$block: data.selector,
-		indexInBlock: Number(params.extrinsicIndex),
-	}.indexInBlock) ?? '') ? 'Extrinsic #' + String(({
-		$block: data.selector,
-		indexInBlock: Number(params.extrinsicIndex),
-	}.indexInBlock) ?? '') : '') || 'Polkadot extrinsic' : (String((({ ...{
-		$block: data.selector,
-		indexInBlock: Number(params.extrinsicIndex),
-	}, ...pageSelection.entity }).indexInBlock) ?? '') ? 'Extrinsic #' + String((({ ...{
-		$block: data.selector,
-		indexInBlock: Number(params.extrinsicIndex),
-	}, ...pageSelection.entity }).indexInBlock) ?? '') : '') || 'Polkadot extrinsic'))} • Polkadot extrinsic • Blockhead</title>
+	<title>{(data.title ?? ((String(pageSelection.entitySelector.indexInBlock ?? '') ? 'Extrinsic #' + String(pageSelection.entitySelector.indexInBlock ?? '') : '') || 'Polkadot extrinsic'))} • Polkadot extrinsic • Blockhead</title>
 </svelte:head>
 
 
 <Page>
 	<PolkadotExtrinsicView
-		href={
-			resolve('/network/[network=networkCaip2OrNetworkSlug]/block/[blockNumber=nonNegativeBigInt]/[hash=stringSegment]/extrinsic/[extrinsicIndex=nonNegativeInteger]', {
-				network: params.network,
-				blockNumber: params.blockNumber,
-				hash: params.hash,
-				extrinsicIndex: params.extrinsicIndex,
-			})
-		}
 		selection={pageSelection}
 	/>
 </Page>

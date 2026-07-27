@@ -12,9 +12,6 @@ import {
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
-import { _GlobalSelector } from '$/schema/_Global.ts'
-import { SpecificationProposalSelector } from '$/schema/SpecificationProposal.ts'
-
 const githubCaipProposalIndexRows = async (
 	data: {
 		type: string
@@ -50,7 +47,7 @@ export default {
 		defineResolver(Source.Caips_Github, {
 			entityType: EntityType.SpecificationProposal,
 			resolve: {
-				[SpecificationProposalSelector.RealmCategoryNumber]: {
+				RealmCategoryNumber: {
 					appliesTo: [
 						{
 							realm: OwnedSpecificationRealm.ChainAgnostic,
@@ -67,7 +64,9 @@ export default {
 							category !== ProposalCategory.Caip
 							|| realm !== SpecificationRealm.ChainAgnostic
 						) throw new Error('Caips_Github: unsupported proposal id')
-						const text = await getMarkdownTextForNumber({ number: number })
+						const text = await getMarkdownTextForNumber({
+							number: number,
+						})
 						const body = stripFrontmatter(text)
 						const frontmatter = parseFrontmatter(text)
 						return {
@@ -89,7 +88,7 @@ export default {
 		defineResolver(Source.Caips_Github, {
 			entityType: EntityType._Global,
 			resolve: {
-				[_GlobalSelector.Scope]: {
+				Scope: {
 					resolve: async () => {
 						const { getContents } = await import('$/sources/Caips/Github/queries.ts')
 						return githubCaipProposalIndexRows(await getContents())

@@ -2,14 +2,9 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
 
 
 	// Context
@@ -21,40 +16,19 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.AptosBlock>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.AptosBlock>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.AptosBlock> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const aptosBlock = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const aptosBlock = $derived(selection({
 		fields: {
-			timestampMs: true,
-		},
-	} : {
-		sources: selection.sources,
-		fields: {
+			height: true,
 			timestampMs: true,
 		},
 	}))
-	const titleFallback = $derived([String((pendingEntity.height) ?? '')].filter(Boolean).join(' ') || 'aptos block')
-	const viewDomId = $derived('aptos-block-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const titleFallback = $derived(String(pendingEntity.height ?? '') || 'aptos block')
 
 
 	// Components
@@ -68,54 +42,28 @@
 
 <EntityView
 	entityType={EntityType.AptosBlock}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'height') && Object.hasOwn(prefetched, 'timestampMs')}
-			{@const height0 = pendingEntity.height}
-			{#if height0 !== undefined && height0 !== null}
+		<ResourceBoundary resource={aptosBlock}>
+			{#snippet children(entity)}
 				<NumberValue
-					value={height0}
+					value={entity.height}
 				/>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={aptosBlock}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const height0 = resolvedEntity.height}
-					{#if height0 !== undefined && height0 !== null}
-						<NumberValue
-							value={height0}
-						/>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Value()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'height') && Object.hasOwn(prefetched, 'timestampMs')}
-			{@const timestampMs0 = pendingEntity.timestampMs}
-			{#if timestampMs0 !== undefined && timestampMs0 !== null}
-				<Timestamp timestamp={Number(timestampMs0)} />
-			{/if}
-		{:else}
-			<ResourceBoundary resource={aptosBlock}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const timestampMs0 = resolvedEntity.timestampMs}
-					{#if timestampMs0 !== undefined && timestampMs0 !== null}
-						<Timestamp timestamp={Number(timestampMs0)} />
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={aptosBlock}>
+			{#snippet children(entity)}
+				<Timestamp timestamp={Number(entity.timestampMs)} />
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -135,23 +83,12 @@
 				<dt>Height</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									height: true,
-								},
-							})
-						}
+						resource={aptosBlock}
 					>
 						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const height = resolvedEntity.height}
-							{#if height !== undefined && height !== null}
-								<NumberValue
-									value={height}
-								/>
-							{/if}
+							<NumberValue
+								value={entity.height}
+							/>
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -165,7 +102,6 @@
 					<ResourceBoundary
 						resource={
 							selection({
-								sources: selection.sources,
 								fields: {
 									firstVersion: true,
 								},
@@ -173,13 +109,9 @@
 						}
 					>
 						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const firstVersion = resolvedEntity.firstVersion}
-							{#if firstVersion !== undefined && firstVersion !== null}
-								<NumberValue
-									value={firstVersion}
-								/>
-							{/if}
+							<NumberValue
+								value={entity.firstVersion}
+							/>
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -191,7 +123,6 @@
 					<ResourceBoundary
 						resource={
 							selection({
-								sources: selection.sources,
 								fields: {
 									lastVersion: true,
 								},
@@ -199,13 +130,9 @@
 						}
 					>
 						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const lastVersion = resolvedEntity.lastVersion}
-							{#if lastVersion !== undefined && lastVersion !== null}
-								<NumberValue
-									value={lastVersion}
-								/>
-							{/if}
+							<NumberValue
+								value={entity.lastVersion}
+							/>
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -215,21 +142,10 @@
 				<dt>Timestamp</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									timestampMs: true,
-								},
-							})
-						}
+						resource={aptosBlock}
 					>
 						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const timestampMs = resolvedEntity.timestampMs}
-							{#if timestampMs !== undefined && timestampMs !== null}
-								<Timestamp timestamp={Number(timestampMs)} />
-							{/if}
+							<Timestamp timestamp={Number(entity.timestampMs)} />
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -244,12 +160,12 @@
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
-				<AptosTransactionsView
-					selection={aptosBlockAptosTransactionsViewTransactionsResource}
-					countResource={aptosBlockAptosTransactionsViewTransactionsResource.count}
-					title='transactions'
-					id='AptosTransactionsView-transactions'
-				/>
+					<AptosTransactionsView
+						selection={aptosBlockAptosTransactionsViewTransactionsResource}
+						countResource={aptosBlockAptosTransactionsViewTransactionsResource.count}
+						title='transactions'
+						id='transactions'
+					/>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>

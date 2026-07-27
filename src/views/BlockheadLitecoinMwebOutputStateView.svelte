@@ -2,15 +2,10 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
-	import { caip2StringFromValue } from '$/lib/caip2.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -22,40 +17,23 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.BlockheadLitecoinMwebOutputState>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.BlockheadLitecoinMwebOutputState>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.BlockheadLitecoinMwebOutputState> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const blockheadLitecoinMwebOutputState = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {
-			amountLitoshis: true,
-		},
-	} : {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const viewSelection = $derived(selection({
+		sources: selection.sources ?? [
+			Source.Local_Internal,
+		],
+	}))
+	const blockheadLitecoinMwebOutputState = $derived(viewSelection({
 		fields: {
 			amountLitoshis: true,
 		},
 	}))
-	const titleFallback = $derived([String((pendingEntity.commitment) ?? '')].filter(Boolean).join(' ') || 'blockhead litecoin mweb output state')
-	const viewDomId = $derived('blockhead-litecoin-mweb-output-state-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const titleFallback = $derived((pendingEntity.commitment ?? '') || 'blockhead litecoin mweb output state')
 
 
 	// Components
@@ -71,65 +49,33 @@
 
 <EntityView
 	entityType={EntityType.BlockheadLitecoinMwebOutputState}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'amountLitoshis')}
-			{[String((pendingEntity.commitment) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-		{:else}
-			<ResourceBoundary resource={blockheadLitecoinMwebOutputState}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.commitment) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		{(pendingEntity.commitment ?? '') || 'blockhead litecoin mweb output state'}
 	{/snippet}
 
 	{#snippet Value()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'amountLitoshis')}
-			{[String((pendingEntity.walletId) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.commitment) ?? '')].filter(Boolean).join(' ') || titleFallback}
-		{:else}
-			<ResourceBoundary resource={blockheadLitecoinMwebOutputState}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.walletId) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.commitment) ?? '')].filter(Boolean).join(' ') || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		{(pendingEntity.walletId ?? '') || (pendingEntity.commitment ?? '') || titleFallback}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'amountLitoshis')}
-			{@const amountLitoshis0 = pendingEntity.amountLitoshis}
-			{#if amountLitoshis0 !== undefined && amountLitoshis0 !== null}
-				<span data-text="muted">
-					<NumberValue
-						value={amountLitoshis0}
-					/>
-				</span>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={blockheadLitecoinMwebOutputState}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const amountLitoshis0 = resolvedEntity.amountLitoshis}
-					{#if amountLitoshis0 !== undefined && amountLitoshis0 !== null}
-						<span data-text="muted">
-							<NumberValue
-								value={amountLitoshis0}
-							/>
-						</span>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={blockheadLitecoinMwebOutputState}>
+			{#snippet children(entity)}
+				{@const amountLitoshis0 = entity.amountLitoshis}
+				{#if amountLitoshis0 != null}
+					<span data-text="muted">
+						<NumberValue
+							value={amountLitoshis0}
+						/>
+					</span>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -137,24 +83,7 @@
 			<div>
 				<dt>wallet ID</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									walletId: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const walletId = resolvedEntity.walletId}
-							{#if walletId !== undefined && walletId !== null}
-								{String((walletId) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{pendingEntity.walletId}
 				</dd>
 			</div>
 
@@ -162,7 +91,7 @@
 				resource={selection.$wallet}
 			>
 				{#snippet children(blockheadWallet)}
-					{#if blockheadWallet != null && blockheadWallet[EntityMetaKey.Selector] != null}
+					{#if blockheadWallet != null}
 						<div>
 							<dt>wallet</dt>
 							<dd>
@@ -185,31 +114,12 @@
 						resource={selection.$network}
 					>
 						{#snippet children(network)}
-							{#if network != null && network[EntityMetaKey.Selector] != null}
-								<NetworkView
-									selection={select(EntityType.Network, network[EntityMetaKey.Selector])}
-									prefetched={network}
-									href={
-										(
-											network[EntityMetaKey.Selector] != null && 'caip2' in network[EntityMetaKey.Selector]
-											&& network[EntityMetaKey.Selector].caip2 != null ?
-												resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-											network: String(caip2StringFromValue(network[EntityMetaKey.Selector].caip2) ?? ''),
-										})
-										:
-												network[EntityMetaKey.Selector] != null && 'slug' in network[EntityMetaKey.Selector]
-												&& network[EntityMetaKey.Selector].slug != null ?
-													resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-												network: String(network[EntityMetaKey.Selector].slug ?? ''),
-											})
-											:
-												undefined
-										)
-									}
-									layout={EntityLayout.Value}
-									open={false}
-								/>
-							{/if}
+							<NetworkView
+								selection={select(EntityType.Network, network[EntityMetaKey.Selector])}
+								prefetched={network}
+								layout={EntityLayout.Value}
+								open={false}
+							/>
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -218,24 +128,7 @@
 			<div>
 				<dt>commitment</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									commitment: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const commitment = resolvedEntity.commitment}
-							{#if commitment !== undefined && commitment !== null}
-								{String((commitment) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{pendingEntity.commitment}
 				</dd>
 			</div>
 
@@ -243,7 +136,7 @@
 				resource={selection.$publicOutput}
 			>
 				{#snippet children(litecoinMwebOutput)}
-					{#if litecoinMwebOutput != null && litecoinMwebOutput[EntityMetaKey.Selector] != null}
+					{#if litecoinMwebOutput != null}
 						<div>
 							<dt>public output</dt>
 							<dd>
@@ -262,19 +155,11 @@
 
 		<dl data-column-item="center">
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							amountLitoshis: true,
-						},
-					})
-				}
+				resource={blockheadLitecoinMwebOutputState}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const amountLitoshis = resolvedEntity.amountLitoshis}
-					{#if amountLitoshis !== undefined && amountLitoshis !== null}
+					{@const amountLitoshis = entity.amountLitoshis}
+					{#if amountLitoshis != null}
 						<div>
 							<dt>amount litoshis</dt>
 							<dd>
@@ -289,8 +174,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							address: true,
 						},
@@ -298,13 +182,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const address = resolvedEntity.address}
-					{#if address !== undefined && address !== null}
+					{@const address = entity.address}
+					{#if address != null}
 						<div>
 							<dt>address</dt>
 							<dd>
-								<TruncatedValue value={String((address) ?? '')} />
+								<TruncatedValue value={address} />
 							</dd>
 						</div>
 					{/if}
@@ -313,8 +196,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							account: true,
 						},
@@ -322,13 +204,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const account = resolvedEntity.account}
-					{#if account !== undefined && account !== null}
+					{@const account = entity.account}
+					{#if account != null}
 						<div>
 							<dt>account</dt>
 							<dd>
-								<TruncatedValue value={String((account) ?? '')} />
+								<TruncatedValue value={account} />
 							</dd>
 						</div>
 					{/if}
@@ -337,8 +218,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							label: true,
 						},
@@ -346,13 +226,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const label = resolvedEntity.label}
-					{#if label !== undefined && label !== null}
+					{@const label = entity.label}
+					{#if label != null}
 						<div>
 							<dt>label</dt>
 							<dd>
-								{String((label) ?? '')}
+								{label}
 							</dd>
 						</div>
 					{/if}
@@ -368,12 +247,12 @@
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
-				<BlockheadLitecoinMwebOutputState_TimestampsView
-					selection={blockheadLitecoinMwebOutputStateBlockheadLitecoinMwebOutputStateTimestampsViewTimestampsResource}
-					countResource={blockheadLitecoinMwebOutputStateBlockheadLitecoinMwebOutputStateTimestampsViewTimestampsResource.count}
-					title='timestamps'
-					id='BlockheadLitecoinMwebOutputState_TimestampsView-timestamps'
-				/>
+					<BlockheadLitecoinMwebOutputState_TimestampsView
+						selection={blockheadLitecoinMwebOutputStateBlockheadLitecoinMwebOutputStateTimestampsViewTimestampsResource}
+						countResource={blockheadLitecoinMwebOutputStateBlockheadLitecoinMwebOutputStateTimestampsViewTimestampsResource.count}
+						title='timestamps'
+						id='timestamps'
+					/>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>

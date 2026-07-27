@@ -7,7 +7,6 @@
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
@@ -51,36 +50,12 @@
 
 
 <svelte:head>
-	<title>{(data.title ?? (pageSelection.entity == null ? (String(({
-		$validator: data.selector,
-		slot: Number(params.slot),
-		source: params.source,
-	}.slot) ?? '') ? 'Slot #' + String(({
-		$validator: data.selector,
-		slot: Number(params.slot),
-		source: params.source,
-	}.slot) ?? '') : '') || 'beacon validator timestamp' : (String((({ ...{
-		$validator: data.selector,
-		slot: Number(params.slot),
-		source: params.source,
-	}, ...pageSelection.entity }).slot) ?? '') ? 'Slot #' + String((({ ...{
-		$validator: data.selector,
-		slot: Number(params.slot),
-		source: params.source,
-	}, ...pageSelection.entity }).slot) ?? '') : '') || 'beacon validator timestamp'))} • beacon validator timestamp • Blockhead</title>
+	<title>{(data.title ?? ((String(pageSelection.entitySelector.slot ?? '') ? 'Slot #' + String(pageSelection.entitySelector.slot ?? '') : '') || 'beacon validator timestamp'))} • beacon validator timestamp • Blockhead</title>
 </svelte:head>
 
 
 <Page>
 	<BeaconValidator_TimestampView
-		href={
-			resolve('/network/[network=networkCaip2OrNetworkSlug]/validator/[validatorId=nonNegativeIntegerOrSolanaPubkey]/observations/[slot=nonNegativeInteger]/[source=stringSegment]', {
-				network: params.network,
-				validatorId: params.validatorId,
-				slot: params.slot,
-				source: params.source,
-			})
-		}
 		selection={pageSelection}
 	/>
 </Page>

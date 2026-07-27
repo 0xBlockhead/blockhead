@@ -8,7 +8,6 @@
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
@@ -31,13 +30,12 @@
 
 
 <svelte:head>
-	<title>{(data.title ?? (pageSelection.entity == null ? ['YouTube'].filter(Boolean).join(' ') || 'YouTube network' : ['YouTube'].filter(Boolean).join(' ') || 'YouTube network'))} • YouTube network • Blockhead</title>
+	<title>{(data.title ?? ('YouTube'))} • YouTube network • Blockhead</title>
 </svelte:head>
 
 
 <Page>
 	<GlobalYoutubeNetworkView
-		href={resolve('/youtube')}
 		selection={pageSelection}
 	/>
 </Page>

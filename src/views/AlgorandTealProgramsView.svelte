@@ -2,69 +2,33 @@
 
 <script lang="ts">
 	// Types/constants
-	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
-	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
-	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
+	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-
-
+	import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 
 
 	// State
 	let {
 		selection,
-		countResource,
 		title = 'Algorand TEAL programs',
-		typeAnnotationParagraphs = [],
-		placeholderText = undefined,
-		emptyText = undefined,
 		open = $bindable(true),
-		collapsible = true,
-		showTypeAnnotation = true,
-		id = 'AlgorandTealPrograms-list',
 		...EntitiesListProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyEntitiesSelection<EntityType.AlgorandTealProgram>
-			countResource?: SvelteKitResource<number>
-			title?: string
-			typeAnnotationParagraphs?: string[]
-			placeholderText?: string
-			emptyText?: string
-			open?: boolean
-			collapsible?: boolean
-			showTypeAnnotation?: boolean
-			id?: string
-		},
-		EntitiesListForwardProps
-	> = $props()
+	}: EntityListViewProps<EntityType.AlgorandTealProgram> = $props()
 
 
 	// Components
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView from '$/components/EntityView.svelte'
 </script>
 
-
-{#snippet TypeAnnotationParagraphs()}
-	{#each typeAnnotationParagraphs as paragraph (paragraph)}
-		<p>{paragraph}</p>
-	{/each}
-{/snippet}
 
 <EntitiesList
 	{...EntitiesListProps}
 	entityType={EntityType.AlgorandTealProgram}
-	{id}
 	{title}
 	bind:open
-	{collapsible}
-	{showTypeAnnotation}
-	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
 	resource={
 		selection({
-			sources: selection.sources,
 			fields: {
 				programHash: true,
 				programKind: true,
@@ -72,38 +36,23 @@
 			},
 		})
 	}
-	{countResource}
-	getResourceItems={(algorandTealPrograms) => [...new Map(algorandTealPrograms.values.map((algorandTealProgram) => [algorandTealProgram[EntityMetaKey.SelectorKey], algorandTealProgram])).values()]}
-	getKey={(algorandTealProgram) => algorandTealProgram[EntityMetaKey.SelectorKey]}
-	{placeholderText}
 >
-	{#snippet Empty()}
-		{#if emptyText != null}
-			<p data-text="muted">{emptyText}</p>
-		{:else}
-			<p data-text="muted">No Algorand teal programs yet.</p>
-		{/if}
-	{/snippet}
-
 	{#snippet Item({ item: algorandTealProgram })}
-		{@const algorandTealProgramFields = { ...algorandTealProgram[EntityMetaKey.Selector], ...algorandTealProgram }}
+		{@const algorandTealProgramSelector = algorandTealProgram[EntityMetaKey.Selector]}
 		<EntityView
 			entityType={EntityType.AlgorandTealProgram}
-			entitySelector={algorandTealProgram[EntityMetaKey.Selector]}
-			layout={EntityLayout.Summary}
-			open={false}
-			showTypeAnnotation={false}
+			entitySelector={algorandTealProgramSelector}
 		>
 			{#snippet Title()}
-				{[String((algorandTealProgramFields.programHash) ?? '')].filter(Boolean).join(' ') || 'algorand teal program'}
+				{String(algorandTealProgramSelector.programHash) || 'algorand teal program'}
 			{/snippet}
 
 			{#snippet Value()}
-				{[String((algorandTealProgramFields.programKind) ?? '')].filter(Boolean).join(' ')}
+				{(algorandTealProgram.programKind ?? '')}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{[String((algorandTealProgramFields.tealVersion) ?? '')].filter(Boolean).join(' ')}</span>
+				<span data-text="annotation">{String(algorandTealProgram.tealVersion ?? '')}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

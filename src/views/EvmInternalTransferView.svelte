@@ -2,16 +2,13 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
 	import { EvmInternalCallType } from '$/constants/Evm.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -27,39 +24,22 @@
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.EvmInternalTransfer>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.EvmInternalTransfer>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.EvmInternalTransfer> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const evmInternalTransfer = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {
-			value: true,
-			callType: true,
-		},
-	} : {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const viewSelection = $derived(selection({
+		sources: selection.sources ?? [
+			Source.Blockscout_Rest,
+		],
+	}))
+	const evmInternalTransfer = $derived(viewSelection({
 		fields: {
 			value: true,
 			callType: true,
 			success: true,
 		},
 	}))
-	const titleFallback = $derived((String((pendingEntity.indexInTransaction) ?? '') ? 'Internal #' + String((pendingEntity.indexInTransaction) ?? '') : '') || 'EVM internal transfer')
-	const viewDomId = $derived('evm-internal-transfer-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const titleFallback = $derived((String(pendingEntity.indexInTransaction ?? '') ? 'Internal #' + String(pendingEntity.indexInTransaction ?? '') : '') || 'EVM internal transfer')
 
 
 	// Components
@@ -73,37 +53,22 @@
 
 <EntityView
 	entityType={EntityType.EvmInternalTransfer}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
 	idDragPlainText={String(pendingEntity.indexInTransaction ?? '')}
 	href={
-		href ?? (
-			selection.entitySelector != null && 'indexInTransaction' in selection.entitySelector
-			&& selection.entitySelector.indexInTransaction != null
-			&& selection.entitySelector != null && '$transaction' in selection.entitySelector
-			&& selection.entitySelector.$transaction != null && 'txHash' in selection.entitySelector.$transaction
-			&& selection.entitySelector.$transaction.txHash != null
-			&& selection.entitySelector.$transaction != null && '$network' in selection.entitySelector.$transaction ?
-				selection.entitySelector.$transaction.$network != null && 'caip2' in selection.entitySelector.$transaction.$network
-				&& selection.entitySelector.$transaction.$network.caip2 != null ?
-					resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/internal-transfer/[indexInTransaction=nonNegativeInteger]', {
-				indexInTransaction: String(selection.entitySelector.indexInTransaction ?? ''),
-				transactionId: String(selection.entitySelector.$transaction.txHash ?? ''),
-				network: String(caip2StringFromValue(selection.entitySelector.$transaction.$network.caip2) ?? ''),
-			})
-			:
-					selection.entitySelector.$transaction.$network != null && 'slug' in selection.entitySelector.$transaction.$network
-					&& selection.entitySelector.$transaction.$network.slug != null ?
-						resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/internal-transfer/[indexInTransaction=nonNegativeInteger]', {
-					indexInTransaction: String(selection.entitySelector.indexInTransaction ?? ''),
-					transactionId: String(selection.entitySelector.$transaction.txHash ?? ''),
-					network: String(selection.entitySelector.$transaction.$network.slug ?? ''),
-				})
-				:
-					undefined
-		:
-				undefined
+		href ?? resolve(
+			'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(transactions)/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/(selection)/internal-transfer/[indexInTransaction=nonNegativeInteger]',
+			{
+				network: (
+					'caip2' in selection.entitySelector.$transaction.$network ?
+						String(caip2StringFromValue(selection.entitySelector.$transaction.$network.caip2))
+					:
+						String(selection.entitySelector.$transaction.$network.slug)
+				),
+				transactionId: String(selection.entitySelector.$transaction.txHash),
+				indexInTransaction: String(selection.entitySelector.indexInTransaction),
+			}
 		)
 	}
 	{layout}
@@ -111,25 +76,17 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'callType') && Object.hasOwn(prefetched, 'value')}
-			{[String((pendingEntity.callType) ?? ''), String((pendingEntity.value) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-		{:else}
-			<ResourceBoundary resource={evmInternalTransfer}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.callType) ?? ''), String((resolvedEntity.value) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={evmInternalTransfer}>
+			{#snippet children(entity)}
+				{[entity.callType, String(entity.value)].filter(Boolean).join(' ') || title || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Value()}
-		{@const serialValue = pendingEntity.indexInTransaction}
-		{#if serialValue !== undefined && serialValue !== null}
-			<span data-badge="small">
-				#{String((serialValue) ?? '')}
-			</span>
-		{/if}
+		<span data-badge="small">
+			#{String(pendingEntity.indexInTransaction)}
+		</span>
 	{/snippet}
 
 	{#snippet TypeAnnotationTooltip()}
@@ -143,25 +100,8 @@
 			<div>
 				<dt>Index in transaction</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									indexInTransaction: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const indexInTransaction = resolvedEntity.indexInTransaction}
-							{#if indexInTransaction !== undefined && indexInTransaction !== null}
-								<span>#</span>
-								{String((indexInTransaction) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					<span>#</span>
+					{String(pendingEntity.indexInTransaction)}
 				</dd>
 			</div>
 
@@ -170,30 +110,6 @@
 				<dd>
 					<EvmTransactionView
 						selection={select(EntityType.EvmTransaction, selection.entitySelector.$transaction)}
-						href={
-							(
-								selection.entitySelector.$transaction != null && 'txHash' in selection.entitySelector.$transaction
-								&& selection.entitySelector.$transaction.txHash != null
-								&& selection.entitySelector.$transaction != null && '$network' in selection.entitySelector.$transaction ?
-									selection.entitySelector.$transaction.$network != null && 'caip2' in selection.entitySelector.$transaction.$network
-									&& selection.entitySelector.$transaction.$network.caip2 != null ?
-										resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]', {
-									transactionId: String(selection.entitySelector.$transaction.txHash ?? ''),
-									network: String(caip2StringFromValue(selection.entitySelector.$transaction.$network.caip2) ?? ''),
-								})
-								:
-										selection.entitySelector.$transaction.$network != null && 'slug' in selection.entitySelector.$transaction.$network
-										&& selection.entitySelector.$transaction.$network.slug != null ?
-											resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]', {
-										transactionId: String(selection.entitySelector.$transaction.txHash ?? ''),
-										network: String(selection.entitySelector.$transaction.$network.slug ?? ''),
-									})
-									:
-										undefined
-							:
-									undefined
-							)
-						}
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -206,40 +122,21 @@
 				<dt>Call type</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									callType: true,
-								},
-							})
-						}
+						resource={evmInternalTransfer}
 					>
 						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const callType = resolvedEntity.callType}
-							{#if callType !== undefined && callType !== null}
-								{String((callType) ?? '')}
-							{/if}
+							{entity.callType}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
 			</div>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							success: true,
-						},
-					})
-				}
+				resource={evmInternalTransfer}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const success = resolvedEntity.success}
-					{#if success !== undefined && success !== null}
+					{@const success = entity.success}
+					{#if success != null}
 						<div>
 							<dt>Success</dt>
 							<dd>
@@ -254,23 +151,12 @@
 				<dt>Value</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									value: true,
-								},
-							})
-						}
+						resource={evmInternalTransfer}
 					>
 						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const value = resolvedEntity.value}
-							{#if value !== undefined && value !== null}
-								<NumberValue
-									value={value}
-								/>
-							{/if}
+							<NumberValue
+								value={entity.value}
+							/>
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -280,24 +166,13 @@
 				resource={selection.$from}
 			>
 				{#snippet children(evmAccount)}
-					{#if evmAccount != null && evmAccount[EntityMetaKey.Selector] != null}
+					{#if evmAccount != null}
 						<div>
 							<dt>From</dt>
 							<dd>
 								<EvmAccountView
 									selection={select(EntityType.EvmAccount, evmAccount[EntityMetaKey.Selector])}
 									prefetched={evmAccount}
-									href={
-										(
-											evmAccount[EntityMetaKey.Selector] != null && 'address' in evmAccount[EntityMetaKey.Selector]
-											&& evmAccount[EntityMetaKey.Selector].address != null ?
-												resolve('/account/[address=evmAddress]', {
-											address: String(evmAccount[EntityMetaKey.Selector].address ?? ''),
-										})
-										:
-												undefined
-										)
-									}
 									layout={EntityLayout.Value}
 									open={false}
 								/>
@@ -311,24 +186,13 @@
 				resource={selection.$to}
 			>
 				{#snippet children(evmAccount)}
-					{#if evmAccount != null && evmAccount[EntityMetaKey.Selector] != null}
+					{#if evmAccount != null}
 						<div>
 							<dt>To</dt>
 							<dd>
 								<EvmAccountView
 									selection={select(EntityType.EvmAccount, evmAccount[EntityMetaKey.Selector])}
 									prefetched={evmAccount}
-									href={
-										(
-											evmAccount[EntityMetaKey.Selector] != null && 'address' in evmAccount[EntityMetaKey.Selector]
-											&& evmAccount[EntityMetaKey.Selector].address != null ?
-												resolve('/account/[address=evmAddress]', {
-											address: String(evmAccount[EntityMetaKey.Selector].address ?? ''),
-										})
-										:
-												undefined
-										)
-									}
 									layout={EntityLayout.Value}
 									open={false}
 								/>
@@ -343,37 +207,13 @@
 					resource={selection.$createdContract}
 				>
 					{#snippet children(evmContract)}
-						{#if evmContract != null && evmContract[EntityMetaKey.Selector] != null}
+						{#if evmContract != null}
 							<div>
 								<dt>Created contract</dt>
 								<dd>
 									<EvmContractView
 										selection={select(EntityType.EvmContract, evmContract[EntityMetaKey.Selector])}
 										prefetched={evmContract}
-										href={
-											(
-												evmContract[EntityMetaKey.Selector] != null && 'address' in evmContract[EntityMetaKey.Selector]
-												&& evmContract[EntityMetaKey.Selector].address != null
-												&& evmContract[EntityMetaKey.Selector] != null && '$network' in evmContract[EntityMetaKey.Selector] ?
-													evmContract[EntityMetaKey.Selector].$network != null && 'caip2' in evmContract[EntityMetaKey.Selector].$network
-													&& evmContract[EntityMetaKey.Selector].$network.caip2 != null ?
-														resolve('/network/[network=networkCaip2OrNetworkSlug]/contract/[address=evmAddress]', {
-													address: String(evmContract[EntityMetaKey.Selector].address ?? ''),
-													network: String(caip2StringFromValue(evmContract[EntityMetaKey.Selector].$network.caip2) ?? ''),
-												})
-												:
-														evmContract[EntityMetaKey.Selector].$network != null && 'slug' in evmContract[EntityMetaKey.Selector].$network
-														&& evmContract[EntityMetaKey.Selector].$network.slug != null ?
-															resolve('/network/[network=networkCaip2OrNetworkSlug]/contract/[address=evmAddress]', {
-														address: String(evmContract[EntityMetaKey.Selector].address ?? ''),
-														network: String(evmContract[EntityMetaKey.Selector].$network.slug ?? ''),
-													})
-													:
-														undefined
-											:
-													undefined
-											)
-										}
 										layout={EntityLayout.Value}
 										open={false}
 									/>

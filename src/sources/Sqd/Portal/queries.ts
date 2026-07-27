@@ -1,6 +1,6 @@
 import { fetchFailedMessage } from '$/lib/http.ts'
 import { firstHttpUrlForBinding, sourceFetch } from '$/sources/_runtime/http.ts'
-import type { SourceBinding } from '$/sources/SourceBinding.ts'
+import bindings from '$/sources/Sqd/bindings.ts'
 import {
 	SqdPortalEvmBlock,
 	type SqdPortalEvmBlockRequest,
@@ -9,6 +9,9 @@ import {
 	SqdPortalReorg,
 	SqdPortalResolution,
 } from '$/sources/Sqd/Portal/types.ts'
+import { Source } from '$/sources/Source.ts'
+
+const binding = bindings[Source.SqdPortal_RawHttp]
 
 const finalizedHead = (response: Response): SqdPortalFinalizedHead | undefined => {
 	const number = response.headers.get('x-sqd-finalized-head-number')
@@ -35,7 +38,6 @@ const ndjsonBlocks = async (response: Response) => (
 )
 
 export const getEvmBlock = async (
-	binding: SourceBinding,
 	blockNumber: bigint,
 	parentBlockHash?: string
 ): Promise<SqdPortalEvmBlockResult> => {

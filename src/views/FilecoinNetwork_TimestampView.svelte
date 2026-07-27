@@ -2,15 +2,9 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
-	import { caip2StringFromValue } from '$/lib/caip2.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -23,42 +17,24 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.FilecoinNetwork_Timestamp>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.FilecoinNetwork_Timestamp>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.FilecoinNetwork_Timestamp> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const filecoinNetworkTimestamp = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {
-			headHeight: true,
-			headTipsetKey: true,
-		},
-	} : {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const viewSelection = $derived(selection({
+		sources: selection.sources ?? [
+			Source.Lotus_JsonRpc,
+		],
+	}))
+	const filecoinNetworkTimestamp = $derived(viewSelection({
 		fields: {
 			headHeight: true,
 			headTipsetKey: true,
 		},
 	}))
-	const titleFallback = $derived([String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || 'filecoin network timestamp')
-	const viewDomId = $derived('filecoin-network-timestamp-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const titleFallback = $derived(String(pendingEntity.timestampMs ?? '') || 'filecoin network timestamp')
 
 
 	// Components
@@ -73,77 +49,40 @@
 
 <EntityView
 	entityType={EntityType.FilecoinNetwork_Timestamp}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'headHeight') && Object.hasOwn(prefetched, 'headTipsetKey')}
-			{@const timestampMs0 = pendingEntity.timestampMs}
-			{#if timestampMs0 !== undefined && timestampMs0 !== null}
-				<Timestamp timestamp={Number(timestampMs0)} />
-			{/if}
-		{:else}
-			<ResourceBoundary resource={filecoinNetworkTimestamp}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const timestampMs0 = resolvedEntity.timestampMs}
-					{#if timestampMs0 !== undefined && timestampMs0 !== null}
-						<Timestamp timestamp={Number(timestampMs0)} />
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
 	{/snippet}
 
 	{#snippet Value()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'headHeight') && Object.hasOwn(prefetched, 'headTipsetKey')}
-			{@const headHeight0 = pendingEntity.headHeight}
-			{#if headHeight0 !== undefined && headHeight0 !== null}
-				<NumberValue
-					value={headHeight0}
-				/>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={filecoinNetworkTimestamp}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const headHeight0 = resolvedEntity.headHeight}
-					{#if headHeight0 !== undefined && headHeight0 !== null}
-						<NumberValue
-							value={headHeight0}
-						/>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={filecoinNetworkTimestamp}>
+			{#snippet children(entity)}
+				{@const headHeight0 = entity.headHeight}
+				{#if headHeight0 != null}
+					<NumberValue
+						value={headHeight0}
+					/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'headHeight') && Object.hasOwn(prefetched, 'headTipsetKey')}
-			{@const headTipsetKey0 = pendingEntity.headTipsetKey}
-			{#if headTipsetKey0 !== undefined && headTipsetKey0 !== null}
-				<span data-text="muted">
-					{String((headTipsetKey0) ?? '')}
-				</span>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={filecoinNetworkTimestamp}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const headTipsetKey0 = resolvedEntity.headTipsetKey}
-					{#if headTipsetKey0 !== undefined && headTipsetKey0 !== null}
-						<span data-text="muted">
-							{String((headTipsetKey0) ?? '')}
-						</span>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={filecoinNetworkTimestamp}>
+			{#snippet children(entity)}
+				{@const headTipsetKey0 = entity.headTipsetKey}
+				{#if headTipsetKey0 != null}
+					<span data-text="muted">
+						{headTipsetKey0}
+					</span>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -153,23 +92,6 @@
 				<dd>
 					<NetworkView
 						selection={select(EntityType.Network, selection.entitySelector.$network)}
-						href={
-							(
-								selection.entitySelector.$network != null && 'caip2' in selection.entitySelector.$network
-								&& selection.entitySelector.$network.caip2 != null ?
-									resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-								network: String(caip2StringFromValue(selection.entitySelector.$network.caip2) ?? ''),
-							})
-							:
-									selection.entitySelector.$network != null && 'slug' in selection.entitySelector.$network
-									&& selection.entitySelector.$network.slug != null ?
-										resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-									network: String(selection.entitySelector.$network.slug ?? ''),
-								})
-								:
-									undefined
-							)
-						}
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -179,65 +101,23 @@
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									timestampMs: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const timestampMs = resolvedEntity.timestampMs}
-							{#if timestampMs !== undefined && timestampMs !== null}
-								<Timestamp timestamp={Number(timestampMs)} />
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									source: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const source = resolvedEntity.source}
-							{#if source !== undefined && source !== null}
-								{String((source) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{pendingEntity.source}
 				</dd>
 			</div>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							headHeight: true,
-						},
-					})
-				}
+				resource={filecoinNetworkTimestamp}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const headHeight = resolvedEntity.headHeight}
-					{#if headHeight !== undefined && headHeight !== null}
+					{@const headHeight = entity.headHeight}
+					{#if headHeight != null}
 						<div>
 							<dt>Head height</dt>
 							<dd>
@@ -251,23 +131,15 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							headTipsetKey: true,
-						},
-					})
-				}
+				resource={filecoinNetworkTimestamp}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const headTipsetKey = resolvedEntity.headTipsetKey}
-					{#if headTipsetKey !== undefined && headTipsetKey !== null}
+					{@const headTipsetKey = entity.headTipsetKey}
+					{#if headTipsetKey != null}
 						<div>
 							<dt>Head tipset key</dt>
 							<dd>
-								{String((headTipsetKey) ?? '')}
+								{headTipsetKey}
 							</dd>
 						</div>
 					{/if}
@@ -276,8 +148,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							headBlockCount: true,
 						},
@@ -285,9 +156,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const headBlockCount = resolvedEntity.headBlockCount}
-					{#if headBlockCount !== undefined && headBlockCount !== null}
+					{@const headBlockCount = entity.headBlockCount}
+					{#if headBlockCount != null}
 						<div>
 							<dt>Head block count</dt>
 							<dd>
@@ -302,8 +172,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							headTimestampMs: true,
 						},
@@ -311,9 +180,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const headTimestampMs = resolvedEntity.headTimestampMs}
-					{#if headTimestampMs !== undefined && headTimestampMs !== null}
+					{@const headTimestampMs = entity.headTimestampMs}
+					{#if headTimestampMs != null}
 						<div>
 							<dt>Head timestamp</dt>
 							<dd>
@@ -325,17 +193,10 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={
-					selection
-						.$headTipset({
-							sources: [
-								Source.Lotus_JsonRpc,
-							],
-						})
-				}
+				resource={selection.$headTipset}
 			>
 				{#snippet children(filecoinTipset)}
-					{#if filecoinTipset != null && filecoinTipset[EntityMetaKey.Selector] != null}
+					{#if filecoinTipset != null}
 						<div>
 							<dt>Head tipset</dt>
 							<dd>
@@ -355,8 +216,7 @@
 		<dl data-column-item="center">
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							networkVersion: true,
 						},
@@ -364,9 +224,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const networkVersion = resolvedEntity.networkVersion}
-					{#if networkVersion !== undefined && networkVersion !== null}
+					{@const networkVersion = entity.networkVersion}
+					{#if networkVersion != null}
 						<div>
 							<dt>Network version</dt>
 							<dd>
@@ -381,8 +240,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							lotusVersion: true,
 						},
@@ -390,13 +248,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const lotusVersion = resolvedEntity.lotusVersion}
-					{#if lotusVersion !== undefined && lotusVersion !== null}
+					{@const lotusVersion = entity.lotusVersion}
+					{#if lotusVersion != null}
 						<div>
 							<dt>Lotus version</dt>
 							<dd>
-								{String((lotusVersion) ?? '')}
+								{lotusVersion}
 							</dd>
 						</div>
 					{/if}
@@ -405,8 +262,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							lotusAgent: true,
 						},
@@ -414,13 +270,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const lotusAgent = resolvedEntity.lotusAgent}
-					{#if lotusAgent !== undefined && lotusAgent !== null}
+					{@const lotusAgent = entity.lotusAgent}
+					{#if lotusAgent != null}
 						<div>
 							<dt>Lotus agent</dt>
 							<dd>
-								{String((lotusAgent) ?? '')}
+								{lotusAgent}
 							</dd>
 						</div>
 					{/if}
@@ -429,8 +284,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							blockDelaySeconds: true,
 						},
@@ -438,9 +292,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const blockDelaySeconds = resolvedEntity.blockDelaySeconds}
-					{#if blockDelaySeconds !== undefined && blockDelaySeconds !== null}
+					{@const blockDelaySeconds = entity.blockDelaySeconds}
+					{#if blockDelaySeconds != null}
 						<div>
 							<dt>Block delay seconds</dt>
 							<dd>
@@ -455,8 +308,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							totalRawBytePower: true,
 						},
@@ -464,9 +316,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const totalRawBytePower = resolvedEntity.totalRawBytePower}
-					{#if totalRawBytePower !== undefined && totalRawBytePower !== null}
+					{@const totalRawBytePower = entity.totalRawBytePower}
+					{#if totalRawBytePower != null}
 						<div>
 							<dt>Total raw byte power</dt>
 							<dd>
@@ -481,8 +332,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							totalQualityAdjustedPower: true,
 						},
@@ -490,9 +340,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const totalQualityAdjustedPower = resolvedEntity.totalQualityAdjustedPower}
-					{#if totalQualityAdjustedPower !== undefined && totalQualityAdjustedPower !== null}
+					{@const totalQualityAdjustedPower = entity.totalQualityAdjustedPower}
+					{#if totalQualityAdjustedPower != null}
 						<div>
 							<dt>Total quality adjusted power</dt>
 							<dd>
@@ -508,25 +357,20 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-				{@const filecoinNetworkTimestampFilecoinMinersViewHeadMinersResource = selection
-		.$$headMiners({
-			sources: [
-				Source.Lotus_JsonRpc,
-			],
-		})}
-				<ResourceBoundary
-					resource={filecoinNetworkTimestampFilecoinMinersViewHeadMinersResource}
-				>
-					{#snippet children(entities)}
-						{#if entities.values.length > 0}
-						<FilecoinMinersView
-							selection={filecoinNetworkTimestampFilecoinMinersViewHeadMinersResource}
-							countResource={filecoinNetworkTimestampFilecoinMinersViewHeadMinersResource.count}
-							title='Head miners'
-							id='FilecoinMinersView-head-miners'
-						/>
-						{/if}
-					{/snippet}
-				</ResourceBoundary>
+		{@const filecoinNetworkTimestampFilecoinMinersViewHeadMinersResource = selection.$$headMiners}
+		<ResourceBoundary
+			resource={filecoinNetworkTimestampFilecoinMinersViewHeadMinersResource}
+		>
+			{#snippet children(entities)}
+				{#if entities.values.length > 0}
+					<FilecoinMinersView
+						selection={filecoinNetworkTimestampFilecoinMinersViewHeadMinersResource}
+						countResource={filecoinNetworkTimestampFilecoinMinersViewHeadMinersResource.count}
+						title='Head miners'
+						id='head-miners'
+					/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 </EntityView>

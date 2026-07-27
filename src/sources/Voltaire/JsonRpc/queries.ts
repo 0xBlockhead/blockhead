@@ -1,25 +1,25 @@
 import { TransportType } from '$/constants/TransportType.ts'
-import { jsonRpc } from '$/sources/Evm/JsonRpc/client.ts'
 import {
 	SourceEndpointKind,
 	SourceOperationGroup,
-	type SourceBinding,
+	type SourceEndpoint,
 } from '$/sources/SourceBinding.ts'
-import { sourceProviders } from '$/sources/$sourceProviders.ts'
-import { SourceProvider } from '$/sources/SourceProvider.ts'
+import { Source } from '$/sources/Source.ts'
+import bindings from '$/sources/Voltaire/bindings.ts'
 import {
 	getBlockByHash as getEvmBlockByHash,
 	getBlockByNumber as getEvmBlockByNumber,
-	getBlockNumber as getEvmBlockNumber,
 	getTransactionByHash as getEvmTransactionByHash,
 	getTransactionReceipt as getEvmTransactionReceipt,
-} from '$/sources/Evm/JsonRpc/queries.ts'
-import {
 	getBlockNumber,
-	getGasPrice,
-	getMaxPriorityFeePerGas,
+	getCode as getEvmCode,
+	getFeeHistory as getEvmFeeHistory,
+	getGasPrice as getEvmGasPrice,
+	getMaxPriorityFeePerGas as getEvmMaxPriorityFeePerGas,
+	getStorageAt as getEvmStorageAt,
+	getTxpoolStatus as getEvmTxpoolStatus,
 } from '$/sources/_shared/interfaces/EvmExecutionJsonRpc/queries.ts'
-import type { SourceOrigin } from '$/sources/SourceProvider.ts'
+import { jsonRpc2 } from '$/sources/_shared/wire/JsonRpc2/client.ts'
 import { isJsonObject, type JsonValue } from '$/typescript/JsonValue.ts'
 import {
 	narrowBlockRpc,
@@ -31,67 +31,133 @@ import {
 	type VoltaireTxRpc,
 } from '$/sources/Voltaire/JsonRpc/types.ts'
 
-const voltaireBindings = sourceProviders
-	.filter((sourceProvider) => sourceProvider.provider === SourceProvider.Voltaire)
-	.flatMap((sourceProvider) => sourceProvider.bindings)
+const bindingByEndpoint = new Map(
+	bindings[Source.Voltaire_JsonRpc].flatMap((binding) => (
+		binding.endpoints.map((endpoint) => [
+			endpoint.locator,
+			binding,
+		])
+	))
+)
 
-const voltaireJsonRpcOriginsByChainId = Object.fromEntries(
-	Object.entries(Object.groupBy(
-		voltaireBindings,
-		(binding) => binding.target.key
-	)).map(([chainId, bindings]) => [
-		Number(chainId),
-		bindings.flatMap((binding) => (
-			binding.endpoints.flatMap((endpoint) => (
-				endpoint.endpointKind === SourceEndpointKind.HttpUrl ?
-					[{
-						origin: endpoint.origin ?? new URL(endpoint.locator).origin,
-						corsEnabled: endpoint.corsEnabled ?? false,
-					}]
-				:
-					[]
-			))
+const bindingForEndpoint = (endpoint: SourceEndpoint) => {
+	const binding = bindingByEndpoint.get(endpoint.locator)
+	if (binding == null)
+		throw new Error(`Voltaire_JsonRpc: undeclared execution endpoint ${endpoint.locator}`)
+
+	return binding
+}
+
+export const voltaireJsonRpcTransports = (() => {
+	const transportsByChainId = Object.groupBy(
+		bindings[Source.Voltaire_JsonRpc].flatMap((binding) => (
+			binding.endpoints.map((endpoint) => ({
+				chainId: Number(binding.target.key),
+				endpoint,
+				transportType: (
+					endpoint.endpointKind === SourceEndpointKind.HttpUrl ?
+						TransportType.Http
+					:
+						TransportType.WebSocket
+				),
+				supportsTxpool: binding.operationGroups.includes(SourceOperationGroup.EvmRpcTxpool),
+			}))
 		)),
-	])
+		(transport) => transport.chainId
+	)
+
+	return {
+		transportsByChainId,
+		transportByChainId: Object.fromEntries(
+			Object.entries(transportsByChainId)
+				.flatMap(([chainId, entries]) => {
+					const httpExecutionEndpoint = entries.find((entry) => entry.transportType === TransportType.Http)
+					const executionEndpoint = httpExecutionEndpoint ?? entries.at(0)
+					return executionEndpoint == null ?
+						[]
+					:
+						[[
+							Number(chainId),
+							executionEndpoint,
+						]]
+				})
+		),
+	}
+})()
+
+export type ExecutionTransport = {
+	endpoint: SourceEndpoint
+	transportType: TransportType
+	supportsTxpool: boolean
+}
+
+export const getFeeHistoryForEndpoint = ({
+	endpoint,
+	blockCount,
+	newestBlock,
+	rewardPercentiles,
+}: ExecutionTransport & {
+	blockCount: number
+	newestBlock: bigint | 'latest'
+	rewardPercentiles?: readonly number[]
+}) => (
+	getEvmFeeHistory({
+		binding: bindingForEndpoint(endpoint),
+		endpoint,
+		blockCount,
+		newestBlock,
+		rewardPercentiles,
+	})
 )
 
-export const voltaireJsonRpcTransportsWithOriginsByChainId = Object.groupBy(
-	voltaireBindings.flatMap((binding) => (
-		binding.endpoints.flatMap((endpoint) => (
-			endpoint.endpointKind === SourceEndpointKind.HttpUrl
-				|| endpoint.endpointKind === SourceEndpointKind.WebSocketUrl ?
-				[{
-					chainId: Number(binding.target.key),
-					rpcUrl: endpoint.locator,
-					transportType: (
-						endpoint.endpointKind === SourceEndpointKind.HttpUrl ?
-							TransportType.Http
-						:
-							TransportType.WebSocket
-					),
-					binding,
-					origins: voltaireJsonRpcOriginsByChainId[Number(binding.target.key)] ?? [],
-				}]
-			:
-				[]
-		))
-	)),
-	(transport) => transport.chainId
+export const getGasPriceForEndpoint = ({ endpoint }: ExecutionTransport) => (
+	getEvmGasPrice(bindingForEndpoint(endpoint), endpoint)
 )
 
-export const voltaireJsonRpcTransportWithOriginsByChainId = Object.fromEntries(
-	Object.entries(voltaireJsonRpcTransportsWithOriginsByChainId)
-		.flatMap(([chainId, entries]) => {
-			const httpExecutionEndpoint = entries.find((entry) => entry.transportType === TransportType.Http)
-			const executionEndpoint = httpExecutionEndpoint ?? entries.at(0)
-			return executionEndpoint == null ?
-				[]
-			:
-				[[
-					Number(chainId),
-					executionEndpoint,
-				]]
-		})
+export const getMaxPriorityFeePerGasForEndpoint = ({ endpoint }: ExecutionTransport) => (
+	getEvmMaxPriorityFeePerGas(bindingForEndpoint(endpoint), endpoint)
+)
+
+export const getTxpoolStatusForEndpoint = ({ endpoint }: ExecutionTransport) => (
+	getEvmTxpoolStatus({
+		binding: bindingForEndpoint(endpoint),
+		endpoint,
+	})
+)
+
+export const getStorageAtForEndpoint = ({
+	endpoint,
+	address,
+	slotQuantityHex,
+	blockTag,
+}: ExecutionTransport & {
+	address: `0x${string}`
+	slotQuantityHex: `0x${string}`
+	blockTag?: `0x${string}` | 'latest' | 'pending' | 'safe' | 'finalized'
+}) => (
+	getEvmStorageAt({
+		binding: bindingForEndpoint(endpoint),
+		endpoint,
+		address,
+		slotQuantityHex,
+		blockTag,
+	})
+)
+
+export const getCodeForEndpoint = ({
+	endpoint,
+	address,
+	blockTag,
+}: ExecutionTransport & {
+	address: `0x${string}`
+	blockTag?: `0x${string}` | 'latest' | 'pending' | 'safe' | 'finalized'
+}) => (
+	getEvmCode({
+		binding: bindingForEndpoint(endpoint),
+		endpoint,
+		address,
+		blockTag,
+	})
 )
 
 export type Provider = {
@@ -130,64 +196,44 @@ const getVoltaireProviderRuntime = () => import('@tevm/voltaire/provider')
 
 const getVoltaireBlockRuntime = () => import('@tevm/voltaire/block')
 
-const evmExecutionJsonRpcBindingKey = (
-	chainId: number | string,
-	operationGroup: SourceOperationGroup
-) => `${String(chainId)}:${operationGroup}`
-
-const evmExecutionJsonRpcBindingByChainIdAndOperationGroup: Partial<Record<string, SourceBinding>> = Object.fromEntries(
-	voltaireBindings.flatMap((binding) => (
-		binding.operationGroups.map((operationGroup) => [
-			evmExecutionJsonRpcBindingKey(
-				binding.target.key,
-				operationGroup
-			),
-			binding,
-		])
-	))
-)
-
-export const getEvmExecutionJsonRpcBinding = ({
-	chainId,
-	operationGroup,
-}: {
-	chainId: number
-	operationGroup: SourceOperationGroup
-}): SourceBinding | undefined => evmExecutionJsonRpcBindingByChainIdAndOperationGroup[
-	evmExecutionJsonRpcBindingKey(
-		chainId,
-		operationGroup
-	)
-]
-
 export const getProviderForExecutionUrl = async ({
-	url,
+	endpoint,
 	transportType,
-	binding,
 }: {
-	url: string
+	endpoint: SourceEndpoint
 	transportType: TransportType
-	binding?: SourceBinding
-}): Promise<Provider> => (
-	transportType === TransportType.WebSocket ?
-		typeof window === 'undefined' ?
-			getVoltaireProviderRuntime().then(({ WebSocketProvider }) => new WebSocketProvider(url))
-		:
-			Promise.reject(new Error('Voltaire_JsonRpc: RemoteLive WebSocket is unavailable directly in the browser'))
-	:
-		binding == null ?
-			getVoltaireProviderRuntime().then(({ HttpProvider }) => new HttpProvider(url))
+}): Promise<Provider> => {
+	if (
+		(
+			transportType === TransportType.Http
+			&& endpoint.endpointKind !== SourceEndpointKind.HttpUrl
+		)
+		|| (
+			transportType === TransportType.WebSocket
+			&& endpoint.endpointKind !== SourceEndpointKind.WebSocketUrl
+		)
+	)
+		throw new Error('Voltaire_JsonRpc: transport type does not match its endpoint')
+
+	const binding = bindingForEndpoint(endpoint)
+
+	return (
+		transportType === TransportType.WebSocket ?
+			typeof window === 'undefined' ?
+				getVoltaireProviderRuntime().then(({ WebSocketProvider }) => new WebSocketProvider(endpoint.locator))
+			:
+				Promise.reject(new Error('Voltaire_JsonRpc: RemoteLive WebSocket is unavailable directly in the browser'))
 		:
 			Promise.resolve({
-				request: ({ method, params }) => jsonRpc<JsonValue>({
-					rpcUrl: url,
-					origins: [],
+				request: ({ method, params }) => jsonRpc2<JsonValue>(
 					binding,
 					method,
-					params: params ?? [],
-				}),
+					params ?? [],
+					endpoint
+				),
 			})
-)
+	)
+}
 
 const jsonValueFromProviderRequest = async (
 	// oxlint-disable-next-line typescript/no-restricted-types -- EIP-1193 Provider.request return
@@ -206,69 +252,19 @@ const getBlockSpec = (blockNumber: bigint | 'latest'): 'latest' | `0x${string}` 
 		`0x${blockNumber.toString(16)}`
 )
 
-export const getChainHeadNumber = async ({
-	chainId,
-}: {
-	chainId: number
-}): Promise<number> => {
-	const binding = getEvmExecutionJsonRpcBinding({
-		chainId,
-		operationGroup: SourceOperationGroup.EvmRpcCore,
-	})
-	if (binding == null)
-		throw new Error(`Voltaire_JsonRpc: no EVM JSON-RPC core binding for chain ${chainId}`)
-
-	return getBlockNumber(binding)
-}
-
-export const getCurrentGasPrice = async ({
-	chainId,
-}: {
-	chainId: number
-}): Promise<`0x${string}`> => {
-	const binding = getEvmExecutionJsonRpcBinding({
-		chainId,
-		operationGroup: SourceOperationGroup.EvmRpcCore,
-	})
-	if (binding == null)
-		throw new Error(`Voltaire_JsonRpc: no EVM JSON-RPC core binding for chain ${chainId}`)
-
-	return getGasPrice(binding)
-}
-
-export const getCurrentMaxPriorityFeePerGas = async ({
-	chainId,
-}: {
-	chainId: number
-}): Promise<`0x${string}`> => {
-	const binding = getEvmExecutionJsonRpcBinding({
-		chainId,
-		operationGroup: SourceOperationGroup.EvmRpcCore,
-	})
-	if (binding == null)
-		throw new Error(`Voltaire_JsonRpc: no EVM JSON-RPC core binding for chain ${chainId}`)
-
-	return getMaxPriorityFeePerGas(binding)
-}
-
-export const getChainHeadNumberForRpcUrl = async ({
-	rpcUrl,
-	origins,
+export const getChainHeadNumberForEndpoint = async ({
+	endpoint,
 	transportType,
-	binding,
 }: {
-	rpcUrl: string
-	origins: readonly SourceOrigin[]
+	endpoint: SourceEndpoint
 	transportType: TransportType
-	binding: SourceBinding
 }): Promise<bigint> => {
 	if (transportType === TransportType.Http)
-		return BigInt(await getEvmBlockNumber({ rpcUrl, origins, binding }))
+		return BigInt(await getBlockNumber(bindingForEndpoint(endpoint), endpoint))
 
 	const provider = await getProviderForExecutionUrl({
-		url: rpcUrl,
+		endpoint,
 		transportType,
-		binding,
 	})
 	const hexUnknown = await provider.request({
 		method: 'eth_blockNumber',
@@ -279,26 +275,21 @@ export const getChainHeadNumberForRpcUrl = async ({
 	return BigInt(hexUnknown)
 }
 
-export const getBlockByNumberForRpcUrl = async ({
-	rpcUrl,
-	origins,
+export const getBlockByNumberForEndpoint = async ({
+	endpoint,
 	transportType,
-	binding,
 	blockNumber,
 	fullTransactions = false,
 }: {
-	rpcUrl: string
-	origins: readonly SourceOrigin[]
+	endpoint: SourceEndpoint
 	transportType: TransportType
-	binding: SourceBinding
 	blockNumber: bigint | 'latest'
 	fullTransactions?: boolean
 }): Promise<VoltaireBlockRpc | null> => {
 	if (transportType === TransportType.Http) {
 		const block = await getEvmBlockByNumber({
-			rpcUrl,
-			origins,
-			binding,
+			binding: bindingForEndpoint(endpoint),
+			endpoint,
 			blockNumber,
 			txObjects: fullTransactions,
 		})
@@ -331,9 +322,8 @@ export const getBlockByNumberForRpcUrl = async ({
 	return narrowBlockRpc(
 		await jsonValueFromProviderRequest(
 			(await getProviderForExecutionUrl({
-				url: rpcUrl,
+				endpoint,
 				transportType,
-				binding,
 			})).request({
 				method: 'eth_getBlockByNumber',
 				params: [
@@ -345,26 +335,21 @@ export const getBlockByNumberForRpcUrl = async ({
 	)
 }
 
-export const getBlockByHashForRpcUrl = async ({
-	rpcUrl,
-	origins,
+export const getBlockByHashForEndpoint = async ({
+	endpoint,
 	transportType,
-	binding,
 	blockHash,
 	fullTransactions = false,
 }: {
-	rpcUrl: string
-	origins: readonly SourceOrigin[]
+	endpoint: SourceEndpoint
 	transportType: TransportType
-	binding: SourceBinding
 	blockHash: `0x${string}`
 	fullTransactions?: boolean
 }): Promise<VoltaireBlockRpc | null> => {
 	if (transportType === TransportType.Http) {
 		const block = await getEvmBlockByHash({
-			rpcUrl,
-			origins,
-			binding,
+			binding: bindingForEndpoint(endpoint),
+			endpoint,
 			blockHash,
 			txObjects: fullTransactions,
 		})
@@ -397,9 +382,8 @@ export const getBlockByHashForRpcUrl = async ({
 	return narrowBlockRpc(
 		await jsonValueFromProviderRequest(
 			(await getProviderForExecutionUrl({
-				url: rpcUrl,
+				endpoint,
 				transportType,
-				binding,
 			})).request({
 				method: 'eth_getBlockByHash',
 				params: [
@@ -411,27 +395,22 @@ export const getBlockByHashForRpcUrl = async ({
 	)
 }
 
-export const getRecentBlockWiresForRpcUrl = async ({
-	rpcUrl,
-	origins,
+export const getRecentBlockWiresForEndpoint = async ({
+	endpoint,
 	transportType,
-	binding,
 	recentBlockDepth,
 }: {
-	rpcUrl: string
-	origins: readonly SourceOrigin[]
+	endpoint: SourceEndpoint
 	transportType: TransportType
-	binding: SourceBinding
 	recentBlockDepth: number
 }): Promise<{
 	blockNumbers: bigint[]
 	wires: (VoltaireBlockRpc | null)[]
 }> => {
-	const head = await getChainHeadNumberForRpcUrl({
-		rpcUrl,
-		origins,
+	const head = await getChainHeadNumberForEndpoint({
+		endpoint,
 		transportType,
-		binding,
+		binding: bindingForEndpoint(endpoint),
 	})
 	const blockNumbers = (
 		Array.from(
@@ -445,11 +424,10 @@ export const getRecentBlockWiresForRpcUrl = async ({
 		wires: await Promise.all(
 			blockNumbers.map((blockNumber) => (
 				Promise.race([
-					getBlockByNumberForRpcUrl({
-						rpcUrl,
-						origins,
+					getBlockByNumberForEndpoint({
+						endpoint,
 						transportType,
-						binding,
+						binding: bindingForEndpoint(endpoint),
 						blockNumber,
 						fullTransactions: false,
 					}),
@@ -462,33 +440,27 @@ export const getRecentBlockWiresForRpcUrl = async ({
 	}
 }
 
-export const getTransactionByHashForRpcUrl = async ({
-	rpcUrl,
-	origins,
+export const getTransactionByHashForEndpoint = async ({
+	endpoint,
 	transportType,
-	binding,
 	txHash,
 }: {
-	rpcUrl: string
-	origins: readonly SourceOrigin[]
+	endpoint: SourceEndpoint
 	transportType: TransportType
-	binding: SourceBinding
 	txHash: `0x${string}`
 }): Promise<VoltaireTxRpc | null> => {
 	if (transportType === TransportType.Http)
 		return getEvmTransactionByHash({
-			rpcUrl,
-			origins,
-			binding,
+			binding: bindingForEndpoint(endpoint),
+			endpoint,
 			txHash,
 		})
 
 	return narrowTxRpc(
 		await jsonValueFromProviderRequest(
 			(await getProviderForExecutionUrl({
-				url: rpcUrl,
+				endpoint,
 				transportType,
-				binding,
 			})).request({
 				method: 'eth_getTransactionByHash',
 				params: [txHash],
@@ -497,33 +469,27 @@ export const getTransactionByHashForRpcUrl = async ({
 	)
 }
 
-export const getTransactionReceiptForRpcUrl = async ({
-	rpcUrl,
-	origins,
+export const getTransactionReceiptForEndpoint = async ({
+	endpoint,
 	transportType,
-	binding,
 	txHash,
 }: {
-	rpcUrl: string
-	origins: readonly SourceOrigin[]
+	endpoint: SourceEndpoint
 	transportType: TransportType
-	binding: SourceBinding
 	txHash: `0x${string}`
 }): Promise<VoltaireReceiptRpc | null> => {
 	if (transportType === TransportType.Http)
 		return getEvmTransactionReceipt({
-			rpcUrl,
-			origins,
-			binding,
+			binding: bindingForEndpoint(endpoint),
+			endpoint,
 			txHash,
 		})
 
 	return narrowVoltaireReceiptRpc(
 		await jsonValueFromProviderRequest(
 			(await getProviderForExecutionUrl({
-				url: rpcUrl,
+				endpoint,
 				transportType,
-				binding,
 			})).request({
 				method: 'eth_getTransactionReceipt',
 				params: [txHash],
@@ -532,31 +498,26 @@ export const getTransactionReceiptForRpcUrl = async ({
 	)
 }
 
-export const debugTraceTransactionForRpcUrl = async ({
-	rpcUrl,
-	origins,
+export const debugTraceTransactionForEndpoint = async ({
+	endpoint,
 	transportType,
-	binding,
 	txHash,
 }: {
-	rpcUrl: string
-	origins: readonly SourceOrigin[]
+	endpoint: SourceEndpoint
 	transportType: TransportType
-	binding: SourceBinding
 	txHash: `0x${string}`
 }) => {
 	if (transportType === TransportType.Http) {
 		try {
-			const traceJson = await jsonRpc<JsonValue>({
-				rpcUrl,
-				origins,
-				binding,
-				method: 'debug_traceTransaction',
-				params: [
+			const traceJson = await jsonRpc2<JsonValue>(
+				bindingForEndpoint(endpoint),
+				'debug_traceTransaction',
+				[
 					txHash,
 					{ tracer: 'callTracer' },
 				],
-			})
+				endpoint
+			)
 			return isJsonObject(traceJson) ? parseVoltaireCallTraceRpc(traceJson) : null
 		} catch {
 			return null
@@ -566,9 +527,8 @@ export const debugTraceTransactionForRpcUrl = async ({
 	try {
 		const traceJson = await jsonValueFromProviderRequest(
 			(await getProviderForExecutionUrl({
-				url: rpcUrl,
+				endpoint,
 				transportType,
-				binding,
 			})).request({
 				method: 'debug_traceTransaction',
 				params: [

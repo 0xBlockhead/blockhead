@@ -8,7 +8,6 @@
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
@@ -37,13 +36,12 @@
 
 
 <svelte:head>
-	<title>{(data.title ?? (pageSelection.entity == null ? 'ENS' : 'ENS'))} • ENS • Blockhead</title>
+	<title>{(data.title ?? ('ENS'))} • ENS • Blockhead</title>
 </svelte:head>
 
 
 <Page>
 	<GlobalEnsNetworkView
-		href={resolve('/ens')}
 		selection={pageSelection}
 	/>
 </Page>

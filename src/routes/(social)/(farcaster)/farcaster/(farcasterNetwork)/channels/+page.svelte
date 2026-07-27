@@ -2,12 +2,12 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
@@ -23,29 +23,20 @@
 
 
 <Page>
+	{@const collectionSelection = select(EntityType.FarcasterNetwork, {
+		scope: 'FarcasterNetwork',
+	})
+		.$$channels({
+			sources: [
+				Source.Farcaster_Rest,
+			],
+		})}
+
 	<FarcasterChannelsView
-		href={resolve('/farcaster/channels')}
+		href={resolve('/(social)/(farcaster)/farcaster/(farcasterNetwork)/channels')}
 		title='Farcaster channels'
-		selection={
-			select(EntityType.FarcasterNetwork, {
-				scope: 'FarcasterNetwork',
-			})
-				.$$channels({
-					sources: [
-						Source.Farcaster_Rest,
-					],
-				})
-		}
-		countResource={
-			select(EntityType.FarcasterNetwork, {
-				scope: 'FarcasterNetwork',
-			})
-				.$$channels({
-					sources: [
-						Source.Farcaster_Rest,
-					],
-				}).count
-		}
+		selection={collectionSelection}
+		countResource={collectionSelection.count}
 		id='channels'
 		data-column-item="flexible"
 		data-card

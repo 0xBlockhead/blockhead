@@ -2,11 +2,11 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
@@ -22,19 +22,15 @@
 
 
 <Page>
+	{@const collectionSelection = select(EntityType._Global, {
+		scope: '$$blockheadFarcasterAccountConnections',
+	}).$$blockheadFarcasterAccountConnections}
+
 	<BlockheadFarcasterAccountConnectionsView
-		href={resolve('/farcaster/accounts')}
+		href={resolve('/(social)/(farcaster)/farcaster/(farcasterNetwork)/accounts')}
 		title='Farcaster accounts'
-		selection={
-			select(EntityType._Global, {
-				scope: '$$blockheadFarcasterAccountConnections',
-			}).$$blockheadFarcasterAccountConnections
-		}
-		countResource={
-			select(EntityType._Global, {
-				scope: '$$blockheadFarcasterAccountConnections',
-			}).$$blockheadFarcasterAccountConnections.count
-		}
+		selection={collectionSelection}
+		countResource={collectionSelection.count}
 		id='blockhead-farcaster-account-connections'
 		data-column-item="flexible"
 		data-card

@@ -2,11 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { stringify } from 'devalue'
 
@@ -20,42 +16,20 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.BnbBeaconToken>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.BnbBeaconToken>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.BnbBeaconToken> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const bnbBeaconToken = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {
-			tokenName: true,
-			tokenType: true,
-		},
-	} : {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const bnbBeaconToken = $derived(selection({
 		fields: {
 			tokenName: true,
 			tokenType: true,
 		},
 	}))
-	const titleFallback = $derived([String((pendingEntity.symbol) ?? '')].filter(Boolean).join(' ') || 'bnb beacon token')
-	const viewDomId = $derived('bnb-beacon-token-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const titleFallback = $derived((pendingEntity.symbol ?? '') || 'bnb beacon token')
+	const viewDomId = $derived('bnb-beacon-token-' + encodeURIComponent(stringify(selection.entitySelector)))
 
 
 	// Components
@@ -72,38 +46,23 @@
 
 <EntityView
 	entityType={EntityType.BnbBeaconToken}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
+	entitySelector={selection.entitySelector}
 	id={viewDomId}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'tokenName') && Object.hasOwn(prefetched, 'tokenType')}
-			{[String((pendingEntity.symbol) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-		{:else}
-			<ResourceBoundary resource={bnbBeaconToken}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.symbol) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		{(pendingEntity.symbol ?? '') || 'bnb beacon token'}
 	{/snippet}
 
 	{#snippet Value()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'tokenName') && Object.hasOwn(prefetched, 'tokenType')}
-			{[String((pendingEntity.tokenName) ?? ''), String((pendingEntity.tokenType) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.symbol) ?? '')].filter(Boolean).join(' ') || titleFallback}
-		{:else}
-			<ResourceBoundary resource={bnbBeaconToken}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.tokenName) ?? ''), String((resolvedEntity.tokenType) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.symbol) ?? '')].filter(Boolean).join(' ') || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={bnbBeaconToken}>
+			{#snippet children(entity)}
+				{[(entity.tokenName ?? ''), (entity.tokenType ?? '')].filter(Boolean).join(' ') || pendingEntity.symbol || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -122,31 +81,13 @@
 			<div>
 				<dt>Symbol</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									symbol: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const symbol = resolvedEntity.symbol}
-							{#if symbol !== undefined && symbol !== null}
-								{String((symbol) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{pendingEntity.symbol}
 				</dd>
 			</div>
 
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							originalSymbol: true,
 						},
@@ -154,13 +95,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const originalSymbol = resolvedEntity.originalSymbol}
-					{#if originalSymbol !== undefined && originalSymbol !== null}
+					{@const originalSymbol = entity.originalSymbol}
+					{#if originalSymbol != null}
 						<div>
 							<dt>original symbol</dt>
 							<dd>
-								{String((originalSymbol) ?? '')}
+								{originalSymbol}
 							</dd>
 						</div>
 					{/if}
@@ -168,23 +108,15 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							tokenName: true,
-						},
-					})
-				}
+				resource={bnbBeaconToken}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const tokenName = resolvedEntity.tokenName}
-					{#if tokenName !== undefined && tokenName !== null}
+					{@const tokenName = entity.tokenName}
+					{#if tokenName != null}
 						<div>
 							<dt>token name</dt>
 							<dd>
-								{String((tokenName) ?? '')}
+								{tokenName}
 							</dd>
 						</div>
 					{/if}
@@ -192,23 +124,15 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							tokenType: true,
-						},
-					})
-				}
+				resource={bnbBeaconToken}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const tokenType = resolvedEntity.tokenType}
-					{#if tokenType !== undefined && tokenType !== null}
+					{@const tokenType = entity.tokenType}
+					{#if tokenType != null}
 						<div>
 							<dt>token type</dt>
 							<dd>
-								{String((tokenType) ?? '')}
+								{tokenType}
 							</dd>
 						</div>
 					{/if}
@@ -218,7 +142,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							ownerAddress: true,
 						},
@@ -226,13 +149,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const ownerAddress = resolvedEntity.ownerAddress}
-					{#if ownerAddress !== undefined && ownerAddress !== null}
+					{@const ownerAddress = entity.ownerAddress}
+					{#if ownerAddress != null}
 						<div>
 							<dt>owner address</dt>
 							<dd>
-								<TruncatedValue value={String((ownerAddress) ?? '')} />
+								<TruncatedValue value={ownerAddress} />
 							</dd>
 						</div>
 					{/if}
@@ -250,12 +172,10 @@
 					{
 						id: 'bnb-beacon-token-transfers',
 						label: 'Transfers',
-						ownsSection: true,
 					},
 					{
 						id: 'bnb-beacon-token-migrations',
 						label: 'Migrations',
-						ownsSection: true,
 					},
 				]
 			}
@@ -268,136 +188,34 @@
 				</header>
 			{/snippet}
 
-			{#snippet MarkerBnbBeaconTokenTransfers(_context, Content)}
-				{@const bnbBeaconTokenActivityBnbBeaconTokenTransfersResource = selection.$$transfers}
-				<ResourceBoundary
-					resource={bnbBeaconTokenActivityBnbBeaconTokenTransfersResource}
-				>
-					{#snippet children(_resolved)}
-						{@render Content()}
-					{/snippet}
-
-					{#snippet PendingContent()}
-						{@render Content()}
-					{/snippet}
-
-					{#snippet FailedContent(_error, _retry)}
-						{@render Content()}
-					{/snippet}
-				</ResourceBoundary>
+			{#snippet SectionBnbBeaconTokenTransfers({ id, label, open })}
+				<BnbBeaconTokenTransfersView
+					selection={selection.$$transfers}
+					CollapsibleProps={{ canToggle: false }}
+					collapsible={false}
+					data-column-item="flexible"
+					data-card
+					data-scroll-container
+					open={open}
+					title={label}
+					emptyText='No transfers.'
+					id={`${id}-list`}
+				/>
 			{/snippet}
 
-			{#snippet SectionBnbBeaconTokenTransfers({ id, label, open, active })}
-				{@const bnbBeaconTokenActivityBnbBeaconTokenTransfersResource = selection.$$transfers}
-				<ResourceBoundary
-					resource={bnbBeaconTokenActivityBnbBeaconTokenTransfersResource}
-				>
-					{#snippet children(bnbBeaconTokenTransfer)}
-						<section
-							id={id}
-							aria-labelledby={`${id}:marker`}
-							data-scroll-marker-label={label}
-							data-column-item="flexible"
-							data-column
-							data-active={active}
-						>
-							<BnbBeaconTokenTransfersView
-								selection={bnbBeaconTokenActivityBnbBeaconTokenTransfersResource}
-								CollapsibleProps={{ canToggle: false }}
-								collapsible={false}
-								data-column-item="flexible"
-								data-card
-								data-scroll-container
-								open={open}
-								title={label}
-								emptyText='No transfers.'
-								id={`${id}-list`}
-							/>
-						</section>
-					{/snippet}
-
-					{#snippet Pending()}
-						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
-							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
-								<span data-tag data-text="muted" data-resource-state="pending" class="loading inline-placeholder" aria-busy="true" aria-label="Loading…">•••</span>
-							</article>
-						</section>
-					{/snippet}
-
-					{#snippet Failed(_error, _retry)}
-						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
-							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
-								<span data-tag data-resource-state="failed" class="inline-placeholder" aria-label="Failed to load">•••</span>
-							</article>
-						</section>
-					{/snippet}
-				</ResourceBoundary>
-			{/snippet}
-
-			{#snippet MarkerBnbBeaconTokenMigrations(_context, Content)}
-				{@const bnbBeaconTokenActivityBnbBeaconTokenMigrationsResource = selection.$$migrations}
-				<ResourceBoundary
-					resource={bnbBeaconTokenActivityBnbBeaconTokenMigrationsResource}
-				>
-					{#snippet children(_resolved)}
-						{@render Content()}
-					{/snippet}
-
-					{#snippet PendingContent()}
-						{@render Content()}
-					{/snippet}
-
-					{#snippet FailedContent(_error, _retry)}
-						{@render Content()}
-					{/snippet}
-				</ResourceBoundary>
-			{/snippet}
-
-			{#snippet SectionBnbBeaconTokenMigrations({ id, label, open, active })}
-				{@const bnbBeaconTokenActivityBnbBeaconTokenMigrationsResource = selection.$$migrations}
-				<ResourceBoundary
-					resource={bnbBeaconTokenActivityBnbBeaconTokenMigrationsResource}
-				>
-					{#snippet children(bnbBeaconTokenMigration)}
-						<section
-							id={id}
-							aria-labelledby={`${id}:marker`}
-							data-scroll-marker-label={label}
-							data-column-item="flexible"
-							data-column
-							data-active={active}
-						>
-							<BnbBeaconTokenMigrationsView
-								selection={bnbBeaconTokenActivityBnbBeaconTokenMigrationsResource}
-								CollapsibleProps={{ canToggle: false }}
-								collapsible={false}
-								data-column-item="flexible"
-								data-card
-								data-scroll-container
-								open={open}
-								title={label}
-								emptyText='No migrations.'
-								id={`${id}-list`}
-							/>
-						</section>
-					{/snippet}
-
-					{#snippet Pending()}
-						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
-							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
-								<span data-tag data-text="muted" data-resource-state="pending" class="loading inline-placeholder" aria-busy="true" aria-label="Loading…">•••</span>
-							</article>
-						</section>
-					{/snippet}
-
-					{#snippet Failed(_error, _retry)}
-						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
-							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
-								<span data-tag data-resource-state="failed" class="inline-placeholder" aria-label="Failed to load">•••</span>
-							</article>
-						</section>
-					{/snippet}
-				</ResourceBoundary>
+			{#snippet SectionBnbBeaconTokenMigrations({ id, label, open })}
+				<BnbBeaconTokenMigrationsView
+					selection={selection.$$migrations}
+					CollapsibleProps={{ canToggle: false }}
+					collapsible={false}
+					data-column-item="flexible"
+					data-card
+					data-scroll-container
+					open={open}
+					title={label}
+					emptyText='No migrations.'
+					id={`${id}-list`}
+				/>
 			{/snippet}
 
 		</CollapsibleTabs>
@@ -410,7 +228,6 @@
 					{
 						id: 'bnb-beacon-token-timestamps',
 						label: 'Timestamps',
-						ownsSection: true,
 					},
 				]
 			}
@@ -423,70 +240,19 @@
 				</header>
 			{/snippet}
 
-			{#snippet MarkerBnbBeaconTokenTimestamps(_context, Content)}
-				{@const bnbBeaconTokenObservationsBnbBeaconTokenTimestampsResource = selection.$$timestamps}
-				<ResourceBoundary
-					resource={bnbBeaconTokenObservationsBnbBeaconTokenTimestampsResource}
-				>
-					{#snippet children(_resolved)}
-						{@render Content()}
-					{/snippet}
-
-					{#snippet PendingContent()}
-						{@render Content()}
-					{/snippet}
-
-					{#snippet FailedContent(_error, _retry)}
-						{@render Content()}
-					{/snippet}
-				</ResourceBoundary>
-			{/snippet}
-
-			{#snippet SectionBnbBeaconTokenTimestamps({ id, label, open, active })}
-				{@const bnbBeaconTokenObservationsBnbBeaconTokenTimestampsResource = selection.$$timestamps}
-				<ResourceBoundary
-					resource={bnbBeaconTokenObservationsBnbBeaconTokenTimestampsResource}
-				>
-					{#snippet children(bnbBeaconTokenTimestamp)}
-						<section
-							id={id}
-							aria-labelledby={`${id}:marker`}
-							data-scroll-marker-label={label}
-							data-column-item="flexible"
-							data-column
-							data-active={active}
-						>
-							<BnbBeaconToken_TimestampsView
-								selection={bnbBeaconTokenObservationsBnbBeaconTokenTimestampsResource}
-								CollapsibleProps={{ canToggle: false }}
-								collapsible={false}
-								data-column-item="flexible"
-								data-card
-								data-scroll-container
-								open={open}
-								title={label}
-								emptyText='No timestamps.'
-								id={`${id}-list`}
-							/>
-						</section>
-					{/snippet}
-
-					{#snippet Pending()}
-						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
-							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
-								<span data-tag data-text="muted" data-resource-state="pending" class="loading inline-placeholder" aria-busy="true" aria-label="Loading…">•••</span>
-							</article>
-						</section>
-					{/snippet}
-
-					{#snippet Failed(_error, _retry)}
-						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
-							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
-								<span data-tag data-resource-state="failed" class="inline-placeholder" aria-label="Failed to load">•••</span>
-							</article>
-						</section>
-					{/snippet}
-				</ResourceBoundary>
+			{#snippet SectionBnbBeaconTokenTimestamps({ id, label, open })}
+				<BnbBeaconToken_TimestampsView
+					selection={selection.$$timestamps}
+					CollapsibleProps={{ canToggle: false }}
+					collapsible={false}
+					data-column-item="flexible"
+					data-card
+					data-scroll-container
+					open={open}
+					title={label}
+					emptyText='No timestamps.'
+					id={`${id}-list`}
+				/>
 			{/snippet}
 
 		</CollapsibleTabs>

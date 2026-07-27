@@ -1,14 +1,11 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { entity, facet } from '$/schema/$schema.ts'
+import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { type } from 'arktype'
 
-export enum RadicleIssueSelector {
-	RepositoryIssueId = 'RepositoryIssueId',
-}
-export const RadicleIssue = entity({
+export default entity({
 	entityType: EntityType.RadicleIssue,
 	labels: {
 		singular: 'radicle issue',

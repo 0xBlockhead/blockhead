@@ -1,14 +1,11 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { entity, facet } from '$/schema/$schema.ts'
+import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { type } from 'arktype'
 
-export enum Erc4626Vault_BlockSelector {
-	VaultBlockNumberSource = 'VaultBlockNumberSource',
-}
-export const Erc4626Vault_Block = entity({
+export default entity({
 	entityType: EntityType.Erc4626Vault_Block,
 	labels: {
 		singular: 'erc4626 vault block',

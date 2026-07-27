@@ -7,7 +7,6 @@
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
@@ -39,25 +38,12 @@
 
 
 <svelte:head>
-	<title>{(pageSelection.entity == null ? [String(({
-		eventId: params.eventId,
-	}.eventId) ?? '')].filter(Boolean).join(' ') || 'Nostr article event' : [String((({ ...{
-		eventId: params.eventId,
-	}, ...pageSelection.entity }).title) ?? ''), String((({ ...{
-		eventId: params.eventId,
-	}, ...pageSelection.entity }).identifier) ?? '')].filter(Boolean).join(' ') || [String((({ ...{
-		eventId: params.eventId,
-	}, ...pageSelection.entity }).eventId) ?? '')].filter(Boolean).join(' ') || 'Nostr article event')} • Nostr article event • Blockhead</title>
+	<title>{(pageSelection.entity == null ? (pageSelection.entitySelector.eventId ?? '') || 'Nostr article event' : [(pageSelection.entity.title ?? ''), pageSelection.entity.identifier].filter(Boolean).join(' ') || pageSelection.entitySelector.eventId || 'Nostr article event')} • Nostr article event • Blockhead</title>
 </svelte:head>
 
 
 <Page>
 	<NostrArticleEventView
-		href={
-			resolve('/nostr/article-version/[eventId=stringSegment]', {
-				eventId: params.eventId,
-			})
-		}
 		selection={pageSelection}
 	/>
 </Page>

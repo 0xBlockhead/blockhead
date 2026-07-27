@@ -1,14 +1,11 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { entity, facet } from '$/schema/$schema.ts'
+import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { type } from 'arktype'
 
-export enum A2aTaskEventSelector {
-	TaskSequence = 'TaskSequence',
-}
-export const A2aTaskEvent = entity({
+export default entity({
 	entityType: EntityType.A2aTaskEvent,
 	labels: {
 		singular: 'a2a task event',

@@ -2,15 +2,8 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
-	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -22,42 +15,19 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.SolanaTokenAccount_Timestamp>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.SolanaTokenAccount_Timestamp>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.SolanaTokenAccount_Timestamp> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const solanaTokenAccountTimestamp = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {
-			amount: true,
-			timestampMs: true,
-		},
-	} : {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const solanaTokenAccountTimestamp = $derived(selection({
 		fields: {
 			amount: true,
 			timestampMs: true,
 		},
 	}))
-	const titleFallback = $derived([String((pendingEntity.slot) ?? '')].filter(Boolean).join(' ') || 'solana token account timestamp')
-	const viewDomId = $derived('solana-token-account-timestamp-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const titleFallback = $derived(String(pendingEntity.slot ?? '') || 'solana token account timestamp')
 
 
 	// Components
@@ -71,81 +41,42 @@
 
 <EntityView
 	entityType={EntityType.SolanaTokenAccount_Timestamp}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'amount') && Object.hasOwn(prefetched, 'timestampMs')}
-			{@const slot0 = pendingEntity.slot}
-			{#if slot0 !== undefined && slot0 !== null}
-				<NumberValue
-					value={slot0}
-				/>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={solanaTokenAccountTimestamp}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const slot0 = resolvedEntity.slot}
-					{#if slot0 !== undefined && slot0 !== null}
-						<NumberValue
-							value={slot0}
-						/>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<NumberValue
+			value={pendingEntity.slot}
+		/>
 	{/snippet}
 
 	{#snippet Value()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'amount') && Object.hasOwn(prefetched, 'timestampMs')}
-			{@const amount0 = pendingEntity.amount}
-			{#if amount0 !== undefined && amount0 !== null}
-				<NumberValue
-					value={amount0}
-				/>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={solanaTokenAccountTimestamp}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const amount0 = resolvedEntity.amount}
-					{#if amount0 !== undefined && amount0 !== null}
-						<NumberValue
-							value={amount0}
-						/>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={solanaTokenAccountTimestamp}>
+			{#snippet children(entity)}
+				{@const amount0 = entity.amount}
+				{#if amount0 != null}
+					<NumberValue
+						value={amount0}
+					/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'amount') && Object.hasOwn(prefetched, 'timestampMs')}
-			{@const timestampMs0 = pendingEntity.timestampMs}
-			{#if timestampMs0 !== undefined && timestampMs0 !== null}
-				<span data-text="muted">
-					<Timestamp timestamp={Number(timestampMs0)} />
-				</span>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={solanaTokenAccountTimestamp}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const timestampMs0 = resolvedEntity.timestampMs}
-					{#if timestampMs0 !== undefined && timestampMs0 !== null}
-						<span data-text="muted">
-							<Timestamp timestamp={Number(timestampMs0)} />
-						</span>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={solanaTokenAccountTimestamp}>
+			{#snippet children(entity)}
+				{@const timestampMs0 = entity.timestampMs}
+				{#if timestampMs0 != null}
+					<span data-text="muted">
+						<Timestamp timestamp={Number(timestampMs0)} />
+					</span>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -155,30 +86,6 @@
 				<dd>
 					<SolanaTokenAccountView
 						selection={select(EntityType.SolanaTokenAccount, selection.entitySelector.$tokenAccount)}
-						href={
-							(
-								selection.entitySelector.$tokenAccount != null && 'tokenAccountPubkey' in selection.entitySelector.$tokenAccount
-								&& selection.entitySelector.$tokenAccount.tokenAccountPubkey != null
-								&& selection.entitySelector.$tokenAccount != null && '$network' in selection.entitySelector.$tokenAccount ?
-									selection.entitySelector.$tokenAccount.$network != null && 'caip2' in selection.entitySelector.$tokenAccount.$network
-									&& selection.entitySelector.$tokenAccount.$network.caip2 != null ?
-										resolve('/network/[network=networkCaip2OrNetworkSlug]/token-account/[tokenAccountPubkey=stringSegment]', {
-									tokenAccountPubkey: String(selection.entitySelector.$tokenAccount.tokenAccountPubkey ?? ''),
-									network: String(caip2StringFromValue(selection.entitySelector.$tokenAccount.$network.caip2) ?? ''),
-								})
-								:
-										selection.entitySelector.$tokenAccount.$network != null && 'slug' in selection.entitySelector.$tokenAccount.$network
-										&& selection.entitySelector.$tokenAccount.$network.slug != null ?
-											resolve('/network/[network=networkCaip2OrNetworkSlug]/token-account/[tokenAccountPubkey=stringSegment]', {
-										tokenAccountPubkey: String(selection.entitySelector.$tokenAccount.tokenAccountPubkey ?? ''),
-										network: String(selection.entitySelector.$tokenAccount.$network.slug ?? ''),
-									})
-									:
-										undefined
-							:
-									undefined
-							)
-						}
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -188,31 +95,13 @@
 			<div>
 				<dt>Source</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									source: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const source = resolvedEntity.source}
-							{#if source !== undefined && source !== null}
-								{String((source) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{pendingEntity.source}
 				</dd>
 			</div>
 
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							decimals: true,
 						},
@@ -220,13 +109,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const decimals = resolvedEntity.decimals}
-					{#if decimals !== undefined && decimals !== null}
+					{@const decimals = entity.decimals}
+					{#if decimals != null}
 						<div>
 							<dt>Decimals</dt>
 							<dd>
-								{String((decimals) ?? '')}
+								{String(decimals)}
 							</dd>
 						</div>
 					{/if}
@@ -236,7 +124,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							uiAmountString: true,
 						},
@@ -244,13 +131,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const uiAmountString = resolvedEntity.uiAmountString}
-					{#if uiAmountString !== undefined && uiAmountString !== null}
+					{@const uiAmountString = entity.uiAmountString}
+					{#if uiAmountString != null}
 						<div>
 							<dt>UI amount</dt>
 							<dd>
-								{String((uiAmountString) ?? '')}
+								{uiAmountString}
 							</dd>
 						</div>
 					{/if}
@@ -260,7 +146,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							state: true,
 						},
@@ -268,13 +153,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const state = resolvedEntity.state}
-					{#if state !== undefined && state !== null}
+					{@const state = entity.state}
+					{#if state != null}
 						<div>
 							<dt>State</dt>
 							<dd>
-								{String((state) ?? '')}
+								{state}
 							</dd>
 						</div>
 					{/if}
@@ -284,7 +168,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							isNative: true,
 						},
@@ -292,9 +175,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const isNative = resolvedEntity.isNative}
-					{#if isNative !== undefined && isNative !== null}
+					{@const isNative = entity.isNative}
+					{#if isNative != null}
 						<div>
 							<dt>Native</dt>
 							<dd>
@@ -308,7 +190,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							delegatedAmount: true,
 						},
@@ -316,13 +197,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const delegatedAmount = resolvedEntity.delegatedAmount}
-					{#if delegatedAmount !== undefined && delegatedAmount !== null}
+					{@const delegatedAmount = entity.delegatedAmount}
+					{#if delegatedAmount != null}
 						<div>
 							<dt>Delegated amount</dt>
 							<dd>
-								{String((delegatedAmount) ?? '')}
+								{String(delegatedAmount)}
 							</dd>
 						</div>
 					{/if}
@@ -332,7 +212,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							rentExemptReserveLamports: true,
 						},
@@ -340,13 +219,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const rentExemptReserveLamports = resolvedEntity.rentExemptReserveLamports}
-					{#if rentExemptReserveLamports !== undefined && rentExemptReserveLamports !== null}
+					{@const rentExemptReserveLamports = entity.rentExemptReserveLamports}
+					{#if rentExemptReserveLamports != null}
 						<div>
 							<dt>Rent exempt reserve</dt>
 							<dd>
-								{String((rentExemptReserveLamports) ?? '')}
+								{String(rentExemptReserveLamports)}
 							</dd>
 						</div>
 					{/if}
@@ -356,7 +234,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							ownerPubkey: true,
 						},
@@ -364,13 +241,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const ownerPubkey = resolvedEntity.ownerPubkey}
-					{#if ownerPubkey !== undefined && ownerPubkey !== null}
+					{@const ownerPubkey = entity.ownerPubkey}
+					{#if ownerPubkey != null}
 						<div>
 							<dt>Owner public key</dt>
 							<dd>
-								{String((ownerPubkey) ?? '')}
+								{ownerPubkey}
 							</dd>
 						</div>
 					{/if}
@@ -380,7 +256,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							mintAddress: true,
 						},
@@ -388,13 +263,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const mintAddress = resolvedEntity.mintAddress}
-					{#if mintAddress !== undefined && mintAddress !== null}
+					{@const mintAddress = entity.mintAddress}
+					{#if mintAddress != null}
 						<div>
 							<dt>Mint address</dt>
 							<dd>
-								<TruncatedValue value={String((mintAddress) ?? '')} />
+								<TruncatedValue value={mintAddress} />
 							</dd>
 						</div>
 					{/if}
@@ -404,7 +278,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							delegatePubkey: true,
 						},
@@ -412,13 +285,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const delegatePubkey = resolvedEntity.delegatePubkey}
-					{#if delegatePubkey !== undefined && delegatePubkey !== null}
+					{@const delegatePubkey = entity.delegatePubkey}
+					{#if delegatePubkey != null}
 						<div>
 							<dt>Delegate public key</dt>
 							<dd>
-								{String((delegatePubkey) ?? '')}
+								{delegatePubkey}
 							</dd>
 						</div>
 					{/if}
@@ -428,7 +300,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							closeAuthorityPubkey: true,
 						},
@@ -436,13 +307,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const closeAuthorityPubkey = resolvedEntity.closeAuthorityPubkey}
-					{#if closeAuthorityPubkey !== undefined && closeAuthorityPubkey !== null}
+					{@const closeAuthorityPubkey = entity.closeAuthorityPubkey}
+					{#if closeAuthorityPubkey != null}
 						<div>
 							<dt>Close authority public key</dt>
 							<dd>
-								{String((closeAuthorityPubkey) ?? '')}
+								{closeAuthorityPubkey}
 							</dd>
 						</div>
 					{/if}

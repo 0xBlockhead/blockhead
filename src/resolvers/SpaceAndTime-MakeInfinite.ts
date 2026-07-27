@@ -4,28 +4,17 @@ import {
 	EntityMetaKey,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import { NetworkSelector } from '$/schema/Network.ts'
-import { Network_Activity_DaySelector, OptimisticProviderResult } from '$/schema/Network_Activity_Day.ts'
-import { sourceProviderDefinitions } from '$/sources/$sourceProviders.ts'
+import { OptimisticProviderResult } from '$/schema/Network_Activity_Day.ts'
 import { Source } from '$/sources/Source.ts'
-import type { SourceBinding } from '$/sources/SourceBinding.ts'
 import { getActivityDay } from '$/sources/SpaceAndTime/MakeInfinite/queries.ts'
 
 const millisecondsPerUtcDay = 86_400_000
-const binding = sourceProviderDefinitions
-	.flatMap((provider) => provider.bindings)
-	.find((candidate) => candidate.source === Source.SpaceAndTime_MakeInfinite)
-
-if (binding == null)
-	throw new Error('SpaceAndTime_MakeInfinite: source binding is missing')
 
 export const resolveNetworkActivityDay = async ({
-	binding,
 	network,
 	dayStartTimestampMs,
 	nowMs = Date.now(),
 }: {
-	binding: SourceBinding
 	network: {
 		caip2: {
 			namespace: string
@@ -45,7 +34,6 @@ export const resolveNetworkActivityDay = async ({
 		throw new Error('SpaceAndTime_MakeInfinite: incomplete UTC day')
 
 	const aggregate = await getActivityDay({
-		binding,
 		dayStartTimestampMs,
 	})
 	if (aggregate == null)
@@ -70,10 +58,9 @@ export default {
 		defineResolver(Source.SpaceAndTime_MakeInfinite, {
 			entityType: EntityType.Network,
 			resolve: {
-				[NetworkSelector.Caip2]: {
+				Caip2: {
 					resolve: async (network) => {
 						const activityDay = await resolveNetworkActivityDay({
-							binding,
 							network,
 							dayStartTimestampMs: Math.floor(Date.now() / millisecondsPerUtcDay) * millisecondsPerUtcDay - millisecondsPerUtcDay,
 						})
@@ -107,13 +94,12 @@ export default {
 		defineResolver(Source.SpaceAndTime_MakeInfinite, {
 			entityType: EntityType.Network_Activity_Day,
 			resolve: {
-				[Network_Activity_DaySelector.NetworkDayStartTimestampMsSource]: {
+				NetworkDayStartTimestampMsSource: {
 					resolve: async ({ $network, dayStartTimestampMs, source }) => {
 						if (source !== Source.SpaceAndTime_MakeInfinite)
 							throw new Error(`SpaceAndTime_MakeInfinite: unsupported source ${source}`)
 
 						return resolveNetworkActivityDay({
-							binding,
 							network: $network,
 							dayStartTimestampMs,
 						})

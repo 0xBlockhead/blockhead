@@ -2,15 +2,9 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { stringify } from 'devalue'
-	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -22,35 +16,13 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.AlgorandNetwork>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.AlgorandNetwork>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.AlgorandNetwork> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const algorandNetwork = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {},
-	} : {
-		sources: selection.sources,
-	}))
 	const titleFallback = 'algorand network'
-	const viewDomId = $derived('algorand-network-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const viewDomId = $derived('algorand-network-' + encodeURIComponent(stringify(selection.entitySelector)))
 
 
 	// Components
@@ -70,24 +42,15 @@
 
 <EntityView
 	entityType={EntityType.AlgorandNetwork}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
+	entitySelector={selection.entitySelector}
 	id={viewDomId}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails}
-			{title || titleFallback}
-		{:else}
-			<ResourceBoundary resource={algorandNetwork}>
-				{#snippet children(entity)}
-					{title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		algorand network
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -97,23 +60,6 @@
 				<dd>
 					<NetworkView
 						selection={select(EntityType.Network, selection.entitySelector.$network)}
-						href={
-							(
-								selection.entitySelector.$network != null && 'caip2' in selection.entitySelector.$network
-								&& selection.entitySelector.$network.caip2 != null ?
-									resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-								network: String(caip2StringFromValue(selection.entitySelector.$network.caip2) ?? ''),
-							})
-							:
-									selection.entitySelector.$network != null && 'slug' in selection.entitySelector.$network
-									&& selection.entitySelector.$network.slug != null ?
-										resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-									network: String(selection.entitySelector.$network.slug ?? ''),
-								})
-								:
-									undefined
-							)
-						}
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -131,17 +77,14 @@
 					{
 						id: 'algorand-chain-observations',
 						label: 'Observations',
-						ownsSection: true,
 					},
 					{
 						id: 'algorand-chain-rounds',
 						label: 'Rounds',
-						ownsSection: true,
 					},
 					{
 						id: 'algorand-chain-transactions',
 						label: 'Transactions',
-						ownsSection: true,
 					},
 				]
 			}
@@ -154,202 +97,49 @@
 				</header>
 			{/snippet}
 
-			{#snippet MarkerAlgorandChainObservations(_context, Content)}
-				{@const algorandChainActivityAlgorandChainObservationsResource = selection.$$timestamps}
-				<ResourceBoundary
-					resource={algorandChainActivityAlgorandChainObservationsResource}
-				>
-					{#snippet children(_resolved)}
-						{@render Content()}
-					{/snippet}
-
-					{#snippet PendingContent()}
-						{@render Content()}
-					{/snippet}
-
-					{#snippet FailedContent(_error, _retry)}
-						{@render Content()}
-					{/snippet}
-				</ResourceBoundary>
+			{#snippet SectionAlgorandChainObservations({ id, label, open })}
+				<AlgorandNetwork_TimestampsView
+					selection={selection.$$timestamps}
+					CollapsibleProps={{ canToggle: false }}
+					collapsible={false}
+					data-column-item="flexible"
+					data-card
+					data-scroll-container
+					open={open}
+					title={label}
+					emptyText='No Algorand network observations.'
+					id={`${id}-list`}
+				/>
 			{/snippet}
 
-			{#snippet SectionAlgorandChainObservations({ id, label, open, active })}
-				{@const algorandChainActivityAlgorandChainObservationsResource = selection.$$timestamps}
-				<ResourceBoundary
-					resource={algorandChainActivityAlgorandChainObservationsResource}
-				>
-					{#snippet children(algorandNetworkTimestamp)}
-						<section
-							id={id}
-							aria-labelledby={`${id}:marker`}
-							data-scroll-marker-label={label}
-							data-column-item="flexible"
-							data-column
-							data-active={active}
-						>
-							<AlgorandNetwork_TimestampsView
-								selection={algorandChainActivityAlgorandChainObservationsResource}
-								CollapsibleProps={{ canToggle: false }}
-								collapsible={false}
-								data-column-item="flexible"
-								data-card
-								data-scroll-container
-								open={open}
-								title={label}
-								emptyText='No Algorand network observations.'
-								id={`${id}-list`}
-							/>
-						</section>
-					{/snippet}
-
-					{#snippet Pending()}
-						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
-							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
-								<span data-tag data-text="muted" data-resource-state="pending" class="loading inline-placeholder" aria-busy="true" aria-label="Loading…">•••</span>
-							</article>
-						</section>
-					{/snippet}
-
-					{#snippet Failed(_error, _retry)}
-						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
-							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
-								<span data-tag data-resource-state="failed" class="inline-placeholder" aria-label="Failed to load">•••</span>
-							</article>
-						</section>
-					{/snippet}
-				</ResourceBoundary>
+			{#snippet SectionAlgorandChainRounds({ id, label, open })}
+				<AlgorandRoundsView
+					selection={selection.$$rounds}
+					CollapsibleProps={{ canToggle: false }}
+					collapsible={false}
+					data-column-item="flexible"
+					data-card
+					data-scroll-container
+					open={open}
+					title={label}
+					emptyText='No Algorand rounds.'
+					id={`${id}-list`}
+				/>
 			{/snippet}
 
-			{#snippet MarkerAlgorandChainRounds(_context, Content)}
-				{@const algorandChainActivityAlgorandChainRoundsResource = selection.$$rounds}
-				<ResourceBoundary
-					resource={algorandChainActivityAlgorandChainRoundsResource}
-				>
-					{#snippet children(_resolved)}
-						{@render Content()}
-					{/snippet}
-
-					{#snippet PendingContent()}
-						{@render Content()}
-					{/snippet}
-
-					{#snippet FailedContent(_error, _retry)}
-						{@render Content()}
-					{/snippet}
-				</ResourceBoundary>
-			{/snippet}
-
-			{#snippet SectionAlgorandChainRounds({ id, label, open, active })}
-				{@const algorandChainActivityAlgorandChainRoundsResource = selection.$$rounds}
-				<ResourceBoundary
-					resource={algorandChainActivityAlgorandChainRoundsResource}
-				>
-					{#snippet children(algorandRound)}
-						<section
-							id={id}
-							aria-labelledby={`${id}:marker`}
-							data-scroll-marker-label={label}
-							data-column-item="flexible"
-							data-column
-							data-active={active}
-						>
-							<AlgorandRoundsView
-								selection={algorandChainActivityAlgorandChainRoundsResource}
-								CollapsibleProps={{ canToggle: false }}
-								collapsible={false}
-								data-column-item="flexible"
-								data-card
-								data-scroll-container
-								open={open}
-								title={label}
-								emptyText='No Algorand rounds.'
-								id={`${id}-list`}
-							/>
-						</section>
-					{/snippet}
-
-					{#snippet Pending()}
-						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
-							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
-								<span data-tag data-text="muted" data-resource-state="pending" class="loading inline-placeholder" aria-busy="true" aria-label="Loading…">•••</span>
-							</article>
-						</section>
-					{/snippet}
-
-					{#snippet Failed(_error, _retry)}
-						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
-							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
-								<span data-tag data-resource-state="failed" class="inline-placeholder" aria-label="Failed to load">•••</span>
-							</article>
-						</section>
-					{/snippet}
-				</ResourceBoundary>
-			{/snippet}
-
-			{#snippet MarkerAlgorandChainTransactions(_context, Content)}
-				{@const algorandChainActivityAlgorandChainTransactionsResource = selection.$$transactions}
-				<ResourceBoundary
-					resource={algorandChainActivityAlgorandChainTransactionsResource}
-				>
-					{#snippet children(_resolved)}
-						{@render Content()}
-					{/snippet}
-
-					{#snippet PendingContent()}
-						{@render Content()}
-					{/snippet}
-
-					{#snippet FailedContent(_error, _retry)}
-						{@render Content()}
-					{/snippet}
-				</ResourceBoundary>
-			{/snippet}
-
-			{#snippet SectionAlgorandChainTransactions({ id, label, open, active })}
-				{@const algorandChainActivityAlgorandChainTransactionsResource = selection.$$transactions}
-				<ResourceBoundary
-					resource={algorandChainActivityAlgorandChainTransactionsResource}
-				>
-					{#snippet children(algorandTransaction)}
-						<section
-							id={id}
-							aria-labelledby={`${id}:marker`}
-							data-scroll-marker-label={label}
-							data-column-item="flexible"
-							data-column
-							data-active={active}
-						>
-							<AlgorandTransactionsView
-								selection={algorandChainActivityAlgorandChainTransactionsResource}
-								CollapsibleProps={{ canToggle: false }}
-								collapsible={false}
-								data-column-item="flexible"
-								data-card
-								data-scroll-container
-								open={open}
-								title={label}
-								emptyText='No Algorand transactions.'
-								id={`${id}-list`}
-							/>
-						</section>
-					{/snippet}
-
-					{#snippet Pending()}
-						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
-							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
-								<span data-tag data-text="muted" data-resource-state="pending" class="loading inline-placeholder" aria-busy="true" aria-label="Loading…">•••</span>
-							</article>
-						</section>
-					{/snippet}
-
-					{#snippet Failed(_error, _retry)}
-						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
-							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
-								<span data-tag data-resource-state="failed" class="inline-placeholder" aria-label="Failed to load">•••</span>
-							</article>
-						</section>
-					{/snippet}
-				</ResourceBoundary>
+			{#snippet SectionAlgorandChainTransactions({ id, label, open })}
+				<AlgorandTransactionsView
+					selection={selection.$$transactions}
+					CollapsibleProps={{ canToggle: false }}
+					collapsible={false}
+					data-column-item="flexible"
+					data-card
+					data-scroll-container
+					open={open}
+					title={label}
+					emptyText='No Algorand transactions.'
+					id={`${id}-list`}
+				/>
 			{/snippet}
 
 		</CollapsibleTabs>
@@ -362,12 +152,10 @@
 					{
 						id: 'algorand-accounts',
 						label: 'Accounts',
-						ownsSection: true,
 					},
 					{
 						id: 'algorand-assets',
 						label: 'Assets',
-						ownsSection: true,
 					},
 				]
 			}
@@ -380,136 +168,34 @@
 				</header>
 			{/snippet}
 
-			{#snippet MarkerAlgorandAccounts(_context, Content)}
-				{@const algorandAccountsAssetsAlgorandAccountsResource = selection.$$accounts}
-				<ResourceBoundary
-					resource={algorandAccountsAssetsAlgorandAccountsResource}
-				>
-					{#snippet children(_resolved)}
-						{@render Content()}
-					{/snippet}
-
-					{#snippet PendingContent()}
-						{@render Content()}
-					{/snippet}
-
-					{#snippet FailedContent(_error, _retry)}
-						{@render Content()}
-					{/snippet}
-				</ResourceBoundary>
+			{#snippet SectionAlgorandAccounts({ id, label, open })}
+				<AlgorandAccountsView
+					selection={selection.$$accounts}
+					CollapsibleProps={{ canToggle: false }}
+					collapsible={false}
+					data-column-item="flexible"
+					data-card
+					data-scroll-container
+					open={open}
+					title={label}
+					emptyText='No Algorand accounts.'
+					id={`${id}-list`}
+				/>
 			{/snippet}
 
-			{#snippet SectionAlgorandAccounts({ id, label, open, active })}
-				{@const algorandAccountsAssetsAlgorandAccountsResource = selection.$$accounts}
-				<ResourceBoundary
-					resource={algorandAccountsAssetsAlgorandAccountsResource}
-				>
-					{#snippet children(algorandAccount)}
-						<section
-							id={id}
-							aria-labelledby={`${id}:marker`}
-							data-scroll-marker-label={label}
-							data-column-item="flexible"
-							data-column
-							data-active={active}
-						>
-							<AlgorandAccountsView
-								selection={algorandAccountsAssetsAlgorandAccountsResource}
-								CollapsibleProps={{ canToggle: false }}
-								collapsible={false}
-								data-column-item="flexible"
-								data-card
-								data-scroll-container
-								open={open}
-								title={label}
-								emptyText='No Algorand accounts.'
-								id={`${id}-list`}
-							/>
-						</section>
-					{/snippet}
-
-					{#snippet Pending()}
-						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
-							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
-								<span data-tag data-text="muted" data-resource-state="pending" class="loading inline-placeholder" aria-busy="true" aria-label="Loading…">•••</span>
-							</article>
-						</section>
-					{/snippet}
-
-					{#snippet Failed(_error, _retry)}
-						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
-							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
-								<span data-tag data-resource-state="failed" class="inline-placeholder" aria-label="Failed to load">•••</span>
-							</article>
-						</section>
-					{/snippet}
-				</ResourceBoundary>
-			{/snippet}
-
-			{#snippet MarkerAlgorandAssets(_context, Content)}
-				{@const algorandAccountsAssetsAlgorandAssetsResource = selection.$$assets}
-				<ResourceBoundary
-					resource={algorandAccountsAssetsAlgorandAssetsResource}
-				>
-					{#snippet children(_resolved)}
-						{@render Content()}
-					{/snippet}
-
-					{#snippet PendingContent()}
-						{@render Content()}
-					{/snippet}
-
-					{#snippet FailedContent(_error, _retry)}
-						{@render Content()}
-					{/snippet}
-				</ResourceBoundary>
-			{/snippet}
-
-			{#snippet SectionAlgorandAssets({ id, label, open, active })}
-				{@const algorandAccountsAssetsAlgorandAssetsResource = selection.$$assets}
-				<ResourceBoundary
-					resource={algorandAccountsAssetsAlgorandAssetsResource}
-				>
-					{#snippet children(algorandAsset)}
-						<section
-							id={id}
-							aria-labelledby={`${id}:marker`}
-							data-scroll-marker-label={label}
-							data-column-item="flexible"
-							data-column
-							data-active={active}
-						>
-							<AlgorandAssetsView
-								selection={algorandAccountsAssetsAlgorandAssetsResource}
-								CollapsibleProps={{ canToggle: false }}
-								collapsible={false}
-								data-column-item="flexible"
-								data-card
-								data-scroll-container
-								open={open}
-								title={label}
-								emptyText='No Algorand assets.'
-								id={`${id}-list`}
-							/>
-						</section>
-					{/snippet}
-
-					{#snippet Pending()}
-						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
-							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
-								<span data-tag data-text="muted" data-resource-state="pending" class="loading inline-placeholder" aria-busy="true" aria-label="Loading…">•••</span>
-							</article>
-						</section>
-					{/snippet}
-
-					{#snippet Failed(_error, _retry)}
-						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
-							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
-								<span data-tag data-resource-state="failed" class="inline-placeholder" aria-label="Failed to load">•••</span>
-							</article>
-						</section>
-					{/snippet}
-				</ResourceBoundary>
+			{#snippet SectionAlgorandAssets({ id, label, open })}
+				<AlgorandAssetsView
+					selection={selection.$$assets}
+					CollapsibleProps={{ canToggle: false }}
+					collapsible={false}
+					data-column-item="flexible"
+					data-card
+					data-scroll-container
+					open={open}
+					title={label}
+					emptyText='No Algorand assets.'
+					id={`${id}-list`}
+				/>
 			{/snippet}
 
 		</CollapsibleTabs>
@@ -522,12 +208,10 @@
 					{
 						id: 'algorand-application-list',
 						label: 'Applications',
-						ownsSection: true,
 					},
 					{
 						id: 'algorand-teal-programs',
 						label: 'TEAL programs',
-						ownsSection: true,
 					},
 				]
 			}
@@ -540,136 +224,34 @@
 				</header>
 			{/snippet}
 
-			{#snippet MarkerAlgorandApplicationList(_context, Content)}
-				{@const algorandApplicationsAlgorandApplicationListResource = selection.$$applications}
-				<ResourceBoundary
-					resource={algorandApplicationsAlgorandApplicationListResource}
-				>
-					{#snippet children(_resolved)}
-						{@render Content()}
-					{/snippet}
-
-					{#snippet PendingContent()}
-						{@render Content()}
-					{/snippet}
-
-					{#snippet FailedContent(_error, _retry)}
-						{@render Content()}
-					{/snippet}
-				</ResourceBoundary>
+			{#snippet SectionAlgorandApplicationList({ id, label, open })}
+				<AlgorandApplicationsView
+					selection={selection.$$applications}
+					CollapsibleProps={{ canToggle: false }}
+					collapsible={false}
+					data-column-item="flexible"
+					data-card
+					data-scroll-container
+					open={open}
+					title={label}
+					emptyText='No Algorand applications.'
+					id={`${id}-list`}
+				/>
 			{/snippet}
 
-			{#snippet SectionAlgorandApplicationList({ id, label, open, active })}
-				{@const algorandApplicationsAlgorandApplicationListResource = selection.$$applications}
-				<ResourceBoundary
-					resource={algorandApplicationsAlgorandApplicationListResource}
-				>
-					{#snippet children(algorandApplication)}
-						<section
-							id={id}
-							aria-labelledby={`${id}:marker`}
-							data-scroll-marker-label={label}
-							data-column-item="flexible"
-							data-column
-							data-active={active}
-						>
-							<AlgorandApplicationsView
-								selection={algorandApplicationsAlgorandApplicationListResource}
-								CollapsibleProps={{ canToggle: false }}
-								collapsible={false}
-								data-column-item="flexible"
-								data-card
-								data-scroll-container
-								open={open}
-								title={label}
-								emptyText='No Algorand applications.'
-								id={`${id}-list`}
-							/>
-						</section>
-					{/snippet}
-
-					{#snippet Pending()}
-						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
-							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
-								<span data-tag data-text="muted" data-resource-state="pending" class="loading inline-placeholder" aria-busy="true" aria-label="Loading…">•••</span>
-							</article>
-						</section>
-					{/snippet}
-
-					{#snippet Failed(_error, _retry)}
-						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
-							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
-								<span data-tag data-resource-state="failed" class="inline-placeholder" aria-label="Failed to load">•••</span>
-							</article>
-						</section>
-					{/snippet}
-				</ResourceBoundary>
-			{/snippet}
-
-			{#snippet MarkerAlgorandTealPrograms(_context, Content)}
-				{@const algorandApplicationsAlgorandTealProgramsResource = selection.$$tealPrograms}
-				<ResourceBoundary
-					resource={algorandApplicationsAlgorandTealProgramsResource}
-				>
-					{#snippet children(_resolved)}
-						{@render Content()}
-					{/snippet}
-
-					{#snippet PendingContent()}
-						{@render Content()}
-					{/snippet}
-
-					{#snippet FailedContent(_error, _retry)}
-						{@render Content()}
-					{/snippet}
-				</ResourceBoundary>
-			{/snippet}
-
-			{#snippet SectionAlgorandTealPrograms({ id, label, open, active })}
-				{@const algorandApplicationsAlgorandTealProgramsResource = selection.$$tealPrograms}
-				<ResourceBoundary
-					resource={algorandApplicationsAlgorandTealProgramsResource}
-				>
-					{#snippet children(algorandTealProgram)}
-						<section
-							id={id}
-							aria-labelledby={`${id}:marker`}
-							data-scroll-marker-label={label}
-							data-column-item="flexible"
-							data-column
-							data-active={active}
-						>
-							<AlgorandTealProgramsView
-								selection={algorandApplicationsAlgorandTealProgramsResource}
-								CollapsibleProps={{ canToggle: false }}
-								collapsible={false}
-								data-column-item="flexible"
-								data-card
-								data-scroll-container
-								open={open}
-								title={label}
-								emptyText='No Algorand TEAL programs.'
-								id={`${id}-list`}
-							/>
-						</section>
-					{/snippet}
-
-					{#snippet Pending()}
-						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
-							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
-								<span data-tag data-text="muted" data-resource-state="pending" class="loading inline-placeholder" aria-busy="true" aria-label="Loading…">•••</span>
-							</article>
-						</section>
-					{/snippet}
-
-					{#snippet Failed(_error, _retry)}
-						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
-							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
-								<span data-tag data-resource-state="failed" class="inline-placeholder" aria-label="Failed to load">•••</span>
-							</article>
-						</section>
-					{/snippet}
-				</ResourceBoundary>
+			{#snippet SectionAlgorandTealPrograms({ id, label, open })}
+				<AlgorandTealProgramsView
+					selection={selection.$$tealPrograms}
+					CollapsibleProps={{ canToggle: false }}
+					collapsible={false}
+					data-column-item="flexible"
+					data-card
+					data-scroll-container
+					open={open}
+					title={label}
+					emptyText='No Algorand TEAL programs.'
+					id={`${id}-list`}
+				/>
 			{/snippet}
 
 		</CollapsibleTabs>

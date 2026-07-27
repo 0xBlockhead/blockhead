@@ -1,7 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { EntityMetaKey } from '$/schema/$schema.ts'
-import { BlockheadLightningNodeStateSelector } from '$/schema/BlockheadLightningNodeState.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 
 const getInfo = vi.hoisted(() => vi.fn())
@@ -50,7 +49,7 @@ describe('Lightning LND local node-state ownership', () => {
 		})
 
 		const state = await resolver.resolve[
-			BlockheadLightningNodeStateSelector.ConnectionIdNetwork
+			'ConnectionIdNetwork'
 			].resolve({
 				connectionId: 'local-lnd',
 				$network: {
@@ -92,7 +91,7 @@ describe('Lightning LND local node-state ownership', () => {
 
 	it('rejects a non-Lightning parent before provider transport', async () => {
 		await expect(resolver.resolve[
-			BlockheadLightningNodeStateSelector.ConnectionIdNetwork
+			'ConnectionIdNetwork'
 		].resolve({
 			connectionId: 'wrong-network',
 			$network: {

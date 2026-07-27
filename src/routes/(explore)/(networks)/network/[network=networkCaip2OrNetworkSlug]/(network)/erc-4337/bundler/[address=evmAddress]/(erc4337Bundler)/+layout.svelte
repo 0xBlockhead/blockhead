@@ -29,22 +29,26 @@
 {#key [params.network, params.address].join(':')}
 	<ParentPageCollapsible
 		href={
-			resolve('/network/[network=networkCaip2OrNetworkSlug]/erc-4337/bundler/[address=evmAddress]', {
-				network: params.network,
-				address: params.address,
-			})
+			resolve(
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/erc-4337/bundler/[address=evmAddress]',
+				{
+					network: String(params.network),
+					address: String(params.address),
+				}
+			)
 		}
 	>
 		{#snippet Summary()}
-			{@const DetailView = Erc4337BundlerView}
-
-			<DetailView
+			<Erc4337BundlerView
 				selection={select(EntityType.Erc4337Bundler, data.selector)}
 				href={
-					resolve('/network/[network=networkCaip2OrNetworkSlug]/erc-4337/bundler/[address=evmAddress]', {
-						network: params.network,
-						address: params.address,
-					})
+					resolve(
+						'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/erc-4337/bundler/[address=evmAddress]',
+						{
+							network: String(params.network),
+							address: String(params.address),
+						}
+					)
 				}
 				layout={EntityLayout.SummaryInline}
 			/>

@@ -2,11 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { stringify } from 'devalue'
 
@@ -20,35 +16,14 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.TezosBigMap>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.TezosBigMap>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.TezosBigMap> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const tezosBigMap = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {},
-	} : {
-		sources: selection.sources,
-	}))
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const titleFallback = 'tezos big map'
-	const viewDomId = $derived('tezos-big-map-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const viewDomId = $derived('tezos-big-map-' + encodeURIComponent(stringify(selection.entitySelector)))
 
 
 	// Components
@@ -64,24 +39,15 @@
 
 <EntityView
 	entityType={EntityType.TezosBigMap}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
+	entitySelector={selection.entitySelector}
 	id={viewDomId}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails}
-			{title || titleFallback}
-		{:else}
-			<ResourceBoundary resource={tezosBigMap}>
-				{#snippet children(entity)}
-					{title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		tezos big map
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -100,31 +66,13 @@
 			<div>
 				<dt>big map ID</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									bigMapId: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const bigMapId = resolvedEntity.bigMapId}
-							{#if bigMapId !== undefined && bigMapId !== null}
-								{String((bigMapId) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{String(pendingEntity.bigMapId)}
 				</dd>
 			</div>
 
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							path: true,
 						},
@@ -132,13 +80,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const path = resolvedEntity.path}
-					{#if path !== undefined && path !== null}
+					{@const path = entity.path}
+					{#if path != null}
 						<div>
 							<dt>path</dt>
 							<dd>
-								{String((path) ?? '')}
+								{path}
 							</dd>
 						</div>
 					{/if}
@@ -156,12 +103,10 @@
 					{
 						id: 'tezos-big-map-keys',
 						label: 'Keys',
-						ownsSection: true,
 					},
 					{
 						id: 'tezos-big-map-updates',
 						label: 'Updates',
-						ownsSection: true,
 					},
 				]
 			}
@@ -174,136 +119,34 @@
 				</header>
 			{/snippet}
 
-			{#snippet MarkerTezosBigMapKeys(_context, Content)}
-				{@const tezosBigMapActivityTezosBigMapKeysResource = selection.$$keys}
-				<ResourceBoundary
-					resource={tezosBigMapActivityTezosBigMapKeysResource}
-				>
-					{#snippet children(_resolved)}
-						{@render Content()}
-					{/snippet}
-
-					{#snippet PendingContent()}
-						{@render Content()}
-					{/snippet}
-
-					{#snippet FailedContent(_error, _retry)}
-						{@render Content()}
-					{/snippet}
-				</ResourceBoundary>
+			{#snippet SectionTezosBigMapKeys({ id, label, open })}
+				<TezosBigMapKeysView
+					selection={selection.$$keys}
+					CollapsibleProps={{ canToggle: false }}
+					collapsible={false}
+					data-column-item="flexible"
+					data-card
+					data-scroll-container
+					open={open}
+					title={label}
+					emptyText='No keys.'
+					id={`${id}-list`}
+				/>
 			{/snippet}
 
-			{#snippet SectionTezosBigMapKeys({ id, label, open, active })}
-				{@const tezosBigMapActivityTezosBigMapKeysResource = selection.$$keys}
-				<ResourceBoundary
-					resource={tezosBigMapActivityTezosBigMapKeysResource}
-				>
-					{#snippet children(tezosBigMapKey)}
-						<section
-							id={id}
-							aria-labelledby={`${id}:marker`}
-							data-scroll-marker-label={label}
-							data-column-item="flexible"
-							data-column
-							data-active={active}
-						>
-							<TezosBigMapKeysView
-								selection={tezosBigMapActivityTezosBigMapKeysResource}
-								CollapsibleProps={{ canToggle: false }}
-								collapsible={false}
-								data-column-item="flexible"
-								data-card
-								data-scroll-container
-								open={open}
-								title={label}
-								emptyText='No keys.'
-								id={`${id}-list`}
-							/>
-						</section>
-					{/snippet}
-
-					{#snippet Pending()}
-						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
-							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
-								<span data-tag data-text="muted" data-resource-state="pending" class="loading inline-placeholder" aria-busy="true" aria-label="Loading…">•••</span>
-							</article>
-						</section>
-					{/snippet}
-
-					{#snippet Failed(_error, _retry)}
-						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
-							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
-								<span data-tag data-resource-state="failed" class="inline-placeholder" aria-label="Failed to load">•••</span>
-							</article>
-						</section>
-					{/snippet}
-				</ResourceBoundary>
-			{/snippet}
-
-			{#snippet MarkerTezosBigMapUpdates(_context, Content)}
-				{@const tezosBigMapActivityTezosBigMapUpdatesResource = selection.$$updates}
-				<ResourceBoundary
-					resource={tezosBigMapActivityTezosBigMapUpdatesResource}
-				>
-					{#snippet children(_resolved)}
-						{@render Content()}
-					{/snippet}
-
-					{#snippet PendingContent()}
-						{@render Content()}
-					{/snippet}
-
-					{#snippet FailedContent(_error, _retry)}
-						{@render Content()}
-					{/snippet}
-				</ResourceBoundary>
-			{/snippet}
-
-			{#snippet SectionTezosBigMapUpdates({ id, label, open, active })}
-				{@const tezosBigMapActivityTezosBigMapUpdatesResource = selection.$$updates}
-				<ResourceBoundary
-					resource={tezosBigMapActivityTezosBigMapUpdatesResource}
-				>
-					{#snippet children(tezosBigMapDiff)}
-						<section
-							id={id}
-							aria-labelledby={`${id}:marker`}
-							data-scroll-marker-label={label}
-							data-column-item="flexible"
-							data-column
-							data-active={active}
-						>
-							<TezosBigMapDiffsView
-								selection={tezosBigMapActivityTezosBigMapUpdatesResource}
-								CollapsibleProps={{ canToggle: false }}
-								collapsible={false}
-								data-column-item="flexible"
-								data-card
-								data-scroll-container
-								open={open}
-								title={label}
-								emptyText='No updates.'
-								id={`${id}-list`}
-							/>
-						</section>
-					{/snippet}
-
-					{#snippet Pending()}
-						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
-							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
-								<span data-tag data-text="muted" data-resource-state="pending" class="loading inline-placeholder" aria-busy="true" aria-label="Loading…">•••</span>
-							</article>
-						</section>
-					{/snippet}
-
-					{#snippet Failed(_error, _retry)}
-						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
-							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
-								<span data-tag data-resource-state="failed" class="inline-placeholder" aria-label="Failed to load">•••</span>
-							</article>
-						</section>
-					{/snippet}
-				</ResourceBoundary>
+			{#snippet SectionTezosBigMapUpdates({ id, label, open })}
+				<TezosBigMapDiffsView
+					selection={selection.$$updates}
+					CollapsibleProps={{ canToggle: false }}
+					collapsible={false}
+					data-column-item="flexible"
+					data-card
+					data-scroll-container
+					open={open}
+					title={label}
+					emptyText='No updates.'
+					id={`${id}-list`}
+				/>
 			{/snippet}
 
 		</CollapsibleTabs>
@@ -316,7 +159,6 @@
 					{
 						id: 'tezos-big-map-timestamps',
 						label: 'Timestamps',
-						ownsSection: true,
 					},
 				]
 			}
@@ -329,70 +171,19 @@
 				</header>
 			{/snippet}
 
-			{#snippet MarkerTezosBigMapTimestamps(_context, Content)}
-				{@const tezosBigMapObservationsTezosBigMapTimestampsResource = selection.$$timestamps}
-				<ResourceBoundary
-					resource={tezosBigMapObservationsTezosBigMapTimestampsResource}
-				>
-					{#snippet children(_resolved)}
-						{@render Content()}
-					{/snippet}
-
-					{#snippet PendingContent()}
-						{@render Content()}
-					{/snippet}
-
-					{#snippet FailedContent(_error, _retry)}
-						{@render Content()}
-					{/snippet}
-				</ResourceBoundary>
-			{/snippet}
-
-			{#snippet SectionTezosBigMapTimestamps({ id, label, open, active })}
-				{@const tezosBigMapObservationsTezosBigMapTimestampsResource = selection.$$timestamps}
-				<ResourceBoundary
-					resource={tezosBigMapObservationsTezosBigMapTimestampsResource}
-				>
-					{#snippet children(tezosBigMapTimestamp)}
-						<section
-							id={id}
-							aria-labelledby={`${id}:marker`}
-							data-scroll-marker-label={label}
-							data-column-item="flexible"
-							data-column
-							data-active={active}
-						>
-							<TezosBigMap_TimestampsView
-								selection={tezosBigMapObservationsTezosBigMapTimestampsResource}
-								CollapsibleProps={{ canToggle: false }}
-								collapsible={false}
-								data-column-item="flexible"
-								data-card
-								data-scroll-container
-								open={open}
-								title={label}
-								emptyText='No timestamps.'
-								id={`${id}-list`}
-							/>
-						</section>
-					{/snippet}
-
-					{#snippet Pending()}
-						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
-							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
-								<span data-tag data-text="muted" data-resource-state="pending" class="loading inline-placeholder" aria-busy="true" aria-label="Loading…">•••</span>
-							</article>
-						</section>
-					{/snippet}
-
-					{#snippet Failed(_error, _retry)}
-						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
-							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
-								<span data-tag data-resource-state="failed" class="inline-placeholder" aria-label="Failed to load">•••</span>
-							</article>
-						</section>
-					{/snippet}
-				</ResourceBoundary>
+			{#snippet SectionTezosBigMapTimestamps({ id, label, open })}
+				<TezosBigMap_TimestampsView
+					selection={selection.$$timestamps}
+					CollapsibleProps={{ canToggle: false }}
+					collapsible={false}
+					data-column-item="flexible"
+					data-card
+					data-scroll-container
+					open={open}
+					title={label}
+					emptyText='No timestamps.'
+					id={`${id}-list`}
+				/>
 			{/snippet}
 
 		</CollapsibleTabs>

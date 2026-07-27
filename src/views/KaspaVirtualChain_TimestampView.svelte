@@ -2,13 +2,9 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -20,35 +16,19 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.KaspaVirtualChain_Timestamp>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.KaspaVirtualChain_Timestamp>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.KaspaVirtualChain_Timestamp> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const kaspaVirtualChainTimestamp = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {},
-	} : {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const viewSelection = $derived(selection({
+		sources: selection.sources ?? [
+			Source.KaspaNode_Grpc,
+			Source.KaspaNode_Wrpc,
+		],
 	}))
 	const titleFallback = 'kaspa virtual chain timestamp'
-	const viewDomId = $derived('kaspa-virtual-chain-timestamp-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -62,24 +42,14 @@
 
 <EntityView
 	entityType={EntityType.KaspaVirtualChain_Timestamp}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails}
-			{title || titleFallback}
-		{:else}
-			<ResourceBoundary resource={kaspaVirtualChainTimestamp}>
-				{#snippet children(entity)}
-					{title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		kaspa virtual chain timestamp
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -98,79 +68,27 @@
 			<div>
 				<dt>start hash</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									startHash: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const startHash = resolvedEntity.startHash}
-							{#if startHash !== undefined && startHash !== null}
-								<TruncatedValue value={String((startHash) ?? '')} />
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					<TruncatedValue value={pendingEntity.startHash} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									timestampMs: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const timestampMs = resolvedEntity.timestampMs}
-							{#if timestampMs !== undefined && timestampMs !== null}
-								<Timestamp timestamp={Number(timestampMs)} />
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									source: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const source = resolvedEntity.source}
-							{#if source !== undefined && source !== null}
-								{String((source) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{pendingEntity.source}
 				</dd>
 			</div>
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							minConfirmationCount: true,
 						},
@@ -178,9 +96,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const minConfirmationCount = resolvedEntity.minConfirmationCount}
-					{#if minConfirmationCount !== undefined && minConfirmationCount !== null}
+					{@const minConfirmationCount = entity.minConfirmationCount}
+					{#if minConfirmationCount != null}
 						<div>
 							<dt>min confirmation count</dt>
 							<dd>
@@ -198,8 +115,7 @@
 				<dd>
 					<ResourceBoundary
 						resource={
-							selection({
-								sources: selection.sources,
+							viewSelection({
 								fields: {
 									addedChainBlockHashes: true,
 								},
@@ -207,11 +123,7 @@
 						}
 					>
 						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const addedChainBlockHashes = resolvedEntity.addedChainBlockHashes}
-							{#if addedChainBlockHashes !== undefined && addedChainBlockHashes !== null}
-								<TruncatedValue value={addedChainBlockHashes.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')} />
-							{/if}
+							<TruncatedValue value={entity.addedChainBlockHashes.values.join(', ')} />
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -224,8 +136,7 @@
 				<dd>
 					<ResourceBoundary
 						resource={
-							selection({
-								sources: selection.sources,
+							viewSelection({
 								fields: {
 									removedChainBlockHashes: true,
 								},
@@ -233,11 +144,7 @@
 						}
 					>
 						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const removedChainBlockHashes = resolvedEntity.removedChainBlockHashes}
-							{#if removedChainBlockHashes !== undefined && removedChainBlockHashes !== null}
-								<TruncatedValue value={removedChainBlockHashes.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')} />
-							{/if}
+							<TruncatedValue value={entity.removedChainBlockHashes.values.join(', ')} />
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -245,8 +152,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							acceptedTransactionCount: true,
 						},
@@ -254,9 +160,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const acceptedTransactionCount = resolvedEntity.acceptedTransactionCount}
-					{#if acceptedTransactionCount !== undefined && acceptedTransactionCount !== null}
+					{@const acceptedTransactionCount = entity.acceptedTransactionCount}
+					{#if acceptedTransactionCount != null}
 						<div>
 							<dt>accepted transaction count</dt>
 							<dd>
@@ -271,8 +176,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							nextCheckpointHash: true,
 						},
@@ -280,13 +184,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const nextCheckpointHash = resolvedEntity.nextCheckpointHash}
-					{#if nextCheckpointHash !== undefined && nextCheckpointHash !== null}
+					{@const nextCheckpointHash = entity.nextCheckpointHash}
+					{#if nextCheckpointHash != null}
 						<div>
 							<dt>next checkpoint hash</dt>
 							<dd>
-								<TruncatedValue value={String((nextCheckpointHash) ?? '')} />
+								<TruncatedValue value={nextCheckpointHash} />
 							</dd>
 						</div>
 					{/if}

@@ -8,14 +8,12 @@
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		data,
-		params,
 	}: PageProps = $props()
 
 	const pageSelection = $derived(select(EntityType.RedditSubreddit, data.selector, {
@@ -39,17 +37,12 @@
 
 
 <svelte:head>
-	<title>{(data.title ?? (pageSelection.entity == null ? [(String((data.selector.name) ?? '') ? 'r/' + String((data.selector.name) ?? '') : '')].filter(Boolean).join(' ') || 'Reddit subreddit' : [String((({ ...data.selector, ...pageSelection.entity }).title) ?? '')].filter(Boolean).join(' ') || [(String((({ ...data.selector, ...pageSelection.entity }).name) ?? '') ? 'r/' + String((({ ...data.selector, ...pageSelection.entity }).name) ?? '') : '')].filter(Boolean).join(' ') || 'Reddit subreddit'))} • Reddit subreddit • Blockhead</title>
+	<title>{(data.title ?? (pageSelection.entity == null ? ((pageSelection.entitySelector.name ?? '') ? 'r/' + (pageSelection.entitySelector.name ?? '') : '') || 'Reddit subreddit' : (pageSelection.entity.title ?? '') || (pageSelection.entitySelector.name ? 'r/' + pageSelection.entitySelector.name : '') || 'Reddit subreddit'))} • Reddit subreddit • Blockhead</title>
 </svelte:head>
 
 
 <Page>
 	<RedditSubredditView
-		href={
-			resolve('/reddit/r/[name=stringSegment]', {
-				name: params.name,
-			})
-		}
 		selection={pageSelection}
 	/>
 </Page>

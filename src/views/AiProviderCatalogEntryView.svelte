@@ -2,13 +2,9 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -20,42 +16,25 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.AiProviderCatalogEntry>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.AiProviderCatalogEntry>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.AiProviderCatalogEntry> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const aiProviderCatalogEntry = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {
-			entryLabel: true,
-			subjectKind: true,
-		},
-	} : {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const viewSelection = $derived(selection({
+		sources: selection.sources ?? [
+			Source.Anthropic_Rest,
+			Source.OpenAI_Rest,
+		],
+	}))
+	const aiProviderCatalogEntry = $derived(viewSelection({
 		fields: {
 			entryLabel: true,
 			subjectKind: true,
 		},
 	}))
-	const titleFallback = $derived([String((pendingEntity.entryLabel) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.providerEntryId) ?? '')].filter(Boolean).join(' ') || 'AI provider catalog entry')
-	const viewDomId = $derived('ai-provider-catalog-entry-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const titleFallback = $derived((pendingEntity.entryLabel ?? '') || (pendingEntity.providerEntryId ?? '') || 'AI provider catalog entry')
 
 
 	// Components
@@ -67,61 +46,35 @@
 
 <EntityView
 	entityType={EntityType.AiProviderCatalogEntry}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'entryLabel') && Object.hasOwn(prefetched, 'subjectKind')}
-			{[String((pendingEntity.entryLabel) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-		{:else}
-			<ResourceBoundary resource={aiProviderCatalogEntry}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.entryLabel) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={aiProviderCatalogEntry}>
+			{#snippet children(entity)}
+				{(entity.entryLabel ?? '') || title || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Value()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'entryLabel') && Object.hasOwn(prefetched, 'subjectKind')}
-			{[String((pendingEntity.catalogKind) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.entryLabel) ?? '')].filter(Boolean).join(' ') || titleFallback}
-		{:else}
-			<ResourceBoundary resource={aiProviderCatalogEntry}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.catalogKind) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.entryLabel) ?? '')].filter(Boolean).join(' ') || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		{(pendingEntity.catalogKind ?? '') || (pendingEntity.entryLabel ?? '') || titleFallback}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'entryLabel') && Object.hasOwn(prefetched, 'subjectKind')}
-			{@const subjectKind0 = pendingEntity.subjectKind}
-			{#if subjectKind0 !== undefined && subjectKind0 !== null}
-				<span data-text="muted">
-					{String((subjectKind0) ?? '')}
-				</span>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={aiProviderCatalogEntry}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const subjectKind0 = resolvedEntity.subjectKind}
-					{#if subjectKind0 !== undefined && subjectKind0 !== null}
-						<span data-text="muted">
-							{String((subjectKind0) ?? '')}
-						</span>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={aiProviderCatalogEntry}>
+			{#snippet children(entity)}
+				{@const subjectKind0 = entity.subjectKind}
+				{#if subjectKind0 != null}
+					<span data-text="muted">
+						{subjectKind0}
+					</span>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -140,69 +93,27 @@
 			<div>
 				<dt>catalog kind</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									catalogKind: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const catalogKind = resolvedEntity.catalogKind}
-							{#if catalogKind !== undefined && catalogKind !== null}
-								{String((catalogKind) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{pendingEntity.catalogKind}
 				</dd>
 			</div>
 
 			<div>
 				<dt>provider entry ID</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									providerEntryId: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const providerEntryId = resolvedEntity.providerEntryId}
-							{#if providerEntryId !== undefined && providerEntryId !== null}
-								{String((providerEntryId) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{pendingEntity.providerEntryId}
 				</dd>
 			</div>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							entryLabel: true,
-						},
-					})
-				}
+				resource={aiProviderCatalogEntry}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const entryLabel = resolvedEntity.entryLabel}
-					{#if entryLabel !== undefined && entryLabel !== null}
+					{@const entryLabel = entity.entryLabel}
+					{#if entryLabel != null}
 						<div>
 							<dt>entry label</dt>
 							<dd>
-								{String((entryLabel) ?? '')}
+								{entryLabel}
 							</dd>
 						</div>
 					{/if}
@@ -210,23 +121,15 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							subjectKind: true,
-						},
-					})
-				}
+				resource={aiProviderCatalogEntry}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const subjectKind = resolvedEntity.subjectKind}
-					{#if subjectKind !== undefined && subjectKind !== null}
+					{@const subjectKind = entity.subjectKind}
+					{#if subjectKind != null}
 						<div>
 							<dt>subject kind</dt>
 							<dd>
-								{String((subjectKind) ?? '')}
+								{subjectKind}
 							</dd>
 						</div>
 					{/if}
@@ -242,12 +145,12 @@
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
-				<AiProviderCatalogEntry_TimestampsView
-					selection={aiProviderCatalogEntryAiProviderCatalogEntryTimestampsViewTimestampsResource}
-					countResource={aiProviderCatalogEntryAiProviderCatalogEntryTimestampsViewTimestampsResource.count}
-					title='timestamps'
-					id='AiProviderCatalogEntry_TimestampsView-timestamps'
-				/>
+					<AiProviderCatalogEntry_TimestampsView
+						selection={aiProviderCatalogEntryAiProviderCatalogEntryTimestampsViewTimestampsResource}
+						countResource={aiProviderCatalogEntryAiProviderCatalogEntryTimestampsViewTimestampsResource.count}
+						title='timestamps'
+						id='timestamps'
+					/>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>

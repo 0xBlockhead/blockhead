@@ -30,22 +30,28 @@
 {#key params.coinId}
 	<ParentPageCollapsible
 		href={
-			resolve('/coin/[coinId=stringSegment]', {
-				coinId: params.coinId,
-			})
+			resolve(
+				'/(assets)/coin/[coinId=stringSegment]',
+				{
+					coinId: String(params.coinId),
+				}
+			)
 		}
 	>
 		{#snippet Summary()}
-			{@const DetailView = CoinView}
-
-			<DetailView
-				selection={select(EntityType.Coin, data.selector, { sources: [
-		Source.Constants_Internal,
-	] })}
+			<CoinView
+				selection={
+					select(EntityType.Coin, data.selector, { sources: [
+						Source.Constants_Internal,
+					] })
+				}
 				href={
-					resolve('/coin/[coinId=stringSegment]', {
-						coinId: params.coinId,
-					})
+					resolve(
+						'/(assets)/coin/[coinId=stringSegment]',
+						{
+							coinId: String(params.coinId),
+						}
+					)
 				}
 				layout={EntityLayout.SummaryInline}
 			/>

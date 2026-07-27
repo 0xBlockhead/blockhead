@@ -8,14 +8,12 @@
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		data,
-		params,
 	}: PageProps = $props()
 
 	const pageSelection = $derived(select(EntityType.BeaconEpoch, data.selector, {
@@ -45,18 +43,12 @@
 
 
 <svelte:head>
-	<title>{(data.title ?? (pageSelection.entity == null ? (String((data.selector.epoch) ?? '') ? 'Epoch #' + String((data.selector.epoch) ?? '') : '') || 'beacon epoch' : (String((({ ...data.selector, ...pageSelection.entity }).epoch) ?? '') ? 'Epoch #' + String((({ ...data.selector, ...pageSelection.entity }).epoch) ?? '') : '') || 'beacon epoch'))} • beacon epoch • Blockhead</title>
+	<title>{(data.title ?? ((String(pageSelection.entitySelector.epoch ?? '') ? 'Epoch #' + String(pageSelection.entitySelector.epoch ?? '') : '') || 'beacon epoch'))} • beacon epoch • Blockhead</title>
 </svelte:head>
 
 
 <Page>
 	<BeaconEpochView
-		href={
-			resolve('/network/[network=networkCaip2OrNetworkSlug]/epoch/[epoch=nonNegativeInteger]', {
-				network: params.network,
-				epoch: params.epoch,
-			})
-		}
 		selection={pageSelection}
 	/>
 </Page>

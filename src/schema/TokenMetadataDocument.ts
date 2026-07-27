@@ -1,14 +1,11 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { entity, facet } from '$/schema/$schema.ts'
+import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { type } from 'arktype'
 
-export enum TokenMetadataDocumentSelector {
-	MetadataSubjectKeyMetadataKeyTimestampMsSource = 'MetadataSubjectKeyMetadataKeyTimestampMsSource',
-}
-export const TokenMetadataDocument = entity({
+export default entity({
 	entityType: EntityType.TokenMetadataDocument,
 	labels: {
 		singular: 'token metadata document',

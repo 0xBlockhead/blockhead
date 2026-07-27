@@ -2,15 +2,10 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
-	import { caip2StringFromValue } from '$/lib/caip2.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -22,34 +17,20 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.BlockheadZcashViewingKey>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.BlockheadZcashViewingKey>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.BlockheadZcashViewingKey> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const blockheadZcashViewingKey = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {
-			keyKind: true,
-		},
-	} : {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const viewSelection = $derived(selection({
+		sources: selection.sources ?? [
+			Source.Local_Internal,
+			Source.ZcashClientBackend_Local,
+			Source.ZcashdWallet_JsonRpc,
+		],
+	}))
+	const blockheadZcashViewingKey = $derived(viewSelection({
 		fields: {
 			keyKind: true,
 			canViewIncoming: true,
@@ -58,8 +39,7 @@
 			importedAt: true,
 		},
 	}))
-	const titleFallback = $derived([String((pendingEntity.keyFingerprint) ?? '')].filter(Boolean).join(' ') || 'blockhead zcash viewing key')
-	const viewDomId = $derived('blockhead-zcash-viewing-key-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const titleFallback = $derived((pendingEntity.keyFingerprint ?? '') || 'blockhead zcash viewing key')
 
 
 	// Components
@@ -74,69 +54,37 @@
 
 <EntityView
 	entityType={EntityType.BlockheadZcashViewingKey}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={blockheadZcashViewingKey}>
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.keyFingerprint) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{(pendingEntity.keyFingerprint ?? '') || 'blockhead zcash viewing key'}
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={blockheadZcashViewingKey}>
 			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.keyKind) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.keyFingerprint) ?? '')].filter(Boolean).join(' ') || titleFallback}
+				{entity.keyKind || pendingEntity.keyFingerprint || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		<ResourceBoundary resource={blockheadZcashViewingKey}>
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				<ResourceBoundary
-					resource={selection.$network}
-				>
-					{#snippet children(network)}
-						{#if network != null && network[EntityMetaKey.Selector] != null}
-						<span data-text="muted">
-							<NetworkView
-								selection={select(EntityType.Network, network[EntityMetaKey.Selector])}
-								prefetched={network}
-								href={
-									(
-										network[EntityMetaKey.Selector] != null && 'caip2' in network[EntityMetaKey.Selector]
-										&& network[EntityMetaKey.Selector].caip2 != null ?
-											resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-										network: String(caip2StringFromValue(network[EntityMetaKey.Selector].caip2) ?? ''),
-									})
-									:
-											network[EntityMetaKey.Selector] != null && 'slug' in network[EntityMetaKey.Selector]
-											&& network[EntityMetaKey.Selector].slug != null ?
-												resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-											network: String(network[EntityMetaKey.Selector].slug ?? ''),
-										})
-										:
-											undefined
-									)
-								}
-								layout={EntityLayout.Title}
-								open={false}
-							/>
-						</span>
-						{/if}
-					{/snippet}
-				</ResourceBoundary>
+		<ResourceBoundary
+			resource={selection.$network}
+		>
+			{#snippet children(network)}
+				<span data-text="muted">
+					<NetworkView
+						selection={select(EntityType.Network, network[EntityMetaKey.Selector])}
+						prefetched={network}
+						layout={EntityLayout.Title}
+						open={false}
+					/>
+				</span>
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -146,24 +94,7 @@
 			<div>
 				<dt>wallet ID</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									walletId: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const walletId = resolvedEntity.walletId}
-							{#if walletId !== undefined && walletId !== null}
-								{String((walletId) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{pendingEntity.walletId}
 				</dd>
 			</div>
 
@@ -171,7 +102,7 @@
 				resource={selection.$wallet}
 			>
 				{#snippet children(blockheadWallet)}
-					{#if blockheadWallet != null && blockheadWallet[EntityMetaKey.Selector] != null}
+					{#if blockheadWallet != null}
 						<div>
 							<dt>wallet</dt>
 							<dd>
@@ -194,31 +125,12 @@
 						resource={selection.$network}
 					>
 						{#snippet children(network)}
-							{#if network != null && network[EntityMetaKey.Selector] != null}
-								<NetworkView
-									selection={select(EntityType.Network, network[EntityMetaKey.Selector])}
-									prefetched={network}
-									href={
-										(
-											network[EntityMetaKey.Selector] != null && 'caip2' in network[EntityMetaKey.Selector]
-											&& network[EntityMetaKey.Selector].caip2 != null ?
-												resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-											network: String(caip2StringFromValue(network[EntityMetaKey.Selector].caip2) ?? ''),
-										})
-										:
-												network[EntityMetaKey.Selector] != null && 'slug' in network[EntityMetaKey.Selector]
-												&& network[EntityMetaKey.Selector].slug != null ?
-													resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-												network: String(network[EntityMetaKey.Selector].slug ?? ''),
-											})
-											:
-												undefined
-										)
-									}
-									layout={EntityLayout.Value}
-									open={false}
-								/>
-							{/if}
+							<NetworkView
+								selection={select(EntityType.Network, network[EntityMetaKey.Selector])}
+								prefetched={network}
+								layout={EntityLayout.Value}
+								open={false}
+							/>
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -227,24 +139,7 @@
 			<div>
 				<dt>key fingerprint</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									keyFingerprint: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const keyFingerprint = resolvedEntity.keyFingerprint}
-							{#if keyFingerprint !== undefined && keyFingerprint !== null}
-								{String((keyFingerprint) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{pendingEntity.keyFingerprint}
 				</dd>
 			</div>
 
@@ -252,21 +147,10 @@
 				<dt>key kind</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									keyKind: true,
-								},
-							})
-						}
+						resource={blockheadZcashViewingKey}
 					>
 						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const keyKind = resolvedEntity.keyKind}
-							{#if keyKind !== undefined && keyKind !== null}
-								{String((keyKind) ?? '')}
-							{/if}
+							{entity.keyKind}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -274,8 +158,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							pools: true,
 						},
@@ -283,13 +166,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const pools = resolvedEntity.pools}
-					{#if pools !== undefined && pools !== null}
+					{@const pools = entity.pools}
+					{#if pools != null}
 						<div>
 							<dt>pools</dt>
 							<dd>
-								{String((pools) ?? '')}
+								{pools}
 							</dd>
 						</div>
 					{/if}
@@ -300,8 +182,7 @@
 		<dl data-column-item="center">
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							accountIndex: true,
 						},
@@ -309,9 +190,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const accountIndex = resolvedEntity.accountIndex}
-					{#if accountIndex !== undefined && accountIndex !== null}
+					{@const accountIndex = entity.accountIndex}
+					{#if accountIndex != null}
 						<div>
 							<dt>account index</dt>
 							<dd>
@@ -326,8 +206,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							birthdayHeight: true,
 						},
@@ -335,9 +214,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const birthdayHeight = resolvedEntity.birthdayHeight}
-					{#if birthdayHeight !== undefined && birthdayHeight !== null}
+					{@const birthdayHeight = entity.birthdayHeight}
+					{#if birthdayHeight != null}
 						<div>
 							<dt>birthday height</dt>
 							<dd>
@@ -354,21 +232,10 @@
 				<dt>can view incoming</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									canViewIncoming: true,
-								},
-							})
-						}
+						resource={blockheadZcashViewingKey}
 					>
 						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const canViewIncoming = resolvedEntity.canViewIncoming}
-							{#if canViewIncoming !== undefined && canViewIncoming !== null}
-								{canViewIncoming ? 'Yes' : 'No'}
-							{/if}
+							{entity.canViewIncoming ? 'Yes' : 'No'}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -378,21 +245,10 @@
 				<dt>can view outgoing</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									canViewOutgoing: true,
-								},
-							})
-						}
+						resource={blockheadZcashViewingKey}
 					>
 						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const canViewOutgoing = resolvedEntity.canViewOutgoing}
-							{#if canViewOutgoing !== undefined && canViewOutgoing !== null}
-								{canViewOutgoing ? 'Yes' : 'No'}
-							{/if}
+							{entity.canViewOutgoing ? 'Yes' : 'No'}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -402,21 +258,10 @@
 				<dt>can spend</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									canSpend: true,
-								},
-							})
-						}
+						resource={blockheadZcashViewingKey}
 					>
 						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const canSpend = resolvedEntity.canSpend}
-							{#if canSpend !== undefined && canSpend !== null}
-								{canSpend ? 'Yes' : 'No'}
-							{/if}
+							{entity.canSpend ? 'Yes' : 'No'}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -428,21 +273,10 @@
 				<dt>imported AT</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									importedAt: true,
-								},
-							})
-						}
+						resource={blockheadZcashViewingKey}
 					>
 						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const importedAt = resolvedEntity.importedAt}
-							{#if importedAt !== undefined && importedAt !== null}
-								<Timestamp timestamp={Number(importedAt)} />
-							{/if}
+							<Timestamp timestamp={Number(entity.importedAt)} />
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -450,8 +284,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							viewingKeyMaterial: true,
 						},
@@ -459,13 +292,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const viewingKeyMaterial = resolvedEntity.viewingKeyMaterial}
-					{#if viewingKeyMaterial !== undefined && viewingKeyMaterial !== null}
+					{@const viewingKeyMaterial = entity.viewingKeyMaterial}
+					{#if viewingKeyMaterial != null}
 						<div>
 							<dt>viewing key material</dt>
 							<dd>
-								{String((viewingKeyMaterial) ?? '')}
+								{viewingKeyMaterial}
 							</dd>
 						</div>
 					{/if}
@@ -481,12 +313,12 @@
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
-				<BlockheadZcashViewingKey_TimestampsView
-					selection={blockheadZcashViewingKeyBlockheadZcashViewingKeyTimestampsViewTimestampsResource}
-					countResource={blockheadZcashViewingKeyBlockheadZcashViewingKeyTimestampsViewTimestampsResource.count}
-					title='timestamps'
-					id='BlockheadZcashViewingKey_TimestampsView-timestamps'
-				/>
+					<BlockheadZcashViewingKey_TimestampsView
+						selection={blockheadZcashViewingKeyBlockheadZcashViewingKeyTimestampsViewTimestampsResource}
+						countResource={blockheadZcashViewingKeyBlockheadZcashViewingKeyTimestampsViewTimestampsResource.count}
+						title='timestamps'
+						id='timestamps'
+					/>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>

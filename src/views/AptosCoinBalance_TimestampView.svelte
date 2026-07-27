@@ -2,13 +2,8 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
 
 
 	// Context
@@ -20,44 +15,20 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.AptosCoinBalance_Timestamp>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.AptosCoinBalance_Timestamp>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.AptosCoinBalance_Timestamp> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const aptosCoinBalanceTimestamp = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {
-			assetType: true,
-			amount: true,
-			unit: true,
-		},
-	} : {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const aptosCoinBalanceTimestamp = $derived(selection({
 		fields: {
 			assetType: true,
 			amount: true,
 			unit: true,
 		},
 	}))
-	const titleFallback = $derived([String((pendingEntity.assetType) ?? '')].filter(Boolean).join(' ') || 'current Aptos coin balance observation')
-	const viewDomId = $derived('aptos-coin-balance-timestamp-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const titleFallback = $derived((pendingEntity.assetType ?? '') || 'current Aptos coin balance observation')
 
 
 	// Components
@@ -71,10 +42,8 @@
 
 <EntityView
 	entityType={EntityType.AptosCoinBalance_Timestamp}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -82,8 +51,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={aptosCoinBalanceTimestamp}>
 			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.assetType) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+				{entity.assetType || title || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -91,33 +59,21 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={aptosCoinBalanceTimestamp}>
 			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const amount0 = resolvedEntity.amount}
-				{#if amount0 !== undefined && amount0 !== null}
-					<NumberValue
-						value={amount0}
-					/>
+				<NumberValue
+					value={entity.amount}
+				/>
 
-					<span>{resolvedEntity.unit == null ? '' : ` ${String(resolvedEntity.unit)}`}</span>
-				{/if}
+				<span>{entity.unit == null ? '' : ` ${String(entity.unit)}`}</span>
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		<ResourceBoundary resource={aptosCoinBalanceTimestamp}>
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const ledgerVersion0 = resolvedEntity.ledgerVersion}
-				{#if ledgerVersion0 !== undefined && ledgerVersion0 !== null}
-					<span data-text="muted">
-						<NumberValue
-							value={ledgerVersion0}
-						/>
-					</span>
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		<span data-text="muted">
+			<NumberValue
+				value={pendingEntity.ledgerVersion}
+			/>
+		</span>
 	{/snippet}
 
 	{#snippet TypeAnnotationTooltip()}
@@ -143,21 +99,10 @@
 				<dt>asset type</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									assetType: true,
-								},
-							})
-						}
+						resource={aptosCoinBalanceTimestamp}
 					>
 						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const assetType = resolvedEntity.assetType}
-							{#if assetType !== undefined && assetType !== null}
-								{String((assetType) ?? '')}
-							{/if}
+							{entity.assetType}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -166,24 +111,7 @@
 			<div>
 				<dt>storage ID</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									storageId: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const storageId = resolvedEntity.storageId}
-							{#if storageId !== undefined && storageId !== null}
-								{String((storageId) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{pendingEntity.storageId}
 				</dd>
 			</div>
 
@@ -193,7 +121,6 @@
 					<ResourceBoundary
 						resource={
 							selection({
-								sources: selection.sources,
 								fields: {
 									isPrimary: true,
 								},
@@ -201,11 +128,7 @@
 						}
 					>
 						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const isPrimary = resolvedEntity.isPrimary}
-							{#if isPrimary !== undefined && isPrimary !== null}
-								{isPrimary ? 'Yes' : 'No'}
-							{/if}
+							{entity.isPrimary ? 'Yes' : 'No'}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -214,7 +137,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							coinType: true,
 						},
@@ -222,13 +144,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const coinType = resolvedEntity.coinType}
-					{#if coinType !== undefined && coinType !== null}
+					{@const coinType = entity.coinType}
+					{#if coinType != null}
 						<div>
 							<dt>coin type</dt>
 							<dd>
-								{String((coinType) ?? '')}
+								{coinType}
 							</dd>
 						</div>
 					{/if}
@@ -239,23 +160,12 @@
 				<dt>amount</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									amount: true,
-								},
-							})
-						}
+						resource={aptosCoinBalanceTimestamp}
 					>
 						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const amount = resolvedEntity.amount}
-							{#if amount !== undefined && amount !== null}
-								<NumberValue
-									value={amount}
-								/>
-							{/if}
+							<NumberValue
+								value={entity.amount}
+							/>
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -266,57 +176,22 @@
 			<div>
 				<dt>last transaction version</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									ledgerVersion: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const ledgerVersion = resolvedEntity.ledgerVersion}
-							{#if ledgerVersion !== undefined && ledgerVersion !== null}
-								<NumberValue
-									value={ledgerVersion}
-								/>
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					<NumberValue
+						value={pendingEntity.ledgerVersion}
+					/>
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									source: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const source = resolvedEntity.source}
-							{#if source !== undefined && source !== null}
-								{String((source) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{pendingEntity.source}
 				</dd>
 			</div>
 
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							timestampMs: true,
 						},
@@ -324,9 +199,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const timestampMs = resolvedEntity.timestampMs}
-					{#if timestampMs !== undefined && timestampMs !== null}
+					{@const timestampMs = entity.timestampMs}
+					{#if timestampMs != null}
 						<div>
 							<dt>Timestamp</dt>
 							<dd>
@@ -343,7 +217,6 @@
 					<ResourceBoundary
 						resource={
 							selection({
-								sources: selection.sources,
 								fields: {
 									ownerAddress: true,
 								},
@@ -351,11 +224,7 @@
 						}
 					>
 						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const ownerAddress = resolvedEntity.ownerAddress}
-							{#if ownerAddress !== undefined && ownerAddress !== null}
-								<TruncatedValue value={String((ownerAddress) ?? '')} />
-							{/if}
+							<TruncatedValue value={entity.ownerAddress} />
 						{/snippet}
 					</ResourceBoundary>
 				</dd>

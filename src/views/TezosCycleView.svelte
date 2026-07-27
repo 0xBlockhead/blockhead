@@ -2,13 +2,8 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
 
 
 	// Context
@@ -20,35 +15,13 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.TezosCycle>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.TezosCycle>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.TezosCycle> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const tezosCycle = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {},
-	} : {
-		sources: selection.sources,
-	}))
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const titleFallback = 'tezos cycle'
-	const viewDomId = $derived('tezos-cycle-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -59,24 +32,14 @@
 
 <EntityView
 	entityType={EntityType.TezosCycle}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails}
-			{title || titleFallback}
-		{:else}
-			<ResourceBoundary resource={tezosCycle}>
-				{#snippet children(entity)}
-					{title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		tezos cycle
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -95,31 +58,13 @@
 			<div>
 				<dt>cycle</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									cycle: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const cycle = resolvedEntity.cycle}
-							{#if cycle !== undefined && cycle !== null}
-								{String((cycle) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{String(pendingEntity.cycle)}
 				</dd>
 			</div>
 
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							firstLevel: true,
 						},
@@ -127,13 +72,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const firstLevel = resolvedEntity.firstLevel}
-					{#if firstLevel !== undefined && firstLevel !== null}
+					{@const firstLevel = entity.firstLevel}
+					{#if firstLevel != null}
 						<div>
 							<dt>first level</dt>
 							<dd>
-								{String((firstLevel) ?? '')}
+								{String(firstLevel)}
 							</dd>
 						</div>
 					{/if}
@@ -143,7 +87,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							lastLevel: true,
 						},
@@ -151,13 +94,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const lastLevel = resolvedEntity.lastLevel}
-					{#if lastLevel !== undefined && lastLevel !== null}
+					{@const lastLevel = entity.lastLevel}
+					{#if lastLevel != null}
 						<div>
 							<dt>last level</dt>
 							<dd>
-								{String((lastLevel) ?? '')}
+								{String(lastLevel)}
 							</dd>
 						</div>
 					{/if}
@@ -167,7 +109,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							snapshotLevel: true,
 						},
@@ -175,13 +116,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const snapshotLevel = resolvedEntity.snapshotLevel}
-					{#if snapshotLevel !== undefined && snapshotLevel !== null}
+					{@const snapshotLevel = entity.snapshotLevel}
+					{#if snapshotLevel != null}
 						<div>
 							<dt>snapshot level</dt>
 							<dd>
-								{String((snapshotLevel) ?? '')}
+								{String(snapshotLevel)}
 							</dd>
 						</div>
 					{/if}
@@ -191,7 +131,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							randomSeed: true,
 						},
@@ -199,13 +138,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const randomSeed = resolvedEntity.randomSeed}
-					{#if randomSeed !== undefined && randomSeed !== null}
+					{@const randomSeed = entity.randomSeed}
+					{#if randomSeed != null}
 						<div>
 							<dt>random seed</dt>
 							<dd>
-								{String((randomSeed) ?? '')}
+								{randomSeed}
 							</dd>
 						</div>
 					{/if}

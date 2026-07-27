@@ -2,13 +2,8 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
 
 
 	// Context
@@ -20,44 +15,20 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.AptosTransaction_Timestamp>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.AptosTransaction_Timestamp>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.AptosTransaction_Timestamp> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const aptosTransactionTimestamp = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {
-			success: true,
-			vmStatus: true,
-			timestampMs: true,
-		},
-	} : {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const aptosTransactionTimestamp = $derived(selection({
 		fields: {
 			success: true,
 			vmStatus: true,
 			timestampMs: true,
 		},
 	}))
-	const titleFallback = $derived([String((pendingEntity.ledgerVersion) ?? '')].filter(Boolean).join(' ') || 'aptos transaction timestamp')
-	const viewDomId = $derived('aptos-transaction-timestamp-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const titleFallback = $derived(String(pendingEntity.ledgerVersion ?? '') || 'aptos transaction timestamp')
 
 
 	// Components
@@ -71,71 +42,37 @@
 
 <EntityView
 	entityType={EntityType.AptosTransaction_Timestamp}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'success') && Object.hasOwn(prefetched, 'vmStatus') && Object.hasOwn(prefetched, 'timestampMs')}
-			{@const ledgerVersion0 = pendingEntity.ledgerVersion}
-			{#if ledgerVersion0 !== undefined && ledgerVersion0 !== null}
-				<NumberValue
-					value={ledgerVersion0}
-				/>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={aptosTransactionTimestamp}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const ledgerVersion0 = resolvedEntity.ledgerVersion}
-					{#if ledgerVersion0 !== undefined && ledgerVersion0 !== null}
-						<NumberValue
-							value={ledgerVersion0}
-						/>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<NumberValue
+			value={pendingEntity.ledgerVersion}
+		/>
 	{/snippet}
 
 	{#snippet Value()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'success') && Object.hasOwn(prefetched, 'vmStatus') && Object.hasOwn(prefetched, 'timestampMs')}
-			{[String((pendingEntity.success) ?? ''), String((pendingEntity.vmStatus) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.ledgerVersion) ?? '')].filter(Boolean).join(' ') || titleFallback}
-		{:else}
-			<ResourceBoundary resource={aptosTransactionTimestamp}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.success) ?? ''), String((resolvedEntity.vmStatus) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.ledgerVersion) ?? '')].filter(Boolean).join(' ') || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={aptosTransactionTimestamp}>
+			{#snippet children(entity)}
+				{[String(entity.success ?? ''), (entity.vmStatus ?? '')].filter(Boolean).join(' ') || String(pendingEntity.ledgerVersion) || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'success') && Object.hasOwn(prefetched, 'vmStatus') && Object.hasOwn(prefetched, 'timestampMs')}
-			{@const timestampMs0 = pendingEntity.timestampMs}
-			{#if timestampMs0 !== undefined && timestampMs0 !== null}
-				<span data-text="muted">
-					<Timestamp timestamp={Number(timestampMs0)} />
-				</span>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={aptosTransactionTimestamp}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const timestampMs0 = resolvedEntity.timestampMs}
-					{#if timestampMs0 !== undefined && timestampMs0 !== null}
-						<span data-text="muted">
-							<Timestamp timestamp={Number(timestampMs0)} />
-						</span>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={aptosTransactionTimestamp}>
+			{#snippet children(entity)}
+				{@const timestampMs0 = entity.timestampMs}
+				{#if timestampMs0 != null}
+					<span data-text="muted">
+						<Timestamp timestamp={Number(timestampMs0)} />
+					</span>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -154,67 +91,25 @@
 			<div>
 				<dt>ledger version</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									ledgerVersion: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const ledgerVersion = resolvedEntity.ledgerVersion}
-							{#if ledgerVersion !== undefined && ledgerVersion !== null}
-								<NumberValue
-									value={ledgerVersion}
-								/>
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					<NumberValue
+						value={pendingEntity.ledgerVersion}
+					/>
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									source: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const source = resolvedEntity.source}
-							{#if source !== undefined && source !== null}
-								{String((source) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{pendingEntity.source}
 				</dd>
 			</div>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							timestampMs: true,
-						},
-					})
-				}
+				resource={aptosTransactionTimestamp}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const timestampMs = resolvedEntity.timestampMs}
-					{#if timestampMs !== undefined && timestampMs !== null}
+					{@const timestampMs = entity.timestampMs}
+					{#if timestampMs != null}
 						<div>
 							<dt>Timestamp</dt>
 							<dd>
@@ -230,7 +125,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							blockHeight: true,
 						},
@@ -238,9 +132,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const blockHeight = resolvedEntity.blockHeight}
-					{#if blockHeight !== undefined && blockHeight !== null}
+					{@const blockHeight = entity.blockHeight}
+					{#if blockHeight != null}
 						<div>
 							<dt>block height</dt>
 							<dd>
@@ -254,19 +147,11 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							success: true,
-						},
-					})
-				}
+				resource={aptosTransactionTimestamp}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const success = resolvedEntity.success}
-					{#if success !== undefined && success !== null}
+					{@const success = entity.success}
+					{#if success != null}
 						<div>
 							<dt>success</dt>
 							<dd>
@@ -278,23 +163,15 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							vmStatus: true,
-						},
-					})
-				}
+				resource={aptosTransactionTimestamp}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const vmStatus = resolvedEntity.vmStatus}
-					{#if vmStatus !== undefined && vmStatus !== null}
+					{@const vmStatus = entity.vmStatus}
+					{#if vmStatus != null}
 						<div>
 							<dt>vm status</dt>
 							<dd>
-								{String((vmStatus) ?? '')}
+								{vmStatus}
 							</dd>
 						</div>
 					{/if}
@@ -306,7 +183,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							gasUnitPrice: true,
 						},
@@ -314,9 +190,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const gasUnitPrice = resolvedEntity.gasUnitPrice}
-					{#if gasUnitPrice !== undefined && gasUnitPrice !== null}
+					{@const gasUnitPrice = entity.gasUnitPrice}
+					{#if gasUnitPrice != null}
 						<div>
 							<dt>gas unit price</dt>
 							<dd>
@@ -332,7 +207,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							gasUsed: true,
 						},
@@ -340,9 +214,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const gasUsed = resolvedEntity.gasUsed}
-					{#if gasUsed !== undefined && gasUsed !== null}
+					{@const gasUsed = entity.gasUsed}
+					{#if gasUsed != null}
 						<div>
 							<dt>gas used</dt>
 							<dd>
@@ -358,7 +231,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							accumulatorRootHash: true,
 						},
@@ -366,13 +238,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const accumulatorRootHash = resolvedEntity.accumulatorRootHash}
-					{#if accumulatorRootHash !== undefined && accumulatorRootHash !== null}
+					{@const accumulatorRootHash = entity.accumulatorRootHash}
+					{#if accumulatorRootHash != null}
 						<div>
 							<dt>accumulator root hash</dt>
 							<dd>
-								<TruncatedValue value={String((accumulatorRootHash) ?? '')} />
+								<TruncatedValue value={accumulatorRootHash} />
 							</dd>
 						</div>
 					{/if}

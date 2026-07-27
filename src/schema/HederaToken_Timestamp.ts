@@ -1,14 +1,11 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { entity, facet } from '$/schema/$schema.ts'
+import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { type } from 'arktype'
 
-export enum HederaToken_TimestampSelector {
-	TokenTimestampMsSource = 'TokenTimestampMsSource',
-}
-export const HederaToken_Timestamp = entity({
+export default entity({
 	entityType: EntityType.HederaToken_Timestamp,
 	labels: {
 		singular: 'hedera token timestamp',

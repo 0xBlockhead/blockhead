@@ -2,69 +2,30 @@
 
 <script lang="ts">
 	// Types/constants
-	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
-	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
-	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
+	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-
-
 
 
 	// State
 	let {
 		selection,
-		countResource,
-		title = 'ACP agent program versions',
-		typeAnnotationParagraphs = [],
-		placeholderText = undefined,
-		emptyText = undefined,
 		open = $bindable(true),
-		collapsible = true,
-		showTypeAnnotation = true,
-		id = 'AcpAgentProgramVersions-list',
 		...EntitiesListProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyEntitiesSelection<EntityType.AcpAgentProgramVersion>
-			countResource?: SvelteKitResource<number>
-			title?: string
-			typeAnnotationParagraphs?: string[]
-			placeholderText?: string
-			emptyText?: string
-			open?: boolean
-			collapsible?: boolean
-			showTypeAnnotation?: boolean
-			id?: string
-		},
-		EntitiesListForwardProps
-	> = $props()
+	}: EntityListViewProps<EntityType.AcpAgentProgramVersion> = $props()
 
 
 	// Components
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView from '$/components/EntityView.svelte'
 </script>
 
-
-{#snippet TypeAnnotationParagraphs()}
-	{#each typeAnnotationParagraphs as paragraph (paragraph)}
-		<p>{paragraph}</p>
-	{/each}
-{/snippet}
 
 <EntitiesList
 	{...EntitiesListProps}
 	entityType={EntityType.AcpAgentProgramVersion}
-	{id}
-	{title}
 	bind:open
-	{collapsible}
-	{showTypeAnnotation}
-	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
 	resource={
 		selection({
-			sources: selection.sources,
 			fields: {
 				version: true,
 				$program: true,
@@ -73,38 +34,23 @@
 			},
 		})
 	}
-	{countResource}
-	getResourceItems={(acpAgentProgramVersions) => [...new Map(acpAgentProgramVersions.values.map((acpAgentProgramVersion) => [acpAgentProgramVersion[EntityMetaKey.SelectorKey], acpAgentProgramVersion])).values()]}
-	getKey={(acpAgentProgramVersion) => acpAgentProgramVersion[EntityMetaKey.SelectorKey]}
-	{placeholderText}
 >
-	{#snippet Empty()}
-		{#if emptyText != null}
-			<p data-text="muted">{emptyText}</p>
-		{:else}
-			<p data-text="muted">No ACP agent program versions yet.</p>
-		{/if}
-	{/snippet}
-
 	{#snippet Item({ item: acpAgentProgramVersion })}
-		{@const acpAgentProgramVersionFields = { ...acpAgentProgramVersion[EntityMetaKey.Selector], ...acpAgentProgramVersion }}
+		{@const acpAgentProgramVersionSelector = acpAgentProgramVersion[EntityMetaKey.Selector]}
 		<EntityView
 			entityType={EntityType.AcpAgentProgramVersion}
-			entitySelector={acpAgentProgramVersion[EntityMetaKey.Selector]}
-			layout={EntityLayout.Summary}
-			open={false}
-			showTypeAnnotation={false}
+			entitySelector={acpAgentProgramVersionSelector}
 		>
 			{#snippet Title()}
-				{[String((acpAgentProgramVersionFields.version) ?? '')].filter(Boolean).join(' ') || [[String((acpAgentProgramVersionFields.$artifact.artifactType) ?? '')].filter(Boolean).join(' ') || [String((acpAgentProgramVersionFields.$artifact.providerArtifactId) ?? ''), String((acpAgentProgramVersionFields.$artifact.ociDigest) ?? ''), String((acpAgentProgramVersionFields.$artifact.ipfsCid) ?? ''), String((acpAgentProgramVersionFields.$artifact.arweaveId) ?? ''), String((acpAgentProgramVersionFields.$artifact.gitObject) ?? ''), String((acpAgentProgramVersionFields.$artifact.digest) ?? '')].filter(Boolean).join(' ') || 'AI artifact'].filter(Boolean).join(' ') || 'ACP agent program version'}
+				{(acpAgentProgramVersionSelector.version ?? '') || (acpAgentProgramVersion.$artifact == null ? '' : (acpAgentProgramVersion.$artifact.artifactType ?? '') || [(acpAgentProgramVersion.$artifact.providerArtifactId ?? ''), (acpAgentProgramVersion.$artifact.ociDigest ?? ''), (acpAgentProgramVersion.$artifact.ipfsCid ?? ''), (acpAgentProgramVersion.$artifact.arweaveId ?? ''), (acpAgentProgramVersion.$artifact.gitObject ?? ''), String(acpAgentProgramVersion.$artifact.digest ?? '')].filter(Boolean).join(' ') || 'AI artifact')}
 			{/snippet}
 
 			{#snippet Value()}
-				{[[String((acpAgentProgramVersionFields.$program.label) ?? '')].filter(Boolean).join(' ') || [String((acpAgentProgramVersionFields.$program.registryAgentId) ?? ''), String((acpAgentProgramVersionFields.$program.packageName) ?? ''), String((acpAgentProgramVersionFields.$program.repositoryUrl) ?? '')].filter(Boolean).join(' ') || 'ACP agent program'].filter(Boolean).join(' ')}
+				{acpAgentProgramVersion.$program == null ? '' : (acpAgentProgramVersion.$program.label ?? '') || [(acpAgentProgramVersion.$program.registryAgentId ?? ''), (acpAgentProgramVersion.$program.packageName ?? ''), String(acpAgentProgramVersion.$program.repositoryUrl ?? '')].filter(Boolean).join(' ') || 'ACP agent program'}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{[String((acpAgentProgramVersionFields.distributionKind) ?? '')].filter(Boolean).join(' ')}</span>
+				<span data-text="annotation">{(acpAgentProgramVersion.distributionKind ?? '')}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

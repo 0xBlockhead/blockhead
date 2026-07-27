@@ -12,18 +12,8 @@ import {
 	getPairSearch,
 	getTokenPairs,
 } from '$/sources/Dexscreener/OpenApi/queries.ts'
+import bindings from '$/sources/Dexscreener/bindings.ts'
 import { Source } from '$/sources/Source.ts'
-import {
-	ApiFamily,
-	SourceCredentialScope,
-	SourceDelivery,
-	SourceEndpointKind,
-	SourceOperationGroup,
-	SourceTargetKind,
-	WireProtocol,
-	type SourceBinding,
-} from '$/sources/SourceBinding.ts'
-import { SourceProvider } from '$/sources/SourceProvider.ts'
 
 const getJson = vi.hoisted(() => vi.fn())
 
@@ -31,30 +21,7 @@ vi.mock('$/sources/_shared/wire/HttpRest/client.ts', () => ({
 	getJson,
 }))
 
-const binding = {
-	provider: SourceProvider.Dexscreener,
-	source: Source.Dexscreener_OpenApi,
-	target: {
-		kind: SourceTargetKind.Global,
-		key: 'dexscreener-openapi',
-	},
-	endpoints: [{
-		endpointKind: SourceEndpointKind.HttpUrl,
-		locator: 'https://api.dexscreener.com',
-		origin: 'https://api.dexscreener.com',
-		corsEnabled: false,
-	}],
-	wireProtocol: WireProtocol.HttpRest,
-	apiFamily: ApiFamily.OpenApiHttp,
-	operationGroups: [
-		SourceOperationGroup.GenericRead,
-	],
-	delivery: SourceDelivery.HttpProxy,
-	credentials: [{
-		scope: SourceCredentialScope.None,
-	}],
-	proxyId: 'Dexscreener_OpenApi-0',
-} as const satisfies SourceBinding
+const binding = bindings[Source.Dexscreener_OpenApi]
 
 const pair = {
 	chainId: 'ethereum',
@@ -109,7 +76,6 @@ describe('Dexscreener public pair observations', () => {
 		getJson.mockResolvedValue({ pairs: [pair] })
 
 		await expect(getLatestPairs({
-			binding,
 			chainId: pair.chainId,
 			pairId: pair.pairAddress,
 			resolvedAtMs: 1_725_000_000_000,
@@ -132,12 +98,10 @@ describe('Dexscreener public pair observations', () => {
 			.mockResolvedValueOnce([pair])
 
 		await expect(getTokenPairs({
-			binding,
 			chainId: pair.chainId,
 			tokenAddress: pair.baseToken.address,
 		})).resolves.toHaveLength(1)
 		await expect(getTokenPairs({
-			binding,
 			chainId: pair.chainId,
 			tokenAddress: '0x4444444444444444444444444444444444444444',
 		})).rejects.toThrow('does not match requested identity')
@@ -167,7 +131,6 @@ describe('Dexscreener public pair observations', () => {
 	])('rejects %s', async (_label, response, message) => {
 		getJson.mockResolvedValue(response)
 		await expect(getLatestPairs({
-			binding,
 			chainId: pair.chainId,
 			pairId: pair.pairAddress,
 		})).rejects.toThrow(message)
@@ -181,36 +144,7 @@ describe('Dexscreener public pair observations', () => {
 			],
 		})
 		await expect(getPairSearch({
-			binding,
 			q: 'WETH USDC',
 		})).rejects.toThrow('pair cardinality')
-	})
-
-	it.each([
-		[
-			'foreign source',
-			{
-				...binding,
-				source: Source.Axelarscan_Rest,
-			},
-		],
-		[
-			'direct delivery',
-			{
-				...binding,
-				delivery: SourceDelivery.BrowserDirect,
-			},
-		],
-	])('rejects a %s binding without transport', async (_label, invalidBinding) => {
-		const directFetch = vi.fn()
-		vi.stubGlobal('fetch', directFetch)
-
-		await expect(getLatestPairs({
-			binding: invalidBinding,
-			chainId: pair.chainId,
-			pairId: pair.pairAddress,
-		})).rejects.toThrow('canonical proxied source binding')
-		expect(getJson).not.toHaveBeenCalled()
-		expect(directFetch).not.toHaveBeenCalled()
 	})
 })

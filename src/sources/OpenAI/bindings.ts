@@ -1,0 +1,37 @@
+// Generated from APP.ts. Do not edit by hand.
+
+import { Source } from '$/sources/Source.ts'
+import { ApiFamily, SourceCredentialScope, SourceDelivery, SourceEndpointKind, SourceOperationGroup, SourceTargetKind, WireProtocol, type SourceBindingIndex } from '$/sources/SourceBinding.ts'
+
+export default {
+	[Source.OpenAI_Rest]: {
+		source: Source.OpenAI_Rest,
+		target: {
+			kind: SourceTargetKind.Global,
+			key: 'openai-api',
+		},
+		endpoints: [
+			{
+				endpointKind: SourceEndpointKind.HttpUrl,
+				locator: 'https://api.openai.com',
+				origin: 'https://api.openai.com',
+				corsEnabled: false,
+			},
+		],
+		wireProtocol: WireProtocol.HttpRest,
+		apiFamily: ApiFamily.RestJson,
+		operationGroups: [
+			SourceOperationGroup.AiModelCatalog,
+			SourceOperationGroup.AiProviderOperationCatalog,
+			SourceOperationGroup.GenericRead,
+		],
+		delivery: SourceDelivery.HttpProxy,
+		credentials: [
+			{
+				scope: SourceCredentialScope.RuntimeSecret,
+			},
+		],
+		proxyId: '["OpenAI_Rest","Global","openai-api","HttpProxy","RestJson"]',
+		serverCredentialId: '["OpenAI_Rest","Global","openai-api","HttpProxy","RestJson"]',
+	},
+} as const satisfies SourceBindingIndex

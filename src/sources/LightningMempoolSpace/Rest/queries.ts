@@ -1,10 +1,5 @@
-import { sourceProviderDefinitions } from '$/sources/$sourceProviders.ts'
-import { Source } from '$/sources/Source.ts'
-import { SourceTargetKind } from '$/sources/SourceBinding.ts'
-import {
-	firstHttpUrlForBinding,
-	sourceGetJson,
-} from '$/sources/_runtime/http.ts'
+import bindings from '$/sources/LightningMempoolSpace/bindings.ts'
+import { getJson as getLightningMempoolSpaceRestJson } from '$/sources/_shared/wire/HttpRest/client.ts'
 import type {
 	MempoolSpaceLightningChannel,
 	MempoolSpaceLightningChannelSummary,
@@ -13,20 +8,9 @@ import type {
 	MempoolSpaceLightningSearchResult,
 	MempoolSpaceLightningStatisticsResponse,
 } from '$/sources/LightningMempoolSpace/Rest/types.ts'
+import { Source } from '$/sources/Source.ts'
 
-const lightningMempoolSpaceBindings = sourceProviderDefinitions
-	.flatMap((provider) => provider.bindings)
-	.filter((binding) => (
-		binding.source === Source.LightningMempoolSpace_Rest
-		&& binding.target.kind === SourceTargetKind.NetworkSlug
-		&& binding.target.key === 'lightning'
-	))
-
-if (lightningMempoolSpaceBindings.length !== 1)
-	throw new Error('LightningMempoolSpace_Rest: canonical Lightning source binding is missing or ambiguous')
-
-const lightningMempoolSpaceBinding = lightningMempoolSpaceBindings[0]
-const lightningMempoolSpaceApiBaseUrl = `${firstHttpUrlForBinding(lightningMempoolSpaceBinding).replace(/\/$/, '')}/api/v1/lightning`
+const binding = bindings[Source.LightningMempoolSpace_Rest]
 
 const assertPublicKey = (publicKey: string) => {
 	if (!/^(02|03)[0-9a-f]{64}$/.test(publicKey))
@@ -92,25 +76,25 @@ const assertChannel = (
 export const getLightningStatistics = async (
 	interval = 'latest'
 ) => {
-	const response = await sourceGetJson<MempoolSpaceLightningStatisticsResponse>(
-		lightningMempoolSpaceBinding,
-		`${lightningMempoolSpaceApiBaseUrl}/statistics/${encodeURIComponent(interval)}`
+	const response = await getLightningMempoolSpaceRestJson<MempoolSpaceLightningStatisticsResponse>(
+		binding,
+		`/api/v1/lightning/statistics/${encodeURIComponent(interval)}`
 	)
 	if (!Number.isFinite(Date.parse(response.latest.added)))
 		throw new Error('LightningMempoolSpace_Rest: invalid statistics timestamp')
-	for (const [value, label] of [
-		[response.latest.total_capacity, 'network capacity'],
-		[response.latest.avg_capacity, 'average channel capacity'],
-		[response.latest.med_capacity, 'median channel capacity'],
-	] as const)
+	for (const [label, value] of Object.entries({
+		'network capacity': response.latest.total_capacity,
+		'average channel capacity': response.latest.avg_capacity,
+		'median channel capacity': response.latest.med_capacity,
+	}))
 		assertLosslessUnsigned(value, label)
-	for (const [value, label] of [
-		[response.latest.channel_count, 'channel count'],
-		[response.latest.node_count, 'node count'],
-		[response.latest.tor_nodes, 'Tor node count'],
-		[response.latest.clearnet_nodes, 'clearnet node count'],
-		[response.latest.unannounced_nodes, 'unannounced node count'],
-	] as const)
+	for (const [label, value] of Object.entries({
+		'channel count': response.latest.channel_count,
+		'node count': response.latest.node_count,
+		'Tor node count': response.latest.tor_nodes,
+		'clearnet node count': response.latest.clearnet_nodes,
+		'unannounced node count': response.latest.unannounced_nodes,
+	}))
 		if (value != null)
 			assertSafeUnsigned(value, label)
 	return response
@@ -122,9 +106,9 @@ export const getLightningNode = async ({
 	publicKey: string
 }) => {
 	assertPublicKey(publicKey)
-	const node = await sourceGetJson<MempoolSpaceLightningNode>(
-		lightningMempoolSpaceBinding,
-		`${lightningMempoolSpaceApiBaseUrl}/nodes/${encodeURIComponent(publicKey)}`
+	const node = await getLightningMempoolSpaceRestJson<MempoolSpaceLightningNode>(
+		binding,
+		`/api/v1/lightning/nodes/${encodeURIComponent(publicKey)}`
 	)
 	assertNode(node)
 	if (node.public_key !== publicKey)
@@ -143,9 +127,9 @@ export const getLightningNodeChannels = async ({
 }) => {
 	assertPublicKey(publicKey)
 	assertSafeUnsigned(index, 'channel page index')
-	const channels = await sourceGetJson<MempoolSpaceLightningChannelSummary[]>(
-		lightningMempoolSpaceBinding,
-		`${lightningMempoolSpaceApiBaseUrl}/channels?public_key=${encodeURIComponent(publicKey)}&status=${status}&index=${index}`
+	const channels = await getLightningMempoolSpaceRestJson<MempoolSpaceLightningChannelSummary[]>(
+		binding,
+		`/api/v1/lightning/channels?public_key=${encodeURIComponent(publicKey)}&status=${status}&index=${index}`
 	)
 	if (channels.length > 10)
 		throw new Error('LightningMempoolSpace_Rest: channel page exceeds provider page size')
@@ -167,18 +151,18 @@ export const getLightningChannel = async ({
 	channelId: string
 }) => {
 	assertChannelId(channelId)
-	const channel = await sourceGetJson<MempoolSpaceLightningChannel>(
-		lightningMempoolSpaceBinding,
-		`${lightningMempoolSpaceApiBaseUrl}/channels/${encodeURIComponent(channelId)}`
+	const channel = await getLightningMempoolSpaceRestJson<MempoolSpaceLightningChannel>(
+		binding,
+		`/api/v1/lightning/channels/${encodeURIComponent(channelId)}`
 	)
 	assertChannel(channel, channelId)
 	return channel
 }
 
 export const getTopLightningNodesByConnectivity = async () => {
-	const nodes = await sourceGetJson<MempoolSpaceLightningRankedNode[]>(
-		lightningMempoolSpaceBinding,
-		`${lightningMempoolSpaceApiBaseUrl}/nodes/rankings/connectivity`
+	const nodes = await getLightningMempoolSpaceRestJson<MempoolSpaceLightningRankedNode[]>(
+		binding,
+		'/api/v1/lightning/nodes/rankings/connectivity'
 	)
 	if (nodes.length > 100)
 		throw new Error('LightningMempoolSpace_Rest: connectivity ranking exceeds provider limit')
@@ -197,9 +181,9 @@ export const searchLightning = ({
 	searchText,
 }: {
 	searchText: string
-}) => (
-	sourceGetJson<MempoolSpaceLightningSearchResult>(
-		lightningMempoolSpaceBinding,
-		`${lightningMempoolSpaceApiBaseUrl}/search?searchText=${encodeURIComponent(searchText)}`
+}) => {
+	return getLightningMempoolSpaceRestJson<MempoolSpaceLightningSearchResult>(
+		binding,
+		`/api/v1/lightning/search?searchText=${encodeURIComponent(searchText)}`
 	)
-)
+}

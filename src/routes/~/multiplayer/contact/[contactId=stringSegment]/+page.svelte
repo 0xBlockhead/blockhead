@@ -8,7 +8,6 @@
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
@@ -43,21 +42,12 @@
 
 
 <svelte:head>
-	<title>{(pageSelection.entity == null ? 'contact' : [String((({ ...{
-		id: params.contactId,
-	}, ...pageSelection.entity }).displayName) ?? '')].filter(Boolean).join(' ') || [String((({ ...{
-		id: params.contactId,
-	}, ...pageSelection.entity }).peerId) ?? '')].filter(Boolean).join(' ') || 'contact')} • contact • Blockhead</title>
+	<title>{(pageSelection.entity == null ? 'contact' : (pageSelection.entity.displayName ?? '') || pageSelection.entity.peerId || 'contact')} • contact • Blockhead</title>
 </svelte:head>
 
 
 <Page>
 	<BlockheadRoomPeerView
-		href={
-			resolve('/~/multiplayer/contact/[contactId=stringSegment]', {
-				contactId: params.contactId,
-			})
-		}
 		selection={pageSelection}
 	/>
 </Page>

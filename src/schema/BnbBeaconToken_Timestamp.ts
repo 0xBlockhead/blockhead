@@ -1,15 +1,12 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { entity, facet } from '$/schema/$schema.ts'
+import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { EvmAddress } from '$/schema/ZeroExHex.ts'
 import { type } from 'arktype'
 
-export enum BnbBeaconToken_TimestampSelector {
-	TokenTimestampMsSource = 'TokenTimestampMsSource',
-}
-export const BnbBeaconToken_Timestamp = entity({
+export default entity({
 	entityType: EntityType.BnbBeaconToken_Timestamp,
 	labels: {
 		singular: 'bnb beacon token timestamp',
@@ -52,7 +49,7 @@ export const BnbBeaconToken_Timestamp = entity({
 		label: 'contract address',
 		description: 'The contract address on its network.',
 		type: EntityFieldType.Primitive,
-		primitiveType: (EvmAddress),
+		primitiveType: EvmAddress,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	holderCount: {

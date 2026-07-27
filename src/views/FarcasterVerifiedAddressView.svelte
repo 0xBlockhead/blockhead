@@ -2,15 +2,10 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
-	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -26,31 +21,10 @@
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.FarcasterVerifiedAddress>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.FarcasterVerifiedAddress>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.FarcasterVerifiedAddress> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const farcasterVerifiedAddress = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {},
-	} : {
-		sources: selection.sources,
-	}))
-	const titleFallback = $derived([String((pendingEntity.address) ?? '')].filter(Boolean).join(' ') || 'Farcaster verified address')
-	const viewDomId = $derived('farcaster-verified-address-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const titleFallback = $derived((pendingEntity.address ?? '') || 'Farcaster verified address')
 
 
 	// Components
@@ -64,24 +38,16 @@
 
 <EntityView
 	entityType={EntityType.FarcasterVerifiedAddress}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
 	href={
-		href ?? (
-			selection.entitySelector != null && 'fid' in selection.entitySelector
-			&& selection.entitySelector.fid != null
-			&& selection.entitySelector != null && 'protocol' in selection.entitySelector
-			&& selection.entitySelector.protocol != null
-			&& selection.entitySelector != null && 'address' in selection.entitySelector
-			&& selection.entitySelector.address != null ?
-				resolve('/farcaster/user/[userId=farcasterFid]/verified-address/[protocol=stringSegment]/[address=stringSegment]', {
-			userId: String(selection.entitySelector.fid ?? ''),
-			protocol: String(selection.entitySelector.protocol ?? ''),
-			address: String(selection.entitySelector.address ?? ''),
-		})
-		:
-				undefined
+		href ?? resolve(
+			'/(social)/(farcaster)/farcaster/(farcasterNetwork)/user/[userId=farcasterFid]/(farcasterUser)/verified-address/[protocol=stringSegment]/[address=stringSegment]',
+			{
+				userId: String(selection.entitySelector.fid),
+				protocol: String(selection.entitySelector.protocol),
+				address: String(selection.entitySelector.address),
+			}
 		)
 	}
 	{layout}
@@ -89,35 +55,11 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails}
-			{@const address0 = pendingEntity.address}
-			{#if address0 !== undefined && address0 !== null}
-				<TruncatedValue value={String((address0) ?? '')} />
-			{/if}
-		{:else}
-			<ResourceBoundary resource={farcasterVerifiedAddress}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const address0 = resolvedEntity.address}
-					{#if address0 !== undefined && address0 !== null}
-						<TruncatedValue value={String((address0) ?? '')} />
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<TruncatedValue value={pendingEntity.address} />
 	{/snippet}
 
 	{#snippet Value()}
-		{#if layout !== EntityLayout.SummaryDetails}
-			{[String((pendingEntity.protocol) ?? ''), String((pendingEntity.fid) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.address) ?? '')].filter(Boolean).join(' ') || titleFallback}
-		{:else}
-			<ResourceBoundary resource={farcasterVerifiedAddress}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.protocol) ?? ''), String((resolvedEntity.fid) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.address) ?? '')].filter(Boolean).join(' ') || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		{[String(pendingEntity.protocol ?? ''), String(pendingEntity.fid ?? '')].filter(Boolean).join(' ') || (pendingEntity.address ?? '') || titleFallback}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -129,25 +71,12 @@
 						resource={selection.$user}
 					>
 						{#snippet children(farcasterUser)}
-							{#if farcasterUser != null && farcasterUser[EntityMetaKey.Selector] != null}
-								<FarcasterUserView
-									selection={select(EntityType.FarcasterUser, farcasterUser[EntityMetaKey.Selector])}
-									prefetched={farcasterUser}
-									href={
-										(
-											farcasterUser[EntityMetaKey.Selector] != null && 'fid' in farcasterUser[EntityMetaKey.Selector]
-											&& farcasterUser[EntityMetaKey.Selector].fid != null ?
-												resolve('/farcaster/user/[userId=farcasterFid]', {
-											userId: String(farcasterUser[EntityMetaKey.Selector].fid ?? ''),
-										})
-										:
-												undefined
-										)
-									}
-									layout={EntityLayout.Value}
-									open={false}
-								/>
-							{/if}
+							<FarcasterUserView
+								selection={select(EntityType.FarcasterUser, farcasterUser[EntityMetaKey.Selector])}
+								prefetched={farcasterUser}
+								layout={EntityLayout.Value}
+								open={false}
+							/>
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -158,24 +87,7 @@
 			<div>
 				<dt>Protocol</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									protocol: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const protocol = resolvedEntity.protocol}
-							{#if protocol !== undefined && protocol !== null}
-								{String((protocol) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{String(pendingEntity.protocol)}
 				</dd>
 			</div>
 		</dl>
@@ -184,24 +96,7 @@
 			<div>
 				<dt>Address</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									address: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const address = resolvedEntity.address}
-							{#if address !== undefined && address !== null}
-								<TruncatedValue value={String((address) ?? '')} />
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					<TruncatedValue value={pendingEntity.address} />
 				</dd>
 			</div>
 		</dl>
@@ -211,24 +106,13 @@
 				resource={selection.$evmAccount}
 			>
 				{#snippet children(evmAccount)}
-					{#if evmAccount != null && evmAccount[EntityMetaKey.Selector] != null}
+					{#if evmAccount != null}
 						<div>
 							<dt>EVM account</dt>
 							<dd>
 								<EvmAccountView
 									selection={select(EntityType.EvmAccount, evmAccount[EntityMetaKey.Selector])}
 									prefetched={evmAccount}
-									href={
-										(
-											evmAccount[EntityMetaKey.Selector] != null && 'address' in evmAccount[EntityMetaKey.Selector]
-											&& evmAccount[EntityMetaKey.Selector].address != null ?
-												resolve('/account/[address=evmAddress]', {
-											address: String(evmAccount[EntityMetaKey.Selector].address ?? ''),
-										})
-										:
-												undefined
-										)
-									}
 									layout={EntityLayout.Value}
 									open={false}
 								/>
@@ -244,37 +128,13 @@
 				resource={selection.$solanaAccount}
 			>
 				{#snippet children(solanaAccount)}
-					{#if solanaAccount != null && solanaAccount[EntityMetaKey.Selector] != null}
+					{#if solanaAccount != null}
 						<div>
 							<dt>Solana account</dt>
 							<dd>
 								<SolanaAccountView
 									selection={select(EntityType.SolanaAccount, solanaAccount[EntityMetaKey.Selector])}
 									prefetched={solanaAccount}
-									href={
-										(
-											solanaAccount[EntityMetaKey.Selector] != null && 'pubkey' in solanaAccount[EntityMetaKey.Selector]
-											&& solanaAccount[EntityMetaKey.Selector].pubkey != null
-											&& solanaAccount[EntityMetaKey.Selector] != null && '$network' in solanaAccount[EntityMetaKey.Selector] ?
-												solanaAccount[EntityMetaKey.Selector].$network != null && 'caip2' in solanaAccount[EntityMetaKey.Selector].$network
-												&& solanaAccount[EntityMetaKey.Selector].$network.caip2 != null ?
-													resolve('/network/[network=networkCaip2OrNetworkSlug]/account/[accountId=polkadotAccountIdOrStringSegmentOrEvmAddressOrSolanaPubkey]', {
-												accountId: String(solanaAccount[EntityMetaKey.Selector].pubkey ?? ''),
-												network: String(caip2StringFromValue(solanaAccount[EntityMetaKey.Selector].$network.caip2) ?? ''),
-											})
-											:
-													solanaAccount[EntityMetaKey.Selector].$network != null && 'slug' in solanaAccount[EntityMetaKey.Selector].$network
-													&& solanaAccount[EntityMetaKey.Selector].$network.slug != null ?
-														resolve('/network/[network=networkCaip2OrNetworkSlug]/account/[accountId=polkadotAccountIdOrStringSegmentOrEvmAddressOrSolanaPubkey]', {
-													accountId: String(solanaAccount[EntityMetaKey.Selector].pubkey ?? ''),
-													network: String(solanaAccount[EntityMetaKey.Selector].$network.slug ?? ''),
-												})
-												:
-													undefined
-										:
-												undefined
-										)
-									}
 									layout={EntityLayout.Value}
 									open={false}
 								/>

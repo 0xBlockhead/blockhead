@@ -8,7 +8,7 @@ import { match as matchStringSegment } from '$/params/stringSegment.ts'
 import { match as matchZeroExHex } from '$/params/zeroExHex.ts'
 import { parseEntitySelector } from '$/schema/$schema.ts'
 import { schema } from '$/schema/index.ts'
-import { MevRelay_ProposerPayloadDelivered as MevRelay_ProposerPayloadDeliveredSchema } from '$/schema/MevRelay_ProposerPayloadDelivered.ts'
+import MevRelay_ProposerPayloadDeliveredSchema from '$/schema/MevRelay_ProposerPayloadDelivered.ts'
 import { type as arktype } from 'arktype'
 
 // Projection eligibility: facetPath=['Evm']

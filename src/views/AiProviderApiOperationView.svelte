@@ -2,14 +2,10 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
 	import { UrlString } from '$/schema/UrlString.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -21,44 +17,26 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.AiProviderApiOperation>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.AiProviderApiOperation>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.AiProviderApiOperation> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const aiProviderApiOperation = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {
-			label: true,
-			operationKind: true,
-			pathTemplate: true,
-		},
-	} : {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const viewSelection = $derived(selection({
+		sources: selection.sources ?? [
+			Source.Anthropic_Rest,
+			Source.OpenAI_Rest,
+		],
+	}))
+	const aiProviderApiOperation = $derived(viewSelection({
 		fields: {
 			label: true,
 			operationKind: true,
 			pathTemplate: true,
 		},
 	}))
-	const titleFallback = $derived([String((pendingEntity.label) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.operationId) ?? '')].filter(Boolean).join(' ') || 'AI provider API operation')
-	const viewDomId = $derived('ai-provider-api-operation-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const titleFallback = $derived((pendingEntity.label ?? '') || (pendingEntity.operationId ?? '') || 'AI provider API operation')
 
 
 	// Components
@@ -71,61 +49,39 @@
 
 <EntityView
 	entityType={EntityType.AiProviderApiOperation}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'label') && Object.hasOwn(prefetched, 'operationKind') && Object.hasOwn(prefetched, 'pathTemplate')}
-			{[String((pendingEntity.label) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-		{:else}
-			<ResourceBoundary resource={aiProviderApiOperation}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.label) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={aiProviderApiOperation}>
+			{#snippet children(entity)}
+				{(entity.label ?? '') || title || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Value()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'label') && Object.hasOwn(prefetched, 'operationKind') && Object.hasOwn(prefetched, 'pathTemplate')}
-			{[String((pendingEntity.operationKind) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.label) ?? '')].filter(Boolean).join(' ') || titleFallback}
-		{:else}
-			<ResourceBoundary resource={aiProviderApiOperation}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.operationKind) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.label) ?? '')].filter(Boolean).join(' ') || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={aiProviderApiOperation}>
+			{#snippet children(entity)}
+				{(entity.operationKind ?? '') || (entity.label ?? '') || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'label') && Object.hasOwn(prefetched, 'operationKind') && Object.hasOwn(prefetched, 'pathTemplate')}
-			{@const pathTemplate0 = pendingEntity.pathTemplate}
-			{#if pathTemplate0 !== undefined && pathTemplate0 !== null}
-				<span data-text="muted">
-					{String((pathTemplate0) ?? '')}
-				</span>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={aiProviderApiOperation}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const pathTemplate0 = resolvedEntity.pathTemplate}
-					{#if pathTemplate0 !== undefined && pathTemplate0 !== null}
-						<span data-text="muted">
-							{String((pathTemplate0) ?? '')}
-						</span>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={aiProviderApiOperation}>
+			{#snippet children(entity)}
+				{@const pathTemplate0 = entity.pathTemplate}
+				{#if pathTemplate0 != null}
+					<span data-text="muted">
+						{pathTemplate0}
+					</span>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -144,45 +100,20 @@
 			<div>
 				<dt>operation ID</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									operationId: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const operationId = resolvedEntity.operationId}
-							{#if operationId !== undefined && operationId !== null}
-								{String((operationId) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{pendingEntity.operationId}
 				</dd>
 			</div>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							label: true,
-						},
-					})
-				}
+				resource={aiProviderApiOperation}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const label = resolvedEntity.label}
-					{#if label !== undefined && label !== null}
+					{@const label = entity.label}
+					{#if label != null}
 						<div>
 							<dt>Label</dt>
 							<dd>
-								{String((label) ?? '')}
+								{label}
 							</dd>
 						</div>
 					{/if}
@@ -190,23 +121,15 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							operationKind: true,
-						},
-					})
-				}
+				resource={aiProviderApiOperation}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const operationKind = resolvedEntity.operationKind}
-					{#if operationKind !== undefined && operationKind !== null}
+					{@const operationKind = entity.operationKind}
+					{#if operationKind != null}
 						<div>
 							<dt>operation kind</dt>
 							<dd>
-								{String((operationKind) ?? '')}
+								{operationKind}
 							</dd>
 						</div>
 					{/if}
@@ -217,8 +140,7 @@
 		<dl data-column-item="center">
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							httpMethod: true,
 						},
@@ -226,13 +148,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const httpMethod = resolvedEntity.httpMethod}
-					{#if httpMethod !== undefined && httpMethod !== null}
+					{@const httpMethod = entity.httpMethod}
+					{#if httpMethod != null}
 						<div>
 							<dt>HTTP method</dt>
 							<dd>
-								{String((httpMethod) ?? '')}
+								{httpMethod}
 							</dd>
 						</div>
 					{/if}
@@ -240,23 +161,15 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							pathTemplate: true,
-						},
-					})
-				}
+				resource={aiProviderApiOperation}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const pathTemplate = resolvedEntity.pathTemplate}
-					{#if pathTemplate !== undefined && pathTemplate !== null}
+					{@const pathTemplate = entity.pathTemplate}
+					{#if pathTemplate != null}
 						<div>
 							<dt>path template</dt>
 							<dd>
-								{String((pathTemplate) ?? '')}
+								{pathTemplate}
 							</dd>
 						</div>
 					{/if}
@@ -265,8 +178,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							documentUrl: true,
 						},
@@ -274,20 +186,18 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const documentUrl = resolvedEntity.documentUrl}
-					{#if documentUrl !== undefined && documentUrl !== null}
+					{@const documentUrl = entity.documentUrl}
+					{#if documentUrl != null}
 						<div>
 							<dt>document URL</dt>
 							<dd>
-								<svelte:element
-									this={'a'}
+								<a
 									href={String(documentUrl)}
 									target="_blank"
 									rel="noreferrer noopener"
 								>
 									<TruncatedValue value={String(documentUrl)} />
-								</svelte:element>
+								</a>
 							</dd>
 						</div>
 					{/if}
@@ -303,12 +213,12 @@
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
-				<AiProviderApiOperation_TimestampsView
-					selection={aiProviderApiOperationAiProviderApiOperationTimestampsViewTimestampsResource}
-					countResource={aiProviderApiOperationAiProviderApiOperationTimestampsViewTimestampsResource.count}
-					title='timestamps'
-					id='AiProviderApiOperation_TimestampsView-timestamps'
-				/>
+					<AiProviderApiOperation_TimestampsView
+						selection={aiProviderApiOperationAiProviderApiOperationTimestampsViewTimestampsResource}
+						countResource={aiProviderApiOperationAiProviderApiOperationTimestampsViewTimestampsResource.count}
+						title='timestamps'
+						id='timestamps'
+					/>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>

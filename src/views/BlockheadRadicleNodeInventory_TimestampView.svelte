@@ -2,13 +2,9 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -20,42 +16,24 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.BlockheadRadicleNodeInventory_Timestamp>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.BlockheadRadicleNodeInventory_Timestamp>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.BlockheadRadicleNodeInventory_Timestamp> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const blockheadRadicleNodeInventoryTimestamp = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {
-			status: true,
-			repositoryCount: true,
-		},
-	} : {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const viewSelection = $derived(selection({
+		sources: selection.sources ?? [
+			Source.Local_Internal,
+		],
+	}))
+	const blockheadRadicleNodeInventoryTimestamp = $derived(viewSelection({
 		fields: {
 			status: true,
 			repositoryCount: true,
 		},
 	}))
-	const titleFallback = $derived([String((pendingEntity.status) ?? '')].filter(Boolean).join(' ') || 'blockhead radicle node inventory timestamp')
-	const viewDomId = $derived('blockhead-radicle-node-inventory-timestamp-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const titleFallback = $derived((pendingEntity.status ?? '') || 'blockhead radicle node inventory timestamp')
 
 
 	// Components
@@ -68,71 +46,37 @@
 
 <EntityView
 	entityType={EntityType.BlockheadRadicleNodeInventory_Timestamp}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'status') && Object.hasOwn(prefetched, 'repositoryCount')}
-			{[String((pendingEntity.status) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-		{:else}
-			<ResourceBoundary resource={blockheadRadicleNodeInventoryTimestamp}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.status) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={blockheadRadicleNodeInventoryTimestamp}>
+			{#snippet children(entity)}
+				{entity.status || title || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Value()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'status') && Object.hasOwn(prefetched, 'repositoryCount')}
-			{@const timestampMs0 = pendingEntity.timestampMs}
-			{#if timestampMs0 !== undefined && timestampMs0 !== null}
-				<Timestamp timestamp={Number(timestampMs0)} />
-			{/if}
-		{:else}
-			<ResourceBoundary resource={blockheadRadicleNodeInventoryTimestamp}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const timestampMs0 = resolvedEntity.timestampMs}
-					{#if timestampMs0 !== undefined && timestampMs0 !== null}
-						<Timestamp timestamp={Number(timestampMs0)} />
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'status') && Object.hasOwn(prefetched, 'repositoryCount')}
-			{@const repositoryCount0 = pendingEntity.repositoryCount}
-			{#if repositoryCount0 !== undefined && repositoryCount0 !== null}
-				<span data-text="muted">
-					<NumberValue
-						value={repositoryCount0}
-					/>
-				</span>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={blockheadRadicleNodeInventoryTimestamp}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const repositoryCount0 = resolvedEntity.repositoryCount}
-					{#if repositoryCount0 !== undefined && repositoryCount0 !== null}
-						<span data-text="muted">
-							<NumberValue
-								value={repositoryCount0}
-							/>
-						</span>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={blockheadRadicleNodeInventoryTimestamp}>
+			{#snippet children(entity)}
+				{@const repositoryCount0 = entity.repositoryCount}
+				{#if repositoryCount0 != null}
+					<span data-text="muted">
+						<NumberValue
+							value={repositoryCount0}
+						/>
+					</span>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -151,48 +95,14 @@
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									timestampMs: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const timestampMs = resolvedEntity.timestampMs}
-							{#if timestampMs !== undefined && timestampMs !== null}
-								<Timestamp timestamp={Number(timestampMs)} />
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									source: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const source = resolvedEntity.source}
-							{#if source !== undefined && source !== null}
-								{String((source) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{pendingEntity.source}
 				</dd>
 			</div>
 
@@ -200,21 +110,10 @@
 				<dt>status</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									status: true,
-								},
-							})
-						}
+						resource={blockheadRadicleNodeInventoryTimestamp}
 					>
 						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const status = resolvedEntity.status}
-							{#if status !== undefined && status !== null}
-								{String((status) ?? '')}
-							{/if}
+							{entity.status}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -223,19 +122,11 @@
 
 		<dl data-column-item="center">
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							repositoryCount: true,
-						},
-					})
-				}
+				resource={blockheadRadicleNodeInventoryTimestamp}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const repositoryCount = resolvedEntity.repositoryCount}
-					{#if repositoryCount !== undefined && repositoryCount !== null}
+					{@const repositoryCount = entity.repositoryCount}
+					{#if repositoryCount != null}
 						<div>
 							<dt>repository count</dt>
 							<dd>
@@ -250,8 +141,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							connectedPeerCount: true,
 						},
@@ -259,9 +149,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const connectedPeerCount = resolvedEntity.connectedPeerCount}
-					{#if connectedPeerCount !== undefined && connectedPeerCount !== null}
+					{@const connectedPeerCount = entity.connectedPeerCount}
+					{#if connectedPeerCount != null}
 						<div>
 							<dt>connected peer count</dt>
 							<dd>
@@ -276,8 +165,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							routingTableSize: true,
 						},
@@ -285,9 +173,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const routingTableSize = resolvedEntity.routingTableSize}
-					{#if routingTableSize !== undefined && routingTableSize !== null}
+					{@const routingTableSize = entity.routingTableSize}
+					{#if routingTableSize != null}
 						<div>
 							<dt>routing table size</dt>
 							<dd>
@@ -305,8 +192,7 @@
 				<dd>
 					<ResourceBoundary
 						resource={
-							selection({
-								sources: selection.sources,
+							viewSelection({
 								fields: {
 									advertisedRids: true,
 								},
@@ -314,11 +200,7 @@
 						}
 					>
 						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const advertisedRids = resolvedEntity.advertisedRids}
-							{#if advertisedRids !== undefined && advertisedRids !== null}
-								{advertisedRids.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')}
-							{/if}
+							{entity.advertisedRids.values.join(', ')}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>

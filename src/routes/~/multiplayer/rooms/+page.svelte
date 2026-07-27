@@ -2,12 +2,11 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
@@ -23,29 +22,15 @@
 
 
 <Page>
+	{@const collectionSelection = select(EntityType._Global, {
+		scope: '$$blockheadRooms',
+	}).$$blockheadRooms}
+
 	<BlockheadRoomsView
 		href={resolve('/~/multiplayer/rooms')}
 		title='Rooms'
-		selection={
-			select(EntityType._Global, {
-				scope: '$$blockheadRooms',
-			})
-				.$$blockheadRooms({
-					sources: [
-						Source.Local_Internal,
-					],
-				})
-		}
-		countResource={
-			select(EntityType._Global, {
-				scope: '$$blockheadRooms',
-			})
-				.$$blockheadRooms({
-					sources: [
-						Source.Local_Internal,
-					],
-				}).count
-		}
+		selection={collectionSelection}
+		countResource={collectionSelection.count}
 		id='blockhead-rooms'
 		data-column-item="flexible"
 		data-card

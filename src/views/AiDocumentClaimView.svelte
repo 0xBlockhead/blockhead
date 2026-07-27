@@ -2,13 +2,9 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -20,42 +16,25 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.AiDocumentClaim>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.AiDocumentClaim>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.AiDocumentClaim> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const aiDocumentClaim = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {
-			claimKind: true,
-			confidence: true,
-		},
-	} : {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const viewSelection = $derived(selection({
+		sources: selection.sources ?? [
+			Source.Eip8004Scan_Rest,
+			Source.Ipfs_Rest,
+		],
+	}))
+	const aiDocumentClaim = $derived(viewSelection({
 		fields: {
 			claimKind: true,
 			confidence: true,
 		},
 	}))
-	const titleFallback = $derived([String((pendingEntity.claimPath) ?? '')].filter(Boolean).join(' ') || 'AI document claim')
-	const viewDomId = $derived('ai-document-claim-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const titleFallback = $derived((pendingEntity.claimPath ?? '') || 'AI document claim')
 
 
 	// Components
@@ -67,65 +46,37 @@
 
 <EntityView
 	entityType={EntityType.AiDocumentClaim}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'claimKind') && Object.hasOwn(prefetched, 'confidence')}
-			{[String((pendingEntity.claimPath) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-		{:else}
-			<ResourceBoundary resource={aiDocumentClaim}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.claimPath) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		{(pendingEntity.claimPath ?? '') || 'AI document claim'}
 	{/snippet}
 
 	{#snippet Value()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'claimKind') && Object.hasOwn(prefetched, 'confidence')}
-			{[String((pendingEntity.claimKind) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.claimPath) ?? '')].filter(Boolean).join(' ') || titleFallback}
-		{:else}
-			<ResourceBoundary resource={aiDocumentClaim}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.claimKind) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.claimPath) ?? '')].filter(Boolean).join(' ') || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={aiDocumentClaim}>
+			{#snippet children(entity)}
+				{entity.claimKind || pendingEntity.claimPath || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'claimKind') && Object.hasOwn(prefetched, 'confidence')}
-			{@const confidence0 = pendingEntity.confidence}
-			{#if confidence0 !== undefined && confidence0 !== null}
-				<span data-text="muted">
-					<NumberValue
-						value={confidence0}
-					/>
-				</span>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={aiDocumentClaim}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const confidence0 = resolvedEntity.confidence}
-					{#if confidence0 !== undefined && confidence0 !== null}
-						<span data-text="muted">
-							<NumberValue
-								value={confidence0}
-							/>
-						</span>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={aiDocumentClaim}>
+			{#snippet children(entity)}
+				{@const confidence0 = entity.confidence}
+				{#if confidence0 != null}
+					<span data-text="muted">
+						<NumberValue
+							value={confidence0}
+						/>
+					</span>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -144,48 +95,14 @@
 			<div>
 				<dt>extractor ID</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									extractorId: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const extractorId = resolvedEntity.extractorId}
-							{#if extractorId !== undefined && extractorId !== null}
-								{String((extractorId) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{pendingEntity.extractorId}
 				</dd>
 			</div>
 
 			<div>
 				<dt>claim path</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									claimPath: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const claimPath = resolvedEntity.claimPath}
-							{#if claimPath !== undefined && claimPath !== null}
-								{String((claimPath) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{pendingEntity.claimPath}
 				</dd>
 			</div>
 
@@ -193,21 +110,10 @@
 				<dt>claim kind</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									claimKind: true,
-								},
-							})
-						}
+						resource={aiDocumentClaim}
 					>
 						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const claimKind = resolvedEntity.claimKind}
-							{#if claimKind !== undefined && claimKind !== null}
-								{String((claimKind) ?? '')}
-							{/if}
+							{entity.claimKind}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -217,8 +123,7 @@
 		<dl data-column-item="center">
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							subjectKind: true,
 						},
@@ -226,13 +131,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const subjectKind = resolvedEntity.subjectKind}
-					{#if subjectKind !== undefined && subjectKind !== null}
+					{@const subjectKind = entity.subjectKind}
+					{#if subjectKind != null}
 						<div>
 							<dt>subject kind</dt>
 							<dd>
-								{String((subjectKind) ?? '')}
+								{subjectKind}
 							</dd>
 						</div>
 					{/if}
@@ -241,8 +145,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							metadataKey: true,
 						},
@@ -250,13 +153,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const metadataKey = resolvedEntity.metadataKey}
-					{#if metadataKey !== undefined && metadataKey !== null}
+					{@const metadataKey = entity.metadataKey}
+					{#if metadataKey != null}
 						<div>
 							<dt>metadata key</dt>
 							<dd>
-								{String((metadataKey) ?? '')}
+								{metadataKey}
 							</dd>
 						</div>
 					{/if}
@@ -265,8 +167,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							formatObjectId: true,
 						},
@@ -274,13 +175,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const formatObjectId = resolvedEntity.formatObjectId}
-					{#if formatObjectId !== undefined && formatObjectId !== null}
+					{@const formatObjectId = entity.formatObjectId}
+					{#if formatObjectId != null}
 						<div>
 							<dt>format object ID</dt>
 							<dd>
-								{String((formatObjectId) ?? '')}
+								{formatObjectId}
 							</dd>
 						</div>
 					{/if}
@@ -289,8 +189,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							formatObjectKind: true,
 						},
@@ -298,13 +197,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const formatObjectKind = resolvedEntity.formatObjectKind}
-					{#if formatObjectKind !== undefined && formatObjectKind !== null}
+					{@const formatObjectKind = entity.formatObjectKind}
+					{#if formatObjectKind != null}
 						<div>
 							<dt>format object kind</dt>
 							<dd>
-								{String((formatObjectKind) ?? '')}
+								{formatObjectKind}
 							</dd>
 						</div>
 					{/if}
@@ -315,8 +213,7 @@
 		<dl data-column-item="center">
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							checksumAlgorithm: true,
 						},
@@ -324,13 +221,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const checksumAlgorithm = resolvedEntity.checksumAlgorithm}
-					{#if checksumAlgorithm !== undefined && checksumAlgorithm !== null}
+					{@const checksumAlgorithm = entity.checksumAlgorithm}
+					{#if checksumAlgorithm != null}
 						<div>
 							<dt>checksum algorithm</dt>
 							<dd>
-								{String((checksumAlgorithm) ?? '')}
+								{checksumAlgorithm}
 							</dd>
 						</div>
 					{/if}
@@ -339,8 +235,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							checksumValue: true,
 						},
@@ -348,13 +243,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const checksumValue = resolvedEntity.checksumValue}
-					{#if checksumValue !== undefined && checksumValue !== null}
+					{@const checksumValue = entity.checksumValue}
+					{#if checksumValue != null}
 						<div>
 							<dt>checksum value</dt>
 							<dd>
-								{String((checksumValue) ?? '')}
+								{checksumValue}
 							</dd>
 						</div>
 					{/if}
@@ -363,8 +257,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							relationshipKind: true,
 						},
@@ -372,13 +265,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const relationshipKind = resolvedEntity.relationshipKind}
-					{#if relationshipKind !== undefined && relationshipKind !== null}
+					{@const relationshipKind = entity.relationshipKind}
+					{#if relationshipKind != null}
 						<div>
 							<dt>relationship kind</dt>
 							<dd>
-								{String((relationshipKind) ?? '')}
+								{relationshipKind}
 							</dd>
 						</div>
 					{/if}
@@ -386,19 +278,11 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							confidence: true,
-						},
-					})
-				}
+				resource={aiDocumentClaim}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const confidence = resolvedEntity.confidence}
-					{#if confidence !== undefined && confidence !== null}
+					{@const confidence = entity.confidence}
+					{#if confidence != null}
 						<div>
 							<dt>confidence</dt>
 							<dd>

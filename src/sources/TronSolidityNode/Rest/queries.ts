@@ -1,5 +1,4 @@
 import { throwHttpError } from '$/lib/http.ts'
-import type { SourceBinding } from '$/sources/SourceBinding.ts'
 import {
 	firstHttpUrlForBinding,
 	sourceFetch,
@@ -11,13 +10,15 @@ import type {
 	TronNodeTransaction,
 	TronNodeTransactionInfo,
 } from '$/sources/TronGrid/Rest/types.ts'
+import bindings from '$/sources/TronSolidityNode/bindings.ts'
+import { Source } from '$/sources/Source.ts'
+
+const binding = bindings[Source.TronSolidityNode_Rest]
 
 const tronSolidityNodePost = async <_Result>({
-	binding,
 	path,
 	body,
 }: {
-	binding: SourceBinding
 	path: string
 	body: JsonValue
 }) => {
@@ -37,14 +38,11 @@ const tronSolidityNodePost = async <_Result>({
 }
 
 export const getBlockByNumber = ({
-	binding,
 	height,
 }: {
-	binding: SourceBinding
 	height: bigint
 }) => (
 	tronSolidityNodePost<TronNodeBlock>({
-		binding,
 		path: 'walletsolidity/getblockbynum',
 		body: {
 			num: Number(height),
@@ -54,14 +52,11 @@ export const getBlockByNumber = ({
 )
 
 export const getTransactionById = ({
-	binding,
 	transactionId,
 }: {
-	binding: SourceBinding
 	transactionId: string
 }) => (
 	tronSolidityNodePost<TronNodeTransaction>({
-		binding,
 		path: 'walletsolidity/gettransactionbyid',
 		body: {
 			value: transactionId,
@@ -71,14 +66,11 @@ export const getTransactionById = ({
 )
 
 export const getTransactionInfoById = ({
-	binding,
 	transactionId,
 }: {
-	binding: SourceBinding
 	transactionId: string
 }) => (
 	tronSolidityNodePost<TronNodeTransactionInfo>({
-		binding,
 		path: 'walletsolidity/gettransactioninfobyid',
 		body: {
 			value: transactionId,
@@ -87,14 +79,11 @@ export const getTransactionInfoById = ({
 )
 
 export const getAccount = ({
-	binding,
 	address,
 }: {
-	binding: SourceBinding
 	address: string
 }) => (
 	tronSolidityNodePost<TronNodeAccount>({
-		binding,
 		path: 'walletsolidity/getaccount',
 		body: {
 			address,

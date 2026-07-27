@@ -2,9 +2,19 @@ import { beforeEach, expect, test, vi } from 'vitest'
 
 import { Source } from '$/sources/Source.ts'
 import {
+	ApiFamily,
+	SourceCredentialScope,
 	SourceDelivery,
+	SourceEndpointKind,
+	SourceOperationGroup,
 	SourceTargetKind,
+	WireProtocol,
 } from '$/sources/SourceBinding.ts'
+import bindings from '$/sources/Rss/bindings.ts'
+
+const hnrssBinding = bindings[Source.Rss_Rest].find((binding) => binding.target.key === 'https://hnrss.org')
+if (hnrssBinding == null)
+	throw new Error('Rss_Rest test binding is missing')
 
 const sourceFetch = vi.hoisted(() => vi.fn())
 
@@ -47,17 +57,42 @@ test('uses the feed-target HttpProxy binding and parses its response', async () 
 				kind: SourceTargetKind.Feed,
 				key: 'https://hnrss.org',
 			},
+			endpoints: [
+				{
+					endpointKind: SourceEndpointKind.HttpUrl,
+					locator: 'https://hnrss.org',
+					origin: 'https://hnrss.org',
+					corsEnabled: false,
+				},
+			],
+			wireProtocol: WireProtocol.HttpRest,
+			apiFamily: ApiFamily.RestJson,
+			operationGroups: [
+				SourceOperationGroup.GenericRead,
+			],
 			delivery: SourceDelivery.HttpProxy,
+			credentials: [
+				{
+					scope: SourceCredentialScope.None,
+				},
+			],
+			proxyId: expect.any(String),
 		}),
 		'https://hnrss.org/frontpage'
 	)
 })
 
-test('rejects feeds without a registered target binding', async () => {
-	await expect(rssFetchFeed('https://example.com/feed.xml')).rejects.toThrow(
-		'Rss_Rest: source binding is missing for https://example.com'
+test('preserves a registered feed URL path, query, and reserved values', async () => {
+	sourceFetch.mockResolvedValueOnce(new Response('<rss><channel /></rss>'))
+
+	await rssFetchFeed(
+		' https://hnrss.org/frontpage?target=https%3A%2F%2Fexample.com%2Fa%3Fx%3D1%26y%3D2&label=a%2Bb%23c '
 	)
-	expect(sourceFetch).not.toHaveBeenCalled()
+
+	expect(sourceFetch).toHaveBeenCalledWith(
+		expect.any(Object),
+		'https://hnrss.org/frontpage?target=https%3A%2F%2Fexample.com%2Fa%3Fx%3D1%26y%3D2&label=a%2Bb%23c'
+	)
 })
 
 test('rejects failed refresh responses before parsing their bodies', async () => {

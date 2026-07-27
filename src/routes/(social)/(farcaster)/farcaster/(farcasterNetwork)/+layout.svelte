@@ -28,16 +28,16 @@
 
 
 <ParentPageCollapsible
-	href={resolve('/farcaster')}
+	href={resolve('/(social)/(farcaster)/farcaster')}
 >
 	{#snippet Summary()}
-		{@const DetailView = FarcasterNetworkView}
-
-		<DetailView
-			selection={select(EntityType.FarcasterNetwork, data.selector, { sources: [
-	Source.Constants_Internal,
-] })}
-			href={resolve('/farcaster')}
+		<FarcasterNetworkView
+			selection={
+				select(EntityType.FarcasterNetwork, data.selector, { sources: [
+					Source.Constants_Internal,
+				] })
+			}
+			href={resolve('/(social)/(farcaster)/farcaster')}
 			layout={EntityLayout.SummaryInline}
 		/>
 	{/snippet}

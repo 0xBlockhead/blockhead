@@ -8,7 +8,6 @@
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
@@ -38,13 +37,12 @@
 
 
 <svelte:head>
-	<title>{(data.title ?? (pageSelection.entity == null ? 'Farcaster' : [String((({ ...data.selector, ...pageSelection.entity }).protocolName) ?? '')].filter(Boolean).join(' ') || 'Farcaster'))} • Farcaster • Blockhead</title>
+	<title>{(data.title ?? (pageSelection.entity == null ? 'Farcaster' : pageSelection.entity.protocolName || 'Farcaster'))} • Farcaster • Blockhead</title>
 </svelte:head>
 
 
 <Page>
 	<FarcasterNetworkView
-		href={resolve('/farcaster')}
 		selection={pageSelection}
 	/>
 </Page>

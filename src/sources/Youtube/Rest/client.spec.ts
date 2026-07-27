@@ -1,9 +1,24 @@
 import { beforeEach, expect, it, vi } from 'vitest'
-import { SourceDelivery } from '$/sources/SourceBinding.ts'
+import {
+	ApiFamily,
+	SourceCredentialScope,
+	SourceDelivery,
+	SourceEndpointKind,
+	SourceOperationGroup,
+	SourceTargetKind,
+	WireProtocol,
+} from '$/sources/SourceBinding.ts'
+import { Source } from '$/sources/Source.ts'
+import bindings from '$/sources/Youtube/bindings.ts'
+
+const youtubeBinding = bindings[Source.Youtube_Rest]
 
 const sourceGetJson = vi.hoisted(() => vi.fn())
 
-vi.mock('$/sources/_runtime/http.ts', () => ({ sourceGetJson }))
+vi.mock('$/sources/_runtime/http.ts', () => ({
+	firstHttpUrlForBinding: (binding: typeof youtubeBinding) => binding.endpoints[0].locator,
+	sourceGetJson,
+}))
 
 const {
 	listChannelPlaylists,
@@ -26,10 +41,22 @@ it('uses generated HttpProxy binding metadata and preserves reserved query ident
 
 	expect(sourceGetJson).toHaveBeenCalledTimes(1)
 	expect(sourceGetJson.mock.calls[0][0]).toMatchObject({
-		source: 'Youtube_Rest',
+		source: Source.Youtube_Rest,
+		target: {
+			kind: SourceTargetKind.Global,
+			key: 'data-api-v3',
+		},
+		wireProtocol: WireProtocol.HttpRest,
+		apiFamily: ApiFamily.RestJson,
+		operationGroups: [SourceOperationGroup.GenericRead],
 		delivery: SourceDelivery.HttpProxy,
-		proxyId: 'Youtube_Rest-416',
+		credentials: [{
+			scope: SourceCredentialScope.PublicConfig,
+			keys: ['PUBLIC_YOUTUBE_API_KEY'],
+		}],
+		proxyId: youtubeBinding.proxyId,
 		endpoints: [{
+			endpointKind: SourceEndpointKind.HttpUrl,
 			locator: 'https://www.googleapis.com',
 			origin: 'https://www.googleapis.com',
 			corsEnabled: false,
@@ -45,7 +72,7 @@ it('keeps the YouTube binding endpoint registered as non-CORS provider reality',
 	}, 'channel', 1)
 
 	expect(sourceGetJson.mock.calls[0][0].endpoints).toEqual([{
-		endpointKind: 'HttpUrl',
+		endpointKind: SourceEndpointKind.HttpUrl,
 		locator: 'https://www.googleapis.com',
 		origin: 'https://www.googleapis.com',
 		corsEnabled: false,

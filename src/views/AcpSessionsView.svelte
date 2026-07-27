@@ -2,69 +2,31 @@
 
 <script lang="ts">
 	// Types/constants
-	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
-	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
-	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
+	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-
-
+	import { UrlString } from '$/schema/UrlString.ts'
 
 
 	// State
 	let {
 		selection,
-		countResource,
-		title = 'ACP sessions',
-		typeAnnotationParagraphs = [],
-		placeholderText = undefined,
-		emptyText = undefined,
 		open = $bindable(true),
-		collapsible = true,
-		showTypeAnnotation = true,
-		id = 'AcpSessions-list',
 		...EntitiesListProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyEntitiesSelection<EntityType.AcpSession>
-			countResource?: SvelteKitResource<number>
-			title?: string
-			typeAnnotationParagraphs?: string[]
-			placeholderText?: string
-			emptyText?: string
-			open?: boolean
-			collapsible?: boolean
-			showTypeAnnotation?: boolean
-			id?: string
-		},
-		EntitiesListForwardProps
-	> = $props()
+	}: EntityListViewProps<EntityType.AcpSession> = $props()
 
 
 	// Components
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView from '$/components/EntityView.svelte'
 </script>
 
-
-{#snippet TypeAnnotationParagraphs()}
-	{#each typeAnnotationParagraphs as paragraph (paragraph)}
-		<p>{paragraph}</p>
-	{/each}
-{/snippet}
 
 <EntitiesList
 	{...EntitiesListProps}
 	entityType={EntityType.AcpSession}
-	{id}
-	{title}
 	bind:open
-	{collapsible}
-	{showTypeAnnotation}
-	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
 	resource={
 		selection({
-			sources: selection.sources,
 			fields: {
 				sessionId: true,
 				$runtime: true,
@@ -72,38 +34,23 @@
 			},
 		})
 	}
-	{countResource}
-	getResourceItems={(acpSessions) => [...new Map(acpSessions.values.map((acpSession) => [acpSession[EntityMetaKey.SelectorKey], acpSession])).values()]}
-	getKey={(acpSession) => acpSession[EntityMetaKey.SelectorKey]}
-	{placeholderText}
 >
-	{#snippet Empty()}
-		{#if emptyText != null}
-			<p data-text="muted">{emptyText}</p>
-		{:else}
-			<p data-text="muted">No ACP sessions yet.</p>
-		{/if}
-	{/snippet}
-
 	{#snippet Item({ item: acpSession })}
-		{@const acpSessionFields = { ...acpSession[EntityMetaKey.Selector], ...acpSession }}
+		{@const acpSessionSelector = acpSession[EntityMetaKey.Selector]}
 		<EntityView
 			entityType={EntityType.AcpSession}
-			entitySelector={acpSession[EntityMetaKey.Selector]}
-			layout={EntityLayout.Summary}
-			open={false}
-			showTypeAnnotation={false}
+			entitySelector={acpSessionSelector}
 		>
 			{#snippet Title()}
-				{[String((acpSessionFields.sessionId) ?? '')].filter(Boolean).join(' ') || 'ACP session'}
+				{acpSessionSelector.sessionId || 'ACP session'}
 			{/snippet}
 
 			{#snippet Value()}
-				{[[String((acpSessionFields.$runtime.runtimeId) ?? '')].filter(Boolean).join(' ') || 'ACP agent runtime'].filter(Boolean).join(' ')}
+				{acpSession.$runtime == null ? '' : acpSession.$runtime.runtimeId || 'ACP agent runtime'}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{[String((acpSessionFields.workspaceUri) ?? '')].filter(Boolean).join(' ')}</span>
+				<span data-text="annotation">{String(acpSession.workspaceUri ?? '')}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

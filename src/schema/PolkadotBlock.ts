@@ -1,16 +1,12 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { entity, facet } from '$/schema/$schema.ts'
+import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
-export enum PolkadotBlockSelector {
-	NetworkBlockNumber = 'NetworkBlockNumber',
-	NetworkBlockNumberHash = 'NetworkBlockNumberHash',
-}
-export const PolkadotBlock = entity({
+export default entity({
 	entityType: EntityType.PolkadotBlock,
 	labels: {
 		singular: 'Polkadot block',
@@ -27,7 +23,7 @@ export const PolkadotBlock = entity({
 		label: 'Block number',
 		description: 'The block height or number in its network.',
 		type: EntityFieldType.Primitive,
-		primitiveType: (type('bigint').narrow((value) => value >= 0n)),
+		primitiveType: type('bigint').narrow((value) => value >= 0n),
 		cardinality: EntityFieldCardinality.One,
 	},
 	hash: {

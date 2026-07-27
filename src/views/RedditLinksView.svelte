@@ -3,67 +3,29 @@
 <script lang="ts">
 	// Types/constants
 	import { resolve } from '$app/paths'
-	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
-	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
-	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
+	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
-
-
 	// State
 	let {
 		selection,
-		countResource,
-		title = 'Reddit submissions',
-		typeAnnotationParagraphs = [],
-		placeholderText = undefined,
-		emptyText = undefined,
 		open = $bindable(true),
-		collapsible = true,
-		showTypeAnnotation = true,
-		id = 'RedditLinks-list',
 		...EntitiesListProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyEntitiesSelection<EntityType.RedditLink>
-			countResource?: SvelteKitResource<number>
-			title?: string
-			typeAnnotationParagraphs?: string[]
-			placeholderText?: string
-			emptyText?: string
-			open?: boolean
-			collapsible?: boolean
-			showTypeAnnotation?: boolean
-			id?: string
-		},
-		EntitiesListForwardProps
-	> = $props()
+	}: EntityListViewProps<EntityType.RedditLink> = $props()
 
 
 	// Components
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView from '$/components/EntityView.svelte'
 </script>
 
-
-{#snippet TypeAnnotationParagraphs()}
-	{#each typeAnnotationParagraphs as paragraph (paragraph)}
-		<p>{paragraph}</p>
-	{/each}
-{/snippet}
 
 <EntitiesList
 	{...EntitiesListProps}
 	entityType={EntityType.RedditLink}
-	{id}
-	{title}
 	bind:open
-	{collapsible}
-	{showTypeAnnotation}
-	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
 	resource={
 		selection({
 			sources: selection.sources ?? [
@@ -76,45 +38,27 @@
 			},
 		})
 	}
-	{countResource}
-	getResourceItems={(redditLinks) => [...new Map(redditLinks.values.map((redditLink) => [redditLink[EntityMetaKey.SelectorKey], redditLink])).values()]}
-	getKey={(redditLink) => redditLink[EntityMetaKey.SelectorKey]}
-	{placeholderText}
 >
-	{#snippet Empty()}
-		{#if emptyText != null}
-			<p data-text="muted">{emptyText}</p>
-		{:else}
-			<p data-text="muted">No Reddit submissions yet.</p>
-		{/if}
-	{/snippet}
-
 	{#snippet Item({ item: redditLink })}
-		{@const redditLinkFields = { ...redditLink[EntityMetaKey.Selector], ...redditLink }}
+		{@const redditLinkSelector = redditLink[EntityMetaKey.Selector]}
 		<EntityView
 			entityType={EntityType.RedditLink}
-			entitySelector={redditLink[EntityMetaKey.Selector]}
+			entitySelector={redditLinkSelector}
 			href={
-				(
-					redditLink[EntityMetaKey.Selector] != null && 'fullname' in redditLink[EntityMetaKey.Selector]
-					&& redditLink[EntityMetaKey.Selector].fullname != null ?
-						resolve('/reddit/link/[fullname=stringSegment]', {
-					fullname: encodeURIComponent(String(redditLink[EntityMetaKey.Selector].fullname ?? '')),
-				})
-				:
-						undefined
+				resolve(
+					'/(social)/(reddit)/reddit/(globalRedditNetwork)/link/[fullname=stringSegment]',
+					{
+						fullname: encodeURIComponent(String(redditLinkSelector.fullname)),
+					}
 				)
 			}
-			layout={EntityLayout.Summary}
-			open={false}
-			showTypeAnnotation={false}
 		>
 			{#snippet Title()}
-				{[String((redditLinkFields.title) ?? '')].filter(Boolean).join(' ') || [String((redditLinkFields.fullname) ?? '')].filter(Boolean).join(' ') || 'Reddit submission'}
+				{[(redditLink.title ?? ''), redditLinkSelector.fullname].filter(Boolean).join(' ') || redditLinkSelector.fullname || 'Reddit submission'}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{[String((redditLinkFields.createdAt) ?? '')].filter(Boolean).join(' ')}</span>
+				<span data-text="annotation">{String(redditLink.createdAt ?? '')}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

@@ -2,15 +2,10 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -26,31 +21,10 @@
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.NostrArticle>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.NostrArticle>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.NostrArticle> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const nostrArticle = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {},
-	} : {
-		sources: selection.sources,
-	}))
-	const titleFallback = $derived([String((pendingEntity.identifier) ?? '')].filter(Boolean).join(' ') || 'Nostr article')
-	const viewDomId = $derived('nostr-article-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const titleFallback = $derived((pendingEntity.identifier ?? '') || 'Nostr article')
 
 
 	// Components
@@ -63,21 +37,19 @@
 
 <EntityView
 	entityType={EntityType.NostrArticle}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
 	href={
 		href ?? (
-			selection.entitySelector.kind === 30023
-			&& selection.entitySelector != null && 'pubkey' in selection.entitySelector
-			&& selection.entitySelector.pubkey != null
-			&& selection.entitySelector != null && 'identifier' in selection.entitySelector
-			&& selection.entitySelector.identifier != null ?
-				resolve('/nostr/article/[pubkey=stringSegment]/[identifier=stringSegment]', {
-			pubkey: String(selection.entitySelector.pubkey ?? ''),
-			identifier: String(selection.entitySelector.identifier ?? ''),
-		})
-		:
+			selection.entitySelector.kind === 30023 ?
+				resolve(
+					'/(social)/(nostr)/nostr/(globalNostrNetwork)/article/[pubkey=stringSegment]/[identifier=stringSegment]',
+					{
+						pubkey: String(selection.entitySelector.pubkey),
+						identifier: String(selection.entitySelector.identifier),
+					}
+				)
+			:
 				undefined
 		)
 	}
@@ -86,65 +58,33 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={nostrArticle}>
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				<ResourceBoundary
-					resource={
-						selection
-							.$latestEvent({
-								sources: [
-									Source.NostrBand_Rest,
-									Source.Primal_Rest,
-								],
-							})
-					}
-				>
-					{#snippet children(nostrArticleEvent)}
-						{#if nostrArticleEvent != null && nostrArticleEvent[EntityMetaKey.Selector] != null}
-							<NostrArticleEventView
-								selection={select(EntityType.NostrArticleEvent, nostrArticleEvent[EntityMetaKey.Selector])}
-								prefetched={nostrArticleEvent}
-								href=""
-								layout={EntityLayout.Title}
-								open={false}
-							/>
-						{/if}
-					{/snippet}
-				</ResourceBoundary>
-				{@const identifier1 = resolvedEntity.identifier}
-				{#if identifier1 !== undefined && identifier1 !== null}
-					{String((identifier1) ?? '')}
+		<ResourceBoundary
+			resource={selection.$latestEvent}
+		>
+			{#snippet children(nostrArticleEvent)}
+				{#if nostrArticleEvent != null}
+					<NostrArticleEventView
+						selection={select(EntityType.NostrArticleEvent, nostrArticleEvent[EntityMetaKey.Selector])}
+						prefetched={nostrArticleEvent}
+						href=""
+						layout={EntityLayout.Title}
+						open={false}
+					/>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>
+		{pendingEntity.identifier}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={nostrArticle}>
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const pubkey0 = resolvedEntity.pubkey}
-				{#if pubkey0 !== undefined && pubkey0 !== null}
-					<TruncatedValue value={String((pubkey0) ?? '')} />
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		<TruncatedValue value={pendingEntity.pubkey} />
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		<ResourceBoundary resource={nostrArticle}>
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const kind0 = resolvedEntity.kind}
-				{#if kind0 !== undefined && kind0 !== null}
-					<span data-text="muted">
-						<span>kind </span>
-						{String((kind0) ?? '')}
-					</span>
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		<span data-text="muted">
+			<span>kind </span>
+			{String(pendingEntity.kind)}
+		</span>
 	{/snippet}
 
 	{#snippet TypeAnnotationTooltip()}
@@ -158,108 +98,38 @@
 			<div>
 				<dt>Identifier</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									identifier: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const identifier = resolvedEntity.identifier}
-							{#if identifier !== undefined && identifier !== null}
-								{String((identifier) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{pendingEntity.identifier}
 				</dd>
 			</div>
 
 			<div>
 				<dt>Author pubkey</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									pubkey: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const pubkey = resolvedEntity.pubkey}
-							{#if pubkey !== undefined && pubkey !== null}
-								<TruncatedValue value={String((pubkey) ?? '')} />
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					<TruncatedValue value={pendingEntity.pubkey} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Kind</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									kind: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const kind = resolvedEntity.kind}
-							{#if kind !== undefined && kind !== null}
-								<span>kind </span>
-								{String((kind) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					<span>kind </span>
+					{String(pendingEntity.kind)}
 				</dd>
 			</div>
 		</dl>
 
 		<dl data-column-item="center">
 			<ResourceBoundary
-				resource={
-					selection
-						.$latestEvent({
-							sources: [
-								Source.NostrBand_Rest,
-								Source.Primal_Rest,
-							],
-						})
-				}
+				resource={selection.$latestEvent}
 			>
 				{#snippet children(nostrArticleEvent)}
-					{#if nostrArticleEvent != null && nostrArticleEvent[EntityMetaKey.Selector] != null}
+					{#if nostrArticleEvent != null}
 						<div>
 							<dt>Latest signed version</dt>
 							<dd>
 								<NostrArticleEventView
 									selection={select(EntityType.NostrArticleEvent, nostrArticleEvent[EntityMetaKey.Selector])}
 									prefetched={nostrArticleEvent}
-									href={
-										(
-											nostrArticleEvent[EntityMetaKey.Selector] != null && 'eventId' in nostrArticleEvent[EntityMetaKey.Selector]
-											&& nostrArticleEvent[EntityMetaKey.Selector].eventId != null ?
-												resolve('/nostr/article-version/[eventId=stringSegment]', {
-											eventId: String(nostrArticleEvent[EntityMetaKey.Selector].eventId ?? ''),
-										})
-										:
-												undefined
-										)
-									}
 									layout={EntityLayout.Value}
 									open={false}
 								/>
@@ -272,26 +142,20 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-				{@const nostrArticleNostrArticleEventsViewEventsResource = selection
-		.$$events({
-			sources: [
-				Source.NostrBand_Rest,
-				Source.Primal_Rest,
-			],
-		})}
-				<ResourceBoundary
-					resource={nostrArticleNostrArticleEventsViewEventsResource}
-				>
-					{#snippet children(entities)}
-						{#if entities.values.length > 0}
-						<NostrArticleEventsView
-							selection={nostrArticleNostrArticleEventsViewEventsResource}
-							countResource={nostrArticleNostrArticleEventsViewEventsResource.count}
-							title='Signed version history'
-							id='NostrArticleEventsView-events'
-						/>
-						{/if}
-					{/snippet}
-				</ResourceBoundary>
+		{@const nostrArticleNostrArticleEventsViewEventsResource = selection.$$events}
+		<ResourceBoundary
+			resource={nostrArticleNostrArticleEventsViewEventsResource}
+		>
+			{#snippet children(entities)}
+				{#if entities.values.length > 0}
+					<NostrArticleEventsView
+						selection={nostrArticleNostrArticleEventsViewEventsResource}
+						countResource={nostrArticleNostrArticleEventsViewEventsResource.count}
+						title='Signed version history'
+						id='events'
+					/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 </EntityView>

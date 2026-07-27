@@ -1,16 +1,13 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { entity, facet } from '$/schema/$schema.ts'
+import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { EvmAddress } from '$/schema/ZeroExHex.ts'
 import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
-export enum Erc4337SmartAccountSelector {
-	EvmNetworkAddress = 'EvmNetworkAddress',
-}
-export const Erc4337SmartAccount = entity({
+export default entity({
 	entityType: EntityType.Erc4337SmartAccount,
 	labels: {
 		singular: 'ERC-4337 smart account',
@@ -26,7 +23,7 @@ export const Erc4337SmartAccount = entity({
 	address: {
 		label: 'Address',
 		type: EntityFieldType.Primitive,
-		primitiveType: (EvmAddress),
+		primitiveType: EvmAddress,
 		cardinality: EntityFieldCardinality.One,
 	},
 	$contract: {

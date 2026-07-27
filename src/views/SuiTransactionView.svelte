@@ -2,11 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { stringify } from 'devalue'
 
@@ -20,35 +16,14 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.SuiTransaction>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.SuiTransaction>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.SuiTransaction> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const suiTransaction = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {},
-	} : {
-		sources: selection.sources,
-	}))
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const titleFallback = 'Sui transaction'
-	const viewDomId = $derived('sui-transaction-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const viewDomId = $derived('sui-transaction-' + encodeURIComponent(stringify(selection.entitySelector)))
 
 
 	// Components
@@ -67,24 +42,15 @@
 
 <EntityView
 	entityType={EntityType.SuiTransaction}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
+	entitySelector={selection.entitySelector}
 	id={viewDomId}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails}
-			{title || titleFallback}
-		{:else}
-			<ResourceBoundary resource={suiTransaction}>
-				{#snippet children(entity)}
-					{title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		Sui transaction
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -103,31 +69,13 @@
 			<div>
 				<dt>digest</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									digest: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const digest = resolvedEntity.digest}
-							{#if digest !== undefined && digest !== null}
-								<TruncatedValue value={String((digest) ?? '')} />
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					<TruncatedValue value={pendingEntity.digest} />
 				</dd>
 			</div>
 
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							transactionKind: true,
 						},
@@ -135,13 +83,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const transactionKind = resolvedEntity.transactionKind}
-					{#if transactionKind !== undefined && transactionKind !== null}
+					{@const transactionKind = entity.transactionKind}
+					{#if transactionKind != null}
 						<div>
 							<dt>transaction kind</dt>
 							<dd>
-								{String((transactionKind) ?? '')}
+								{transactionKind}
 							</dd>
 						</div>
 					{/if}
@@ -151,7 +98,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							sender: true,
 						},
@@ -159,13 +105,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const sender = resolvedEntity.sender}
-					{#if sender !== undefined && sender !== null}
+					{@const sender = entity.sender}
+					{#if sender != null}
 						<div>
 							<dt>sender</dt>
 							<dd>
-								{String((sender) ?? '')}
+								{sender}
 							</dd>
 						</div>
 					{/if}
@@ -183,12 +128,10 @@
 					{
 						id: 'sui-transaction-commands',
 						label: 'Commands',
-						ownsSection: true,
 					},
 					{
 						id: 'sui-transaction-object-changes',
 						label: 'Object Changes',
-						ownsSection: true,
 					},
 				]
 			}
@@ -201,136 +144,34 @@
 				</header>
 			{/snippet}
 
-			{#snippet MarkerSuiTransactionCommands(_context, Content)}
-				{@const suiTransactionActivitySuiTransactionCommandsResource = selection.$$commands}
-				<ResourceBoundary
-					resource={suiTransactionActivitySuiTransactionCommandsResource}
-				>
-					{#snippet children(_resolved)}
-						{@render Content()}
-					{/snippet}
-
-					{#snippet PendingContent()}
-						{@render Content()}
-					{/snippet}
-
-					{#snippet FailedContent(_error, _retry)}
-						{@render Content()}
-					{/snippet}
-				</ResourceBoundary>
+			{#snippet SectionSuiTransactionCommands({ id, label, open })}
+				<SuiProgrammableTransactionCommandsView
+					selection={selection.$$commands}
+					CollapsibleProps={{ canToggle: false }}
+					collapsible={false}
+					data-column-item="flexible"
+					data-card
+					data-scroll-container
+					open={open}
+					title={label}
+					emptyText='No commands.'
+					id={`${id}-list`}
+				/>
 			{/snippet}
 
-			{#snippet SectionSuiTransactionCommands({ id, label, open, active })}
-				{@const suiTransactionActivitySuiTransactionCommandsResource = selection.$$commands}
-				<ResourceBoundary
-					resource={suiTransactionActivitySuiTransactionCommandsResource}
-				>
-					{#snippet children(suiProgrammableTransactionCommand)}
-						<section
-							id={id}
-							aria-labelledby={`${id}:marker`}
-							data-scroll-marker-label={label}
-							data-column-item="flexible"
-							data-column
-							data-active={active}
-						>
-							<SuiProgrammableTransactionCommandsView
-								selection={suiTransactionActivitySuiTransactionCommandsResource}
-								CollapsibleProps={{ canToggle: false }}
-								collapsible={false}
-								data-column-item="flexible"
-								data-card
-								data-scroll-container
-								open={open}
-								title={label}
-								emptyText='No commands.'
-								id={`${id}-list`}
-							/>
-						</section>
-					{/snippet}
-
-					{#snippet Pending()}
-						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
-							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
-								<span data-tag data-text="muted" data-resource-state="pending" class="loading inline-placeholder" aria-busy="true" aria-label="Loading…">•••</span>
-							</article>
-						</section>
-					{/snippet}
-
-					{#snippet Failed(_error, _retry)}
-						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
-							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
-								<span data-tag data-resource-state="failed" class="inline-placeholder" aria-label="Failed to load">•••</span>
-							</article>
-						</section>
-					{/snippet}
-				</ResourceBoundary>
-			{/snippet}
-
-			{#snippet MarkerSuiTransactionObjectChanges(_context, Content)}
-				{@const suiTransactionActivitySuiTransactionObjectChangesResource = selection.$$objectChanges}
-				<ResourceBoundary
-					resource={suiTransactionActivitySuiTransactionObjectChangesResource}
-				>
-					{#snippet children(_resolved)}
-						{@render Content()}
-					{/snippet}
-
-					{#snippet PendingContent()}
-						{@render Content()}
-					{/snippet}
-
-					{#snippet FailedContent(_error, _retry)}
-						{@render Content()}
-					{/snippet}
-				</ResourceBoundary>
-			{/snippet}
-
-			{#snippet SectionSuiTransactionObjectChanges({ id, label, open, active })}
-				{@const suiTransactionActivitySuiTransactionObjectChangesResource = selection.$$objectChanges}
-				<ResourceBoundary
-					resource={suiTransactionActivitySuiTransactionObjectChangesResource}
-				>
-					{#snippet children(suiObjectChange)}
-						<section
-							id={id}
-							aria-labelledby={`${id}:marker`}
-							data-scroll-marker-label={label}
-							data-column-item="flexible"
-							data-column
-							data-active={active}
-						>
-							<SuiObjectChangesView
-								selection={suiTransactionActivitySuiTransactionObjectChangesResource}
-								CollapsibleProps={{ canToggle: false }}
-								collapsible={false}
-								data-column-item="flexible"
-								data-card
-								data-scroll-container
-								open={open}
-								title={label}
-								emptyText='No object changes.'
-								id={`${id}-list`}
-							/>
-						</section>
-					{/snippet}
-
-					{#snippet Pending()}
-						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
-							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
-								<span data-tag data-text="muted" data-resource-state="pending" class="loading inline-placeholder" aria-busy="true" aria-label="Loading…">•••</span>
-							</article>
-						</section>
-					{/snippet}
-
-					{#snippet Failed(_error, _retry)}
-						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
-							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
-								<span data-tag data-resource-state="failed" class="inline-placeholder" aria-label="Failed to load">•••</span>
-							</article>
-						</section>
-					{/snippet}
-				</ResourceBoundary>
+			{#snippet SectionSuiTransactionObjectChanges({ id, label, open })}
+				<SuiObjectChangesView
+					selection={selection.$$objectChanges}
+					CollapsibleProps={{ canToggle: false }}
+					collapsible={false}
+					data-column-item="flexible"
+					data-card
+					data-scroll-container
+					open={open}
+					title={label}
+					emptyText='No object changes.'
+					id={`${id}-list`}
+				/>
 			{/snippet}
 
 		</CollapsibleTabs>
@@ -343,12 +184,10 @@
 					{
 						id: 'sui-transaction-balance-changes',
 						label: 'Balance Changes',
-						ownsSection: true,
 					},
 					{
 						id: 'sui-transaction-events',
 						label: 'Events',
-						ownsSection: true,
 					},
 				]
 			}
@@ -361,136 +200,34 @@
 				</header>
 			{/snippet}
 
-			{#snippet MarkerSuiTransactionBalanceChanges(_context, Content)}
-				{@const suiTransactionRelatedSuiTransactionBalanceChangesResource = selection.$$balanceChanges}
-				<ResourceBoundary
-					resource={suiTransactionRelatedSuiTransactionBalanceChangesResource}
-				>
-					{#snippet children(_resolved)}
-						{@render Content()}
-					{/snippet}
-
-					{#snippet PendingContent()}
-						{@render Content()}
-					{/snippet}
-
-					{#snippet FailedContent(_error, _retry)}
-						{@render Content()}
-					{/snippet}
-				</ResourceBoundary>
+			{#snippet SectionSuiTransactionBalanceChanges({ id, label, open })}
+				<SuiBalanceChangesView
+					selection={selection.$$balanceChanges}
+					CollapsibleProps={{ canToggle: false }}
+					collapsible={false}
+					data-column-item="flexible"
+					data-card
+					data-scroll-container
+					open={open}
+					title={label}
+					emptyText='No balance changes.'
+					id={`${id}-list`}
+				/>
 			{/snippet}
 
-			{#snippet SectionSuiTransactionBalanceChanges({ id, label, open, active })}
-				{@const suiTransactionRelatedSuiTransactionBalanceChangesResource = selection.$$balanceChanges}
-				<ResourceBoundary
-					resource={suiTransactionRelatedSuiTransactionBalanceChangesResource}
-				>
-					{#snippet children(suiBalanceChange)}
-						<section
-							id={id}
-							aria-labelledby={`${id}:marker`}
-							data-scroll-marker-label={label}
-							data-column-item="flexible"
-							data-column
-							data-active={active}
-						>
-							<SuiBalanceChangesView
-								selection={suiTransactionRelatedSuiTransactionBalanceChangesResource}
-								CollapsibleProps={{ canToggle: false }}
-								collapsible={false}
-								data-column-item="flexible"
-								data-card
-								data-scroll-container
-								open={open}
-								title={label}
-								emptyText='No balance changes.'
-								id={`${id}-list`}
-							/>
-						</section>
-					{/snippet}
-
-					{#snippet Pending()}
-						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
-							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
-								<span data-tag data-text="muted" data-resource-state="pending" class="loading inline-placeholder" aria-busy="true" aria-label="Loading…">•••</span>
-							</article>
-						</section>
-					{/snippet}
-
-					{#snippet Failed(_error, _retry)}
-						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
-							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
-								<span data-tag data-resource-state="failed" class="inline-placeholder" aria-label="Failed to load">•••</span>
-							</article>
-						</section>
-					{/snippet}
-				</ResourceBoundary>
-			{/snippet}
-
-			{#snippet MarkerSuiTransactionEvents(_context, Content)}
-				{@const suiTransactionRelatedSuiTransactionEventsResource = selection.$$events}
-				<ResourceBoundary
-					resource={suiTransactionRelatedSuiTransactionEventsResource}
-				>
-					{#snippet children(_resolved)}
-						{@render Content()}
-					{/snippet}
-
-					{#snippet PendingContent()}
-						{@render Content()}
-					{/snippet}
-
-					{#snippet FailedContent(_error, _retry)}
-						{@render Content()}
-					{/snippet}
-				</ResourceBoundary>
-			{/snippet}
-
-			{#snippet SectionSuiTransactionEvents({ id, label, open, active })}
-				{@const suiTransactionRelatedSuiTransactionEventsResource = selection.$$events}
-				<ResourceBoundary
-					resource={suiTransactionRelatedSuiTransactionEventsResource}
-				>
-					{#snippet children(suiEvent)}
-						<section
-							id={id}
-							aria-labelledby={`${id}:marker`}
-							data-scroll-marker-label={label}
-							data-column-item="flexible"
-							data-column
-							data-active={active}
-						>
-							<SuiEventsView
-								selection={suiTransactionRelatedSuiTransactionEventsResource}
-								CollapsibleProps={{ canToggle: false }}
-								collapsible={false}
-								data-column-item="flexible"
-								data-card
-								data-scroll-container
-								open={open}
-								title={label}
-								emptyText='No events.'
-								id={`${id}-list`}
-							/>
-						</section>
-					{/snippet}
-
-					{#snippet Pending()}
-						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
-							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
-								<span data-tag data-text="muted" data-resource-state="pending" class="loading inline-placeholder" aria-busy="true" aria-label="Loading…">•••</span>
-							</article>
-						</section>
-					{/snippet}
-
-					{#snippet Failed(_error, _retry)}
-						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
-							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
-								<span data-tag data-resource-state="failed" class="inline-placeholder" aria-label="Failed to load">•••</span>
-							</article>
-						</section>
-					{/snippet}
-				</ResourceBoundary>
+			{#snippet SectionSuiTransactionEvents({ id, label, open })}
+				<SuiEventsView
+					selection={selection.$$events}
+					CollapsibleProps={{ canToggle: false }}
+					collapsible={false}
+					data-column-item="flexible"
+					data-card
+					data-scroll-container
+					open={open}
+					title={label}
+					emptyText='No events.'
+					id={`${id}-list`}
+				/>
 			{/snippet}
 
 		</CollapsibleTabs>
@@ -503,7 +240,6 @@
 					{
 						id: 'sui-transaction-timestamps',
 						label: 'Timestamps',
-						ownsSection: true,
 					},
 				]
 			}
@@ -516,70 +252,19 @@
 				</header>
 			{/snippet}
 
-			{#snippet MarkerSuiTransactionTimestamps(_context, Content)}
-				{@const suiTransactionObservationsSuiTransactionTimestampsResource = selection.$$timestamps}
-				<ResourceBoundary
-					resource={suiTransactionObservationsSuiTransactionTimestampsResource}
-				>
-					{#snippet children(_resolved)}
-						{@render Content()}
-					{/snippet}
-
-					{#snippet PendingContent()}
-						{@render Content()}
-					{/snippet}
-
-					{#snippet FailedContent(_error, _retry)}
-						{@render Content()}
-					{/snippet}
-				</ResourceBoundary>
-			{/snippet}
-
-			{#snippet SectionSuiTransactionTimestamps({ id, label, open, active })}
-				{@const suiTransactionObservationsSuiTransactionTimestampsResource = selection.$$timestamps}
-				<ResourceBoundary
-					resource={suiTransactionObservationsSuiTransactionTimestampsResource}
-				>
-					{#snippet children(suiTransactionTimestamp)}
-						<section
-							id={id}
-							aria-labelledby={`${id}:marker`}
-							data-scroll-marker-label={label}
-							data-column-item="flexible"
-							data-column
-							data-active={active}
-						>
-							<SuiTransaction_TimestampsView
-								selection={suiTransactionObservationsSuiTransactionTimestampsResource}
-								CollapsibleProps={{ canToggle: false }}
-								collapsible={false}
-								data-column-item="flexible"
-								data-card
-								data-scroll-container
-								open={open}
-								title={label}
-								emptyText='No timestamps.'
-								id={`${id}-list`}
-							/>
-						</section>
-					{/snippet}
-
-					{#snippet Pending()}
-						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
-							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
-								<span data-tag data-text="muted" data-resource-state="pending" class="loading inline-placeholder" aria-busy="true" aria-label="Loading…">•••</span>
-							</article>
-						</section>
-					{/snippet}
-
-					{#snippet Failed(_error, _retry)}
-						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
-							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
-								<span data-tag data-resource-state="failed" class="inline-placeholder" aria-label="Failed to load">•••</span>
-							</article>
-						</section>
-					{/snippet}
-				</ResourceBoundary>
+			{#snippet SectionSuiTransactionTimestamps({ id, label, open })}
+				<SuiTransaction_TimestampsView
+					selection={selection.$$timestamps}
+					CollapsibleProps={{ canToggle: false }}
+					collapsible={false}
+					data-column-item="flexible"
+					data-card
+					data-scroll-container
+					open={open}
+					title={label}
+					emptyText='No timestamps.'
+					id={`${id}-list`}
+				/>
 			{/snippet}
 
 		</CollapsibleTabs>

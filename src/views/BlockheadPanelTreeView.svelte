@@ -2,14 +2,10 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
 
 
 	// Context
@@ -25,31 +21,10 @@
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.BlockheadPanelTree>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.BlockheadPanelTree>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.BlockheadPanelTree> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const blockheadPanelTree = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {},
-	} : {
-		sources: selection.sources,
-	}))
-	const titleFallback = $derived([String((pendingEntity.id) ?? '')].filter(Boolean).join(' ') || 'dashboard')
-	const viewDomId = $derived('blockhead-panel-tree-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const titleFallback = $derived((pendingEntity.id ?? '') || 'dashboard')
 
 
 	// Components
@@ -62,18 +37,14 @@
 
 <EntityView
 	entityType={EntityType.BlockheadPanelTree}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
 	href={
-		href ?? (
-			selection.entitySelector != null && 'id' in selection.entitySelector
-			&& selection.entitySelector.id != null ?
-				resolve('/~/dashboard/[dashboardId=stringSegment]', {
-			dashboardId: String(selection.entitySelector.id ?? ''),
-		})
-		:
-				undefined
+		href ?? resolve(
+			'/~/dashboard/[dashboardId=stringSegment]',
+			{
+				dashboardId: String(selection.entitySelector.id),
+			}
 		)
 	}
 	{layout}
@@ -81,35 +52,11 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails}
-			{@const id0 = pendingEntity.id}
-			{#if id0 !== undefined && id0 !== null}
-				<TruncatedValue value={String((id0) ?? '')} />
-			{/if}
-		{:else}
-			<ResourceBoundary resource={blockheadPanelTree}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const id0 = resolvedEntity.id}
-					{#if id0 !== undefined && id0 !== null}
-						<TruncatedValue value={String((id0) ?? '')} />
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<TruncatedValue value={pendingEntity.id} />
 	{/snippet}
 
 	{#snippet Value()}
-		{#if layout !== EntityLayout.SummaryDetails}
-			{['Dashboard'].filter(Boolean).join(' ') || [String((pendingEntity.id) ?? '')].filter(Boolean).join(' ') || titleFallback}
-		{:else}
-			<ResourceBoundary resource={blockheadPanelTree}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{['Dashboard'].filter(Boolean).join(' ') || [String((resolvedEntity.id) ?? '')].filter(Boolean).join(' ') || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		Dashboard
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -117,24 +64,7 @@
 			<div>
 				<dt>ID</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									id: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const id = resolvedEntity.id}
-							{#if id !== undefined && id !== null}
-								{String((id) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{pendingEntity.id}
 				</dd>
 			</div>
 
@@ -142,7 +72,7 @@
 				resource={selection.$workspace}
 			>
 				{#snippet children(blockheadWorkspace)}
-					{#if blockheadWorkspace != null && blockheadWorkspace[EntityMetaKey.Selector] != null}
+					{#if blockheadWorkspace != null}
 						<div>
 							<dt>workspace</dt>
 							<dd>
@@ -167,12 +97,12 @@
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
-				<BlockheadPanelsView
-					selection={blockheadPanelTreeBlockheadPanelsViewPanelsResource}
-					countResource={blockheadPanelTreeBlockheadPanelsViewPanelsResource.count}
-					title='panels'
-					id='BlockheadPanelsView-panels'
-				/>
+					<BlockheadPanelsView
+						selection={blockheadPanelTreeBlockheadPanelsViewPanelsResource}
+						countResource={blockheadPanelTreeBlockheadPanelsViewPanelsResource.count}
+						title='panels'
+						id='panels'
+					/>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>

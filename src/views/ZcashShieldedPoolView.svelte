@@ -2,14 +2,9 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
 	import { ZcashShieldedPoolKind } from '$/schema/ZcashShieldedPool.ts'
 
@@ -27,38 +22,16 @@
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.ZcashShieldedPool>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.ZcashShieldedPool>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.ZcashShieldedPool> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const zcashShieldedPool = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {
-			noteProtocol: true,
-			activationNetworkUpgrade: true,
-		},
-	} : {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const zcashShieldedPool = $derived(selection({
 		fields: {
 			noteProtocol: true,
 			activationNetworkUpgrade: true,
 		},
 	}))
-	const titleFallback = $derived([String((pendingEntity.pool) ?? '')].filter(Boolean).join(' ') || 'Zcash shielded pool')
-	const viewDomId = $derived('zcash-shielded-pool-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const titleFallback = $derived((pendingEntity.pool ?? '') || 'Zcash shielded pool')
 
 
 	// Components
@@ -69,31 +42,20 @@
 
 <EntityView
 	entityType={EntityType.ZcashShieldedPool}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
 	href={
-		href ?? (
-			selection.entitySelector != null && 'pool' in selection.entitySelector
-			&& selection.entitySelector.pool != null
-			&& selection.entitySelector != null && '$network' in selection.entitySelector ?
-				selection.entitySelector.$network != null && 'caip2' in selection.entitySelector.$network
-				&& selection.entitySelector.$network.caip2 != null ?
-					resolve('/network/[network=networkCaip2OrNetworkSlug]/shielded-pool/[pool=stringSegment]', {
-				pool: String(selection.entitySelector.pool ?? ''),
-				network: String(caip2StringFromValue(selection.entitySelector.$network.caip2) ?? ''),
-			})
-			:
-					selection.entitySelector.$network != null && 'slug' in selection.entitySelector.$network
-					&& selection.entitySelector.$network.slug != null ?
-						resolve('/network/[network=networkCaip2OrNetworkSlug]/shielded-pool/[pool=stringSegment]', {
-					pool: String(selection.entitySelector.pool ?? ''),
-					network: String(selection.entitySelector.$network.slug ?? ''),
-				})
-				:
-					undefined
-		:
-				undefined
+		href ?? resolve(
+			'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/shielded-pool/[pool=stringSegment]',
+			{
+				network: (
+					'caip2' in selection.entitySelector.$network ?
+						String(caip2StringFromValue(selection.entitySelector.$network.caip2))
+					:
+						String(selection.entitySelector.$network.slug)
+				),
+				pool: String(selection.entitySelector.pool),
+			}
 		)
 	}
 	{layout}
@@ -101,52 +63,25 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'noteProtocol') && Object.hasOwn(prefetched, 'activationNetworkUpgrade')}
-			{[String((pendingEntity.pool) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-		{:else}
-			<ResourceBoundary resource={zcashShieldedPool}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.pool) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		{(pendingEntity.pool ?? '') || 'Zcash shielded pool'}
 	{/snippet}
 
 	{#snippet Value()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'noteProtocol') && Object.hasOwn(prefetched, 'activationNetworkUpgrade')}
-			{[String((pendingEntity.noteProtocol) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.pool) ?? '')].filter(Boolean).join(' ') || titleFallback}
-		{:else}
-			<ResourceBoundary resource={zcashShieldedPool}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.noteProtocol) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.pool) ?? '')].filter(Boolean).join(' ') || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={zcashShieldedPool}>
+			{#snippet children(entity)}
+				{entity.noteProtocol || pendingEntity.pool || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'noteProtocol') && Object.hasOwn(prefetched, 'activationNetworkUpgrade')}
-			{@const activationNetworkUpgrade0 = pendingEntity.activationNetworkUpgrade}
-			{#if activationNetworkUpgrade0 !== undefined && activationNetworkUpgrade0 !== null}
+		<ResourceBoundary resource={zcashShieldedPool}>
+			{#snippet children(entity)}
 				<span data-text="muted">
-					{String((activationNetworkUpgrade0) ?? '')}
+					{entity.activationNetworkUpgrade}
 				</span>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={zcashShieldedPool}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const activationNetworkUpgrade0 = resolvedEntity.activationNetworkUpgrade}
-					{#if activationNetworkUpgrade0 !== undefined && activationNetworkUpgrade0 !== null}
-						<span data-text="muted">
-							{String((activationNetworkUpgrade0) ?? '')}
-						</span>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -154,24 +89,7 @@
 			<div>
 				<dt>Pool</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									pool: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const pool = resolvedEntity.pool}
-							{#if pool !== undefined && pool !== null}
-								{String((pool) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{pendingEntity.pool}
 				</dd>
 			</div>
 
@@ -179,21 +97,10 @@
 				<dt>Note protocol</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									noteProtocol: true,
-								},
-							})
-						}
+						resource={zcashShieldedPool}
 					>
 						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const noteProtocol = resolvedEntity.noteProtocol}
-							{#if noteProtocol !== undefined && noteProtocol !== null}
-								{String((noteProtocol) ?? '')}
-							{/if}
+							{entity.noteProtocol}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -203,21 +110,10 @@
 				<dt>Activation network upgrade</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									activationNetworkUpgrade: true,
-								},
-							})
-						}
+						resource={zcashShieldedPool}
 					>
 						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const activationNetworkUpgrade = resolvedEntity.activationNetworkUpgrade}
-							{#if activationNetworkUpgrade !== undefined && activationNetworkUpgrade !== null}
-								{String((activationNetworkUpgrade) ?? '')}
-							{/if}
+							{entity.activationNetworkUpgrade}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -228,23 +124,6 @@
 				<dd>
 					<NetworkView
 						selection={select(EntityType.Network, selection.entitySelector.$network)}
-						href={
-							(
-								selection.entitySelector.$network != null && 'caip2' in selection.entitySelector.$network
-								&& selection.entitySelector.$network.caip2 != null ?
-									resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-								network: String(caip2StringFromValue(selection.entitySelector.$network.caip2) ?? ''),
-							})
-							:
-									selection.entitySelector.$network != null && 'slug' in selection.entitySelector.$network
-									&& selection.entitySelector.$network.slug != null ?
-										resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-									network: String(selection.entitySelector.$network.slug ?? ''),
-								})
-								:
-									undefined
-							)
-						}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

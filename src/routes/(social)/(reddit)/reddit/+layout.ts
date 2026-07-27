@@ -2,7 +2,7 @@
 
 import type { LayoutLoad } from './$types'
 import { error } from '@sveltejs/kit'
-import { _GlobalRedditNetwork as _GlobalRedditNetworkSchema } from '$/schema/_GlobalRedditNetwork.ts'
+import _GlobalRedditNetworkSchema from '$/schema/_GlobalRedditNetwork.ts'
 import { parseEntitySelector } from '$/schema/$schema.ts'
 import { schema } from '$/schema/index.ts'
 import { type as arktype } from 'arktype'

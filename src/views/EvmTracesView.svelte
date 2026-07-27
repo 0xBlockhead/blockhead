@@ -2,69 +2,33 @@
 
 <script lang="ts">
 	// Types/constants
-	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
-	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
-	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
+	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-
-
+	import { EvmInternalCallType } from '$/constants/Evm.ts'
 
 
 	// State
 	let {
 		selection,
-		countResource,
 		title = 'Traces',
-		typeAnnotationParagraphs = [],
-		placeholderText = undefined,
-		emptyText = undefined,
 		open = $bindable(true),
-		collapsible = true,
-		showTypeAnnotation = true,
-		id = 'EvmTraces-list',
 		...EntitiesListProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyEntitiesSelection<EntityType.EvmTrace>
-			countResource?: SvelteKitResource<number>
-			title?: string
-			typeAnnotationParagraphs?: string[]
-			placeholderText?: string
-			emptyText?: string
-			open?: boolean
-			collapsible?: boolean
-			showTypeAnnotation?: boolean
-			id?: string
-		},
-		EntitiesListForwardProps
-	> = $props()
+	}: EntityListViewProps<EntityType.EvmTrace> = $props()
 
 
 	// Components
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView from '$/components/EntityView.svelte'
 </script>
 
-
-{#snippet TypeAnnotationParagraphs()}
-	{#each typeAnnotationParagraphs as paragraph (paragraph)}
-		<p>{paragraph}</p>
-	{/each}
-{/snippet}
 
 <EntitiesList
 	{...EntitiesListProps}
 	entityType={EntityType.EvmTrace}
-	{id}
 	{title}
 	bind:open
-	{collapsible}
-	{showTypeAnnotation}
-	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
 	resource={
 		selection({
-			sources: selection.sources,
 			fields: {
 				index: true,
 				traceAddress: true,
@@ -73,34 +37,19 @@
 			},
 		})
 	}
-	{countResource}
-	getResourceItems={(evmTraces) => [...new Map(evmTraces.values.map((evmTrace) => [evmTrace[EntityMetaKey.SelectorKey], evmTrace])).values()]}
-	getKey={(evmTrace) => evmTrace[EntityMetaKey.SelectorKey]}
-	{placeholderText}
 >
-	{#snippet Empty()}
-		{#if emptyText != null}
-			<p data-text="muted">{emptyText}</p>
-		{:else}
-			<p data-text="muted">No EVM traces yet.</p>
-		{/if}
-	{/snippet}
-
 	{#snippet Item({ item: evmTrace })}
-		{@const evmTraceFields = { ...evmTrace[EntityMetaKey.Selector], ...evmTrace }}
+		{@const evmTraceSelector = evmTrace[EntityMetaKey.Selector]}
 		<EntityView
 			entityType={EntityType.EvmTrace}
-			entitySelector={evmTrace[EntityMetaKey.Selector]}
-			layout={EntityLayout.Summary}
-			open={false}
-			showTypeAnnotation={false}
+			entitySelector={evmTraceSelector}
 		>
 			{#snippet Title()}
-				{(String((evmTraceFields.index) ?? '') ? 'Trace #' + String((evmTraceFields.index) ?? '') : '') || [String((evmTraceFields.traceAddress) ?? '')].filter(Boolean).join(' ') || 'EVM trace'}
+				{(String(evmTrace.index ?? '') ? 'Trace #' + String(evmTrace.index ?? '') : '') || (evmTraceSelector.traceAddress ?? '') || 'EVM trace'}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{[String((evmTraceFields.type) ?? ''), String((evmTraceFields.error) ?? '')].filter(Boolean).join(' ')}</span>
+				<span data-text="annotation">{[evmTrace.type, (evmTrace.error ?? '')].filter(Boolean).join(' ')}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

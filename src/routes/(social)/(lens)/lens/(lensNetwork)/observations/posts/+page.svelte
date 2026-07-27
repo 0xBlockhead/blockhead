@@ -2,12 +2,12 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
@@ -23,29 +23,20 @@
 
 
 <Page>
+	{@const collectionSelection = select(EntityType.LensNetwork, {
+		scope: 'LensNetwork',
+	})
+		.$$lensPosts({
+			sources: [
+				Source.Lens_Graphql,
+			],
+		})}
+
 	<LensPostsView
-		href={resolve('/lens/observations/posts')}
+		href={resolve('/(social)/(lens)/lens/(lensNetwork)/observations/posts')}
 		title='Lens posts'
-		selection={
-			select(EntityType.LensNetwork, {
-				scope: 'LensNetwork',
-			})
-				.$$lensPosts({
-					sources: [
-						Source.Lens_Graphql,
-					],
-				})
-		}
-		countResource={
-			select(EntityType.LensNetwork, {
-				scope: 'LensNetwork',
-			})
-				.$$lensPosts({
-					sources: [
-						Source.Lens_Graphql,
-					],
-				}).count
-		}
+		selection={collectionSelection}
+		countResource={collectionSelection.count}
 		id='lens-posts'
 		data-column-item="flexible"
 		data-card

@@ -5,15 +5,15 @@
  * @see https://github.com/Blockchair/Blockchair.Support/blob/master/API.md
  */
 
-import { sourceProviderDefinitions } from '$/sources/$sourceProviders.ts'
-import { Source } from '$/sources/Source.ts'
 import {
 	firstHttpUrlForBinding,
 	sourceGetJson,
 } from '$/sources/_runtime/http.ts'
-import { SourceTargetKind } from '$/sources/SourceBinding.ts'
-
+import bindings from '$/sources/Blockchair/bindings.ts'
 import type { BlockchairRequestOptions } from '$/sources/Blockchair/Rest/types.ts'
+import { Source } from '$/sources/Source.ts'
+
+const binding = bindings[Source.Blockchair_Rest]
 
 export type BlockchairSearchParams = Record<
 	string,
@@ -22,19 +22,6 @@ export type BlockchairSearchParams = Record<
 	| string
 	| undefined
 >
-
-const blockchairRestBindings = sourceProviderDefinitions
-	.flatMap((provider) => provider.bindings)
-	.filter((binding) => (
-		binding.source === Source.Blockchair_Rest
-		&& binding.target.kind === SourceTargetKind.Global
-		&& binding.target.key === 'blockchair'
-	))
-
-if (blockchairRestBindings.length !== 1)
-	throw new Error('Blockchair_Rest: canonical REST source binding is missing or ambiguous')
-
-const blockchairRestBinding = blockchairRestBindings[0]
 
 const blockchairUrl = ({
 	path,
@@ -45,7 +32,7 @@ const blockchairUrl = ({
 	searchParams?: BlockchairSearchParams
 	options?: BlockchairRequestOptions
 }) => {
-	const url = new URL(firstHttpUrlForBinding(blockchairRestBinding))
+	const url = new URL(firstHttpUrlForBinding(binding))
 	url.pathname = path
 	for (const [key, value] of Object.entries(searchParams ?? {})) {
 		if (value != null) url.searchParams.set(key, String(value))
@@ -65,7 +52,7 @@ export const getBlockchairJson = <_Response>({
 	options?: BlockchairRequestOptions
 }) => (
 	sourceGetJson<_Response>(
-		blockchairRestBinding,
+		binding,
 		blockchairUrl({
 			path,
 			searchParams,

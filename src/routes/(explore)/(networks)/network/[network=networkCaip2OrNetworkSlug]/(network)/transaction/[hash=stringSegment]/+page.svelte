@@ -7,14 +7,12 @@
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		data,
-		params,
 	}: PageProps = $props()
 
 	const pageSelection = $derived(select(EntityType.XrplTransaction, data.selector, {
@@ -33,18 +31,12 @@
 
 
 <svelte:head>
-	<title>{(data.title ?? (pageSelection.entity == null ? 'XRPL transaction' : 'XRPL transaction'))} • XRPL transaction • Blockhead</title>
+	<title>{(data.title ?? ('XRPL transaction'))} • XRPL transaction • Blockhead</title>
 </svelte:head>
 
 
 <Page>
 	<XrplTransactionView
-		href={
-			resolve('/network/[network=networkCaip2OrNetworkSlug]/transaction/[hash=stringSegment]', {
-				network: params.network,
-				hash: params.hash,
-			})
-		}
 		selection={pageSelection}
 	/>
 </Page>

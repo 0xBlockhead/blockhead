@@ -2,13 +2,10 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -20,42 +17,24 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.BlockheadAgentProfile>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.BlockheadAgentProfile>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.BlockheadAgentProfile> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const blockheadAgentProfile = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {
-			label: true,
-			updatedAt: true,
-		},
-	} : {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const viewSelection = $derived(selection({
+		sources: selection.sources ?? [
+			Source.Local_Internal,
+		],
+	}))
+	const blockheadAgentProfile = $derived(viewSelection({
 		fields: {
 			label: true,
 			updatedAt: true,
 		},
 	}))
-	const titleFallback = $derived([String((pendingEntity.label) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.profileId) ?? '')].filter(Boolean).join(' ') || 'blockhead agent profile')
-	const viewDomId = $derived('blockhead-agent-profile-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const titleFallback = $derived((pendingEntity.label ?? '') || (pendingEntity.profileId ?? '') || 'blockhead agent profile')
 
 
 	// Components
@@ -69,10 +48,8 @@
 
 <EntityView
 	entityType={EntityType.BlockheadAgentProfile}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -80,30 +57,25 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={blockheadAgentProfile}>
 			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.label) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+				{(entity.label ?? '') || title || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={blockheadAgentProfile}>
-			{#snippet children(entity)}
-				<ResourceBoundary
-					resource={selection.$model}
-				>
-					{#snippet children(aiModel)}
-						{#if aiModel != null && aiModel[EntityMetaKey.Selector] != null}
-							<AiModelView
-								selection={select(EntityType.AiModel, aiModel[EntityMetaKey.Selector])}
-								prefetched={aiModel}
-								href=""
-								layout={EntityLayout.Value}
-								open={false}
-							/>
-						{/if}
-					{/snippet}
-				</ResourceBoundary>
+		<ResourceBoundary
+			resource={selection.$model}
+		>
+			{#snippet children(aiModel)}
+				{#if aiModel != null}
+					<AiModelView
+						selection={select(EntityType.AiModel, aiModel[EntityMetaKey.Selector])}
+						prefetched={aiModel}
+						href=""
+						layout={EntityLayout.Value}
+						open={false}
+					/>
+				{/if}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -111,9 +83,8 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={blockheadAgentProfile}>
 			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const updatedAt0 = resolvedEntity.updatedAt}
-				{#if updatedAt0 !== undefined && updatedAt0 !== null}
+				{@const updatedAt0 = entity.updatedAt}
+				{#if updatedAt0 != null}
 					<span data-text="muted">
 						<Timestamp timestamp={Number(updatedAt0)} />
 					</span>
@@ -127,45 +98,20 @@
 			<div>
 				<dt>profile ID</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									profileId: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const profileId = resolvedEntity.profileId}
-							{#if profileId !== undefined && profileId !== null}
-								{String((profileId) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{pendingEntity.profileId}
 				</dd>
 			</div>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							label: true,
-						},
-					})
-				}
+				resource={blockheadAgentProfile}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const label = resolvedEntity.label}
-					{#if label !== undefined && label !== null}
+					{@const label = entity.label}
+					{#if label != null}
 						<div>
 							<dt>Label</dt>
 							<dd>
-								{String((label) ?? '')}
+								{label}
 							</dd>
 						</div>
 					{/if}
@@ -176,7 +122,7 @@
 				resource={selection.$model}
 			>
 				{#snippet children(aiModel)}
-					{#if aiModel != null && aiModel[EntityMetaKey.Selector] != null}
+					{#if aiModel != null}
 						<div>
 							<dt>model</dt>
 							<dd>
@@ -198,7 +144,7 @@
 				resource={selection.$mcpServer}
 			>
 				{#snippet children(mcpServer)}
-					{#if mcpServer != null && mcpServer[EntityMetaKey.Selector] != null}
+					{#if mcpServer != null}
 						<div>
 							<dt>MCP server</dt>
 							<dd>
@@ -218,7 +164,7 @@
 				resource={selection.$eip8004Registration}
 			>
 				{#snippet children(eip8004AgentRegistration)}
-					{#if eip8004AgentRegistration != null && eip8004AgentRegistration[EntityMetaKey.Selector] != null}
+					{#if eip8004AgentRegistration != null}
 						<div>
 							<dt>EIP-8004 registration</dt>
 							<dd>
@@ -238,8 +184,7 @@
 		<dl data-column-item="center">
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							createdAt: true,
 						},
@@ -247,9 +192,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const createdAt = resolvedEntity.createdAt}
-					{#if createdAt !== undefined && createdAt !== null}
+					{@const createdAt = entity.createdAt}
+					{#if createdAt != null}
 						<div>
 							<dt>Created</dt>
 							<dd>
@@ -261,19 +205,11 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							updatedAt: true,
-						},
-					})
-				}
+				resource={blockheadAgentProfile}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const updatedAt = resolvedEntity.updatedAt}
-					{#if updatedAt !== undefined && updatedAt !== null}
+					{@const updatedAt = entity.updatedAt}
+					{#if updatedAt != null}
 						<div>
 							<dt>Updated</dt>
 							<dd>

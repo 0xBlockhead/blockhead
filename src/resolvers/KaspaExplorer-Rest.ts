@@ -7,26 +7,10 @@ import {
 	type EntitySelector,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import { KaspaAddressSelector } from '$/schema/KaspaAddress.ts'
 import { schema } from '$/schema/index.ts'
 import { Source } from '$/sources/Source.ts'
-import { sourceProviderDefinitions } from '$/sources/$sourceProviders.ts'
-import { SourceTargetKind } from '$/sources/SourceBinding.ts'
 
 type KaspaNetworkId = EntitySelector<typeof schema, EntityType.KaspaNetwork>
-
-const kaspaExplorerBindings = sourceProviderDefinitions
-	.flatMap((provider) => provider.bindings)
-	.filter((binding) => (
-		binding.source === Source.KaspaExplorer_Rest
-		&& binding.target.kind === SourceTargetKind.Global
-		&& binding.target.key === 'kaspa-explorer-api'
-	))
-
-if (kaspaExplorerBindings.length !== 1)
-	throw new Error('KaspaExplorer_Rest: canonical Explorer binding is missing or ambiguous')
-
-const kaspaExplorerBinding = kaspaExplorerBindings[0]
 
 const kaspaAddressApplicability = [{
 	$network: {
@@ -55,7 +39,7 @@ export default {
 		defineResolver(Source.KaspaExplorer_Rest, {
 			entityType: EntityType.KaspaAddress,
 			resolve: {
-				[KaspaAddressSelector.NetworkAddress]: {
+				NetworkAddress: {
 					appliesTo: kaspaAddressApplicability,
 					resolve: async (address, context) => {
 						assertKaspaMainnet(address.$network)
@@ -72,9 +56,9 @@ export default {
 							transactions,
 							utxos,
 						] = await Promise.all([
-							getAddressBalance(kaspaExplorerBinding, address.address),
-							getAddressTransactionCount(kaspaExplorerBinding, address.address),
-							getAddressUtxoCount(kaspaExplorerBinding, address.address),
+							getAddressBalance(address.address),
+							getAddressTransactionCount(address.address),
+							getAddressUtxoCount(address.address),
 						])
 						return [{
 							[EntityMetaKey.Selector]: {
@@ -98,7 +82,7 @@ export default {
 		defineResolver(Source.KaspaExplorer_Rest, {
 			entityType: EntityType.KaspaAddress,
 			resolve: {
-				[KaspaAddressSelector.NetworkAddress]: {
+				NetworkAddress: {
 					appliesTo: kaspaAddressApplicability,
 					resolve: async (address, context) => {
 						assertKaspaMainnet(address.$network)
@@ -108,7 +92,6 @@ export default {
 
 						const { getCompleteAddressUtxos } = await import('$/sources/KaspaExplorer/Rest/queries.ts')
 						const utxos = await getCompleteAddressUtxos(
-							kaspaExplorerBinding,
 							address.address
 						)
 						if (utxos.length > limit)
@@ -149,7 +132,7 @@ export default {
 		defineResolver(Source.KaspaExplorer_Rest, {
 			entityType: EntityType.KaspaAddress,
 			resolve: {
-				[KaspaAddressSelector.NetworkAddress]: {
+				NetworkAddress: {
 					appliesTo: kaspaAddressApplicability,
 					resolve: async (address, context) => {
 						assertKaspaMainnet(address.$network)
@@ -180,7 +163,6 @@ export default {
 							before,
 							limit,
 							transactions: await getAddressTransactionsPage(
-								kaspaExplorerBinding,
 								{
 									address: address.address,
 									limit,

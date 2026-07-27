@@ -7,29 +7,12 @@ import {
 	type EntitySelector,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import { HederaAccountSelector } from '$/schema/HederaAccount.ts'
-import { HederaBlockSelector } from '$/schema/HederaBlock.ts'
-import { HederaTransactionSelector } from '$/schema/HederaTransaction.ts'
 import { schema } from '$/schema/index.ts'
-import { NetworkSelector } from '$/schema/Network.ts'
-import { sourceProviderDefinitions } from '$/sources/$sourceProviders.ts'
 import { Source } from '$/sources/Source.ts'
-import { SourceTargetKind } from '$/sources/SourceBinding.ts'
 import type {
 	HederaMirrorNodeBlock,
 	HederaMirrorNodeTransaction,
 } from '$/sources/HederaMirrorNode/Rest/types.ts'
-
-const hederaMirrorNodeBinding = sourceProviderDefinitions
-	.flatMap((provider) => provider.bindings)
-	.find((binding) => (
-		binding.source === Source.HederaMirrorNode_Rest
-		&& binding.target.kind === SourceTargetKind.Caip2Network
-		&& binding.target.key === 'hedera:mainnet'
-	))
-
-if (hederaMirrorNodeBinding == null)
-	throw new Error('HederaMirrorNode_Rest: source binding is missing')
 
 const assertHederaMainnet = (
 	network: EntitySelector<typeof schema, EntityType.Network>
@@ -295,12 +278,12 @@ export default {
 		defineResolver(Source.HederaMirrorNode_Rest, {
 			entityType: EntityType.HederaAccount,
 			resolve: {
-				[HederaAccountSelector.NetworkAccountId]: {
+				NetworkAccountId: {
 					resolve: async (hederaAccount) => {
 						const { $network, accountId } = hederaAccount
 						assertHederaMainnet($network)
 						const { getAccount } = await import('$/sources/HederaMirrorNode/Rest/queries.ts')
-						const account = await getAccount(hederaMirrorNodeBinding, accountId)
+						const account = await getAccount(accountId)
 						if (account.account !== accountId)
 							throw new Error('HederaMirrorNode_Rest: response account does not match request')
 						const accountTimestampMs = timestampMs(account.balance.timestamp, 'account balance timestamp')
@@ -372,13 +355,12 @@ export default {
 		defineResolver(Source.HederaMirrorNode_Rest, {
 			entityType: EntityType.Network,
 			resolve: {
-				[NetworkSelector.Caip2]: {
+				Caip2: {
 					resolve: async (network, context) => {
 						assertHederaMainnet(network)
 						const { getBlocks } = await import('$/sources/HederaMirrorNode/Rest/queries.ts')
 
 						return (await getBlocks(
-							hederaMirrorNodeBinding,
 							Math.min(resolverContextRowLimit(context), 100)
 						)).blocks.map((block) => ({
 							[EntityMetaKey.Selector]: {
@@ -399,22 +381,22 @@ export default {
 		defineResolver(Source.HederaMirrorNode_Rest, {
 			entityType: EntityType.HederaBlock,
 			resolve: {
-				[HederaBlockSelector.NetworkBlockNumber]: {
+				NetworkBlockNumber: {
 					resolve: async ({ $network, blockNumber: requestedBlockNumber }) => {
 						assertHederaMainnet($network)
 						const { getBlock } = await import('$/sources/HederaMirrorNode/Rest/queries.ts')
-						const block = await getBlock(hederaMirrorNodeBinding, requestedBlockNumber.toString())
+						const block = await getBlock(requestedBlockNumber.toString())
 						if (BigInt(nonnegativeSafeInteger(block.number, 'block number')) !== requestedBlockNumber)
 							throw new Error('HederaMirrorNode_Rest: response block does not match request')
 
 						return blockFields(block)
 					},
 				},
-				[HederaBlockSelector.NetworkBlockHash]: {
+				NetworkBlockHash: {
 					resolve: async ({ $network, blockHash: requestedBlockHash }) => {
 						assertHederaMainnet($network)
 						const { getBlock } = await import('$/sources/HederaMirrorNode/Rest/queries.ts')
-						const block = await getBlock(hederaMirrorNodeBinding, requestedBlockHash)
+						const block = await getBlock(requestedBlockHash)
 						if (
 							block.hash.replace(/^0x/i, '').toLowerCase()
 							!== requestedBlockHash.replace(/^0x/i, '').toLowerCase()
@@ -438,13 +420,12 @@ export default {
 		defineResolver(Source.HederaMirrorNode_Rest, {
 			entityType: EntityType.HederaAccount,
 			resolve: {
-				[HederaAccountSelector.NetworkAccountId]: {
+				NetworkAccountId: {
 					resolve: async (hederaAccount, context) => {
 						assertHederaMainnet(hederaAccount.$network)
 						const { getAccountTransactions } = await import('$/sources/HederaMirrorNode/Rest/queries.ts')
 
 						return getAccountTransactions(
-							hederaMirrorNodeBinding,
 							hederaAccount.accountId,
 							Math.min(resolverContextRowLimit(context), 100),
 							context.providerContinuationToken
@@ -516,13 +497,12 @@ export default {
 		defineResolver(Source.HederaMirrorNode_Rest, {
 			entityType: EntityType.Network,
 			resolve: {
-				[NetworkSelector.Caip2]: {
+				Caip2: {
 					resolve: async (network, context) => {
 						assertHederaMainnet(network)
 						const { getAccounts } = await import('$/sources/HederaMirrorNode/Rest/queries.ts')
 
 						return getAccounts(
-							hederaMirrorNodeBinding,
 							Math.min(resolverContextRowLimit(context), 100),
 							context.providerContinuationToken
 						)
@@ -558,13 +538,12 @@ export default {
 		defineResolver(Source.HederaMirrorNode_Rest, {
 			entityType: EntityType.HederaAccount,
 			resolve: {
-				[HederaAccountSelector.NetworkAccountId]: {
+				NetworkAccountId: {
 					resolve: async (hederaAccount, context) => {
 						assertHederaMainnet(hederaAccount.$network)
 						const { getAccountAllowances } = await import('$/sources/HederaMirrorNode/Rest/queries.ts')
 
 						return getAccountAllowances(
-							hederaMirrorNodeBinding,
 							hederaAccount.accountId,
 							Math.min(resolverContextRowLimit(context), 100),
 							context.providerContinuationToken
@@ -654,14 +633,13 @@ export default {
 		defineResolver(Source.HederaMirrorNode_Rest, {
 			entityType: EntityType.HederaAccount,
 			resolve: {
-				[HederaAccountSelector.NetworkAccountId]: {
+				NetworkAccountId: {
 					resolve: async (hederaAccount, context) => {
 						assertHederaMainnet(hederaAccount.$network)
 						const { getAccountTokens } = await import('$/sources/HederaMirrorNode/Rest/queries.ts')
 
 						return {
 							page: await getAccountTokens(
-								hederaMirrorNodeBinding,
 								hederaAccount.accountId,
 								Math.min(resolverContextRowLimit(context), 100),
 								context.providerContinuationToken
@@ -728,13 +706,12 @@ export default {
 		defineResolver(Source.HederaMirrorNode_Rest, {
 			entityType: EntityType.HederaAccount,
 			resolve: {
-				[HederaAccountSelector.NetworkAccountId]: {
+				NetworkAccountId: {
 					resolve: async (hederaAccount, context) => {
 						assertHederaMainnet(hederaAccount.$network)
 						const { getAccountNfts } = await import('$/sources/HederaMirrorNode/Rest/queries.ts')
 
 						return getAccountNfts(
-							hederaMirrorNodeBinding,
 							hederaAccount.accountId,
 							Math.min(resolverContextRowLimit(context), 100),
 							context.providerContinuationToken
@@ -804,12 +781,11 @@ export default {
 		defineResolver(Source.HederaMirrorNode_Rest, {
 			entityType: EntityType.HederaTransaction,
 			resolve: {
-				[HederaTransactionSelector.NetworkConsensusTimestamp]: {
+				NetworkConsensusTimestamp: {
 					resolve: async ({ $network, consensusTimestamp }) => {
 						assertHederaMainnet($network)
 						const { getTransactionByConsensusTimestamp } = await import('$/sources/HederaMirrorNode/Rest/queries.ts')
 						const response = await getTransactionByConsensusTimestamp(
-							hederaMirrorNodeBinding,
 							consensusTimestamp
 						)
 						if (
@@ -821,7 +797,7 @@ export default {
 						return transactionSnapshot($network, response.transactions[0])
 					},
 				},
-				[HederaTransactionSelector.NetworkTransactionIdNonce]: {
+				NetworkTransactionIdNonce: {
 					resolve: async ({
 						$network,
 						transactionId,
@@ -830,7 +806,6 @@ export default {
 						assertHederaMainnet($network)
 						const { getTransactionByIdNonce } = await import('$/sources/HederaMirrorNode/Rest/queries.ts')
 						const response = await getTransactionByIdNonce(
-							hederaMirrorNodeBinding,
 							transactionId,
 							nonce
 						)

@@ -2,13 +2,8 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
 
 
 	// Context
@@ -20,35 +15,13 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.StarknetStorageEntry>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.StarknetStorageEntry>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.StarknetStorageEntry> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const starknetStorageEntry = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {},
-	} : {
-		sources: selection.sources,
-	}))
-	const titleFallback = $derived([String((pendingEntity.storageKey) ?? '')].filter(Boolean).join(' ') || 'starknet storage entry')
-	const viewDomId = $derived('starknet-storage-entry-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const titleFallback = $derived((pendingEntity.storageKey ?? '') || 'starknet storage entry')
 
 
 	// Components
@@ -60,34 +33,23 @@
 
 <EntityView
 	entityType={EntityType.StarknetStorageEntry}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={starknetStorageEntry}>
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.storageKey) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{(pendingEntity.storageKey ?? '') || 'starknet storage entry'}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={starknetStorageEntry}>
-			{#snippet children(entity)}
-				<StarknetContractView
-					selection={select(EntityType.StarknetContract, selection.entitySelector.$contract)}
-					href=""
-					layout={EntityLayout.Value}
-					open={false}
-				/>
-			{/snippet}
-		</ResourceBoundary>
+		<StarknetContractView
+			selection={select(EntityType.StarknetContract, selection.entitySelector.$contract)}
+			href=""
+			layout={EntityLayout.Value}
+			open={false}
+		/>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -106,24 +68,7 @@
 			<div>
 				<dt>storage key</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									storageKey: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const storageKey = resolvedEntity.storageKey}
-							{#if storageKey !== undefined && storageKey !== null}
-								{String((storageKey) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{pendingEntity.storageKey}
 				</dd>
 			</div>
 		</dl>
@@ -136,12 +81,12 @@
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
-				<StarknetStorageEntry_TimestampsView
-					selection={starknetStorageEntryStarknetStorageEntryTimestampsViewTimestampsResource}
-					countResource={starknetStorageEntryStarknetStorageEntryTimestampsViewTimestampsResource.count}
-					title='timestamps'
-					id='StarknetStorageEntry_TimestampsView-timestamps'
-				/>
+					<StarknetStorageEntry_TimestampsView
+						selection={starknetStorageEntryStarknetStorageEntryTimestampsViewTimestampsResource}
+						countResource={starknetStorageEntryStarknetStorageEntryTimestampsViewTimestampsResource.count}
+						title='timestamps'
+						id='timestamps'
+					/>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>

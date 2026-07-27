@@ -1,14 +1,11 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { entity, facet } from '$/schema/$schema.ts'
+import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { type } from 'arktype'
 
-export enum DogecoinAuxPowParentBlockHeaderSelector {
-	AuxPow = 'AuxPow',
-}
-export const DogecoinAuxPowParentBlockHeader = entity({
+export default entity({
 	entityType: EntityType.DogecoinAuxPowParentBlockHeader,
 	labels: {
 		singular: 'dogecoin aux pow parent block header',

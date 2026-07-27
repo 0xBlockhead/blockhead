@@ -2,15 +2,9 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
-	import { caip2StringFromValue } from '$/lib/caip2.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -22,40 +16,23 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.NetworkUpgrade>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.NetworkUpgrade>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.NetworkUpgrade> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const networkUpgrade = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {
-			name: true,
-		},
-	} : {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const viewSelection = $derived(selection({
+		sources: selection.sources ?? [
+			Source.Constants_Internal,
+		],
+	}))
+	const networkUpgrade = $derived(viewSelection({
 		fields: {
 			name: true,
 		},
 	}))
-	const titleFallback = $derived([String((pendingEntity.name) ?? ''), String((pendingEntity.upgradeId) ?? '')].filter(Boolean).join(' ') || 'network upgrade')
-	const viewDomId = $derived('network-upgrade-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const titleFallback = $derived([(pendingEntity.name ?? ''), (pendingEntity.upgradeId ?? '')].filter(Boolean).join(' ') || 'network upgrade')
 
 
 	// Components
@@ -68,10 +45,8 @@
 
 <EntityView
 	entityType={EntityType.NetworkUpgrade}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -79,23 +54,18 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={networkUpgrade}>
 			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.name) ?? ''), String((resolvedEntity.upgradeId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+				{[entity.name, pendingEntity.upgradeId].filter(Boolean).join(' ') || title || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={networkUpgrade}>
-			{#snippet children(entity)}
-				<NetworkView
-					selection={select(EntityType.Network, selection.entitySelector.$network)}
-					href=""
-					layout={EntityLayout.Value}
-					open={false}
-				/>
-			{/snippet}
-		</ResourceBoundary>
+		<NetworkView
+			selection={select(EntityType.Network, selection.entitySelector.$network)}
+			href=""
+			layout={EntityLayout.Value}
+			open={false}
+		/>
 	{/snippet}
 
 	{#snippet TypeAnnotationTooltip()}
@@ -111,23 +81,6 @@
 				<dd>
 					<NetworkView
 						selection={select(EntityType.Network, selection.entitySelector.$network)}
-						href={
-							(
-								selection.entitySelector.$network != null && 'caip2' in selection.entitySelector.$network
-								&& selection.entitySelector.$network.caip2 != null ?
-									resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-								network: String(caip2StringFromValue(selection.entitySelector.$network.caip2) ?? ''),
-							})
-							:
-									selection.entitySelector.$network != null && 'slug' in selection.entitySelector.$network
-									&& selection.entitySelector.$network.slug != null ?
-										resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-									network: String(selection.entitySelector.$network.slug ?? ''),
-								})
-								:
-									undefined
-							)
-						}
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -137,24 +90,7 @@
 			<div>
 				<dt>Upgrade ID</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									upgradeId: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const upgradeId = resolvedEntity.upgradeId}
-							{#if upgradeId !== undefined && upgradeId !== null}
-								{String((upgradeId) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{pendingEntity.upgradeId}
 				</dd>
 			</div>
 
@@ -162,21 +98,10 @@
 				<dt>Name</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									name: true,
-								},
-							})
-						}
+						resource={networkUpgrade}
 					>
 						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const name = resolvedEntity.name}
-							{#if name !== undefined && name !== null}
-								{String((name) ?? '')}
-							{/if}
+							{entity.name}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -191,12 +116,12 @@
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
-				<SpecificationProposalsView
-					selection={networkUpgradeSpecificationProposalsViewSpecificationProposalsResource}
-					countResource={networkUpgradeSpecificationProposalsViewSpecificationProposalsResource.count}
-					title='Specification proposals'
-					id='SpecificationProposalsView-specification-proposals'
-				/>
+					<SpecificationProposalsView
+						selection={networkUpgradeSpecificationProposalsViewSpecificationProposalsResource}
+						countResource={networkUpgradeSpecificationProposalsViewSpecificationProposalsResource.count}
+						title='Specification proposals'
+						id='specification-proposals'
+					/>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>
@@ -206,12 +131,12 @@
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
-				<NetworkUpgrade_TimestampsView
-					selection={networkUpgradeNetworkUpgradeTimestampsViewTimestampsResource}
-					countResource={networkUpgradeNetworkUpgradeTimestampsViewTimestampsResource.count}
-					title='Observations'
-					id='NetworkUpgrade_TimestampsView-timestamps'
-				/>
+					<NetworkUpgrade_TimestampsView
+						selection={networkUpgradeNetworkUpgradeTimestampsViewTimestampsResource}
+						countResource={networkUpgradeNetworkUpgradeTimestampsViewTimestampsResource.count}
+						title='Observations'
+						id='timestamps'
+					/>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>

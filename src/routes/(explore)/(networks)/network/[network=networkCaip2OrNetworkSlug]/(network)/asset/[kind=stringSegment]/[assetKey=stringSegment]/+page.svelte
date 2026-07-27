@@ -10,14 +10,12 @@
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		data,
-		params,
 	}: PageProps = $props()
 
 	const pageSelection = $derived(select(EntityType.AssetInstance, data.selector, {
@@ -41,19 +39,12 @@
 
 
 <svelte:head>
-	<title>{(data.title ?? (pageSelection.entity == null ? 'Asset instance' : [String((({ ...data.selector, ...pageSelection.entity }).symbol) ?? ''), String((({ ...data.selector, ...pageSelection.entity }).name) ?? '')].filter(Boolean).join(' ') || 'Asset instance'))} • Asset instance • Blockhead</title>
+	<title>{(data.title ?? (pageSelection.entity == null ? 'Asset instance' : [pageSelection.entity.symbol, pageSelection.entity.name].filter(Boolean).join(' ') || 'Asset instance'))} • Asset instance • Blockhead</title>
 </svelte:head>
 
 
 <Page>
 	<AssetInstanceView
-		href={
-			resolve('/network/[network=networkCaip2OrNetworkSlug]/asset/[kind=stringSegment]/[assetKey=stringSegment]', {
-				network: params.network,
-				kind: params.kind,
-				assetKey: params.assetKey,
-			})
-		}
 		selection={pageSelection}
 	/>
 </Page>

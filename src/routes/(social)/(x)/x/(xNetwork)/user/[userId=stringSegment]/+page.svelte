@@ -8,14 +8,12 @@
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		data,
-		params,
 	}: PageProps = $props()
 
 	const pageSelection = $derived(select(EntityType.XUser, data.selector, {
@@ -24,9 +22,9 @@
 			Source.X_FxEmbed_Rest,
 		],
 		fields: {
-			username: true,
 			$icon: true,
 			name: true,
+			username: true,
 			createdAt: true,
 			verified: true,
 			location: true,
@@ -43,17 +41,12 @@
 
 
 <svelte:head>
-	<title>{(data.title ?? (pageSelection.entity == null ? [String((data.selector.id) ?? '')].filter(Boolean).join(' ') || 'X user' : [String((({ ...data.selector, ...pageSelection.entity }).name) ?? ''), String((({ ...data.selector, ...pageSelection.entity }).username) ?? ''), String((({ ...data.selector, ...pageSelection.entity }).id) ?? '')].filter(Boolean).join(' ') || 'X user'))} • X user • Blockhead</title>
+	<title>{(data.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.id ?? '') || 'X user' : [(pageSelection.entity.name ?? ''), pageSelection.entity.username, pageSelection.entitySelector.id].filter(Boolean).join(' ') || 'X user'))} • X user • Blockhead</title>
 </svelte:head>
 
 
 <Page>
 	<XUserView
-		href={
-			resolve('/x/user/[userId=stringSegment]', {
-				userId: params.userId,
-			})
-		}
 		selection={pageSelection}
 	/>
 </Page>

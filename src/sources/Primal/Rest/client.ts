@@ -1,34 +1,26 @@
 import { fetchFailedMessage } from '$/lib/http.ts'
-import { sourceProviderDefinitions } from '$/sources/$sourceProviders.ts'
-import {
-	primalApiBaseUrl,
-} from '$/sources/Primal/Rest/constants.ts'
+import bindings from '$/sources/Primal/bindings.ts'
 import type { PrimalPostBody } from '$/sources/Primal/Rest/types.ts'
 import { Source } from '$/sources/Source.ts'
 import {
+	firstHttpUrlForBinding,
 	sourceFetch,
 	sourceGetJson,
 } from '$/sources/_runtime/http.ts'
 
-const primalBinding = sourceProviderDefinitions
-	.flatMap((provider) => provider.bindings)
-	.find(({ source }) => source === Source.Primal_Rest)
-
-if (primalBinding == null)
-	throw new Error('Primal_Rest: source binding is missing')
-
-const primalUrl = (path: string) => (
-	`${primalApiBaseUrl}${path.startsWith('/') ? path : `/${path}`}`
-)
+const binding = bindings[Source.Primal_Rest]
 
 export const primalGet = async <T>(path: string) => (
-	sourceGetJson<T>(primalBinding, primalUrl(path))
+	sourceGetJson<T>(
+		binding,
+		`${firstHttpUrlForBinding(binding)}/v1${path.startsWith('/') ? path : `/${path}`}`
+	)
 )
 
 export const primalPost = async <T>(path: string, body: PrimalPostBody) => {
-	const url = primalUrl(path)
+	const url = `${firstHttpUrlForBinding(binding)}/v1${path.startsWith('/') ? path : `/${path}`}`
 	const response = await sourceFetch(
-		primalBinding,
+		binding,
 		url,
 		{
 			method: 'POST',

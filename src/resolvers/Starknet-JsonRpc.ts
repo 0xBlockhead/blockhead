@@ -11,11 +11,7 @@ import {
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { schema } from '$/schema/index.ts'
-import { StarknetAccount_TimestampSelector } from '$/schema/StarknetAccount_Timestamp.ts'
-import { StarknetContractSelector } from '$/schema/StarknetContract.ts'
-import { sourceProviderDefinitions } from '$/sources/$sourceProviders.ts'
 import { Source } from '$/sources/Source.ts'
-import { SourceTargetKind } from '$/sources/SourceBinding.ts'
 import type {
 	StarknetBlockId,
 	StarknetEvent,
@@ -23,19 +19,6 @@ import type {
 
 type NetworkIdentity = EntitySelector<typeof schema, EntityType.Network>
 type StarknetContractIdentity = EntitySelector<typeof schema, EntityType.StarknetContract>
-
-const starknetMainnetBindings = sourceProviderDefinitions
-	.flatMap((provider) => provider.bindings)
-	.filter((binding) => (
-		binding.source === Source.Starknet_JsonRpc
-		&& binding.target.kind === SourceTargetKind.NetworkSlug
-		&& binding.target.key === networkBySlug.starknet.slug
-	))
-
-if (starknetMainnetBindings.length !== 1)
-	throw new Error('Starknet_JsonRpc: canonical Starknet mainnet source binding is missing or ambiguous')
-
-const starknetMainnetBinding = starknetMainnetBindings[0]
 
 const starknetNetworkApplicability = [
 	{
@@ -110,8 +93,8 @@ const resolveAccountState = async (
 		getNonce,
 	} = await import('$/sources/Starknet/JsonRpc/queries.ts')
 	const [nonce, classHash] = await Promise.all([
-		getNonce(starknetMainnetBinding, blockId, address),
-		getClassHashAt(starknetMainnetBinding, blockId, address),
+		getNonce(blockId, address),
+		getClassHashAt(blockId, address),
 	])
 
 	return {
@@ -187,13 +170,13 @@ export default {
 		defineResolver(Source.Starknet_JsonRpc, {
 			entityType: EntityType.StarknetContract,
 			resolve: {
-				[StarknetContractSelector.NetworkAddress]: {
+				NetworkAddress: {
 					appliesTo: starknetContractApplicability,
 					resolve: async (contract) => {
 						assertStarknetMainnet(contract.$network.$network)
 						validatedFelt(contract.address, 'contract address')
 						const { getBlockHashAndNumber } = await import('$/sources/Starknet/JsonRpc/queries.ts')
-						const head = await getBlockHashAndNumber(starknetMainnetBinding)
+						const head = await getBlockHashAndNumber()
 						validatedFelt(head.block_hash, 'block hash')
 						const blockNumber = validatedBlockNumber(head.block_number, 'block number')
 
@@ -222,7 +205,7 @@ export default {
 		defineResolver(Source.Starknet_JsonRpc, {
 			entityType: EntityType.StarknetAccount_Timestamp,
 			resolve: {
-				[StarknetAccount_TimestampSelector.ContractBlockNumberSource]: {
+				ContractBlockNumberSource: {
 					appliesTo: [
 						{
 							$contract: starknetContractApplicability[0],
@@ -256,14 +239,14 @@ export default {
 		defineResolver(Source.Starknet_JsonRpc, {
 			entityType: EntityType.StarknetContract,
 			resolve: {
-				[StarknetContractSelector.NetworkAddress]: {
+				NetworkAddress: {
 					appliesTo: starknetContractApplicability,
 					resolve: async (contract, context) => {
 						assertStarknetMainnet(contract.$network.$network)
 						const address = validatedFelt(contract.address, 'contract address')
 						const { getEvents } = await import('$/sources/Starknet/JsonRpc/queries.ts')
 
-						return getEvents(starknetMainnetBinding, {
+						return getEvents({
 							address,
 							chunk_size: resolverContextRowLimit(context),
 							...(context.providerContinuationToken != null && {

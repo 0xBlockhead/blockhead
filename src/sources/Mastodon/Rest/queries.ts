@@ -80,6 +80,11 @@ export const getAccountByLocalAccountId = async (
 	mastodonGet<MastodonApiV1Account>(publicEnv, instanceOrigin, `/accounts/${encodeURIComponent(localAccountId)}`)
 )
 
+const assertPublicTimelineMatches = (instanceOrigin: string) => {
+	if (!mastodonPublicTimelineOrigins.includes(new URL(instanceOrigin).origin))
+		throw new Error(`Mastodon_Rest: public timeline binding is missing for ${instanceOrigin}`)
+}
+
 export const getAccountByAcct = async (
 	publicEnv: SourcePublicEnv,
 	instanceOrigin: string,
@@ -168,9 +173,9 @@ export const listAccountStatusesPageByLocalAccountId = async (
 	const configuredInstanceOrigin = new URL(instanceOrigin).origin
 	if (
 		configuredInstanceOrigin !== instanceOrigin
-		|| !mastodonInstanceOrigins.some((origin) => origin === configuredInstanceOrigin)
 	)
 		throw new Error('Mastodon_Rest: invalid authored notes instance')
+	assertInstanceMatches(configuredInstanceOrigin)
 
 	const pathname = `/api/v1/accounts/${encodeURIComponent(localAccountId)}/statuses`
 	const requestUrl = continuationToken ?? `${instanceOrigin}${pathname}?limit=${Math.min(80, Math.max(1, limit))}`
@@ -219,8 +224,7 @@ export const listPublicTimeline = async (
 	instanceOrigin: string,
 	limit: number
 ) => {
-	if (!mastodonPublicTimelineOrigins.includes(instanceOrigin))
-		throw new Error(`Mastodon_Rest: public timeline binding is missing for ${instanceOrigin}`)
+	assertPublicTimelineMatches(instanceOrigin)
 
 	const url = `${instanceOrigin}/api/v1/timelines/public?limit=${Math.min(40, Math.max(1, limit))}`
 	const response = await mastodonFetchPublicTimelineUrl(publicEnv, url)
@@ -239,9 +243,9 @@ export const listPublicTimelinePage = async (
 	const configuredInstanceOrigin = new URL(instanceOrigin).origin
 	if (
 		configuredInstanceOrigin !== instanceOrigin
-		|| !mastodonPublicTimelineOrigins.some((origin) => origin === configuredInstanceOrigin)
 	)
 		throw new Error('Mastodon_Rest: invalid public timeline instance')
+	assertPublicTimelineMatches(configuredInstanceOrigin)
 
 	const requestUrl = continuationToken ?? `${instanceOrigin}/api/v1/timelines/public?limit=${Math.min(40, Math.max(1, limit))}`
 	const url = new URL(requestUrl)
@@ -298,6 +302,6 @@ export const listInstanceModeratedDomains = async (
 }
 
 export const assertInstanceMatches = (instanceOrigin: string) => {
-	if (!mastodonInstanceOrigins.some((origin) => origin === new URL(instanceOrigin).origin))
-		throw new Error('Mastodon_Rest: entity instance does not match configured Mastodon-compatible ActivityPub instance')
+	if (!mastodonInstanceOrigins.includes(new URL(instanceOrigin).origin))
+		throw new Error(`Mastodon_Rest: entity instance binding is missing for ${instanceOrigin}`)
 }

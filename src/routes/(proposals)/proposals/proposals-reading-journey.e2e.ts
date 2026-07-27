@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test'
 import type { Page } from '@playwright/test'
-import { sourceProviderDefinitions } from '$/sources/$sourceProviders.ts'
+import sourceProviderDefinitions from '$/sources/$sourceProviders.ts'
 import { SourceTargetKind } from '$/sources/SourceBinding.ts'
 import { SourceProvider } from '$/sources/SourceProvider.ts'
 

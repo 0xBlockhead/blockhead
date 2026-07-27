@@ -2,13 +2,8 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
 
 
 	// Context
@@ -20,35 +15,13 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.TezosNetwork_Timestamp>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.TezosNetwork_Timestamp>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.TezosNetwork_Timestamp> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const tezosNetworkTimestamp = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {},
-	} : {
-		sources: selection.sources,
-	}))
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const titleFallback = 'tezos network timestamp'
-	const viewDomId = $derived('tezos-network-timestamp-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -61,24 +34,14 @@
 
 <EntityView
 	entityType={EntityType.TezosNetwork_Timestamp}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails}
-			{title || titleFallback}
-		{:else}
-			<ResourceBoundary resource={tezosNetworkTimestamp}>
-				{#snippet children(entity)}
-					{title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		tezos network timestamp
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -97,55 +60,20 @@
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									timestampMs: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const timestampMs = resolvedEntity.timestampMs}
-							{#if timestampMs !== undefined && timestampMs !== null}
-								<Timestamp timestamp={Number(timestampMs)} />
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									source: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const source = resolvedEntity.source}
-							{#if source !== undefined && source !== null}
-								{String((source) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{pendingEntity.source}
 				</dd>
 			</div>
 
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							latestLevel: true,
 						},
@@ -153,13 +81,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const latestLevel = resolvedEntity.latestLevel}
-					{#if latestLevel !== undefined && latestLevel !== null}
+					{@const latestLevel = entity.latestLevel}
+					{#if latestLevel != null}
 						<div>
 							<dt>latest level</dt>
 							<dd>
-								{String((latestLevel) ?? '')}
+								{String(latestLevel)}
 							</dd>
 						</div>
 					{/if}
@@ -169,7 +96,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							protocolHash: true,
 						},
@@ -177,13 +103,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const protocolHash = resolvedEntity.protocolHash}
-					{#if protocolHash !== undefined && protocolHash !== null}
+					{@const protocolHash = entity.protocolHash}
+					{#if protocolHash != null}
 						<div>
 							<dt>protocol hash</dt>
 							<dd>
-								<TruncatedValue value={String((protocolHash) ?? '')} />
+								<TruncatedValue value={protocolHash} />
 							</dd>
 						</div>
 					{/if}
@@ -193,7 +118,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							cycle: true,
 						},
@@ -201,13 +125,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const cycle = resolvedEntity.cycle}
-					{#if cycle !== undefined && cycle !== null}
+					{@const cycle = entity.cycle}
+					{#if cycle != null}
 						<div>
 							<dt>cycle</dt>
 							<dd>
-								{String((cycle) ?? '')}
+								{String(cycle)}
 							</dd>
 						</div>
 					{/if}
@@ -217,7 +140,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							totalSupplyMutez: true,
 						},
@@ -225,13 +147,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const totalSupplyMutez = resolvedEntity.totalSupplyMutez}
-					{#if totalSupplyMutez !== undefined && totalSupplyMutez !== null}
+					{@const totalSupplyMutez = entity.totalSupplyMutez}
+					{#if totalSupplyMutez != null}
 						<div>
 							<dt>total supply mutez</dt>
 							<dd>
-								{String((totalSupplyMutez) ?? '')}
+								{String(totalSupplyMutez)}
 							</dd>
 						</div>
 					{/if}
@@ -241,7 +162,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							activeBakerCount: true,
 						},
@@ -249,13 +169,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const activeBakerCount = resolvedEntity.activeBakerCount}
-					{#if activeBakerCount !== undefined && activeBakerCount !== null}
+					{@const activeBakerCount = entity.activeBakerCount}
+					{#if activeBakerCount != null}
 						<div>
 							<dt>active baker count</dt>
 							<dd>
-								{String((activeBakerCount) ?? '')}
+								{String(activeBakerCount)}
 							</dd>
 						</div>
 					{/if}
@@ -265,7 +184,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							indexerLagBlocks: true,
 						},
@@ -273,13 +191,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const indexerLagBlocks = resolvedEntity.indexerLagBlocks}
-					{#if indexerLagBlocks !== undefined && indexerLagBlocks !== null}
+					{@const indexerLagBlocks = entity.indexerLagBlocks}
+					{#if indexerLagBlocks != null}
 						<div>
 							<dt>indexer lag blocks</dt>
 							<dd>
-								{String((indexerLagBlocks) ?? '')}
+								{String(indexerLagBlocks)}
 							</dd>
 						</div>
 					{/if}

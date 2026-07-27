@@ -3,12 +3,11 @@
 <script lang="ts">
 	// Types/constants
 	import type { PageProps } from './$types.ts'
+	import { resolve } from '$app/paths'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
@@ -17,11 +16,8 @@
 		data,
 		params,
 	}: PageProps = $props()
-
-
 	// Components
 	import Page from '$/components/Page.svelte'
-	import ProjectionBoundary from '$/components/ProjectionBoundary.svelte'
 	import BeaconWithdrawalsView from '$/views/BeaconWithdrawalsView.svelte'
 </script>
 
@@ -32,30 +28,20 @@
 
 
 <Page>
-	<ProjectionBoundary
-		resource={select(EntityType.Network, data.selector).Evm}
-	>
-		{#snippet Applicable(projection)}
-			<BeaconWithdrawalsView
-				href={
-					resolve('/network/[network=networkCaip2OrNetworkSlug]/withdrawals', {
-						network: params.network,
-					})
+	<BeaconWithdrawalsView
+		href={
+			resolve(
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/withdrawals',
+				{
+					network: String(params.network),
 				}
-				title='Beacon withdrawals'
-				selection={
-					projection
-						.$$beaconWithdrawals({
-							sources: [
-								Source.Beacon_Rest,
-							],
-						})
-				}
-				id='account-beacon-withdrawal'
-				data-column-item="flexible"
-				data-card
-				data-scroll-container
-			/>
-		{/snippet}
-	</ProjectionBoundary>
+			)
+		}
+		title='Beacon withdrawals'
+		selection={select(EntityType.Network, data.selector).Evm.$$beaconWithdrawals}
+		id='beacon-withdrawals'
+		data-column-item="flexible"
+		data-card
+		data-scroll-container
+	/>
 </Page>

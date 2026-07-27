@@ -30,24 +30,30 @@
 {#key [params.specificationRealmSlug, params.proposalKindSlug].join(':')}
 	<ParentPageCollapsible
 		href={
-			resolve('/proposals/[specificationRealmSlug=specificationRealmSlug]/[proposalKindSlug=proposalKindSlug]', {
-				specificationRealmSlug: params.specificationRealmSlug,
-				proposalKindSlug: params.proposalKindSlug,
-			})
+			resolve(
+				'/(proposals)/proposals/[specificationRealmSlug=specificationRealmSlug]/(specificationRealm)/[proposalKindSlug=proposalKindSlug]',
+				{
+					specificationRealmSlug: String(params.specificationRealmSlug),
+					proposalKindSlug: String(params.proposalKindSlug),
+				}
+			)
 		}
 	>
 		{#snippet Summary()}
-			{@const DetailView = SpecificationProposalKindView}
-
-			<DetailView
-				selection={select(EntityType.SpecificationProposalKind, data.selector, { sources: [
-		Source.Constants_Internal,
-	] })}
+			<SpecificationProposalKindView
+				selection={
+					select(EntityType.SpecificationProposalKind, data.selector, { sources: [
+						Source.Constants_Internal,
+					] })
+				}
 				href={
-					resolve('/proposals/[specificationRealmSlug=specificationRealmSlug]/[proposalKindSlug=proposalKindSlug]', {
-						specificationRealmSlug: params.specificationRealmSlug,
-						proposalKindSlug: params.proposalKindSlug,
-					})
+					resolve(
+						'/(proposals)/proposals/[specificationRealmSlug=specificationRealmSlug]/(specificationRealm)/[proposalKindSlug=proposalKindSlug]',
+						{
+							specificationRealmSlug: String(params.specificationRealmSlug),
+							proposalKindSlug: String(params.proposalKindSlug),
+						}
+					)
 				}
 				layout={EntityLayout.SummaryInline}
 			/>

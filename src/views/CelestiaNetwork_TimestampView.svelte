@@ -2,13 +2,8 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
 
 
 	// Context
@@ -20,42 +15,19 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.CelestiaNetwork_Timestamp>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.CelestiaNetwork_Timestamp>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.CelestiaNetwork_Timestamp> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const celestiaNetworkTimestamp = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {
-			latestHeight: true,
-			health: true,
-		},
-	} : {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const celestiaNetworkTimestamp = $derived(selection({
 		fields: {
 			latestHeight: true,
 			health: true,
 		},
 	}))
-	const titleFallback = $derived([String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || 'celestia network timestamp')
-	const viewDomId = $derived('celestia-network-timestamp-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const titleFallback = $derived(String(pendingEntity.timestampMs ?? '') || 'celestia network timestamp')
 
 
 	// Components
@@ -69,67 +41,28 @@
 
 <EntityView
 	entityType={EntityType.CelestiaNetwork_Timestamp}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'latestHeight') && Object.hasOwn(prefetched, 'health')}
-			{@const timestampMs0 = pendingEntity.timestampMs}
-			{#if timestampMs0 !== undefined && timestampMs0 !== null}
-				<Timestamp timestamp={Number(timestampMs0)} />
-			{/if}
-		{:else}
-			<ResourceBoundary resource={celestiaNetworkTimestamp}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const timestampMs0 = resolvedEntity.timestampMs}
-					{#if timestampMs0 !== undefined && timestampMs0 !== null}
-						<Timestamp timestamp={Number(timestampMs0)} />
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
 	{/snippet}
 
 	{#snippet Value()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'latestHeight') && Object.hasOwn(prefetched, 'health')}
-			{[String((pendingEntity.latestHeight) ?? ''), String((pendingEntity.health) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || titleFallback}
-		{:else}
-			<ResourceBoundary resource={celestiaNetworkTimestamp}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.latestHeight) ?? ''), String((resolvedEntity.health) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={celestiaNetworkTimestamp}>
+			{#snippet children(entity)}
+				{[String(entity.latestHeight ?? ''), (entity.health ?? '')].filter(Boolean).join(' ') || String(pendingEntity.timestampMs) || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'latestHeight') && Object.hasOwn(prefetched, 'health')}
-			{@const source0 = pendingEntity.source}
-			{#if source0 !== undefined && source0 !== null}
-				<span data-text="muted">
-					{String((source0) ?? '')}
-				</span>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={celestiaNetworkTimestamp}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const source0 = resolvedEntity.source}
-					{#if source0 !== undefined && source0 !== null}
-						<span data-text="muted">
-							{String((source0) ?? '')}
-						</span>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<span data-text="muted">
+			{pendingEntity.source}
+		</span>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -148,69 +81,27 @@
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									timestampMs: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const timestampMs = resolvedEntity.timestampMs}
-							{#if timestampMs !== undefined && timestampMs !== null}
-								<Timestamp timestamp={Number(timestampMs)} />
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									source: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const source = resolvedEntity.source}
-							{#if source !== undefined && source !== null}
-								{String((source) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{pendingEntity.source}
 				</dd>
 			</div>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							health: true,
-						},
-					})
-				}
+				resource={celestiaNetworkTimestamp}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const health = resolvedEntity.health}
-					{#if health !== undefined && health !== null}
+					{@const health = entity.health}
+					{#if health != null}
 						<div>
 							<dt>health</dt>
 							<dd>
-								{String((health) ?? '')}
+								{health}
 							</dd>
 						</div>
 					{/if}
@@ -220,7 +111,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							syncing: true,
 						},
@@ -228,9 +118,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const syncing = resolvedEntity.syncing}
-					{#if syncing !== undefined && syncing !== null}
+					{@const syncing = entity.syncing}
+					{#if syncing != null}
 						<div>
 							<dt>syncing</dt>
 							<dd>
@@ -244,19 +133,11 @@
 
 		<dl data-column-item="center">
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							latestHeight: true,
-						},
-					})
-				}
+				resource={celestiaNetworkTimestamp}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const latestHeight = resolvedEntity.latestHeight}
-					{#if latestHeight !== undefined && latestHeight !== null}
+					{@const latestHeight = entity.latestHeight}
+					{#if latestHeight != null}
 						<div>
 							<dt>latest height</dt>
 							<dd>
@@ -272,7 +153,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							latestHash: true,
 						},
@@ -280,13 +160,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const latestHash = resolvedEntity.latestHash}
-					{#if latestHash !== undefined && latestHash !== null}
+					{@const latestHash = entity.latestHash}
+					{#if latestHash != null}
 						<div>
 							<dt>latest hash</dt>
 							<dd>
-								<TruncatedValue value={String((latestHash) ?? '')} />
+								<TruncatedValue value={latestHash} />
 							</dd>
 						</div>
 					{/if}
@@ -296,7 +175,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							latestBlockTimeMs: true,
 						},
@@ -304,9 +182,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const latestBlockTimeMs = resolvedEntity.latestBlockTimeMs}
-					{#if latestBlockTimeMs !== undefined && latestBlockTimeMs !== null}
+					{@const latestBlockTimeMs = entity.latestBlockTimeMs}
+					{#if latestBlockTimeMs != null}
 						<div>
 							<dt>latest block time ms</dt>
 							<dd>
@@ -322,7 +199,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							blobCount: true,
 						},
@@ -330,9 +206,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const blobCount = resolvedEntity.blobCount}
-					{#if blobCount !== undefined && blobCount !== null}
+					{@const blobCount = entity.blobCount}
+					{#if blobCount != null}
 						<div>
 							<dt>blob count</dt>
 							<dd>
@@ -348,7 +223,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							namespaceCount: true,
 						},
@@ -356,9 +230,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const namespaceCount = resolvedEntity.namespaceCount}
-					{#if namespaceCount !== undefined && namespaceCount !== null}
+					{@const namespaceCount = entity.namespaceCount}
+					{#if namespaceCount != null}
 						<div>
 							<dt>namespace count</dt>
 							<dd>
@@ -374,7 +247,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							sampledHeaderHeight: true,
 						},
@@ -382,9 +254,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const sampledHeaderHeight = resolvedEntity.sampledHeaderHeight}
-					{#if sampledHeaderHeight !== undefined && sampledHeaderHeight !== null}
+					{@const sampledHeaderHeight = entity.sampledHeaderHeight}
+					{#if sampledHeaderHeight != null}
 						<div>
 							<dt>sampled header height</dt>
 							<dd>
@@ -400,7 +271,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							nodeType: true,
 						},
@@ -408,13 +278,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const nodeType = resolvedEntity.nodeType}
-					{#if nodeType !== undefined && nodeType !== null}
+					{@const nodeType = entity.nodeType}
+					{#if nodeType != null}
 						<div>
 							<dt>node type</dt>
 							<dd>
-								{String((nodeType) ?? '')}
+								{nodeType}
 							</dd>
 						</div>
 					{/if}

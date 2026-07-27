@@ -7,14 +7,12 @@
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		data,
-		params,
 	}: PageProps = $props()
 
 	const pageSelection = $derived(select(EntityType.EvmNetwork_GasEstimate_Timestamp, data.selector, {
@@ -35,19 +33,12 @@
 
 
 <svelte:head>
-	<title>{(data.title ?? (pageSelection.entity == null ? [String((data.selector.timestampMs) ?? '')].filter(Boolean).join(' ') || 'EVM network gas estimate timestamp' : [(String((({ ...data.selector, ...pageSelection.entity }).fastGwei) ?? '') ? String((({ ...data.selector, ...pageSelection.entity }).fastGwei) ?? '') + ' gwei' : ''), String((({ ...data.selector, ...pageSelection.entity }).timestampMs) ?? '')].filter(Boolean).join(' ') || 'EVM network gas estimate timestamp'))} • EVM network gas estimate timestamp • Blockhead</title>
+	<title>{(data.title ?? (pageSelection.entity == null ? String(pageSelection.entitySelector.timestampMs ?? '') || 'EVM network gas estimate timestamp' : ([(String(pageSelection.entity.fastGwei ?? '') ? String(pageSelection.entity.fastGwei ?? '') + ' gwei' : ''), String(pageSelection.entitySelector.timestampMs)].filter(Boolean).join(' ')) || 'EVM network gas estimate timestamp'))} • EVM network gas estimate timestamp • Blockhead</title>
 </svelte:head>
 
 
 <Page>
 	<EvmNetwork_GasEstimate_TimestampView
-		href={
-			resolve('/network/[network=networkCaip2OrNetworkSlug]/gas-estimates/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
-				network: params.network,
-				timestampMs: params.timestampMs,
-				source: params.source,
-			})
-		}
 		selection={pageSelection}
 	/>
 </Page>

@@ -11,7 +11,6 @@ import {
 	blockchairDefaultLimit,
 	blockchairMaxLimit,
 } from '$/sources/Blockchair/Rest/constants.ts'
-
 import type {
 	BlockchairAddress,
 	BlockchairAddressDashboardParams,
@@ -105,7 +104,7 @@ export const getStats = ({
 }: {
 	chain?: BlockchairChain
 	options?: BlockchairRequestOptions
-} = {}) => (
+}) => (
 	chain == null ?
 		getBlockchairJson<BlockchairResponse<BlockchairStatsByChain>>({
 			path: '/stats',

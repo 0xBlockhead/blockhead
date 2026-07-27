@@ -7,7 +7,6 @@
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
@@ -51,43 +50,12 @@
 
 
 <svelte:head>
-	<title>{(pageSelection.entity == null ? [String(({
-		$actor: {
-			did: decodeURIComponent(params.did),
-		},
-		timestampMs: Number(params.timestampMs),
-		source: params.source,
-	}.timestampMs) ?? '')].filter(Boolean).join(' ') || 'AT Protocol account observation' : [String((({ ...{
-		$actor: {
-			did: decodeURIComponent(params.did),
-		},
-		timestampMs: Number(params.timestampMs),
-		source: params.source,
-	}, ...pageSelection.entity }).displayName) ?? ''), String((({ ...{
-		$actor: {
-			did: decodeURIComponent(params.did),
-		},
-		timestampMs: Number(params.timestampMs),
-		source: params.source,
-	}, ...pageSelection.entity }).handle) ?? '')].filter(Boolean).join(' ') || [String((({ ...{
-		$actor: {
-			did: decodeURIComponent(params.did),
-		},
-		timestampMs: Number(params.timestampMs),
-		source: params.source,
-	}, ...pageSelection.entity }).timestampMs) ?? '')].filter(Boolean).join(' ') || 'AT Protocol account observation')} • AT Protocol account observation • Blockhead</title>
+	<title>{(pageSelection.entity == null ? String(pageSelection.entitySelector.timestampMs ?? '') || 'AT Protocol account observation' : [(pageSelection.entity.displayName ?? ''), pageSelection.entity.handle].filter(Boolean).join(' ') || String(pageSelection.entitySelector.timestampMs) || 'AT Protocol account observation')} • AT Protocol account observation • Blockhead</title>
 </svelte:head>
 
 
 <Page>
 	<AtprotoActor_TimestampView
-		href={
-			resolve('/atproto/actor/[did=stringSegment]/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
-				did: params.did,
-				timestampMs: params.timestampMs,
-				source: params.source,
-			})
-		}
 		selection={pageSelection}
 	/>
 </Page>

@@ -2,13 +2,9 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -20,42 +16,27 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.BlockheadZcashNoteState_Timestamp>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.BlockheadZcashNoteState_Timestamp>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.BlockheadZcashNoteState_Timestamp> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const blockheadZcashNoteStateTimestamp = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {
-			spent: true,
-			confirmations: true,
-		},
-	} : {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const viewSelection = $derived(selection({
+		sources: selection.sources ?? [
+			Source.Local_Internal,
+			Source.ZcashClientBackend_Local,
+			Source.ZcashLightwalletd_Grpc,
+			Source.ZcashdWallet_JsonRpc,
+		],
+	}))
+	const blockheadZcashNoteStateTimestamp = $derived(viewSelection({
 		fields: {
 			spent: true,
 			confirmations: true,
 		},
 	}))
-	const titleFallback = $derived([String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || 'blockhead zcash note state timestamp')
-	const viewDomId = $derived('blockhead-zcash-note-state-timestamp-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const titleFallback = $derived(String(pendingEntity.timestampMs ?? '') || 'blockhead zcash note state timestamp')
 
 
 	// Components
@@ -68,71 +49,37 @@
 
 <EntityView
 	entityType={EntityType.BlockheadZcashNoteState_Timestamp}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'spent') && Object.hasOwn(prefetched, 'confirmations')}
-			{@const timestampMs0 = pendingEntity.timestampMs}
-			{#if timestampMs0 !== undefined && timestampMs0 !== null}
-				<Timestamp timestamp={Number(timestampMs0)} />
-			{/if}
-		{:else}
-			<ResourceBoundary resource={blockheadZcashNoteStateTimestamp}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const timestampMs0 = resolvedEntity.timestampMs}
-					{#if timestampMs0 !== undefined && timestampMs0 !== null}
-						<Timestamp timestamp={Number(timestampMs0)} />
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
 	{/snippet}
 
 	{#snippet Value()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'spent') && Object.hasOwn(prefetched, 'confirmations')}
-			{[String((pendingEntity.spent) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || titleFallback}
-		{:else}
-			<ResourceBoundary resource={blockheadZcashNoteStateTimestamp}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.spent) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={blockheadZcashNoteStateTimestamp}>
+			{#snippet children(entity)}
+				{String(entity.spent ?? '') || String(pendingEntity.timestampMs) || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'spent') && Object.hasOwn(prefetched, 'confirmations')}
-			{@const confirmations0 = pendingEntity.confirmations}
-			{#if confirmations0 !== undefined && confirmations0 !== null}
-				<span data-text="muted">
-					<NumberValue
-						value={confirmations0}
-					/>
-				</span>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={blockheadZcashNoteStateTimestamp}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const confirmations0 = resolvedEntity.confirmations}
-					{#if confirmations0 !== undefined && confirmations0 !== null}
-						<span data-text="muted">
-							<NumberValue
-								value={confirmations0}
-							/>
-						</span>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={blockheadZcashNoteStateTimestamp}>
+			{#snippet children(entity)}
+				{@const confirmations0 = entity.confirmations}
+				{#if confirmations0 != null}
+					<span data-text="muted">
+						<NumberValue
+							value={confirmations0}
+						/>
+					</span>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -151,65 +98,23 @@
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									timestampMs: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const timestampMs = resolvedEntity.timestampMs}
-							{#if timestampMs !== undefined && timestampMs !== null}
-								<Timestamp timestamp={Number(timestampMs)} />
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									source: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const source = resolvedEntity.source}
-							{#if source !== undefined && source !== null}
-								{String((source) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{pendingEntity.source}
 				</dd>
 			</div>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							spent: true,
-						},
-					})
-				}
+				resource={blockheadZcashNoteStateTimestamp}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const spent = resolvedEntity.spent}
-					{#if spent !== undefined && spent !== null}
+					{@const spent = entity.spent}
+					{#if spent != null}
 						<div>
 							<dt>spent</dt>
 							<dd>
@@ -222,8 +127,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							spendTransactionId: true,
 						},
@@ -231,13 +135,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const spendTransactionId = resolvedEntity.spendTransactionId}
-					{#if spendTransactionId !== undefined && spendTransactionId !== null}
+					{@const spendTransactionId = entity.spendTransactionId}
+					{#if spendTransactionId != null}
 						<div>
 							<dt>spend transaction ID</dt>
 							<dd>
-								{String((spendTransactionId) ?? '')}
+								{spendTransactionId}
 							</dd>
 						</div>
 					{/if}
@@ -248,8 +151,7 @@
 		<dl data-column-item="center">
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							spentAtHeight: true,
 						},
@@ -257,9 +159,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const spentAtHeight = resolvedEntity.spentAtHeight}
-					{#if spentAtHeight !== undefined && spentAtHeight !== null}
+					{@const spentAtHeight = entity.spentAtHeight}
+					{#if spentAtHeight != null}
 						<div>
 							<dt>spent AT height</dt>
 							<dd>
@@ -273,19 +174,11 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							confirmations: true,
-						},
-					})
-				}
+				resource={blockheadZcashNoteStateTimestamp}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const confirmations = resolvedEntity.confirmations}
-					{#if confirmations !== undefined && confirmations !== null}
+					{@const confirmations = entity.confirmations}
+					{#if confirmations != null}
 						<div>
 							<dt>confirmations</dt>
 							<dd>
@@ -300,8 +193,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							witnessAvailable: true,
 						},
@@ -309,9 +201,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const witnessAvailable = resolvedEntity.witnessAvailable}
-					{#if witnessAvailable !== undefined && witnessAvailable !== null}
+					{@const witnessAvailable = entity.witnessAvailable}
+					{#if witnessAvailable != null}
 						<div>
 							<dt>witness available</dt>
 							<dd>
@@ -326,8 +217,7 @@
 		<dl data-column-item="center">
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							lastScannedHeight: true,
 						},
@@ -335,9 +225,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const lastScannedHeight = resolvedEntity.lastScannedHeight}
-					{#if lastScannedHeight !== undefined && lastScannedHeight !== null}
+					{@const lastScannedHeight = entity.lastScannedHeight}
+					{#if lastScannedHeight != null}
 						<div>
 							<dt>last scanned height</dt>
 							<dd>
@@ -352,8 +241,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							lastScannedAt: true,
 						},
@@ -361,9 +249,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const lastScannedAt = resolvedEntity.lastScannedAt}
-					{#if lastScannedAt !== undefined && lastScannedAt !== null}
+					{@const lastScannedAt = entity.lastScannedAt}
+					{#if lastScannedAt != null}
 						<div>
 							<dt>last scanned AT</dt>
 							<dd>

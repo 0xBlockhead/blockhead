@@ -2,14 +2,10 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
 	import { ZeroExHex } from '$/schema/ZeroExHex.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -21,44 +17,25 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.BlockheadKaspaNodeState_Timestamp>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.BlockheadKaspaNodeState_Timestamp>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.BlockheadKaspaNodeState_Timestamp> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const blockheadKaspaNodeStateTimestamp = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {
-			isSynced: true,
-			hasUtxoIndex: true,
-			peerCount: true,
-		},
-	} : {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const viewSelection = $derived(selection({
+		sources: selection.sources ?? [
+			Source.Local_Internal,
+		],
+	}))
+	const blockheadKaspaNodeStateTimestamp = $derived(viewSelection({
 		fields: {
 			isSynced: true,
 			hasUtxoIndex: true,
 			peerCount: true,
 		},
 	}))
-	const titleFallback = $derived([String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || 'blockhead kaspa node state timestamp')
-	const viewDomId = $derived('blockhead-kaspa-node-state-timestamp-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const titleFallback = $derived(String(pendingEntity.timestampMs ?? '') || 'blockhead kaspa node state timestamp')
 
 
 	// Components
@@ -72,71 +49,37 @@
 
 <EntityView
 	entityType={EntityType.BlockheadKaspaNodeState_Timestamp}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'isSynced') && Object.hasOwn(prefetched, 'hasUtxoIndex') && Object.hasOwn(prefetched, 'peerCount')}
-			{@const timestampMs0 = pendingEntity.timestampMs}
-			{#if timestampMs0 !== undefined && timestampMs0 !== null}
-				<Timestamp timestamp={Number(timestampMs0)} />
-			{/if}
-		{:else}
-			<ResourceBoundary resource={blockheadKaspaNodeStateTimestamp}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const timestampMs0 = resolvedEntity.timestampMs}
-					{#if timestampMs0 !== undefined && timestampMs0 !== null}
-						<Timestamp timestamp={Number(timestampMs0)} />
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
 	{/snippet}
 
 	{#snippet Value()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'isSynced') && Object.hasOwn(prefetched, 'hasUtxoIndex') && Object.hasOwn(prefetched, 'peerCount')}
-			{[String((pendingEntity.isSynced) ?? ''), String((pendingEntity.hasUtxoIndex) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || titleFallback}
-		{:else}
-			<ResourceBoundary resource={blockheadKaspaNodeStateTimestamp}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.isSynced) ?? ''), String((resolvedEntity.hasUtxoIndex) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={blockheadKaspaNodeStateTimestamp}>
+			{#snippet children(entity)}
+				{[String(entity.isSynced ?? ''), String(entity.hasUtxoIndex ?? '')].filter(Boolean).join(' ') || String(pendingEntity.timestampMs) || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'isSynced') && Object.hasOwn(prefetched, 'hasUtxoIndex') && Object.hasOwn(prefetched, 'peerCount')}
-			{@const peerCount0 = pendingEntity.peerCount}
-			{#if peerCount0 !== undefined && peerCount0 !== null}
-				<span data-text="muted">
-					<NumberValue
-						value={peerCount0}
-					/>
-				</span>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={blockheadKaspaNodeStateTimestamp}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const peerCount0 = resolvedEntity.peerCount}
-					{#if peerCount0 !== undefined && peerCount0 !== null}
-						<span data-text="muted">
-							<NumberValue
-								value={peerCount0}
-							/>
-						</span>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={blockheadKaspaNodeStateTimestamp}>
+			{#snippet children(entity)}
+				{@const peerCount0 = entity.peerCount}
+				{#if peerCount0 != null}
+					<span data-text="muted">
+						<NumberValue
+							value={peerCount0}
+						/>
+					</span>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -155,55 +98,20 @@
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									timestampMs: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const timestampMs = resolvedEntity.timestampMs}
-							{#if timestampMs !== undefined && timestampMs !== null}
-								<Timestamp timestamp={Number(timestampMs)} />
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									source: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const source = resolvedEntity.source}
-							{#if source !== undefined && source !== null}
-								{String((source) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{pendingEntity.source}
 				</dd>
 			</div>
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							serverVersion: true,
 						},
@@ -211,13 +119,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const serverVersion = resolvedEntity.serverVersion}
-					{#if serverVersion !== undefined && serverVersion !== null}
+					{@const serverVersion = entity.serverVersion}
+					{#if serverVersion != null}
 						<div>
 							<dt>server version</dt>
 							<dd>
-								{String((serverVersion) ?? '')}
+								{serverVersion}
 							</dd>
 						</div>
 					{/if}
@@ -227,19 +134,11 @@
 
 		<dl data-column-item="center">
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							isSynced: true,
-						},
-					})
-				}
+				resource={blockheadKaspaNodeStateTimestamp}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const isSynced = resolvedEntity.isSynced}
-					{#if isSynced !== undefined && isSynced !== null}
+					{@const isSynced = entity.isSynced}
+					{#if isSynced != null}
 						<div>
 							<dt>is synced</dt>
 							<dd>
@@ -251,19 +150,11 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							hasUtxoIndex: true,
-						},
-					})
-				}
+				resource={blockheadKaspaNodeStateTimestamp}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const hasUtxoIndex = resolvedEntity.hasUtxoIndex}
-					{#if hasUtxoIndex !== undefined && hasUtxoIndex !== null}
+					{@const hasUtxoIndex = entity.hasUtxoIndex}
+					{#if hasUtxoIndex != null}
 						<div>
 							<dt>has UTXO index</dt>
 							<dd>
@@ -275,19 +166,11 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							peerCount: true,
-						},
-					})
-				}
+				resource={blockheadKaspaNodeStateTimestamp}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const peerCount = resolvedEntity.peerCount}
-					{#if peerCount !== undefined && peerCount !== null}
+					{@const peerCount = entity.peerCount}
+					{#if peerCount != null}
 						<div>
 							<dt>peer count</dt>
 							<dd>
@@ -302,8 +185,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							lastSyncedAt: true,
 						},
@@ -311,9 +193,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const lastSyncedAt = resolvedEntity.lastSyncedAt}
-					{#if lastSyncedAt !== undefined && lastSyncedAt !== null}
+					{@const lastSyncedAt = entity.lastSyncedAt}
+					{#if lastSyncedAt != null}
 						<div>
 							<dt>last synced AT</dt>
 							<dd>
@@ -328,8 +209,7 @@
 		<dl data-column-item="center">
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							virtualDaaScore: true,
 						},
@@ -337,9 +217,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const virtualDaaScore = resolvedEntity.virtualDaaScore}
-					{#if virtualDaaScore !== undefined && virtualDaaScore !== null}
+					{@const virtualDaaScore = entity.virtualDaaScore}
+					{#if virtualDaaScore != null}
 						<div>
 							<dt>virtual daa score</dt>
 							<dd>
@@ -354,8 +233,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							virtualSelectedParentHash: true,
 						},
@@ -363,13 +241,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const virtualSelectedParentHash = resolvedEntity.virtualSelectedParentHash}
-					{#if virtualSelectedParentHash !== undefined && virtualSelectedParentHash !== null}
+					{@const virtualSelectedParentHash = entity.virtualSelectedParentHash}
+					{#if virtualSelectedParentHash != null}
 						<div>
 							<dt>virtual selected parent hash</dt>
 							<dd>
-								<TruncatedValue value={String((virtualSelectedParentHash) ?? '')} />
+								<TruncatedValue value={String(virtualSelectedParentHash)} />
 							</dd>
 						</div>
 					{/if}
@@ -378,8 +255,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							pruningPointHash: true,
 						},
@@ -387,13 +263,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const pruningPointHash = resolvedEntity.pruningPointHash}
-					{#if pruningPointHash !== undefined && pruningPointHash !== null}
+					{@const pruningPointHash = entity.pruningPointHash}
+					{#if pruningPointHash != null}
 						<div>
 							<dt>pruning point hash</dt>
 							<dd>
-								<TruncatedValue value={String((pruningPointHash) ?? '')} />
+								<TruncatedValue value={String(pruningPointHash)} />
 							</dd>
 						</div>
 					{/if}

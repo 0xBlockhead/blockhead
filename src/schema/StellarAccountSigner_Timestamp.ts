@@ -1,14 +1,11 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { entity, facet } from '$/schema/$schema.ts'
+import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { type } from 'arktype'
 
-export enum StellarAccountSigner_TimestampSelector {
-	SignerTimestampMsSource = 'SignerTimestampMsSource',
-}
-export const StellarAccountSigner_Timestamp = entity({
+export default entity({
 	entityType: EntityType.StellarAccountSigner_Timestamp,
 	labels: {
 		singular: 'stellar account signer timestamp',

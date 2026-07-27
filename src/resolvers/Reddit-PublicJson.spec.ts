@@ -7,9 +7,6 @@ import {
 
 import { entityFieldAddressKey, EntityMetaKey } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import { RedditCommentSelector } from '$/schema/RedditComment.ts'
-import { RedditLinkSelector } from '$/schema/RedditLink.ts'
-import { RedditSubredditSelector } from '$/schema/RedditSubreddit.ts'
 import { Source } from '$/sources/Source.ts'
 import {
 	getCommentsByArticleId,
@@ -56,7 +53,7 @@ describe('Reddit_PublicJson timestamp relationships', () => {
 		if (resolver == null)
 			throw new Error('Reddit_PublicJson spec missing RedditSubreddit.$$timestamps resolver')
 
-		await expect(resolver.resolve[RedditSubredditSelector.Name].resolve({
+		await expect(resolver.resolve['Name'].resolve({
 			name: 'ethereum',
 		}, resolverContext)).resolves.toEqual([{
 			[EntityMetaKey.Selector]: {
@@ -74,7 +71,7 @@ describe('Reddit_PublicJson timestamp relationships', () => {
 	it.each([
 		{
 			entityType: EntityType.RedditLink,
-			selectorName: RedditLinkSelector.Fullname,
+			selectorName: 'Fullname',
 			fullname: 't3_link',
 			kind: 't3',
 			parentField: '$link',
@@ -90,7 +87,7 @@ describe('Reddit_PublicJson timestamp relationships', () => {
 		},
 		{
 			entityType: EntityType.RedditComment,
-			selectorName: RedditCommentSelector.Fullname,
+			selectorName: 'Fullname',
 			fullname: 't1_comment',
 			kind: 't1',
 			parentField: '$comment',
@@ -205,7 +202,7 @@ describe('Reddit_PublicJson comment hierarchy', () => {
 		if (detailResolver == null || repliesResolver == null)
 			throw new Error('Reddit comment hierarchy resolvers missing')
 
-		await expect(detailResolver.resolve[RedditCommentSelector.Fullname].resolve({
+		await expect(detailResolver.resolve['Fullname'].resolve({
 			fullname: 't1_child',
 		}, resolverContext)).resolves.toMatchObject({
 			$link: { [EntityMetaKey.Selector]: { fullname: 't3_root' } },
@@ -220,7 +217,7 @@ describe('Reddit_PublicJson comment hierarchy', () => {
 				}],
 			},
 		})
-		await expect(repliesResolver.resolve[RedditCommentSelector.Fullname].resolve({
+		await expect(repliesResolver.resolve['Fullname'].resolve({
 			fullname: 't1_parent',
 		}, resolverContext)).resolves.toEqual([{
 			[EntityMetaKey.Selector]: { fullname: 't1_child' },
@@ -273,7 +270,7 @@ describe('Reddit_PublicJson comment hierarchy', () => {
 		if (commentsResolver == null)
 			throw new Error('Reddit_PublicJson spec missing RedditLink.$$comments resolver')
 
-		await expect(commentsResolver.resolve[RedditLinkSelector.Fullname].resolve({
+		await expect(commentsResolver.resolve['Fullname'].resolve({
 			fullname: 't3_root',
 		}, resolverContext)).resolves.toEqual([
 			{
@@ -336,26 +333,30 @@ describe('Reddit_PublicJson listing continuation', () => {
 		if (subreddit == null || link == null || comment == null)
 			throw new Error('Reddit_PublicJson spec missing live identity resolvers')
 
-		await expect(subreddit.resolve[RedditSubredditSelector.Name].resolve({
+		await expect(subreddit.resolve['Name'].resolve({
 			name: 'ethereum',
 		}, resolverContext)).resolves.toMatchObject({
 			title: 'Ethereum live',
 		})
-		await expect(link.resolve[RedditLinkSelector.Fullname].resolve({
+		await expect(link.resolve['Fullname'].resolve({
 			fullname: 't3_1u8x2f8',
 		}, resolverContext)).resolves.toMatchObject({
 			title: 'Live submission title',
 			author: 'live_author',
 			permalink: 'https://www.reddit.com/r/ethereum/comments/1u8x2f8/live_submission/',
 		})
-		await expect(comment.resolve[RedditCommentSelector.Fullname].resolve({
+		await expect(comment.resolve['Fullname'].resolve({
 			fullname: 't1_osbo75d',
 		}, resolverContext)).resolves.toMatchObject({
 			body: 'Live comment body',
 			author: 'live_commenter',
 		})
-		expect(getInfo).toHaveBeenCalledWith('t3_1u8x2f8')
-		expect(getInfo).toHaveBeenCalledWith('t1_osbo75d')
+		expect(getInfo).toHaveBeenCalledWith(
+			't3_1u8x2f8'
+		)
+		expect(getInfo).toHaveBeenCalledWith(
+			't1_osbo75d'
+		)
 	})
 
 	it('materializes bounded submission cards and rejects mismatched detail subjects', async () => {
@@ -431,7 +432,7 @@ describe('Reddit_PublicJson listing continuation', () => {
 			kind: 'Listing',
 			data: { children: [{ kind: 't3', data: { name: 't3_other' } }] },
 		})
-		await expect(detail.resolve[RedditLinkSelector.Fullname].resolve({
+		await expect(detail.resolve['Fullname'].resolve({
 			fullname: 't3_requested',
 		}, resolverContext)).rejects.toThrow('link response does not match request')
 
@@ -444,7 +445,7 @@ describe('Reddit_PublicJson listing continuation', () => {
 				],
 			},
 		})
-		await expect(detail.resolve[RedditLinkSelector.Fullname].resolve({
+		await expect(detail.resolve['Fullname'].resolve({
 			fullname: 't3_requested',
 		}, resolverContext)).resolves.toMatchObject({ title: 'Requested title' })
 
@@ -452,7 +453,7 @@ describe('Reddit_PublicJson listing continuation', () => {
 			kind: 'Listing',
 			data: { children: [{ kind: 't1', data: { name: 't3_requested' } }] },
 		})
-		await expect(detail.resolve[RedditLinkSelector.Fullname].resolve({
+		await expect(detail.resolve['Fullname'].resolve({
 			fullname: 't3_requested',
 		}, resolverContext)).rejects.toThrow('link not found')
 
@@ -468,7 +469,7 @@ describe('Reddit_PublicJson listing continuation', () => {
 				}],
 			},
 		})
-		await expect(detail.resolve[RedditLinkSelector.Fullname].resolve({
+		await expect(detail.resolve['Fullname'].resolve({
 			fullname: 't3_requested',
 		}, resolverContext)).resolves.toMatchObject({
 			permalink: undefined,
@@ -486,7 +487,7 @@ describe('Reddit_PublicJson listing continuation', () => {
 				}],
 			},
 		})
-		await expect(detail.resolve[RedditLinkSelector.Fullname].resolve({
+		await expect(detail.resolve['Fullname'].resolve({
 			fullname: 't3_requested',
 		}, resolverContext)).resolves.toMatchObject({
 			permalink: undefined,
@@ -519,13 +520,17 @@ describe('Reddit_PublicJson listing continuation', () => {
 		)
 			throw new Error('Reddit_PublicJson spec missing executable RedditSubreddit continuation')
 
-		await expect(resolver.resolve[RedditSubredditSelector.Name].resolve({
+		await expect(resolver.resolve['Name'].resolve({
 			name: 'ethereum',
 		}, {
 			...resolverContext,
 			providerContinuationToken: 't3_previous',
 		})).resolves.toEqual(page)
-		expect(listSubredditHot).toHaveBeenCalledWith('ethereum', 64, 't3_previous')
+		expect(listSubredditHot).toHaveBeenCalledWith(
+			'ethereum',
+			64,
+			't3_previous'
+		)
 		expect(resolver.projections.$$links.select(
 			page,
 			{ name: 'ethereum' },

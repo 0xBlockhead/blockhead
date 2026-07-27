@@ -2,14 +2,10 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -26,38 +22,21 @@
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.FarcasterCastEmbed>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.FarcasterCastEmbed>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.FarcasterCastEmbed> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const farcasterCastEmbed = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {
-			title: true,
-			url: true,
-		},
-	} : {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const viewSelection = $derived(selection({
+		sources: selection.sources ?? [
+			Source.Snapchain_Rest,
+		],
+	}))
+	const farcasterCastEmbed = $derived(viewSelection({
 		fields: {
 			title: true,
 			url: true,
 		},
 	}))
-	const titleFallback = $derived([String((pendingEntity.title) ?? ''), String((pendingEntity.url) ?? '')].filter(Boolean).join(' ') || 'Farcaster cast embed')
-	const viewDomId = $derived('farcaster-cast-embed-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const titleFallback = $derived([(pendingEntity.title ?? ''), (pendingEntity.url ?? '')].filter(Boolean).join(' ') || 'Farcaster cast embed')
 
 
 	// Components
@@ -71,24 +50,21 @@
 
 <EntityView
 	entityType={EntityType.FarcasterCastEmbed}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
 	href={
 		href ?? (
-			selection.entitySelector != null && 'indexInCast' in selection.entitySelector
-			&& selection.entitySelector.indexInCast != null
-			&& selection.entitySelector != null && '$cast' in selection.entitySelector
-			&& selection.entitySelector.$cast != null && 'fid' in selection.entitySelector.$cast
-			&& selection.entitySelector.$cast.fid != null
-			&& selection.entitySelector.$cast != null && 'hash' in selection.entitySelector.$cast
-			&& selection.entitySelector.$cast.hash != null ?
-				resolve('/farcaster/cast/[fid=farcasterFid]/[hash=zeroExHex]/embed/[indexInCast=nonNegativeInteger]', {
-			indexInCast: String(selection.entitySelector.indexInCast ?? ''),
-			fid: String(selection.entitySelector.$cast.fid ?? ''),
-			hash: String(selection.entitySelector.$cast.hash ?? ''),
-		})
-		:
+			'fid' in selection.entitySelector.$cast
+			&& 'hash' in selection.entitySelector.$cast ?
+				resolve(
+					'/(social)/(farcaster)/farcaster/(farcasterNetwork)/cast/[fid=farcasterFid]/[hash=zeroExHex]/(farcasterCast)/embed/[indexInCast=nonNegativeInteger]',
+					{
+						fid: String(selection.entitySelector.$cast.fid),
+						hash: String(selection.entitySelector.$cast.hash),
+						indexInCast: String(selection.entitySelector.indexInCast),
+					}
+				)
+			:
 				undefined
 		)
 	}
@@ -116,28 +92,20 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={farcasterCastEmbed}>
 			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const title0 = resolvedEntity.title}
-				{#if title0 !== undefined && title0 !== null}
-					{String((title0) ?? '')}
+				{@const title0 = entity.title}
+				{#if title0 != null}
+					{title0}
 				{/if}
-				{@const url1 = resolvedEntity.url}
-				{#if url1 !== undefined && url1 !== null}
-					<TruncatedValue value={String((url1) ?? '')} />
+				{@const url1 = entity.url}
+				{#if url1 != null}
+					<TruncatedValue value={url1} />
 				{/if}
 
 				<ResourceBoundary
-					resource={
-						selection
-							.$embeddedCast({
-								sources: [
-									Source.Snapchain_Rest,
-								],
-							})
-					}
+					resource={selection.$embeddedCast}
 				>
 					{#snippet children(farcasterCast)}
-						{#if farcasterCast != null && farcasterCast[EntityMetaKey.Selector] != null}
+						{#if farcasterCast != null}
 							<FarcasterCastView
 								selection={select(EntityType.FarcasterCast, farcasterCast[EntityMetaKey.Selector])}
 								prefetched={farcasterCast}
@@ -153,17 +121,9 @@
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={farcasterCastEmbed}>
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const indexInCast0 = resolvedEntity.indexInCast}
-				{#if indexInCast0 !== undefined && indexInCast0 !== null}
-					<NumberValue
-						value={indexInCast0}
-					/>
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		<NumberValue
+			value={pendingEntity.indexInCast}
+		/>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -173,29 +133,6 @@
 				<dd>
 					<FarcasterCastView
 						selection={select(EntityType.FarcasterCast, selection.entitySelector.$cast)}
-						href={
-							(
-								selection.entitySelector.$cast != null && 'fid' in selection.entitySelector.$cast
-								&& selection.entitySelector.$cast.fid != null
-								&& selection.entitySelector.$cast != null && 'hash' in selection.entitySelector.$cast
-								&& selection.entitySelector.$cast.hash != null ?
-									resolve('/farcaster/cast/[fid=farcasterFid]/[hash=zeroExHex]', {
-								fid: String(selection.entitySelector.$cast.fid ?? ''),
-								hash: String(selection.entitySelector.$cast.hash ?? ''),
-							})
-							:
-									selection.entitySelector.$cast != null && 'username' in selection.entitySelector.$cast
-									&& selection.entitySelector.$cast.username != null
-									&& selection.entitySelector.$cast != null && 'hashPrefix' in selection.entitySelector.$cast
-									&& selection.entitySelector.$cast.hashPrefix != null ?
-										resolve('/farcaster/c/[fname=stringSegment]/[hash=zeroExHex]', {
-									fname: String(selection.entitySelector.$cast.username ?? ''),
-									hash: String(selection.entitySelector.$cast.hashPrefix ?? ''),
-								})
-								:
-									undefined
-							)
-						}
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -207,56 +144,30 @@
 			<div>
 				<dt>Index in cast</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									indexInCast: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const indexInCast = resolvedEntity.indexInCast}
-							{#if indexInCast !== undefined && indexInCast !== null}
-								<NumberValue
-									value={indexInCast}
-								/>
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					<NumberValue
+						value={pendingEntity.indexInCast}
+					/>
 				</dd>
 			</div>
 		</dl>
 
 		<dl data-column-item="center">
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							url: true,
-						},
-					})
-				}
+				resource={farcasterCastEmbed}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const url = resolvedEntity.url}
-					{#if url !== undefined && url !== null}
+					{@const url = entity.url}
+					{#if url != null}
 						<div>
 							<dt>URL</dt>
 							<dd>
-								<svelte:element
-									this={'a'}
+								<a
 									href={String(url)}
 									target="_blank"
 									rel="noreferrer noopener"
 								>
 									<TruncatedValue value={String(url)} />
-								</svelte:element>
+								</a>
 							</dd>
 						</div>
 					{/if}
@@ -266,46 +177,16 @@
 
 		<dl data-column-item="center">
 			<ResourceBoundary
-				resource={
-					selection
-						.$embeddedCast({
-							sources: [
-								Source.Snapchain_Rest,
-							],
-						})
-				}
+				resource={selection.$embeddedCast}
 			>
 				{#snippet children(farcasterCast)}
-					{#if farcasterCast != null && farcasterCast[EntityMetaKey.Selector] != null}
+					{#if farcasterCast != null}
 						<div>
 							<dt>Embedded cast</dt>
 							<dd>
 								<FarcasterCastView
 									selection={select(EntityType.FarcasterCast, farcasterCast[EntityMetaKey.Selector])}
 									prefetched={farcasterCast}
-									href={
-										(
-											farcasterCast[EntityMetaKey.Selector] != null && 'fid' in farcasterCast[EntityMetaKey.Selector]
-											&& farcasterCast[EntityMetaKey.Selector].fid != null
-											&& farcasterCast[EntityMetaKey.Selector] != null && 'hash' in farcasterCast[EntityMetaKey.Selector]
-											&& farcasterCast[EntityMetaKey.Selector].hash != null ?
-												resolve('/farcaster/cast/[fid=farcasterFid]/[hash=zeroExHex]', {
-											fid: String(farcasterCast[EntityMetaKey.Selector].fid ?? ''),
-											hash: String(farcasterCast[EntityMetaKey.Selector].hash ?? ''),
-										})
-										:
-												farcasterCast[EntityMetaKey.Selector] != null && 'username' in farcasterCast[EntityMetaKey.Selector]
-												&& farcasterCast[EntityMetaKey.Selector].username != null
-												&& farcasterCast[EntityMetaKey.Selector] != null && 'hashPrefix' in farcasterCast[EntityMetaKey.Selector]
-												&& farcasterCast[EntityMetaKey.Selector].hashPrefix != null ?
-													resolve('/farcaster/c/[fname=stringSegment]/[hash=zeroExHex]', {
-												fname: String(farcasterCast[EntityMetaKey.Selector].username ?? ''),
-												hash: String(farcasterCast[EntityMetaKey.Selector].hashPrefix ?? ''),
-											})
-											:
-												undefined
-										)
-									}
 									layout={EntityLayout.Value}
 									open={false}
 								/>
@@ -319,8 +200,7 @@
 		<dl data-column-item="center">
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							quotedPreviewText: true,
 						},
@@ -328,13 +208,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const quotedPreviewText = resolvedEntity.quotedPreviewText}
-					{#if quotedPreviewText !== undefined && quotedPreviewText !== null}
+					{@const quotedPreviewText = entity.quotedPreviewText}
+					{#if quotedPreviewText != null}
 						<div>
 							<dt>Quoted preview text</dt>
 							<dd>
-								<TruncatedValue value={String((quotedPreviewText) ?? '')} />
+								<TruncatedValue value={quotedPreviewText} />
 							</dd>
 						</div>
 					{/if}
@@ -344,8 +223,7 @@
 
 		<ResourceBoundary
 			resource={
-				selection({
-					sources: selection.sources,
+				viewSelection({
 					fields: {
 						description: true,
 					},
@@ -353,10 +231,9 @@
 			}
 		>
 			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const description = resolvedEntity.description}
-				{#if description !== undefined && description !== null && description !== ''}
-					<p data-text="long-text">{String((description) ?? '')}</p>
+				{@const description = entity.description}
+				{#if description != null && description !== ''}
+					<p data-text="long-text">{description}</p>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>

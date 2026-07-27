@@ -26,8 +26,6 @@ import zcashZips from '$/resolvers/ZcashZips-Github.ts'
 import { EntityMetaKey } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { schema } from '$/schema/index.ts'
-import { SpecificationProposalSelector } from '$/schema/SpecificationProposal.ts'
-import { _GlobalSelector } from '$/schema/_Global.ts'
 
 const dogecoinDipsQueries = vi.hoisted(() => ({
 	getContents: vi.fn(),
@@ -77,7 +75,7 @@ describe('specification proposal source applicability', () => {
 		])
 
 		const rows = await dogecoinDips.resolvers[1]
-			.resolve[_GlobalSelector.Scope]
+			.resolve['Scope']
 			.resolve()
 
 		expect(dogecoinDipsQueries.getContents).toHaveBeenCalledOnce()
@@ -105,7 +103,7 @@ describe('specification proposal source applicability', () => {
 		const resolvers = indexed.resolverDefinitionsByEntityTypeAndSelectorName[
 			resolverDefinitionsKey(
 				EntityType.SpecificationProposal,
-				SpecificationProposalSelector.RealmCategoryNumber
+				'RealmCategoryNumber'
 			)
 		] ?? []
 
@@ -113,7 +111,7 @@ describe('specification proposal source applicability', () => {
 			expect(
 				resolvers
 					.filter((resolver) => resolver.appliesTo(
-						SpecificationProposalSelector.RealmCategoryNumber,
+						'RealmCategoryNumber',
 						{
 							realm,
 							category,

@@ -2,13 +2,8 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
 
 
 	// Context
@@ -20,35 +15,13 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.CardanoNativeAsset_Timestamp>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.CardanoNativeAsset_Timestamp>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.CardanoNativeAsset_Timestamp> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const cardanoNativeAssetTimestamp = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {},
-	} : {
-		sources: selection.sources,
-	}))
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const titleFallback = 'Cardano native asset timestamp'
-	const viewDomId = $derived('cardano-native-asset-timestamp-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -61,24 +34,14 @@
 
 <EntityView
 	entityType={EntityType.CardanoNativeAsset_Timestamp}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails}
-			{title || titleFallback}
-		{:else}
-			<ResourceBoundary resource={cardanoNativeAssetTimestamp}>
-				{#snippet children(entity)}
-					{title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		Cardano native asset timestamp
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -97,55 +60,20 @@
 			<div>
 				<dt>slot</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									slot: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const slot = resolvedEntity.slot}
-							{#if slot !== undefined && slot !== null}
-								{String((slot) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{String(pendingEntity.slot)}
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									source: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const source = resolvedEntity.source}
-							{#if source !== undefined && source !== null}
-								{String((source) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{pendingEntity.source}
 				</dd>
 			</div>
 
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							timestampMs: true,
 						},
@@ -153,9 +81,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const timestampMs = resolvedEntity.timestampMs}
-					{#if timestampMs !== undefined && timestampMs !== null}
+					{@const timestampMs = entity.timestampMs}
+					{#if timestampMs != null}
 						<div>
 							<dt>Timestamp</dt>
 							<dd>
@@ -169,7 +96,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							blockHash: true,
 						},
@@ -177,13 +103,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const blockHash = resolvedEntity.blockHash}
-					{#if blockHash !== undefined && blockHash !== null}
+					{@const blockHash = entity.blockHash}
+					{#if blockHash != null}
 						<div>
 							<dt>Block hash</dt>
 							<dd>
-								<TruncatedValue value={String((blockHash) ?? '')} />
+								<TruncatedValue value={blockHash} />
 							</dd>
 						</div>
 					{/if}
@@ -193,7 +118,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							supply: true,
 						},
@@ -201,13 +125,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const supply = resolvedEntity.supply}
-					{#if supply !== undefined && supply !== null}
+					{@const supply = entity.supply}
+					{#if supply != null}
 						<div>
 							<dt>supply</dt>
 							<dd>
-								{String((supply) ?? '')}
+								{String(supply)}
 							</dd>
 						</div>
 					{/if}
@@ -217,7 +140,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							transactionCount: true,
 						},
@@ -225,13 +147,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const transactionCount = resolvedEntity.transactionCount}
-					{#if transactionCount !== undefined && transactionCount !== null}
+					{@const transactionCount = entity.transactionCount}
+					{#if transactionCount != null}
 						<div>
 							<dt>transaction count</dt>
 							<dd>
-								{String((transactionCount) ?? '')}
+								{String(transactionCount)}
 							</dd>
 						</div>
 					{/if}
@@ -241,7 +162,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							holderCount: true,
 						},
@@ -249,13 +169,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const holderCount = resolvedEntity.holderCount}
-					{#if holderCount !== undefined && holderCount !== null}
+					{@const holderCount = entity.holderCount}
+					{#if holderCount != null}
 						<div>
 							<dt>holder count</dt>
 							<dd>
-								{String((holderCount) ?? '')}
+								{String(holderCount)}
 							</dd>
 						</div>
 					{/if}

@@ -1,7 +1,7 @@
 import { error, type RequestEvent } from '@sveltejs/kit'
 import { env as privateEnv } from '$env/dynamic/private'
 
-import { sourceServerCredentialsById } from '$/sources/$sourceServerCredentials.server.ts'
+import sourceServerCredentialsById from '$/sources/$sourceServerCredentials.server.ts'
 import {
 	SourceEndpointKind,
 	type SourceServerCredentialDefinition,
@@ -166,7 +166,6 @@ export const proxySourceHttpRequest = async (
 			candidateUrl.search = url.search
 		}
 		const headers = new Headers(requestHeaders)
-		headers.set('Host', candidateUrl.host)
 
 		try {
 			upstream = await event.fetch(candidateUrl, {

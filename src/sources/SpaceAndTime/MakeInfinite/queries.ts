@@ -3,7 +3,8 @@ import {
 	firstHttpUrlForBinding,
 	sourceFetch,
 } from '$/sources/_runtime/http.ts'
-import type { SourceBinding } from '$/sources/SourceBinding.ts'
+import { Source } from '$/sources/Source.ts'
+import bindings from '$/sources/SpaceAndTime/bindings.ts'
 import {
 	makeInfiniteTable,
 	type MakeInfiniteActivityDayAggregate,
@@ -12,6 +13,7 @@ import {
 } from '$/sources/SpaceAndTime/MakeInfinite/types.ts'
 
 const millisecondsPerUtcDay = 86_400_000
+const binding = bindings[Source.SpaceAndTime_MakeInfinite]
 
 const utcSqlTimestamp = (timestampMs: number) => (
 	new Date(timestampMs).toISOString().slice(0, 19).replace('T', ' ')
@@ -37,11 +39,9 @@ const sqlForCompletedUtcDay = (dayStartTimestampMs: number) => {
 }
 
 export const getActivityDay = async ({
-	binding,
 	dayStartTimestampMs,
 	table = makeInfiniteTable,
 }: {
-	binding: SourceBinding
 	dayStartTimestampMs: number
 	table?: string
 }): Promise<MakeInfiniteActivityDayAggregate | undefined> => {

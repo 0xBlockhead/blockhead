@@ -3,12 +3,11 @@
 <script lang="ts">
 	// Types/constants
 	import type { PageProps } from './$types.ts'
+	import { resolve } from '$app/paths'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
@@ -16,8 +15,6 @@
 	let {
 		params,
 	}: PageProps = $props()
-
-
 	// Components
 	import Page from '$/components/Page.svelte'
 	import YoutubeVideosView from '$/views/YoutubeVideosView.svelte'
@@ -30,35 +27,22 @@
 
 
 <Page>
+	{@const collectionSelection = select(EntityType.YoutubePlaylist, {
+		playlistId: decodeURIComponent(params.playlistId),
+	}).$$videos}
+
 	<YoutubeVideosView
 		href={
-			resolve('/youtube/playlist/[playlistId=stringSegment]/videos', {
-				playlistId: params.playlistId,
-			})
+			resolve(
+				'/(social)/(youtube)/youtube/(globalYoutubeNetwork)/playlist/[playlistId=stringSegment]/(youtubePlaylist)/videos',
+				{
+					playlistId: String(params.playlistId),
+				}
+			)
 		}
 		title='Playlist videos'
-		selection={
-			select(EntityType.YoutubePlaylist, {
-				playlistId: decodeURIComponent(params.playlistId),
-			})
-				.$$videos({
-					sources: [
-						Source.Youtube_Rest,
-						Source.Piped_Rest,
-					],
-				})
-		}
-		countResource={
-			select(EntityType.YoutubePlaylist, {
-				playlistId: decodeURIComponent(params.playlistId),
-			})
-				.$$videos({
-					sources: [
-						Source.Youtube_Rest,
-						Source.Piped_Rest,
-					],
-				}).count
-		}
+		selection={collectionSelection}
+		countResource={collectionSelection.count}
 		id='videos'
 		data-column-item="flexible"
 		data-card

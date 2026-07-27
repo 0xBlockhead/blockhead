@@ -29,22 +29,26 @@
 {#key [params.network, params.host].join(':')}
 	<ParentPageCollapsible
 		href={
-			resolve('/network/[network=networkCaip2OrNetworkSlug]/mev/relay/[host=stringSegment]', {
-				network: params.network,
-				host: params.host,
-			})
+			resolve(
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/mev/relay/[host=stringSegment]',
+				{
+					network: String(params.network),
+					host: String(params.host),
+				}
+			)
 		}
 	>
 		{#snippet Summary()}
-			{@const DetailView = MevRelayView}
-
-			<DetailView
+			<MevRelayView
 				selection={select(EntityType.MevRelay, data.selector)}
 				href={
-					resolve('/network/[network=networkCaip2OrNetworkSlug]/mev/relay/[host=stringSegment]', {
-						network: params.network,
-						host: params.host,
-					})
+					resolve(
+						'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/mev/relay/[host=stringSegment]',
+						{
+							network: String(params.network),
+							host: String(params.host),
+						}
+					)
 				}
 				layout={EntityLayout.SummaryInline}
 			/>

@@ -6,19 +6,7 @@ import {
 	EntityMetaKey,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import { NetworkSelector } from '$/schema/Network.ts'
 import { Source } from '$/sources/Source.ts'
-import {
-	ApiFamily,
-	SourceCredentialScope,
-	SourceDelivery,
-	SourceEndpointKind,
-	SourceOperationGroup,
-	SourceTargetKind,
-	WireProtocol,
-	type SourceBinding,
-} from '$/sources/SourceBinding.ts'
-import { SourceProvider } from '$/sources/SourceProvider.ts'
 
 const sourceQueries = vi.hoisted(() => ({
 	getTonCenterV3Blocks: vi.fn(),
@@ -34,30 +22,7 @@ vi.mock('$/sources/TonCenter/V3/Rest/queries.ts', () => sourceQueries)
 
 const { createTonCenterV3Resolvers } = await import('$/resolvers/TonCenter-V3-Rest.ts')
 
-const binding = {
-	provider: SourceProvider.TonCenter,
-	source: Source.TonCenter_V3_Rest,
-	target: {
-		kind: SourceTargetKind.Caip2Network,
-		key: 'ton:-239',
-	},
-	endpoints: [{
-		endpointKind: SourceEndpointKind.HttpUrl,
-		locator: 'https://toncenter.com/api/v3/',
-		origin: 'https://toncenter.com',
-		corsEnabled: false,
-	}],
-	wireProtocol: WireProtocol.HttpRest,
-	apiFamily: ApiFamily.RestJson,
-	operationGroups: [SourceOperationGroup.GenericRead],
-	delivery: SourceDelivery.HttpProxy,
-	credentials: [{
-		scope: SourceCredentialScope.None,
-	}],
-	proxyId: 'TonCenter_V3_Rest-mainnet',
-} as const satisfies SourceBinding
-
-const tonCenter = createTonCenterV3Resolvers(binding)
+const tonCenter = createTonCenterV3Resolvers()
 const network = {
 	caip2: networkBySlug.ton.caip2,
 }
@@ -98,27 +63,27 @@ describe('TonCenter v3 network resolver', () => {
 		})
 		const resolver = blocksResolver
 
-		await resolver.resolve[NetworkSelector.Caip2].resolve(network, context)
+		await resolver.resolve['Caip2'].resolve(network, context)
 
-		expect(resolver.resolve[NetworkSelector.Caip2].appliesTo).toEqual([{
+		expect(resolver.resolve['Caip2'].appliesTo).toEqual([{
 			caip2: networkBySlug.ton.caip2,
 		}])
-		expect(resolver.resolve[NetworkSelector.Slug].appliesTo).toEqual([{
+		expect(resolver.resolve['Slug'].appliesTo).toEqual([{
 			slug: networkBySlug.ton.slug,
 		}])
-		expect(sourceQueries.getTonCenterV3Blocks).toHaveBeenCalledWith(binding, {
+		expect(sourceQueries.getTonCenterV3Blocks).toHaveBeenCalledWith({
 			limit: 2,
 			offset: 4,
 			order: 'desc',
 		})
 		await expect(
-			resolver.resolve[NetworkSelector.Caip2].resolve(
+			resolver.resolve['Caip2'].resolve(
 				{ caip2: { namespace: 'ton', reference: 'testnet' } },
 				context
 			)
 		).rejects.toThrow('unsupported network')
 		await expect(
-			resolver.resolve[NetworkSelector.Caip2].resolve(
+			resolver.resolve['Caip2'].resolve(
 				network,
 				{
 					...context,
@@ -128,7 +93,7 @@ describe('TonCenter v3 network resolver', () => {
 		).rejects.toThrow('invalid offset continuation')
 
 		vi.clearAllMocks()
-		const emptyPage = await resolver.resolve[NetworkSelector.Caip2].resolve(
+		const emptyPage = await resolver.resolve['Caip2'].resolve(
 			network,
 			{
 				...context,
@@ -170,7 +135,7 @@ describe('TonCenter v3 network resolver', () => {
 			}],
 			nextOffset: 6,
 		})
-		const blocksPage = await blocksResolver.resolve[NetworkSelector.Caip2].resolve(network, context)
+		const blocksPage = await blocksResolver.resolve['Caip2'].resolve(network, context)
 		const blocksProjection = blocksResolver.projections.Ton.$$blocks
 		if (typeof blocksProjection === 'function')
 			throw new Error('TonCenter-V3-Rest spec missing block pagination')
@@ -229,7 +194,7 @@ describe('TonCenter v3 network resolver', () => {
 				traceId: 'f'.repeat(64),
 			}],
 		})
-		const transactionsPage = await transactionsResolver.resolve[NetworkSelector.Caip2].resolve(network, context)
+		const transactionsPage = await transactionsResolver.resolve['Caip2'].resolve(network, context)
 		const transactionsProjection = transactionsResolver.projections.Ton.$$transactions
 		if (typeof transactionsProjection === 'function')
 			throw new Error('TonCenter-V3-Rest spec missing transaction pagination')
@@ -252,7 +217,7 @@ describe('TonCenter v3 network resolver', () => {
 			target: 'ton:-239',
 			rows: [message],
 		})
-		const messagesPage = await messagesResolver.resolve[NetworkSelector.Caip2].resolve(network, context)
+		const messagesPage = await messagesResolver.resolve['Caip2'].resolve(network, context)
 		const messagesProjection = messagesResolver.projections.Ton.$$messages
 		if (typeof messagesProjection === 'function')
 			throw new Error('TonCenter-V3-Rest spec missing message pagination')
@@ -294,7 +259,7 @@ describe('TonCenter v3 network resolver', () => {
 				transactionCount: 1,
 			}],
 		})
-		const tracesPage = await tracesResolver.resolve[NetworkSelector.Caip2].resolve(network, context)
+		const tracesPage = await tracesResolver.resolve['Caip2'].resolve(network, context)
 		const tracesProjection = tracesResolver.projections.Ton.$$traces
 		if (typeof tracesProjection === 'function')
 			throw new Error('TonCenter-V3-Rest spec missing trace pagination')
@@ -322,7 +287,7 @@ describe('TonCenter v3 network resolver', () => {
 				mintable: true,
 			}],
 		})
-		const jettonsPage = await jettonsResolver.resolve[NetworkSelector.Caip2].resolve(network, context)
+		const jettonsPage = await jettonsResolver.resolve['Caip2'].resolve(network, context)
 		const jettonsProjection = jettonsResolver.projections.Ton.$$jettons
 		if (typeof jettonsProjection === 'function')
 			throw new Error('TonCenter-V3-Rest spec missing jetton pagination')
@@ -349,7 +314,7 @@ describe('TonCenter v3 network resolver', () => {
 				nextItemIndex: 2n,
 			}],
 		})
-		const collectionsPage = await collectionsResolver.resolve[NetworkSelector.Caip2].resolve(network, context)
+		const collectionsPage = await collectionsResolver.resolve['Caip2'].resolve(network, context)
 		const collectionsProjection = collectionsResolver.projections.Ton.$$nftCollections
 		if (typeof collectionsProjection === 'function')
 			throw new Error('TonCenter-V3-Rest spec missing collection pagination')
@@ -376,7 +341,7 @@ describe('TonCenter v3 network resolver', () => {
 				saleContractAddress: `0:${'7'.repeat(64)}`,
 			}],
 		})
-		const itemsPage = await itemsResolver.resolve[NetworkSelector.Caip2].resolve(network, context)
+		const itemsPage = await itemsResolver.resolve['Caip2'].resolve(network, context)
 		const itemsProjection = itemsResolver.projections.Ton.$$nftItems
 		if (typeof itemsProjection === 'function')
 			throw new Error('TonCenter-V3-Rest spec missing item pagination')

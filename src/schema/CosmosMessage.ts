@@ -1,14 +1,11 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { entity, facet } from '$/schema/$schema.ts'
+import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { type } from 'arktype'
 
-export enum CosmosMessageSelector {
-	TransactionIndexInTransaction = 'TransactionIndexInTransaction',
-}
-export const CosmosMessage = entity({
+export default entity({
 	entityType: EntityType.CosmosMessage,
 	labels: {
 		singular: 'Cosmos message',
@@ -24,7 +21,7 @@ export const CosmosMessage = entity({
 	indexInTransaction: {
 		label: 'Index in transaction',
 		type: EntityFieldType.Primitive,
-		primitiveType: (type('number.integer >= 0')),
+		primitiveType: type('number.integer >= 0'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	typeUrl: {

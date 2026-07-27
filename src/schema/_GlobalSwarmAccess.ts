@@ -1,14 +1,11 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { entity, facet } from '$/schema/$schema.ts'
+import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { type } from 'arktype'
 
-export enum _GlobalSwarmAccessSelector {
-	Scope = 'Scope',
-}
-export const _GlobalSwarmAccess = entity({
+export default entity({
 	entityType: EntityType._GlobalSwarmAccess,
 	labels: {
 		singular: 'global Swarm access',

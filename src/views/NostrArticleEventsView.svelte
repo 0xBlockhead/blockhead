@@ -3,69 +3,32 @@
 <script lang="ts">
 	// Types/constants
 	import { resolve } from '$app/paths'
-	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
-	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
-	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
+	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-
-
 
 
 	// State
 	let {
 		selection,
-		countResource,
-		title = 'Nostr article events',
 		typeAnnotationParagraphs = ['One cryptographically signed kind-30023 version of a stable Nostr article coordinate.'],
-		placeholderText = undefined,
-		emptyText = undefined,
 		open = $bindable(true),
-		collapsible = true,
-		showTypeAnnotation = true,
-		id = 'NostrArticleEvents-list',
 		...EntitiesListProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyEntitiesSelection<EntityType.NostrArticleEvent>
-			countResource?: SvelteKitResource<number>
-			title?: string
-			typeAnnotationParagraphs?: string[]
-			placeholderText?: string
-			emptyText?: string
-			open?: boolean
-			collapsible?: boolean
-			showTypeAnnotation?: boolean
-			id?: string
-		},
-		EntitiesListForwardProps
-	> = $props()
+	}: EntityListViewProps<EntityType.NostrArticleEvent> = $props()
 
 
 	// Components
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView from '$/components/EntityView.svelte'
 </script>
 
-
-{#snippet TypeAnnotationParagraphs()}
-	{#each typeAnnotationParagraphs as paragraph (paragraph)}
-		<p>{paragraph}</p>
-	{/each}
-{/snippet}
 
 <EntitiesList
 	{...EntitiesListProps}
 	entityType={EntityType.NostrArticleEvent}
-	{id}
-	{title}
 	bind:open
-	{collapsible}
-	{showTypeAnnotation}
-	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	{typeAnnotationParagraphs}
 	resource={
 		selection({
-			sources: selection.sources,
 			fields: {
 				title: true,
 				identifier: true,
@@ -76,49 +39,31 @@
 			},
 		})
 	}
-	{countResource}
-	getResourceItems={(nostrArticleEvents) => [...new Map(nostrArticleEvents.values.map((nostrArticleEvent) => [nostrArticleEvent[EntityMetaKey.SelectorKey], nostrArticleEvent])).values()]}
-	getKey={(nostrArticleEvent) => nostrArticleEvent[EntityMetaKey.SelectorKey]}
-	{placeholderText}
 >
-	{#snippet Empty()}
-		{#if emptyText != null}
-			<p data-text="muted">{emptyText}</p>
-		{:else}
-			<p data-text="muted">No Nostr article events yet.</p>
-		{/if}
-	{/snippet}
-
 	{#snippet Item({ item: nostrArticleEvent })}
-		{@const nostrArticleEventFields = { ...nostrArticleEvent[EntityMetaKey.Selector], ...nostrArticleEvent }}
+		{@const nostrArticleEventSelector = nostrArticleEvent[EntityMetaKey.Selector]}
 		<EntityView
 			entityType={EntityType.NostrArticleEvent}
-			entitySelector={nostrArticleEvent[EntityMetaKey.Selector]}
+			entitySelector={nostrArticleEventSelector}
 			href={
-				(
-					nostrArticleEvent[EntityMetaKey.Selector] != null && 'eventId' in nostrArticleEvent[EntityMetaKey.Selector]
-					&& nostrArticleEvent[EntityMetaKey.Selector].eventId != null ?
-						resolve('/nostr/article-version/[eventId=stringSegment]', {
-					eventId: String(nostrArticleEvent[EntityMetaKey.Selector].eventId ?? ''),
-				})
-				:
-						undefined
+				resolve(
+					'/(social)/(nostr)/nostr/(globalNostrNetwork)/article-version/[eventId=stringSegment]',
+					{
+						eventId: String(nostrArticleEventSelector.eventId),
+					}
 				)
 			}
-			layout={EntityLayout.Summary}
-			open={false}
-			showTypeAnnotation={false}
 		>
 			{#snippet Title()}
-				{[String((nostrArticleEventFields.title) ?? ''), String((nostrArticleEventFields.identifier) ?? '')].filter(Boolean).join(' ') || [String((nostrArticleEventFields.eventId) ?? '')].filter(Boolean).join(' ') || 'Nostr article event'}
+				{[(nostrArticleEvent.title ?? ''), nostrArticleEvent.identifier].filter(Boolean).join(' ') || nostrArticleEventSelector.eventId || 'Nostr article event'}
 			{/snippet}
 
 			{#snippet Value()}
-				{[String((nostrArticleEventFields.eventId) ?? '')].filter(Boolean).join(' ')}
+				{nostrArticleEventSelector.eventId}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{[String((nostrArticleEventFields.createdAt) ?? '')].filter(Boolean).join(' ')}</span>
+				<span data-text="annotation">{String(nostrArticleEvent.createdAt)}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

@@ -2,15 +2,9 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
-	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -22,42 +16,19 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.OracleFeed_Round>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.OracleFeed_Round>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.OracleFeed_Round> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const oracleFeedRound = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {
-			answer: true,
-			updatedAtMs: true,
-		},
-	} : {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const oracleFeedRound = $derived(selection({
 		fields: {
 			answer: true,
 			updatedAtMs: true,
 		},
 	}))
-	const titleFallback = $derived([String((pendingEntity.roundId) ?? '')].filter(Boolean).join(' ') || 'oracle feed round')
-	const viewDomId = $derived('oracle-feed-round-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const titleFallback = $derived(String(pendingEntity.roundId ?? '') || 'oracle feed round')
 
 
 	// Components
@@ -72,81 +43,42 @@
 
 <EntityView
 	entityType={EntityType.OracleFeed_Round}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'answer') && Object.hasOwn(prefetched, 'updatedAtMs')}
-			{@const roundId0 = pendingEntity.roundId}
-			{#if roundId0 !== undefined && roundId0 !== null}
-				<NumberValue
-					value={roundId0}
-				/>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={oracleFeedRound}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const roundId0 = resolvedEntity.roundId}
-					{#if roundId0 !== undefined && roundId0 !== null}
-						<NumberValue
-							value={roundId0}
-						/>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<NumberValue
+			value={pendingEntity.roundId}
+		/>
 	{/snippet}
 
 	{#snippet Value()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'answer') && Object.hasOwn(prefetched, 'updatedAtMs')}
-			{@const answer0 = pendingEntity.answer}
-			{#if answer0 !== undefined && answer0 !== null}
-				<NumberValue
-					value={answer0}
-				/>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={oracleFeedRound}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const answer0 = resolvedEntity.answer}
-					{#if answer0 !== undefined && answer0 !== null}
-						<NumberValue
-							value={answer0}
-						/>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={oracleFeedRound}>
+			{#snippet children(entity)}
+				{@const answer0 = entity.answer}
+				{#if answer0 != null}
+					<NumberValue
+						value={answer0}
+					/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'answer') && Object.hasOwn(prefetched, 'updatedAtMs')}
-			{@const updatedAtMs0 = pendingEntity.updatedAtMs}
-			{#if updatedAtMs0 !== undefined && updatedAtMs0 !== null}
-				<span data-text="muted">
-					<Timestamp timestamp={Number(updatedAtMs0)} />
-				</span>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={oracleFeedRound}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const updatedAtMs0 = resolvedEntity.updatedAtMs}
-					{#if updatedAtMs0 !== undefined && updatedAtMs0 !== null}
-						<span data-text="muted">
-							<Timestamp timestamp={Number(updatedAtMs0)} />
-						</span>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={oracleFeedRound}>
+			{#snippet children(entity)}
+				{@const updatedAtMs0 = entity.updatedAtMs}
+				{#if updatedAtMs0 != null}
+					<span data-text="muted">
+						<Timestamp timestamp={Number(updatedAtMs0)} />
+					</span>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -169,14 +101,12 @@
 						resource={selection.$parentOracleFeed}
 					>
 						{#snippet children(oracleFeed)}
-							{#if oracleFeed != null && oracleFeed[EntityMetaKey.Selector] != null}
-								<OracleFeedView
-									selection={select(EntityType.OracleFeed, oracleFeed[EntityMetaKey.Selector])}
-									prefetched={oracleFeed}
-									layout={EntityLayout.Value}
-									open={false}
-								/>
-							{/if}
+							<OracleFeedView
+								selection={select(EntityType.OracleFeed, oracleFeed[EntityMetaKey.Selector])}
+								prefetched={oracleFeed}
+								layout={EntityLayout.Value}
+								open={false}
+							/>
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -185,45 +115,20 @@
 			<div>
 				<dt>round ID</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									roundId: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const roundId = resolvedEntity.roundId}
-							{#if roundId !== undefined && roundId !== null}
-								<NumberValue
-									value={roundId}
-								/>
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					<NumberValue
+						value={pendingEntity.roundId}
+					/>
 				</dd>
 			</div>
 		</dl>
 
 		<dl data-column-item="center">
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							answer: true,
-						},
-					})
-				}
+				resource={oracleFeedRound}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const answer = resolvedEntity.answer}
-					{#if answer !== undefined && answer !== null}
+					{@const answer = entity.answer}
+					{#if answer != null}
 						<div>
 							<dt>answer</dt>
 							<dd>
@@ -239,7 +144,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							startedAtMs: true,
 						},
@@ -247,9 +151,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const startedAtMs = resolvedEntity.startedAtMs}
-					{#if startedAtMs !== undefined && startedAtMs !== null}
+					{@const startedAtMs = entity.startedAtMs}
+					{#if startedAtMs != null}
 						<div>
 							<dt>started AT ms</dt>
 							<dd>
@@ -261,19 +164,11 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							updatedAtMs: true,
-						},
-					})
-				}
+				resource={oracleFeedRound}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const updatedAtMs = resolvedEntity.updatedAtMs}
-					{#if updatedAtMs !== undefined && updatedAtMs !== null}
+					{@const updatedAtMs = entity.updatedAtMs}
+					{#if updatedAtMs != null}
 						<div>
 							<dt>updated AT ms</dt>
 							<dd>
@@ -287,7 +182,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							answeredInRound: true,
 						},
@@ -295,9 +189,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const answeredInRound = resolvedEntity.answeredInRound}
-					{#if answeredInRound !== undefined && answeredInRound !== null}
+					{@const answeredInRound = entity.answeredInRound}
+					{#if answeredInRound != null}
 						<div>
 							<dt>answered in round</dt>
 							<dd>
@@ -316,30 +209,13 @@
 				resource={selection.$network}
 			>
 				{#snippet children(network)}
-					{#if network != null && network[EntityMetaKey.Selector] != null}
+					{#if network != null}
 						<div>
 							<dt>network</dt>
 							<dd>
 								<NetworkView
 									selection={select(EntityType.Network, network[EntityMetaKey.Selector])}
 									prefetched={network}
-									href={
-										(
-											network[EntityMetaKey.Selector] != null && 'caip2' in network[EntityMetaKey.Selector]
-											&& network[EntityMetaKey.Selector].caip2 != null ?
-												resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-											network: String(caip2StringFromValue(network[EntityMetaKey.Selector].caip2) ?? ''),
-										})
-										:
-												network[EntityMetaKey.Selector] != null && 'slug' in network[EntityMetaKey.Selector]
-												&& network[EntityMetaKey.Selector].slug != null ?
-													resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-												network: String(network[EntityMetaKey.Selector].slug ?? ''),
-											})
-											:
-												undefined
-										)
-									}
 									layout={EntityLayout.Value}
 									open={false}
 								/>
@@ -352,7 +228,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							blockNumber: true,
 						},
@@ -360,9 +235,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const blockNumber = resolvedEntity.blockNumber}
-					{#if blockNumber !== undefined && blockNumber !== null}
+					{@const blockNumber = entity.blockNumber}
+					{#if blockNumber != null}
 						<div>
 							<dt>Block number</dt>
 							<dd>
@@ -378,7 +252,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							transactionHash: true,
 						},
@@ -386,13 +259,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const transactionHash = resolvedEntity.transactionHash}
-					{#if transactionHash !== undefined && transactionHash !== null}
+					{@const transactionHash = entity.transactionHash}
+					{#if transactionHash != null}
 						<div>
 							<dt>transaction hash</dt>
 							<dd>
-								<TruncatedValue value={String((transactionHash) ?? '')} />
+								<TruncatedValue value={transactionHash} />
 							</dd>
 						</div>
 					{/if}
@@ -402,7 +274,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							logIndex: true,
 						},
@@ -410,9 +281,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const logIndex = resolvedEntity.logIndex}
-					{#if logIndex !== undefined && logIndex !== null}
+					{@const logIndex = entity.logIndex}
+					{#if logIndex != null}
 						<div>
 							<dt>log index</dt>
 							<dd>

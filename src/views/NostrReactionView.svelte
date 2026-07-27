@@ -2,14 +2,10 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
 	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
 	import { Source } from '$/sources/Source.ts'
 
@@ -27,25 +23,16 @@
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.NostrReaction>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.NostrReaction>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.NostrReaction> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const nostrReaction = $derived(selection({
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const viewSelection = $derived(selection({
+		sources: selection.sources ?? [
+			Source.Primal_Rest,
+			Source.NostrBand_Rest,
+		],
+	}))
+	const nostrReaction = $derived(viewSelection({
 		fields: {
 			kind: true,
 			pubkey: true,
@@ -53,8 +40,7 @@
 			content: true,
 		},
 	}))
-	const titleFallback = $derived([String((pendingEntity.content) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.eventId) ?? '')].filter(Boolean).join(' ') || 'Nostr reaction')
-	const viewDomId = $derived('nostr-reaction-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const titleFallback = $derived((pendingEntity.content ?? '') || (pendingEntity.eventId ?? '') || 'Nostr reaction')
 
 
 	// Components
@@ -68,18 +54,14 @@
 
 <EntityView
 	entityType={EntityType.NostrReaction}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
 	href={
-		href ?? (
-			selection.entitySelector != null && 'eventId' in selection.entitySelector
-			&& selection.entitySelector.eventId != null ?
-				resolve('/nostr/reaction/[eventId=stringSegment]', {
-			eventId: String(selection.entitySelector.eventId ?? ''),
-		})
-		:
-				undefined
+		href ?? resolve(
+			'/(social)/(nostr)/nostr/(globalNostrNetwork)/reaction/[eventId=stringSegment]',
+			{
+				eventId: String(selection.entitySelector.eventId),
+			}
 		)
 	}
 	{layout}
@@ -114,9 +96,8 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={nostrReaction}>
 			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const createdAt0 = resolvedEntity.createdAt}
-				{#if createdAt0 !== undefined && createdAt0 !== null}
+				{@const createdAt0 = entity.createdAt}
+				{#if createdAt0 != null}
 					<span data-text="muted">
 						<Timestamp timestamp={Number(createdAt0)} />
 					</span>
@@ -136,41 +117,16 @@
 			<div>
 				<dt>Event ID</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									eventId: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const eventId = resolvedEntity.eventId}
-							{#if eventId !== undefined && eventId !== null}
-								<TruncatedValue value={String((eventId) ?? '')} />
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					<TruncatedValue value={pendingEntity.eventId} />
 				</dd>
 			</div>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							createdAt: true,
-						},
-					})
-				}
+				resource={nostrReaction}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const createdAt = resolvedEntity.createdAt}
-					{#if createdAt !== undefined && createdAt !== null}
+					{@const createdAt = entity.createdAt}
+					{#if createdAt != null}
 						<div>
 							<dt>Created</dt>
 							<dd>
@@ -186,21 +142,10 @@
 					<dt>Kind</dt>
 					<dd>
 						<ResourceBoundary
-							resource={
-								selection({
-									sources: selection.sources,
-									fields: {
-										kind: true,
-									},
-								})
-							}
+							resource={nostrReaction}
 						>
 							{#snippet children(entity)}
-								{@const resolvedEntity = { ...pendingEntity, ...entity }}
-								{@const kind = resolvedEntity.kind}
-								{#if kind !== undefined && kind !== null}
-									{String((kind) ?? '')}
-								{/if}
+								{String(entity.kind)}
 							{/snippet}
 						</ResourceBoundary>
 					</dd>
@@ -212,21 +157,10 @@
 					<dt>Author pubkey</dt>
 					<dd>
 						<ResourceBoundary
-							resource={
-								selection({
-									sources: selection.sources,
-									fields: {
-										pubkey: true,
-									},
-								})
-							}
+							resource={nostrReaction}
 						>
 							{#snippet children(entity)}
-								{@const resolvedEntity = { ...pendingEntity, ...entity }}
-								{@const pubkey = resolvedEntity.pubkey}
-								{#if pubkey !== undefined && pubkey !== null}
-									<TruncatedValue value={String((pubkey) ?? '')} />
-								{/if}
+								<TruncatedValue value={entity.pubkey} />
 							{/snippet}
 						</ResourceBoundary>
 					</dd>
@@ -235,34 +169,16 @@
 
 			{#if contentOpen}
 				<ResourceBoundary
-					resource={
-						selection
-							.$author({
-								sources: [
-									Source.NostrBand_Rest,
-								],
-							})
-					}
+					resource={selection.$author}
 				>
 					{#snippet children(nostrProfile)}
-						{#if nostrProfile != null && nostrProfile[EntityMetaKey.Selector] != null}
+						{#if nostrProfile != null}
 							<div>
 								<dt>Author</dt>
 								<dd>
 									<NostrProfileView
 										selection={select(EntityType.NostrProfile, nostrProfile[EntityMetaKey.Selector])}
 										prefetched={nostrProfile}
-										href={
-											(
-												nostrProfile[EntityMetaKey.Selector] != null && 'pubkey' in nostrProfile[EntityMetaKey.Selector]
-												&& nostrProfile[EntityMetaKey.Selector].pubkey != null ?
-													resolve('/nostr/profile/[pubkey=stringSegment]', {
-												pubkey: String(nostrProfile[EntityMetaKey.Selector].pubkey ?? ''),
-											})
-											:
-													undefined
-											)
-										}
 										layout={EntityLayout.Value}
 										open={false}
 									/>
@@ -275,34 +191,16 @@
 
 			{#if contentOpen}
 				<ResourceBoundary
-					resource={
-						selection
-							.$targetNote({
-								sources: [
-									Source.NostrBand_Rest,
-								],
-							})
-					}
+					resource={selection.$targetNote}
 				>
 					{#snippet children(nostrNote)}
-						{#if nostrNote != null && nostrNote[EntityMetaKey.Selector] != null}
+						{#if nostrNote != null}
 							<div>
 								<dt>Target note</dt>
 								<dd>
 									<NostrNoteView
 										selection={select(EntityType.NostrNote, nostrNote[EntityMetaKey.Selector])}
 										prefetched={nostrNote}
-										href={
-											(
-												nostrNote[EntityMetaKey.Selector] != null && 'eventId' in nostrNote[EntityMetaKey.Selector]
-												&& nostrNote[EntityMetaKey.Selector].eventId != null ?
-													resolve('/nostr/note/[eventId=stringSegment]', {
-												eventId: String(nostrNote[EntityMetaKey.Selector].eventId ?? ''),
-											})
-											:
-													undefined
-											)
-										}
 										layout={EntityLayout.Value}
 										open={false}
 									/>
@@ -315,38 +213,16 @@
 
 			{#if contentOpen}
 				<ResourceBoundary
-					resource={
-						selection
-							.$targetArticle({
-								sources: [
-									Source.NostrBand_Rest,
-								],
-							})
-					}
+					resource={selection.$targetArticle}
 				>
 					{#snippet children(nostrArticle)}
-						{#if nostrArticle != null && nostrArticle[EntityMetaKey.Selector] != null}
+						{#if nostrArticle != null}
 							<div>
 								<dt>Target article</dt>
 								<dd>
 									<NostrArticleView
 										selection={select(EntityType.NostrArticle, nostrArticle[EntityMetaKey.Selector])}
 										prefetched={nostrArticle}
-										href={
-											(
-												nostrArticle[EntityMetaKey.Selector].kind === 30023
-												&& nostrArticle[EntityMetaKey.Selector] != null && 'pubkey' in nostrArticle[EntityMetaKey.Selector]
-												&& nostrArticle[EntityMetaKey.Selector].pubkey != null
-												&& nostrArticle[EntityMetaKey.Selector] != null && 'identifier' in nostrArticle[EntityMetaKey.Selector]
-												&& nostrArticle[EntityMetaKey.Selector].identifier != null ?
-													resolve('/nostr/article/[pubkey=stringSegment]/[identifier=stringSegment]', {
-												pubkey: String(nostrArticle[EntityMetaKey.Selector].pubkey ?? ''),
-												identifier: String(nostrArticle[EntityMetaKey.Selector].identifier ?? ''),
-											})
-											:
-													undefined
-											)
-										}
 										layout={EntityLayout.Value}
 										open={false}
 									/>
@@ -359,20 +235,12 @@
 		</dl>
 
 		<ResourceBoundary
-			resource={
-				selection({
-					sources: selection.sources,
-					fields: {
-						content: true,
-					},
-				})
-			}
+			resource={nostrReaction}
 		>
 			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const content = resolvedEntity.content}
-				{#if content !== undefined && content !== null && content !== ''}
-					<p>{String((content) ?? '')}</p>
+				{@const content = entity.content}
+				{#if content != null && content !== ''}
+					<p>{content}</p>
 				{:else}
 					<p data-text="muted">No reaction content available.</p>
 				{/if}

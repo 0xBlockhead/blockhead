@@ -1,14 +1,11 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { entity, facet } from '$/schema/$schema.ts'
+import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { type } from 'arktype'
 
-export enum EvmNetwork_GasFee_BlockSelector {
-	EvmNetworkBlockNumber = 'EvmNetworkBlockNumber',
-}
-export const EvmNetwork_GasFee_Block = entity({
+export default entity({
 	entityType: EntityType.EvmNetwork_GasFee_Block,
 	labels: {
 		singular: 'EVM network gas fee block',
@@ -25,7 +22,7 @@ export const EvmNetwork_GasFee_Block = entity({
 		label: 'Block number',
 		description: 'The block height or number in its network.',
 		type: EntityFieldType.Primitive,
-		primitiveType: (type('bigint').narrow((value) => value >= 0n)),
+		primitiveType: type('bigint').narrow((value) => value >= 0n),
 		cardinality: EntityFieldCardinality.One,
 	},
 	baseFeePerGas: {

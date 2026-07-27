@@ -1,14 +1,11 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { entity, facet } from '$/schema/$schema.ts'
+import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { type } from 'arktype'
 
-export enum Erc4337AccountFactory_TimestampSelector {
-	FactoryTimestampMsSource = 'FactoryTimestampMsSource',
-}
-export const Erc4337AccountFactory_Timestamp = entity({
+export default entity({
 	entityType: EntityType.Erc4337AccountFactory_Timestamp,
 	labels: {
 		singular: 'ERC-4337 account factory timestamp',
@@ -25,7 +22,7 @@ export const Erc4337AccountFactory_Timestamp = entity({
 		label: 'Timestamp',
 		description: 'The observation time in Unix milliseconds.',
 		type: EntityFieldType.Primitive,
-		primitiveType: (type('number.integer >= 0')),
+		primitiveType: type('number.integer >= 0'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	source: {

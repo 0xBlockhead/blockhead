@@ -2,15 +2,10 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
-	import { caip2StringFromValue } from '$/lib/caip2.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -22,40 +17,23 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.ZeroGStorageLogEntry>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.ZeroGStorageLogEntry>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.ZeroGStorageLogEntry> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const zeroGStorageLogEntry = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {
-			sequenceNumber: true,
-		},
-	} : {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const viewSelection = $derived(selection({
+		sources: selection.sources ?? [
+			Source.ZeroGStorageScan_Rest,
+		],
+	}))
+	const zeroGStorageLogEntry = $derived(viewSelection({
 		fields: {
 			sequenceNumber: true,
 		},
 	}))
-	const titleFallback = $derived([String((pendingEntity.logEntryId) ?? '')].filter(Boolean).join(' ') || 'zero g storage log entry')
-	const viewDomId = $derived('zero-gstorage-log-entry-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const titleFallback = $derived((pendingEntity.logEntryId ?? '') || 'zero g storage log entry')
 
 
 	// Components
@@ -69,42 +47,30 @@
 
 <EntityView
 	entityType={EntityType.ZeroGStorageLogEntry}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={zeroGStorageLogEntry}>
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.logEntryId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{(pendingEntity.logEntryId ?? '') || 'zero g storage log entry'}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={zeroGStorageLogEntry}>
-			{#snippet children(entity)}
-				<NetworkView
-					selection={select(EntityType.Network, selection.entitySelector.$network)}
-					href=""
-					layout={EntityLayout.Value}
-					open={false}
-				/>
-			{/snippet}
-		</ResourceBoundary>
+		<NetworkView
+			selection={select(EntityType.Network, selection.entitySelector.$network)}
+			href=""
+			layout={EntityLayout.Value}
+			open={false}
+		/>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={zeroGStorageLogEntry}>
 			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const sequenceNumber0 = resolvedEntity.sequenceNumber}
-				{#if sequenceNumber0 !== undefined && sequenceNumber0 !== null}
+				{@const sequenceNumber0 = entity.sequenceNumber}
+				{#if sequenceNumber0 != null}
 					<span data-text="muted">
 						<NumberValue
 							value={sequenceNumber0}
@@ -122,23 +88,6 @@
 				<dd>
 					<NetworkView
 						selection={select(EntityType.Network, selection.entitySelector.$network)}
-						href={
-							(
-								selection.entitySelector.$network != null && 'caip2' in selection.entitySelector.$network
-								&& selection.entitySelector.$network.caip2 != null ?
-									resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-								network: String(caip2StringFromValue(selection.entitySelector.$network.caip2) ?? ''),
-							})
-							:
-									selection.entitySelector.$network != null && 'slug' in selection.entitySelector.$network
-									&& selection.entitySelector.$network.slug != null ?
-										resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-									network: String(selection.entitySelector.$network.slug ?? ''),
-								})
-								:
-									undefined
-							)
-						}
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -148,24 +97,7 @@
 			<div>
 				<dt>log entry ID</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									logEntryId: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const logEntryId = resolvedEntity.logEntryId}
-							{#if logEntryId !== undefined && logEntryId !== null}
-								{String((logEntryId) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{pendingEntity.logEntryId}
 				</dd>
 			</div>
 
@@ -173,7 +105,7 @@
 				resource={selection.$dataBlob}
 			>
 				{#snippet children(zeroGDataBlob)}
-					{#if zeroGDataBlob != null && zeroGDataBlob[EntityMetaKey.Selector] != null}
+					{#if zeroGDataBlob != null}
 						<div>
 							<dt>data blob</dt>
 							<dd>
@@ -193,7 +125,7 @@
 				resource={selection.$consensusNetwork}
 			>
 				{#snippet children(zeroGConsensusNetwork)}
-					{#if zeroGConsensusNetwork != null && zeroGConsensusNetwork[EntityMetaKey.Selector] != null}
+					{#if zeroGConsensusNetwork != null}
 						<div>
 							<dt>consensus network</dt>
 							<dd>
@@ -210,19 +142,11 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							sequenceNumber: true,
-						},
-					})
-				}
+				resource={zeroGStorageLogEntry}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const sequenceNumber = resolvedEntity.sequenceNumber}
-					{#if sequenceNumber !== undefined && sequenceNumber !== null}
+					{@const sequenceNumber = entity.sequenceNumber}
+					{#if sequenceNumber != null}
 						<div>
 							<dt>sequence number</dt>
 							<dd>
@@ -237,8 +161,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							commitment: true,
 						},
@@ -246,13 +169,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const commitment = resolvedEntity.commitment}
-					{#if commitment !== undefined && commitment !== null}
+					{@const commitment = entity.commitment}
+					{#if commitment != null}
 						<div>
 							<dt>commitment</dt>
 							<dd>
-								{String((commitment) ?? '')}
+								{commitment}
 							</dd>
 						</div>
 					{/if}

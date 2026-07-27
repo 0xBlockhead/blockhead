@@ -9,8 +9,7 @@ const routeMetadata = (
 	sourceBehaviorByEntityType?: Readonly<Record<string, string>>
 ) => ({
 	fixture: {
-		nodeId: '(explore)/example/[id]',
-		publicPath: '/example/[id]',
+		routeId: '/example/[id=stringSegment]',
 		routedEntityTypes,
 		sourceBehaviorByEntityType,
 	},
@@ -24,8 +23,7 @@ test('derives every accepted behavior from generated route metadata', () => {
 				LocalEntity: 'local-service-required',
 			}),
 			upstream: {
-				nodeId: '(explore)/upstream/[id]',
-				publicPath: '/upstream/[id]',
+				routeId: '/upstream/[id=stringSegment]',
 				routedEntityTypes: [
 					'SupportedEntity',
 					'UnsupportedEntity',
@@ -67,16 +65,14 @@ test('rejects ambiguous source authority across generated routes', () => {
 	assert.throws(
 		() => deriveRouteSourceBehaviorByEntityType({
 			first: {
-				nodeId: '(explore)/example/[id]',
-				publicPath: '/example/[id]',
+				routeId: '/example/[id=stringSegment]',
 				routedEntityTypes: ['Example'],
 				sourceBehaviorByEntityType: {
 					Example: 'supported',
 				},
 			},
 			second: {
-				nodeId: '(explore)/example/[id]/history',
-				publicPath: '/example/[id]/history',
+				routeId: '/example/[id=stringSegment]/history',
 				routedEntityTypes: ['Example'],
 				sourceBehaviorByEntityType: {
 					Example: 'upstream-unavailable',

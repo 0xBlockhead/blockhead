@@ -1,22 +1,9 @@
 import { networkBySlug } from '$/constants/Network.ts'
 import { defineResolver } from '$/resolvers/defineResolver.ts'
 import { EntityMetaKey, type EntitySelector } from '$/schema/$schema.ts'
-import { AptosAccountSelector } from '$/schema/AptosAccount.ts'
-import { AptosAccountResourceSelector } from '$/schema/AptosAccountResource.ts'
-import { AptosAccountResource_TimestampSelector } from '$/schema/AptosAccountResource_Timestamp.ts'
-import { AptosAccount_TimestampSelector } from '$/schema/AptosAccount_Timestamp.ts'
-import { AptosBlockSelector } from '$/schema/AptosBlock.ts'
-import { AptosEventSelector } from '$/schema/AptosEvent.ts'
-import { AptosNetworkSelector } from '$/schema/AptosNetwork.ts'
-import { AptosNetwork_TimestampSelector } from '$/schema/AptosNetwork_Timestamp.ts'
-import { AptosStateChangeSelector } from '$/schema/AptosStateChange.ts'
-import { AptosTransactionSelector } from '$/schema/AptosTransaction.ts'
-import { AptosTransaction_TimestampSelector } from '$/schema/AptosTransaction_Timestamp.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import type { schema } from '$/schema/index.ts'
 import { Source } from '$/sources/Source.ts'
-import { sourceProviderDefinitions } from '$/sources/$sourceProviders.ts'
-import { SourceTargetKind } from '$/sources/SourceBinding.ts'
 import type {
 	AptosBlock,
 	AptosEvent,
@@ -29,19 +16,6 @@ type AptosNetworkIdentity = EntitySelector<typeof schema, EntityType.AptosNetwor
 type AptosTransactionIdentity = EntitySelector<typeof schema, EntityType.AptosTransaction>
 type AptosCommittedTransaction = Exclude<AptosTransaction, { type: 'pending_transaction' }>
 type NetworkId = EntitySelector<typeof schema, EntityType.Network>
-
-const aptosFullnodeBindings = sourceProviderDefinitions
-	.flatMap((provider) => provider.bindings)
-	.filter((binding) => (
-		binding.source === Source.AptosFullnode_Rest
-		&& binding.target.kind === SourceTargetKind.Caip2Network
-		&& binding.target.key === 'aptos:1'
-	))
-
-if (aptosFullnodeBindings.length !== 1)
-	throw new Error('AptosFullnode_Rest: canonical Aptos mainnet source binding is missing or ambiguous')
-
-const [aptosFullnodeBinding] = aptosFullnodeBindings
 
 const aptosNetworkApplicability = [
 	{
@@ -330,9 +304,9 @@ const transactionBySelector = async (selector: {
 	assertAptosMainnet(selector.$network.$network)
 	const queries = await import('$/sources/AptosFullnode/Rest/queries.ts')
 	const transaction = selector.version == null ?
-			(await queries.getTransactionByHash(aptosFullnodeBinding, selector.hash ?? '')).body
+			(await queries.getTransactionByHash(selector.hash ?? '')).body
 		:
-			(await queries.getTransactionByVersion(aptosFullnodeBinding, selector.version)).body
+			(await queries.getTransactionByVersion(selector.version)).body
 	const committed = committedTransaction(transaction)
 	if (selector.version != null && bigintFromWire(committed.version, 'transaction version') !== selector.version)
 		throw new Error('AptosFullnode_Rest: transaction version mismatch')
@@ -349,12 +323,12 @@ export default {
 		defineResolver(Source.AptosFullnode_Rest, {
 			entityType: EntityType.AptosNetwork,
 			resolve: {
-				[AptosNetworkSelector.Network]: {
+				Network: {
 					appliesTo: aptosNetworkApplicability,
 					resolve: async (entitySelector) => {
 						assertAptosMainnet(entitySelector.$network)
 						const { getLedgerInfo } = await import('$/sources/AptosFullnode/Rest/queries.ts')
-						const ledger = metadataFields((await getLedgerInfo(aptosFullnodeBinding)).metadata)
+						const ledger = metadataFields((await getLedgerInfo()).metadata)
 
 						return [{
 							[EntityMetaKey.Selector]: {
@@ -373,7 +347,7 @@ export default {
 		defineResolver(Source.AptosFullnode_Rest, {
 			entityType: EntityType.AptosNetwork_Timestamp,
 			resolve: {
-				[AptosNetwork_TimestampSelector.NetworkLedgerVersionSource]: {
+				NetworkLedgerVersionSource: {
 					appliesTo: [
 						{
 							$network: aptosNetworkApplicability[0],
@@ -388,7 +362,7 @@ export default {
 						assertAptosMainnet($network.$network)
 						assertSource(source)
 						const { getLedgerInfo } = await import('$/sources/AptosFullnode/Rest/queries.ts')
-						const response = await getLedgerInfo(aptosFullnodeBinding)
+						const response = await getLedgerInfo()
 						const fields = metadataFields(response.metadata)
 						if (fields.ledgerVersion !== ledgerVersion)
 							throw new Error('AptosFullnode_Rest: ledger version mismatch')
@@ -415,12 +389,12 @@ export default {
 		defineResolver(Source.AptosFullnode_Rest, {
 			entityType: EntityType.AptosAccount,
 			resolve: {
-				[AptosAccountSelector.NetworkAddress]: {
+				NetworkAddress: {
 					appliesTo: aptosNetworkReferenceApplicability,
 					resolve: async (entitySelector) => {
 						assertAptosMainnet(entitySelector.$network.$network)
 						const { getAccount } = await import('$/sources/AptosFullnode/Rest/queries.ts')
-						const ledgerVersion = metadataFields((await getAccount(aptosFullnodeBinding, entitySelector.address)).metadata).ledgerVersion
+						const ledgerVersion = metadataFields((await getAccount(entitySelector.address)).metadata).ledgerVersion
 
 						return [{
 							[EntityMetaKey.Selector]: {
@@ -439,13 +413,13 @@ export default {
 		defineResolver(Source.AptosFullnode_Rest, {
 			entityType: EntityType.AptosAccount,
 			resolve: {
-				[AptosAccountSelector.NetworkAddress]: {
+				NetworkAddress: {
 					appliesTo: aptosNetworkReferenceApplicability,
 					resolve: async (entitySelector) => {
 						assertAptosMainnet(entitySelector.$network.$network)
 						const { getAccountResources } = await import('$/sources/AptosFullnode/Rest/queries.ts')
 
-						return (await getAccountResources(aptosFullnodeBinding, entitySelector.address)).body.map((resource) => ({
+						return (await getAccountResources(entitySelector.address)).body.map((resource) => ({
 							[EntityMetaKey.Selector]: {
 								$account: entitySelector,
 								resourceType: resource.type,
@@ -461,7 +435,7 @@ export default {
 		defineResolver(Source.AptosFullnode_Rest, {
 			entityType: EntityType.AptosAccount_Timestamp,
 			resolve: {
-				[AptosAccount_TimestampSelector.AccountLedgerVersionSource]: {
+				AccountLedgerVersionSource: {
 					appliesTo: [
 						{
 							...aptosAccountReferenceApplicability[0],
@@ -476,7 +450,7 @@ export default {
 						assertAptosMainnet($account.$network.$network)
 						assertSource(source)
 						const { getAccount } = await import('$/sources/AptosFullnode/Rest/queries.ts')
-						const response = await getAccount(aptosFullnodeBinding, $account.address, ledgerVersion)
+						const response = await getAccount($account.address, ledgerVersion)
 						const ledgerSnapshot = metadataFields(response.metadata)
 						if (ledgerSnapshot.ledgerVersion !== ledgerVersion)
 							throw new Error('AptosFullnode_Rest: account observation ledger version mismatch')
@@ -502,12 +476,12 @@ export default {
 		defineResolver(Source.AptosFullnode_Rest, {
 			entityType: EntityType.AptosAccountResource,
 			resolve: {
-				[AptosAccountResourceSelector.AccountResourceType]: {
+				AccountResourceType: {
 					appliesTo: aptosAccountReferenceApplicability,
 					resolve: async (entitySelector) => {
 						assertAptosMainnet(entitySelector.$account.$network.$network)
 						const { getAccountResources } = await import('$/sources/AptosFullnode/Rest/queries.ts')
-						const response = await getAccountResources(aptosFullnodeBinding, entitySelector.$account.address)
+						const response = await getAccountResources(entitySelector.$account.address)
 						const ledgerVersion = metadataFields(response.metadata).ledgerVersion
 						if (!response.body.some((resource) => resource.type === entitySelector.resourceType))
 							throw new Error('AptosFullnode_Rest: account resource is missing')
@@ -529,7 +503,7 @@ export default {
 		defineResolver(Source.AptosFullnode_Rest, {
 			entityType: EntityType.AptosAccountResource_Timestamp,
 			resolve: {
-				[AptosAccountResource_TimestampSelector.ResourceLedgerVersionSource]: {
+				ResourceLedgerVersionSource: {
 					appliesTo: [
 						{
 							$resource: aptosAccountReferenceApplicability[0],
@@ -544,7 +518,7 @@ export default {
 						assertAptosMainnet($resource.$account.$network.$network)
 						assertSource(source)
 						const { getAccountResources } = await import('$/sources/AptosFullnode/Rest/queries.ts')
-						const response = await getAccountResources(aptosFullnodeBinding, $resource.$account.address, ledgerVersion)
+						const response = await getAccountResources($resource.$account.address, ledgerVersion)
 						if (metadataFields(response.metadata).ledgerVersion !== ledgerVersion)
 							throw new Error('AptosFullnode_Rest: resource observation ledger version mismatch')
 						const resource = response.body.find((candidate) => candidate.type === $resource.resourceType)
@@ -562,24 +536,24 @@ export default {
 		defineResolver(Source.AptosFullnode_Rest, {
 			entityType: EntityType.AptosBlock,
 			resolve: {
-				[AptosBlockSelector.NetworkHeight]: {
+				NetworkHeight: {
 					appliesTo: aptosNetworkReferenceApplicability,
 					resolve: async ({ $network, height }) => {
 						assertAptosMainnet($network.$network)
 						const { getBlockByHeight } = await import('$/sources/AptosFullnode/Rest/queries.ts')
-						const block = (await getBlockByHeight(aptosFullnodeBinding, height)).body
+						const block = (await getBlockByHeight(height)).body
 						if (bigintFromWire(block.block_height, 'block height') !== height)
 							throw new Error('AptosFullnode_Rest: block height mismatch')
 
 						return blockFields(block, $network)
 					},
 				},
-				[AptosBlockSelector.NetworkVersion]: {
+				NetworkVersion: {
 					appliesTo: aptosNetworkReferenceApplicability,
 					resolve: async ({ $network, version }) => {
 						assertAptosMainnet($network.$network)
 						const { getBlockByVersion } = await import('$/sources/AptosFullnode/Rest/queries.ts')
-						const block = (await getBlockByVersion(aptosFullnodeBinding, version)).body
+						const block = (await getBlockByVersion(version)).body
 						if (version < bigintFromWire(block.first_version, 'block first version') || version > bigintFromWire(block.last_version, 'block last version'))
 							throw new Error('AptosFullnode_Rest: block does not contain requested version')
 
@@ -598,11 +572,11 @@ export default {
 		defineResolver(Source.AptosFullnode_Rest, {
 			entityType: EntityType.AptosTransaction,
 			resolve: {
-				[AptosTransactionSelector.NetworkVersion]: {
+				NetworkVersion: {
 					appliesTo: aptosNetworkReferenceApplicability,
 					resolve: transactionBySelector,
 				},
-				[AptosTransactionSelector.NetworkHash]: {
+				NetworkHash: {
 					appliesTo: aptosNetworkReferenceApplicability,
 					resolve: transactionBySelector,
 				},
@@ -620,7 +594,7 @@ export default {
 		defineResolver(Source.AptosFullnode_Rest, {
 			entityType: EntityType.AptosTransaction_Timestamp,
 			resolve: {
-				[AptosTransaction_TimestampSelector.TransactionLedgerVersionSource]: {
+				TransactionLedgerVersionSource: {
 					appliesTo: [
 						{
 							$transaction: aptosNetworkReferenceApplicability[0],
@@ -637,7 +611,7 @@ export default {
 						if ('version' in $transaction && $transaction.version !== ledgerVersion)
 							throw new Error('AptosFullnode_Rest: transaction observation ledger version mismatch')
 						const { getTransactionByVersion } = await import('$/sources/AptosFullnode/Rest/queries.ts')
-						const transaction = committedTransaction((await getTransactionByVersion(aptosFullnodeBinding, ledgerVersion)).body)
+						const transaction = committedTransaction((await getTransactionByVersion(ledgerVersion)).body)
 						if ('hash' in $transaction && transaction.hash !== $transaction.hash)
 							throw new Error('AptosFullnode_Rest: transaction hash mismatch')
 
@@ -666,12 +640,12 @@ export default {
 		defineResolver(Source.AptosFullnode_Rest, {
 			entityType: EntityType.AptosEvent,
 			resolve: {
-				[AptosEventSelector.NetworkTransactionVersionEventIndex]: {
+				NetworkTransactionVersionEventIndex: {
 					appliesTo: aptosNetworkReferenceApplicability,
 					resolve: async ({ $network, transactionVersion, eventIndex }) => {
 						assertAptosMainnet($network.$network)
 						const { getTransactionByVersion } = await import('$/sources/AptosFullnode/Rest/queries.ts')
-						const transaction = committedTransaction((await getTransactionByVersion(aptosFullnodeBinding, transactionVersion)).body)
+						const transaction = committedTransaction((await getTransactionByVersion(transactionVersion)).body)
 						const event = ('events' in transaction ? transaction.events : []).at(eventIndex)
 						if (event == null)
 							throw new Error('AptosFullnode_Rest: event index is missing')
@@ -692,7 +666,7 @@ export default {
 		defineResolver(Source.AptosFullnode_Rest, {
 			entityType: EntityType.AptosStateChange,
 			resolve: {
-				[AptosStateChangeSelector.TransactionChangeIndex]: {
+				TransactionChangeIndex: {
 					appliesTo: [
 						{
 							$transaction: aptosNetworkReferenceApplicability[0],
@@ -706,9 +680,9 @@ export default {
 						const { getTransactionByHash, getTransactionByVersion } = await import('$/sources/AptosFullnode/Rest/queries.ts')
 						const transaction = committedTransaction(
 							'version' in $transaction ?
-								(await getTransactionByVersion(aptosFullnodeBinding, $transaction.version)).body
+								(await getTransactionByVersion($transaction.version)).body
 								:
-								(await getTransactionByHash(aptosFullnodeBinding, $transaction.hash)).body
+								(await getTransactionByHash($transaction.hash)).body
 						)
 						const change = transaction.changes.at(changeIndex)
 						if (change == null)

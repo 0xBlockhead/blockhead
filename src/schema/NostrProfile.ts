@@ -1,15 +1,12 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { entity, facet } from '$/schema/$schema.ts'
+import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
-export enum NostrProfileSelector {
-	CanonicalPubkey = 'CanonicalPubkey',
-}
-export const NostrProfile = entity({
+export default entity({
 	entityType: EntityType.NostrProfile,
 	labels: {
 		singular: 'Nostr profile',
@@ -59,7 +56,6 @@ export const NostrProfile = entity({
 		entityType: EntityType.NostrArticle,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
-			Source.Constants_Internal,
 			Source.NostrBand_Rest,
 		],
 	},
@@ -69,7 +65,6 @@ export const NostrProfile = entity({
 		entityType: EntityType.NostrRepost,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
-			Source.Constants_Internal,
 			Source.NostrBand_Rest,
 		],
 	},

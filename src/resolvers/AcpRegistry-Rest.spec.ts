@@ -1,7 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { EntityMetaKey } from '$/schema/$schema.ts'
-import { AcpAgentProgramVersionSelector } from '$/schema/AcpAgentProgramVersion.ts'
 import { loadResolvers } from '$/resolvers/index.ts'
 import { Source } from '$/sources/Source.ts'
 
@@ -49,7 +48,7 @@ describe('ACP registry resolver', () => {
 	it('maps the exact registry program version and unambiguous binary metadata', async () => {
 		const { default: acpRegistry } = await import('$/resolvers/AcpRegistry-Rest.ts')
 		const resolver = acpRegistry.resolvers[0]
-		const agent = await resolver.resolve[AcpAgentProgramVersionSelector.ProgramVersion].resolve({
+		const agent = await resolver.resolve['ProgramVersion'].resolve({
 			$program: {
 				registryAgentId: 'acme-agent',
 			},
@@ -71,6 +70,7 @@ describe('ACP registry resolver', () => {
 		expect(resolver.projections.command(agent)).toBe('acme-agent')
 		expect(resolver.projections.arguments(agent)).toEqual(['serve'])
 		expect(resolver.projections.environmentKeys(agent)).toEqual(['ACME_TOKEN'])
+		expect(fetchRegistry).toHaveBeenCalledWith()
 	})
 
 	it('does not collapse multiple distribution variants into a fabricated command', async () => {
@@ -93,7 +93,7 @@ describe('ACP registry resolver', () => {
 		})
 		const { default: acpRegistry } = await import('$/resolvers/AcpRegistry-Rest.ts')
 		const resolver = acpRegistry.resolvers[0]
-		const agent = await resolver.resolve[AcpAgentProgramVersionSelector.ProgramVersion].resolve({
+		const agent = await resolver.resolve['ProgramVersion'].resolve({
 			$program: {
 				registryAgentId: 'acme-agent',
 			},
@@ -124,7 +124,7 @@ describe('ACP registry resolver', () => {
 		})
 		const { default: acpRegistry } = await import('$/resolvers/AcpRegistry-Rest.ts')
 		const resolver = acpRegistry.resolvers[0]
-		const agent = await resolver.resolve[AcpAgentProgramVersionSelector.ProgramVersion].resolve({
+		const agent = await resolver.resolve['ProgramVersion'].resolve({
 			$program: {
 				registryAgentId: 'acme-agent',
 			},
@@ -140,7 +140,7 @@ describe('ACP registry resolver', () => {
 		const { default: acpRegistry } = await import('$/resolvers/AcpRegistry-Rest.ts')
 		const resolver = acpRegistry.resolvers[0]
 
-		await expect(resolver.resolve[AcpAgentProgramVersionSelector.ProgramVersion].resolve({
+		await expect(resolver.resolve['ProgramVersion'].resolve({
 			$program: {
 				packageName: '@acme/agent',
 			},

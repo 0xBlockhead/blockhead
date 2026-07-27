@@ -12,13 +12,11 @@ export type SourceOrigin = {
 
 export type SourceProviderDefinition = SourceProviderDefinitionTemplate<SourceProvider, Source> & {
 	env?: Type<SourcePublicEnv>
-	sources: readonly SourceDefinition<SourceProvider, Source>[]
+	sources: readonly SourceDefinition<Source>[]
 	bindings: readonly SourceBinding[]
-	origins?: readonly SourceOrigin[]
 }
 
 export enum SourceProvider {
-	A2a = 'A2a',
 	Acp = 'Acp',
 	Across = 'Across',
 	Algod = 'Algod',
@@ -112,7 +110,6 @@ export enum SourceProvider {
 	EthForks = 'EthForks',
 	Envio = 'Envio',
 	Farcaster = 'Farcaster',
-	Fedi = 'Fedi',
 	FedimintClient = 'FedimintClient',
 	FedimintGatewayd = 'FedimintGatewayd',
 	FilecoinFips = 'FilecoinFips',
@@ -222,8 +219,10 @@ export enum SourceProvider {
 	Reth = 'Reth',
 	Rss = 'Rss',
 	Rss2Json = 'Rss2Json',
+	SafeTransactionService = 'SafeTransactionService',
 	SigstoreRekor = 'SigstoreRekor',
 	Snapchain = 'Snapchain',
+	SnapshotHub = 'SnapshotHub',
 	SpaceAndTime = 'SpaceAndTime',
 	SolanaMobileWalletAdapter = 'SolanaMobileWalletAdapter',
 	SolanaSimds = 'SolanaSimds',
@@ -242,6 +241,7 @@ export enum SourceProvider {
 	Sui = 'Sui',
 	Superchain = 'Superchain',
 	Swarm = 'Swarm',
+	Tally = 'Tally',
 	TezosDappetizer = 'TezosDappetizer',
 	TezosNode = 'TezosNode',
 	TheGraph = 'TheGraph',
@@ -271,7 +271,6 @@ export enum SourceProvider {
 	WebTorrent = 'WebTorrent',
 	Wormholescan = 'Wormholescan',
 	X = 'X',
-	X402 = 'X402',
 	Xaman = 'Xaman',
 	Xmtp = 'Xmtp',
 	Xrpl = 'Xrpl',

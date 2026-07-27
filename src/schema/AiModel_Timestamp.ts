@@ -1,15 +1,12 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { entity, facet } from '$/schema/$schema.ts'
+import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { UrlString } from '$/schema/UrlString.ts'
 import { type } from 'arktype'
 
-export enum AiModel_TimestampSelector {
-	ModelTimestampMsSource = 'ModelTimestampMsSource',
-}
-export const AiModel_Timestamp = entity({
+export default entity({
 	entityType: EntityType.AiModel_Timestamp,
 	labels: {
 		singular: 'AI model timestamp',
@@ -201,7 +198,7 @@ export const AiModel_Timestamp = entity({
 	tokenizerUrl: {
 		label: 'tokenizer URL',
 		type: EntityFieldType.Primitive,
-		primitiveType: (UrlString),
+		primitiveType: UrlString,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	samplingDefaults: {

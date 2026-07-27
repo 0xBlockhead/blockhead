@@ -2,15 +2,11 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
 	import { UrlString } from '$/schema/UrlString.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// State
@@ -22,36 +18,20 @@
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.YoutubeNetwork>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.YoutubeNetwork>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.YoutubeNetwork> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const youtubeNetwork = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {
-			protocolName: true,
-		},
-	} : {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const viewSelection = $derived(selection({
+		sources: selection.sources ?? [
+			Source.Constants_Internal,
+		],
+	}))
+	const youtubeNetwork = $derived(viewSelection({
 		fields: {
 			protocolName: true,
 		},
 	}))
-	const titleFallback = $derived([String((pendingEntity.protocolName) ?? '')].filter(Boolean).join(' ') || 'YouTube Data API')
-	const viewDomId = $derived('youtube-network-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const titleFallback = $derived((pendingEntity.protocolName ?? '') || 'YouTube Data API')
 
 
 	// Components
@@ -62,32 +42,19 @@
 
 <EntityView
 	entityType={EntityType.YoutubeNetwork}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	href={
-		href ?? (
-			selection.entitySelector.scope === 'YoutubeNetwork' ?
-				resolve('/youtube/api')
-		:
-				undefined
-		)
-	}
+	href={href ?? resolve('/(social)/(youtube)/youtube/(globalYoutubeNetwork)/api')}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'protocolName')}
-			{[String((pendingEntity.protocolName) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-		{:else}
-			<ResourceBoundary resource={youtubeNetwork}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.protocolName) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={youtubeNetwork}>
+			{#snippet children(entity)}
+				{entity.protocolName || title || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -96,21 +63,10 @@
 				<dt>Protocol</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									protocolName: true,
-								},
-							})
-						}
+						resource={youtubeNetwork}
 					>
 						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const protocolName = resolvedEntity.protocolName}
-							{#if protocolName !== undefined && protocolName !== null}
-								{String((protocolName) ?? '')}
-							{/if}
+							{entity.protocolName}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -122,8 +78,7 @@
 					<dd>
 						<ResourceBoundary
 							resource={
-								selection({
-									sources: selection.sources,
+								viewSelection({
 									fields: {
 										homeUrl: true,
 									},
@@ -131,18 +86,13 @@
 							}
 						>
 							{#snippet children(entity)}
-								{@const resolvedEntity = { ...pendingEntity, ...entity }}
-								{@const homeUrl = resolvedEntity.homeUrl}
-								{#if homeUrl !== undefined && homeUrl !== null}
-									<svelte:element
-										this={'a'}
-										href={String(homeUrl)}
-										target="_blank"
-										rel="noreferrer noopener"
-									>
-										<TruncatedValue value={String(homeUrl)} />
-									</svelte:element>
-								{/if}
+								<a
+									href={String(entity.homeUrl)}
+									target="_blank"
+									rel="noreferrer noopener"
+								>
+									<TruncatedValue value={String(entity.homeUrl)} />
+								</a>
 							{/snippet}
 						</ResourceBoundary>
 					</dd>
@@ -152,8 +102,7 @@
 			{#if contentOpen}
 				<ResourceBoundary
 					resource={
-						selection({
-							sources: selection.sources,
+						viewSelection({
 							fields: {
 								docsUrl: true,
 							},
@@ -161,20 +110,18 @@
 					}
 				>
 					{#snippet children(entity)}
-						{@const resolvedEntity = { ...pendingEntity, ...entity }}
-						{@const docsUrl = resolvedEntity.docsUrl}
-						{#if docsUrl !== undefined && docsUrl !== null}
+						{@const docsUrl = entity.docsUrl}
+						{#if docsUrl != null}
 							<div>
 								<dt>Documentation</dt>
 								<dd>
-									<svelte:element
-										this={'a'}
+									<a
 										href={String(docsUrl)}
 										target="_blank"
 										rel="noreferrer noopener"
 									>
 										<TruncatedValue value={String(docsUrl)} />
-									</svelte:element>
+									</a>
 								</dd>
 							</div>
 						{/if}

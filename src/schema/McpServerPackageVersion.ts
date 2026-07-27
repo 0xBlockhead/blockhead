@@ -1,16 +1,12 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { entity, facet } from '$/schema/$schema.ts'
+import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { UrlString } from '$/schema/UrlString.ts'
 import { type } from 'arktype'
 
-export enum McpServerPackageVersionSelector {
-	PackageVersion = 'PackageVersion',
-	Artifact = 'Artifact',
-}
-export const McpServerPackageVersion = entity({
+export default entity({
 	entityType: EntityType.McpServerPackageVersion,
 	labels: {
 		singular: 'mcp server package version',
@@ -68,7 +64,7 @@ export const McpServerPackageVersion = entity({
 	packageRegistryBaseUrl: {
 		label: 'package registry base URL',
 		type: EntityFieldType.Primitive,
-		primitiveType: (UrlString),
+		primitiveType: UrlString,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	packageIdentifier: {

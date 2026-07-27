@@ -2,16 +2,8 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
-	import { caip2StringFromValue } from '$/lib/caip2.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -23,40 +15,18 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.CosmosValidator>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.CosmosValidator>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.CosmosValidator> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const cosmosValidator = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {
-			moniker: true,
-		},
-	} : {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const cosmosValidator = $derived(selection({
 		fields: {
 			moniker: true,
 		},
 	}))
-	const titleFallback = $derived([String((pendingEntity.moniker) ?? ''), String((pendingEntity.operatorAddress) ?? '')].filter(Boolean).join(' ') || 'Cosmos validator')
-	const viewDomId = $derived('cosmos-validator-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const titleFallback = $derived([(pendingEntity.moniker ?? ''), (pendingEntity.operatorAddress ?? '')].filter(Boolean).join(' ') || 'Cosmos validator')
 
 
 	// Components
@@ -69,10 +39,8 @@
 
 <EntityView
 	entityType={EntityType.CosmosValidator}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -80,54 +48,23 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={cosmosValidator}>
 			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.moniker) ?? ''), String((resolvedEntity.operatorAddress) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+				{[(entity.moniker ?? ''), pendingEntity.operatorAddress].filter(Boolean).join(' ') || title || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={cosmosValidator}>
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const operatorAddress0 = resolvedEntity.operatorAddress}
-				{#if operatorAddress0 !== undefined && operatorAddress0 !== null}
-					<TruncatedValue value={String((operatorAddress0) ?? '')} />
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		<TruncatedValue value={pendingEntity.operatorAddress} />
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		<ResourceBoundary resource={cosmosValidator}>
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				<span data-text="muted">
-					<NetworkView
-						selection={select(EntityType.Network, selection.entitySelector.$network)}
-						href={
-							(
-								selection.entitySelector.$network != null && 'caip2' in selection.entitySelector.$network
-								&& selection.entitySelector.$network.caip2 != null ?
-									resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-								network: String(caip2StringFromValue(selection.entitySelector.$network.caip2) ?? ''),
-							})
-							:
-									selection.entitySelector.$network != null && 'slug' in selection.entitySelector.$network
-									&& selection.entitySelector.$network.slug != null ?
-										resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-									network: String(selection.entitySelector.$network.slug ?? ''),
-								})
-								:
-									undefined
-							)
-						}
-						layout={EntityLayout.Title}
-						open={false}
-					/>
-				</span>
-			{/snippet}
-		</ResourceBoundary>
+		<span data-text="muted">
+			<NetworkView
+				selection={select(EntityType.Network, selection.entitySelector.$network)}
+				layout={EntityLayout.Title}
+				open={false}
+			/>
+		</span>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -135,31 +72,13 @@
 			<div>
 				<dt>Operator address</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									operatorAddress: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const operatorAddress = resolvedEntity.operatorAddress}
-							{#if operatorAddress !== undefined && operatorAddress !== null}
-								<TruncatedValue value={String((operatorAddress) ?? '')} />
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					<TruncatedValue value={pendingEntity.operatorAddress} />
 				</dd>
 			</div>
 
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							consensusPubkey: true,
 						},
@@ -167,13 +86,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const consensusPubkey = resolvedEntity.consensusPubkey}
-					{#if consensusPubkey !== undefined && consensusPubkey !== null}
+					{@const consensusPubkey = entity.consensusPubkey}
+					{#if consensusPubkey != null}
 						<div>
 							<dt>Consensus public key</dt>
 							<dd>
-								<TruncatedValue value={String((consensusPubkey) ?? '')} />
+								<TruncatedValue value={consensusPubkey} />
 							</dd>
 						</div>
 					{/if}
@@ -181,23 +99,15 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							moniker: true,
-						},
-					})
-				}
+				resource={cosmosValidator}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const moniker = resolvedEntity.moniker}
-					{#if moniker !== undefined && moniker !== null}
+					{@const moniker = entity.moniker}
+					{#if moniker != null}
 						<div>
 							<dt>Moniker</dt>
 							<dd>
-								{String((moniker) ?? '')}
+								{moniker}
 							</dd>
 						</div>
 					{/if}
@@ -209,23 +119,6 @@
 				<dd>
 					<NetworkView
 						selection={select(EntityType.Network, selection.entitySelector.$network)}
-						href={
-							(
-								selection.entitySelector.$network != null && 'caip2' in selection.entitySelector.$network
-								&& selection.entitySelector.$network.caip2 != null ?
-									resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-								network: String(caip2StringFromValue(selection.entitySelector.$network.caip2) ?? ''),
-							})
-							:
-									selection.entitySelector.$network != null && 'slug' in selection.entitySelector.$network
-									&& selection.entitySelector.$network.slug != null ?
-										resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-									network: String(selection.entitySelector.$network.slug ?? ''),
-								})
-								:
-									undefined
-							)
-						}
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -237,7 +130,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							identity: true,
 						},
@@ -245,13 +137,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const identity = resolvedEntity.identity}
-					{#if identity !== undefined && identity !== null}
+					{@const identity = entity.identity}
+					{#if identity != null}
 						<div>
 							<dt>Identity</dt>
 							<dd>
-								{String((identity) ?? '')}
+								{identity}
 							</dd>
 						</div>
 					{/if}
@@ -261,7 +152,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							website: true,
 						},
@@ -269,20 +159,18 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const website = resolvedEntity.website}
-					{#if website !== undefined && website !== null}
+					{@const website = entity.website}
+					{#if website != null}
 						<div>
 							<dt>Website</dt>
 							<dd>
-								<svelte:element
-									this={'a'}
+								<a
 									href={String(website)}
 									target="_blank"
 									rel="noreferrer noopener"
 								>
 									<TruncatedValue value={String(website)} />
-								</svelte:element>
+								</a>
 							</dd>
 						</div>
 					{/if}
@@ -292,7 +180,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							securityContact: true,
 						},
@@ -300,20 +187,18 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const securityContact = resolvedEntity.securityContact}
-					{#if securityContact !== undefined && securityContact !== null}
+					{@const securityContact = entity.securityContact}
+					{#if securityContact != null}
 						<div>
 							<dt>Security contact</dt>
 							<dd>
-								<svelte:element
-									this={'a'}
+								<a
 									href={String(securityContact)}
 									target="_blank"
 									rel="noreferrer noopener"
 								>
 									<TruncatedValue value={String(securityContact)} />
-								</svelte:element>
+								</a>
 							</dd>
 						</div>
 					{/if}
@@ -323,7 +208,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							details: true,
 						},
@@ -331,13 +215,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const details = resolvedEntity.details}
-					{#if details !== undefined && details !== null}
+					{@const details = entity.details}
+					{#if details != null}
 						<div>
 							<dt>Details</dt>
 							<dd>
-								{String((details) ?? '')}
+								{details}
 							</dd>
 						</div>
 					{/if}
@@ -347,25 +230,20 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-				{@const cosmosValidatorCosmosValidatorTimestampsViewTimestampsResource = selection
-		.$$timestamps({
-			sources: [
-				Source.CosmosSdk_Rest,
-			],
-		})}
-				<ResourceBoundary
-					resource={cosmosValidatorCosmosValidatorTimestampsViewTimestampsResource}
-				>
-					{#snippet children(entities)}
-						{#if entities.values.length > 0}
-						<CosmosValidator_TimestampsView
-							selection={cosmosValidatorCosmosValidatorTimestampsViewTimestampsResource}
-							countResource={cosmosValidatorCosmosValidatorTimestampsViewTimestampsResource.count}
-							title='Validator snapshots'
-							id='CosmosValidator_TimestampsView-timestamps'
-						/>
-						{/if}
-					{/snippet}
-				</ResourceBoundary>
+		{@const cosmosValidatorCosmosValidatorTimestampsViewTimestampsResource = selection.$$timestamps}
+		<ResourceBoundary
+			resource={cosmosValidatorCosmosValidatorTimestampsViewTimestampsResource}
+		>
+			{#snippet children(entities)}
+				{#if entities.values.length > 0}
+					<CosmosValidator_TimestampsView
+						selection={cosmosValidatorCosmosValidatorTimestampsViewTimestampsResource}
+						countResource={cosmosValidatorCosmosValidatorTimestampsViewTimestampsResource.count}
+						title='Validator snapshots'
+						id='timestamps'
+					/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 </EntityView>

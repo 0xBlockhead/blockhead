@@ -2,15 +2,9 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
-	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -22,35 +16,13 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.HederaTokenCustomFee>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.HederaTokenCustomFee>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.HederaTokenCustomFee> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const hederaTokenCustomFee = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {},
-	} : {
-		sources: selection.sources,
-	}))
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const titleFallback = 'hedera token custom fee'
-	const viewDomId = $derived('hedera-token-custom-fee-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -64,24 +36,14 @@
 
 <EntityView
 	entityType={EntityType.HederaTokenCustomFee}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails}
-			{title || titleFallback}
-		{:else}
-			<ResourceBoundary resource={hederaTokenCustomFee}>
-				{#snippet children(entity)}
-					{title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		hedera token custom fee
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -100,24 +62,7 @@
 			<div>
 				<dt>fee index</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									feeIndex: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const feeIndex = resolvedEntity.feeIndex}
-							{#if feeIndex !== undefined && feeIndex !== null}
-								{String((feeIndex) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{String(pendingEntity.feeIndex)}
 				</dd>
 			</div>
 
@@ -127,7 +72,6 @@
 					<ResourceBoundary
 						resource={
 							selection({
-								sources: selection.sources,
 								fields: {
 									feeKind: true,
 								},
@@ -135,11 +79,7 @@
 						}
 					>
 						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const feeKind = resolvedEntity.feeKind}
-							{#if feeKind !== undefined && feeKind !== null}
-								{String((feeKind) ?? '')}
-							{/if}
+							{entity.feeKind}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -148,7 +88,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							collectorAccountId: true,
 						},
@@ -156,13 +95,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const collectorAccountId = resolvedEntity.collectorAccountId}
-					{#if collectorAccountId !== undefined && collectorAccountId !== null}
+					{@const collectorAccountId = entity.collectorAccountId}
+					{#if collectorAccountId != null}
 						<div>
 							<dt>collector account ID</dt>
 							<dd>
-								<TruncatedValue value={String((collectorAccountId) ?? '')} />
+								<TruncatedValue value={collectorAccountId} />
 							</dd>
 						</div>
 					{/if}
@@ -172,7 +110,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							denominatingTokenId: true,
 						},
@@ -180,13 +117,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const denominatingTokenId = resolvedEntity.denominatingTokenId}
-					{#if denominatingTokenId !== undefined && denominatingTokenId !== null}
+					{@const denominatingTokenId = entity.denominatingTokenId}
+					{#if denominatingTokenId != null}
 						<div>
 							<dt>denominating token ID</dt>
 							<dd>
-								{String((denominatingTokenId) ?? '')}
+								{denominatingTokenId}
 							</dd>
 						</div>
 					{/if}
@@ -196,7 +132,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							amount: true,
 						},
@@ -204,13 +139,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const amount = resolvedEntity.amount}
-					{#if amount !== undefined && amount !== null}
+					{@const amount = entity.amount}
+					{#if amount != null}
 						<div>
 							<dt>amount</dt>
 							<dd>
-								{String((amount) ?? '')}
+								{String(amount)}
 							</dd>
 						</div>
 					{/if}
@@ -220,7 +154,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							numerator: true,
 						},
@@ -228,13 +161,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const numerator = resolvedEntity.numerator}
-					{#if numerator !== undefined && numerator !== null}
+					{@const numerator = entity.numerator}
+					{#if numerator != null}
 						<div>
 							<dt>numerator</dt>
 							<dd>
-								{String((numerator) ?? '')}
+								{String(numerator)}
 							</dd>
 						</div>
 					{/if}
@@ -244,7 +176,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							denominator: true,
 						},
@@ -252,13 +183,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const denominator = resolvedEntity.denominator}
-					{#if denominator !== undefined && denominator !== null}
+					{@const denominator = entity.denominator}
+					{#if denominator != null}
 						<div>
 							<dt>denominator</dt>
 							<dd>
-								{String((denominator) ?? '')}
+								{String(denominator)}
 							</dd>
 						</div>
 					{/if}
@@ -268,7 +198,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							minimumAmount: true,
 						},
@@ -276,13 +205,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const minimumAmount = resolvedEntity.minimumAmount}
-					{#if minimumAmount !== undefined && minimumAmount !== null}
+					{@const minimumAmount = entity.minimumAmount}
+					{#if minimumAmount != null}
 						<div>
 							<dt>minimum amount</dt>
 							<dd>
-								{String((minimumAmount) ?? '')}
+								{String(minimumAmount)}
 							</dd>
 						</div>
 					{/if}
@@ -292,7 +220,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							maximumAmount: true,
 						},
@@ -300,13 +227,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const maximumAmount = resolvedEntity.maximumAmount}
-					{#if maximumAmount !== undefined && maximumAmount !== null}
+					{@const maximumAmount = entity.maximumAmount}
+					{#if maximumAmount != null}
 						<div>
 							<dt>maximum amount</dt>
 							<dd>
-								{String((maximumAmount) ?? '')}
+								{String(maximumAmount)}
 							</dd>
 						</div>
 					{/if}
@@ -316,7 +242,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							netOfTransfers: true,
 						},
@@ -324,9 +249,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const netOfTransfers = resolvedEntity.netOfTransfers}
-					{#if netOfTransfers !== undefined && netOfTransfers !== null}
+					{@const netOfTransfers = entity.netOfTransfers}
+					{#if netOfTransfers != null}
 						<div>
 							<dt>net of transfers</dt>
 							<dd>
@@ -340,7 +264,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							allCollectorsAreExempt: true,
 						},
@@ -348,9 +271,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const allCollectorsAreExempt = resolvedEntity.allCollectorsAreExempt}
-					{#if allCollectorsAreExempt !== undefined && allCollectorsAreExempt !== null}
+					{@const allCollectorsAreExempt = entity.allCollectorsAreExempt}
+					{#if allCollectorsAreExempt != null}
 						<div>
 							<dt>all collectors are exempt</dt>
 							<dd>
@@ -365,37 +287,13 @@
 				resource={selection.$collector}
 			>
 				{#snippet children(hederaAccount)}
-					{#if hederaAccount != null && hederaAccount[EntityMetaKey.Selector] != null}
+					{#if hederaAccount != null}
 						<div>
 							<dt>collector</dt>
 							<dd>
 								<HederaAccountView
 									selection={select(EntityType.HederaAccount, hederaAccount[EntityMetaKey.Selector])}
 									prefetched={hederaAccount}
-									href={
-										(
-											hederaAccount[EntityMetaKey.Selector] != null && 'accountId' in hederaAccount[EntityMetaKey.Selector]
-											&& hederaAccount[EntityMetaKey.Selector].accountId != null
-											&& hederaAccount[EntityMetaKey.Selector] != null && '$network' in hederaAccount[EntityMetaKey.Selector] ?
-												hederaAccount[EntityMetaKey.Selector].$network != null && 'caip2' in hederaAccount[EntityMetaKey.Selector].$network
-												&& hederaAccount[EntityMetaKey.Selector].$network.caip2 != null ?
-													resolve('/network/[network=networkCaip2OrNetworkSlug]/account/[accountId=polkadotAccountIdOrStringSegmentOrEvmAddressOrSolanaPubkey]', {
-												accountId: String(hederaAccount[EntityMetaKey.Selector].accountId ?? ''),
-												network: String(caip2StringFromValue(hederaAccount[EntityMetaKey.Selector].$network.caip2) ?? ''),
-											})
-											:
-													hederaAccount[EntityMetaKey.Selector].$network != null && 'slug' in hederaAccount[EntityMetaKey.Selector].$network
-													&& hederaAccount[EntityMetaKey.Selector].$network.slug != null ?
-														resolve('/network/[network=networkCaip2OrNetworkSlug]/account/[accountId=polkadotAccountIdOrStringSegmentOrEvmAddressOrSolanaPubkey]', {
-													accountId: String(hederaAccount[EntityMetaKey.Selector].accountId ?? ''),
-													network: String(hederaAccount[EntityMetaKey.Selector].$network.slug ?? ''),
-												})
-												:
-													undefined
-										:
-												undefined
-										)
-									}
 									layout={EntityLayout.Value}
 									open={false}
 								/>
@@ -409,7 +307,7 @@
 				resource={selection.$denominatingToken}
 			>
 				{#snippet children(hederaToken)}
-					{#if hederaToken != null && hederaToken[EntityMetaKey.Selector] != null}
+					{#if hederaToken != null}
 						<div>
 							<dt>denominating token</dt>
 							<dd>

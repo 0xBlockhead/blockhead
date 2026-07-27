@@ -79,7 +79,7 @@ export const defillamaCurrentPriceIds = [
 }[]
 
 /**
- * Coin ids accepted by {@link coinsOrigin} current-prices API (`coingecko:…`, etc.).
+ * Coin ids accepted by the binding-owned current-prices API (`coingecko:…`, etc.).
  * Keep this list to ids proven to return current prices. Missing keys mean this
  * source does not currently support that catalog coin.
  *
@@ -95,49 +95,3 @@ export const defillamaCurrentPriceIdByCoinId = Object.fromEntries(
 			providerCoinId,
 		])
 ) as Partial<Record<CoinId, string>>
-
-/**
- * Public current-prices host — `GET /prices/current/{coins}` (comma-separated path segment).
- * Pro uses `https://pro-api.llama.fi/<API_KEY>/coins/prices/current/{coins}` (not this host).
- * @see https://docs.llama.fi/coin-prices-api
- */
-export const coinsOrigin = 'https://coins.llama.fi' as const
-
-export const iconsOrigin = 'https://icons.llama.fi' as const
-
-export const apiOrigin = 'https://api.llama.fi' as const
-
-export const yieldsOrigin = 'https://yields.llama.fi' as const
-
-export const coinsBaseUrl = coinsOrigin
-
-/**
- * Pro API host: `https://pro-api.llama.fi/<KEY>/…`.
- * @see https://docs.llama.fi/pro-api
- */
-export const proOrigin = 'https://pro-api.llama.fi' as const
-
-export const proBaseUrl = proOrigin
-
-export const defillamaOrigins = [
-	{
-		origin: coinsOrigin,
-		corsEnabled: false,
-	},
-	{
-		origin: iconsOrigin,
-		corsEnabled: false,
-	},
-	{
-		origin: proOrigin,
-		corsEnabled: false,
-	},
-	{
-		origin: apiOrigin,
-		corsEnabled: false,
-	},
-	{
-		origin: yieldsOrigin,
-		corsEnabled: false,
-	},
-] as const

@@ -8,7 +8,6 @@ import {
 	entityFieldAddressKey,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import { NostrRelaySelector } from '$/schema/NostrRelay.ts'
 import { Source } from '$/sources/Source.ts'
 import type { NostrRelayEvent } from '$/sources/NostrRelay/WebSocket/types.ts'
 import { validateNostrEvent } from '$/sources/NostrRelay/Nip01/event.ts'
@@ -28,7 +27,7 @@ export default {
 		defineResolver(Source.NostrRelay_WebSocket, {
 			entityType: EntityType.NostrRelay,
 			resolve: {
-				[NostrRelaySelector.RelayUrl]: {
+				RelayUrl: {
 					resolve: async ({ relayUrl }) => ({
 						relayUrl,
 					}),

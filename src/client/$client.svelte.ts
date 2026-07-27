@@ -540,7 +540,7 @@ export type ClientContext<
 	entityFieldCollections: EntityFieldCollections<_Schema>
 	entityFieldCountCollections: EntityFieldCountCollections<_Schema>
 	materializedReferenceEntityKeys: Set<string>
-	materializedReferenceFieldValueByAddress: Map<string, unknown>
+	referenceFieldValueByAddress: Map<string, unknown>
 	liveSubscriptions: Map<string, ClientLiveSubscription>
 	resolverIndexes: ResolverIndexes<_Schema, _Source, ResolverContext>
 	resolverPublicEnvBySource: ReadonlyMap<string, SourcePublicEnv>
@@ -1695,7 +1695,10 @@ const persistedCollectionSync = <
 				[...resolvedLoadSubsets.values()].some(({ loadSubsetOptions, sources: resolvedSources }) => {
 					const subset = parseResolverSubset(loadSubsetOptions)
 					return (
-						subset.selectorKeys.includes(selectorKey)
+						(
+							subset.selectorKeys.includes(selectorKey)
+							|| subset.parentSelectorKeys.includes(selectorKey)
+						)
 						&& (
 							selectedSources == null
 							|| selectedSources.every((source) => resolvedSources.includes(source))
@@ -2076,8 +2079,7 @@ const persistedCollectionSync = <
 
 							if (remoteResult.status === PersistedCollectionLoadStatus.Partial)
 								console.error(
-									`[Blockhead collection-load-failure] ${collectionId} partially failed ${key}`,
-									remoteResult.failedOutcomes
+									`[Blockhead collection-load-failure] ${collectionId} partially failed ${key}: ${remoteResult.failedOutcomes.map(({ source, error }) => `${source}: ${error ?? 'failed'}`).join(', ')}`
 								)
 						}
 
@@ -2223,8 +2225,13 @@ const persistedCollectionSync = <
 						})
 					)
 					begin()
+					const appendedSourceRows = appended.rows.filter((row) => row[EntityMetaKey.Source] === source)
+					const appendedSourceRowKeys = new Set(appendedSourceRows.map(getKey))
 					for (const rowKey of marker.sourceRowKeys[source] ?? []) {
-						if (otherOwnedRowKeys.has(rowKey))
+						if (
+							otherOwnedRowKeys.has(rowKey)
+							|| appendedSourceRowKeys.has(rowKey)
+						)
 							continue
 
 						const row = collection.get(rowKey)
@@ -2234,17 +2241,11 @@ const persistedCollectionSync = <
 								value: row,
 							})
 					}
-					for (const row of appended.rows.filter((row) => row[EntityMetaKey.Source] === source)) {
-						if (collection.has(getKey(row)))
-							write({
-								type: 'delete',
-								value: row,
-							})
+					for (const row of appendedSourceRows)
 						write({
-							type: 'insert',
+							type: collection.has(getKey(row)) ? 'update' : 'insert',
 							value: row,
 						})
-					}
 					metadata?.collection.set(metadataKey, appended.nextMarker)
 					commit()
 					await waitForPersistence?.(collectionId)
@@ -2617,28 +2618,36 @@ const fieldCanCompleteEmpty = (
 	|| definition.cardinality === EntityFieldCardinality.ZeroOrMany
 )
 
-const cacheMaterializedReferenceFields = <
+const cacheReferenceFields = <
 	const _Schema extends Schema
 >(
 	context: ClientContext<_Schema>,
 	entityType: string,
 	source: string,
-	reference: Record<string, unknown>
+	reference: object
 ) => {
-	const selectorKey = String(reference[EntityMetaKey.SelectorKey])
+	const selector = Object.getOwnPropertyDescriptor(reference, EntityMetaKey.Selector)?.value
+	if (selector == null || typeof selector !== 'object' || Array.isArray(selector))
+		return
+
+	const selectorKey = entitySelectorKey(
+		context.schema,
+		context.entityDefinitionByType[entityType],
+		selector
+	)
 	context.materializedReferenceEntityKeys.add(stringify([
 		entityType,
 		selectorKey,
 		source,
 	]))
-	const fields = reference[EntityMetaKey.Fields]
+	const fields = Object.getOwnPropertyDescriptor(reference, EntityMetaKey.Fields)?.value
 	if (fields == null || typeof fields !== 'object' || Array.isArray(fields))
 		return
 
 	for (const [fieldAddressKey, value] of Object.entries(Object.fromEntries<unknown>(
 		Object.entries(fields)
 	))) {
-		context.materializedReferenceFieldValueByAddress.set(stringify([
+		context.referenceFieldValueByAddress.set(stringify([
 			entityType,
 			selectorKey,
 			fieldAddressKey,
@@ -2668,11 +2677,11 @@ const cacheMaterializedReferenceFields = <
 			)
 				continue
 
-			cacheMaterializedReferenceFields(
+			cacheReferenceFields(
 				context,
 				definition.entityType,
 				source,
-				Object.fromEntries<unknown>(Object.entries(nestedReference))
+				nestedReference
 			)
 		}
 	}
@@ -2879,7 +2888,7 @@ const loadFieldRows = async <
 		).name
 		const fieldAddressKey = entityFieldAddressKey(entityType, facetPath, fieldName)
 		const materializedFieldSources = [...requestedFieldSources].filter((source) => (
-			context.materializedReferenceFieldValueByAddress.has(stringify([
+			context.referenceFieldValueByAddress.has(stringify([
 				entityType,
 				parentSelectorKey,
 				fieldAddressKey,
@@ -2899,7 +2908,7 @@ const loadFieldRows = async <
 							parentSelectorKey,
 							source,
 							fieldDefinition: definition,
-							value: context.materializedReferenceFieldValueByAddress.get(stringify([
+							value: context.referenceFieldValueByAddress.get(stringify([
 								entityType,
 								parentSelectorKey,
 								fieldAddressKey,
@@ -2923,7 +2932,14 @@ const loadFieldRows = async <
 			?? false
 		)
 		if (selectorOwnsField) {
-			const selectorSources = [...requestedFieldSources]
+			const selectorSources = [...requestedFieldSources].filter((source) => (
+				source === Source.Local_Internal
+				|| resolverParts.some((resolverPart) => (
+					String(resolverPart.source) === source
+					&& resolverPart.resolver.resolve[selectorName] != null
+					&& resolverPart.resolver.appliesTo(selectorName, parentSelector)
+				))
+			))
 			const selectorValue = parentSelector[fieldName]
 			if (selectorValue === undefined)
 				return selectorSources.map((source) => Promise.resolve({
@@ -3057,23 +3073,28 @@ const loadFieldRows = async <
 						source: String(resolverPart.source),
 						fieldDefinition: definition,
 						value,
-					})
-				if (definition.type !== EntityFieldType.Primitive)
-					for (const row of rows) {
+				})
+				if (definition.type !== EntityFieldType.Primitive) {
+					let references = [value]
+					if (entityFieldCardinalityIsMultiple(definition.cardinality) && Array.isArray(value))
+						references = value
+
+					for (const reference of references) {
 						if (
-							row[EntityMetaKey.Value] == null
-							|| typeof row[EntityMetaKey.Value] !== 'object'
-							|| Array.isArray(row[EntityMetaKey.Value])
+							reference == null
+							|| typeof reference !== 'object'
+							|| Array.isArray(reference)
 						)
 							continue
 
-						cacheMaterializedReferenceFields(
+						cacheReferenceFields(
 							context,
 							definition.entityType,
 							String(resolverPart.source),
-							Object.fromEntries<unknown>(Object.entries(row[EntityMetaKey.Value]))
+							reference
 						)
 					}
+				}
 
 				return {
 					rows,
@@ -3620,7 +3641,7 @@ export const client = <
 	const entityFieldCollections: EntityFieldCollections<_Schema> = {}
 	const entityFieldCountCollections: EntityFieldCountCollections<_Schema> = {}
 	const materializedReferenceEntityKeys = new Set<string>()
-	const materializedReferenceFieldValueByAddress = new Map<string, unknown>()
+	const referenceFieldValueByAddress = new Map<string, unknown>()
 	const liveSubscriptions = new Map<string, ClientLiveSubscription>()
 	const events: ClientEvent[] = []
 	const collectionLoadFailureListeners = new Set<() => void>()
@@ -4471,7 +4492,7 @@ export const client = <
 		entityFieldCollections,
 		entityFieldCountCollections,
 		materializedReferenceEntityKeys,
-		materializedReferenceFieldValueByAddress,
+		referenceFieldValueByAddress,
 		liveSubscriptions,
 		select: (
 			entityType,

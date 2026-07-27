@@ -2,14 +2,9 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
 	import { Source } from '$/sources/Source.ts'
 
@@ -23,31 +18,16 @@
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.BeaconEpoch>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.BeaconEpoch>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.BeaconEpoch> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const beaconEpoch = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {},
-	} : {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const viewSelection = $derived(selection({
+		sources: selection.sources ?? [
+			Source.Beacon_Rest,
+			Source.BeaconchaIn_Rest,
+		],
 	}))
-	const titleFallback = $derived((String((pendingEntity.epoch) ?? '') ? 'Epoch #' + String((pendingEntity.epoch) ?? '') : '') || 'beacon epoch')
-	const viewDomId = $derived('beacon-epoch-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const titleFallback = $derived((String(pendingEntity.epoch ?? '') ? 'Epoch #' + String(pendingEntity.epoch ?? '') : '') || 'beacon epoch')
 
 
 	// Components
@@ -59,32 +39,21 @@
 
 <EntityView
 	entityType={EntityType.BeaconEpoch}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
 	idDragPlainText={String(pendingEntity.epoch ?? '')}
 	href={
-		href ?? (
-			selection.entitySelector != null && 'epoch' in selection.entitySelector
-			&& selection.entitySelector.epoch != null
-			&& selection.entitySelector != null && '$network' in selection.entitySelector ?
-				selection.entitySelector.$network != null && 'caip2' in selection.entitySelector.$network
-				&& selection.entitySelector.$network.caip2 != null ?
-					resolve('/network/[network=networkCaip2OrNetworkSlug]/epoch/[epoch=nonNegativeInteger]', {
-				epoch: String(selection.entitySelector.epoch ?? ''),
-				network: String(caip2StringFromValue(selection.entitySelector.$network.caip2) ?? ''),
-			})
-			:
-					selection.entitySelector.$network != null && 'slug' in selection.entitySelector.$network
-					&& selection.entitySelector.$network.slug != null ?
-						resolve('/network/[network=networkCaip2OrNetworkSlug]/epoch/[epoch=nonNegativeInteger]', {
-					epoch: String(selection.entitySelector.epoch ?? ''),
-					network: String(selection.entitySelector.$network.slug ?? ''),
-				})
-				:
-					undefined
-		:
-				undefined
+		href ?? resolve(
+			'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/epoch/[epoch=nonNegativeInteger]',
+			{
+				network: (
+					'caip2' in selection.entitySelector.$network ?
+						String(caip2StringFromValue(selection.entitySelector.$network.caip2))
+					:
+						String(selection.entitySelector.$network.slug)
+				),
+				epoch: String(selection.entitySelector.epoch),
+			}
 		)
 	}
 	{layout}
@@ -92,24 +61,18 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{@const serialValue = pendingEntity.epoch}
-		{#if serialValue !== undefined && serialValue !== null}
-			<span data-row="inline align-center gap-2 wrap">
-				<span>Epoch </span>
-				<span data-badge="small">
-					#{String((serialValue) ?? '')}
-				</span>
+		<span data-row="inline align-center gap-2 wrap">
+			<span>Epoch </span>
+			<span data-badge="small">
+				#{String(pendingEntity.epoch)}
 			</span>
-		{/if}
+		</span>
 	{/snippet}
 
 	{#snippet Value()}
-		{@const serialValue = pendingEntity.epoch}
-		{#if serialValue !== undefined && serialValue !== null}
-			<span data-badge="small">
-				#{String((serialValue) ?? '')}
-			</span>
-		{/if}
+		<span data-badge="small">
+			#{String(pendingEntity.epoch)}
+		</span>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -119,8 +82,7 @@
 				<dd>
 					<ResourceBoundary
 						resource={
-							selection({
-								sources: selection.sources,
+							viewSelection({
 								fields: {
 									startSlot: true,
 								},
@@ -128,13 +90,9 @@
 						}
 					>
 						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const startSlot = resolvedEntity.startSlot}
-							{#if startSlot !== undefined && startSlot !== null}
-								<NumberValue
-									value={startSlot}
-								/>
-							{/if}
+							<NumberValue
+								value={entity.startSlot}
+							/>
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -145,8 +103,7 @@
 				<dd>
 					<ResourceBoundary
 						resource={
-							selection({
-								sources: selection.sources,
+							viewSelection({
 								fields: {
 									endSlot: true,
 								},
@@ -154,13 +111,9 @@
 						}
 					>
 						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const endSlot = resolvedEntity.endSlot}
-							{#if endSlot !== undefined && endSlot !== null}
-								<NumberValue
-									value={endSlot}
-								/>
-							{/if}
+							<NumberValue
+								value={entity.endSlot}
+							/>
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -172,8 +125,7 @@
 					<dd>
 						<ResourceBoundary
 							resource={
-								selection({
-									sources: selection.sources,
+								viewSelection({
 									fields: {
 										slotCount: true,
 									},
@@ -181,13 +133,9 @@
 							}
 						>
 							{#snippet children(entity)}
-								{@const resolvedEntity = { ...pendingEntity, ...entity }}
-								{@const slotCount = resolvedEntity.slotCount}
-								{#if slotCount !== undefined && slotCount !== null}
-									<NumberValue
-										value={slotCount}
-									/>
-								{/if}
+								<NumberValue
+									value={entity.slotCount}
+								/>
 							{/snippet}
 						</ResourceBoundary>
 					</dd>
@@ -197,8 +145,7 @@
 			{#if contentOpen}
 				<ResourceBoundary
 					resource={
-						selection({
-							sources: selection.sources,
+						viewSelection({
 							fields: {
 								finalized: true,
 							},
@@ -206,9 +153,8 @@
 					}
 				>
 					{#snippet children(entity)}
-						{@const resolvedEntity = { ...pendingEntity, ...entity }}
-						{@const finalized = resolvedEntity.finalized}
-						{#if finalized !== undefined && finalized !== null}
+						{@const finalized = entity.finalized}
+						{#if finalized != null}
 							<div>
 								<dt>Finalized</dt>
 								<dd>
@@ -225,8 +171,7 @@
 			{#if contentOpen}
 				<ResourceBoundary
 					resource={
-						selection({
-							sources: selection.sources,
+						viewSelection({
 							fields: {
 								globalParticipationRate: true,
 							},
@@ -234,9 +179,8 @@
 					}
 				>
 					{#snippet children(entity)}
-						{@const resolvedEntity = { ...pendingEntity, ...entity }}
-						{@const globalParticipationRate = resolvedEntity.globalParticipationRate}
-						{#if globalParticipationRate !== undefined && globalParticipationRate !== null}
+						{@const globalParticipationRate = entity.globalParticipationRate}
+						{#if globalParticipationRate != null}
 							<div>
 								<dt>Participation</dt>
 								<dd>
@@ -254,8 +198,7 @@
 			{#if contentOpen}
 				<ResourceBoundary
 					resource={
-						selection({
-							sources: selection.sources,
+						viewSelection({
 							fields: {
 								validatorsCount: true,
 							},
@@ -263,9 +206,8 @@
 					}
 				>
 					{#snippet children(entity)}
-						{@const resolvedEntity = { ...pendingEntity, ...entity }}
-						{@const validatorsCount = resolvedEntity.validatorsCount}
-						{#if validatorsCount !== undefined && validatorsCount !== null}
+						{@const validatorsCount = entity.validatorsCount}
+						{#if validatorsCount != null}
 							<div>
 								<dt>Validators</dt>
 								<dd>
@@ -282,8 +224,7 @@
 			{#if contentOpen}
 				<ResourceBoundary
 					resource={
-						selection({
-							sources: selection.sources,
+						viewSelection({
 							fields: {
 								attestationsCount: true,
 							},
@@ -291,9 +232,8 @@
 					}
 				>
 					{#snippet children(entity)}
-						{@const resolvedEntity = { ...pendingEntity, ...entity }}
-						{@const attestationsCount = resolvedEntity.attestationsCount}
-						{#if attestationsCount !== undefined && attestationsCount !== null}
+						{@const attestationsCount = entity.attestationsCount}
+						{#if attestationsCount != null}
 							<div>
 								<dt>Attestations</dt>
 								<dd>
@@ -310,8 +250,7 @@
 			{#if contentOpen}
 				<ResourceBoundary
 					resource={
-						selection({
-							sources: selection.sources,
+						viewSelection({
 							fields: {
 								withdrawalsCount: true,
 							},
@@ -319,9 +258,8 @@
 					}
 				>
 					{#snippet children(entity)}
-						{@const resolvedEntity = { ...pendingEntity, ...entity }}
-						{@const withdrawalsCount = resolvedEntity.withdrawalsCount}
-						{#if withdrawalsCount !== undefined && withdrawalsCount !== null}
+						{@const withdrawalsCount = entity.withdrawalsCount}
+						{#if withdrawalsCount != null}
 							<div>
 								<dt>Withdrawals</dt>
 								<dd>
@@ -338,8 +276,7 @@
 			{#if contentOpen}
 				<ResourceBoundary
 					resource={
-						selection({
-							sources: selection.sources,
+						viewSelection({
 							fields: {
 								attesterSlashingsCount: true,
 							},
@@ -347,9 +284,8 @@
 					}
 				>
 					{#snippet children(entity)}
-						{@const resolvedEntity = { ...pendingEntity, ...entity }}
-						{@const attesterSlashingsCount = resolvedEntity.attesterSlashingsCount}
-						{#if attesterSlashingsCount !== undefined && attesterSlashingsCount !== null}
+						{@const attesterSlashingsCount = entity.attesterSlashingsCount}
+						{#if attesterSlashingsCount != null}
 							<div>
 								<dt>Attester slashings</dt>
 								<dd>
@@ -366,8 +302,7 @@
 			{#if contentOpen}
 				<ResourceBoundary
 					resource={
-						selection({
-							sources: selection.sources,
+						viewSelection({
 							fields: {
 								proposerSlashingsCount: true,
 							},
@@ -375,9 +310,8 @@
 					}
 				>
 					{#snippet children(entity)}
-						{@const resolvedEntity = { ...pendingEntity, ...entity }}
-						{@const proposerSlashingsCount = resolvedEntity.proposerSlashingsCount}
-						{#if proposerSlashingsCount !== undefined && proposerSlashingsCount !== null}
+						{@const proposerSlashingsCount = entity.proposerSlashingsCount}
+						{#if proposerSlashingsCount != null}
 							<div>
 								<dt>Proposer slashings</dt>
 								<dd>
@@ -394,26 +328,26 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-				{@const beaconEpochBeaconSlotsViewBeaconSlotsResource = selection
+		{@const beaconEpochBeaconSlotsViewBeaconSlotsResource = selection
 		.$$beaconSlots({
 			sources: [
 				Source.Beacon_Rest,
 			],
 			limit: 32,
 		})}
-				<ResourceBoundary
-					resource={beaconEpochBeaconSlotsViewBeaconSlotsResource}
-				>
-					{#snippet children(entities)}
-						{#if entities.values.length > 0}
-						<BeaconSlotsView
-							selection={beaconEpochBeaconSlotsViewBeaconSlotsResource}
-							countResource={beaconEpochBeaconSlotsViewBeaconSlotsResource.count}
-							title='Slots'
-							id='BeaconSlotsView-beacon-slots'
-						/>
-						{/if}
-					{/snippet}
-				</ResourceBoundary>
+		<ResourceBoundary
+			resource={beaconEpochBeaconSlotsViewBeaconSlotsResource}
+		>
+			{#snippet children(entities)}
+				{#if entities.values.length > 0}
+					<BeaconSlotsView
+						selection={beaconEpochBeaconSlotsViewBeaconSlotsResource}
+						countResource={beaconEpochBeaconSlotsViewBeaconSlotsResource.count}
+						title='Slots'
+						id='beacon-slots'
+					/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 </EntityView>

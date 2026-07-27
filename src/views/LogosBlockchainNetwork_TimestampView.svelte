@@ -2,13 +2,8 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
 	import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 
 
@@ -21,42 +16,19 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.LogosBlockchainNetwork_Timestamp>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.LogosBlockchainNetwork_Timestamp>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.LogosBlockchainNetwork_Timestamp> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const logosBlockchainNetworkTimestamp = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {
-			height: true,
-			mode: true,
-		},
-	} : {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const logosBlockchainNetworkTimestamp = $derived(selection({
 		fields: {
 			height: true,
 			mode: true,
 		},
 	}))
-	const titleFallback = $derived([String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || 'Logos blockchain network timestamp')
-	const viewDomId = $derived('logos-blockchain-network-timestamp-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const titleFallback = $derived(String(pendingEntity.timestampMs ?? '') || 'Logos blockchain network timestamp')
 
 
 	// Components
@@ -69,77 +41,40 @@
 
 <EntityView
 	entityType={EntityType.LogosBlockchainNetwork_Timestamp}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'height') && Object.hasOwn(prefetched, 'mode')}
-			{@const timestampMs0 = pendingEntity.timestampMs}
-			{#if timestampMs0 !== undefined && timestampMs0 !== null}
-				<Timestamp timestamp={Number(timestampMs0)} />
-			{/if}
-		{:else}
-			<ResourceBoundary resource={logosBlockchainNetworkTimestamp}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const timestampMs0 = resolvedEntity.timestampMs}
-					{#if timestampMs0 !== undefined && timestampMs0 !== null}
-						<Timestamp timestamp={Number(timestampMs0)} />
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
 	{/snippet}
 
 	{#snippet Value()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'height') && Object.hasOwn(prefetched, 'mode')}
-			{@const height0 = pendingEntity.height}
-			{#if height0 !== undefined && height0 !== null}
-				<NumberValue
-					value={height0}
-				/>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={logosBlockchainNetworkTimestamp}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const height0 = resolvedEntity.height}
-					{#if height0 !== undefined && height0 !== null}
-						<NumberValue
-							value={height0}
-						/>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={logosBlockchainNetworkTimestamp}>
+			{#snippet children(entity)}
+				{@const height0 = entity.height}
+				{#if height0 != null}
+					<NumberValue
+						value={height0}
+					/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'height') && Object.hasOwn(prefetched, 'mode')}
-			{@const mode0 = pendingEntity.mode}
-			{#if mode0 !== undefined && mode0 !== null}
-				<span data-text="muted">
-					{String((mode0) ?? '')}
-				</span>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={logosBlockchainNetworkTimestamp}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const mode0 = resolvedEntity.mode}
-					{#if mode0 !== undefined && mode0 !== null}
-						<span data-text="muted">
-							{String((mode0) ?? '')}
-						</span>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={logosBlockchainNetworkTimestamp}>
+			{#snippet children(entity)}
+				{@const mode0 = entity.mode}
+				{#if mode0 != null}
+					<span data-text="muted">
+						{mode0}
+					</span>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -158,69 +93,27 @@
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									timestampMs: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const timestampMs = resolvedEntity.timestampMs}
-							{#if timestampMs !== undefined && timestampMs !== null}
-								<Timestamp timestamp={Number(timestampMs)} />
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									source: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const source = resolvedEntity.source}
-							{#if source !== undefined && source !== null}
-								{String((source) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{pendingEntity.source}
 				</dd>
 			</div>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							mode: true,
-						},
-					})
-				}
+				resource={logosBlockchainNetworkTimestamp}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const mode = resolvedEntity.mode}
-					{#if mode !== undefined && mode !== null}
+					{@const mode = entity.mode}
+					{#if mode != null}
 						<div>
 							<dt>Mode</dt>
 							<dd>
-								{String((mode) ?? '')}
+								{mode}
 							</dd>
 						</div>
 					{/if}
@@ -230,19 +123,11 @@
 
 		<dl data-column-item="center">
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							height: true,
-						},
-					})
-				}
+				resource={logosBlockchainNetworkTimestamp}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const height = resolvedEntity.height}
-					{#if height !== undefined && height !== null}
+					{@const height = entity.height}
+					{#if height != null}
 						<div>
 							<dt>Height</dt>
 							<dd>
@@ -258,7 +143,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							slot: true,
 						},
@@ -266,9 +150,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const slot = resolvedEntity.slot}
-					{#if slot !== undefined && slot !== null}
+					{@const slot = entity.slot}
+					{#if slot != null}
 						<div>
 							<dt>Slot</dt>
 							<dd>
@@ -284,7 +167,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							libSlot: true,
 						},
@@ -292,9 +174,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const libSlot = resolvedEntity.libSlot}
-					{#if libSlot !== undefined && libSlot !== null}
+					{@const libSlot = entity.libSlot}
+					{#if libSlot != null}
 						<div>
 							<dt>LIB slot</dt>
 							<dd>
@@ -312,7 +193,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							tip: true,
 						},
@@ -320,13 +200,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const tip = resolvedEntity.tip}
-					{#if tip !== undefined && tip !== null}
+					{@const tip = entity.tip}
+					{#if tip != null}
 						<div>
 							<dt>Tip</dt>
 							<dd>
-								{String((tip) ?? '')}
+								{String(tip)}
 							</dd>
 						</div>
 					{/if}
@@ -336,7 +215,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							lib: true,
 						},
@@ -344,13 +222,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const lib = resolvedEntity.lib}
-					{#if lib !== undefined && lib !== null}
+					{@const lib = entity.lib}
+					{#if lib != null}
 						<div>
 							<dt>LIB</dt>
 							<dd>
-								{String((lib) ?? '')}
+								{String(lib)}
 							</dd>
 						</div>
 					{/if}

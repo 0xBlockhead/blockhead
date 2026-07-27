@@ -2,13 +2,9 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -20,40 +16,23 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.NearContractStorageEntry>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.NearContractStorageEntry>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.NearContractStorageEntry> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const nearContractStorageEntry = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {
-			valueHash: true,
-		},
-	} : {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const viewSelection = $derived(selection({
+		sources: selection.sources ?? [
+			Source.NearRpc_JsonRpc,
+		],
+	}))
+	const nearContractStorageEntry = $derived(viewSelection({
 		fields: {
 			valueHash: true,
 		},
 	}))
-	const titleFallback = $derived([String((pendingEntity.keyBase64) ?? '')].filter(Boolean).join(' ') || 'near contract storage entry')
-	const viewDomId = $derived('near-contract-storage-entry-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const titleFallback = $derived((pendingEntity.keyBase64 ?? '') || 'near contract storage entry')
 
 
 	// Components
@@ -66,77 +45,33 @@
 
 <EntityView
 	entityType={EntityType.NearContractStorageEntry}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'valueHash')}
-			{@const keyBase640 = pendingEntity.keyBase64}
-			{#if keyBase640 !== undefined && keyBase640 !== null}
-				<TruncatedValue value={String((keyBase640) ?? '')} />
-			{/if}
-		{:else}
-			<ResourceBoundary resource={nearContractStorageEntry}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const keyBase640 = resolvedEntity.keyBase64}
-					{#if keyBase640 !== undefined && keyBase640 !== null}
-						<TruncatedValue value={String((keyBase640) ?? '')} />
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<TruncatedValue value={pendingEntity.keyBase64} />
 	{/snippet}
 
 	{#snippet Value()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'valueHash')}
-			{@const valueHash0 = pendingEntity.valueHash}
-			{#if valueHash0 !== undefined && valueHash0 !== null}
-				<TruncatedValue value={String((valueHash0) ?? '')} />
-			{/if}
-		{:else}
-			<ResourceBoundary resource={nearContractStorageEntry}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const valueHash0 = resolvedEntity.valueHash}
-					{#if valueHash0 !== undefined && valueHash0 !== null}
-						<TruncatedValue value={String((valueHash0) ?? '')} />
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={nearContractStorageEntry}>
+			{#snippet children(entity)}
+				{@const valueHash0 = entity.valueHash}
+				{#if valueHash0 != null}
+					<TruncatedValue value={valueHash0} />
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'valueHash')}
-			{@const blockHeight0 = pendingEntity.blockHeight}
-			{#if blockHeight0 !== undefined && blockHeight0 !== null}
-				<span data-text="muted">
-					<NumberValue
-						value={blockHeight0}
-					/>
-				</span>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={nearContractStorageEntry}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const blockHeight0 = resolvedEntity.blockHeight}
-					{#if blockHeight0 !== undefined && blockHeight0 !== null}
-						<span data-text="muted">
-							<NumberValue
-								value={blockHeight0}
-							/>
-						</span>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<span data-text="muted">
+			<NumberValue
+				value={pendingEntity.blockHeight}
+			/>
+		</span>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -155,81 +90,29 @@
 			<div>
 				<dt>Key base64</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									keyBase64: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const keyBase64 = resolvedEntity.keyBase64}
-							{#if keyBase64 !== undefined && keyBase64 !== null}
-								<TruncatedValue value={String((keyBase64) ?? '')} />
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					<TruncatedValue value={pendingEntity.keyBase64} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Block height</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									blockHeight: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const blockHeight = resolvedEntity.blockHeight}
-							{#if blockHeight !== undefined && blockHeight !== null}
-								<NumberValue
-									value={blockHeight}
-								/>
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					<NumberValue
+						value={pendingEntity.blockHeight}
+					/>
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									source: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const source = resolvedEntity.source}
-							{#if source !== undefined && source !== null}
-								{String((source) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{pendingEntity.source}
 				</dd>
 			</div>
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							blockHash: true,
 						},
@@ -237,13 +120,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const blockHash = resolvedEntity.blockHash}
-					{#if blockHash !== undefined && blockHash !== null}
+					{@const blockHash = entity.blockHash}
+					{#if blockHash != null}
 						<div>
 							<dt>Block hash</dt>
 							<dd>
-								<TruncatedValue value={String((blockHash) ?? '')} />
+								<TruncatedValue value={blockHash} />
 							</dd>
 						</div>
 					{/if}
@@ -252,8 +134,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							valueBase64: true,
 						},
@@ -261,13 +142,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const valueBase64 = resolvedEntity.valueBase64}
-					{#if valueBase64 !== undefined && valueBase64 !== null}
+					{@const valueBase64 = entity.valueBase64}
+					{#if valueBase64 != null}
 						<div>
 							<dt>Value base64</dt>
 							<dd>
-								<span data-text="long-text">{String((valueBase64) ?? '')}</span>
+								<span data-text="long-text">{valueBase64}</span>
 							</dd>
 						</div>
 					{/if}
@@ -275,23 +155,15 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							valueHash: true,
-						},
-					})
-				}
+				resource={nearContractStorageEntry}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const valueHash = resolvedEntity.valueHash}
-					{#if valueHash !== undefined && valueHash !== null}
+					{@const valueHash = entity.valueHash}
+					{#if valueHash != null}
 						<div>
 							<dt>Value hash</dt>
 							<dd>
-								<TruncatedValue value={String((valueHash) ?? '')} />
+								<TruncatedValue value={valueHash} />
 							</dd>
 						</div>
 					{/if}
@@ -300,8 +172,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							prefixBase64: true,
 						},
@@ -309,13 +180,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const prefixBase64 = resolvedEntity.prefixBase64}
-					{#if prefixBase64 !== undefined && prefixBase64 !== null}
+					{@const prefixBase64 = entity.prefixBase64}
+					{#if prefixBase64 != null}
 						<div>
 							<dt>Prefix base64</dt>
 							<dd>
-								<TruncatedValue value={String((prefixBase64) ?? '')} />
+								<TruncatedValue value={prefixBase64} />
 							</dd>
 						</div>
 					{/if}
@@ -324,8 +194,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							deleted: true,
 						},
@@ -333,9 +202,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const deleted = resolvedEntity.deleted}
-					{#if deleted !== undefined && deleted !== null}
+					{@const deleted = entity.deleted}
+					{#if deleted != null}
 						<div>
 							<dt>Deleted</dt>
 							<dd>

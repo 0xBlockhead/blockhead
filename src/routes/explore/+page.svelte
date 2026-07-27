@@ -2,14 +2,13 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
 	import EthereumNetworkUpgradesView from '$/views/EthereumNetworkUpgradesView.svelte'
 	import NetworksView from '$/views/NetworksView.svelte'
 	import SpecificationRealmsView from '$/views/SpecificationRealmsView.svelte'
-	import { Source } from '$/sources/Source.ts'
-	import { resolve } from '$app/paths'
 
 
 	// Context
@@ -49,29 +48,26 @@
 		{/snippet}
 
 		{#snippet SectionNetworks()}
-					<NetworksView
-												href={resolve('/networks')}
+			<NetworksView
+				href={resolve('/networks')}
 				selection={select(EntityType._Global, { scope: '$$networks' }).$$networks}
-						id='networks'
-						open={true}
-						data-column-item='flexible'
-						data-card
-						data-scroll-container
-					/>
+				id='networks'
+				open={true}
+				data-column-item='flexible'
+				data-card
+				data-scroll-container
+			/>
 		{/snippet}
 
 		{#snippet SectionUpgrades()}
-					<EthereumNetworkUpgradesView
-				selection={select(EntityType._Global, { scope: '$$networkUpgrades' }).$$networkUpgrades({
-					sources: [Source.Constants_Internal],
-						limit: 512,
-						})}
-						id='upgrades'
-						open={true}
-						data-column-item='flexible'
-						data-card
-						data-scroll-container
-					/>
+			<EthereumNetworkUpgradesView
+				selection={select(EntityType._Global, { scope: '$$networkUpgrades' }).$$networkUpgrades}
+				id='upgrades'
+				open={true}
+				data-column-item='flexible'
+				data-card
+				data-scroll-container
+			/>
 		{/snippet}
 
 		{#snippet SectionIpfs()}
@@ -85,17 +81,15 @@
 		{/snippet}
 
 		{#snippet SectionProposals()}
-					<SpecificationRealmsView
-				selection={select(EntityType._Global, { scope: '$$specificationRealms' }).$$specificationRealms({
-					sources: [Source.Constants_Internal],
-				})}
-						id='proposal-realms'
-						open={true}
-						title='Proposals'
-						data-column-item='flexible'
-						data-card
-						data-scroll-container
-					/>
+			<SpecificationRealmsView
+				selection={select(EntityType._Global, { scope: '$$specificationRealms' }).$$specificationRealms}
+				id='proposal-realms'
+				open={true}
+				title='Proposals'
+				data-column-item='flexible'
+				data-card
+				data-scroll-container
+			/>
 		{/snippet}
 	</CollapsibleTabs>
 </Page>

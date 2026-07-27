@@ -6,7 +6,7 @@ import { match as matchEip155ChainId } from '$/params/eip155ChainId.ts'
 import { match as matchStringSegment } from '$/params/stringSegment.ts'
 import { parseEntitySelector } from '$/schema/$schema.ts'
 import { schema } from '$/schema/index.ts'
-import { LiquidityPool as LiquidityPoolSchema } from '$/schema/LiquidityPool.ts'
+import LiquidityPoolSchema from '$/schema/LiquidityPool.ts'
 import { type as arktype } from 'arktype'
 
 export const load: LayoutLoad = ({ params }) => {

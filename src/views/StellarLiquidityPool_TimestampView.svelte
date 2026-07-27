@@ -2,13 +2,8 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
 
 
 	// Context
@@ -20,35 +15,13 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.StellarLiquidityPool_Timestamp>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.StellarLiquidityPool_Timestamp>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.StellarLiquidityPool_Timestamp> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const stellarLiquidityPoolTimestamp = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {},
-	} : {
-		sources: selection.sources,
-	}))
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const titleFallback = 'stellar liquidity pool timestamp'
-	const viewDomId = $derived('stellar-liquidity-pool-timestamp-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -61,24 +34,14 @@
 
 <EntityView
 	entityType={EntityType.StellarLiquidityPool_Timestamp}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails}
-			{title || titleFallback}
-		{:else}
-			<ResourceBoundary resource={stellarLiquidityPoolTimestamp}>
-				{#snippet children(entity)}
-					{title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		stellar liquidity pool timestamp
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -97,55 +60,20 @@
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									timestampMs: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const timestampMs = resolvedEntity.timestampMs}
-							{#if timestampMs !== undefined && timestampMs !== null}
-								<Timestamp timestamp={Number(timestampMs)} />
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									source: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const source = resolvedEntity.source}
-							{#if source !== undefined && source !== null}
-								{String((source) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{pendingEntity.source}
 				</dd>
 			</div>
 
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							ledgerSequence: true,
 						},
@@ -153,13 +81,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const ledgerSequence = resolvedEntity.ledgerSequence}
-					{#if ledgerSequence !== undefined && ledgerSequence !== null}
+					{@const ledgerSequence = entity.ledgerSequence}
+					{#if ledgerSequence != null}
 						<div>
 							<dt>ledger sequence</dt>
 							<dd>
-								{String((ledgerSequence) ?? '')}
+								{String(ledgerSequence)}
 							</dd>
 						</div>
 					{/if}
@@ -169,7 +96,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							reserveA: true,
 						},
@@ -177,13 +103,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const reserveA = resolvedEntity.reserveA}
-					{#if reserveA !== undefined && reserveA !== null}
+					{@const reserveA = entity.reserveA}
+					{#if reserveA != null}
 						<div>
 							<dt>reserve a</dt>
 							<dd>
-								{String((reserveA) ?? '')}
+								{reserveA}
 							</dd>
 						</div>
 					{/if}
@@ -193,7 +118,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							reserveB: true,
 						},
@@ -201,13 +125,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const reserveB = resolvedEntity.reserveB}
-					{#if reserveB !== undefined && reserveB !== null}
+					{@const reserveB = entity.reserveB}
+					{#if reserveB != null}
 						<div>
 							<dt>reserve b</dt>
 							<dd>
-								{String((reserveB) ?? '')}
+								{reserveB}
 							</dd>
 						</div>
 					{/if}
@@ -217,7 +140,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							totalShares: true,
 						},
@@ -225,13 +147,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const totalShares = resolvedEntity.totalShares}
-					{#if totalShares !== undefined && totalShares !== null}
+					{@const totalShares = entity.totalShares}
+					{#if totalShares != null}
 						<div>
 							<dt>total shares</dt>
 							<dd>
-								{String((totalShares) ?? '')}
+								{totalShares}
 							</dd>
 						</div>
 					{/if}
@@ -241,7 +162,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							accounts: true,
 						},
@@ -249,13 +169,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const accounts = resolvedEntity.accounts}
-					{#if accounts !== undefined && accounts !== null}
+					{@const accounts = entity.accounts}
+					{#if accounts != null}
 						<div>
 							<dt>accounts</dt>
 							<dd>
-								<TruncatedValue value={String((accounts) ?? '')} />
+								<TruncatedValue value={String(accounts)} />
 							</dd>
 						</div>
 					{/if}

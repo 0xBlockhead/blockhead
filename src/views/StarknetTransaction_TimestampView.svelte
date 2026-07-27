@@ -2,13 +2,9 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -20,40 +16,27 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.StarknetTransaction_Timestamp>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.StarknetTransaction_Timestamp>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.StarknetTransaction_Timestamp> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const starknetTransactionTimestamp = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {
-			executionStatus: true,
-		},
-	} : {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const viewSelection = $derived(selection({
+		sources: selection.sources ?? [
+			Source.Juno_JsonRpc,
+			Source.Pathfinder_JsonRpc,
+			Source.Starknet_JsonRpc,
+			Source.Starkscan_Rest,
+			Source.Voyager_Rest,
+		],
+	}))
+	const starknetTransactionTimestamp = $derived(viewSelection({
 		fields: {
 			executionStatus: true,
 		},
 	}))
 	const titleFallback = 'starknet transaction timestamp'
-	const viewDomId = $derived('starknet-transaction-timestamp-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -66,47 +49,32 @@
 
 <EntityView
 	entityType={EntityType.StarknetTransaction_Timestamp}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={starknetTransactionTimestamp}>
-			{#snippet children(entity)}
-				<StarknetTransactionView
-					selection={select(EntityType.StarknetTransaction, selection.entitySelector.$transaction)}
-					href=""
-					layout={EntityLayout.Title}
-					open={false}
-				/>
-			{/snippet}
-		</ResourceBoundary>
+		<StarknetTransactionView
+			selection={select(EntityType.StarknetTransaction, selection.entitySelector.$transaction)}
+			href=""
+			layout={EntityLayout.Title}
+			open={false}
+		/>
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={starknetTransactionTimestamp}>
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const timestampMs0 = resolvedEntity.timestampMs}
-				{#if timestampMs0 !== undefined && timestampMs0 !== null}
-					<Timestamp timestamp={Number(timestampMs0)} />
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
 	{/snippet}
 
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={starknetTransactionTimestamp}>
 			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const executionStatus0 = resolvedEntity.executionStatus}
-				{#if executionStatus0 !== undefined && executionStatus0 !== null}
+				{@const executionStatus0 = entity.executionStatus}
+				{#if executionStatus0 != null}
 					<span data-text="muted">
-						{String((executionStatus0) ?? '')}
+						{executionStatus0}
 					</span>
 				{/if}
 			{/snippet}
@@ -129,55 +97,20 @@
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									timestampMs: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const timestampMs = resolvedEntity.timestampMs}
-							{#if timestampMs !== undefined && timestampMs !== null}
-								<Timestamp timestamp={Number(timestampMs)} />
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									source: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const source = resolvedEntity.source}
-							{#if source !== undefined && source !== null}
-								{String((source) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{pendingEntity.source}
 				</dd>
 			</div>
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							blockNumber: true,
 						},
@@ -185,9 +118,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const blockNumber = resolvedEntity.blockNumber}
-					{#if blockNumber !== undefined && blockNumber !== null}
+					{@const blockNumber = entity.blockNumber}
+					{#if blockNumber != null}
 						<div>
 							<dt>Block number</dt>
 							<dd>
@@ -202,8 +134,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							finalityStatus: true,
 						},
@@ -211,13 +142,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const finalityStatus = resolvedEntity.finalityStatus}
-					{#if finalityStatus !== undefined && finalityStatus !== null}
+					{@const finalityStatus = entity.finalityStatus}
+					{#if finalityStatus != null}
 						<div>
 							<dt>finality status</dt>
 							<dd>
-								{String((finalityStatus) ?? '')}
+								{finalityStatus}
 							</dd>
 						</div>
 					{/if}
@@ -227,23 +157,15 @@
 
 		<dl data-column-item="center">
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							executionStatus: true,
-						},
-					})
-				}
+				resource={starknetTransactionTimestamp}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const executionStatus = resolvedEntity.executionStatus}
-					{#if executionStatus !== undefined && executionStatus !== null}
+					{@const executionStatus = entity.executionStatus}
+					{#if executionStatus != null}
 						<div>
 							<dt>execution status</dt>
 							<dd>
-								{String((executionStatus) ?? '')}
+								{executionStatus}
 							</dd>
 						</div>
 					{/if}
@@ -252,8 +174,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							actualFee: true,
 						},
@@ -261,9 +182,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const actualFee = resolvedEntity.actualFee}
-					{#if actualFee !== undefined && actualFee !== null}
+					{@const actualFee = entity.actualFee}
+					{#if actualFee != null}
 						<div>
 							<dt>actual fee</dt>
 							<dd>
@@ -278,8 +198,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							revertReason: true,
 						},
@@ -287,13 +206,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const revertReason = resolvedEntity.revertReason}
-					{#if revertReason !== undefined && revertReason !== null}
+					{@const revertReason = entity.revertReason}
+					{#if revertReason != null}
 						<div>
 							<dt>revert reason</dt>
 							<dd>
-								{String((revertReason) ?? '')}
+								{revertReason}
 							</dd>
 						</div>
 					{/if}
@@ -305,8 +223,7 @@
 				<dd>
 					<ResourceBoundary
 						resource={
-							selection({
-								sources: selection.sources,
+							viewSelection({
 								fields: {
 									messagesSent: true,
 								},
@@ -314,11 +231,7 @@
 						}
 					>
 						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const messagesSent = resolvedEntity.messagesSent}
-							{#if messagesSent !== undefined && messagesSent !== null}
-								{messagesSent.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')}
-							{/if}
+							{entity.messagesSent.values.join(', ')}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -326,8 +239,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							eventsCount: true,
 						},
@@ -335,9 +247,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const eventsCount = resolvedEntity.eventsCount}
-					{#if eventsCount !== undefined && eventsCount !== null}
+					{@const eventsCount = entity.eventsCount}
+					{#if eventsCount != null}
 						<div>
 							<dt>events count</dt>
 							<dd>

@@ -8,55 +8,128 @@
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		data,
-		params,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(data.entityType === EntityType.PolkadotAccount && data.selectorName === 'NetworkAccountId' ? select(EntityType.PolkadotAccount, data.selector, {
-		sources: [
-			Source.SubstrateSidecar_Rest,
-		],
-	}) : data.entityType === EntityType.CosmosAccount && data.selectorName === 'NetworkAddress' ? select(EntityType.CosmosAccount, data.selector) : data.entityType === EntityType.HederaAccount && data.selectorName === 'NetworkAccountId' ? select(EntityType.HederaAccount, data.selector, {
-		sources: [
-			Source.HederaMirrorNode_Rest,
-		],
-	}) : data.entityType === EntityType.CardanoAddress && data.selectorName === 'NetworkAddress' ? select(EntityType.CardanoAddress, data.selector, {
-		sources: [
-			Source.Blockfrost_Rest,
-		],
-		fields: {
-			addressKind: true,
-			$stakeCredential: true,
+	const pageSelection = $derived(
+		(
+			data.entityType === EntityType.PolkadotAccount && data.selectorName === 'NetworkAccountId' ?
+				select(EntityType.PolkadotAccount, data.selector, {
+					sources: [
+						Source.SubstrateSidecar_Rest,
+					],
+				})
+			:
+			data.entityType === EntityType.CosmosAccount && data.selectorName === 'NetworkAddress' ?
+				select(EntityType.CosmosAccount, data.selector)
+			:
+			data.entityType === EntityType.HederaAccount && data.selectorName === 'NetworkAccountId' ?
+				select(EntityType.HederaAccount, data.selector, {
+					sources: [
+						Source.HederaMirrorNode_Rest,
+					],
+				})
+			:
+			data.entityType === EntityType.CardanoAddress && data.selectorName === 'NetworkAddress' ?
+				select(EntityType.CardanoAddress, data.selector, {
+					sources: [
+						Source.Blockfrost_Rest,
+					],
+					fields: {
+						addressKind: true,
+						$stakeCredential: true,
+					},
+				})
+			:
+			data.entityType === EntityType.EvmNetworkAccount && data.selectorName === 'EvmNetworkEvmAccount' ?
+				select(EntityType.EvmNetworkAccount, data.selector)
+			:
+			data.entityType === EntityType.SolanaAccount && data.selectorName === 'NetworkPubkey' ?
+				select(EntityType.SolanaAccount, data.selector, {
+					sources: [
+						Source.Solana_JsonRpc,
+					],
+				})
+			:
+			data.entityType === EntityType.TonAccount && data.selectorName === 'NetworkAddress' ?
+				select(EntityType.TonAccount, data.selector, {
+					fields: {
+						workchain: true,
+						addressHash: true,
+					},
+				})
+			:
+				select(EntityType.XrplAccount, data.selector, {
+					sources: [
+						Source.Xrpl_Rippled,
+					],
+				})
+		)
+	)
+	const pageTitle = $derived(
+		(
+			data.entityType === EntityType.PolkadotAccount && data.selectorName === 'NetworkAccountId' ?
+				(data.selector.accountId || 'Polkadot account')
+			:
+			data.entityType === EntityType.CosmosAccount && data.selectorName === 'NetworkAddress' ?
+				(data.selector.address || 'Cosmos account')
+			:
+			data.entityType === EntityType.HederaAccount && data.selectorName === 'NetworkAccountId' ?
+				(data.selector.accountId || 'hedera account')
+			:
+			data.entityType === EntityType.CardanoAddress && data.selectorName === 'NetworkAddress' ?
+				(data.selector.address || 'Cardano address')
+			:
+			data.entityType === EntityType.EvmNetworkAccount && data.selectorName === 'EvmNetworkEvmAccount' ?
+				('EVM network account')
+			:
+			data.entityType === EntityType.SolanaAccount && data.selectorName === 'NetworkPubkey' ?
+				(data.selector.pubkey || 'solana account')
+			:
+			data.entityType === EntityType.TonAccount && data.selectorName === 'NetworkAddress' ?
+				('TON account')
+			:
+				(data.selector.account || 'XRPL account')
+		)
+	)
+	const entityViewByType = {
+		[EntityType.PolkadotAccount]: {
+			Component: PolkadotAccountView,
+			label: 'Polkadot account',
 		},
-	}) : data.entityType === EntityType.EvmNetworkAccount && data.selectorName === 'EvmNetworkEvmAccount' ? select(EntityType.EvmNetworkAccount, data.selector) : data.entityType === EntityType.SolanaAccount && data.selectorName === 'NetworkPubkey' ? select(EntityType.SolanaAccount, data.selector, {
-		sources: [
-			Source.Solana_JsonRpc,
-		],
-	}) : data.entityType === EntityType.TonAccount && data.selectorName === 'NetworkAddress' ? select(EntityType.TonAccount, data.selector, {
-		fields: {
-			workchain: true,
-			addressHash: true,
+		[EntityType.CosmosAccount]: {
+			Component: CosmosAccountView,
+			label: 'Cosmos account',
 		},
-	}) : select(EntityType.XrplAccount, data.selector, {
-		sources: [
-			Source.Xrpl_Rippled,
-		],
-	}))
-	const entityViewComponentByType = {
-		[EntityType.PolkadotAccount]: PolkadotAccountView,
-		[EntityType.CosmosAccount]: CosmosAccountView,
-		[EntityType.HederaAccount]: HederaAccountView,
-		[EntityType.CardanoAddress]: CardanoAddressView,
-		[EntityType.EvmNetworkAccount]: EvmNetworkAccountView,
-		[EntityType.SolanaAccount]: SolanaAccountView,
-		[EntityType.TonAccount]: TonAccountView,
-		[EntityType.XrplAccount]: XrplAccountView,
+		[EntityType.HederaAccount]: {
+			Component: HederaAccountView,
+			label: 'hedera account',
+		},
+		[EntityType.CardanoAddress]: {
+			Component: CardanoAddressView,
+			label: 'Cardano address',
+		},
+		[EntityType.EvmNetworkAccount]: {
+			Component: EvmNetworkAccountView,
+			label: 'EVM network account',
+		},
+		[EntityType.SolanaAccount]: {
+			Component: SolanaAccountView,
+			label: 'solana account',
+		},
+		[EntityType.TonAccount]: {
+			Component: TonAccountView,
+			label: 'TON account',
+		},
+		[EntityType.XrplAccount]: {
+			Component: XrplAccountView,
+			label: 'XRPL account',
+		},
 	}
 
 	// Components
@@ -73,20 +146,14 @@
 
 
 <svelte:head>
-	<title>{data.entityType === EntityType.PolkadotAccount && data.selectorName === 'NetworkAccountId' ? (pageSelection.entity == null ? [String((data.selector.accountId) ?? '')].filter(Boolean).join(' ') || 'Polkadot account' : [String((({ ...data.selector, ...pageSelection.entity }).accountId) ?? '')].filter(Boolean).join(' ') || 'Polkadot account') : data.entityType === EntityType.CosmosAccount && data.selectorName === 'NetworkAddress' ? (pageSelection.entity == null ? [String((data.selector.address) ?? '')].filter(Boolean).join(' ') || 'Cosmos account' : [String((({ ...data.selector, ...pageSelection.entity }).address) ?? '')].filter(Boolean).join(' ') || 'Cosmos account') : data.entityType === EntityType.HederaAccount && data.selectorName === 'NetworkAccountId' ? (pageSelection.entity == null ? [String((data.selector.accountId) ?? '')].filter(Boolean).join(' ') || 'hedera account' : [String((({ ...data.selector, ...pageSelection.entity }).accountId) ?? '')].filter(Boolean).join(' ') || 'hedera account') : data.entityType === EntityType.CardanoAddress && data.selectorName === 'NetworkAddress' ? (pageSelection.entity == null ? [String((data.selector.address) ?? '')].filter(Boolean).join(' ') || 'Cardano address' : [String((({ ...data.selector, ...pageSelection.entity }).address) ?? '')].filter(Boolean).join(' ') || 'Cardano address') : data.entityType === EntityType.EvmNetworkAccount && data.selectorName === 'EvmNetworkEvmAccount' ? (pageSelection.entity == null ? 'EVM network account' : 'EVM network account') : data.entityType === EntityType.SolanaAccount && data.selectorName === 'NetworkPubkey' ? (pageSelection.entity == null ? [String((data.selector.pubkey) ?? '')].filter(Boolean).join(' ') || 'solana account' : [String((({ ...data.selector, ...pageSelection.entity }).pubkey) ?? '')].filter(Boolean).join(' ') || 'solana account') : data.entityType === EntityType.TonAccount && data.selectorName === 'NetworkAddress' ? (pageSelection.entity == null ? 'TON account' : 'TON account') : (pageSelection.entity == null ? [String((data.selector.account) ?? '')].filter(Boolean).join(' ') || 'XRPL account' : [String((({ ...data.selector, ...pageSelection.entity }).account) ?? '')].filter(Boolean).join(' ') || 'XRPL account')} • {data.entityType === EntityType.PolkadotAccount && data.selectorName === 'NetworkAccountId' ? 'Polkadot account' : data.entityType === EntityType.CosmosAccount && data.selectorName === 'NetworkAddress' ? 'Cosmos account' : data.entityType === EntityType.HederaAccount && data.selectorName === 'NetworkAccountId' ? 'hedera account' : data.entityType === EntityType.CardanoAddress && data.selectorName === 'NetworkAddress' ? 'Cardano address' : data.entityType === EntityType.EvmNetworkAccount && data.selectorName === 'EvmNetworkEvmAccount' ? 'EVM network account' : data.entityType === EntityType.SolanaAccount && data.selectorName === 'NetworkPubkey' ? 'solana account' : data.entityType === EntityType.TonAccount && data.selectorName === 'NetworkAddress' ? 'TON account' : 'XRPL account'} • Blockhead</title>
+	<title>{pageTitle} • {entityViewByType[data.entityType].label} • Blockhead</title>
 </svelte:head>
 
 
 <Page>
-	{@const EntityView = entityViewComponentByType[data.entityType]}
+	{@const EntityView = entityViewByType[data.entityType].Component}
 
 	<EntityView
-		href={
-			resolve('/network/[network=networkCaip2OrNetworkSlug]/account/[accountId=polkadotAccountIdOrStringSegmentOrEvmAddressOrSolanaPubkey]', {
-				network: params.network,
-				accountId: params.accountId,
-			})
-		}
 		selection={pageSelection}
 	/>
 </Page>

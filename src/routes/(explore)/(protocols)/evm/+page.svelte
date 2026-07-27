@@ -8,7 +8,6 @@
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
@@ -38,13 +37,12 @@
 
 
 <svelte:head>
-	<title>{(data.title ?? (pageSelection.entity == null ? 'EVM protocol' : [String((({ ...data.selector, ...pageSelection.entity }).protocolName) ?? '')].filter(Boolean).join(' ') || 'EVM protocol'))} • EVM protocol • Blockhead</title>
+	<title>{(data.title ?? (pageSelection.entity == null ? 'EVM protocol' : pageSelection.entity.protocolName || 'EVM protocol'))} • EVM protocol • Blockhead</title>
 </svelte:head>
 
 
 <Page>
 	<EvmProtocolView
-		href={resolve('/evm')}
 		selection={pageSelection}
 	/>
 </Page>

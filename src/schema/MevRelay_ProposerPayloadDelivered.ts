@@ -1,15 +1,12 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { entity, facet } from '$/schema/$schema.ts'
+import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 import { type } from 'arktype'
 
-export enum MevRelay_ProposerPayloadDeliveredSelector {
-	EvmNetworkRelayHostSlotBlockHash = 'EvmNetworkRelayHostSlotBlockHash',
-}
-export const MevRelay_ProposerPayloadDelivered = entity({
+export default entity({
 	entityType: EntityType.MevRelay_ProposerPayloadDelivered,
 	labels: {
 		singular: 'MEV relay proposer payload delivered',
@@ -31,14 +28,14 @@ export const MevRelay_ProposerPayloadDelivered = entity({
 	slot: {
 		label: 'Slot',
 		type: EntityFieldType.Primitive,
-		primitiveType: (type('number.integer >= 0')),
+		primitiveType: type('number.integer >= 0'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	blockHash: {
 		label: 'Block hash',
 		description: 'The hash that identifies the block in its network.',
 		type: EntityFieldType.Primitive,
-		primitiveType: (ZeroExHex),
+		primitiveType: ZeroExHex,
 		cardinality: EntityFieldCardinality.One,
 	},
 	builderPubkey: {

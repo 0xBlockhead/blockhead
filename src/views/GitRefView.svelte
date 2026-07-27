@@ -2,13 +2,8 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
 	import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 
 
@@ -21,42 +16,19 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.GitRef>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.GitRef>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.GitRef> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const gitRef = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {
-			refKind: true,
-			targetObjectId: true,
-		},
-	} : {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const gitRef = $derived(selection({
 		fields: {
 			refKind: true,
 			targetObjectId: true,
 		},
 	}))
-	const titleFallback = $derived([String((pendingEntity.refName) ?? '')].filter(Boolean).join(' ') || 'Git ref')
-	const viewDomId = $derived('git-ref-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const titleFallback = $derived((pendingEntity.refName ?? '') || 'Git ref')
 
 
 	// Components
@@ -69,61 +41,35 @@
 
 <EntityView
 	entityType={EntityType.GitRef}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'refKind') && Object.hasOwn(prefetched, 'targetObjectId')}
-			{[String((pendingEntity.refName) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-		{:else}
-			<ResourceBoundary resource={gitRef}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.refName) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		{(pendingEntity.refName ?? '') || 'Git ref'}
 	{/snippet}
 
 	{#snippet Value()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'refKind') && Object.hasOwn(prefetched, 'targetObjectId')}
-			{[String((pendingEntity.refKind) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.refName) ?? '')].filter(Boolean).join(' ') || titleFallback}
-		{:else}
-			<ResourceBoundary resource={gitRef}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.refKind) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.refName) ?? '')].filter(Boolean).join(' ') || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={gitRef}>
+			{#snippet children(entity)}
+				{entity.refKind || pendingEntity.refName || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'refKind') && Object.hasOwn(prefetched, 'targetObjectId')}
-			{@const targetObjectId0 = pendingEntity.targetObjectId}
-			{#if targetObjectId0 !== undefined && targetObjectId0 !== null}
-				<span data-text="muted">
-					<TruncatedValue value={String((targetObjectId0) ?? '')} />
-				</span>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={gitRef}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const targetObjectId0 = resolvedEntity.targetObjectId}
-					{#if targetObjectId0 !== undefined && targetObjectId0 !== null}
-						<span data-text="muted">
-							<TruncatedValue value={String((targetObjectId0) ?? '')} />
-						</span>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={gitRef}>
+			{#snippet children(entity)}
+				{@const targetObjectId0 = entity.targetObjectId}
+				{#if targetObjectId0 != null}
+					<span data-text="muted">
+						<TruncatedValue value={String(targetObjectId0)} />
+					</span>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -142,24 +88,7 @@
 			<div>
 				<dt>ref name</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									refName: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const refName = resolvedEntity.refName}
-							{#if refName !== undefined && refName !== null}
-								{String((refName) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{pendingEntity.refName}
 				</dd>
 			</div>
 
@@ -167,44 +96,25 @@
 				<dt>ref kind</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									refKind: true,
-								},
-							})
-						}
+						resource={gitRef}
 					>
 						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const refKind = resolvedEntity.refKind}
-							{#if refKind !== undefined && refKind !== null}
-								{String((refKind) ?? '')}
-							{/if}
+							{entity.refKind}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
 			</div>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							targetObjectId: true,
-						},
-					})
-				}
+				resource={gitRef}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const targetObjectId = resolvedEntity.targetObjectId}
-					{#if targetObjectId !== undefined && targetObjectId !== null}
+					{@const targetObjectId = entity.targetObjectId}
+					{#if targetObjectId != null}
 						<div>
 							<dt>target object ID</dt>
 							<dd>
-								<TruncatedValue value={String((targetObjectId) ?? '')} />
+								<TruncatedValue value={String(targetObjectId)} />
 							</dd>
 						</div>
 					{/if}
@@ -214,7 +124,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							symbolicTarget: true,
 						},
@@ -222,13 +131,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const symbolicTarget = resolvedEntity.symbolicTarget}
-					{#if symbolicTarget !== undefined && symbolicTarget !== null}
+					{@const symbolicTarget = entity.symbolicTarget}
+					{#if symbolicTarget != null}
 						<div>
 							<dt>symbolic target</dt>
 							<dd>
-								{String((symbolicTarget) ?? '')}
+								{symbolicTarget}
 							</dd>
 						</div>
 					{/if}
@@ -244,12 +152,12 @@
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
-				<GitRefObservation_TimestampsView
-					selection={gitRefGitRefObservationTimestampsViewObservationsResource}
-					countResource={gitRefGitRefObservationTimestampsViewObservationsResource.count}
-					title='observations'
-					id='GitRefObservation_TimestampsView-observations'
-				/>
+					<GitRefObservation_TimestampsView
+						selection={gitRefGitRefObservationTimestampsViewObservationsResource}
+						countResource={gitRefGitRefObservationTimestampsViewObservationsResource.count}
+						title='observations'
+						id='observations'
+					/>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>

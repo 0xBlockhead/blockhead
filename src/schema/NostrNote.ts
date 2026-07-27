@@ -1,15 +1,12 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { entity, facet } from '$/schema/$schema.ts'
+import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
-export enum NostrNoteSelector {
-	CanonicalEventId = 'CanonicalEventId',
-}
-export const NostrNote = entity({
+export default entity({
 	entityType: EntityType.NostrNote,
 	labels: {
 		singular: 'Nostr note',
@@ -59,6 +56,7 @@ export const NostrNote = entity({
 		primitiveType: type('boolean'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
+			Source.Constants_Internal,
 			Source.NostrBand_Rest,
 			Source.Primal_Rest,
 		],
@@ -69,6 +67,7 @@ export const NostrNote = entity({
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
+			Source.Constants_Internal,
 			Source.NostrBand_Rest,
 			Source.Primal_Rest,
 		],
@@ -106,6 +105,7 @@ export const NostrNote = entity({
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
+			Source.Constants_Internal,
 			Source.NostrBand_Rest,
 		],
 	},
@@ -115,6 +115,7 @@ export const NostrNote = entity({
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
+			Source.Constants_Internal,
 			Source.NostrBand_Rest,
 		],
 	},
@@ -124,6 +125,7 @@ export const NostrNote = entity({
 		entityType: EntityType.NostrNote,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
+			Source.Constants_Internal,
 			Source.NostrBand_Rest,
 			Source.Primal_Rest,
 		],
@@ -134,6 +136,7 @@ export const NostrNote = entity({
 		entityType: EntityType.NostrNote,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
+			Source.Constants_Internal,
 			Source.NostrBand_Rest,
 			Source.Primal_Rest,
 		],

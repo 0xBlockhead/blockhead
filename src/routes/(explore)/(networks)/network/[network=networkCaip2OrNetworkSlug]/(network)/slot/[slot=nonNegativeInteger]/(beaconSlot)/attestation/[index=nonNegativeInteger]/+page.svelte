@@ -7,7 +7,6 @@
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
@@ -36,35 +35,12 @@
 
 
 <svelte:head>
-	<title>{(data.title ?? (pageSelection.entity == null ? (String(({
-		$network: data.selector,
-		slot: Number(params.slot),
-		indexInSlot: Number(params.index),
-	}.indexInSlot) ?? '') ? 'Attestation #' + String(({
-		$network: data.selector,
-		slot: Number(params.slot),
-		indexInSlot: Number(params.index),
-	}.indexInSlot) ?? '') : '') || 'beacon attestation' : (String((({ ...{
-		$network: data.selector,
-		slot: Number(params.slot),
-		indexInSlot: Number(params.index),
-	}, ...pageSelection.entity }).indexInSlot) ?? '') ? 'Attestation #' + String((({ ...{
-		$network: data.selector,
-		slot: Number(params.slot),
-		indexInSlot: Number(params.index),
-	}, ...pageSelection.entity }).indexInSlot) ?? '') : '') || 'beacon attestation'))} • beacon attestation • Blockhead</title>
+	<title>{(data.title ?? ((String(pageSelection.entitySelector.indexInSlot ?? '') ? 'Attestation #' + String(pageSelection.entitySelector.indexInSlot ?? '') : '') || 'beacon attestation'))} • beacon attestation • Blockhead</title>
 </svelte:head>
 
 
 <Page>
 	<BeaconAttestationView
-		href={
-			resolve('/network/[network=networkCaip2OrNetworkSlug]/slot/[slot=nonNegativeInteger]/attestation/[index=nonNegativeInteger]', {
-				network: params.network,
-				slot: params.slot,
-				index: params.index,
-			})
-		}
 		selection={pageSelection}
 	/>
 </Page>

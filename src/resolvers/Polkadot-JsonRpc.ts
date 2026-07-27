@@ -7,49 +7,16 @@ import {
 	NetworkExecutionModel,
 	NetworkLedgerModel,
 } from '$/constants/Network.ts'
-import { TransportType } from '$/constants/TransportType.ts'
 import {
 	EntityMetaKey,
 } from '$/schema/$schema.ts'
 import type { EntitySelector } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { schema } from '$/schema/index.ts'
-import { sourceProviderDefinitions } from '$/sources/$sourceProviders.ts'
 import { Source } from '$/sources/Source.ts'
-import {
-	SourceEndpointKind,
-	SourceTargetKind,
-} from '$/sources/SourceBinding.ts'
 import type { PolkadotRpcBlock } from '$/sources/Polkadot/JsonRpc/types.ts'
-import { NetworkSelector } from '$/schema/Network.ts'
-import { Network_TimestampSelector } from '$/schema/Network_Timestamp.ts'
-import { PolkadotBlockSelector } from '$/schema/PolkadotBlock.ts'
-import { PolkadotExtrinsicSelector } from '$/schema/PolkadotExtrinsic.ts'
 
 type NetworkId = EntitySelector<typeof schema, EntityType.Network>
-
-const polkadotRpcBindings = sourceProviderDefinitions
-	.flatMap((provider) => provider.bindings)
-	.filter((binding) => (
-		binding.source === Source.Polkadot_JsonRpc
-		&& binding.target.kind === SourceTargetKind.Caip2Network
-		&& binding.target.key === `${networkBySlug.polkadot.caip2.namespace}:${networkBySlug.polkadot.caip2.reference}`
-	))
-
-if (polkadotRpcBindings.length !== 1)
-	throw new Error('Polkadot_JsonRpc: canonical Polkadot mainnet source binding is missing or ambiguous')
-
-const polkadotRpcBinding = polkadotRpcBindings[0]
-const polkadotRpcEndpoints = polkadotRpcBinding.endpoints.flatMap((endpoint) => (
-	endpoint.endpointKind === SourceEndpointKind.HttpUrl ?
-		[{
-			url: endpoint.locator,
-			transportType: TransportType.Http,
-			providerName: 'Parity',
-		}]
-	:
-		[]
-))
 
 const assertPolkadotMainnet = (network: NetworkId) => {
 	if (
@@ -93,10 +60,11 @@ export default {
 		defineResolver(Source.Polkadot_JsonRpc, {
 			entityType: EntityType.Network,
 			resolve: {
-				[NetworkSelector.Slug]: {
+				Slug: {
 					resolve: async (network) => {
 						assertPolkadotMainnet(network)
-						return polkadotRpcEndpoints
+						const { getRpcEndpoints } = await import('$/sources/Polkadot/JsonRpc/queries.ts')
+						return getRpcEndpoints()
 					},
 				}
 			},
@@ -109,7 +77,7 @@ export default {
 		defineResolver(Source.Polkadot_JsonRpc, {
 			entityType: EntityType.Network_Timestamp,
 			resolve: {
-				[Network_TimestampSelector.NetworkTimestampMsSource]: {
+				NetworkTimestampMsSource: {
 					resolve: async ({
 						$network,
 						timestampMs,
@@ -125,7 +93,7 @@ export default {
 							getRuntimeVersion,
 							getSystemHealth,
 						} = await import('$/sources/Polkadot/JsonRpc/queries.ts')
-						const finalizedBlockHash = await getFinalizedHead({ binding: polkadotRpcBinding })
+						const finalizedBlockHash = await getFinalizedHead()
 						const [
 							header,
 						block,
@@ -133,15 +101,13 @@ export default {
 						systemHealth,
 						] = await Promise.all([
 							getHeader({
-								binding: polkadotRpcBinding,
 								blockHash: finalizedBlockHash,
 							}),
 							getBlock({
-								binding: polkadotRpcBinding,
 								blockHash: finalizedBlockHash,
 							}),
-							getRuntimeVersion({ binding: polkadotRpcBinding }),
-							getSystemHealth({ binding: polkadotRpcBinding }),
+							getRuntimeVersion(),
+							getSystemHealth(),
 						])
 						return {
 							$network: {
@@ -188,7 +154,7 @@ export default {
 		defineResolver(Source.Polkadot_JsonRpc, {
 			entityType: EntityType.PolkadotBlock,
 			resolve: {
-				[PolkadotBlockSelector.NetworkBlockNumberHash]: {
+				NetworkBlockNumberHash: {
 					resolve: async ({ $network, blockNumber, hash: hashSelector }) => {
 						assertPolkadotMainnet($network)
 						const {
@@ -197,7 +163,6 @@ export default {
 						} = await import('$/sources/Polkadot/JsonRpc/queries.ts')
 						const hash = hashSelector
 						const block = await getBlock({
-							binding: polkadotRpcBinding,
 							blockHash: hash,
 						})
 						return {
@@ -233,7 +198,7 @@ export default {
 		defineResolver(Source.Polkadot_JsonRpc, {
 			entityType: EntityType.Network,
 			resolve: {
-				[NetworkSelector.Slug]: {
+				Slug: {
 					resolve: async (network) => {
 						assertPolkadotMainnet(network)
 						return [
@@ -255,7 +220,7 @@ export default {
 		defineResolver(Source.Polkadot_JsonRpc, {
 			entityType: EntityType.Network,
 			resolve: {
-				[NetworkSelector.Slug]: {
+				Slug: {
 					resolve: async (network, context) => {
 						assertPolkadotMainnet(network)
 						const {
@@ -263,10 +228,8 @@ export default {
 							getFinalizedHead,
 							getHeader,
 						} = await import('$/sources/Polkadot/JsonRpc/queries.ts')
-						const binding = polkadotRpcBinding
-						const finalizedBlockHash = await getFinalizedHead({ binding })
+						const finalizedBlockHash = await getFinalizedHead()
 						const finalizedBlockNumber = blockNumberFromHeader(await getHeader({
-							binding,
 							blockHash: finalizedBlockHash,
 						}))
 						return Promise.all(Array.from({
@@ -283,7 +246,6 @@ export default {
 										finalizedBlockHash
 									:
 										await getBlockHash({
-											binding,
 											blockNumber: finalizedBlockNumber - BigInt(blockOffset),
 										})
 								),
@@ -301,7 +263,7 @@ export default {
 		defineResolver(Source.Polkadot_JsonRpc, {
 			entityType: EntityType.PolkadotBlock,
 			resolve: {
-				[PolkadotBlockSelector.NetworkBlockNumberHash]: {
+				NetworkBlockNumberHash: {
 					resolve: async ({ $network, blockNumber, hash }) => {
 						assertPolkadotMainnet($network)
 						if (blockNumber === 0n) throw new Error('Polkadot_JsonRpc: genesis block has no parent')
@@ -310,7 +272,6 @@ export default {
 							getBlockHash,
 						} = await import('$/sources/Polkadot/JsonRpc/queries.ts')
 						const block = await getBlock({
-							binding: polkadotRpcBinding,
 							blockHash: hash,
 						})
 						return {
@@ -330,7 +291,7 @@ export default {
 		defineResolver(Source.Polkadot_JsonRpc, {
 			entityType: EntityType.PolkadotBlock,
 			resolve: {
-				[PolkadotBlockSelector.NetworkBlockNumberHash]: {
+				NetworkBlockNumberHash: {
 					resolve: async ({ $network, hash }) => {
 						assertPolkadotMainnet($network)
 						const {
@@ -340,7 +301,6 @@ export default {
 						return polkadotExtrinsicRows(
 							$network,
 							await getBlock({
-								binding: polkadotRpcBinding,
 								blockHash: hash,
 							}),
 							hash

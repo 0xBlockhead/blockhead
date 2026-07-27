@@ -3,12 +3,11 @@
 <script lang="ts">
 	// Types/constants
 	import type { PageProps } from './$types.ts'
+	import { resolve } from '$app/paths'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
@@ -16,8 +15,6 @@
 	let {
 		params,
 	}: PageProps = $props()
-
-
 	// Components
 	import Page from '$/components/Page.svelte'
 	import AtprotoPostsView from '$/views/AtprotoPostsView.svelte'
@@ -30,33 +27,22 @@
 
 
 <Page>
+	{@const collectionSelection = select(EntityType.AtprotoPost, {
+		uri: decodeURIComponent(params.uri),
+	}).$$thread}
+
 	<AtprotoPostsView
 		href={
-			resolve('/atproto/post/[...uri=stringSegment]/thread', {
-				uri: params.uri,
-			})
+			resolve(
+				'/(social)/(atproto)/atproto/(globalAtprotoNetwork)/post/[...uri=stringSegment]/(atprotoPost)/thread',
+				{
+					uri: String(params.uri),
+				}
+			)
 		}
 		title='Thread posts'
-		selection={
-			select(EntityType.AtprotoPost, {
-				uri: decodeURIComponent(params.uri),
-			})
-				.$$thread({
-					sources: [
-						Source.Atproto_Xrpc,
-					],
-				})
-		}
-		countResource={
-			select(EntityType.AtprotoPost, {
-				uri: decodeURIComponent(params.uri),
-			})
-				.$$thread({
-					sources: [
-						Source.Atproto_Xrpc,
-					],
-				}).count
-		}
+		selection={collectionSelection}
+		countResource={collectionSelection.count}
 		id='thread'
 		data-column-item="flexible"
 		data-card

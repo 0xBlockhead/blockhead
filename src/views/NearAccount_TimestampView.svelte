@@ -2,13 +2,9 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -20,42 +16,24 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.NearAccount_Timestamp>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.NearAccount_Timestamp>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.NearAccount_Timestamp> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const nearAccountTimestamp = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {
-			amountYoctoNear: true,
-			blockHeight: true,
-		},
-	} : {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const viewSelection = $derived(selection({
+		sources: selection.sources ?? [
+			Source.NearRpc_JsonRpc,
+		],
+	}))
+	const nearAccountTimestamp = $derived(viewSelection({
 		fields: {
 			amountYoctoNear: true,
 			blockHeight: true,
 		},
 	}))
-	const titleFallback = $derived([String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || 'near account timestamp')
-	const viewDomId = $derived('near-account-timestamp-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const titleFallback = $derived(String(pendingEntity.timestampMs ?? '') || 'near account timestamp')
 
 
 	// Components
@@ -69,81 +47,42 @@
 
 <EntityView
 	entityType={EntityType.NearAccount_Timestamp}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'amountYoctoNear') && Object.hasOwn(prefetched, 'blockHeight')}
-			{@const timestampMs0 = pendingEntity.timestampMs}
-			{#if timestampMs0 !== undefined && timestampMs0 !== null}
-				<Timestamp timestamp={Number(timestampMs0)} />
-			{/if}
-		{:else}
-			<ResourceBoundary resource={nearAccountTimestamp}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const timestampMs0 = resolvedEntity.timestampMs}
-					{#if timestampMs0 !== undefined && timestampMs0 !== null}
-						<Timestamp timestamp={Number(timestampMs0)} />
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
 	{/snippet}
 
 	{#snippet Value()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'amountYoctoNear') && Object.hasOwn(prefetched, 'blockHeight')}
-			{@const amountYoctoNear0 = pendingEntity.amountYoctoNear}
-			{#if amountYoctoNear0 !== undefined && amountYoctoNear0 !== null}
-				<NumberValue
-					value={amountYoctoNear0}
-				/>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={nearAccountTimestamp}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const amountYoctoNear0 = resolvedEntity.amountYoctoNear}
-					{#if amountYoctoNear0 !== undefined && amountYoctoNear0 !== null}
-						<NumberValue
-							value={amountYoctoNear0}
-						/>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={nearAccountTimestamp}>
+			{#snippet children(entity)}
+				{@const amountYoctoNear0 = entity.amountYoctoNear}
+				{#if amountYoctoNear0 != null}
+					<NumberValue
+						value={amountYoctoNear0}
+					/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'amountYoctoNear') && Object.hasOwn(prefetched, 'blockHeight')}
-			{@const blockHeight0 = pendingEntity.blockHeight}
-			{#if blockHeight0 !== undefined && blockHeight0 !== null}
-				<span data-text="muted">
-					<NumberValue
-						value={blockHeight0}
-					/>
-				</span>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={nearAccountTimestamp}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const blockHeight0 = resolvedEntity.blockHeight}
-					{#if blockHeight0 !== undefined && blockHeight0 !== null}
-						<span data-text="muted">
-							<NumberValue
-								value={blockHeight0}
-							/>
-						</span>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={nearAccountTimestamp}>
+			{#snippet children(entity)}
+				{@const blockHeight0 = entity.blockHeight}
+				{#if blockHeight0 != null}
+					<span data-text="muted">
+						<NumberValue
+							value={blockHeight0}
+						/>
+					</span>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -162,65 +101,23 @@
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									timestampMs: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const timestampMs = resolvedEntity.timestampMs}
-							{#if timestampMs !== undefined && timestampMs !== null}
-								<Timestamp timestamp={Number(timestampMs)} />
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									source: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const source = resolvedEntity.source}
-							{#if source !== undefined && source !== null}
-								{String((source) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{pendingEntity.source}
 				</dd>
 			</div>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							blockHeight: true,
-						},
-					})
-				}
+				resource={nearAccountTimestamp}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const blockHeight = resolvedEntity.blockHeight}
-					{#if blockHeight !== undefined && blockHeight !== null}
+					{@const blockHeight = entity.blockHeight}
+					{#if blockHeight != null}
 						<div>
 							<dt>Block height</dt>
 							<dd>
@@ -235,8 +132,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							blockHash: true,
 						},
@@ -244,13 +140,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const blockHash = resolvedEntity.blockHash}
-					{#if blockHash !== undefined && blockHash !== null}
+					{@const blockHash = entity.blockHash}
+					{#if blockHash != null}
 						<div>
 							<dt>Block hash</dt>
 							<dd>
-								<TruncatedValue value={String((blockHash) ?? '')} />
+								<TruncatedValue value={blockHash} />
 							</dd>
 						</div>
 					{/if}
@@ -258,19 +153,11 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							amountYoctoNear: true,
-						},
-					})
-				}
+				resource={nearAccountTimestamp}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const amountYoctoNear = resolvedEntity.amountYoctoNear}
-					{#if amountYoctoNear !== undefined && amountYoctoNear !== null}
+					{@const amountYoctoNear = entity.amountYoctoNear}
+					{#if amountYoctoNear != null}
 						<div>
 							<dt>Amount yocto near</dt>
 							<dd>
@@ -285,8 +172,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							lockedYoctoNear: true,
 						},
@@ -294,9 +180,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const lockedYoctoNear = resolvedEntity.lockedYoctoNear}
-					{#if lockedYoctoNear !== undefined && lockedYoctoNear !== null}
+					{@const lockedYoctoNear = entity.lockedYoctoNear}
+					{#if lockedYoctoNear != null}
 						<div>
 							<dt>Locked yocto near</dt>
 							<dd>
@@ -311,8 +196,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							storageUsageBytes: true,
 						},
@@ -320,9 +204,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const storageUsageBytes = resolvedEntity.storageUsageBytes}
-					{#if storageUsageBytes !== undefined && storageUsageBytes !== null}
+					{@const storageUsageBytes = entity.storageUsageBytes}
+					{#if storageUsageBytes != null}
 						<div>
 							<dt>Storage usage bytes</dt>
 							<dd>
@@ -337,8 +220,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							codeHash: true,
 						},
@@ -346,13 +228,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const codeHash = resolvedEntity.codeHash}
-					{#if codeHash !== undefined && codeHash !== null}
+					{@const codeHash = entity.codeHash}
+					{#if codeHash != null}
 						<div>
 							<dt>Code hash</dt>
 							<dd>
-								<TruncatedValue value={String((codeHash) ?? '')} />
+								<TruncatedValue value={codeHash} />
 							</dd>
 						</div>
 					{/if}
@@ -361,8 +242,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							deleted: true,
 						},
@@ -370,9 +250,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const deleted = resolvedEntity.deleted}
-					{#if deleted !== undefined && deleted !== null}
+					{@const deleted = entity.deleted}
+					{#if deleted != null}
 						<div>
 							<dt>Deleted</dt>
 							<dd>

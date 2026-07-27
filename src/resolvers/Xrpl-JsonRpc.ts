@@ -10,11 +10,7 @@ import {
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { schema } from '$/schema/index.ts'
-import { NetworkSelector } from '$/schema/Network.ts'
-import { XrplAccountSelector } from '$/schema/XrplAccount.ts'
-import { XrplAccount_TimestampSelector } from '$/schema/XrplAccount_Timestamp.ts'
 import { networkBySlug } from '$/constants/Network.ts'
-import { sourceProviderDefinitions } from '$/sources/$sourceProviders.ts'
 import { Source } from '$/sources/Source.ts'
 import type {
 	XrplAccountInfoResult,
@@ -25,13 +21,6 @@ import {
 	isJsonObject,
 	type JsonValue,
 } from '$/typescript/JsonValue.ts'
-
-const xrplRippledBinding = sourceProviderDefinitions
-	.flatMap((provider) => provider.bindings)
-	.find((binding) => binding.source === Source.Xrpl_Rippled)
-
-if (xrplRippledBinding == null)
-	throw new Error('Xrpl_Rippled: source binding is missing')
 
 const assertXrplNetwork = (
 	network: EntitySelector<typeof schema, EntityType.Network>
@@ -150,7 +139,6 @@ const validatedLedgerData = async (context: Parameters<typeof resolverContextRow
 
 	const { getValidatedLedgerData } = await import('$/sources/Xrpl/JsonRpc/queries.ts')
 	const ledgerData = await getValidatedLedgerData(
-		xrplRippledBinding,
 		resolverContextRowLimit(context),
 		continuation == null ? 'validated' : continuation.ledgerIndex,
 		continuation?.marker
@@ -203,13 +191,13 @@ export default {
 		defineResolver(Source.Xrpl_Rippled, {
 			entityType: EntityType.XrplAccount,
 			resolve: {
-				[XrplAccountSelector.NetworkAccount]: {
+				NetworkAccount: {
 					resolve: async (account) => {
 						assertXrplNetwork(account.$network)
 						const { getAccountInfo } = await import('$/sources/Xrpl/JsonRpc/queries.ts')
 						const observation = validatedAccountInfo(
 							account,
-							await getAccountInfo(xrplRippledBinding, account.account)
+							await getAccountInfo(account.account)
 						)
 
 						return [{
@@ -235,7 +223,7 @@ export default {
 		defineResolver(Source.Xrpl_Rippled, {
 			entityType: EntityType.XrplAccount_Timestamp,
 			resolve: {
-				[XrplAccount_TimestampSelector.AccountLedgerIndexSource]: {
+				AccountLedgerIndexSource: {
 					resolve: async ({ $account, ledgerIndex, source }) => {
 						assertXrplNetwork($account.$network)
 						if (source !== Source.Xrpl_Rippled)
@@ -246,7 +234,7 @@ export default {
 						const { getAccountInfo } = await import('$/sources/Xrpl/JsonRpc/queries.ts')
 						const observation = validatedAccountInfo(
 							$account,
-							await getAccountInfo(xrplRippledBinding, $account.account, Number(ledgerIndex))
+							await getAccountInfo($account.account, Number(ledgerIndex))
 						)
 						if (observation.ledgerIndex !== ledgerIndex)
 							throw new Error('Xrpl_Rippled: account observation ledger index does not match')
@@ -265,13 +253,12 @@ export default {
 		defineResolver(Source.Xrpl_Rippled, {
 			entityType: EntityType.XrplAccount,
 			resolve: {
-				[XrplAccountSelector.NetworkAccount]: {
+				NetworkAccount: {
 					resolve: async (account, context) => {
 						assertXrplNetwork(account.$network)
 						const { getAccountObjects } = await import('$/sources/Xrpl/JsonRpc/queries.ts')
 						const limit = resolverContextRowLimit(context)
 						const response = await getAccountObjects(
-							xrplRippledBinding,
 							account.account,
 							limit,
 							continuationMarker(context.providerContinuationToken)
@@ -334,13 +321,12 @@ export default {
 		defineResolver(Source.Xrpl_Rippled, {
 			entityType: EntityType.XrplAccount,
 			resolve: {
-				[XrplAccountSelector.NetworkAccount]: {
+				NetworkAccount: {
 					resolve: async (account, context) => {
 						assertXrplNetwork(account.$network)
 						const { getAccountTransactions } = await import('$/sources/Xrpl/JsonRpc/queries.ts')
 						const limit = resolverContextRowLimit(context)
 						const response = await getAccountTransactions(
-							xrplRippledBinding,
 							account.account,
 							limit,
 							continuationMarker(context.providerContinuationToken)
@@ -442,13 +428,12 @@ export default {
 		defineResolver(Source.Xrpl_Rippled, {
 			entityType: EntityType.XrplAccount,
 			resolve: {
-				[XrplAccountSelector.NetworkAccount]: {
+				NetworkAccount: {
 					resolve: async (account, context) => {
 						assertXrplNetwork(account.$network)
 						const { getAccountLines } = await import('$/sources/Xrpl/JsonRpc/queries.ts')
 						const limit = resolverContextRowLimit(context)
 						const response = await getAccountLines(
-							xrplRippledBinding,
 							account.account,
 							limit,
 							continuationMarker(context.providerContinuationToken)
@@ -533,12 +518,12 @@ export default {
 		defineResolver(Source.Xrpl_Rippled, {
 			entityType: EntityType.Network,
 			resolve: {
-				[NetworkSelector.Caip2]: {
+				Caip2: {
 					resolve: async (network) => {
 						assertXrplNetwork(network)
 
 						const { getValidatedLedger } = await import('$/sources/Xrpl/JsonRpc/queries.ts')
-						const ledger = await getValidatedLedger(xrplRippledBinding)
+						const ledger = await getValidatedLedger()
 						if (!ledger.validated)
 							throw new Error('Xrpl_Rippled: ledger is not validated')
 						if (!Number.isSafeInteger(ledger.ledger_index) || ledger.ledger_index < 0)
@@ -566,7 +551,7 @@ export default {
 		defineResolver(Source.Xrpl_Rippled, {
 			entityType: EntityType.Network,
 			resolve: {
-				[NetworkSelector.Caip2]: {
+				Caip2: {
 					resolve: async (network, context) => {
 						assertXrplNetwork(network)
 						const { ledgerData, ledgerIndex } = await validatedLedgerData(context)
@@ -602,11 +587,11 @@ export default {
 		defineResolver(Source.Xrpl_Rippled, {
 			entityType: EntityType.Network,
 			resolve: {
-				[NetworkSelector.Caip2]: {
+				Caip2: {
 					resolve: async (network, context) => {
 						assertXrplNetwork(network)
 						const { getFeatures } = await import('$/sources/Xrpl/JsonRpc/queries.ts')
-						const features = await getFeatures(xrplRippledBinding)
+						const features = await getFeatures()
 						return Object.entries(features)
 							.filter(([amendmentId]) => amendmentId.length > 0)
 							.slice(0, resolverContextRowLimit(context))
@@ -631,7 +616,7 @@ export default {
 		defineResolver(Source.Xrpl_Rippled, {
 			entityType: EntityType.Network,
 			resolve: {
-				[NetworkSelector.Caip2]: {
+				Caip2: {
 					resolve: async (network, context) => {
 						assertXrplNetwork(network)
 						const { ledgerData, ledgerIndex } = await validatedLedgerData(context)
@@ -685,7 +670,7 @@ export default {
 		defineResolver(Source.Xrpl_Rippled, {
 			entityType: EntityType.Network,
 			resolve: {
-				[NetworkSelector.Caip2]: {
+				Caip2: {
 					resolve: async (network, context) => {
 						assertXrplNetwork(network)
 						const { ledgerData, ledgerIndex } = await validatedLedgerData(context)
@@ -737,11 +722,11 @@ export default {
 		defineResolver(Source.Xrpl_Rippled, {
 			entityType: EntityType.Network,
 			resolve: {
-				[NetworkSelector.Caip2]: {
+				Caip2: {
 					resolve: async (network, context) => {
 						assertXrplNetwork(network)
 						const { getValidatedLedgerTransactions } = await import('$/sources/Xrpl/JsonRpc/queries.ts')
-						const ledger = await getValidatedLedgerTransactions(xrplRippledBinding)
+						const ledger = await getValidatedLedgerTransactions()
 						if (!ledger.validated)
 							throw new Error('Xrpl_Rippled: ledger is not validated')
 						validatedLedgerIndex(ledger.ledger_index)

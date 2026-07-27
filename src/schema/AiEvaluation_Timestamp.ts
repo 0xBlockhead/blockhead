@@ -1,15 +1,12 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { entity, facet } from '$/schema/$schema.ts'
+import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { UrlString } from '$/schema/UrlString.ts'
 import { type } from 'arktype'
 
-export enum AiEvaluation_TimestampSelector {
-	SubjectKindSubjectSelectorBenchmarkMetricNameTimestampMsSource = 'SubjectKindSubjectSelectorBenchmarkMetricNameTimestampMsSource',
-}
-export const AiEvaluation_Timestamp = entity({
+export default entity({
 	entityType: EntityType.AiEvaluation_Timestamp,
 	labels: {
 		singular: 'AI evaluation timestamp',
@@ -178,7 +175,7 @@ export const AiEvaluation_Timestamp = entity({
 	sourceUrl: {
 		label: 'source URL',
 		type: EntityFieldType.Primitive,
-		primitiveType: (UrlString),
+		primitiveType: UrlString,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	payload: {

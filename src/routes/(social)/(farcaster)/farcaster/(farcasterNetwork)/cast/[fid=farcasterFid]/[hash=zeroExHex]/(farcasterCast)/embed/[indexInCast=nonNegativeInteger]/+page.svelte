@@ -8,7 +8,6 @@
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
@@ -45,31 +44,12 @@
 
 
 <svelte:head>
-	<title>{(pageSelection.entity == null ? 'Farcaster cast embed' : [String((({ ...{
-		$cast: {
-			fid: Number(params.fid),
-			hash: params.hash,
-		},
-		indexInCast: Number(params.indexInCast),
-	}, ...pageSelection.entity }).title) ?? ''), String((({ ...{
-		$cast: {
-			fid: Number(params.fid),
-			hash: params.hash,
-		},
-		indexInCast: Number(params.indexInCast),
-	}, ...pageSelection.entity }).url) ?? '')].filter(Boolean).join(' ') || 'Farcaster cast embed')} • Farcaster cast embed • Blockhead</title>
+	<title>{(pageSelection.entity == null ? 'Farcaster cast embed' : [(pageSelection.entity.title ?? ''), (pageSelection.entity.url ?? '')].filter(Boolean).join(' ') || 'Farcaster cast embed')} • Farcaster cast embed • Blockhead</title>
 </svelte:head>
 
 
 <Page>
 	<FarcasterCastEmbedView
-		href={
-			resolve('/farcaster/cast/[fid=farcasterFid]/[hash=zeroExHex]/embed/[indexInCast=nonNegativeInteger]', {
-				fid: params.fid,
-				hash: params.hash,
-				indexInCast: params.indexInCast,
-			})
-		}
 		selection={pageSelection}
 	/>
 </Page>

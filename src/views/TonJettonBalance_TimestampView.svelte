@@ -2,15 +2,8 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
-	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -22,35 +15,13 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.TonJettonBalance_Timestamp>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.TonJettonBalance_Timestamp>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.TonJettonBalance_Timestamp> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const tonJettonBalanceTimestamp = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {},
-	} : {
-		sources: selection.sources,
-	}))
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const titleFallback = 'TON jetton balance timestamp'
-	const viewDomId = $derived('ton-jetton-balance-timestamp-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -64,24 +35,14 @@
 
 <EntityView
 	entityType={EntityType.TonJettonBalance_Timestamp}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails}
-			{title || titleFallback}
-		{:else}
-			<ResourceBoundary resource={tonJettonBalanceTimestamp}>
-				{#snippet children(entity)}
-					{title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		TON jetton balance timestamp
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -91,30 +52,6 @@
 				<dd>
 					<TonAccountView
 						selection={select(EntityType.TonAccount, selection.entitySelector.$account)}
-						href={
-							(
-								selection.entitySelector.$account != null && 'address' in selection.entitySelector.$account
-								&& selection.entitySelector.$account.address != null
-								&& selection.entitySelector.$account != null && '$network' in selection.entitySelector.$account ?
-									selection.entitySelector.$account.$network != null && 'caip2' in selection.entitySelector.$account.$network
-									&& selection.entitySelector.$account.$network.caip2 != null ?
-										resolve('/network/[network=networkCaip2OrNetworkSlug]/account/[accountId=polkadotAccountIdOrStringSegmentOrEvmAddressOrSolanaPubkey]', {
-									accountId: String(selection.entitySelector.$account.address ?? ''),
-									network: String(caip2StringFromValue(selection.entitySelector.$account.$network.caip2) ?? ''),
-								})
-								:
-										selection.entitySelector.$account.$network != null && 'slug' in selection.entitySelector.$account.$network
-										&& selection.entitySelector.$account.$network.slug != null ?
-											resolve('/network/[network=networkCaip2OrNetworkSlug]/account/[accountId=polkadotAccountIdOrStringSegmentOrEvmAddressOrSolanaPubkey]', {
-										accountId: String(selection.entitySelector.$account.address ?? ''),
-										network: String(selection.entitySelector.$account.$network.slug ?? ''),
-									})
-									:
-										undefined
-							:
-									undefined
-							)
-						}
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -135,55 +72,20 @@
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									timestampMs: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const timestampMs = resolvedEntity.timestampMs}
-							{#if timestampMs !== undefined && timestampMs !== null}
-								<Timestamp timestamp={Number(timestampMs)} />
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									source: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const source = resolvedEntity.source}
-							{#if source !== undefined && source !== null}
-								{String((source) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{pendingEntity.source}
 				</dd>
 			</div>
 
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							jettonWalletAddress: true,
 						},
@@ -191,13 +93,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const jettonWalletAddress = resolvedEntity.jettonWalletAddress}
-					{#if jettonWalletAddress !== undefined && jettonWalletAddress !== null}
+					{@const jettonWalletAddress = entity.jettonWalletAddress}
+					{#if jettonWalletAddress != null}
 						<div>
 							<dt>jetton wallet address</dt>
 							<dd>
-								<TruncatedValue value={String((jettonWalletAddress) ?? '')} />
+								<TruncatedValue value={jettonWalletAddress} />
 							</dd>
 						</div>
 					{/if}
@@ -207,7 +108,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							balanceNano: true,
 						},
@@ -215,13 +115,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const balanceNano = resolvedEntity.balanceNano}
-					{#if balanceNano !== undefined && balanceNano !== null}
+					{@const balanceNano = entity.balanceNano}
+					{#if balanceNano != null}
 						<div>
 							<dt>balance nano</dt>
 							<dd>
-								{String((balanceNano) ?? '')}
+								{String(balanceNano)}
 							</dd>
 						</div>
 					{/if}
@@ -231,7 +130,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							ownerAddress: true,
 						},
@@ -239,13 +137,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const ownerAddress = resolvedEntity.ownerAddress}
-					{#if ownerAddress !== undefined && ownerAddress !== null}
+					{@const ownerAddress = entity.ownerAddress}
+					{#if ownerAddress != null}
 						<div>
 							<dt>owner address</dt>
 							<dd>
-								<TruncatedValue value={String((ownerAddress) ?? '')} />
+								<TruncatedValue value={ownerAddress} />
 							</dd>
 						</div>
 					{/if}
@@ -255,7 +152,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							masterAddress: true,
 						},
@@ -263,13 +159,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const masterAddress = resolvedEntity.masterAddress}
-					{#if masterAddress !== undefined && masterAddress !== null}
+					{@const masterAddress = entity.masterAddress}
+					{#if masterAddress != null}
 						<div>
 							<dt>master address</dt>
 							<dd>
-								<TruncatedValue value={String((masterAddress) ?? '')} />
+								<TruncatedValue value={masterAddress} />
 							</dd>
 						</div>
 					{/if}
@@ -279,7 +174,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							lastTransactionLt: true,
 						},
@@ -287,13 +181,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const lastTransactionLt = resolvedEntity.lastTransactionLt}
-					{#if lastTransactionLt !== undefined && lastTransactionLt !== null}
+					{@const lastTransactionLt = entity.lastTransactionLt}
+					{#if lastTransactionLt != null}
 						<div>
 							<dt>last transaction lt</dt>
 							<dd>
-								{String((lastTransactionLt) ?? '')}
+								{String(lastTransactionLt)}
 							</dd>
 						</div>
 					{/if}
@@ -303,7 +196,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							locked: true,
 						},
@@ -311,9 +203,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const locked = resolvedEntity.locked}
-					{#if locked !== undefined && locked !== null}
+					{@const locked = entity.locked}
+					{#if locked != null}
 						<div>
 							<dt>locked</dt>
 							<dd>

@@ -2,15 +2,9 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
-	import { caip2StringFromValue } from '$/lib/caip2.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -22,40 +16,23 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.CardanoGovernanceProposal_Timestamp>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.CardanoGovernanceProposal_Timestamp>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.CardanoGovernanceProposal_Timestamp> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const cardanoGovernanceProposalTimestamp = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {
-			status: true,
-		},
-	} : {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const viewSelection = $derived(selection({
+		sources: selection.sources ?? [
+			Source.Blockfrost_Rest,
+		],
+	}))
+	const cardanoGovernanceProposalTimestamp = $derived(viewSelection({
 		fields: {
 			status: true,
 		},
 	}))
-	const titleFallback = $derived([(String((pendingEntity.epoch) ?? '') ? 'Epoch ' + String((pendingEntity.epoch) ?? '') : '')].filter(Boolean).join(' ') || 'Cardano governance proposal timestamp')
-	const viewDomId = $derived('cardano-governance-proposal-timestamp-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const titleFallback = $derived((String(pendingEntity.epoch ?? '') ? 'Epoch ' + String(pendingEntity.epoch ?? '') : '') || 'Cardano governance proposal timestamp')
 
 
 	// Components
@@ -66,61 +43,28 @@
 
 <EntityView
 	entityType={EntityType.CardanoGovernanceProposal_Timestamp}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'status')}
-			{[(String((pendingEntity.epoch) ?? '') ? 'Epoch ' + String((pendingEntity.epoch) ?? '') : '')].filter(Boolean).join(' ') || title || titleFallback}
-		{:else}
-			<ResourceBoundary resource={cardanoGovernanceProposalTimestamp}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[(String((resolvedEntity.epoch) ?? '') ? 'Epoch ' + String((resolvedEntity.epoch) ?? '') : '')].filter(Boolean).join(' ') || title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		{(String(pendingEntity.epoch ?? '') ? 'Epoch ' + String(pendingEntity.epoch ?? '') : '') || 'Cardano governance proposal timestamp'}
 	{/snippet}
 
 	{#snippet Value()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'status')}
-			{[String((pendingEntity.status) ?? '')].filter(Boolean).join(' ') || [(String((pendingEntity.epoch) ?? '') ? 'Epoch ' + String((pendingEntity.epoch) ?? '') : '')].filter(Boolean).join(' ') || titleFallback}
-		{:else}
-			<ResourceBoundary resource={cardanoGovernanceProposalTimestamp}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.status) ?? '')].filter(Boolean).join(' ') || [(String((resolvedEntity.epoch) ?? '') ? 'Epoch ' + String((resolvedEntity.epoch) ?? '') : '')].filter(Boolean).join(' ') || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={cardanoGovernanceProposalTimestamp}>
+			{#snippet children(entity)}
+				{(entity.status ?? '') || (String(pendingEntity.epoch) ? 'Epoch ' + String(pendingEntity.epoch) : '') || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'status')}
-			{@const source0 = pendingEntity.source}
-			{#if source0 !== undefined && source0 !== null}
-				<span data-text="muted">
-					{String((source0) ?? '')}
-				</span>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={cardanoGovernanceProposalTimestamp}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const source0 = resolvedEntity.source}
-					{#if source0 !== undefined && source0 !== null}
-						<span data-text="muted">
-							{String((source0) ?? '')}
-						</span>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<span data-text="muted">
+			{pendingEntity.source}
+		</span>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -130,34 +74,6 @@
 				<dd>
 					<CardanoGovernanceProposalView
 						selection={select(EntityType.CardanoGovernanceProposal, selection.entitySelector.$proposal)}
-						href={
-							(
-								selection.entitySelector.$proposal != null && 'proposalTxHash' in selection.entitySelector.$proposal
-								&& selection.entitySelector.$proposal.proposalTxHash != null
-								&& selection.entitySelector.$proposal != null && 'proposalIndex' in selection.entitySelector.$proposal
-								&& selection.entitySelector.$proposal.proposalIndex != null
-								&& selection.entitySelector.$proposal != null && '$network' in selection.entitySelector.$proposal ?
-									selection.entitySelector.$proposal.$network != null && 'caip2' in selection.entitySelector.$proposal.$network
-									&& selection.entitySelector.$proposal.$network.caip2 != null ?
-										resolve('/network/[network=networkCaip2OrNetworkSlug]/governance/proposal/[proposalTxHash=stringSegment]/[proposalIndex=nonNegativeInteger]', {
-									proposalTxHash: String(selection.entitySelector.$proposal.proposalTxHash ?? ''),
-									proposalIndex: String(selection.entitySelector.$proposal.proposalIndex ?? ''),
-									network: String(caip2StringFromValue(selection.entitySelector.$proposal.$network.caip2) ?? ''),
-								})
-								:
-										selection.entitySelector.$proposal.$network != null && 'slug' in selection.entitySelector.$proposal.$network
-										&& selection.entitySelector.$proposal.$network.slug != null ?
-											resolve('/network/[network=networkCaip2OrNetworkSlug]/governance/proposal/[proposalTxHash=stringSegment]/[proposalIndex=nonNegativeInteger]', {
-										proposalTxHash: String(selection.entitySelector.$proposal.proposalTxHash ?? ''),
-										proposalIndex: String(selection.entitySelector.$proposal.proposalIndex ?? ''),
-										network: String(selection.entitySelector.$proposal.$network.slug ?? ''),
-									})
-									:
-										undefined
-							:
-									undefined
-							)
-						}
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -165,23 +81,15 @@
 			</div>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							status: true,
-						},
-					})
-				}
+				resource={cardanoGovernanceProposalTimestamp}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const status = resolvedEntity.status}
-					{#if status !== undefined && status !== null}
+					{@const status = entity.status}
+					{#if status != null}
 						<div>
 							<dt>status</dt>
 							<dd>
-								{String((status) ?? '')}
+								{status}
 							</dd>
 						</div>
 					{/if}
@@ -190,8 +98,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							ratifiedEpoch: true,
 						},
@@ -199,13 +106,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const ratifiedEpoch = resolvedEntity.ratifiedEpoch}
-					{#if ratifiedEpoch !== undefined && ratifiedEpoch !== null}
+					{@const ratifiedEpoch = entity.ratifiedEpoch}
+					{#if ratifiedEpoch != null}
 						<div>
 							<dt>ratified epoch</dt>
 							<dd>
-								{String((ratifiedEpoch) ?? '')}
+								{String(ratifiedEpoch)}
 							</dd>
 						</div>
 					{/if}
@@ -214,8 +120,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							enactedEpoch: true,
 						},
@@ -223,13 +128,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const enactedEpoch = resolvedEntity.enactedEpoch}
-					{#if enactedEpoch !== undefined && enactedEpoch !== null}
+					{@const enactedEpoch = entity.enactedEpoch}
+					{#if enactedEpoch != null}
 						<div>
 							<dt>enacted epoch</dt>
 							<dd>
-								{String((enactedEpoch) ?? '')}
+								{String(enactedEpoch)}
 							</dd>
 						</div>
 					{/if}
@@ -238,8 +142,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							droppedEpoch: true,
 						},
@@ -247,13 +150,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const droppedEpoch = resolvedEntity.droppedEpoch}
-					{#if droppedEpoch !== undefined && droppedEpoch !== null}
+					{@const droppedEpoch = entity.droppedEpoch}
+					{#if droppedEpoch != null}
 						<div>
 							<dt>dropped epoch</dt>
 							<dd>
-								{String((droppedEpoch) ?? '')}
+								{String(droppedEpoch)}
 							</dd>
 						</div>
 					{/if}
@@ -262,8 +164,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							expiredEpoch: true,
 						},
@@ -271,13 +172,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const expiredEpoch = resolvedEntity.expiredEpoch}
-					{#if expiredEpoch !== undefined && expiredEpoch !== null}
+					{@const expiredEpoch = entity.expiredEpoch}
+					{#if expiredEpoch != null}
 						<div>
 							<dt>expired epoch</dt>
 							<dd>
-								{String((expiredEpoch) ?? '')}
+								{String(expiredEpoch)}
 							</dd>
 						</div>
 					{/if}
@@ -286,8 +186,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							expirationEpoch: true,
 						},
@@ -295,13 +194,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const expirationEpoch = resolvedEntity.expirationEpoch}
-					{#if expirationEpoch !== undefined && expirationEpoch !== null}
+					{@const expirationEpoch = entity.expirationEpoch}
+					{#if expirationEpoch != null}
 						<div>
 							<dt>expiration epoch</dt>
 							<dd>
-								{String((expirationEpoch) ?? '')}
+								{String(expirationEpoch)}
 							</dd>
 						</div>
 					{/if}

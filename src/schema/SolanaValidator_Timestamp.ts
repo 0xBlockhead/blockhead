@@ -1,15 +1,12 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { entity, facet } from '$/schema/$schema.ts'
+import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
-export enum SolanaValidator_TimestampSelector {
-	ValidatorSlotSource = 'ValidatorSlotSource',
-}
-export const SolanaValidator_Timestamp = entity({
+export default entity({
 	entityType: EntityType.SolanaValidator_Timestamp,
 	labels: {
 		singular: 'solana validator timestamp',

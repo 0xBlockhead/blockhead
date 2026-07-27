@@ -1,16 +1,13 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { entity, facet } from '$/schema/$schema.ts'
+import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { UrlString } from '$/schema/UrlString.ts'
 import { EvmAddress } from '$/schema/ZeroExHex.ts'
 import { type } from 'arktype'
 
-export enum BlockheadSiweChallengeSelector {
-	Id = 'Id',
-}
-export const BlockheadSiweChallenge = entity({
+export default entity({
 	entityType: EntityType.BlockheadSiweChallenge,
 	labels: {
 		singular: 'blockhead siwe challenge',
@@ -76,13 +73,13 @@ export const BlockheadSiweChallenge = entity({
 		label: 'Address',
 		description: 'The address or account identifier used by the source protocol.',
 		type: EntityFieldType.Primitive,
-		primitiveType: (EvmAddress),
+		primitiveType: EvmAddress,
 		cardinality: EntityFieldCardinality.One,
 	},
 	uri: {
 		label: 'URI',
 		type: EntityFieldType.Primitive,
-		primitiveType: (UrlString),
+		primitiveType: UrlString,
 		cardinality: EntityFieldCardinality.One,
 	},
 	version: {

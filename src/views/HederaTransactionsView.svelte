@@ -2,69 +2,30 @@
 
 <script lang="ts">
 	// Types/constants
-	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
-	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
-	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
+	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-
-
 
 
 	// State
 	let {
 		selection,
-		countResource,
-		title = 'Hedera transactions',
-		typeAnnotationParagraphs = [],
-		placeholderText = undefined,
-		emptyText = undefined,
 		open = $bindable(true),
-		collapsible = true,
-		showTypeAnnotation = true,
-		id = 'HederaTransactions-list',
 		...EntitiesListProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyEntitiesSelection<EntityType.HederaTransaction>
-			countResource?: SvelteKitResource<number>
-			title?: string
-			typeAnnotationParagraphs?: string[]
-			placeholderText?: string
-			emptyText?: string
-			open?: boolean
-			collapsible?: boolean
-			showTypeAnnotation?: boolean
-			id?: string
-		},
-		EntitiesListForwardProps
-	> = $props()
+	}: EntityListViewProps<EntityType.HederaTransaction> = $props()
 
 
 	// Components
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView from '$/components/EntityView.svelte'
 </script>
 
-
-{#snippet TypeAnnotationParagraphs()}
-	{#each typeAnnotationParagraphs as paragraph (paragraph)}
-		<p>{paragraph}</p>
-	{/each}
-{/snippet}
 
 <EntitiesList
 	{...EntitiesListProps}
 	entityType={EntityType.HederaTransaction}
-	{id}
-	{title}
 	bind:open
-	{collapsible}
-	{showTypeAnnotation}
-	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
 	resource={
 		selection({
-			sources: selection.sources,
 			fields: {
 				transactionType: true,
 				result: true,
@@ -73,38 +34,23 @@
 			},
 		})
 	}
-	{countResource}
-	getResourceItems={(hederaTransactions) => [...new Map(hederaTransactions.values.map((hederaTransaction) => [hederaTransaction[EntityMetaKey.SelectorKey], hederaTransaction])).values()]}
-	getKey={(hederaTransaction) => hederaTransaction[EntityMetaKey.SelectorKey]}
-	{placeholderText}
 >
-	{#snippet Empty()}
-		{#if emptyText != null}
-			<p data-text="muted">{emptyText}</p>
-		{:else}
-			<p data-text="muted">No Hedera transactions yet.</p>
-		{/if}
-	{/snippet}
-
 	{#snippet Item({ item: hederaTransaction })}
-		{@const hederaTransactionFields = { ...hederaTransaction[EntityMetaKey.Selector], ...hederaTransaction }}
+		{@const hederaTransactionSelector = hederaTransaction[EntityMetaKey.Selector]}
 		<EntityView
 			entityType={EntityType.HederaTransaction}
-			entitySelector={hederaTransaction[EntityMetaKey.Selector]}
-			layout={EntityLayout.Summary}
-			open={false}
-			showTypeAnnotation={false}
+			entitySelector={hederaTransactionSelector}
 		>
 			{#snippet Title()}
-				{[String((hederaTransactionFields.transactionType) ?? '')].filter(Boolean).join(' ') || [String((hederaTransactionFields.transactionId) ?? '')].filter(Boolean).join(' ') || 'hedera transaction'}
+				{hederaTransaction.transactionType || hederaTransactionSelector.transactionId || 'hedera transaction'}
 			{/snippet}
 
 			{#snippet Value()}
-				{[String((hederaTransactionFields.result) ?? '')].filter(Boolean).join(' ')}
+				{(hederaTransaction.result ?? '')}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{[String((hederaTransactionFields.consensusTimestamp) ?? '')].filter(Boolean).join(' ')}</span>
+				<span data-text="annotation">{hederaTransactionSelector.consensusTimestamp}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

@@ -2,14 +2,9 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
 
 
 	// Context
@@ -25,38 +20,16 @@
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.RedditSubreddit_Timestamp>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.RedditSubreddit_Timestamp>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.RedditSubreddit_Timestamp> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const redditSubredditTimestamp = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {
-			subscriberCount: true,
-			activeUserCount: true,
-		},
-	} : {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const redditSubredditTimestamp = $derived(selection({
 		fields: {
 			subscriberCount: true,
 			activeUserCount: true,
 		},
 	}))
-	const titleFallback = $derived([String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || 'Reddit subreddit timestamp')
-	const viewDomId = $derived('reddit-subreddit-timestamp-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const titleFallback = $derived(String(pendingEntity.timestampMs ?? '') || 'Reddit subreddit timestamp')
 
 
 	// Components
@@ -69,25 +42,16 @@
 
 <EntityView
 	entityType={EntityType.RedditSubreddit_Timestamp}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
 	href={
-		href ?? (
-			selection.entitySelector != null && 'timestampMs' in selection.entitySelector
-			&& selection.entitySelector.timestampMs != null
-			&& selection.entitySelector != null && 'source' in selection.entitySelector
-			&& selection.entitySelector.source != null
-			&& selection.entitySelector != null && '$subreddit' in selection.entitySelector
-			&& selection.entitySelector.$subreddit != null && 'name' in selection.entitySelector.$subreddit
-			&& selection.entitySelector.$subreddit.name != null ?
-				resolve('/reddit/r/[name=stringSegment]/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
-			timestampMs: String(selection.entitySelector.timestampMs ?? ''),
-			source: String(selection.entitySelector.source ?? ''),
-			name: encodeURIComponent(String(selection.entitySelector.$subreddit.name ?? '')),
-		})
-		:
-				undefined
+		href ?? resolve(
+			'/(social)/(reddit)/reddit/(globalRedditNetwork)/r/[name=stringSegment]/(redditSubreddit)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
+			{
+				name: encodeURIComponent(String(selection.entitySelector.$subreddit.name)),
+				timestampMs: String(selection.entitySelector.timestampMs),
+				source: String(selection.entitySelector.source),
+			}
 		)
 	}
 	{layout}
@@ -95,88 +59,40 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'subscriberCount') && Object.hasOwn(prefetched, 'activeUserCount')}
-			{@const timestampMs0 = pendingEntity.timestampMs}
-			{#if timestampMs0 !== undefined && timestampMs0 !== null}
-				<Timestamp timestamp={Number(timestampMs0)} />
-			{/if}
-		{:else}
-			<ResourceBoundary resource={redditSubredditTimestamp}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const timestampMs0 = resolvedEntity.timestampMs}
-					{#if timestampMs0 !== undefined && timestampMs0 !== null}
-						<Timestamp timestamp={Number(timestampMs0)} />
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
 	{/snippet}
 
 	{#snippet Value()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'subscriberCount') && Object.hasOwn(prefetched, 'activeUserCount')}
-			{@const subscriberCount0 = pendingEntity.subscriberCount}
-			{#if subscriberCount0 !== undefined && subscriberCount0 !== null}
-				<NumberValue
-					value={subscriberCount0}
-				/>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={redditSubredditTimestamp}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const subscriberCount0 = resolvedEntity.subscriberCount}
-					{#if subscriberCount0 !== undefined && subscriberCount0 !== null}
-						<NumberValue
-							value={subscriberCount0}
-						/>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={redditSubredditTimestamp}>
+			{#snippet children(entity)}
+				{@const subscriberCount0 = entity.subscriberCount}
+				{#if subscriberCount0 != null}
+					<NumberValue
+						value={subscriberCount0}
+					/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'subscriberCount') && Object.hasOwn(prefetched, 'activeUserCount')}
-			{@const source0 = pendingEntity.source}
-			{#if source0 !== undefined && source0 !== null}
+		<ResourceBoundary resource={redditSubredditTimestamp}>
+			{#snippet children(entity)}
 				<span data-text="muted">
-					{String((source0) ?? '')}
+					{pendingEntity.source}
 				</span>
-			{/if}
-			{@const activeUserCount1 = pendingEntity.activeUserCount}
-			{#if activeUserCount1 !== undefined && activeUserCount1 !== null}
-				<span data-text="muted">
-					<NumberValue
-						value={activeUserCount1}
-					/>
+				{@const activeUserCount1 = entity.activeUserCount}
+				{#if activeUserCount1 != null}
+					<span data-text="muted">
+						<NumberValue
+							value={activeUserCount1}
+						/>
 
-					<span> active</span>
-				</span>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={redditSubredditTimestamp}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const source0 = resolvedEntity.source}
-					{#if source0 !== undefined && source0 !== null}
-						<span data-text="muted">
-							{String((source0) ?? '')}
-						</span>
-					{/if}
-					{@const activeUserCount1 = resolvedEntity.activeUserCount}
-					{#if activeUserCount1 !== undefined && activeUserCount1 !== null}
-						<span data-text="muted">
-							<NumberValue
-								value={activeUserCount1}
-							/>
-
-							<span> active</span>
-						</span>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+						<span> active</span>
+					</span>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -184,65 +100,23 @@
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									timestampMs: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const timestampMs = resolvedEntity.timestampMs}
-							{#if timestampMs !== undefined && timestampMs !== null}
-								<Timestamp timestamp={Number(timestampMs)} />
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									source: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const source = resolvedEntity.source}
-							{#if source !== undefined && source !== null}
-								{String((source) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{pendingEntity.source}
 				</dd>
 			</div>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							subscriberCount: true,
-						},
-					})
-				}
+				resource={redditSubredditTimestamp}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const subscriberCount = resolvedEntity.subscriberCount}
-					{#if subscriberCount !== undefined && subscriberCount !== null}
+					{@const subscriberCount = entity.subscriberCount}
+					{#if subscriberCount != null}
 						<div>
 							<dt>Subscribers</dt>
 							<dd>
@@ -256,19 +130,11 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							activeUserCount: true,
-						},
-					})
-				}
+				resource={redditSubredditTimestamp}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const activeUserCount = resolvedEntity.activeUserCount}
-					{#if activeUserCount !== undefined && activeUserCount !== null}
+					{@const activeUserCount = entity.activeUserCount}
+					{#if activeUserCount != null}
 						<div>
 							<dt>Active users</dt>
 							<dd>
@@ -288,17 +154,6 @@
 				<dd>
 					<RedditSubredditView
 						selection={select(EntityType.RedditSubreddit, selection.entitySelector.$subreddit)}
-						href={
-							(
-								selection.entitySelector.$subreddit != null && 'name' in selection.entitySelector.$subreddit
-								&& selection.entitySelector.$subreddit.name != null ?
-									resolve('/reddit/r/[name=stringSegment]', {
-								name: encodeURIComponent(String(selection.entitySelector.$subreddit.name ?? '')),
-							})
-							:
-									undefined
-							)
-						}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

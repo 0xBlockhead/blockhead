@@ -9,14 +9,6 @@ import {
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
-import { sourceProviderDefinitions } from '$/sources/$sourceProviders.ts'
-import { PolkadotBlockSelector } from '$/schema/PolkadotBlock.ts'
-import { PolkadotExtrinsicSelector } from '$/schema/PolkadotExtrinsic.ts'
-import { PolkadotEventSelector } from '$/schema/PolkadotEvent.ts'
-import { PolkadotAccountSelector } from '$/schema/PolkadotAccount.ts'
-import { PolkadotAccount_TimestampSelector } from '$/schema/PolkadotAccount_Timestamp.ts'
-import { PolkadotPalletSelector } from '$/schema/PolkadotPallet.ts'
-import { NetworkSelector } from '$/schema/Network.ts'
 
 type SidecarBlockEvent = {
 	method: string
@@ -29,13 +21,6 @@ type PolkadotNetworkId = { caip2: {
 } } | { slug: string }
 
 type NetworkId = PolkadotNetworkId | { $network: PolkadotNetworkId }
-
-const substrateSidecarBinding = sourceProviderDefinitions
-	.flatMap((provider) => provider.bindings)
-	.find((binding) => binding.source === Source.SubstrateSidecar_Rest)
-
-if (substrateSidecarBinding == null)
-	throw new Error('SubstrateSidecar_Rest: source binding is missing')
 
 const assertPolkadotMainnet = (network: NetworkId) => {
 	if ('$network' in network) {
@@ -110,12 +95,11 @@ export default {
 		defineResolver(Source.SubstrateSidecar_Rest, {
 			entityType: EntityType.PolkadotBlock,
 			resolve: {
-				[PolkadotBlockSelector.NetworkBlockNumberHash]: {
+				NetworkBlockNumberHash: {
 					resolve: async ({ $network, hash }) => {
 						assertPolkadotMainnet($network)
 						const { getBlock } = await import('$/sources/SubstrateSidecar/Rest/queries.ts')
 						const block = await getBlock({
-							binding: substrateSidecarBinding,
 							blockId: hash,
 						})
 						return {
@@ -239,12 +223,11 @@ export default {
 		defineResolver(Source.SubstrateSidecar_Rest, {
 			entityType: EntityType.PolkadotExtrinsic,
 			resolve: {
-				[PolkadotExtrinsicSelector.BlockIndexInBlock]: {
+				BlockIndexInBlock: {
 					resolve: async ({ $block, indexInBlock }) => {
 						assertPolkadotMainnet($block.$network)
 						const { getBlock } = await import('$/sources/SubstrateSidecar/Rest/queries.ts')
 						const block = await getBlock({
-							binding: substrateSidecarBinding,
 							blockId: $block.blockNumber.toString(),
 						})
 						const extrinsic = block.extrinsics.at(indexInBlock)
@@ -287,12 +270,11 @@ export default {
 		defineResolver(Source.SubstrateSidecar_Rest, {
 			entityType: EntityType.PolkadotEvent,
 			resolve: {
-				[PolkadotEventSelector.BlockIndexInBlock]: {
+				BlockIndexInBlock: {
 					resolve: async ({ $block, indexInBlock }) => {
 						assertPolkadotMainnet($block.$network)
 						const { getBlock } = await import('$/sources/SubstrateSidecar/Rest/queries.ts')
 						const block = await getBlock({
-							binding: substrateSidecarBinding,
 							blockId: $block.blockNumber.toString(),
 						})
 						const event: SidecarBlockEvent | undefined = [
@@ -344,12 +326,11 @@ export default {
 		defineResolver(Source.SubstrateSidecar_Rest, {
 			entityType: EntityType.PolkadotAccount,
 			resolve: {
-				[PolkadotAccountSelector.NetworkAccountId]: {
+				NetworkAccountId: {
 					resolve: async ({ $network, accountId }) => {
 						assertPolkadotMainnet($network)
 						const { getAccountBalanceInfo } = await import('$/sources/SubstrateSidecar/Rest/queries.ts')
 						const account = await getAccountBalanceInfo({
-							binding: substrateSidecarBinding,
 							accountId: accountId,
 						})
 						return {
@@ -383,13 +364,12 @@ export default {
 		defineResolver(Source.SubstrateSidecar_Rest, {
 			entityType: EntityType.PolkadotAccount_Timestamp,
 			resolve: {
-				[PolkadotAccount_TimestampSelector.AccountTimestampMsSource]: {
+				AccountTimestampMsSource: {
 					resolve: async ({ $account, timestampMs, source }) => {
 						if (source !== Source.SubstrateSidecar_Rest) throw new Error(`SubstrateSidecar_Rest: unsupported source ${source}`)
 						assertPolkadotMainnet($account.$network)
 						const { getAccountBalanceInfo } = await import('$/sources/SubstrateSidecar/Rest/queries.ts')
 						const account = await getAccountBalanceInfo({
-							binding: substrateSidecarBinding,
 							accountId: $account.accountId,
 						})
 						return polkadotAccountTimestampFields(
@@ -411,11 +391,11 @@ export default {
 		defineResolver(Source.SubstrateSidecar_Rest, {
 			entityType: EntityType.PolkadotPallet,
 			resolve: {
-				[PolkadotPalletSelector.NetworkPalletName]: {
+				NetworkPalletName: {
 					resolve: async ({ $network, palletName }) => {
 						assertPolkadotMainnet($network)
 						const { getRuntimeMetadata } = await import('$/sources/SubstrateSidecar/Rest/queries.ts')
-						const pallet = (await getRuntimeMetadata({ binding: substrateSidecarBinding })).pallets
+						const pallet = (await getRuntimeMetadata()).pallets
 							.find((runtimePallet) => runtimePallet.name === palletName)
 						if (pallet == null) throw new Error(`SubstrateSidecar_Rest: pallet not found for ${palletName}`)
 						return {
@@ -431,13 +411,11 @@ export default {
 		defineResolver(Source.SubstrateSidecar_Rest, {
 			entityType: EntityType.Network,
 			resolve: {
-				[NetworkSelector.Slug]: {
+				Slug: {
 					resolve: async (network, context) => {
 						assertPolkadotMainnet(network)
 						const { getStakingValidators } = await import('$/sources/SubstrateSidecar/Rest/queries.ts')
-						const validators = (await getStakingValidators({
-							binding: substrateSidecarBinding,
-						})).validators
+						const validators = (await getStakingValidators()).validators
 						if (validators == null)
 							throw new Error('SubstrateSidecar_Rest: validators unavailable')
 
@@ -471,13 +449,11 @@ export default {
 		defineResolver(Source.SubstrateSidecar_Rest, {
 			entityType: EntityType.Network,
 			resolve: {
-				[NetworkSelector.Slug]: {
+				Slug: {
 					resolve: async (network) => {
 						assertPolkadotMainnet(network)
 						const { getStakingValidators } = await import('$/sources/SubstrateSidecar/Rest/queries.ts')
-						const validators = (await getStakingValidators({
-							binding: substrateSidecarBinding,
-						})).validators
+						const validators = (await getStakingValidators()).validators
 						if (validators == null)
 							throw new Error('SubstrateSidecar_Rest: validator count unavailable')
 
@@ -496,12 +472,11 @@ export default {
 		defineResolver(Source.SubstrateSidecar_Rest, {
 			entityType: EntityType.PolkadotBlock,
 			resolve: {
-				[PolkadotBlockSelector.NetworkBlockNumberHash]: {
+				NetworkBlockNumberHash: {
 					resolve: async ({ $network, hash }) => {
 						assertPolkadotMainnet($network)
 						const { getBlock } = await import('$/sources/SubstrateSidecar/Rest/queries.ts')
 						const block = await getBlock({
-							binding: substrateSidecarBinding,
 							blockId: hash,
 						})
 						if (BigInt(block.number) === 0n) return undefined
@@ -522,12 +497,11 @@ export default {
 		defineResolver(Source.SubstrateSidecar_Rest, {
 			entityType: EntityType.PolkadotBlock,
 			resolve: {
-				[PolkadotBlockSelector.NetworkBlockNumberHash]: {
+				NetworkBlockNumberHash: {
 					resolve: async ({ $network, hash }) => {
 						assertPolkadotMainnet($network)
 						const { getBlock } = await import('$/sources/SubstrateSidecar/Rest/queries.ts')
 						const block = await getBlock({
-							binding: substrateSidecarBinding,
 							blockId: hash,
 						})
 						return block.extrinsics.map((extrinsic, extrinsicIndex) => ({
@@ -580,12 +554,11 @@ export default {
 		defineResolver(Source.SubstrateSidecar_Rest, {
 			entityType: EntityType.PolkadotBlock,
 			resolve: {
-				[PolkadotBlockSelector.NetworkBlockNumberHash]: {
+				NetworkBlockNumberHash: {
 					resolve: async ({ $network, hash }) => {
 						assertPolkadotMainnet($network)
 						const { getBlock } = await import('$/sources/SubstrateSidecar/Rest/queries.ts')
 						const block = await getBlock({
-							binding: substrateSidecarBinding,
 							blockId: hash,
 						})
 						return ([

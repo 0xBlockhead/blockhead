@@ -2,12 +2,12 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
@@ -23,33 +23,22 @@
 
 
 <Page>
+	{@const collectionSelection = select(EntityType._Global, {
+		scope: '$$coins',
+	})
+		.$$coins({
+			sources: [
+				Source.Constants_Internal,
+				Source.Coinpaprika_OpenApi,
+			],
+			limit: 8,
+		})}
+
 	<CoinsView
-		href={resolve('/coins')}
+		href={resolve('/(assets)/coins')}
 		title='Coins'
-		selection={
-			select(EntityType._Global, {
-				scope: '$$coins',
-			})
-				.$$coins({
-					sources: [
-						Source.Constants_Internal,
-						Source.Coinpaprika_OpenApi,
-					],
-					limit: 120,
-				})
-		}
-		countResource={
-			select(EntityType._Global, {
-				scope: '$$coins',
-			})
-				.$$coins({
-					sources: [
-						Source.Constants_Internal,
-						Source.Coinpaprika_OpenApi,
-					],
-					limit: 120,
-				}).count
-		}
+		selection={collectionSelection}
+		countResource={collectionSelection.count}
 		id='coins'
 		data-column-item="flexible"
 		data-card

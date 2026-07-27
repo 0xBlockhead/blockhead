@@ -1,14 +1,11 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { entity, facet } from '$/schema/$schema.ts'
+import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { type } from 'arktype'
 
-export enum AvalancheValidator_TimestampSelector {
-	ValidatorTimestampMsSource = 'ValidatorTimestampMsSource',
-}
-export const AvalancheValidator_Timestamp = entity({
+export default entity({
 	entityType: EntityType.AvalancheValidator_Timestamp,
 	labels: {
 		singular: 'avalanche validator timestamp',

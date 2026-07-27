@@ -2,13 +2,9 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -20,35 +16,18 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.CctpBurnFee_Timestamp>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.CctpBurnFee_Timestamp>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.CctpBurnFee_Timestamp> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const cctpBurnFeeTimestamp = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {},
-	} : {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const viewSelection = $derived(selection({
+		sources: selection.sources ?? [
+			Source.CircleCctp_IrisApi,
+		],
 	}))
-	const titleFallback = $derived([String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || 'CCTP burn fee timestamp')
-	const viewDomId = $derived('cctp-burn-fee-timestamp-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const titleFallback = $derived(String(pendingEntity.timestampMs ?? '') || 'CCTP burn fee timestamp')
 
 
 	// Components
@@ -60,97 +39,36 @@
 
 <EntityView
 	entityType={EntityType.CctpBurnFee_Timestamp}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, '$sourceDomain') && prefetched.$sourceDomain != null && Object.hasOwn(prefetched.$sourceDomain, 'name') && Object.hasOwn(prefetched, '$destinationDomain') && prefetched.$destinationDomain != null && Object.hasOwn(prefetched.$destinationDomain, 'name')}
-			{@const timestampMs0 = pendingEntity.timestampMs}
-			{#if timestampMs0 !== undefined && timestampMs0 !== null}
-				<Timestamp timestamp={Number(timestampMs0)} />
-			{/if}
-		{:else}
-			<ResourceBoundary resource={cctpBurnFeeTimestamp}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const timestampMs0 = resolvedEntity.timestampMs}
-					{#if timestampMs0 !== undefined && timestampMs0 !== null}
-						<Timestamp timestamp={Number(timestampMs0)} />
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
 	{/snippet}
 
 	{#snippet Value()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, '$sourceDomain') && prefetched.$sourceDomain != null && Object.hasOwn(prefetched.$sourceDomain, 'name') && Object.hasOwn(prefetched, '$destinationDomain') && prefetched.$destinationDomain != null && Object.hasOwn(prefetched.$destinationDomain, 'name')}
-			{@const cctpDomainSupport0 = pendingEntity.$sourceDomain}
-			{#if cctpDomainSupport0 != null && selection.entitySelector.$sourceDomain != null}
-				<CctpDomainSupportView
-					selection={select(EntityType.CctpDomainSupport, selection.entitySelector.$sourceDomain, { sources: selection.sources })}
-					prefetched={cctpDomainSupport0}
-					href=""
-					layout={EntityLayout.Value}
-					open={false}
-				/>
-			{/if}
-			{@const cctpDomainSupport1 = pendingEntity.$destinationDomain}
-			{#if cctpDomainSupport1 != null && selection.entitySelector.$destinationDomain != null}
-				<CctpDomainSupportView
-					selection={select(EntityType.CctpDomainSupport, selection.entitySelector.$destinationDomain, { sources: selection.sources })}
-					prefetched={cctpDomainSupport1}
-					href=""
-					layout={EntityLayout.Value}
-					open={false}
-				/>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={cctpBurnFeeTimestamp}>
-				{#snippet children(entity)}
-					<CctpDomainSupportView
-						selection={select(EntityType.CctpDomainSupport, selection.entitySelector.$sourceDomain)}
-						href=""
-						layout={EntityLayout.Value}
-						open={false}
-					/>
+		<CctpDomainSupportView
+			selection={select(EntityType.CctpDomainSupport, selection.entitySelector.$sourceDomain)}
+			href=""
+			layout={EntityLayout.Value}
+			open={false}
+		/>
 
-					<CctpDomainSupportView
-						selection={select(EntityType.CctpDomainSupport, selection.entitySelector.$destinationDomain)}
-						href=""
-						layout={EntityLayout.Value}
-						open={false}
-					/>
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<CctpDomainSupportView
+			selection={select(EntityType.CctpDomainSupport, selection.entitySelector.$destinationDomain)}
+			href=""
+			layout={EntityLayout.Value}
+			open={false}
+		/>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, '$sourceDomain') && prefetched.$sourceDomain != null && Object.hasOwn(prefetched.$sourceDomain, 'name') && Object.hasOwn(prefetched, '$destinationDomain') && prefetched.$destinationDomain != null && Object.hasOwn(prefetched.$destinationDomain, 'name')}
-			{@const source0 = pendingEntity.source}
-			{#if source0 !== undefined && source0 !== null}
-				<span data-text="muted">
-					{String((source0) ?? '')}
-				</span>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={cctpBurnFeeTimestamp}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const source0 = resolvedEntity.source}
-					{#if source0 !== undefined && source0 !== null}
-						<span data-text="muted">
-							{String((source0) ?? '')}
-						</span>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<span data-text="muted">
+			{pendingEntity.source}
+		</span>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -180,48 +98,14 @@
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									timestampMs: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const timestampMs = resolvedEntity.timestampMs}
-							{#if timestampMs !== undefined && timestampMs !== null}
-								<Timestamp timestamp={Number(timestampMs)} />
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									source: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const source = resolvedEntity.source}
-							{#if source !== undefined && source !== null}
-								{String((source) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{pendingEntity.source}
 				</dd>
 			</div>
 		</dl>
@@ -232,8 +116,7 @@
 				<dd>
 					<ResourceBoundary
 						resource={
-							selection({
-								sources: selection.sources,
+							viewSelection({
 								fields: {
 									forward: true,
 								},
@@ -241,11 +124,7 @@
 						}
 					>
 						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const forward = resolvedEntity.forward}
-							{#if forward !== undefined && forward !== null}
-								{forward ? 'Yes' : 'No'}
-							{/if}
+							{entity.forward ? 'Yes' : 'No'}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -253,8 +132,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							hyperCoreDeposit: true,
 						},
@@ -262,9 +140,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const hyperCoreDeposit = resolvedEntity.hyperCoreDeposit}
-					{#if hyperCoreDeposit !== undefined && hyperCoreDeposit !== null}
+					{@const hyperCoreDeposit = entity.hyperCoreDeposit}
+					{#if hyperCoreDeposit != null}
 						<div>
 							<dt>HyperCore deposit</dt>
 							<dd>

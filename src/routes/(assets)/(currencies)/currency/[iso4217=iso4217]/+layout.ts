@@ -4,7 +4,7 @@ import type { LayoutLoad } from './$types'
 import { error } from '@sveltejs/kit'
 import { match as matchIso4217 } from '$/params/iso4217.ts'
 import { parseEntitySelector } from '$/schema/$schema.ts'
-import { Currency as CurrencySchema } from '$/schema/Currency.ts'
+import CurrencySchema from '$/schema/Currency.ts'
 import { schema } from '$/schema/index.ts'
 import { type as arktype } from 'arktype'
 

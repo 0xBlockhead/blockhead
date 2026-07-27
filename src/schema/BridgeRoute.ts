@@ -1,6 +1,6 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { entity, facet } from '$/schema/$schema.ts'
+import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { EvmAddress } from '$/schema/ZeroExHex.ts'
@@ -13,10 +13,8 @@ export enum BridgeRouteTag {
 	Fastest = 'FASTEST',
 	Recommended = 'RECOMMENDED',
 }
-export enum BridgeRouteSelector {
-	Quote = 'Quote',
-}
-export const BridgeRoute = entity({
+
+export default entity({
 	entityType: EntityType.BridgeRoute,
 	labels: {
 		singular: 'bridge route',
@@ -26,13 +24,13 @@ export const BridgeRoute = entity({
 	fromChainId: {
 		label: 'From chain ID',
 		type: EntityFieldType.Primitive,
-		primitiveType: (type('number.integer >= 0')),
+		primitiveType: type('number.integer >= 0'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	toChainId: {
 		label: 'To chain ID',
 		type: EntityFieldType.Primitive,
-		primitiveType: (type('number.integer >= 0')),
+		primitiveType: type('number.integer >= 0'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	fromToken: {
@@ -50,25 +48,25 @@ export const BridgeRoute = entity({
 	fromAmount: {
 		label: 'From amount',
 		type: EntityFieldType.Primitive,
-		primitiveType: (type('bigint').narrow((value) => value >= 0n)),
+		primitiveType: type('bigint').narrow((value) => value >= 0n),
 		cardinality: EntityFieldCardinality.One,
 	},
 	fromAddress: {
 		label: 'From address',
 		type: EntityFieldType.Primitive,
-		primitiveType: (EvmAddress),
+		primitiveType: EvmAddress,
 		cardinality: EntityFieldCardinality.One,
 	},
 	slippage: {
 		label: 'Slippage',
 		type: EntityFieldType.Primitive,
-		primitiveType: (type('number >= 0')),
+		primitiveType: type('number >= 0'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	toAddress: {
 		label: 'To address',
 		type: EntityFieldType.Primitive,
-		primitiveType: (EvmAddress),
+		primitiveType: EvmAddress,
 		cardinality: EntityFieldCardinality.One,
 	},
 	$$steps: {

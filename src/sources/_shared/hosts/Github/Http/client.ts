@@ -1,5 +1,8 @@
-import { getJson, getText } from '$/lib/http.ts'
-import type { SourceEndpoint } from '$/sources/SourceBinding.ts'
+import {
+	sourceGetJson,
+	sourceGetText,
+} from '$/sources/_runtime/http.ts'
+import type { SourceBinding } from '$/sources/SourceBinding.ts'
 import type {
 	GithubContentsEntry,
 	GithubRepositoryTarget,
@@ -24,41 +27,27 @@ export const githubRawUrl = ({
 )
 
 export const getGithubContents = ({
-	endpoints,
+	binding,
 	target,
 }: {
-	endpoints: readonly SourceEndpoint[]
+	binding: SourceBinding
 	target: GithubRepositoryTarget
 }): Promise<GithubContentsEntry[]> => (
-	getJson<GithubContentsEntry[]>(githubContentsUrl(target), {
-		origins: endpoints.flatMap((endpoint) => (
-			endpoint.origin == null ?
-				[]
-			:
-				[{
-					origin: endpoint.origin,
-					corsEnabled: endpoint.corsEnabled === true,
-				}]
-		)),
-	})
+	sourceGetJson<GithubContentsEntry[]>(
+		binding,
+		githubContentsUrl(target)
+	)
 )
 
 export const getGithubRawText = ({
-	endpoints,
+	binding,
 	target,
 }: {
-	endpoints: readonly SourceEndpoint[]
+	binding: SourceBinding
 	target: GithubRepositoryTarget
 }): Promise<string> => (
-	getText(githubRawUrl(target), {
-		origins: endpoints.flatMap((endpoint) => (
-			endpoint.origin == null ?
-				[]
-			:
-				[{
-					origin: endpoint.origin,
-					corsEnabled: endpoint.corsEnabled === true,
-				}]
-		)),
-	})
+	sourceGetText(
+		binding,
+		githubRawUrl(target)
+	)
 )

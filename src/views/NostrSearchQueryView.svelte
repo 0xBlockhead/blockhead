@@ -2,12 +2,8 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { stringify } from 'devalue'
 	import { Source } from '$/sources/Source.ts'
@@ -22,37 +18,22 @@
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.NostrSearchQuery>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.NostrSearchQuery>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.NostrSearchQuery> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const nostrSearchQuery = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {
-			resultCount: true,
-		},
-	} : {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const viewSelection = $derived(selection({
+		sources: selection.sources ?? [
+			Source.NostrBand_Rest,
+		],
+	}))
+	const nostrSearchQuery = $derived(viewSelection({
 		fields: {
 			resultCount: true,
 			completed: true,
 		},
 	}))
-	const titleFallback = $derived([String((pendingEntity.query) ?? '')].filter(Boolean).join(' ') || 'Nostr profile search')
-	const viewDomId = $derived('nostr-search-query-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const titleFallback = $derived((pendingEntity.query ?? '') || 'Nostr profile search')
+	const viewDomId = $derived('nostr-search-query-' + encodeURIComponent(stringify(selection.entitySelector)))
 
 
 	// Components
@@ -66,18 +47,15 @@
 
 <EntityView
 	entityType={EntityType.NostrSearchQuery}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
+	entitySelector={selection.entitySelector}
 	id={viewDomId}
 	title={title ?? titleFallback}
 	href={
-		href ?? (
-			selection.entitySelector != null && 'query' in selection.entitySelector
-			&& selection.entitySelector.query != null ?
-				resolve('/nostr/search/[query=stringSegment]', {
-			query: String(selection.entitySelector.query ?? ''),
-		})
-		:
-				undefined
+		href ?? resolve(
+			'/(social)/(nostr)/nostr/(globalNostrNetwork)/search/[query=stringSegment]',
+			{
+				query: String(selection.entitySelector.query),
+			}
 		)
 	}
 	{layout}
@@ -85,39 +63,17 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'resultCount')}
-			{[String((pendingEntity.query) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-		{:else}
-			<ResourceBoundary resource={nostrSearchQuery}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.query) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		{(pendingEntity.query ?? '') || 'Nostr profile search'}
 	{/snippet}
 
 	{#snippet Value()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'resultCount')}
-			{@const resultCount0 = pendingEntity.resultCount}
-			{#if resultCount0 !== undefined && resultCount0 !== null}
+		<ResourceBoundary resource={nostrSearchQuery}>
+			{#snippet children(entity)}
 				<NumberValue
-					value={resultCount0}
+					value={entity.resultCount}
 				/>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={nostrSearchQuery}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const resultCount0 = resolvedEntity.resultCount}
-					{#if resultCount0 !== undefined && resultCount0 !== null}
-						<NumberValue
-							value={resultCount0}
-						/>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet TypeAnnotationTooltip()}
@@ -131,24 +87,7 @@
 			<div>
 				<dt>Query</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									query: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const query = resolvedEntity.query}
-							{#if query !== undefined && query !== null}
-								{String((query) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{pendingEntity.query}
 				</dd>
 			</div>
 
@@ -156,23 +95,12 @@
 				<dt>Results</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									resultCount: true,
-								},
-							})
-						}
+						resource={nostrSearchQuery}
 					>
 						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const resultCount = resolvedEntity.resultCount}
-							{#if resultCount !== undefined && resultCount !== null}
-								<NumberValue
-									value={resultCount}
-								/>
-							{/if}
+							<NumberValue
+								value={entity.resultCount}
+							/>
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -182,21 +110,10 @@
 				<dt>Completed</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									completed: true,
-								},
-							})
-						}
+						resource={nostrSearchQuery}
 					>
 						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const completed = resolvedEntity.completed}
-							{#if completed !== undefined && completed !== null}
-								{completed ? 'Yes' : 'No'}
-							{/if}
+							{entity.completed ? 'Yes' : 'No'}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -205,103 +122,41 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-				<CollapsibleTabs
-					id={viewDomId + '-carousel-nostr-search-results'}
-					sectionIdPrefix={viewDomId}
-					sections={
-						[
-							{
-								id: 'nostr-search-profiles',
-								label: 'Profiles',
-								ownsSection: true,
-							},
-						]
-					}
+		<CollapsibleTabs
+			id={viewDomId + '-carousel-nostr-search-results'}
+			sectionIdPrefix={viewDomId}
+			sections={
+				[
+					{
+						id: 'nostr-search-profiles',
+						label: 'Profiles',
+					},
+				]
+			}
+			data-card
+			class='network-view-collapsible-results'
+		>
+			{#snippet Summary()}
+				<header data-row-item="flexible" data-row="wrap gap-4">
+					<HeadingComponent>Profile results</HeadingComponent>
+				</header>
+			{/snippet}
+
+			{#snippet SectionNostrSearchProfiles({ id, label, open })}
+				<NostrProfilesView
+					selection={selection.$$profiles}
+					CollapsibleProps={{ canToggle: false }}
+					collapsible={false}
+					data-column-item="flexible"
 					data-card
-					class='network-view-collapsible-results'
-				>
-					{#snippet Summary()}
-						<header data-row-item="flexible" data-row="wrap gap-4">
-							<HeadingComponent>Profile results</HeadingComponent>
-						</header>
-					{/snippet}
+					data-scroll-container
+					open={open}
+					title={label}
+					emptyText='No matching Nostr profiles.'
+					id={`${id}-list`}
+				/>
+			{/snippet}
 
-					{#snippet MarkerNostrSearchProfiles(_context, Content)}
-						{@const nostrSearchResultsNostrSearchProfilesResource = selection
-		.$$profiles({
-			sources: [
-				Source.NostrBand_Rest,
-			],
-		})}
-						<ResourceBoundary
-							resource={nostrSearchResultsNostrSearchProfilesResource}
-						>
-							{#snippet children(_resolved)}
-								{@render Content()}
-							{/snippet}
-
-							{#snippet PendingContent()}
-								{@render Content()}
-							{/snippet}
-
-							{#snippet FailedContent(_error, _retry)}
-								{@render Content()}
-							{/snippet}
-						</ResourceBoundary>
-					{/snippet}
-
-					{#snippet SectionNostrSearchProfiles({ id, label, open, active })}
-						{@const nostrSearchResultsNostrSearchProfilesResource = selection
-		.$$profiles({
-			sources: [
-				Source.NostrBand_Rest,
-			],
-		})}
-						<ResourceBoundary
-							resource={nostrSearchResultsNostrSearchProfilesResource}
-						>
-							{#snippet children(nostrProfile)}
-								<section
-									id={id}
-									aria-labelledby={`${id}:marker`}
-									data-scroll-marker-label={label}
-									data-column-item="flexible"
-									data-column
-									data-active={active}
-								>
-									<NostrProfilesView
-										selection={nostrSearchResultsNostrSearchProfilesResource}
-										CollapsibleProps={{ canToggle: false }}
-										collapsible={false}
-										data-column-item="flexible"
-										data-card
-										data-scroll-container
-										open={open}
-										title={label}
-										emptyText='No matching Nostr profiles.'
-										id={`${id}-list`}
-									/>
-								</section>
-							{/snippet}
-
-							{#snippet Pending()}
-								<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
-									<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
-										<span data-tag data-text="muted" data-resource-state="pending" class="loading inline-placeholder" aria-busy="true" aria-label="Loading…">•••</span>
-									</article>
-								</section>
-							{/snippet}
-
-							{#snippet Failed(_error, _retry)}
-								<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
-									<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
-										<span data-tag data-resource-state="failed" class="inline-placeholder" aria-label="Failed to load">•••</span>
-									</article>
-								</section>
-							{/snippet}
-						</ResourceBoundary>
-					{/snippet}
-
-				</CollapsibleTabs>
+		</CollapsibleTabs>
 	{/snippet}
 </EntityView>

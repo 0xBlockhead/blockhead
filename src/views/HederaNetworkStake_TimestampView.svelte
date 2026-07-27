@@ -2,15 +2,8 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
-	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -22,35 +15,13 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.HederaNetworkStake_Timestamp>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.HederaNetworkStake_Timestamp>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.HederaNetworkStake_Timestamp> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const hederaNetworkStakeTimestamp = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {},
-	} : {
-		sources: selection.sources,
-	}))
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const titleFallback = 'hedera network stake timestamp'
-	const viewDomId = $derived('hedera-network-stake-timestamp-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -62,24 +33,14 @@
 
 <EntityView
 	entityType={EntityType.HederaNetworkStake_Timestamp}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails}
-			{title || titleFallback}
-		{:else}
-			<ResourceBoundary resource={hederaNetworkStakeTimestamp}>
-				{#snippet children(entity)}
-					{title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		hedera network stake timestamp
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -89,23 +50,6 @@
 				<dd>
 					<NetworkView
 						selection={select(EntityType.Network, selection.entitySelector.$network)}
-						href={
-							(
-								selection.entitySelector.$network != null && 'caip2' in selection.entitySelector.$network
-								&& selection.entitySelector.$network.caip2 != null ?
-									resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-								network: String(caip2StringFromValue(selection.entitySelector.$network.caip2) ?? ''),
-							})
-							:
-									selection.entitySelector.$network != null && 'slug' in selection.entitySelector.$network
-									&& selection.entitySelector.$network.slug != null ?
-										resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-									network: String(selection.entitySelector.$network.slug ?? ''),
-								})
-								:
-									undefined
-							)
-						}
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -115,55 +59,20 @@
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									timestampMs: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const timestampMs = resolvedEntity.timestampMs}
-							{#if timestampMs !== undefined && timestampMs !== null}
-								<Timestamp timestamp={Number(timestampMs)} />
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									source: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const source = resolvedEntity.source}
-							{#if source !== undefined && source !== null}
-								{String((source) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{pendingEntity.source}
 				</dd>
 			</div>
 
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							epochDay: true,
 						},
@@ -171,13 +80,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const epochDay = resolvedEntity.epochDay}
-					{#if epochDay !== undefined && epochDay !== null}
+					{@const epochDay = entity.epochDay}
+					{#if epochDay != null}
 						<div>
 							<dt>epoch day</dt>
 							<dd>
-								{String((epochDay) ?? '')}
+								{String(epochDay)}
 							</dd>
 						</div>
 					{/if}
@@ -187,7 +95,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							maxStakeRewardedTinybar: true,
 						},
@@ -195,13 +102,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const maxStakeRewardedTinybar = resolvedEntity.maxStakeRewardedTinybar}
-					{#if maxStakeRewardedTinybar !== undefined && maxStakeRewardedTinybar !== null}
+					{@const maxStakeRewardedTinybar = entity.maxStakeRewardedTinybar}
+					{#if maxStakeRewardedTinybar != null}
 						<div>
 							<dt>max stake rewarded tinybar</dt>
 							<dd>
-								{String((maxStakeRewardedTinybar) ?? '')}
+								{String(maxStakeRewardedTinybar)}
 							</dd>
 						</div>
 					{/if}
@@ -211,7 +117,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							maxStakingRewardRatePerHbar: true,
 						},
@@ -219,13 +124,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const maxStakingRewardRatePerHbar = resolvedEntity.maxStakingRewardRatePerHbar}
-					{#if maxStakingRewardRatePerHbar !== undefined && maxStakingRewardRatePerHbar !== null}
+					{@const maxStakingRewardRatePerHbar = entity.maxStakingRewardRatePerHbar}
+					{#if maxStakingRewardRatePerHbar != null}
 						<div>
 							<dt>max staking reward rate per HBAR</dt>
 							<dd>
-								{String((maxStakingRewardRatePerHbar) ?? '')}
+								{String(maxStakingRewardRatePerHbar)}
 							</dd>
 						</div>
 					{/if}
@@ -235,7 +139,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							maxTotalRewardTinybar: true,
 						},
@@ -243,13 +146,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const maxTotalRewardTinybar = resolvedEntity.maxTotalRewardTinybar}
-					{#if maxTotalRewardTinybar !== undefined && maxTotalRewardTinybar !== null}
+					{@const maxTotalRewardTinybar = entity.maxTotalRewardTinybar}
+					{#if maxTotalRewardTinybar != null}
 						<div>
 							<dt>max total reward tinybar</dt>
 							<dd>
-								{String((maxTotalRewardTinybar) ?? '')}
+								{String(maxTotalRewardTinybar)}
 							</dd>
 						</div>
 					{/if}
@@ -259,7 +161,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							nodeRewardFeeFraction: true,
 						},
@@ -267,13 +168,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const nodeRewardFeeFraction = resolvedEntity.nodeRewardFeeFraction}
-					{#if nodeRewardFeeFraction !== undefined && nodeRewardFeeFraction !== null}
+					{@const nodeRewardFeeFraction = entity.nodeRewardFeeFraction}
+					{#if nodeRewardFeeFraction != null}
 						<div>
 							<dt>node reward fee fraction</dt>
 							<dd>
-								{String((nodeRewardFeeFraction) ?? '')}
+								{String(nodeRewardFeeFraction)}
 							</dd>
 						</div>
 					{/if}
@@ -283,7 +183,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							reservedStakingRewardsTinybar: true,
 						},
@@ -291,13 +190,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const reservedStakingRewardsTinybar = resolvedEntity.reservedStakingRewardsTinybar}
-					{#if reservedStakingRewardsTinybar !== undefined && reservedStakingRewardsTinybar !== null}
+					{@const reservedStakingRewardsTinybar = entity.reservedStakingRewardsTinybar}
+					{#if reservedStakingRewardsTinybar != null}
 						<div>
 							<dt>reserved staking rewards tinybar</dt>
 							<dd>
-								{String((reservedStakingRewardsTinybar) ?? '')}
+								{String(reservedStakingRewardsTinybar)}
 							</dd>
 						</div>
 					{/if}
@@ -307,7 +205,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							rewardBalanceTinybar: true,
 						},
@@ -315,13 +212,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const rewardBalanceTinybar = resolvedEntity.rewardBalanceTinybar}
-					{#if rewardBalanceTinybar !== undefined && rewardBalanceTinybar !== null}
+					{@const rewardBalanceTinybar = entity.rewardBalanceTinybar}
+					{#if rewardBalanceTinybar != null}
 						<div>
 							<dt>reward balance tinybar</dt>
 							<dd>
-								{String((rewardBalanceTinybar) ?? '')}
+								{String(rewardBalanceTinybar)}
 							</dd>
 						</div>
 					{/if}
@@ -331,7 +227,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							stakeTotalTinybar: true,
 						},
@@ -339,13 +234,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const stakeTotalTinybar = resolvedEntity.stakeTotalTinybar}
-					{#if stakeTotalTinybar !== undefined && stakeTotalTinybar !== null}
+					{@const stakeTotalTinybar = entity.stakeTotalTinybar}
+					{#if stakeTotalTinybar != null}
 						<div>
 							<dt>stake total tinybar</dt>
 							<dd>
-								{String((stakeTotalTinybar) ?? '')}
+								{String(stakeTotalTinybar)}
 							</dd>
 						</div>
 					{/if}
@@ -355,7 +249,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							stakingPeriodsStored: true,
 						},
@@ -363,13 +256,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const stakingPeriodsStored = resolvedEntity.stakingPeriodsStored}
-					{#if stakingPeriodsStored !== undefined && stakingPeriodsStored !== null}
+					{@const stakingPeriodsStored = entity.stakingPeriodsStored}
+					{#if stakingPeriodsStored != null}
 						<div>
 							<dt>staking periods stored</dt>
 							<dd>
-								{String((stakingPeriodsStored) ?? '')}
+								{String(stakingPeriodsStored)}
 							</dd>
 						</div>
 					{/if}
@@ -379,7 +271,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							stakingRewardFeeFraction: true,
 						},
@@ -387,13 +278,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const stakingRewardFeeFraction = resolvedEntity.stakingRewardFeeFraction}
-					{#if stakingRewardFeeFraction !== undefined && stakingRewardFeeFraction !== null}
+					{@const stakingRewardFeeFraction = entity.stakingRewardFeeFraction}
+					{#if stakingRewardFeeFraction != null}
 						<div>
 							<dt>staking reward fee fraction</dt>
 							<dd>
-								{String((stakingRewardFeeFraction) ?? '')}
+								{String(stakingRewardFeeFraction)}
 							</dd>
 						</div>
 					{/if}
@@ -403,7 +293,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							stakingStartThresholdTinybar: true,
 						},
@@ -411,13 +300,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const stakingStartThresholdTinybar = resolvedEntity.stakingStartThresholdTinybar}
-					{#if stakingStartThresholdTinybar !== undefined && stakingStartThresholdTinybar !== null}
+					{@const stakingStartThresholdTinybar = entity.stakingStartThresholdTinybar}
+					{#if stakingStartThresholdTinybar != null}
 						<div>
 							<dt>staking start threshold tinybar</dt>
 							<dd>
-								{String((stakingStartThresholdTinybar) ?? '')}
+								{String(stakingStartThresholdTinybar)}
 							</dd>
 						</div>
 					{/if}
@@ -427,7 +315,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							unreservedStakingRewardBalanceTinybar: true,
 						},
@@ -435,13 +322,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const unreservedStakingRewardBalanceTinybar = resolvedEntity.unreservedStakingRewardBalanceTinybar}
-					{#if unreservedStakingRewardBalanceTinybar !== undefined && unreservedStakingRewardBalanceTinybar !== null}
+					{@const unreservedStakingRewardBalanceTinybar = entity.unreservedStakingRewardBalanceTinybar}
+					{#if unreservedStakingRewardBalanceTinybar != null}
 						<div>
 							<dt>unreserved staking reward balance tinybar</dt>
 							<dd>
-								{String((unreservedStakingRewardBalanceTinybar) ?? '')}
+								{String(unreservedStakingRewardBalanceTinybar)}
 							</dd>
 						</div>
 					{/if}

@@ -2,15 +2,10 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
-	import { caip2StringFromValue } from '$/lib/caip2.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -22,41 +17,24 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.BlockheadSharedAddress>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.BlockheadSharedAddress>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.BlockheadSharedAddress> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const blockheadSharedAddress = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {
-			sharedAt: true,
-		},
-	} : {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const viewSelection = $derived(selection({
+		sources: selection.sources ?? [
+			Source.Local_Internal,
+		],
+	}))
+	const blockheadSharedAddress = $derived(viewSelection({
 		fields: {
 			peerId: true,
 			sharedAt: true,
 		},
 	}))
 	const titleFallback = 'blockhead shared address'
-	const viewDomId = $derived('blockhead-shared-address-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -71,32 +49,24 @@
 
 <EntityView
 	entityType={EntityType.BlockheadSharedAddress}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={blockheadSharedAddress}>
-			{#snippet children(entity)}
-				<ResourceBoundary
-					resource={selection.$account}
-				>
-					{#snippet children(evmAccount)}
-						{#if evmAccount != null && evmAccount[EntityMetaKey.Selector] != null}
-						<EvmAccountView
-							selection={select(EntityType.EvmAccount, evmAccount[EntityMetaKey.Selector])}
-							prefetched={evmAccount}
-							href=""
-							layout={EntityLayout.Title}
-							open={false}
-						/>
-						{/if}
-					{/snippet}
-				</ResourceBoundary>
+		<ResourceBoundary
+			resource={selection.$account}
+		>
+			{#snippet children(evmAccount)}
+				<EvmAccountView
+					selection={select(EntityType.EvmAccount, evmAccount[EntityMetaKey.Selector])}
+					prefetched={evmAccount}
+					href=""
+					layout={EntityLayout.Title}
+					open={false}
+				/>
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -104,11 +74,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={blockheadSharedAddress}>
 			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const sharedAt0 = resolvedEntity.sharedAt}
-				{#if sharedAt0 !== undefined && sharedAt0 !== null}
-					<Timestamp timestamp={Number(sharedAt0)} />
-				{/if}
+				<Timestamp timestamp={Number(entity.sharedAt)} />
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -118,24 +84,7 @@
 			<div>
 				<dt>ID</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									id: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const id = resolvedEntity.id}
-							{#if id !== undefined && id !== null}
-								{String((id) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{pendingEntity.id}
 				</dd>
 			</div>
 
@@ -146,31 +95,12 @@
 						resource={selection.$network}
 					>
 						{#snippet children(network)}
-							{#if network != null && network[EntityMetaKey.Selector] != null}
-								<NetworkView
-									selection={select(EntityType.Network, network[EntityMetaKey.Selector])}
-									prefetched={network}
-									href={
-										(
-											network[EntityMetaKey.Selector] != null && 'caip2' in network[EntityMetaKey.Selector]
-											&& network[EntityMetaKey.Selector].caip2 != null ?
-												resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-											network: String(caip2StringFromValue(network[EntityMetaKey.Selector].caip2) ?? ''),
-										})
-										:
-												network[EntityMetaKey.Selector] != null && 'slug' in network[EntityMetaKey.Selector]
-												&& network[EntityMetaKey.Selector].slug != null ?
-													resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-												network: String(network[EntityMetaKey.Selector].slug ?? ''),
-											})
-											:
-												undefined
-										)
-									}
-									layout={EntityLayout.Value}
-									open={false}
-								/>
-							{/if}
+							<NetworkView
+								selection={select(EntityType.Network, network[EntityMetaKey.Selector])}
+								prefetched={network}
+								layout={EntityLayout.Value}
+								open={false}
+							/>
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -183,25 +113,12 @@
 						resource={selection.$room}
 					>
 						{#snippet children(blockheadRoom)}
-							{#if blockheadRoom != null && blockheadRoom[EntityMetaKey.Selector] != null}
-								<BlockheadRoomView
-									selection={select(EntityType.BlockheadRoom, blockheadRoom[EntityMetaKey.Selector])}
-									prefetched={blockheadRoom}
-									href={
-										(
-											blockheadRoom[EntityMetaKey.Selector] != null && 'id' in blockheadRoom[EntityMetaKey.Selector]
-											&& blockheadRoom[EntityMetaKey.Selector].id != null ?
-												resolve('/~/multiplayer/room/[roomId=stringSegment]', {
-											roomId: String(blockheadRoom[EntityMetaKey.Selector].id ?? ''),
-										})
-										:
-												undefined
-										)
-									}
-									layout={EntityLayout.Value}
-									open={false}
-								/>
-							{/if}
+							<BlockheadRoomView
+								selection={select(EntityType.BlockheadRoom, blockheadRoom[EntityMetaKey.Selector])}
+								prefetched={blockheadRoom}
+								layout={EntityLayout.Value}
+								open={false}
+							/>
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -211,21 +128,10 @@
 				<dt>peer ID</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									peerId: true,
-								},
-							})
-						}
+						resource={blockheadSharedAddress}
 					>
 						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const peerId = resolvedEntity.peerId}
-							{#if peerId !== undefined && peerId !== null}
-								{String((peerId) ?? '')}
-							{/if}
+							{entity.peerId}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -238,25 +144,12 @@
 						resource={selection.$account}
 					>
 						{#snippet children(evmAccount)}
-							{#if evmAccount != null && evmAccount[EntityMetaKey.Selector] != null}
-								<EvmAccountView
-									selection={select(EntityType.EvmAccount, evmAccount[EntityMetaKey.Selector])}
-									prefetched={evmAccount}
-									href={
-										(
-											evmAccount[EntityMetaKey.Selector] != null && 'address' in evmAccount[EntityMetaKey.Selector]
-											&& evmAccount[EntityMetaKey.Selector].address != null ?
-												resolve('/account/[address=evmAddress]', {
-											address: String(evmAccount[EntityMetaKey.Selector].address ?? ''),
-										})
-										:
-												undefined
-										)
-									}
-									layout={EntityLayout.Value}
-									open={false}
-								/>
-							{/if}
+							<EvmAccountView
+								selection={select(EntityType.EvmAccount, evmAccount[EntityMetaKey.Selector])}
+								prefetched={evmAccount}
+								layout={EntityLayout.Value}
+								open={false}
+							/>
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -266,21 +159,10 @@
 				<dt>shared AT</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									sharedAt: true,
-								},
-							})
-						}
+						resource={blockheadSharedAddress}
 					>
 						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const sharedAt = resolvedEntity.sharedAt}
-							{#if sharedAt !== undefined && sharedAt !== null}
-								<Timestamp timestamp={Number(sharedAt)} />
-							{/if}
+							<Timestamp timestamp={Number(entity.sharedAt)} />
 						{/snippet}
 					</ResourceBoundary>
 				</dd>

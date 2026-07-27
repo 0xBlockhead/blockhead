@@ -1,6 +1,7 @@
-import type { SourceBinding } from '$/sources/SourceBinding.ts'
 import { catalogRowsRequest } from '$/sources/_shared/wire/CatalogRows/client.ts'
+import bindings from '$/sources/EigenLayer/bindings.ts'
+import { Source } from '$/sources/Source.ts'
 
-export const getCatalogRows = (binding: SourceBinding) => (
-	catalogRowsRequest(binding)
+export const getCatalogRows = () => (
+	catalogRowsRequest(bindings[Source.EigenLayerContracts_Evm])
 )

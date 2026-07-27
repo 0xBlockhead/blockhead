@@ -5,7 +5,7 @@ import { error } from '@sveltejs/kit'
 import { networkByCaip2, networkBySlug } from '$/constants/Network.ts'
 import { match as matchNonNegativeInteger } from '$/params/nonNegativeInteger.ts'
 import { parseEntitySelector } from '$/schema/$schema.ts'
-import { EthereumBeaconFinality_Timestamp as EthereumBeaconFinality_TimestampSchema } from '$/schema/EthereumBeaconFinality_Timestamp.ts'
+import EthereumBeaconFinality_TimestampSchema from '$/schema/EthereumBeaconFinality_Timestamp.ts'
 import { schema } from '$/schema/index.ts'
 import { type as arktype } from 'arktype'
 

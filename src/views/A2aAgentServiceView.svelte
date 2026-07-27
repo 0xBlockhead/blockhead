@@ -2,13 +2,8 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
 	import { UrlString } from '$/schema/UrlString.ts'
 
 
@@ -21,40 +16,21 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.A2aAgentService>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.A2aAgentService>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.A2aAgentService> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const a2aAgentService = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {
-			transportKind: true,
-		},
-	} : {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const viewSelection = $derived(selection({
+		sources: selection.sources ?? [],
+	}))
+	const a2aAgentService = $derived(viewSelection({
 		fields: {
 			transportKind: true,
 		},
 	}))
-	const titleFallback = $derived([String((pendingEntity.endpointUrl) ?? '')].filter(Boolean).join(' ') || 'A2A agent service')
-	const viewDomId = $derived('a2a-agent-service-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const titleFallback = $derived(String(pendingEntity.endpointUrl ?? '') || 'A2A agent service')
 
 
 	// Components
@@ -68,61 +44,31 @@
 
 <EntityView
 	entityType={EntityType.A2aAgentService}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'transportKind')}
-			{[String((pendingEntity.endpointUrl) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-		{:else}
-			<ResourceBoundary resource={a2aAgentService}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.endpointUrl) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		{String(pendingEntity.endpointUrl ?? '') || 'A2A agent service'}
 	{/snippet}
 
 	{#snippet Value()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'transportKind')}
-			{[String((pendingEntity.protocolBinding) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.endpointUrl) ?? '')].filter(Boolean).join(' ') || titleFallback}
-		{:else}
-			<ResourceBoundary resource={a2aAgentService}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.protocolBinding) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.endpointUrl) ?? '')].filter(Boolean).join(' ') || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		{(pendingEntity.protocolBinding ?? '') || String(pendingEntity.endpointUrl ?? '') || titleFallback}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'transportKind')}
-			{@const transportKind0 = pendingEntity.transportKind}
-			{#if transportKind0 !== undefined && transportKind0 !== null}
-				<span data-text="muted">
-					{String((transportKind0) ?? '')}
-				</span>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={a2aAgentService}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const transportKind0 = resolvedEntity.transportKind}
-					{#if transportKind0 !== undefined && transportKind0 !== null}
-						<span data-text="muted">
-							{String((transportKind0) ?? '')}
-						</span>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={a2aAgentService}>
+			{#snippet children(entity)}
+				{@const transportKind0 = entity.transportKind}
+				{#if transportKind0 != null}
+					<span data-text="muted">
+						{transportKind0}
+					</span>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -141,76 +87,33 @@
 			<div>
 				<dt>protocol binding</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									protocolBinding: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const protocolBinding = resolvedEntity.protocolBinding}
-							{#if protocolBinding !== undefined && protocolBinding !== null}
-								{String((protocolBinding) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{pendingEntity.protocolBinding}
 				</dd>
 			</div>
 
 			<div>
 				<dt>endpoint URL</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									endpointUrl: true,
-								},
-							})
-						}
+					<a
+						href={String(pendingEntity.endpointUrl)}
+						target="_blank"
+						rel="noreferrer noopener"
 					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const endpointUrl = resolvedEntity.endpointUrl}
-							{#if endpointUrl !== undefined && endpointUrl !== null}
-								<svelte:element
-									this={'a'}
-									href={String(endpointUrl)}
-									target="_blank"
-									rel="noreferrer noopener"
-								>
-									<TruncatedValue value={String(endpointUrl)} />
-								</svelte:element>
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+						<TruncatedValue value={String(pendingEntity.endpointUrl)} />
+					</a>
 				</dd>
 			</div>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							transportKind: true,
-						},
-					})
-				}
+				resource={a2aAgentService}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const transportKind = resolvedEntity.transportKind}
-					{#if transportKind !== undefined && transportKind !== null}
+					{@const transportKind = entity.transportKind}
+					{#if transportKind != null}
 						<div>
 							<dt>transport kind</dt>
 							<dd>
-								{String((transportKind) ?? '')}
+								{transportKind}
 							</dd>
 						</div>
 					{/if}
@@ -219,8 +122,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							authKind: true,
 						},
@@ -228,13 +130,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const authKind = resolvedEntity.authKind}
-					{#if authKind !== undefined && authKind !== null}
+					{@const authKind = entity.authKind}
+					{#if authKind != null}
 						<div>
 							<dt>auth kind</dt>
 							<dd>
-								{String((authKind) ?? '')}
+								{authKind}
 							</dd>
 						</div>
 					{/if}
@@ -250,12 +151,12 @@
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
-				<A2aTasksView
-					selection={a2aAgentServiceA2aTasksViewTasksResource}
-					countResource={a2aAgentServiceA2aTasksViewTasksResource.count}
-					title='tasks'
-					id='A2aTasksView-tasks'
-				/>
+					<A2aTasksView
+						selection={a2aAgentServiceA2aTasksViewTasksResource}
+						countResource={a2aAgentServiceA2aTasksViewTasksResource.count}
+						title='tasks'
+						id='tasks'
+					/>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>
@@ -265,12 +166,12 @@
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
-				<A2aAgentService_TimestampsView
-					selection={a2aAgentServiceA2aAgentServiceTimestampsViewTimestampsResource}
-					countResource={a2aAgentServiceA2aAgentServiceTimestampsViewTimestampsResource.count}
-					title='timestamps'
-					id='A2aAgentService_TimestampsView-timestamps'
-				/>
+					<A2aAgentService_TimestampsView
+						selection={a2aAgentServiceA2aAgentServiceTimestampsViewTimestampsResource}
+						countResource={a2aAgentServiceA2aAgentServiceTimestampsViewTimestampsResource.count}
+						title='timestamps'
+						id='timestamps'
+					/>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>

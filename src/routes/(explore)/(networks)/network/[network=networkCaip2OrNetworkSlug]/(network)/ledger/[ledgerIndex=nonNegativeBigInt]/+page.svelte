@@ -7,14 +7,12 @@
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		data,
-		params,
 	}: PageProps = $props()
 
 	const pageSelection = $derived(select(EntityType.XrplLedger, data.selector, {
@@ -37,18 +35,12 @@
 
 
 <svelte:head>
-	<title>{(data.title ?? (pageSelection.entity == null ? 'XRPL ledger' : 'XRPL ledger'))} • XRPL ledger • Blockhead</title>
+	<title>{(data.title ?? ('XRPL ledger'))} • XRPL ledger • Blockhead</title>
 </svelte:head>
 
 
 <Page>
 	<XrplLedgerView
-		href={
-			resolve('/network/[network=networkCaip2OrNetworkSlug]/ledger/[ledgerIndex=nonNegativeBigInt]', {
-				network: params.network,
-				ledgerIndex: params.ledgerIndex,
-			})
-		}
 		selection={pageSelection}
 	/>
 </Page>

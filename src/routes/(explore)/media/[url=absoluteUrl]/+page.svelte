@@ -9,7 +9,6 @@
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
@@ -36,21 +35,12 @@
 
 
 <svelte:head>
-	<title>{(pageSelection.entity == null ? [String(({
-		url: decodeURIComponent(params.url),
-	}.url) ?? '')].filter(Boolean).join(' ') || 'Media' : [String((({ ...{
-		url: decodeURIComponent(params.url),
-	}, ...pageSelection.entity }).url) ?? '')].filter(Boolean).join(' ') || 'Media')} • Media • Blockhead</title>
+	<title>{(String(pageSelection.entitySelector.url) || 'Media')} • Media • Blockhead</title>
 </svelte:head>
 
 
 <Page>
 	<MediaView
-		href={
-			resolve('/media/[url=absoluteUrl]', {
-				url: params.url,
-			})
-		}
 		selection={pageSelection}
 	/>
 </Page>

@@ -46,7 +46,7 @@ test('YouTube video renders readable metadata and comment navigation through the
 		if (request.url().startsWith('https://www.googleapis.com/youtube/v3/'))
 			directGoogleApiRequests.push(request.url())
 	})
-	await page.route('**/api-proxy/Youtube_Rest-*/0/**', async (route) => {
+	await page.route('**/api-proxy/**', async (route) => {
 		const providerUrl = new URL(decodeURIComponent(new URL(route.request().url()).pathname.split('/').at(-1) ?? ''))
 		if (providerUrl.pathname.endsWith('/commentThreads')) {
 			await route.fulfill({
@@ -56,6 +56,7 @@ test('YouTube video renders readable metadata and comment navigation through the
 						id: providerUrl.searchParams.get('id'),
 						snippet: {
 							totalReplyCount: 0,
+							videoId,
 						},
 					}],
 				},
@@ -119,24 +120,6 @@ test('YouTube video renders readable metadata and comment navigation through the
 			return
 		}
 
-		if (providerUrl.pathname === `/channel/${channelId}`) {
-			await route.fulfill({
-				contentType: 'application/json',
-				json: {
-					avatarUrl: 'https://yt3.ggpht.com/journey-channel=s800-c-k-c0x00ffffff-no-rj',
-					description: 'A deterministic channel description.',
-					id: channelId,
-					name: 'Journey Channel',
-					nextpage: null,
-					relatedStreams: [],
-					subscriberCount: 1000,
-					tabs: [],
-					verified: true,
-				},
-			})
-			return
-		}
-
 		unexpectedProviderRequests.push(`Piped_Rest ${providerUrl.pathname}`)
 		await route.fulfill({
 			status: 501,
@@ -160,7 +143,7 @@ test('YouTube video renders readable metadata and comment navigation through the
 				requiredText: [
 					'Me at the zoo',
 					'A deterministic video description.',
-					'Google for Developers',
+					'Blockhead YouTube E2E',
 				],
 				minimumLinks: 1,
 			}
@@ -170,13 +153,18 @@ test('YouTube video renders readable metadata and comment navigation through the
 		await step(expect(main.locator(`a[href="/youtube/comment/${videoId}/comment-1"]`)).toContainText('A useful fixture comment.', {
 			timeout: routeViewSmokeTimeoutsMs.mainSelector,
 		}))
+		await step(main.locator(`a[href="/youtube/comment/${videoId}/${youtubeCommentId}"]`).click())
+		await step(expect(page).toHaveURL(`/youtube/comment/${videoId}/${youtubeCommentId}`))
+		await step(expect(main).toContainText('YouTube comment fixture'))
+		await step(expect(main).toContainText('Blockhead commenter'))
+		await step(expect(main.locator(`a[href="${videoPath}"]`)).toBeAttached())
 		await step(expect(main.locator('[data-error]')).toHaveCount(0))
+		await step(expect(main.locator('[role="alert"]')).toHaveCount(0))
 		await step(expect(main).not.toContainText('[object Object]'))
 		await step(expect(main).not.toContainText('{"items"'))
 		expect(directGoogleApiRequests).toEqual([])
 		expect(unexpectedProviderRequests).toEqual([])
 		expect(pipedRequests).toEqual(expect.arrayContaining([
-			`/channel/${channelId}`,
 			`/comments/${videoId}`,
 			`/streams/${videoId}`,
 		]))

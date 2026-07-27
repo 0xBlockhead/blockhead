@@ -4,7 +4,6 @@
 	// Types/constants
 	import type { PageProps } from './$types.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -17,12 +16,12 @@
 		data,
 		params,
 	}: PageProps = $props()
-
+	const collection0Selection = $derived(select(EntityType.Network, data.selector).Cosmos.$$governanceProposals)
+	const collection1Selection = $derived(select(EntityType.Network, data.selector).Cardano.$$governanceProposals)
 
 
 	// Components
 	import Page from '$/components/Page.svelte'
-	import ProjectionBoundary from '$/components/ProjectionBoundary.svelte'
 	import CosmosGovernanceProposalsView from '$/views/CosmosGovernanceProposalsView.svelte'
 	import CardanoGovernanceProposalsView from '$/views/CardanoGovernanceProposalsView.svelte'
 </script>
@@ -34,71 +33,37 @@
 
 
 <Page>
-	<ProjectionBoundary
-		resource={
-			select(EntityType.Network, data.selector).Cosmos
-				.$$governanceProposals({
-					sources: [
-						Source.CosmosSdk_Rest,
-					],
-				}).Cosmos
+	<CosmosGovernanceProposalsView
+		href={
+			resolve(
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/governance',
+				{
+					network: String(params.network),
+				}
+			)
 		}
-	>
-		{#snippet Applicable(projection)}
-			<CosmosGovernanceProposalsView
-				href={
-					resolve('/network/[network=networkCaip2OrNetworkSlug]/governance', {
-						network: params.network,
-					})
-				}
-				title='Governance'
-				selection={
-					projection
-						.$$governanceProposals({
-							sources: [
-								Source.CosmosSdk_Rest,
-							],
-						})
-				}
-				id='account-cosmos-governance-proposal'
-				data-column-item="flexible"
-				data-card
-				data-scroll-container
-			/>
-		{/snippet}
-	</ProjectionBoundary>
+		title='Governance'
+		selection={collection0Selection}
+		id='governance-proposals'
+		data-column-item="flexible"
+		data-card
+		data-scroll-container
+	/>
 
-	<ProjectionBoundary
-		resource={
-			select(EntityType.Network, data.selector).Cardano
-				.$$governanceProposals({
-					sources: [
-						Source.CardanoKoios_Rest,
-					],
-				}).Cardano
+	<CardanoGovernanceProposalsView
+		href={
+			resolve(
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/governance',
+				{
+					network: String(params.network),
+				}
+			)
 		}
-	>
-		{#snippet Applicable(projection)}
-			<CardanoGovernanceProposalsView
-				href={
-					resolve('/network/[network=networkCaip2OrNetworkSlug]/governance', {
-						network: params.network,
-					})
-				}
-				title='Governance'
-				selection={
-					projection
-						.$$governanceProposals({
-							sources: [
-								Source.CardanoKoios_Rest,
-							],
-						})
-				}
-				id='account-cardano-governance-proposal'
-				data-column-item="flexible"
-				data-card
-				data-scroll-container
-			/>
-		{/snippet}
-	</ProjectionBoundary>
+		title='Governance'
+		selection={collection1Selection}
+		id='governance-proposals'
+		data-column-item="flexible"
+		data-card
+		data-scroll-container
+	/>
 </Page>

@@ -1,15 +1,12 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { entity, facet } from '$/schema/$schema.ts'
+import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
-export enum FilecoinActor_TimestampSelector {
-	ActorHeightTipsetKeySource = 'ActorHeightTipsetKeySource',
-}
-export const FilecoinActor_Timestamp = entity({
+export default entity({
 	entityType: EntityType.FilecoinActor_Timestamp,
 	labels: {
 		singular: 'filecoin actor timestamp',
@@ -40,7 +37,7 @@ export const FilecoinActor_Timestamp = entity({
 		label: 'Height',
 		description: 'The block height.',
 		type: EntityFieldType.Primitive,
-		primitiveType: (type('bigint').narrow((value) => value >= 0n)),
+		primitiveType: type('bigint').narrow((value) => value >= 0n),
 		cardinality: EntityFieldCardinality.One,
 	},
 	tipsetKey: {

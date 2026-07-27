@@ -1,4 +1,8 @@
 import type { paths } from '$/sources/Blockfrost/OpenApi/openapi.d.ts'
+import type {
+	CardanoGovernanceAction,
+	CardanoGovernanceActionTag,
+} from '$/sources/_shared/interfaces/CardanoGovernance/types.ts'
 import { type } from 'arktype'
 
 export type BlockfrostAddress = paths['/addresses/{address}']['get']['responses'][200]['content']['application/json']
@@ -27,7 +31,25 @@ export type BlockfrostDRepIdentity = Pick<BlockfrostDRepMetadata, 'url' | 'hash'
 export type BlockfrostDRepVotes = paths['/governance/dreps/{drep_id}/votes']['get']['responses'][200]['content']['application/json']
 export type BlockfrostEpoch = paths['/epochs/latest']['get']['responses'][200]['content']['application/json']
 export type BlockfrostGovernanceProposals = paths['/governance/proposals']['get']['responses'][200]['content']['application/json']
-export type BlockfrostGovernanceProposal = paths['/governance/proposals/{tx_hash}/{cert_index}']['get']['responses'][200]['content']['application/json']
+export type BlockfrostGovernanceProposalWire = paths['/governance/proposals/{tx_hash}/{cert_index}']['get']['responses'][200]['content']['application/json']
+export type BlockfrostGovernanceProposal = Omit<
+	BlockfrostGovernanceProposalWire,
+	'governance_description'
+> & {
+	governance_description: CardanoGovernanceAction | null
+}
+export const blockfrostGovernanceActionTagByGovernanceType = {
+	hard_fork_initiation: 'HardForkInitiation',
+	new_committee: 'UpdateCommittee',
+	new_constitution: 'NewConstitution',
+	info_action: 'InfoAction',
+	no_confidence: 'NoConfidence',
+	parameter_change: 'ParameterChange',
+	treasury_withdrawals: 'TreasuryWithdrawals',
+} as const satisfies Record<
+	BlockfrostGovernanceProposalWire['governance_type'],
+	CardanoGovernanceActionTag
+>
 export type BlockfrostGovernanceProposalMetadata = paths['/governance/proposals/{tx_hash}/{cert_index}/metadata']['get']['responses'][200]['content']['application/json']
 export type BlockfrostGovernanceProposalVotes = paths['/governance/proposals/{tx_hash}/{cert_index}/votes']['get']['responses'][200]['content']['application/json']
 export type BlockfrostHealth = paths['/health']['get']['responses'][200]['content']['application/json']

@@ -4,7 +4,7 @@ import type { LayoutLoad } from './$types'
 import { error } from '@sveltejs/kit'
 import { match as matchFarcasterFid } from '$/params/farcasterFid.ts'
 import { parseEntitySelector } from '$/schema/$schema.ts'
-import { FarcasterUser as FarcasterUserSchema } from '$/schema/FarcasterUser.ts'
+import FarcasterUserSchema from '$/schema/FarcasterUser.ts'
 import { schema } from '$/schema/index.ts'
 import { type as arktype } from 'arktype'
 

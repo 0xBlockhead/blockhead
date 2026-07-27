@@ -29,22 +29,26 @@
 {#key [params.network, params.slot].join(':')}
 	<ParentPageCollapsible
 		href={
-			resolve('/network/[network=networkCaip2OrNetworkSlug]/slot/[slot=nonNegativeInteger]', {
-				network: params.network,
-				slot: params.slot,
-			})
+			resolve(
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/slot/[slot=nonNegativeInteger]',
+				{
+					network: String(params.network),
+					slot: String(params.slot),
+				}
+			)
 		}
 	>
 		{#snippet Summary()}
-			{@const DetailView = BeaconSlotView}
-
-			<DetailView
+			<BeaconSlotView
 				selection={select(EntityType.BeaconSlot, data.selector)}
 				href={
-					resolve('/network/[network=networkCaip2OrNetworkSlug]/slot/[slot=nonNegativeInteger]', {
-						network: params.network,
-						slot: params.slot,
-					})
+					resolve(
+						'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/slot/[slot=nonNegativeInteger]',
+						{
+							network: String(params.network),
+							slot: String(params.slot),
+						}
+					)
 				}
 				layout={EntityLayout.SummaryInline}
 			/>

@@ -2,13 +2,8 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
 
 
 	// Context
@@ -20,35 +15,13 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.IcpCertifiedState>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.IcpCertifiedState>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.IcpCertifiedState> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const icpCertifiedState = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {},
-	} : {
-		sources: selection.sources,
-	}))
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const titleFallback = 'ICP certified state'
-	const viewDomId = $derived('icp-certified-state-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -60,24 +33,14 @@
 
 <EntityView
 	entityType={EntityType.IcpCertifiedState}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails}
-			{title || titleFallback}
-		{:else}
-			<ResourceBoundary resource={icpCertifiedState}>
-				{#snippet children(entity)}
-					{title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		ICP certified state
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -96,55 +59,20 @@
 			<div>
 				<dt>certificate hash</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									certificateHash: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const certificateHash = resolvedEntity.certificateHash}
-							{#if certificateHash !== undefined && certificateHash !== null}
-								<TruncatedValue value={String((certificateHash) ?? '')} />
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					<TruncatedValue value={pendingEntity.certificateHash} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>path hash</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									pathHash: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const pathHash = resolvedEntity.pathHash}
-							{#if pathHash !== undefined && pathHash !== null}
-								<TruncatedValue value={String((pathHash) ?? '')} />
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					<TruncatedValue value={pendingEntity.pathHash} />
 				</dd>
 			</div>
 
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							treeHash: true,
 						},
@@ -152,13 +80,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const treeHash = resolvedEntity.treeHash}
-					{#if treeHash !== undefined && treeHash !== null}
+					{@const treeHash = entity.treeHash}
+					{#if treeHash != null}
 						<div>
 							<dt>tree hash</dt>
 							<dd>
-								<TruncatedValue value={String((treeHash) ?? '')} />
+								<TruncatedValue value={treeHash} />
 							</dd>
 						</div>
 					{/if}
@@ -168,7 +95,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							certifiedAtMs: true,
 						},
@@ -176,13 +102,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const certifiedAtMs = resolvedEntity.certifiedAtMs}
-					{#if certifiedAtMs !== undefined && certifiedAtMs !== null}
+					{@const certifiedAtMs = entity.certifiedAtMs}
+					{#if certifiedAtMs != null}
 						<div>
 							<dt>certified AT ms</dt>
 							<dd>
-								{String((certifiedAtMs) ?? '')}
+								{String(certifiedAtMs)}
 							</dd>
 						</div>
 					{/if}
@@ -192,7 +117,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							subnetSignature: true,
 						},
@@ -200,13 +124,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const subnetSignature = resolvedEntity.subnetSignature}
-					{#if subnetSignature !== undefined && subnetSignature !== null}
+					{@const subnetSignature = entity.subnetSignature}
+					{#if subnetSignature != null}
 						<div>
 							<dt>subnet signature</dt>
 							<dd>
-								<TruncatedValue value={String((subnetSignature) ?? '')} />
+								<TruncatedValue value={subnetSignature} />
 							</dd>
 						</div>
 					{/if}
@@ -216,7 +139,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							verificationStatus: true,
 						},
@@ -224,13 +146,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const verificationStatus = resolvedEntity.verificationStatus}
-					{#if verificationStatus !== undefined && verificationStatus !== null}
+					{@const verificationStatus = entity.verificationStatus}
+					{#if verificationStatus != null}
 						<div>
 							<dt>verification status</dt>
 							<dd>
-								{String((verificationStatus) ?? '')}
+								{verificationStatus}
 							</dd>
 						</div>
 					{/if}

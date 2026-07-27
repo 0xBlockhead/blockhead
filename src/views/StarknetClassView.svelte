@@ -2,14 +2,10 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
 	import { ZeroExHex } from '$/schema/ZeroExHex.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -21,42 +17,28 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.StarknetClass>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.StarknetClass>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.StarknetClass> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const starknetClass = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {
-			contractClassVersion: true,
-			declaredAtBlockNumber: true,
-		},
-	} : {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const viewSelection = $derived(selection({
+		sources: selection.sources ?? [
+			Source.Juno_JsonRpc,
+			Source.Pathfinder_JsonRpc,
+			Source.Starknet_JsonRpc,
+			Source.Starkscan_Rest,
+			Source.Voyager_Rest,
+		],
+	}))
+	const starknetClass = $derived(viewSelection({
 		fields: {
 			contractClassVersion: true,
 			declaredAtBlockNumber: true,
 		},
 	}))
-	const titleFallback = $derived([String((pendingEntity.classHash) ?? '')].filter(Boolean).join(' ') || 'starknet class')
-	const viewDomId = $derived('starknet-class-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const titleFallback = $derived((pendingEntity.classHash ?? '') || 'starknet class')
 
 
 	// Components
@@ -70,65 +52,37 @@
 
 <EntityView
 	entityType={EntityType.StarknetClass}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'contractClassVersion') && Object.hasOwn(prefetched, 'declaredAtBlockNumber')}
-			{[String((pendingEntity.classHash) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-		{:else}
-			<ResourceBoundary resource={starknetClass}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.classHash) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		{(pendingEntity.classHash ?? '') || 'starknet class'}
 	{/snippet}
 
 	{#snippet Value()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'contractClassVersion') && Object.hasOwn(prefetched, 'declaredAtBlockNumber')}
-			{[String((pendingEntity.contractClassVersion) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.classHash) ?? '')].filter(Boolean).join(' ') || titleFallback}
-		{:else}
-			<ResourceBoundary resource={starknetClass}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.contractClassVersion) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.classHash) ?? '')].filter(Boolean).join(' ') || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={starknetClass}>
+			{#snippet children(entity)}
+				{(entity.contractClassVersion ?? '') || pendingEntity.classHash || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'contractClassVersion') && Object.hasOwn(prefetched, 'declaredAtBlockNumber')}
-			{@const declaredAtBlockNumber0 = pendingEntity.declaredAtBlockNumber}
-			{#if declaredAtBlockNumber0 !== undefined && declaredAtBlockNumber0 !== null}
-				<span data-text="muted">
-					<NumberValue
-						value={declaredAtBlockNumber0}
-					/>
-				</span>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={starknetClass}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const declaredAtBlockNumber0 = resolvedEntity.declaredAtBlockNumber}
-					{#if declaredAtBlockNumber0 !== undefined && declaredAtBlockNumber0 !== null}
-						<span data-text="muted">
-							<NumberValue
-								value={declaredAtBlockNumber0}
-							/>
-						</span>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={starknetClass}>
+			{#snippet children(entity)}
+				{@const declaredAtBlockNumber0 = entity.declaredAtBlockNumber}
+				{#if declaredAtBlockNumber0 != null}
+					<span data-text="muted">
+						<NumberValue
+							value={declaredAtBlockNumber0}
+						/>
+					</span>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -147,45 +101,20 @@
 			<div>
 				<dt>class hash</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									classHash: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const classHash = resolvedEntity.classHash}
-							{#if classHash !== undefined && classHash !== null}
-								<TruncatedValue value={String((classHash) ?? '')} />
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					<TruncatedValue value={pendingEntity.classHash} />
 				</dd>
 			</div>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							contractClassVersion: true,
-						},
-					})
-				}
+				resource={starknetClass}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const contractClassVersion = resolvedEntity.contractClassVersion}
-					{#if contractClassVersion !== undefined && contractClassVersion !== null}
+					{@const contractClassVersion = entity.contractClassVersion}
+					{#if contractClassVersion != null}
 						<div>
 							<dt>contract class version</dt>
 							<dd>
-								{String((contractClassVersion) ?? '')}
+								{contractClassVersion}
 							</dd>
 						</div>
 					{/if}
@@ -194,8 +123,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							sierraProgramHash: true,
 						},
@@ -203,13 +131,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const sierraProgramHash = resolvedEntity.sierraProgramHash}
-					{#if sierraProgramHash !== undefined && sierraProgramHash !== null}
+					{@const sierraProgramHash = entity.sierraProgramHash}
+					{#if sierraProgramHash != null}
 						<div>
 							<dt>sierra program hash</dt>
 							<dd>
-								<TruncatedValue value={String((sierraProgramHash) ?? '')} />
+								<TruncatedValue value={sierraProgramHash} />
 							</dd>
 						</div>
 					{/if}
@@ -218,8 +145,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							casmClassHash: true,
 						},
@@ -227,13 +153,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const casmClassHash = resolvedEntity.casmClassHash}
-					{#if casmClassHash !== undefined && casmClassHash !== null}
+					{@const casmClassHash = entity.casmClassHash}
+					{#if casmClassHash != null}
 						<div>
 							<dt>casm class hash</dt>
 							<dd>
-								<TruncatedValue value={String((casmClassHash) ?? '')} />
+								<TruncatedValue value={casmClassHash} />
 							</dd>
 						</div>
 					{/if}
@@ -244,8 +169,7 @@
 		<dl data-column-item="center">
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							abiHash: true,
 						},
@@ -253,13 +177,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const abiHash = resolvedEntity.abiHash}
-					{#if abiHash !== undefined && abiHash !== null}
+					{@const abiHash = entity.abiHash}
+					{#if abiHash != null}
 						<div>
 							<dt>ABI hash</dt>
 							<dd>
-								<TruncatedValue value={String((abiHash) ?? '')} />
+								<TruncatedValue value={String(abiHash)} />
 							</dd>
 						</div>
 					{/if}
@@ -267,19 +190,11 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							declaredAtBlockNumber: true,
-						},
-					})
-				}
+				resource={starknetClass}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const declaredAtBlockNumber = resolvedEntity.declaredAtBlockNumber}
-					{#if declaredAtBlockNumber !== undefined && declaredAtBlockNumber !== null}
+					{@const declaredAtBlockNumber = entity.declaredAtBlockNumber}
+					{#if declaredAtBlockNumber != null}
 						<div>
 							<dt>declared at block number</dt>
 							<dd>
@@ -294,8 +209,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							declaredByTransactionHash: true,
 						},
@@ -303,13 +217,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const declaredByTransactionHash = resolvedEntity.declaredByTransactionHash}
-					{#if declaredByTransactionHash !== undefined && declaredByTransactionHash !== null}
+					{@const declaredByTransactionHash = entity.declaredByTransactionHash}
+					{#if declaredByTransactionHash != null}
 						<div>
 							<dt>declared by transaction hash</dt>
 							<dd>
-								<TruncatedValue value={String((declaredByTransactionHash) ?? '')} />
+								<TruncatedValue value={declaredByTransactionHash} />
 							</dd>
 						</div>
 					{/if}
@@ -325,12 +238,12 @@
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
-				<StarknetContractsView
-					selection={starknetClassStarknetContractsViewContractsResource}
-					countResource={starknetClassStarknetContractsViewContractsResource.count}
-					title='contracts'
-					id='StarknetContractsView-contracts'
-				/>
+					<StarknetContractsView
+						selection={starknetClassStarknetContractsViewContractsResource}
+						countResource={starknetClassStarknetContractsViewContractsResource.count}
+						title='contracts'
+						id='contracts'
+					/>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>

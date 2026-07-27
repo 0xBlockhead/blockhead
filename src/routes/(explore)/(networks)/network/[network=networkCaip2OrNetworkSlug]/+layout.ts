@@ -8,7 +8,7 @@ import { match as matchNetworkSlug } from '$/params/networkSlug.ts'
 import { parseEntitySelector, type EntitySelectorForSelectorName } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { schema } from '$/schema/index.ts'
-import { Network as NetworkSchema } from '$/schema/Network.ts'
+import NetworkSchema from '$/schema/Network.ts'
 import { type as arktype } from 'arktype'
 
 export const load: LayoutLoad = ({ params }) => {

@@ -2,69 +2,32 @@
 
 <script lang="ts">
 	// Types/constants
-	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
-	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
-	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
+	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-
-
 
 
 	// State
 	let {
 		selection,
-		countResource,
 		title = 'Blockhead Zcash wallet states',
-		typeAnnotationParagraphs = [],
-		placeholderText = undefined,
-		emptyText = undefined,
 		open = $bindable(true),
-		collapsible = true,
-		showTypeAnnotation = true,
-		id = 'BlockheadZcashWalletStates-list',
 		...EntitiesListProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyEntitiesSelection<EntityType.BlockheadZcashWalletState>
-			countResource?: SvelteKitResource<number>
-			title?: string
-			typeAnnotationParagraphs?: string[]
-			placeholderText?: string
-			emptyText?: string
-			open?: boolean
-			collapsible?: boolean
-			showTypeAnnotation?: boolean
-			id?: string
-		},
-		EntitiesListForwardProps
-	> = $props()
+	}: EntityListViewProps<EntityType.BlockheadZcashWalletState> = $props()
 
 
 	// Components
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView from '$/components/EntityView.svelte'
 </script>
 
-
-{#snippet TypeAnnotationParagraphs()}
-	{#each typeAnnotationParagraphs as paragraph (paragraph)}
-		<p>{paragraph}</p>
-	{/each}
-{/snippet}
 
 <EntitiesList
 	{...EntitiesListProps}
 	entityType={EntityType.BlockheadZcashWalletState}
-	{id}
 	{title}
 	bind:open
-	{collapsible}
-	{showTypeAnnotation}
-	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
 	resource={
 		selection({
-			sources: selection.sources,
 			fields: {
 				walletId: true,
 				$network: true,
@@ -72,38 +35,23 @@
 			},
 		})
 	}
-	{countResource}
-	getResourceItems={(blockheadZcashWalletStates) => [...new Map(blockheadZcashWalletStates.values.map((blockheadZcashWalletState) => [blockheadZcashWalletState[EntityMetaKey.SelectorKey], blockheadZcashWalletState])).values()]}
-	getKey={(blockheadZcashWalletState) => blockheadZcashWalletState[EntityMetaKey.SelectorKey]}
-	{placeholderText}
 >
-	{#snippet Empty()}
-		{#if emptyText != null}
-			<p data-text="muted">{emptyText}</p>
-		{:else}
-			<p data-text="muted">No Blockhead zcash wallet states yet.</p>
-		{/if}
-	{/snippet}
-
 	{#snippet Item({ item: blockheadZcashWalletState })}
-		{@const blockheadZcashWalletStateFields = { ...blockheadZcashWalletState[EntityMetaKey.Selector], ...blockheadZcashWalletState }}
+		{@const blockheadZcashWalletStateSelector = blockheadZcashWalletState[EntityMetaKey.Selector]}
 		<EntityView
 			entityType={EntityType.BlockheadZcashWalletState}
-			entitySelector={blockheadZcashWalletState[EntityMetaKey.Selector]}
-			layout={EntityLayout.Summary}
-			open={false}
-			showTypeAnnotation={false}
+			entitySelector={blockheadZcashWalletStateSelector}
 		>
 			{#snippet Title()}
-				{[String((blockheadZcashWalletStateFields.walletId) ?? '')].filter(Boolean).join(' ') || 'blockhead zcash wallet state'}
+				{blockheadZcashWalletStateSelector.walletId || 'blockhead zcash wallet state'}
 			{/snippet}
 
 			{#snippet Value()}
-				{[[String((blockheadZcashWalletStateFields.$network.name) ?? '')].filter(Boolean).join(' ') || [blockheadZcashWalletStateFields.$network.caip2 == null ? '' : String(`${(blockheadZcashWalletStateFields.$network.caip2).namespace}:${(blockheadZcashWalletStateFields.$network.caip2).reference}`)].filter(Boolean).join(' ') || 'Network'].filter(Boolean).join(' ')}
+				{blockheadZcashWalletState.$network.name || (blockheadZcashWalletState.$network.caip2 == null ? '' : `${blockheadZcashWalletState.$network.caip2.namespace}:${blockheadZcashWalletState.$network.caip2.reference}`) || 'Network'}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{[String((blockheadZcashWalletStateFields.unifiedAddress) ?? '')].filter(Boolean).join(' ')}</span>
+				<span data-text="annotation">{(blockheadZcashWalletState.unifiedAddress ?? '')}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

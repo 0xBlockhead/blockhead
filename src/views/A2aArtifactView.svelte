@@ -2,13 +2,9 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
 
 
 	// Context
@@ -20,42 +16,22 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.A2aArtifact>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.A2aArtifact>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.A2aArtifact> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const a2aArtifact = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {
-			name: true,
-			createdAt: true,
-		},
-	} : {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const viewSelection = $derived(selection({
+		sources: selection.sources ?? [],
+	}))
+	const a2aArtifact = $derived(viewSelection({
 		fields: {
 			name: true,
 			createdAt: true,
 		},
 	}))
-	const titleFallback = $derived([String((pendingEntity.name) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.artifactId) ?? '')].filter(Boolean).join(' ') || 'A2A artifact')
-	const viewDomId = $derived('a2a-artifact-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const titleFallback = $derived((pendingEntity.name ?? '') || (pendingEntity.artifactId ?? '') || 'A2A artifact')
 
 
 	// Components
@@ -69,74 +45,40 @@
 
 <EntityView
 	entityType={EntityType.A2aArtifact}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'name') && Object.hasOwn(prefetched, '$task') && prefetched.$task != null && Object.hasOwn(prefetched.$task, 'taskId') && Object.hasOwn(prefetched.$task, 'contextId') && Object.hasOwn(prefetched.$task, 'providerTaskId') && Object.hasOwn(prefetched.$task, 'updatedAt') && Object.hasOwn(prefetched, 'createdAt')}
-			{[String((pendingEntity.name) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-		{:else}
-			<ResourceBoundary resource={a2aArtifact}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.name) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={a2aArtifact}>
+			{#snippet children(entity)}
+				{(entity.name ?? '') || title || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Value()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'name') && Object.hasOwn(prefetched, '$task') && prefetched.$task != null && Object.hasOwn(prefetched.$task, 'taskId') && Object.hasOwn(prefetched.$task, 'contextId') && Object.hasOwn(prefetched.$task, 'providerTaskId') && Object.hasOwn(prefetched.$task, 'updatedAt') && Object.hasOwn(prefetched, 'createdAt')}
-			{@const a2aTask0 = pendingEntity.$task}
-			{#if a2aTask0 != null && selection.entitySelector.$task != null}
-				<A2aTaskView
-					selection={select(EntityType.A2aTask, selection.entitySelector.$task, { sources: selection.sources })}
-					prefetched={a2aTask0}
-					href=""
-					layout={EntityLayout.Value}
-					open={false}
-				/>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={a2aArtifact}>
-				{#snippet children(entity)}
-					<A2aTaskView
-						selection={select(EntityType.A2aTask, selection.entitySelector.$task)}
-						href=""
-						layout={EntityLayout.Value}
-						open={false}
-					/>
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<A2aTaskView
+			selection={select(EntityType.A2aTask, selection.entitySelector.$task)}
+			href=""
+			layout={EntityLayout.Value}
+			open={false}
+		/>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'name') && Object.hasOwn(prefetched, '$task') && prefetched.$task != null && Object.hasOwn(prefetched.$task, 'taskId') && Object.hasOwn(prefetched.$task, 'contextId') && Object.hasOwn(prefetched.$task, 'providerTaskId') && Object.hasOwn(prefetched.$task, 'updatedAt') && Object.hasOwn(prefetched, 'createdAt')}
-			{@const createdAt0 = pendingEntity.createdAt}
-			{#if createdAt0 !== undefined && createdAt0 !== null}
-				<span data-text="muted">
-					<Timestamp timestamp={Number(createdAt0)} />
-				</span>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={a2aArtifact}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const createdAt0 = resolvedEntity.createdAt}
-					{#if createdAt0 !== undefined && createdAt0 !== null}
-						<span data-text="muted">
-							<Timestamp timestamp={Number(createdAt0)} />
-						</span>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={a2aArtifact}>
+			{#snippet children(entity)}
+				{@const createdAt0 = entity.createdAt}
+				{#if createdAt0 != null}
+					<span data-text="muted">
+						<Timestamp timestamp={Number(createdAt0)} />
+					</span>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -155,45 +97,20 @@
 			<div>
 				<dt>artifact ID</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									artifactId: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const artifactId = resolvedEntity.artifactId}
-							{#if artifactId !== undefined && artifactId !== null}
-								{String((artifactId) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{pendingEntity.artifactId}
 				</dd>
 			</div>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							name: true,
-						},
-					})
-				}
+				resource={a2aArtifact}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const name = resolvedEntity.name}
-					{#if name !== undefined && name !== null}
+					{@const name = entity.name}
+					{#if name != null}
 						<div>
 							<dt>Name</dt>
 							<dd>
-								{String((name) ?? '')}
+								{name}
 							</dd>
 						</div>
 					{/if}
@@ -202,8 +119,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							description: true,
 						},
@@ -211,13 +127,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const description = resolvedEntity.description}
-					{#if description !== undefined && description !== null}
+					{@const description = entity.description}
+					{#if description != null}
 						<div>
 							<dt>Description</dt>
 							<dd>
-								{String((description) ?? '')}
+								{description}
 							</dd>
 						</div>
 					{/if}
@@ -225,19 +140,11 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							createdAt: true,
-						},
-					})
-				}
+				resource={a2aArtifact}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const createdAt = resolvedEntity.createdAt}
-					{#if createdAt !== undefined && createdAt !== null}
+					{@const createdAt = entity.createdAt}
+					{#if createdAt != null}
 						<div>
 							<dt>Created</dt>
 							<dd>
@@ -252,7 +159,7 @@
 				resource={selection.$aiArtifact}
 			>
 				{#snippet children(aiArtifact)}
-					{#if aiArtifact != null && aiArtifact[EntityMetaKey.Selector] != null}
+					{#if aiArtifact != null}
 						<div>
 							<dt>AI artifact</dt>
 							<dd>
@@ -277,12 +184,12 @@
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
-				<A2aMessagePartsView
-					selection={a2aArtifactA2aMessagePartsViewPartsResource}
-					countResource={a2aArtifactA2aMessagePartsViewPartsResource.count}
-					title='parts'
-					id='A2aMessagePartsView-parts'
-				/>
+					<A2aMessagePartsView
+						selection={a2aArtifactA2aMessagePartsViewPartsResource}
+						countResource={a2aArtifactA2aMessagePartsViewPartsResource.count}
+						title='parts'
+						id='parts'
+					/>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>

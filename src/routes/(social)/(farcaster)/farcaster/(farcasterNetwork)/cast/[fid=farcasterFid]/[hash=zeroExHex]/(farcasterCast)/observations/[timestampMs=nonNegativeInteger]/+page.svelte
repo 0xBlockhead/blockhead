@@ -8,7 +8,6 @@
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
@@ -43,19 +42,12 @@
 
 
 <svelte:head>
-	<title>{(pageSelection.entity == null ? 'Farcaster cast observation' : 'Farcaster cast observation')} • Farcaster cast observation • Blockhead</title>
+	<title>{('Farcaster cast observation')} • Farcaster cast observation • Blockhead</title>
 </svelte:head>
 
 
 <Page>
 	<FarcasterCast_TimestampView
-		href={
-			resolve('/farcaster/cast/[fid=farcasterFid]/[hash=zeroExHex]/observations/[timestampMs=nonNegativeInteger]', {
-				fid: params.fid,
-				hash: params.hash,
-				timestampMs: params.timestampMs,
-			})
-		}
 		selection={pageSelection}
 	/>
 </Page>

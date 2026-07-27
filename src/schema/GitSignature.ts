@@ -1,16 +1,13 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { entity, facet } from '$/schema/$schema.ts'
+import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { UrlString } from '$/schema/UrlString.ts'
 import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 import { type } from 'arktype'
 
-export enum GitSignatureSelector {
-	SignatureId = 'SignatureId',
-}
-export const GitSignature = entity({
+export default entity({
 	entityType: EntityType.GitSignature,
 	labels: {
 		singular: 'Git signature',
@@ -26,7 +23,7 @@ export const GitSignature = entity({
 	subjectObjectId: {
 		label: 'subject object ID',
 		type: EntityFieldType.Primitive,
-		primitiveType: (ZeroExHex),
+		primitiveType: ZeroExHex,
 		cardinality: EntityFieldCardinality.One,
 	},
 	signatureKind: {
@@ -44,7 +41,7 @@ export const GitSignature = entity({
 	payloadHash: {
 		label: 'payload hash',
 		type: EntityFieldType.Primitive,
-		primitiveType: (ZeroExHex),
+		primitiveType: ZeroExHex,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	signature: {
@@ -74,7 +71,7 @@ export const GitSignature = entity({
 	evidenceUrl: {
 		label: 'evidence URL',
 		type: EntityFieldType.Primitive,
-		primitiveType: (UrlString),
+		primitiveType: UrlString,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 })({

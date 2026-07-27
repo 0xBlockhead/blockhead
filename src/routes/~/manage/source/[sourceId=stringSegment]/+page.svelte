@@ -8,7 +8,6 @@
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
@@ -44,23 +43,12 @@
 
 
 <svelte:head>
-	<title>{(pageSelection.entity == null ? [String(({
-		id: params.sourceId,
-	}.id) ?? '')].filter(Boolean).join(' ') || 'source' : [String((({ ...{
-		id: params.sourceId,
-	}, ...pageSelection.entity }).label) ?? '')].filter(Boolean).join(' ') || [String((({ ...{
-		id: params.sourceId,
-	}, ...pageSelection.entity }).id) ?? '')].filter(Boolean).join(' ') || 'source')} • source • Blockhead</title>
+	<title>{(pageSelection.entity == null ? (pageSelection.entitySelector.id ?? '') || 'source' : (pageSelection.entity.label ?? '') || pageSelection.entitySelector.id || 'source')} • source • Blockhead</title>
 </svelte:head>
 
 
 <Page>
 	<BlockheadSourceView
-		href={
-			resolve('/~/manage/source/[sourceId=stringSegment]', {
-				sourceId: params.sourceId,
-			})
-		}
 		selection={pageSelection}
 	/>
 </Page>

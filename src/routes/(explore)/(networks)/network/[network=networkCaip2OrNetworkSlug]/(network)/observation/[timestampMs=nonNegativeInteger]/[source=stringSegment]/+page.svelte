@@ -8,7 +8,6 @@
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
@@ -107,27 +106,12 @@
 
 
 <svelte:head>
-	<title>{(data.title ?? (pageSelection.entity == null ? [String(({
-		$network: data.selector,
-		timestampMs: Number(params.timestampMs),
-		source: params.source,
-	}.timestampMs) ?? '')].filter(Boolean).join(' ') || 'Network timestamp' : [String((({ ...{
-		$network: data.selector,
-		timestampMs: Number(params.timestampMs),
-		source: params.source,
-	}, ...pageSelection.entity }).timestampMs) ?? '')].filter(Boolean).join(' ') || 'Network timestamp'))} • Network timestamp • Blockhead</title>
+	<title>{(data.title ?? (String(pageSelection.entitySelector.timestampMs) || 'Network timestamp'))} • Network timestamp • Blockhead</title>
 </svelte:head>
 
 
 <Page>
 	<Network_TimestampView
-		href={
-			resolve('/network/[network=networkCaip2OrNetworkSlug]/observation/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
-				network: params.network,
-				timestampMs: params.timestampMs,
-				source: params.source,
-			})
-		}
 		selection={pageSelection}
 	/>
 </Page>

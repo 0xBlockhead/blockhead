@@ -9,7 +9,6 @@
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
@@ -37,23 +36,12 @@
 
 
 <svelte:head>
-	<title>{(pageSelection.entity == null ? [String(({
-		marketVenueId: params.marketVenueId,
-	}.marketVenueId) ?? '')].filter(Boolean).join(' ') || 'Market venue' : [String((({ ...{
-		marketVenueId: params.marketVenueId,
-	}, ...pageSelection.entity }).label) ?? '')].filter(Boolean).join(' ') || [String((({ ...{
-		marketVenueId: params.marketVenueId,
-	}, ...pageSelection.entity }).marketVenueId) ?? '')].filter(Boolean).join(' ') || 'Market venue')} • Market venue • Blockhead</title>
+	<title>{(pageSelection.entity == null ? (pageSelection.entitySelector.marketVenueId ?? '') || 'Market venue' : pageSelection.entity.label || pageSelection.entitySelector.marketVenueId || 'Market venue')} • Market venue • Blockhead</title>
 </svelte:head>
 
 
 <Page>
 	<MarketVenueView
-		href={
-			resolve('/market-venue/[marketVenueId=marketVenueId]', {
-				marketVenueId: params.marketVenueId,
-			})
-		}
 		selection={pageSelection}
 	/>
 </Page>

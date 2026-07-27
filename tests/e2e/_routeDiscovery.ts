@@ -4,8 +4,9 @@ import { fileURLToPath } from 'node:url'
 
 import {
 	e2eRouteFixtureMetadataByNodeId,
-	e2eRouteParamMatcherByName,
+	matchE2eRouteParam,
 	type E2eRouteFixtureMetadata,
+	type E2eRouteFixtureMapping,
 } from './_generatedRouteFixtureMetadata.ts'
 import { e2eRouteProbeAtomValueById } from './_routeParamFixtures.ts'
 
@@ -26,9 +27,35 @@ const publicRouteIdFromSegments = (segments: readonly string[]) => `/${segments
 	.filter((segment) => !isRouteGroup(segment))
 	.join('/')}`.replaceAll('//', '/')
 
+export const publicRouteIdFromRouteId = (routeId: string) => publicRouteIdFromSegments(
+	routeId
+		.split('/')
+		.map((segment) => segment.replaceAll(/=([^\]]+)(?=\]\]?)/g, ''))
+)
+
 const routeParamNames = (routeId: string) => [
 	...new Set([...routeId.matchAll(/\[(?:\.\.\.)?([^=\]]+)(?:=[^\]]+)?\]/g)].map((match) => match[1])),
 ]
+
+export const pathnameFromRouteFixture = (
+	metadata: E2eRouteFixtureMetadata,
+	params: Readonly<Partial<Record<string, string>>>
+) => publicRouteIdFromRouteId(metadata.routeId).replace(
+	/\[\[?(?:\.\.\.)?(\w+)(?:=\w+)?\]\]?/g,
+	(_segment, paramName: string) => {
+		const value = params[paramName]
+		if (value == null || value === '')
+			throw new Error(`${metadata.routeId} is missing required route parameter ${paramName}`)
+
+		const encoding = metadata.parameterEncodingByName?.[paramName]
+		return encoding == null ?
+			value
+		: encoding === 'Path' ?
+			value.split('/').map(encodeURIComponent).join('/')
+		:
+			encodeURIComponent(value)
+	}
+)
 
 const generatedRouteFixtureMetadata = (routeId: string): E2eRouteFixtureMetadata => {
 	const matches = Object.values(e2eRouteFixtureMetadataByNodeId)
@@ -39,32 +66,52 @@ const generatedRouteFixtureMetadata = (routeId: string): E2eRouteFixtureMetadata
 	return matches[0]
 }
 
+export const routeProbeCasesForMapping = (mapping: E2eRouteFixtureMapping) => (
+	mapping.probeCases.map((probeCase, index) => ({
+		id: mapping.probeCaseId ?? (index === 0 ? 'default' : `variant-${index + 1}`),
+		atoms: probeCase.flatMap(([prefixIndex, caseNumber, fields]) => (
+			fields.map((field) => `${mapping.probeAtomPrefixes[prefixIndex]}.${caseNumber}.${field}`)
+		)),
+	}))
+)
+
+export const routeProbeCaseParams = (probeCase: {
+	atoms: readonly string[]
+}) => Object.fromEntries(probeCase.atoms.map((atom) => [
+	atom.slice(atom.lastIndexOf('.') + 1),
+	atom,
+]))
+
 const pathnamesFromMetadata = (metadata: E2eRouteFixtureMetadata) => {
-	const probeCases = metadata.mappings.flatMap((mapping) => mapping.probeCases)
+	const probeCases = metadata.mappings.flatMap(routeProbeCasesForMapping)
 	const selectedCases = process.env.E2E_ROUTE_VARIANTS === 'all' ? probeCases : probeCases.slice(0, 1)
 	if (selectedCases.length === 0)
-		throw new Error(`${metadata.nodeId} has no generated route probe cases`)
+		throw new Error(`${metadata.routeId} has no generated route probe cases`)
 
 	return selectedCases.map((probeCase) => {
 		const expectedParams = routeParamNames(metadata.routeId)
-		const caseParams = Object.keys(probeCase.params)
+		const matcherByParam = Object.fromEntries([...metadata.routeId.matchAll(
+			/\[\[?(?:\.\.\.)?([^=\]]+)=([^\]]+)\]\]?/g
+		)].map((match) => [match[1], match[2]]))
+		const probeParams = routeProbeCaseParams(probeCase)
+		const caseParams = Object.keys(probeParams)
 		if (
 			expectedParams.some((param) => !caseParams.includes(param))
 			|| caseParams.some((param) => !expectedParams.includes(param))
 		)
-			throw new Error(`${metadata.nodeId} probe case ${probeCase.id} is not a complete route parameter record`)
+			throw new Error(`${metadata.routeId} probe case ${probeCase.id} is not a complete route parameter record`)
 
-		const params = Object.fromEntries(Object.entries(probeCase.params).map(([param, atom]) => {
-				const value = new Map<string, string>(Object.entries(e2eRouteProbeAtomValueById)).get(atom)
+		const params = Object.fromEntries(Object.entries(probeParams).map(([param, atom]) => {
+			const value = new Map<string, string>(Object.entries(e2eRouteProbeAtomValueById)).get(atom)
 			if (value == null)
-				throw new Error(`${metadata.nodeId} probe case ${probeCase.id} references missing atom ${atom}`)
-			const matchers = metadata.parameterMatchers[param]
-			if (!matchers.some((matcher) => e2eRouteParamMatcherByName[matcher](value)))
-				throw new Error(`${metadata.nodeId} probe case ${probeCase.id} value for ${param} fails its generated matcher`)
+				throw new Error(`${metadata.routeId} probe case ${probeCase.id} references missing atom ${atom}`)
+			const matcher = matcherByParam[param]
+			if (!matchE2eRouteParam(matcher, value))
+				throw new Error(`${metadata.routeId} probe case ${probeCase.id} value for ${param} fails its generated matcher`)
 
 			return [param, value]
 		}))
-		return metadata.resolve(params)
+		return pathnameFromRouteFixture(metadata, params)
 	})
 }
 

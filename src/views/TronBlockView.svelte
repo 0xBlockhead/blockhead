@@ -2,16 +2,9 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
-	import { caip2StringFromValue } from '$/lib/caip2.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -23,35 +16,13 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.TronBlock>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.TronBlock>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.TronBlock> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const tronBlock = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {},
-	} : {
-		sources: selection.sources,
-	}))
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const titleFallback = 'tron block'
-	const viewDomId = $derived('tron-block-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -66,24 +37,14 @@
 
 <EntityView
 	entityType={EntityType.TronBlock}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails}
-			{title || titleFallback}
-		{:else}
-			<ResourceBoundary resource={tronBlock}>
-				{#snippet children(entity)}
-					{title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		tron block
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -93,23 +54,6 @@
 				<dd>
 					<NetworkView
 						selection={select(EntityType.Network, selection.entitySelector.$network)}
-						href={
-							(
-								selection.entitySelector.$network != null && 'caip2' in selection.entitySelector.$network
-								&& selection.entitySelector.$network.caip2 != null ?
-									resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-								network: String(caip2StringFromValue(selection.entitySelector.$network.caip2) ?? ''),
-							})
-							:
-									selection.entitySelector.$network != null && 'slug' in selection.entitySelector.$network
-									&& selection.entitySelector.$network.slug != null ?
-										resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-									network: String(selection.entitySelector.$network.slug ?? ''),
-								})
-								:
-									undefined
-							)
-						}
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -119,24 +63,7 @@
 			<div>
 				<dt>Height</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									height: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const height = resolvedEntity.height}
-							{#if height !== undefined && height !== null}
-								{String((height) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{String(pendingEntity.height)}
 				</dd>
 			</div>
 
@@ -146,7 +73,6 @@
 					<ResourceBoundary
 						resource={
 							selection({
-								sources: selection.sources,
 								fields: {
 									hash: true,
 								},
@@ -154,32 +80,17 @@
 						}
 					>
 						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const hash = resolvedEntity.hash}
-							{#if hash !== undefined && hash !== null}
-								<TruncatedValue value={String((hash) ?? '')} />
-							{/if}
+							<TruncatedValue value={entity.hash} />
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
 			</div>
 
 			<ResourceBoundary
-				resource={
-					selection
-						.$parent({
-							sources: [
-								Source.TronGrid_Rest,
-								Source.TronFullNode_Rest,
-								Source.TronSolidityNode_Rest,
-								Source.TronScan_Rest,
-								Source.ThreeXpl_Rest,
-							],
-						})
-				}
+				resource={selection.$parent}
 			>
 				{#snippet children(tronBlock)}
-					{#if tronBlock != null && tronBlock[EntityMetaKey.Selector] != null}
+					{#if tronBlock != null}
 						<div>
 							<dt>Parent</dt>
 							<dd>
@@ -198,7 +109,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							parentHash: true,
 						},
@@ -206,13 +116,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const parentHash = resolvedEntity.parentHash}
-					{#if parentHash !== undefined && parentHash !== null}
+					{@const parentHash = entity.parentHash}
+					{#if parentHash != null}
 						<div>
 							<dt>Parent hash</dt>
 							<dd>
-								<TruncatedValue value={String((parentHash) ?? '')} />
+								<TruncatedValue value={parentHash} />
 							</dd>
 						</div>
 					{/if}
@@ -222,7 +131,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							timestampMs: true,
 						},
@@ -230,9 +138,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const timestampMs = resolvedEntity.timestampMs}
-					{#if timestampMs !== undefined && timestampMs !== null}
+					{@const timestampMs = entity.timestampMs}
+					{#if timestampMs != null}
 						<div>
 							<dt>Timestamp</dt>
 							<dd>
@@ -244,17 +151,10 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={
-					selection
-						.$witness({
-							sources: [
-								Source.TronGrid_Rest,
-							],
-						})
-				}
+				resource={selection.$witness}
 			>
 				{#snippet children(tronWitness)}
-					{#if tronWitness != null && tronWitness[EntityMetaKey.Selector] != null}
+					{#if tronWitness != null}
 						<div>
 							<dt>Witness</dt>
 							<dd>
@@ -273,7 +173,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							txTrieRoot: true,
 						},
@@ -281,13 +180,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const txTrieRoot = resolvedEntity.txTrieRoot}
-					{#if txTrieRoot !== undefined && txTrieRoot !== null}
+					{@const txTrieRoot = entity.txTrieRoot}
+					{#if txTrieRoot != null}
 						<div>
 							<dt>Transaction trie root</dt>
 							<dd>
-								{String((txTrieRoot) ?? '')}
+								{txTrieRoot}
 							</dd>
 						</div>
 					{/if}
@@ -297,7 +195,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							version: true,
 						},
@@ -305,13 +202,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const version = resolvedEntity.version}
-					{#if version !== undefined && version !== null}
+					{@const version = entity.version}
+					{#if version != null}
 						<div>
 							<dt>Version</dt>
 							<dd>
-								{String((version) ?? '')}
+								{String(version)}
 							</dd>
 						</div>
 					{/if}
@@ -321,7 +217,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							transactionCount: true,
 						},
@@ -329,13 +224,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const transactionCount = resolvedEntity.transactionCount}
-					{#if transactionCount !== undefined && transactionCount !== null}
+					{@const transactionCount = entity.transactionCount}
+					{#if transactionCount != null}
 						<div>
 							<dt>Transaction count</dt>
 							<dd>
-								{String((transactionCount) ?? '')}
+								{String(transactionCount)}
 							</dd>
 						</div>
 					{/if}

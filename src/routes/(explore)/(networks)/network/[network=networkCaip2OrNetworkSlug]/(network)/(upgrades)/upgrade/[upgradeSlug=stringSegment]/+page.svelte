@@ -8,14 +8,12 @@
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		data,
-		params,
 	}: PageProps = $props()
 
 	const pageSelection = $derived(select(EntityType.EthereumNetworkUpgrade, data.selector, {
@@ -41,18 +39,12 @@
 
 
 <svelte:head>
-	<title>{(data.title ?? (pageSelection.entity == null ? 'Ethereum network upgrade' : [String((({ ...data.selector, ...pageSelection.entity }).upgradeId) ?? '')].filter(Boolean).join(' ') || [String((({ ...data.selector, ...pageSelection.entity }).name) ?? '')].filter(Boolean).join(' ') || 'Ethereum network upgrade'))} • Ethereum network upgrade • Blockhead</title>
+	<title>{(data.title ?? (pageSelection.entity == null ? 'Ethereum network upgrade' : pageSelection.entity.upgradeId || pageSelection.entity.name || 'Ethereum network upgrade'))} • Ethereum network upgrade • Blockhead</title>
 </svelte:head>
 
 
 <Page>
 	<EthereumNetworkUpgradeView
-		href={
-			resolve('/network/[network=networkCaip2OrNetworkSlug]/upgrade/[upgradeSlug=stringSegment]', {
-				network: params.network,
-				upgradeSlug: params.upgradeSlug,
-			})
-		}
 		selection={pageSelection}
 	/>
 </Page>

@@ -1,15 +1,12 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { entity, facet } from '$/schema/$schema.ts'
+import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
-export enum CardanoGovernanceProposalSelector {
-	NetworkProposalTxHashProposalIndex = 'NetworkProposalTxHashProposalIndex',
-}
-export const CardanoGovernanceProposal = entity({
+export default entity({
 	entityType: EntityType.CardanoGovernanceProposal,
 	labels: {
 		singular: 'cardano governance proposal',
@@ -31,7 +28,7 @@ export const CardanoGovernanceProposal = entity({
 	proposalIndex: {
 		label: 'proposal index',
 		type: EntityFieldType.Primitive,
-		primitiveType: (type('number.integer >= 0')),
+		primitiveType: type('number.integer >= 0'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	governanceActionId: {
@@ -97,12 +94,123 @@ export const CardanoGovernanceProposal = entity({
 			Source.CardanoKoios_Rest,
 		],
 	},
-	proposalPayload: {
-		label: 'proposal payload',
-		type: EntityFieldType.Primitive,
-		primitiveType: type('unknown'),
+	$previousAction: {
+		label: 'previous action',
+		type: EntityFieldType.EntityReference,
+		entityType: EntityType.CardanoGovernanceProposal,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
+			Source.Blockfrost_Rest,
+			Source.CardanoKoios_Rest,
+		],
+	},
+	policyHash: {
+		label: 'policy hash',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.Blockfrost_Rest,
+			Source.CardanoKoios_Rest,
+		],
+	},
+	hardForkMajor: {
+		label: 'hard fork major version',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('number.integer >= 0'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.Blockfrost_Rest,
+			Source.CardanoKoios_Rest,
+		],
+	},
+	hardForkMinor: {
+		label: 'hard fork minor version',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('number.integer >= 0'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.Blockfrost_Rest,
+			Source.CardanoKoios_Rest,
+		],
+	},
+	treasuryWithdrawals: {
+		label: 'treasury withdrawals',
+		type: EntityFieldType.Primitive,
+		primitiveType: type({ 'recipientNetwork': type('string'), 'recipientCredential': type('string'), 'lovelace': type('bigint') }),
+		cardinality: EntityFieldCardinality.Many,
+		defaultSources: [
+			Source.Blockfrost_Rest,
+			Source.CardanoKoios_Rest,
+		],
+	},
+	committeeRemovedCredentials: {
+		label: 'committee removals',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.Many,
+		defaultSources: [
+			Source.Blockfrost_Rest,
+			Source.CardanoKoios_Rest,
+		],
+	},
+	committeeAdditions: {
+		label: 'committee additions',
+		type: EntityFieldType.Primitive,
+		primitiveType: type({ 'credential': type('string'), 'expirationEpoch': type('number') }),
+		cardinality: EntityFieldCardinality.Many,
+		defaultSources: [
+			Source.Blockfrost_Rest,
+			Source.CardanoKoios_Rest,
+		],
+	},
+	committeeQuorumNumerator: {
+		label: 'committee quorum numerator',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('number.integer >= 0'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.Blockfrost_Rest,
+			Source.CardanoKoios_Rest,
+		],
+	},
+	committeeQuorumDenominator: {
+		label: 'committee quorum denominator',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('number.integer >= 0'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.Blockfrost_Rest,
+			Source.CardanoKoios_Rest,
+		],
+	},
+	constitutionAnchorUrl: {
+		label: 'constitution anchor URL',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.Blockfrost_Rest,
+			Source.CardanoKoios_Rest,
+		],
+	},
+	constitutionAnchorHash: {
+		label: 'constitution anchor hash',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.Blockfrost_Rest,
+			Source.CardanoKoios_Rest,
+		],
+	},
+	constitutionScript: {
+		label: 'constitution script',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.Blockfrost_Rest,
 			Source.CardanoKoios_Rest,
 		],
 	},

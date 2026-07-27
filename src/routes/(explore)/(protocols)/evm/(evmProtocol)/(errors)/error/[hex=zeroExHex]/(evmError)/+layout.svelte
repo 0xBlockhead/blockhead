@@ -30,22 +30,28 @@
 {#key params.hex}
 	<ParentPageCollapsible
 		href={
-			resolve('/evm/error/[hex=zeroExHex]', {
-				hex: params.hex,
-			})
+			resolve(
+				'/(explore)/(protocols)/evm/(evmProtocol)/(errors)/error/[hex=zeroExHex]',
+				{
+					hex: String(params.hex),
+				}
+			)
 		}
 	>
 		{#snippet Summary()}
-			{@const DetailView = EvmErrorView}
-
-			<DetailView
-				selection={select(EntityType.EvmError, data.selector, { sources: [
-		Source.Openchain_Rest,
-	] })}
+			<EvmErrorView
+				selection={
+					select(EntityType.EvmError, data.selector, { sources: [
+						Source.Openchain_Rest,
+					] })
+				}
 				href={
-					resolve('/evm/error/[hex=zeroExHex]', {
-						hex: params.hex,
-					})
+					resolve(
+						'/(explore)/(protocols)/evm/(evmProtocol)/(errors)/error/[hex=zeroExHex]',
+						{
+							hex: String(params.hex),
+						}
+					)
 				}
 				layout={EntityLayout.SummaryInline}
 			/>

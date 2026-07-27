@@ -1,18 +1,13 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { entity, facet } from '$/schema/$schema.ts'
+import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { EvmAddress } from '$/schema/ZeroExHex.ts'
 import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
-export enum LensAccountSelector {
-	Address = 'Address',
-	LocalName = 'LocalName',
-	LegacyProfileId = 'LegacyProfileId',
-}
-export const LensAccount = entity({
+export default entity({
 	entityType: EntityType.LensAccount,
 	labels: {
 		singular: 'Lens account',
@@ -22,7 +17,7 @@ export const LensAccount = entity({
 	address: {
 		label: 'Address',
 		type: EntityFieldType.Primitive,
-		primitiveType: (EvmAddress),
+		primitiveType: EvmAddress,
 		cardinality: EntityFieldCardinality.One,
 	},
 	localName: {
@@ -58,7 +53,7 @@ export const LensAccount = entity({
 	owner: {
 		label: 'Owner',
 		type: EntityFieldType.Primitive,
-		primitiveType: (EvmAddress),
+		primitiveType: EvmAddress,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	score: {

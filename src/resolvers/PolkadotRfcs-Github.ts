@@ -11,9 +11,6 @@ import {
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
-import { _GlobalSelector } from '$/schema/_Global.ts'
-import { SpecificationProposalSelector } from '$/schema/SpecificationProposal.ts'
-
 const polkadotRfcRows = async (entries: { type: string, name: string }[]) => {
 	const { ProposalCategory, SpecificationRealm } = await import('$/constants/SpecificationProposal.ts')
 	return entries.flatMap((githubContent) => {
@@ -38,7 +35,7 @@ export default {
 		defineResolver(Source.PolkadotRfcs_Github, {
 			entityType: EntityType.SpecificationProposal,
 			resolve: {
-				[SpecificationProposalSelector.RealmCategoryNumber]: {
+				RealmCategoryNumber: {
 					appliesTo: [
 						{
 							realm: OwnedSpecificationRealm.Polkadot,
@@ -51,7 +48,9 @@ export default {
 						throw new Error('PolkadotRfcs_Github: proposal resolver only supports Polkadot Fellowship RFCs')
 					}
 					const { getMarkdownText } = await import('$/sources/PolkadotRfcs/Github/queries.ts')
-					const text = await getMarkdownText({ number: number })
+					const text = await getMarkdownText({
+						number: number,
+					})
 					return {
 						documentCategory: 'RFC',
 						documentTitle: text.match(/^#\s*(.+)$/m)?.[1]?.trim(),
@@ -71,11 +70,11 @@ export default {
 		defineResolver(Source.PolkadotRfcs_Github, {
 			entityType: EntityType._Global,
 			resolve: {
-				[_GlobalSelector.Scope]: {
+				Scope: {
 					resolve: async () => {
-					const { getContents } = await import('$/sources/PolkadotRfcs/Github/queries.ts')
-					return polkadotRfcRows(await getContents())
-				},
+						const { getContents } = await import('$/sources/PolkadotRfcs/Github/queries.ts')
+						return polkadotRfcRows(await getContents())
+					},
 				}
 			}
 		})({

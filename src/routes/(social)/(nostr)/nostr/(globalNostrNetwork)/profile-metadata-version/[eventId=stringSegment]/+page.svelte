@@ -8,7 +8,6 @@
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
@@ -42,23 +41,12 @@
 
 
 <svelte:head>
-	<title>{(pageSelection.entity == null ? 'Nostr profile metadata event' : [String((({ ...{
-		eventId: params.eventId,
-	}, ...pageSelection.entity }).displayName) ?? ''), String((({ ...{
-		eventId: params.eventId,
-	}, ...pageSelection.entity }).nip05) ?? '')].filter(Boolean).join(' ') || [String((({ ...{
-		eventId: params.eventId,
-	}, ...pageSelection.entity }).pubkey) ?? '')].filter(Boolean).join(' ') || 'Nostr profile metadata event')} • Nostr profile metadata event • Blockhead</title>
+	<title>{(pageSelection.entity == null ? 'Nostr profile metadata event' : [(pageSelection.entity.displayName ?? ''), (pageSelection.entity.nip05 ?? '')].filter(Boolean).join(' ') || pageSelection.entity.pubkey || 'Nostr profile metadata event')} • Nostr profile metadata event • Blockhead</title>
 </svelte:head>
 
 
 <Page>
 	<NostrProfileMetadataEventView
-		href={
-			resolve('/nostr/profile-metadata-version/[eventId=stringSegment]', {
-				eventId: params.eventId,
-			})
-		}
 		selection={pageSelection}
 	/>
 </Page>

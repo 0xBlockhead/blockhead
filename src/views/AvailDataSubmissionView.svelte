@@ -2,13 +2,9 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
 
 
 	// Context
@@ -20,40 +16,18 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.AvailDataSubmission>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.AvailDataSubmission>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.AvailDataSubmission> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const availDataSubmission = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {
-			blockNumber: true,
-		},
-	} : {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const availDataSubmission = $derived(selection({
 		fields: {
 			blockNumber: true,
 		},
 	}))
-	const titleFallback = $derived([String((pendingEntity.submissionKey) ?? '')].filter(Boolean).join(' ') || 'avail data submission')
-	const viewDomId = $derived('avail-data-submission-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const titleFallback = $derived((pendingEntity.submissionKey ?? '') || 'avail data submission')
 
 
 	// Components
@@ -68,71 +42,33 @@
 
 <EntityView
 	entityType={EntityType.AvailDataSubmission}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'blockNumber')}
-			{[String((pendingEntity.submissionKey) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-		{:else}
-			<ResourceBoundary resource={availDataSubmission}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.submissionKey) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		{(pendingEntity.submissionKey ?? '') || 'avail data submission'}
 	{/snippet}
 
 	{#snippet Value()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'blockNumber')}
-			{@const blockNumber0 = pendingEntity.blockNumber}
-			{#if blockNumber0 !== undefined && blockNumber0 !== null}
-				<NumberValue
-					value={blockNumber0}
-				/>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={availDataSubmission}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const blockNumber0 = resolvedEntity.blockNumber}
-					{#if blockNumber0 !== undefined && blockNumber0 !== null}
-						<NumberValue
-							value={blockNumber0}
-						/>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={availDataSubmission}>
+			{#snippet children(entity)}
+				{@const blockNumber0 = entity.blockNumber}
+				{#if blockNumber0 != null}
+					<NumberValue
+						value={blockNumber0}
+					/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'blockNumber')}
-			{@const source0 = pendingEntity.source}
-			{#if source0 !== undefined && source0 !== null}
-				<span data-text="muted">
-					{String((source0) ?? '')}
-				</span>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={availDataSubmission}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const source0 = resolvedEntity.source}
-					{#if source0 !== undefined && source0 !== null}
-						<span data-text="muted">
-							{String((source0) ?? '')}
-						</span>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<span data-text="muted">
+			{pendingEntity.source}
+		</span>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -151,48 +87,14 @@
 			<div>
 				<dt>Source</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									source: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const source = resolvedEntity.source}
-							{#if source !== undefined && source !== null}
-								{String((source) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{pendingEntity.source}
 				</dd>
 			</div>
 
 			<div>
 				<dt>submission key</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									submissionKey: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const submissionKey = resolvedEntity.submissionKey}
-							{#if submissionKey !== undefined && submissionKey !== null}
-								{String((submissionKey) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{pendingEntity.submissionKey}
 				</dd>
 			</div>
 
@@ -200,7 +102,7 @@
 				resource={selection.$block}
 			>
 				{#snippet children(availBlock)}
-					{#if availBlock != null && availBlock[EntityMetaKey.Selector] != null}
+					{#if availBlock != null}
 						<div>
 							<dt>block</dt>
 							<dd>
@@ -220,7 +122,7 @@
 				resource={selection.$appId}
 			>
 				{#snippet children(availAppId)}
-					{#if availAppId != null && availAppId[EntityMetaKey.Selector] != null}
+					{#if availAppId != null}
 						<div>
 							<dt>app ID</dt>
 							<dd>
@@ -239,19 +141,11 @@
 
 		<dl data-column-item="center">
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							blockNumber: true,
-						},
-					})
-				}
+				resource={availDataSubmission}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const blockNumber = resolvedEntity.blockNumber}
-					{#if blockNumber !== undefined && blockNumber !== null}
+					{@const blockNumber = entity.blockNumber}
+					{#if blockNumber != null}
 						<div>
 							<dt>Block number</dt>
 							<dd>
@@ -267,7 +161,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							extrinsicIndex: true,
 						},
@@ -275,9 +168,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const extrinsicIndex = resolvedEntity.extrinsicIndex}
-					{#if extrinsicIndex !== undefined && extrinsicIndex !== null}
+					{@const extrinsicIndex = entity.extrinsicIndex}
+					{#if extrinsicIndex != null}
 						<div>
 							<dt>extrinsic index</dt>
 							<dd>
@@ -293,7 +185,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							transactionHash: true,
 						},
@@ -301,13 +192,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const transactionHash = resolvedEntity.transactionHash}
-					{#if transactionHash !== undefined && transactionHash !== null}
+					{@const transactionHash = entity.transactionHash}
+					{#if transactionHash != null}
 						<div>
 							<dt>transaction hash</dt>
 							<dd>
-								<TruncatedValue value={String((transactionHash) ?? '')} />
+								<TruncatedValue value={transactionHash} />
 							</dd>
 						</div>
 					{/if}
@@ -317,7 +207,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							appId: true,
 						},
@@ -325,9 +214,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const appId = resolvedEntity.appId}
-					{#if appId !== undefined && appId !== null}
+					{@const appId = entity.appId}
+					{#if appId != null}
 						<div>
 							<dt>app ID</dt>
 							<dd>
@@ -345,7 +233,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							dataHash: true,
 						},
@@ -353,13 +240,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const dataHash = resolvedEntity.dataHash}
-					{#if dataHash !== undefined && dataHash !== null}
+					{@const dataHash = entity.dataHash}
+					{#if dataHash != null}
 						<div>
 							<dt>data hash</dt>
 							<dd>
-								<TruncatedValue value={String((dataHash) ?? '')} />
+								<TruncatedValue value={dataHash} />
 							</dd>
 						</div>
 					{/if}
@@ -369,7 +255,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							commitment: true,
 						},
@@ -377,13 +262,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const commitment = resolvedEntity.commitment}
-					{#if commitment !== undefined && commitment !== null}
+					{@const commitment = entity.commitment}
+					{#if commitment != null}
 						<div>
 							<dt>commitment</dt>
 							<dd>
-								{String((commitment) ?? '')}
+								{commitment}
 							</dd>
 						</div>
 					{/if}
@@ -393,7 +277,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							sizeBytes: true,
 						},
@@ -401,9 +284,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const sizeBytes = resolvedEntity.sizeBytes}
-					{#if sizeBytes !== undefined && sizeBytes !== null}
+					{@const sizeBytes = entity.sizeBytes}
+					{#if sizeBytes != null}
 						<div>
 							<dt>size bytes</dt>
 							<dd>
@@ -421,7 +303,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							proofAvailable: true,
 						},
@@ -429,9 +310,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const proofAvailable = resolvedEntity.proofAvailable}
-					{#if proofAvailable !== undefined && proofAvailable !== null}
+					{@const proofAvailable = entity.proofAvailable}
+					{#if proofAvailable != null}
 						<div>
 							<dt>proof available</dt>
 							<dd>
@@ -445,7 +325,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							payload: true,
 						},
@@ -453,13 +332,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const payload = resolvedEntity.payload}
-					{#if payload !== undefined && payload !== null}
+					{@const payload = entity.payload}
+					{#if payload != null}
 						<div>
 							<dt>payload</dt>
 							<dd>
-								{String((payload) ?? '')}
+								{payload}
 							</dd>
 						</div>
 					{/if}
@@ -469,7 +347,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							payloadRequested: true,
 						},
@@ -477,9 +354,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const payloadRequested = resolvedEntity.payloadRequested}
-					{#if payloadRequested !== undefined && payloadRequested !== null}
+					{@const payloadRequested = entity.payloadRequested}
+					{#if payloadRequested != null}
 						<div>
 							<dt>payload requested</dt>
 							<dd>

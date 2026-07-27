@@ -7,7 +7,6 @@
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
@@ -46,19 +45,12 @@
 
 
 <svelte:head>
-	<title>{(pageSelection.entity == null ? 'X post observation' : 'X post observation')} • X post observation • Blockhead</title>
+	<title>{('X post observation')} • X post observation • Blockhead</title>
 </svelte:head>
 
 
 <Page>
 	<XPost_TimestampView
-		href={
-			resolve('/x/post/[postId=stringSegment]/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
-				postId: params.postId,
-				timestampMs: params.timestampMs,
-				source: params.source,
-			})
-		}
 		selection={pageSelection}
 	/>
 </Page>

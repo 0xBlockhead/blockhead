@@ -7,10 +7,7 @@ import { EntityType } from '$/schema/EntityType.ts'
 import { UrlString } from '$/schema/UrlString.ts'
 import { type } from 'arktype'
 
-export enum EvmNftSelector {
-	EvmContractTokenId = 'EvmContractTokenId',
-}
-export const EvmNft = entity({
+export default entity({
 	entityType: EntityType.EvmNft,
 	labels: {
 		singular: 'EVM NFT',
@@ -45,7 +42,7 @@ export const EvmNft = entity({
 	tokenUri: {
 		label: 'Token URI',
 		type: EntityFieldType.Primitive,
-		primitiveType: (UrlString),
+		primitiveType: UrlString,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	name: {
@@ -63,7 +60,7 @@ export const EvmNft = entity({
 	image: {
 		label: 'Image',
 		type: EntityFieldType.Primitive,
-		primitiveType: (UrlString),
+		primitiveType: UrlString,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	active: {
@@ -102,13 +99,13 @@ export const EvmNft = entity({
 			agentUri: {
 				label: 'Agent URI',
 				type: EntityFieldType.Primitive,
-				primitiveType: (UrlString),
+				primitiveType: UrlString,
 				cardinality: EntityFieldCardinality.ZeroOrOne,
 			},
 			contactEndpoint: {
 				label: 'Contact endpoint',
 				type: EntityFieldType.Primitive,
-				primitiveType: (UrlString),
+				primitiveType: UrlString,
 				cardinality: EntityFieldCardinality.ZeroOrOne,
 			},
 			$agentWallet: {
@@ -132,7 +129,7 @@ export const EvmNft = entity({
 			registrationTypeIri: {
 				label: 'Registration type IRI',
 				type: EntityFieldType.Primitive,
-				primitiveType: (UrlString),
+				primitiveType: UrlString,
 				cardinality: EntityFieldCardinality.ZeroOrOne,
 			},
 			fetchedAt: {

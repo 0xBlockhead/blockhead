@@ -3,133 +3,70 @@
 <script lang="ts">
 	// Types/constants
 	import { resolve } from '$app/paths'
-	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
-	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
-	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
+	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
-
-
 	// State
 	let {
 		selection,
-		countResource,
 		title = 'Pallets',
-		typeAnnotationParagraphs = [],
-		placeholderText = undefined,
-		emptyText = undefined,
 		open = $bindable(true),
-		collapsible = true,
-		showTypeAnnotation = true,
-		id = 'PolkadotPallets-list',
 		...EntitiesListProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyEntitiesSelection<EntityType.PolkadotPallet>
-			countResource?: SvelteKitResource<number>
-			title?: string
-			typeAnnotationParagraphs?: string[]
-			placeholderText?: string
-			emptyText?: string
-			open?: boolean
-			collapsible?: boolean
-			showTypeAnnotation?: boolean
-			id?: string
-		},
-		EntitiesListForwardProps
-	> = $props()
+	}: EntityListViewProps<EntityType.PolkadotPallet> = $props()
 
 
 	// Components
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView from '$/components/EntityView.svelte'
 </script>
 
-
-{#snippet TypeAnnotationParagraphs()}
-	{#each typeAnnotationParagraphs as paragraph (paragraph)}
-		<p>{paragraph}</p>
-	{/each}
-{/snippet}
 
 <EntitiesList
 	{...EntitiesListProps}
 	entityType={EntityType.PolkadotPallet}
-	{id}
 	{title}
 	bind:open
-	{collapsible}
-	{showTypeAnnotation}
-	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
 	resource={
 		selection({
-			sources: selection.sources,
 			fields: {
 				palletName: true,
 				index: true,
-				$network: true,
 			},
 		})
 	}
-	{countResource}
-	getResourceItems={(polkadotPallets) => [...new Map(polkadotPallets.values.map((polkadotPallet) => [polkadotPallet[EntityMetaKey.SelectorKey], polkadotPallet])).values()]}
-	getKey={(polkadotPallet) => polkadotPallet[EntityMetaKey.SelectorKey]}
-	{placeholderText}
 >
-	{#snippet Empty()}
-		{#if emptyText != null}
-			<p data-text="muted">{emptyText}</p>
-		{:else}
-			<p data-text="muted">No Polkadot pallets yet.</p>
-		{/if}
-	{/snippet}
-
 	{#snippet Item({ item: polkadotPallet })}
-		{@const polkadotPalletFields = { ...polkadotPallet[EntityMetaKey.Selector], ...polkadotPallet }}
+		{@const polkadotPalletSelector = polkadotPallet[EntityMetaKey.Selector]}
 		<EntityView
 			entityType={EntityType.PolkadotPallet}
-			entitySelector={polkadotPallet[EntityMetaKey.Selector]}
+			entitySelector={polkadotPalletSelector}
 			href={
-				(
-					polkadotPallet[EntityMetaKey.Selector] != null && 'palletName' in polkadotPallet[EntityMetaKey.Selector]
-					&& polkadotPallet[EntityMetaKey.Selector].palletName != null
-					&& polkadotPallet[EntityMetaKey.Selector] != null && '$network' in polkadotPallet[EntityMetaKey.Selector] ?
-						polkadotPallet[EntityMetaKey.Selector].$network != null && 'caip2' in polkadotPallet[EntityMetaKey.Selector].$network
-						&& polkadotPallet[EntityMetaKey.Selector].$network.caip2 != null ?
-							resolve('/network/[network=networkCaip2OrNetworkSlug]/pallet/[palletName=stringSegment]', {
-						palletName: String(polkadotPallet[EntityMetaKey.Selector].palletName ?? ''),
-						network: String(caip2StringFromValue(polkadotPallet[EntityMetaKey.Selector].$network.caip2) ?? ''),
-					})
-					:
-							polkadotPallet[EntityMetaKey.Selector].$network != null && 'slug' in polkadotPallet[EntityMetaKey.Selector].$network
-							&& polkadotPallet[EntityMetaKey.Selector].$network.slug != null ?
-								resolve('/network/[network=networkCaip2OrNetworkSlug]/pallet/[palletName=stringSegment]', {
-							palletName: String(polkadotPallet[EntityMetaKey.Selector].palletName ?? ''),
-							network: String(polkadotPallet[EntityMetaKey.Selector].$network.slug ?? ''),
-						})
-						:
-							undefined
-				:
-						undefined
+				resolve(
+					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/pallet/[palletName=stringSegment]',
+					{
+						network: (
+							'caip2' in polkadotPalletSelector.$network ?
+								String(caip2StringFromValue(polkadotPalletSelector.$network.caip2))
+							:
+								String(polkadotPalletSelector.$network.slug)
+						),
+						palletName: String(polkadotPalletSelector.palletName),
+					}
 				)
 			}
-			layout={EntityLayout.Summary}
-			open={false}
-			showTypeAnnotation={false}
 		>
 			{#snippet Title()}
-				{[String((polkadotPalletFields.palletName) ?? '')].filter(Boolean).join(' ') || 'Polkadot pallet'}
+				{polkadotPalletSelector.palletName || 'Polkadot pallet'}
 			{/snippet}
 
 			{#snippet Value()}
-				{[String((polkadotPalletFields.palletName) ?? '')].filter(Boolean).join(' ')}
+				{polkadotPalletSelector.palletName}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{[String((polkadotPalletFields.index) ?? '')].filter(Boolean).join(' ')}</span>
+				<span data-text="annotation">{String(polkadotPallet.index ?? '')}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

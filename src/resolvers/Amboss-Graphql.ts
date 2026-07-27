@@ -7,8 +7,6 @@ import {
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
-import { LightningChannelSelector } from '$/schema/LightningChannel.ts'
-import { LightningNetworkSelector } from '$/schema/LightningNetwork.ts'
 
 type NetworkId = { caip2: {
 	namespace: string
@@ -27,11 +25,13 @@ export default {
 		defineResolver(Source.Amboss_Graphql, {
 			entityType: EntityType.LightningChannel,
 			resolve: {
-				[LightningChannelSelector.NetworkChannelId]: {
+				NetworkChannelId: {
 					resolve: async ({ $network, channelId }) => {
 						assertLightningNetwork($network)
 						const { getEdge } = await import('$/sources/Amboss/Graphql/queries.ts')
-						const edge = await getEdge({ channelId: channelId })
+						const edge = await getEdge({
+							channelId,
+						})
 						const edgeInfo = edge.graph?.info
 
 						return {
@@ -60,7 +60,7 @@ export default {
 		defineResolver(Source.Amboss_Graphql, {
 			entityType: EntityType.LightningNetwork,
 			resolve: {
-				[LightningNetworkSelector.Network]: {
+				Network: {
 					resolve: async ({ $network }, context) => {
 						assertLightningNetwork($network)
 						const { getPopularNodePubkeys } = await import('$/sources/Amboss/Graphql/queries.ts')

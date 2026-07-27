@@ -1,14 +1,11 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { entity, facet } from '$/schema/$schema.ts'
+import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { type } from 'arktype'
 
-export enum AlgorandAccountSelector {
-	NetworkAddress = 'NetworkAddress',
-}
-export const AlgorandAccount = entity({
+export default entity({
 	entityType: EntityType.AlgorandAccount,
 	labels: {
 		singular: 'algorand account',

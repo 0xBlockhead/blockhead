@@ -12,27 +12,15 @@ import {
 import { EntityType } from '$/schema/EntityType.ts'
 import { MediaType } from '$/schema/Media.ts'
 import { Source } from '$/sources/Source.ts'
+import {
+	mastodonInstanceOrigins,
+	mastodonPublicTimelineOrigins,
+} from '$/sources/Mastodon/Rest/client.ts'
 import type {
 	MastodonApiV1Account,
 	MastodonApiV1MediaAttachment,
 	MastodonApiV1Status,
 } from '$/sources/Mastodon/Rest/types.ts'
-import {
-	mastodonInstanceOrigins,
-	mastodonPublicTimelineOrigins,
-} from '$/sources/Mastodon/Rest/client.ts'
-import { ActivityPubActorSelector } from '$/schema/ActivityPubActor.ts'
-import { ActivityPubInstanceSelector } from '$/schema/ActivityPubInstance.ts'
-import { ActivityPubInstance_TimestampSelector } from '$/schema/ActivityPubInstance_Timestamp.ts'
-import { ActivityPubInstanceModeratedDomainSelector } from '$/schema/ActivityPubInstanceModeratedDomain.ts'
-import { ActivityPubInstancePeerSelector } from '$/schema/ActivityPubInstancePeer.ts'
-import { ActivityPubNetworkSelector } from '$/schema/ActivityPubNetwork.ts'
-import { ActivityPubNoteSelector } from '$/schema/ActivityPubNote.ts'
-import { ActivityPubActor_TimestampSelector } from '$/schema/ActivityPubActor_Timestamp.ts'
-import { ActivityPubNote_TimestampSelector } from '$/schema/ActivityPubNote_Timestamp.ts'
-import { _GlobalActivityPubNetworkSelector } from '$/schema/_GlobalActivityPubNetwork.ts'
-import { _GlobalActivityPubNetwork_TimestampSelector } from '$/schema/_GlobalActivityPubNetwork_Timestamp.ts'
-
 
 const mastodonLocalAccountId = (
 	account: MastodonApiV1Account | null | undefined
@@ -412,7 +400,7 @@ export default {
 		defineResolver(Source.Mastodon_Rest, {
 			entityType: EntityType._GlobalActivityPubNetwork,
 			resolve: {
-				[_GlobalActivityPubNetworkSelector.Scope]: {
+				Scope: {
 					resolve: async (_selector, context) => {
 						const { listPublicTimeline } = await import('$/sources/Mastodon/Rest/queries.ts')
 						const limit = resolverContextRowLimit(context)
@@ -484,14 +472,14 @@ export default {
 		defineResolver(Source.Mastodon_Rest, {
 			entityType: EntityType._GlobalActivityPubNetwork,
 			resolve: {
-				[_GlobalActivityPubNetworkSelector.Scope]: {
-					resolve: async () => (
-						mastodonInstanceOrigins.map((instanceOrigin) => ({
+				Scope: {
+					resolve: async () => {
+						return mastodonInstanceOrigins.map((instanceOrigin) => ({
 							[EntityMetaKey.Selector]: {
 								instanceOrigin,
 							},
 						}))
-					),
+					},
 				},
 			},
 		})({
@@ -501,10 +489,10 @@ export default {
 		defineResolver(Source.Mastodon_Rest, {
 			entityType: EntityType._GlobalActivityPubNetwork,
 			resolve: {
-				[_GlobalActivityPubNetworkSelector.Scope]: {
+				Scope: {
 					resolve: async ({ scope }, context) => {
 						const timestampMs = Date.now()
-						const instanceOrigin = mastodonInstanceOrigins[0]
+						const [instanceOrigin] = mastodonInstanceOrigins
 						const { getInstance } = await import('$/sources/Mastodon/Rest/queries.ts')
 
 						try {
@@ -554,7 +542,7 @@ export default {
 		defineResolver(Source.Mastodon_Rest, {
 			entityType: EntityType._GlobalActivityPubNetwork_Timestamp,
 			resolve: {
-				[_GlobalActivityPubNetwork_TimestampSelector.HubTimestampMsSource]: {
+				HubTimestampMsSource: {
 					resolve: async ({ $hub, timestampMs, source }) => {
 						if (source !== Source.Mastodon_Rest)
 							throw new Error('Mastodon_Rest: global ActivityPub observation source mismatch')
@@ -578,7 +566,7 @@ export default {
 		defineResolver(Source.Mastodon_Rest, {
 			entityType: EntityType.ActivityPubInstance,
 			resolve: {
-				[ActivityPubInstanceSelector.InstanceOrigin]: {
+				InstanceOrigin: {
 					resolve: (selector) => selector,
 				},
 			},
@@ -589,7 +577,7 @@ export default {
 		defineResolver(Source.Mastodon_Rest, {
 			entityType: EntityType.ActivityPubInstance,
 			resolve: {
-				[ActivityPubInstanceSelector.InstanceOrigin]: {
+				InstanceOrigin: {
 					resolve: async ({ instanceOrigin }, context) => {
 						const publicEnv = context.publicEnv
 						const {
@@ -660,7 +648,7 @@ export default {
 		defineResolver(Source.Mastodon_Rest, {
 			entityType: EntityType.ActivityPubInstance_Timestamp,
 			resolve: {
-				[ActivityPubInstance_TimestampSelector.InstanceTimestampMsSource]: {
+				InstanceTimestampMsSource: {
 					resolve: (selector) => {
 						const { source } = selector
 						if (source !== Source.Mastodon_Rest)
@@ -678,7 +666,7 @@ export default {
 		defineResolver(Source.Mastodon_Rest, {
 			entityType: EntityType.ActivityPubInstancePeer,
 			resolve: {
-				[ActivityPubInstancePeerSelector.ObservationPeerDomain]: {
+				ObservationPeerDomain: {
 					resolve: (selector) => selector,
 				},
 			},
@@ -690,7 +678,7 @@ export default {
 		defineResolver(Source.Mastodon_Rest, {
 			entityType: EntityType.ActivityPubInstanceModeratedDomain,
 			resolve: {
-				[ActivityPubInstanceModeratedDomainSelector.ObservationDomain]: {
+				ObservationDomain: {
 					resolve: (selector) => {
 						if (selector.$observation.source !== Source.Mastodon_Rest)
 							throw new Error('Mastodon_Rest: ActivityPub moderated domain source mismatch')
@@ -706,7 +694,7 @@ export default {
 		defineResolver(Source.Mastodon_Rest, {
 			entityType: EntityType.ActivityPubNetwork,
 			resolve: {
-				[ActivityPubNetworkSelector.Scope]: {
+				Scope: {
 					resolve: async (_selector, context) => {
 						const publicEnv = context.publicEnv
 						const { listPublicTimeline } = await import('$/sources/Mastodon/Rest/queries.ts')
@@ -739,7 +727,7 @@ export default {
 		defineResolver(Source.Mastodon_Rest, {
 			entityType: EntityType.ActivityPubActor,
 			resolve: {
-				[ActivityPubActorSelector.LocalAccountId]: {
+				LocalAccountId: {
 					resolve: async ({ instanceOrigin, localAccountId }, context) => {
 						const publicEnv = context.publicEnv
 						const { assertInstanceMatches, getAccountByLocalAccountId } = await import('$/sources/Mastodon/Rest/queries.ts')
@@ -755,7 +743,7 @@ export default {
 						)
 					},
 				},
-				[ActivityPubActorSelector.Acct]: {
+				Acct: {
 					resolve: async ({ instanceOrigin, acct }, context) => {
 						const publicEnv = context.publicEnv
 						const { assertInstanceMatches, getAccountByAcct } = await import('$/sources/Mastodon/Rest/queries.ts')
@@ -771,7 +759,7 @@ export default {
 						)
 					},
 				},
-				[ActivityPubActorSelector.ActivityStreamsUri]: {
+				ActivityStreamsUri: {
 					resolve: async ({ activityStreamsUri }, context) => {
 						const publicEnv = context.publicEnv
 						const { getAccountByActivityStreamsUri } = await import('$/sources/Mastodon/Rest/queries.ts')
@@ -807,7 +795,7 @@ export default {
 		defineResolver(Source.Mastodon_Rest, {
 			entityType: EntityType.ActivityPubNote,
 			resolve: {
-				[ActivityPubNoteSelector.InstanceOriginLocalStatusId]: {
+				InstanceOriginLocalStatusId: {
 					resolve: async ({ instanceOrigin, localStatusId }, context) => {
 						const publicEnv = context.publicEnv
 						const {
@@ -822,7 +810,7 @@ export default {
 						return activityPubNoteFieldsFromMastodonStatus(s, instanceOrigin)
 					},
 				},
-				[ActivityPubNoteSelector.ActivityStreamsUri]: {
+				ActivityStreamsUri: {
 					resolve: async ({ activityStreamsUri }, context) => {
 						const publicEnv = context.publicEnv
 						const {
@@ -857,7 +845,7 @@ export default {
 		defineResolver(Source.Mastodon_Rest, {
 			entityType: EntityType.ActivityPubActor_Timestamp,
 			resolve: {
-				[ActivityPubActor_TimestampSelector.ActivityPubActorTimestampMsSource]: {
+				ActivityPubActorTimestampMsSource: {
 					resolve: (selector) => {
 						if (selector.source !== Source.Mastodon_Rest)
 							throw new Error('Mastodon_Rest: ActivityPub actor observation source mismatch')
@@ -874,7 +862,7 @@ export default {
 		defineResolver(Source.Mastodon_Rest, {
 			entityType: EntityType.ActivityPubNote_Timestamp,
 			resolve: {
-				[ActivityPubNote_TimestampSelector.ActivityPubNoteTimestampMsSource]: {
+				ActivityPubNoteTimestampMsSource: {
 					resolve: (selector) => {
 						if (selector.source !== Source.Mastodon_Rest)
 							throw new Error('Mastodon_Rest: ActivityPub note observation source mismatch')
@@ -890,7 +878,7 @@ export default {
 		defineResolver(Source.Mastodon_Rest, {
 			entityType: EntityType.ActivityPubActor,
 			resolve: {
-				[ActivityPubActorSelector.LocalAccountId]: {
+				LocalAccountId: {
 					resolve: async ({ instanceOrigin, localAccountId }, context) => {
 						const publicEnv = context.publicEnv
 						const { assertInstanceMatches, getAccountByLocalAccountId } = await import('$/sources/Mastodon/Rest/queries.ts')
@@ -924,7 +912,7 @@ export default {
 						]
 					},
 				},
-				[ActivityPubActorSelector.Acct]: {
+				Acct: {
 					resolve: async ({ instanceOrigin, acct }, context) => {
 						const publicEnv = context.publicEnv
 						const { assertInstanceMatches, getAccountByAcct } = await import('$/sources/Mastodon/Rest/queries.ts')
@@ -958,7 +946,7 @@ export default {
 						]
 					},
 				},
-				[ActivityPubActorSelector.ActivityStreamsUri]: {
+				ActivityStreamsUri: {
 					resolve: async ({ activityStreamsUri }, context) => {
 						const publicEnv = context.publicEnv
 						const { getAccountByActivityStreamsUri } = await import('$/sources/Mastodon/Rest/queries.ts')
@@ -998,7 +986,7 @@ export default {
 		defineResolver(Source.Mastodon_Rest, {
 			entityType: EntityType.ActivityPubActor,
 			resolve: {
-				[ActivityPubActorSelector.LocalAccountId]: {
+				LocalAccountId: {
 					resolve: async ({ instanceOrigin, localAccountId }, context) => {
 						const { assertInstanceMatches, listAccountStatusesPageByLocalAccountId } = await import('$/sources/Mastodon/Rest/queries.ts')
 						assertInstanceMatches(instanceOrigin)
@@ -1016,7 +1004,7 @@ export default {
 						}
 					},
 				},
-				[ActivityPubActorSelector.ActivityStreamsUri]: {
+				ActivityStreamsUri: {
 					resolve: async ({ activityStreamsUri }, context) => {
 						const { getAccountByActivityStreamsUri, listAccountStatusesPageByLocalAccountId } = await import('$/sources/Mastodon/Rest/queries.ts')
 						const account = await getAccountByActivityStreamsUri(context.publicEnv, activityStreamsUri)
@@ -1077,7 +1065,7 @@ export default {
 		defineResolver(Source.Mastodon_Rest, {
 			entityType: EntityType.ActivityPubNote,
 			resolve: {
-				[ActivityPubNoteSelector.InstanceOriginLocalStatusId]: {
+				InstanceOriginLocalStatusId: {
 					resolve: async (entitySelector, context) => {
 						const publicEnv = context.publicEnv
 						const {
@@ -1096,7 +1084,7 @@ export default {
 						)]
 					},
 				},
-				[ActivityPubNoteSelector.ActivityStreamsUri]: {
+				ActivityStreamsUri: {
 					resolve: async ({ activityStreamsUri }, context) => {
 						const publicEnv = context.publicEnv
 						const {
@@ -1123,7 +1111,7 @@ export default {
 		defineResolver(Source.Mastodon_Rest, {
 			entityType: EntityType.ActivityPubNote,
 			resolve: {
-				[ActivityPubNoteSelector.InstanceOriginLocalStatusId]: {
+				InstanceOriginLocalStatusId: {
 					resolve: async ({ instanceOrigin, localStatusId }, context) => {
 						const publicEnv = context.publicEnv
 						const {
@@ -1153,7 +1141,7 @@ export default {
 						)
 					},
 				},
-				[ActivityPubNoteSelector.ActivityStreamsUri]: {
+				ActivityStreamsUri: {
 					resolve: async ({ activityStreamsUri }, context) => {
 						const publicEnv = context.publicEnv
 						const {

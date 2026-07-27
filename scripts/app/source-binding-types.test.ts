@@ -1,6 +1,8 @@
 import assert from 'node:assert/strict'
 import { spawnSync } from 'node:child_process'
 import {
+	cpSync,
+	mkdirSync,
 	mkdtempSync,
 	readFileSync,
 	rmSync,
@@ -15,7 +17,7 @@ const runTypeScript = (entryFile: string, listFiles = false) => spawnSync(
 	process.execPath,
 	[
 		'--max-old-space-size=1024',
-		join(process.cwd(), 'node_modules/typescript/bin/tsc'),
+		process.env.TSC_PATH ?? join(process.cwd(), 'node_modules/@typescript/native/bin/tsc'),
 		'--ignoreConfig',
 		'--noEmit',
 		...(listFiles ? ['--listFiles'] : []),
@@ -68,6 +70,20 @@ test('rejects incompatible source binding declarations at compile time', () => {
 	assert.ok(fixtureImport)
 
 	try {
+		mkdirSync(join(temporaryDirectory, 'scripts/app/inputs'), {
+			recursive: true,
+		})
+		mkdirSync(join(temporaryDirectory, 'src/constants'), {
+			recursive: true,
+		})
+		cpSync(
+			join(process.cwd(), 'scripts/app/inputs/source-target.ts'),
+			join(temporaryDirectory, 'scripts/app/inputs/source-target.ts')
+		)
+		cpSync(
+			join(process.cwd(), 'src/constants/Network.ts'),
+			join(temporaryDirectory, 'src/constants/Network.ts')
+		)
 		const fixturePath = join(temporaryDirectory, 'source-binding-types.types.ts')
 		writeFileSync(fixturePath, `${appSource.slice(0, defineSourcesStatement.end)}\n${fixtureSource.slice(fixtureImport.end)}`)
 		const result = runTypeScript(fixturePath, true)
@@ -123,6 +139,20 @@ test('type-checks the actual APP Envio and GetBlock EVM execution rows', () => {
 	const temporaryDirectory = mkdtempSync(join(tmpdir(), 'blockhead-source-bindings-'))
 	const fixturePath = join(temporaryDirectory, 'actual-app-source-bindings.ts')
 	try {
+		mkdirSync(join(temporaryDirectory, 'scripts/app/inputs'), {
+			recursive: true,
+		})
+		mkdirSync(join(temporaryDirectory, 'src/constants'), {
+			recursive: true,
+		})
+		cpSync(
+			join(process.cwd(), 'scripts/app/inputs/source-target.ts'),
+			join(temporaryDirectory, 'scripts/app/inputs/source-target.ts')
+		)
+		cpSync(
+			join(process.cwd(), 'src/constants/Network.ts'),
+			join(temporaryDirectory, 'src/constants/Network.ts')
+		)
 		writeFileSync(fixturePath, `${appSource.slice(0, defineSourcesStatement.end)}
 
 defineSources([

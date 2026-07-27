@@ -8,14 +8,12 @@
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		data,
-		params,
 	}: PageProps = $props()
 
 	const pageSelection = $derived(select(EntityType.BlockheadLightningPayment, data.selector, {
@@ -40,18 +38,12 @@
 
 
 <svelte:head>
-	<title>{(data.title ?? (pageSelection.entity == null ? [String((data.selector.paymentHash) ?? '')].filter(Boolean).join(' ') || 'Lightning payment' : [String((({ ...data.selector, ...pageSelection.entity }).paymentHash) ?? '')].filter(Boolean).join(' ') || 'Lightning payment'))} • Lightning payment • Blockhead</title>
+	<title>{(data.title ?? (pageSelection.entitySelector.paymentHash || 'Lightning payment'))} • Lightning payment • Blockhead</title>
 </svelte:head>
 
 
 <Page>
 	<BlockheadLightningPaymentView
-		href={
-			resolve('/network/[network=networkCaip2OrNetworkSlug]/payments/[paymentHash=stringSegment]', {
-				network: params.network,
-				paymentHash: params.paymentHash,
-			})
-		}
 		selection={pageSelection}
 	/>
 </Page>

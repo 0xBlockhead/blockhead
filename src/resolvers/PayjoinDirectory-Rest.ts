@@ -3,7 +3,6 @@ import {
 } from '$/resolvers/defineResolver.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
-import { PayjoinDirectorySelector } from '$/schema/PayjoinDirectory.ts'
 
 export default {
 	source: Source.PayjoinDirectory_Rest,
@@ -12,7 +11,7 @@ export default {
 		defineResolver(Source.PayjoinDirectory_Rest, {
 			entityType: EntityType.PayjoinDirectory,
 			resolve: {
-				[PayjoinDirectorySelector.DirectoryUrl]: {
+				DirectoryUrl: {
 					resolve: async ({ directoryUrl }) => {
 					const {
 						getOhttpKeyConfigBase64,

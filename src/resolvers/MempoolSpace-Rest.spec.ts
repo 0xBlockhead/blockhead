@@ -2,9 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { bitcoinNetworkBySlug } from '$/constants/BitcoinNetwork.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import { NetworkSelector } from '$/schema/Network.ts'
-import { UtxoAddressSelector } from '$/schema/UtxoAddress.ts'
-import { sourceProviderDefinitions } from '$/sources/$sourceProviders.ts'
+import bindings from '$/sources/MempoolSpace/bindings.ts'
 import { Source } from '$/sources/Source.ts'
 import { SourceTargetKind } from '$/sources/SourceBinding.ts'
 
@@ -36,18 +34,7 @@ if (blocksResolver == null)
 if (addressTransactionsResolver == null)
 	throw new Error('MempoolSpace-Rest spec missing UtxoAddress.$$transactions resolver')
 
-const bindings = sourceProviderDefinitions
-	.flatMap((provider) => provider.bindings)
-	.filter((candidate) => (
-		candidate.source === Source.MempoolSpace_Rest
-		&& candidate.target.kind === SourceTargetKind.Caip2Network
-		&& candidate.target.key === `${bitcoinNetworkBySlug.bitcoin.caip2.namespace}:${bitcoinNetworkBySlug.bitcoin.caip2.reference}`
-	))
-
-if (bindings.length !== 1)
-	throw new Error('MempoolSpace-Rest spec missing exact Bitcoin mainnet binding')
-
-const binding = bindings[0]
+const binding = bindings[Source.MempoolSpace_Rest]
 
 const resolverContext = {
 	filters: [],
@@ -87,12 +74,12 @@ describe('MempoolSpace UTXO address transactions', () => {
 				expect(selectorEntry.appliesTo?.length).toBeGreaterThan(0)
 
 		for (const resolver of networkResolvers) {
-			expect(resolver.resolve[NetworkSelector.Caip2].appliesTo).toEqual([
+			expect(resolver.resolve['Caip2'].appliesTo).toEqual([
 				{
 					caip2: bitcoinNetworkBySlug.bitcoin.caip2,
 				},
 			])
-			expect(resolver.resolve[NetworkSelector.Slug].appliesTo).toEqual([
+			expect(resolver.resolve['Slug'].appliesTo).toEqual([
 				{
 					slug: 'bitcoin',
 				},
@@ -108,10 +95,13 @@ describe('MempoolSpace UTXO address transactions', () => {
 			},
 		])
 
-		await expect(blocksResolver.resolve[NetworkSelector.Caip2].resolve(network, resolverContext)).resolves.toHaveLength(1)
-		expect(sourceGetJson).toHaveBeenCalledWith(binding, 'https://mempool.space/api/v1/blocks')
+		await expect(blocksResolver.resolve['Caip2'].resolve(network, resolverContext)).resolves.toHaveLength(1)
+		expect(sourceGetJson).toHaveBeenCalledWith(
+			binding,
+			'https://mempool.space/api/v1/blocks'
+		)
 
-		await expect(blocksResolver.resolve[NetworkSelector.Caip2].resolve({
+		await expect(blocksResolver.resolve['Caip2'].resolve({
 			caip2: {
 				namespace: 'eip155',
 				reference: '1',
@@ -124,7 +114,7 @@ describe('MempoolSpace UTXO address transactions', () => {
 		sourceGetJson.mockResolvedValueOnce(transactions)
 
 		const page = await addressTransactionsResolver.resolve[
-			UtxoAddressSelector.NetworkAddress
+			'NetworkAddress'
 		].resolve(address, resolverContext)
 		const projection = addressTransactionsResolver.projections.$$transactions
 		if (
@@ -147,7 +137,7 @@ describe('MempoolSpace UTXO address transactions', () => {
 
 		sourceGetJson.mockResolvedValueOnce([])
 		const terminalPage = await addressTransactionsResolver.resolve[
-			UtxoAddressSelector.NetworkAddress
+			'NetworkAddress'
 		].resolve(address, {
 			...resolverContext,
 			providerContinuationToken: transactions[0].txid,
@@ -182,7 +172,7 @@ describe('MempoolSpace UTXO address transactions', () => {
 			},
 		])
 			await expect(addressTransactionsResolver.resolve[
-				UtxoAddressSelector.NetworkAddress
+				'NetworkAddress'
 			].resolve({
 				$network,
 				address: address.address,

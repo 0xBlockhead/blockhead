@@ -1,15 +1,18 @@
 import { hexLowerOfByteSize } from '$/lib/hexLowerOfByteSize.ts'
-import { getJson } from '$/lib/http.ts'
+import bindings from '$/sources/Eip8004Scan/bindings.ts'
 import {
-	eip8004ScanOrigins,
-	eip8004ScanPublicBase,
-} from '$/sources/Eip8004Scan/Rest/constants.ts'
+	firstHttpUrlForBinding,
+	sourceGetJson,
+} from '$/sources/_runtime/http.ts'
 import type {
 	Eip8004ScanAgentDetailResponse,
 	Eip8004ScanAgentsListResponse,
 	NormalizedEip8004ScanAgentDetail,
 	NormalizedEip8004ScanAgent,
 } from '$/sources/Eip8004Scan/Rest/types.ts'
+import { Source } from '$/sources/Source.ts'
+
+const binding = bindings[Source.Eip8004Scan_Rest]
 
 const contractAddressFromWire = (
 	value: string | null | undefined
@@ -96,17 +99,19 @@ const agentUriFromDetail = (
 	return undefined
 }
 
-export const fetchAgentList = async ({
-	limit = 100,
-	page = 1,
-}: {
-	limit?: number
-	page?: number
-} = {}): Promise<NormalizedEip8004ScanAgent[]> => {
-	const url = `${eip8004ScanPublicBase}/agents?limit=${String(limit)}&page=${String(page)}`
-	const wire = await getJson<Eip8004ScanAgentsListResponse>(url, {
-		origins: eip8004ScanOrigins,
-	})
+export const fetchAgentList = async (
+	{
+		limit = 100,
+		page = 1,
+	}: {
+		limit?: number
+		page?: number
+	} = {}
+): Promise<NormalizedEip8004ScanAgent[]> => {
+	const wire = await sourceGetJson<Eip8004ScanAgentsListResponse>(
+		binding,
+		`${firstHttpUrlForBinding(binding)}/agents?limit=${String(limit)}&page=${String(page)}`
+	)
 	const rows = wire.data ?? []
 	return (
 		rows
@@ -115,17 +120,19 @@ export const fetchAgentList = async ({
 	)
 }
 
-export const fetchAgentDetail = async ({
-	chainId,
-	tokenId,
-}: {
-	chainId: number
-	tokenId: string
-}): Promise<NormalizedEip8004ScanAgentDetail | undefined> => {
-	const url = `${eip8004ScanPublicBase}/agents/${String(chainId)}/${encodeURIComponent(tokenId)}`
-	const wire = await getJson<Eip8004ScanAgentDetailResponse>(url, {
-		origins: eip8004ScanOrigins,
-	})
+export const fetchAgentDetail = async (
+	{
+		chainId,
+		tokenId,
+	}: {
+		chainId: number
+		tokenId: string
+	}
+): Promise<NormalizedEip8004ScanAgentDetail | undefined> => {
+	const wire = await sourceGetJson<Eip8004ScanAgentDetailResponse>(
+		binding,
+		`${firstHttpUrlForBinding(binding)}/agents/${String(chainId)}/${encodeURIComponent(tokenId)}`
+	)
 	const row = wire.data
 	if (row == null) {
 		return undefined

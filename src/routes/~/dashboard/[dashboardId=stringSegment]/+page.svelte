@@ -8,7 +8,6 @@
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
@@ -36,21 +35,12 @@
 
 
 <svelte:head>
-	<title>{(pageSelection.entity == null ? [String(({
-		id: params.dashboardId,
-	}.id) ?? '')].filter(Boolean).join(' ') || 'dashboard' : [String((({ ...{
-		id: params.dashboardId,
-	}, ...pageSelection.entity }).id) ?? '')].filter(Boolean).join(' ') || 'dashboard')} • dashboard • Blockhead</title>
+	<title>{(pageSelection.entitySelector.id || 'dashboard')} • dashboard • Blockhead</title>
 </svelte:head>
 
 
 <Page>
 	<BlockheadPanelTreeView
-		href={
-			resolve('/~/dashboard/[dashboardId=stringSegment]', {
-				dashboardId: params.dashboardId,
-			})
-		}
 		selection={pageSelection}
 	/>
 </Page>

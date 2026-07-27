@@ -2,14 +2,10 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
@@ -26,31 +22,10 @@
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.SolanaTokenAccount>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.SolanaTokenAccount>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.SolanaTokenAccount> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const solanaTokenAccount = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {},
-	} : {
-		sources: selection.sources,
-	}))
-	const titleFallback = $derived([String((pendingEntity.tokenAccountPubkey) ?? '')].filter(Boolean).join(' ') || 'solana token account')
-	const viewDomId = $derived('solana-token-account-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const titleFallback = $derived((pendingEntity.tokenAccountPubkey ?? '') || 'solana token account')
 
 
 	// Components
@@ -64,31 +39,20 @@
 
 <EntityView
 	entityType={EntityType.SolanaTokenAccount}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
 	href={
-		href ?? (
-			selection.entitySelector != null && 'tokenAccountPubkey' in selection.entitySelector
-			&& selection.entitySelector.tokenAccountPubkey != null
-			&& selection.entitySelector != null && '$network' in selection.entitySelector ?
-				selection.entitySelector.$network != null && 'caip2' in selection.entitySelector.$network
-				&& selection.entitySelector.$network.caip2 != null ?
-					resolve('/network/[network=networkCaip2OrNetworkSlug]/token-account/[tokenAccountPubkey=stringSegment]', {
-				tokenAccountPubkey: String(selection.entitySelector.tokenAccountPubkey ?? ''),
-				network: String(caip2StringFromValue(selection.entitySelector.$network.caip2) ?? ''),
-			})
-			:
-					selection.entitySelector.$network != null && 'slug' in selection.entitySelector.$network
-					&& selection.entitySelector.$network.slug != null ?
-						resolve('/network/[network=networkCaip2OrNetworkSlug]/token-account/[tokenAccountPubkey=stringSegment]', {
-					tokenAccountPubkey: String(selection.entitySelector.tokenAccountPubkey ?? ''),
-					network: String(selection.entitySelector.$network.slug ?? ''),
-				})
-				:
-					undefined
-		:
-				undefined
+		href ?? resolve(
+			'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/token-account/[tokenAccountPubkey=stringSegment]',
+			{
+				network: (
+					'caip2' in selection.entitySelector.$network ?
+						String(caip2StringFromValue(selection.entitySelector.$network.caip2))
+					:
+						String(selection.entitySelector.$network.slug)
+				),
+				tokenAccountPubkey: String(selection.entitySelector.tokenAccountPubkey),
+			}
 		)
 	}
 	{layout}
@@ -96,73 +60,26 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={solanaTokenAccount}>
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const tokenAccountPubkey0 = resolvedEntity.tokenAccountPubkey}
-				{#if tokenAccountPubkey0 !== undefined && tokenAccountPubkey0 !== null}
-					<TruncatedValue value={String((tokenAccountPubkey0) ?? '')} />
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		<TruncatedValue value={pendingEntity.tokenAccountPubkey} />
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={solanaTokenAccount}>
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const tokenAccountPubkey0 = resolvedEntity.tokenAccountPubkey}
-				{#if tokenAccountPubkey0 !== undefined && tokenAccountPubkey0 !== null}
-					<TruncatedValue value={String((tokenAccountPubkey0) ?? '')} />
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		<TruncatedValue value={pendingEntity.tokenAccountPubkey} />
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		<ResourceBoundary resource={solanaTokenAccount}>
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				<ResourceBoundary
-					resource={selection.$mint}
-				>
-					{#snippet children(solanaTokenMint)}
-						{#if solanaTokenMint != null && solanaTokenMint[EntityMetaKey.Selector] != null}
-						<span data-text="muted">
-							<SolanaTokenMintView
-								selection={select(EntityType.SolanaTokenMint, solanaTokenMint[EntityMetaKey.Selector])}
-								prefetched={solanaTokenMint}
-								href={
-									(
-										solanaTokenMint[EntityMetaKey.Selector] != null && 'mintAddress' in solanaTokenMint[EntityMetaKey.Selector]
-										&& solanaTokenMint[EntityMetaKey.Selector].mintAddress != null
-										&& solanaTokenMint[EntityMetaKey.Selector] != null && '$network' in solanaTokenMint[EntityMetaKey.Selector] ?
-											solanaTokenMint[EntityMetaKey.Selector].$network != null && 'caip2' in solanaTokenMint[EntityMetaKey.Selector].$network
-											&& solanaTokenMint[EntityMetaKey.Selector].$network.caip2 != null ?
-												resolve('/network/[network=networkCaip2OrNetworkSlug]/token-mint/[mintAddress=stringSegment]', {
-											mintAddress: String(solanaTokenMint[EntityMetaKey.Selector].mintAddress ?? ''),
-											network: String(caip2StringFromValue(solanaTokenMint[EntityMetaKey.Selector].$network.caip2) ?? ''),
-										})
-										:
-												solanaTokenMint[EntityMetaKey.Selector].$network != null && 'slug' in solanaTokenMint[EntityMetaKey.Selector].$network
-												&& solanaTokenMint[EntityMetaKey.Selector].$network.slug != null ?
-													resolve('/network/[network=networkCaip2OrNetworkSlug]/token-mint/[mintAddress=stringSegment]', {
-												mintAddress: String(solanaTokenMint[EntityMetaKey.Selector].mintAddress ?? ''),
-												network: String(solanaTokenMint[EntityMetaKey.Selector].$network.slug ?? ''),
-											})
-											:
-												undefined
-									:
-											undefined
-									)
-								}
-								layout={EntityLayout.Title}
-								open={false}
-							/>
-						</span>
-						{/if}
-					{/snippet}
-				</ResourceBoundary>
+		<ResourceBoundary
+			resource={selection.$mint}
+		>
+			{#snippet children(solanaTokenMint)}
+				<span data-text="muted">
+					<SolanaTokenMintView
+						selection={select(EntityType.SolanaTokenMint, solanaTokenMint[EntityMetaKey.Selector])}
+						prefetched={solanaTokenMint}
+						layout={EntityLayout.Title}
+						open={false}
+					/>
+				</span>
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -172,24 +89,7 @@
 			<div>
 				<dt>Token account public key</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									tokenAccountPubkey: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const tokenAccountPubkey = resolvedEntity.tokenAccountPubkey}
-							{#if tokenAccountPubkey !== undefined && tokenAccountPubkey !== null}
-								<TruncatedValue value={String((tokenAccountPubkey) ?? '')} />
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					<TruncatedValue value={pendingEntity.tokenAccountPubkey} />
 				</dd>
 			</div>
 
@@ -200,38 +100,12 @@
 						resource={selection.$mint}
 					>
 						{#snippet children(solanaTokenMint)}
-							{#if solanaTokenMint != null && solanaTokenMint[EntityMetaKey.Selector] != null}
-								<SolanaTokenMintView
-									selection={select(EntityType.SolanaTokenMint, solanaTokenMint[EntityMetaKey.Selector])}
-									prefetched={solanaTokenMint}
-									href={
-										(
-											solanaTokenMint[EntityMetaKey.Selector] != null && 'mintAddress' in solanaTokenMint[EntityMetaKey.Selector]
-											&& solanaTokenMint[EntityMetaKey.Selector].mintAddress != null
-											&& solanaTokenMint[EntityMetaKey.Selector] != null && '$network' in solanaTokenMint[EntityMetaKey.Selector] ?
-												solanaTokenMint[EntityMetaKey.Selector].$network != null && 'caip2' in solanaTokenMint[EntityMetaKey.Selector].$network
-												&& solanaTokenMint[EntityMetaKey.Selector].$network.caip2 != null ?
-													resolve('/network/[network=networkCaip2OrNetworkSlug]/token-mint/[mintAddress=stringSegment]', {
-												mintAddress: String(solanaTokenMint[EntityMetaKey.Selector].mintAddress ?? ''),
-												network: String(caip2StringFromValue(solanaTokenMint[EntityMetaKey.Selector].$network.caip2) ?? ''),
-											})
-											:
-													solanaTokenMint[EntityMetaKey.Selector].$network != null && 'slug' in solanaTokenMint[EntityMetaKey.Selector].$network
-													&& solanaTokenMint[EntityMetaKey.Selector].$network.slug != null ?
-														resolve('/network/[network=networkCaip2OrNetworkSlug]/token-mint/[mintAddress=stringSegment]', {
-													mintAddress: String(solanaTokenMint[EntityMetaKey.Selector].mintAddress ?? ''),
-													network: String(solanaTokenMint[EntityMetaKey.Selector].$network.slug ?? ''),
-												})
-												:
-													undefined
-										:
-												undefined
-										)
-									}
-									layout={EntityLayout.Value}
-									open={false}
-								/>
-							{/if}
+							<SolanaTokenMintView
+								selection={select(EntityType.SolanaTokenMint, solanaTokenMint[EntityMetaKey.Selector])}
+								prefetched={solanaTokenMint}
+								layout={EntityLayout.Value}
+								open={false}
+							/>
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -241,37 +115,13 @@
 				resource={selection.$account}
 			>
 				{#snippet children(solanaAccount)}
-					{#if solanaAccount != null && solanaAccount[EntityMetaKey.Selector] != null}
+					{#if solanaAccount != null}
 						<div>
 							<dt>Account</dt>
 							<dd>
 								<SolanaAccountView
 									selection={select(EntityType.SolanaAccount, solanaAccount[EntityMetaKey.Selector])}
 									prefetched={solanaAccount}
-									href={
-										(
-											solanaAccount[EntityMetaKey.Selector] != null && 'pubkey' in solanaAccount[EntityMetaKey.Selector]
-											&& solanaAccount[EntityMetaKey.Selector].pubkey != null
-											&& solanaAccount[EntityMetaKey.Selector] != null && '$network' in solanaAccount[EntityMetaKey.Selector] ?
-												solanaAccount[EntityMetaKey.Selector].$network != null && 'caip2' in solanaAccount[EntityMetaKey.Selector].$network
-												&& solanaAccount[EntityMetaKey.Selector].$network.caip2 != null ?
-													resolve('/network/[network=networkCaip2OrNetworkSlug]/account/[accountId=polkadotAccountIdOrStringSegmentOrEvmAddressOrSolanaPubkey]', {
-												accountId: String(solanaAccount[EntityMetaKey.Selector].pubkey ?? ''),
-												network: String(caip2StringFromValue(solanaAccount[EntityMetaKey.Selector].$network.caip2) ?? ''),
-											})
-											:
-													solanaAccount[EntityMetaKey.Selector].$network != null && 'slug' in solanaAccount[EntityMetaKey.Selector].$network
-													&& solanaAccount[EntityMetaKey.Selector].$network.slug != null ?
-														resolve('/network/[network=networkCaip2OrNetworkSlug]/account/[accountId=polkadotAccountIdOrStringSegmentOrEvmAddressOrSolanaPubkey]', {
-													accountId: String(solanaAccount[EntityMetaKey.Selector].pubkey ?? ''),
-													network: String(solanaAccount[EntityMetaKey.Selector].$network.slug ?? ''),
-												})
-												:
-													undefined
-										:
-												undefined
-										)
-									}
 									layout={EntityLayout.Value}
 									open={false}
 								/>
@@ -285,37 +135,13 @@
 				resource={selection.$owner}
 			>
 				{#snippet children(solanaAccount)}
-					{#if solanaAccount != null && solanaAccount[EntityMetaKey.Selector] != null}
+					{#if solanaAccount != null}
 						<div>
 							<dt>Owner</dt>
 							<dd>
 								<SolanaAccountView
 									selection={select(EntityType.SolanaAccount, solanaAccount[EntityMetaKey.Selector])}
 									prefetched={solanaAccount}
-									href={
-										(
-											solanaAccount[EntityMetaKey.Selector] != null && 'pubkey' in solanaAccount[EntityMetaKey.Selector]
-											&& solanaAccount[EntityMetaKey.Selector].pubkey != null
-											&& solanaAccount[EntityMetaKey.Selector] != null && '$network' in solanaAccount[EntityMetaKey.Selector] ?
-												solanaAccount[EntityMetaKey.Selector].$network != null && 'caip2' in solanaAccount[EntityMetaKey.Selector].$network
-												&& solanaAccount[EntityMetaKey.Selector].$network.caip2 != null ?
-													resolve('/network/[network=networkCaip2OrNetworkSlug]/account/[accountId=polkadotAccountIdOrStringSegmentOrEvmAddressOrSolanaPubkey]', {
-												accountId: String(solanaAccount[EntityMetaKey.Selector].pubkey ?? ''),
-												network: String(caip2StringFromValue(solanaAccount[EntityMetaKey.Selector].$network.caip2) ?? ''),
-											})
-											:
-													solanaAccount[EntityMetaKey.Selector].$network != null && 'slug' in solanaAccount[EntityMetaKey.Selector].$network
-													&& solanaAccount[EntityMetaKey.Selector].$network.slug != null ?
-														resolve('/network/[network=networkCaip2OrNetworkSlug]/account/[accountId=polkadotAccountIdOrStringSegmentOrEvmAddressOrSolanaPubkey]', {
-													accountId: String(solanaAccount[EntityMetaKey.Selector].pubkey ?? ''),
-													network: String(solanaAccount[EntityMetaKey.Selector].$network.slug ?? ''),
-												})
-												:
-													undefined
-										:
-												undefined
-										)
-									}
 									layout={EntityLayout.Value}
 									open={false}
 								/>
@@ -331,37 +157,13 @@
 				resource={selection.$delegate}
 			>
 				{#snippet children(solanaAccount)}
-					{#if solanaAccount != null && solanaAccount[EntityMetaKey.Selector] != null}
+					{#if solanaAccount != null}
 						<div>
 							<dt>Delegate</dt>
 							<dd>
 								<SolanaAccountView
 									selection={select(EntityType.SolanaAccount, solanaAccount[EntityMetaKey.Selector])}
 									prefetched={solanaAccount}
-									href={
-										(
-											solanaAccount[EntityMetaKey.Selector] != null && 'pubkey' in solanaAccount[EntityMetaKey.Selector]
-											&& solanaAccount[EntityMetaKey.Selector].pubkey != null
-											&& solanaAccount[EntityMetaKey.Selector] != null && '$network' in solanaAccount[EntityMetaKey.Selector] ?
-												solanaAccount[EntityMetaKey.Selector].$network != null && 'caip2' in solanaAccount[EntityMetaKey.Selector].$network
-												&& solanaAccount[EntityMetaKey.Selector].$network.caip2 != null ?
-													resolve('/network/[network=networkCaip2OrNetworkSlug]/account/[accountId=polkadotAccountIdOrStringSegmentOrEvmAddressOrSolanaPubkey]', {
-												accountId: String(solanaAccount[EntityMetaKey.Selector].pubkey ?? ''),
-												network: String(caip2StringFromValue(solanaAccount[EntityMetaKey.Selector].$network.caip2) ?? ''),
-											})
-											:
-													solanaAccount[EntityMetaKey.Selector].$network != null && 'slug' in solanaAccount[EntityMetaKey.Selector].$network
-													&& solanaAccount[EntityMetaKey.Selector].$network.slug != null ?
-														resolve('/network/[network=networkCaip2OrNetworkSlug]/account/[accountId=polkadotAccountIdOrStringSegmentOrEvmAddressOrSolanaPubkey]', {
-													accountId: String(solanaAccount[EntityMetaKey.Selector].pubkey ?? ''),
-													network: String(solanaAccount[EntityMetaKey.Selector].$network.slug ?? ''),
-												})
-												:
-													undefined
-										:
-												undefined
-										)
-									}
 									layout={EntityLayout.Value}
 									open={false}
 								/>
@@ -375,37 +177,13 @@
 				resource={selection.$closeAuthority}
 			>
 				{#snippet children(solanaAccount)}
-					{#if solanaAccount != null && solanaAccount[EntityMetaKey.Selector] != null}
+					{#if solanaAccount != null}
 						<div>
 							<dt>Close authority</dt>
 							<dd>
 								<SolanaAccountView
 									selection={select(EntityType.SolanaAccount, solanaAccount[EntityMetaKey.Selector])}
 									prefetched={solanaAccount}
-									href={
-										(
-											solanaAccount[EntityMetaKey.Selector] != null && 'pubkey' in solanaAccount[EntityMetaKey.Selector]
-											&& solanaAccount[EntityMetaKey.Selector].pubkey != null
-											&& solanaAccount[EntityMetaKey.Selector] != null && '$network' in solanaAccount[EntityMetaKey.Selector] ?
-												solanaAccount[EntityMetaKey.Selector].$network != null && 'caip2' in solanaAccount[EntityMetaKey.Selector].$network
-												&& solanaAccount[EntityMetaKey.Selector].$network.caip2 != null ?
-													resolve('/network/[network=networkCaip2OrNetworkSlug]/account/[accountId=polkadotAccountIdOrStringSegmentOrEvmAddressOrSolanaPubkey]', {
-												accountId: String(solanaAccount[EntityMetaKey.Selector].pubkey ?? ''),
-												network: String(caip2StringFromValue(solanaAccount[EntityMetaKey.Selector].$network.caip2) ?? ''),
-											})
-											:
-													solanaAccount[EntityMetaKey.Selector].$network != null && 'slug' in solanaAccount[EntityMetaKey.Selector].$network
-													&& solanaAccount[EntityMetaKey.Selector].$network.slug != null ?
-														resolve('/network/[network=networkCaip2OrNetworkSlug]/account/[accountId=polkadotAccountIdOrStringSegmentOrEvmAddressOrSolanaPubkey]', {
-													accountId: String(solanaAccount[EntityMetaKey.Selector].pubkey ?? ''),
-													network: String(solanaAccount[EntityMetaKey.Selector].$network.slug ?? ''),
-												})
-												:
-													undefined
-										:
-												undefined
-										)
-									}
 									layout={EntityLayout.Value}
 									open={false}
 								/>
@@ -420,23 +198,6 @@
 				<dd>
 					<NetworkView
 						selection={select(EntityType.Network, selection.entitySelector.$network)}
-						href={
-							(
-								selection.entitySelector.$network != null && 'caip2' in selection.entitySelector.$network
-								&& selection.entitySelector.$network.caip2 != null ?
-									resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-								network: String(caip2StringFromValue(selection.entitySelector.$network.caip2) ?? ''),
-							})
-							:
-									selection.entitySelector.$network != null && 'slug' in selection.entitySelector.$network
-									&& selection.entitySelector.$network.slug != null ?
-										resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-									network: String(selection.entitySelector.$network.slug ?? ''),
-								})
-								:
-									undefined
-							)
-						}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

@@ -1,14 +1,11 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { entity, facet } from '$/schema/$schema.ts'
+import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { type } from 'arktype'
 
-export enum DydxChainSubaccount_TimestampSelector {
-	SubaccountTimestampMsSource = 'SubaccountTimestampMsSource',
-}
-export const DydxChainSubaccount_Timestamp = entity({
+export default entity({
 	entityType: EntityType.DydxChainSubaccount_Timestamp,
 	labels: {
 		singular: 'dydx chain subaccount timestamp',

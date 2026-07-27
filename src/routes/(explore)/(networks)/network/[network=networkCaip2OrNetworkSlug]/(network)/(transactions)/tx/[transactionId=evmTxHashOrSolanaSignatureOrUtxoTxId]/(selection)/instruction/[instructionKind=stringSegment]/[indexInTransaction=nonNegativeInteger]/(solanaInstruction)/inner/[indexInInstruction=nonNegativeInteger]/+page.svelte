@@ -7,7 +7,6 @@
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
@@ -39,21 +38,12 @@
 
 
 <svelte:head>
-	<title>{(data.title ?? (pageSelection.entity == null ? 'solana instruction' : 'solana instruction'))} • solana instruction • Blockhead</title>
+	<title>{(data.title ?? ('solana instruction'))} • solana instruction • Blockhead</title>
 </svelte:head>
 
 
 <Page>
 	<SolanaInstructionView
-		href={
-			resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/instruction/[instructionKind=stringSegment]/[indexInTransaction=nonNegativeInteger]/inner/[indexInInstruction=nonNegativeInteger]', {
-				network: params.network,
-				transactionId: params.transactionId,
-				instructionKind: params.instructionKind,
-				indexInTransaction: params.indexInTransaction,
-				indexInInstruction: params.indexInInstruction,
-			})
-		}
 		selection={pageSelection}
 	/>
 </Page>

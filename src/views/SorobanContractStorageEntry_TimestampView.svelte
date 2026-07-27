@@ -2,13 +2,8 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
 
 
 	// Context
@@ -20,35 +15,13 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.SorobanContractStorageEntry_Timestamp>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.SorobanContractStorageEntry_Timestamp>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.SorobanContractStorageEntry_Timestamp> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const sorobanContractStorageEntryTimestamp = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {},
-	} : {
-		sources: selection.sources,
-	}))
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const titleFallback = 'soroban contract storage entry timestamp'
-	const viewDomId = $derived('soroban-contract-storage-entry-timestamp-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -59,24 +32,14 @@
 
 <EntityView
 	entityType={EntityType.SorobanContractStorageEntry_Timestamp}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails}
-			{title || titleFallback}
-		{:else}
-			<ResourceBoundary resource={sorobanContractStorageEntryTimestamp}>
-				{#snippet children(entity)}
-					{title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		soroban contract storage entry timestamp
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -95,55 +58,20 @@
 			<div>
 				<dt>ledger sequence</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									ledgerSequence: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const ledgerSequence = resolvedEntity.ledgerSequence}
-							{#if ledgerSequence !== undefined && ledgerSequence !== null}
-								{String((ledgerSequence) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{String(pendingEntity.ledgerSequence)}
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									source: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const source = resolvedEntity.source}
-							{#if source !== undefined && source !== null}
-								{String((source) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{pendingEntity.source}
 				</dd>
 			</div>
 
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							observedAtMs: true,
 						},
@@ -151,13 +79,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const observedAtMs = resolvedEntity.observedAtMs}
-					{#if observedAtMs !== undefined && observedAtMs !== null}
+					{@const observedAtMs = entity.observedAtMs}
+					{#if observedAtMs != null}
 						<div>
 							<dt>observed AT ms</dt>
 							<dd>
-								{String((observedAtMs) ?? '')}
+								{String(observedAtMs)}
 							</dd>
 						</div>
 					{/if}
@@ -167,7 +94,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							valueXdr: true,
 						},
@@ -175,13 +101,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const valueXdr = resolvedEntity.valueXdr}
-					{#if valueXdr !== undefined && valueXdr !== null}
+					{@const valueXdr = entity.valueXdr}
+					{#if valueXdr != null}
 						<div>
 							<dt>value xdr</dt>
 							<dd>
-								{String((valueXdr) ?? '')}
+								{valueXdr}
 							</dd>
 						</div>
 					{/if}
@@ -191,7 +116,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							durability: true,
 						},
@@ -199,13 +123,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const durability = resolvedEntity.durability}
-					{#if durability !== undefined && durability !== null}
+					{@const durability = entity.durability}
+					{#if durability != null}
 						<div>
 							<dt>durability</dt>
 							<dd>
-								{String((durability) ?? '')}
+								{durability}
 							</dd>
 						</div>
 					{/if}
@@ -215,7 +138,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							lastModifiedLedger: true,
 						},
@@ -223,13 +145,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const lastModifiedLedger = resolvedEntity.lastModifiedLedger}
-					{#if lastModifiedLedger !== undefined && lastModifiedLedger !== null}
+					{@const lastModifiedLedger = entity.lastModifiedLedger}
+					{#if lastModifiedLedger != null}
 						<div>
 							<dt>last modified ledger</dt>
 							<dd>
-								{String((lastModifiedLedger) ?? '')}
+								{String(lastModifiedLedger)}
 							</dd>
 						</div>
 					{/if}
@@ -239,7 +160,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							liveUntilLedger: true,
 						},
@@ -247,13 +167,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const liveUntilLedger = resolvedEntity.liveUntilLedger}
-					{#if liveUntilLedger !== undefined && liveUntilLedger !== null}
+					{@const liveUntilLedger = entity.liveUntilLedger}
+					{#if liveUntilLedger != null}
 						<div>
 							<dt>live until ledger</dt>
 							<dd>
-								{String((liveUntilLedger) ?? '')}
+								{String(liveUntilLedger)}
 							</dd>
 						</div>
 					{/if}
@@ -263,7 +182,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							found: true,
 						},
@@ -271,9 +189,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const found = resolvedEntity.found}
-					{#if found !== undefined && found !== null}
+					{@const found = entity.found}
+					{#if found != null}
 						<div>
 							<dt>found</dt>
 							<dd>

@@ -2,14 +2,10 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -26,32 +22,19 @@
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.XUser>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.XUser>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.XUser> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const xUser = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const viewSelection = $derived(selection({
+		sources: selection.sources ?? [
+			Source.X_Rest,
+			Source.X_FxEmbed_Rest,
+		],
+	}))
+	const xUser = $derived(viewSelection({
 		fields: {
-			name: true,
-			createdAt: true,
-		},
-	} : {
-		sources: selection.sources,
-		fields: {
+			id: true,
+			username: true,
 			name: true,
 			description: true,
 			location: true,
@@ -60,8 +43,7 @@
 			createdAt: true,
 		},
 	}))
-	const titleFallback = $derived([String((pendingEntity.name) ?? ''), String((pendingEntity.username) ?? ''), String((pendingEntity.id) ?? '')].filter(Boolean).join(' ') || 'X user')
-	const viewDomId = $derived('xuser-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const titleFallback = $derived([(pendingEntity.name ?? ''), (pendingEntity.username ?? ''), (pendingEntity.id ?? '')].filter(Boolean).join(' ') || 'X user')
 
 
 	// Components
@@ -76,17 +58,18 @@
 
 <EntityView
 	entityType={EntityType.XUser}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
 	href={
 		href ?? (
-			selection.entitySelector != null && 'id' in selection.entitySelector
-			&& selection.entitySelector.id != null ?
-				resolve('/x/user/[userId=stringSegment]', {
-			userId: String(selection.entitySelector.id ?? ''),
-		})
-		:
+			'id' in selection.entitySelector ?
+				resolve(
+					'/(social)/(x)/x/(xNetwork)/user/[userId=stringSegment]',
+					{
+						userId: String(selection.entitySelector.id),
+					}
+				)
+			:
 				undefined
 		)
 	}
@@ -114,8 +97,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={xUser}>
 			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.name) ?? ''), String((resolvedEntity.username) ?? ''), String((resolvedEntity.id) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+				{[(entity.name ?? ''), entity.username, entity.id].filter(Boolean).join(' ') || title || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -123,8 +105,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={xUser}>
 			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[(String((resolvedEntity.username) ?? '') ? '@' + String((resolvedEntity.username) ?? '') : ''), String((resolvedEntity.id) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.name) ?? ''), String((resolvedEntity.username) ?? ''), String((resolvedEntity.id) ?? '')].filter(Boolean).join(' ') || titleFallback}
+				{([(entity.username ? '@' + entity.username : ''), entity.id].filter(Boolean).join(' ')) || [(entity.name ?? ''), entity.username, entity.id].filter(Boolean).join(' ') || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -132,9 +113,8 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={xUser}>
 			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const createdAt0 = resolvedEntity.createdAt}
-				{#if createdAt0 !== undefined && createdAt0 !== null}
+				{@const createdAt0 = entity.createdAt}
+				{#if createdAt0 != null}
 					<span data-text="muted">
 						<Timestamp timestamp={Number(createdAt0)} />
 					</span>
@@ -149,22 +129,11 @@
 				<dt>Username</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									username: true,
-								},
-							})
-						}
+						resource={xUser}
 					>
 						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const username = resolvedEntity.username}
-							{#if username !== undefined && username !== null}
-								<span>@</span>
-								{String((username) ?? '')}
-							{/if}
+							<span>@</span>
+							{entity.username}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -173,19 +142,11 @@
 
 		<dl data-column-item="center">
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							verified: true,
-						},
-					})
-				}
+				resource={xUser}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const verified = resolvedEntity.verified}
-					{#if verified !== undefined && verified !== null}
+					{@const verified = entity.verified}
+					{#if verified != null}
 						<div>
 							<dt>Verified</dt>
 							<dd>
@@ -199,23 +160,15 @@
 
 		<dl data-column-item="center">
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							location: true,
-						},
-					})
-				}
+				resource={xUser}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const location = resolvedEntity.location}
-					{#if location !== undefined && location !== null}
+					{@const location = entity.location}
+					{#if location != null}
 						<div>
 							<dt>Location</dt>
 							<dd>
-								{String((location) ?? '')}
+								{location}
 							</dd>
 						</div>
 					{/if}
@@ -225,30 +178,21 @@
 
 		<dl data-column-item="center">
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							websiteUrl: true,
-						},
-					})
-				}
+				resource={xUser}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const websiteUrl = resolvedEntity.websiteUrl}
-					{#if websiteUrl !== undefined && websiteUrl !== null}
+					{@const websiteUrl = entity.websiteUrl}
+					{#if websiteUrl != null}
 						<div>
 							<dt>Website URL</dt>
 							<dd>
-								<svelte:element
-									this={'a'}
+								<a
 									href={String(websiteUrl)}
 									target="_blank"
 									rel="noreferrer noopener"
 								>
 									<TruncatedValue value={String(websiteUrl)} />
-								</svelte:element>
+								</a>
 							</dd>
 						</div>
 					{/if}
@@ -258,19 +202,11 @@
 
 		<dl data-column-item="center">
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							createdAt: true,
-						},
-					})
-				}
+				resource={xUser}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const createdAt = resolvedEntity.createdAt}
-					{#if createdAt !== undefined && createdAt !== null}
+					{@const createdAt = entity.createdAt}
+					{#if createdAt != null}
 						<div>
 							<dt>Created</dt>
 							<dd>
@@ -283,67 +219,47 @@
 		</dl>
 
 		<ResourceBoundary
-			resource={
-				selection({
-					sources: selection.sources,
-					fields: {
-						description: true,
-					},
-				})
-			}
+			resource={xUser}
 		>
 			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const description = resolvedEntity.description}
-				{#if description !== undefined && description !== null && description !== ''}
-					<p data-text="long-text">{String((description) ?? '')}</p>
+				{@const description = entity.description}
+				{#if description != null && description !== ''}
+					<p data-text="long-text">{description}</p>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-				{@const xUserXPostsViewPostsResource = selection
-		.$$posts({
-			sources: [
-				Source.X_Rest,
-				Source.X_FxEmbed_Rest,
-			],
-		})}
-				<ResourceBoundary
-					resource={xUserXPostsViewPostsResource}
-				>
-					{#snippet children(entities)}
-						{#if entities.values.length > 0}
-						<XPostsView
-							selection={xUserXPostsViewPostsResource}
-							countResource={xUserXPostsViewPostsResource.count}
-							title='Posts'
-							id='XPostsView-posts'
-						/>
-						{/if}
-					{/snippet}
-				</ResourceBoundary>
-				{@const xUserXUserTimestampsViewTimestampsResource = selection
-		.$$timestamps({
-			sources: [
-				Source.X_Rest,
-				Source.X_FxEmbed_Rest,
-			],
-		})}
-				<ResourceBoundary
-					resource={xUserXUserTimestampsViewTimestampsResource}
-				>
-					{#snippet children(entities)}
-						{#if entities.values.length > 0}
-						<XUser_TimestampsView
-							selection={xUserXUserTimestampsViewTimestampsResource}
-							countResource={xUserXUserTimestampsViewTimestampsResource.count}
-							title='Observations'
-							id='XUser_TimestampsView-timestamps'
-						/>
-						{/if}
-					{/snippet}
-				</ResourceBoundary>
+		{@const xUserXPostsViewPostsResource = selection.$$posts}
+		<ResourceBoundary
+			resource={xUserXPostsViewPostsResource}
+		>
+			{#snippet children(entities)}
+				{#if entities.values.length > 0}
+					<XPostsView
+						selection={xUserXPostsViewPostsResource}
+						countResource={xUserXPostsViewPostsResource.count}
+						title='Posts'
+						id='posts'
+					/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
+		{@const xUserXUserTimestampsViewTimestampsResource = selection.$$timestamps}
+		<ResourceBoundary
+			resource={xUserXUserTimestampsViewTimestampsResource}
+		>
+			{#snippet children(entities)}
+				{#if entities.values.length > 0}
+					<XUser_TimestampsView
+						selection={xUserXUserTimestampsViewTimestampsResource}
+						countResource={xUserXUserTimestampsViewTimestampsResource.count}
+						title='Observations'
+						id='timestamps'
+					/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 </EntityView>

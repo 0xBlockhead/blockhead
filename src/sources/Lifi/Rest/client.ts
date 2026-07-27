@@ -1,17 +1,20 @@
-import { corsFetch } from '$/lib/http.ts'
-import { baseUrl, lifiRestOrigins } from '$/sources/Lifi/Rest/constants.ts'
+import {
+	firstHttpUrlForBinding,
+	sourceFetch,
+} from '$/sources/_runtime/http.ts'
+import bindings from '$/sources/Lifi/bindings.ts'
+import { Source } from '$/sources/Source.ts'
 
+const binding = bindings[Source.Lifi_Rest]
 
 export const lifiRestFetch = (
 	path: string,
-	init?: RequestInit,
-	options?: { baseUrl?: string }
+	init?: RequestInit
 ): Promise<Response> => {
-	const root = options?.baseUrl ?? baseUrl
-	const url = path.startsWith('http') ? path : `${root}${path}`
-	return corsFetch(url, {
-		origins: lifiRestOrigins,
-		init: {
+	return sourceFetch(
+		binding,
+		new URL(path, firstHttpUrlForBinding(binding)).toString(),
+		{
 			...init,
 			headers: {
 				Accept: 'application/json',
@@ -22,6 +25,6 @@ export const lifiRestFetch = (
 						{}
 				),
 			},
-		},
-	})
+		}
+	)
 }

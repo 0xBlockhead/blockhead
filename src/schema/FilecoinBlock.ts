@@ -1,15 +1,12 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { entity, facet } from '$/schema/$schema.ts'
+import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
-export enum FilecoinBlockSelector {
-	NetworkCid = 'NetworkCid',
-}
-export const FilecoinBlock = entity({
+export default entity({
 	entityType: EntityType.FilecoinBlock,
 	labels: {
 		singular: 'filecoin block',
@@ -72,7 +69,6 @@ export const FilecoinBlock = entity({
 		entityType: EntityType.FilecoinMessage,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
-			Source.Lotus_JsonRpc,
 			Source.Filfox_Rest,
 		],
 	},

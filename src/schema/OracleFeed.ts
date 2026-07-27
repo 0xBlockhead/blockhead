@@ -1,15 +1,12 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { entity, facet } from '$/schema/$schema.ts'
+import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { EvmAddress } from '$/schema/ZeroExHex.ts'
 import { type } from 'arktype'
 
-export enum OracleFeedSelector {
-	EvmNetworkAddress = 'EvmNetworkAddress',
-}
-export const OracleFeed = entity({
+export default entity({
 	entityType: EntityType.OracleFeed,
 	labels: {
 		singular: 'oracle feed',
@@ -26,7 +23,7 @@ export const OracleFeed = entity({
 		label: 'Address',
 		description: 'The address or account identifier used by the source protocol.',
 		type: EntityFieldType.Primitive,
-		primitiveType: (EvmAddress),
+		primitiveType: EvmAddress,
 		cardinality: EntityFieldCardinality.One,
 	},
 	$market: {

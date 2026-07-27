@@ -1,14 +1,11 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { entity, facet } from '$/schema/$schema.ts'
+import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { type } from 'arktype'
 
-export enum BnbBeaconTransactionSelector {
-	NetworkTxHash = 'NetworkTxHash',
-}
-export const BnbBeaconTransaction = entity({
+export default entity({
 	entityType: EntityType.BnbBeaconTransaction,
 	labels: {
 		singular: 'bnb beacon transaction',

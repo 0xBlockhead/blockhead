@@ -9,14 +9,12 @@
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		data,
-		params,
 	}: PageProps = $props()
 
 	const pageSelection = $derived(select(EntityType.EvmLog, data.selector, {
@@ -39,19 +37,12 @@
 
 
 <svelte:head>
-	<title>{(data.title ?? (pageSelection.entity == null ? (String((data.selector.indexInTransaction) ?? '') ? 'Log #' + String((data.selector.indexInTransaction) ?? '') : '') || 'EVM log' : (String((({ ...data.selector, ...pageSelection.entity }).indexInTransaction) ?? '') ? 'Log #' + String((({ ...data.selector, ...pageSelection.entity }).indexInTransaction) ?? '') : '') || 'EVM log'))} • EVM log • Blockhead</title>
+	<title>{(data.title ?? (pageSelection.entity == null ? (String(pageSelection.entitySelector.indexInTransaction ?? '') ? 'Log #' + String(pageSelection.entitySelector.indexInTransaction ?? '') : '') || 'EVM log' : (String(pageSelection.entitySelector.indexInTransaction ?? '') ? 'Log #' + String(pageSelection.entitySelector.indexInTransaction ?? '') : '') || 'EVM log'))} • EVM log • Blockhead</title>
 </svelte:head>
 
 
 <Page>
 	<EvmLogView
-		href={
-			resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/log/[indexInTransaction=nonNegativeInteger]', {
-				network: params.network,
-				transactionId: params.transactionId,
-				indexInTransaction: params.indexInTransaction,
-			})
-		}
 		selection={pageSelection}
 	/>
 </Page>

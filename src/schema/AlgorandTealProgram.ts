@@ -1,15 +1,12 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { entity, facet } from '$/schema/$schema.ts'
+import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 import { type } from 'arktype'
 
-export enum AlgorandTealProgramSelector {
-	NetworkProgramHash = 'NetworkProgramHash',
-}
-export const AlgorandTealProgram = entity({
+export default entity({
 	entityType: EntityType.AlgorandTealProgram,
 	labels: {
 		singular: 'algorand teal program',
@@ -25,7 +22,7 @@ export const AlgorandTealProgram = entity({
 	programHash: {
 		label: 'program hash',
 		type: EntityFieldType.Primitive,
-		primitiveType: (ZeroExHex),
+		primitiveType: ZeroExHex,
 		cardinality: EntityFieldCardinality.One,
 	},
 	programKind: {

@@ -2,69 +2,31 @@
 
 <script lang="ts">
 	// Types/constants
-	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
-	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
-	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
+	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-
-
+	import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 
 
 	// State
 	let {
 		selection,
-		countResource,
-		title = 'Git packed objects',
-		typeAnnotationParagraphs = [],
-		placeholderText = undefined,
-		emptyText = undefined,
 		open = $bindable(true),
-		collapsible = true,
-		showTypeAnnotation = true,
-		id = 'GitPackedObjects-list',
 		...EntitiesListProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyEntitiesSelection<EntityType.GitPackedObject>
-			countResource?: SvelteKitResource<number>
-			title?: string
-			typeAnnotationParagraphs?: string[]
-			placeholderText?: string
-			emptyText?: string
-			open?: boolean
-			collapsible?: boolean
-			showTypeAnnotation?: boolean
-			id?: string
-		},
-		EntitiesListForwardProps
-	> = $props()
+	}: EntityListViewProps<EntityType.GitPackedObject> = $props()
 
 
 	// Components
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView from '$/components/EntityView.svelte'
 </script>
 
-
-{#snippet TypeAnnotationParagraphs()}
-	{#each typeAnnotationParagraphs as paragraph (paragraph)}
-		<p>{paragraph}</p>
-	{/each}
-{/snippet}
 
 <EntitiesList
 	{...EntitiesListProps}
 	entityType={EntityType.GitPackedObject}
-	{id}
-	{title}
 	bind:open
-	{collapsible}
-	{showTypeAnnotation}
-	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
 	resource={
 		selection({
-			sources: selection.sources,
 			fields: {
 				objectId: true,
 				storedKind: true,
@@ -76,38 +38,23 @@
 			},
 		})
 	}
-	{countResource}
-	getResourceItems={(gitPackedObjects) => [...new Map(gitPackedObjects.values.map((gitPackedObject) => [gitPackedObject[EntityMetaKey.SelectorKey], gitPackedObject])).values()]}
-	getKey={(gitPackedObject) => gitPackedObject[EntityMetaKey.SelectorKey]}
-	{placeholderText}
 >
-	{#snippet Empty()}
-		{#if emptyText != null}
-			<p data-text="muted">{emptyText}</p>
-		{:else}
-			<p data-text="muted">No Git packed objects yet.</p>
-		{/if}
-	{/snippet}
-
 	{#snippet Item({ item: gitPackedObject })}
-		{@const gitPackedObjectFields = { ...gitPackedObject[EntityMetaKey.Selector], ...gitPackedObject }}
+		{@const gitPackedObjectSelector = gitPackedObject[EntityMetaKey.Selector]}
 		<EntityView
 			entityType={EntityType.GitPackedObject}
-			entitySelector={gitPackedObject[EntityMetaKey.Selector]}
-			layout={EntityLayout.Summary}
-			open={false}
-			showTypeAnnotation={false}
+			entitySelector={gitPackedObjectSelector}
 		>
 			{#snippet Title()}
-				{[String((gitPackedObjectFields.objectId) ?? '')].filter(Boolean).join(' ') || 'Git packed object'}
+				{String(gitPackedObjectSelector.objectId) || 'Git packed object'}
 			{/snippet}
 
 			{#snippet Value()}
-				{[String((gitPackedObjectFields.storedKind) ?? '')].filter(Boolean).join(' ')}
+				{(gitPackedObject.storedKind ?? '')}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{[[String((gitPackedObjectFields.$packfile.packHash) ?? '')].filter(Boolean).join(' ') || 'Git packfile'].filter(Boolean).join(' ')}</span>
+				<span data-text="annotation">{String(gitPackedObject.$packfile.packHash) || 'Git packfile'}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

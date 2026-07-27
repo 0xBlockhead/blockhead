@@ -14,11 +14,6 @@ import { schema } from '$/schema/index.ts'
 import { MediaType } from '$/schema/Media.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
-import { _GlobalSelector } from '$/schema/_Global.ts'
-import { EvmCoinInstanceSelector } from '$/schema/EvmCoinInstance.ts'
-import { EvmNetworkActorCoinBalanceSelector } from '$/schema/EvmNetworkActorCoinBalance.ts'
-import { EvmNetworkAccountSelector } from '$/schema/EvmNetworkAccount.ts'
-
 const evmNetworkIdFromChainId = (chainId: number) => ({
 	caip2: {
 		namespace: 'eip155',
@@ -34,7 +29,7 @@ export default {
 		defineResolver(Source.Allium_Rest, {
 			entityType: EntityType.EvmCoinInstance,
 			resolve: {
-				[EvmCoinInstanceSelector.NetworkTypeContract]: {
+				NetworkTypeContract: {
 					resolve: async ({ $contract, $network, type }, context) => {
 						const { CoinId, coinById, coinBySymbol } = await import('$/constants/Coin.ts')
 						const { apiChainByChainId } = await import('$/sources/Allium/Rest/constants.ts')
@@ -101,7 +96,7 @@ export default {
 		defineResolver(Source.Allium_Rest, {
 			entityType: EntityType.EvmNetworkActorCoinBalance,
 			resolve: {
-				[EvmNetworkActorCoinBalanceSelector.EvmAccountNativeCoinInstance]: {
+				EvmAccountNativeCoinInstance: {
 					resolve: async ({ $actor, $network }, context) => {
 						const { apiChainByChainId } = await import('$/sources/Allium/Rest/constants.ts')
 						const { getLatestWalletBalances } = await import('$/sources/Allium/Rest/queries.ts')
@@ -143,7 +138,7 @@ export default {
 						}
 					},
 				},
-				[EvmNetworkActorCoinBalanceSelector.EvmAccountErc20CoinInstance]: {
+				EvmAccountErc20CoinInstance: {
 					resolve: async ({ $actor, $contract }, context) => {
 						const { apiChainByChainId } = await import('$/sources/Allium/Rest/constants.ts')
 						const { getLatestWalletBalances } = await import('$/sources/Allium/Rest/queries.ts')
@@ -194,7 +189,7 @@ export default {
 				}),
 				$contract: {
 					parentSelectors: [
-						EvmNetworkActorCoinBalanceSelector.EvmAccountErc20CoinInstance,
+						'EvmAccountErc20CoinInstance',
 					],
 					select: (balance) => {
 							if (balance.$contract == null)
@@ -213,7 +208,7 @@ export default {
 		defineResolver(Source.Allium_Rest, {
 			entityType: EntityType.EvmNetworkAccount,
 			resolve: {
-				[EvmNetworkAccountSelector.EvmNetworkEvmAccount]: {
+				EvmNetworkEvmAccount: {
 					resolve: async ({ $actor, $network }, context) => {
 						const { apiChainByChainId } = await import('$/sources/Allium/Rest/constants.ts')
 						const { getLatestWalletBalances } = await import('$/sources/Allium/Rest/queries.ts')
@@ -276,7 +271,7 @@ export default {
 		defineResolver(Source.Allium_Rest, {
 			entityType: EntityType._Global,
 			resolve: {
-				[_GlobalSelector.Scope]: {
+				Scope: {
 					resolve: async (_globalScopeEntitySelector: EntitySelector<typeof schema, EntityType._Global>, context) => {
 						const { readNormalizedLocalInternal } = await import('$/resolvers/Local/Internal/catalog.ts')
 						const { apiChainByChainId } = await import('$/sources/Allium/Rest/constants.ts')

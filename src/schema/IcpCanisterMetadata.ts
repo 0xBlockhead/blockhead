@@ -1,14 +1,11 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { entity, facet } from '$/schema/$schema.ts'
+import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { type } from 'arktype'
 
-export enum IcpCanisterMetadataSelector {
-	CanisterMetadataName = 'CanisterMetadataName',
-}
-export const IcpCanisterMetadata = entity({
+export default entity({
 	entityType: EntityType.IcpCanisterMetadata,
 	labels: {
 		singular: 'icp canister metadata',

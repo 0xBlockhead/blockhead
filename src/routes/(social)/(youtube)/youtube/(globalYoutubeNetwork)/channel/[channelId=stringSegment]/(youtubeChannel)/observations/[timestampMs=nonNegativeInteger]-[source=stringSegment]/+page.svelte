@@ -7,7 +7,6 @@
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
@@ -40,43 +39,12 @@
 
 
 <svelte:head>
-	<title>{(pageSelection.entity == null ? [String(({
-		$channel: {
-			channelId: decodeURIComponent(params.channelId),
-		},
-		timestampMs: Number(params.timestampMs),
-		source: params.source,
-	}.timestampMs) ?? ''), String(({
-		$channel: {
-			channelId: decodeURIComponent(params.channelId),
-		},
-		timestampMs: Number(params.timestampMs),
-		source: params.source,
-	}.source) ?? '')].filter(Boolean).join(' ') || 'YouTube channel observation' : [String((({ ...{
-		$channel: {
-			channelId: decodeURIComponent(params.channelId),
-		},
-		timestampMs: Number(params.timestampMs),
-		source: params.source,
-	}, ...pageSelection.entity }).timestampMs) ?? ''), String((({ ...{
-		$channel: {
-			channelId: decodeURIComponent(params.channelId),
-		},
-		timestampMs: Number(params.timestampMs),
-		source: params.source,
-	}, ...pageSelection.entity }).source) ?? '')].filter(Boolean).join(' ') || 'YouTube channel observation')} • YouTube channel observation • Blockhead</title>
+	<title>{([String(pageSelection.entitySelector.timestampMs), pageSelection.entitySelector.source].filter(Boolean).join(' ') || 'YouTube channel observation')} • YouTube channel observation • Blockhead</title>
 </svelte:head>
 
 
 <Page>
 	<YoutubeChannel_TimestampView
-		href={
-			resolve('/youtube/channel/[channelId=stringSegment]/observations/[timestampMs=nonNegativeInteger]-[source=stringSegment]', {
-				channelId: params.channelId,
-				timestampMs: params.timestampMs,
-				source: params.source,
-			})
-		}
 		selection={pageSelection}
 	/>
 </Page>

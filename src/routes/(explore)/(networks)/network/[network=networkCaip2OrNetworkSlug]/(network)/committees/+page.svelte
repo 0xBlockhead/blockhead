@@ -3,12 +3,11 @@
 <script lang="ts">
 	// Types/constants
 	import type { PageProps } from './$types.ts'
+	import { resolve } from '$app/paths'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
@@ -17,11 +16,8 @@
 		data,
 		params,
 	}: PageProps = $props()
-
-
 	// Components
 	import Page from '$/components/Page.svelte'
-	import ProjectionBoundary from '$/components/ProjectionBoundary.svelte'
 	import BeaconCommitteesView from '$/views/BeaconCommitteesView.svelte'
 </script>
 
@@ -32,30 +28,20 @@
 
 
 <Page>
-	<ProjectionBoundary
-		resource={select(EntityType.Network, data.selector).Evm}
-	>
-		{#snippet Applicable(projection)}
-			<BeaconCommitteesView
-				href={
-					resolve('/network/[network=networkCaip2OrNetworkSlug]/committees', {
-						network: params.network,
-					})
+	<BeaconCommitteesView
+		href={
+			resolve(
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/committees',
+				{
+					network: String(params.network),
 				}
-				title='Beacon committees'
-				selection={
-					projection
-						.$$beaconCommittees({
-							sources: [
-								Source.Beacon_Rest,
-							],
-						})
-				}
-				id='account-beacon-committee'
-				data-column-item="flexible"
-				data-card
-				data-scroll-container
-			/>
-		{/snippet}
-	</ProjectionBoundary>
+			)
+		}
+		title='Beacon committees'
+		selection={select(EntityType.Network, data.selector).Evm.$$beaconCommittees}
+		id='beacon-committees'
+		data-column-item="flexible"
+		data-card
+		data-scroll-container
+	/>
 </Page>

@@ -1,15 +1,12 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { entity, facet } from '$/schema/$schema.ts'
+import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { EvmAddress } from '$/schema/ZeroExHex.ts'
 import { type } from 'arktype'
 
-export enum HederaAccount_TimestampSelector {
-	AccountTimestampMsSource = 'AccountTimestampMsSource',
-}
-export const HederaAccount_Timestamp = entity({
+export default entity({
 	entityType: EntityType.HederaAccount_Timestamp,
 	labels: {
 		singular: 'hedera account timestamp',
@@ -45,7 +42,7 @@ export const HederaAccount_Timestamp = entity({
 	evmAddress: {
 		label: 'EVM address',
 		type: EntityFieldType.Primitive,
-		primitiveType: (EvmAddress),
+		primitiveType: EvmAddress,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	key: {

@@ -8,7 +8,6 @@
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
@@ -35,9 +34,9 @@
 			Source.Constants_Internal,
 		],
 		fields: {
-			$network: true,
 			symbol: true,
 			$coinInstance: true,
+			$network: true,
 			decimals: true,
 		},
 	}))
@@ -50,32 +49,12 @@
 
 
 <svelte:head>
-	<title>{(pageSelection.entity == null ? 'balance' : [String((({ ...{
-		$actor: {
-			interopAddress: 'eip155:' + String(Number(params.chainId)) + ':' + String(params.owner),
-		},
-		$contract: {
-			$network: {
-				caip2: {
-					namespace: 'eip155',
-					reference: params.chainId,
-				},
-			},
-			address: params.coin,
-		},
-	}, ...pageSelection.entity }).symbol) ?? '')].filter(Boolean).join(' ') || 'balance')} • balance • Blockhead</title>
+	<title>{(pageSelection.entity == null ? 'balance' : pageSelection.entity.symbol || 'balance')} • balance • Blockhead</title>
 </svelte:head>
 
 
 <Page>
 	<EvmNetworkActorCoinBalanceView
-		href={
-			resolve('/~/accounts/balance/[chainId=eip155ChainId]/[owner=evmAddress]/[coin=evmAddress]', {
-				chainId: params.chainId,
-				owner: params.owner,
-				coin: params.coin,
-			})
-		}
 		selection={pageSelection}
 	/>
 </Page>

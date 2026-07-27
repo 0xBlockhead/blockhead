@@ -3,69 +3,31 @@
 <script lang="ts">
 	// Types/constants
 	import { resolve } from '$app/paths'
-	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
-	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
-	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
+	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-
-
+	import { UrlString } from '$/schema/UrlString.ts'
 
 
 	// State
 	let {
 		selection,
-		countResource,
-		title = 'RSS feeds',
-		typeAnnotationParagraphs = [],
-		placeholderText = undefined,
-		emptyText = undefined,
 		open = $bindable(true),
-		collapsible = true,
-		showTypeAnnotation = true,
-		id = 'RssFeeds-list',
 		...EntitiesListProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyEntitiesSelection<EntityType.RssFeed>
-			countResource?: SvelteKitResource<number>
-			title?: string
-			typeAnnotationParagraphs?: string[]
-			placeholderText?: string
-			emptyText?: string
-			open?: boolean
-			collapsible?: boolean
-			showTypeAnnotation?: boolean
-			id?: string
-		},
-		EntitiesListForwardProps
-	> = $props()
+	}: EntityListViewProps<EntityType.RssFeed> = $props()
 
 
 	// Components
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView from '$/components/EntityView.svelte'
 </script>
 
-
-{#snippet TypeAnnotationParagraphs()}
-	{#each typeAnnotationParagraphs as paragraph (paragraph)}
-		<p>{paragraph}</p>
-	{/each}
-{/snippet}
 
 <EntitiesList
 	{...EntitiesListProps}
 	entityType={EntityType.RssFeed}
-	{id}
-	{title}
 	bind:open
-	{collapsible}
-	{showTypeAnnotation}
-	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
 	resource={
 		selection({
-			sources: selection.sources,
 			fields: {
 				title: true,
 				feedUrl: true,
@@ -73,49 +35,31 @@
 			},
 		})
 	}
-	{countResource}
-	getResourceItems={(rssFeeds) => [...new Map(rssFeeds.values.map((rssFeed) => [rssFeed[EntityMetaKey.SelectorKey], rssFeed])).values()]}
-	getKey={(rssFeed) => rssFeed[EntityMetaKey.SelectorKey]}
-	{placeholderText}
 >
-	{#snippet Empty()}
-		{#if emptyText != null}
-			<p data-text="muted">{emptyText}</p>
-		{:else}
-			<p data-text="muted">No RSS feeds yet.</p>
-		{/if}
-	{/snippet}
-
 	{#snippet Item({ item: rssFeed })}
-		{@const rssFeedFields = { ...rssFeed[EntityMetaKey.Selector], ...rssFeed }}
+		{@const rssFeedSelector = rssFeed[EntityMetaKey.Selector]}
 		<EntityView
 			entityType={EntityType.RssFeed}
-			entitySelector={rssFeed[EntityMetaKey.Selector]}
+			entitySelector={rssFeedSelector}
 			href={
-				(
-					rssFeed[EntityMetaKey.Selector] != null && 'feedUrl' in rssFeed[EntityMetaKey.Selector]
-					&& rssFeed[EntityMetaKey.Selector].feedUrl != null ?
-						resolve('/rss/feed/[feedUrl=absoluteUrl]', {
-					feedUrl: encodeURIComponent(String(rssFeed[EntityMetaKey.Selector].feedUrl ?? '')),
-				})
-				:
-						undefined
+				resolve(
+					'/(social)/(rss)/rss/(rssNetwork)/feed/[feedUrl=absoluteUrl]',
+					{
+						feedUrl: encodeURIComponent(String(rssFeedSelector.feedUrl)),
+					}
 				)
 			}
-			layout={EntityLayout.Summary}
-			open={false}
-			showTypeAnnotation={false}
 		>
 			{#snippet Title()}
-				{[String((rssFeedFields.title) ?? ''), String((rssFeedFields.feedUrl) ?? '')].filter(Boolean).join(' ') || 'RSS feed'}
+				{[(rssFeed.title ?? ''), String(rssFeedSelector.feedUrl)].filter(Boolean).join(' ') || 'RSS feed'}
 			{/snippet}
 
 			{#snippet Value()}
-				{[String((rssFeedFields.feedUrl) ?? '')].filter(Boolean).join(' ')}
+				{String(rssFeedSelector.feedUrl)}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{[String((rssFeedFields.lastBuildDate) ?? '')].filter(Boolean).join(' ')}</span>
+				<span data-text="annotation">{String(rssFeed.lastBuildDate ?? '')}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

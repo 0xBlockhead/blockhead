@@ -2,13 +2,8 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
 
 
 	// Context
@@ -20,35 +15,13 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.TonTransactionPhase>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.TonTransactionPhase>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.TonTransactionPhase> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const tonTransactionPhase = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {},
-	} : {
-		sources: selection.sources,
-	}))
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const titleFallback = 'TON transaction phase'
-	const viewDomId = $derived('ton-transaction-phase-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -59,24 +32,14 @@
 
 <EntityView
 	entityType={EntityType.TonTransactionPhase}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails}
-			{title || titleFallback}
-		{:else}
-			<ResourceBoundary resource={tonTransactionPhase}>
-				{#snippet children(entity)}
-					{title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		TON transaction phase
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -95,31 +58,13 @@
 			<div>
 				<dt>phase kind</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									phaseKind: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const phaseKind = resolvedEntity.phaseKind}
-							{#if phaseKind !== undefined && phaseKind !== null}
-								{String((phaseKind) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{pendingEntity.phaseKind}
 				</dd>
 			</div>
 
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							success: true,
 						},
@@ -127,9 +72,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const success = resolvedEntity.success}
-					{#if success !== undefined && success !== null}
+					{@const success = entity.success}
+					{#if success != null}
 						<div>
 							<dt>success</dt>
 							<dd>
@@ -143,7 +87,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							exitCode: true,
 						},
@@ -151,13 +94,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const exitCode = resolvedEntity.exitCode}
-					{#if exitCode !== undefined && exitCode !== null}
+					{@const exitCode = entity.exitCode}
+					{#if exitCode != null}
 						<div>
 							<dt>exit code</dt>
 							<dd>
-								{String((exitCode) ?? '')}
+								{String(exitCode)}
 							</dd>
 						</div>
 					{/if}
@@ -167,7 +109,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							gasUsed: true,
 						},
@@ -175,13 +116,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const gasUsed = resolvedEntity.gasUsed}
-					{#if gasUsed !== undefined && gasUsed !== null}
+					{@const gasUsed = entity.gasUsed}
+					{#if gasUsed != null}
 						<div>
 							<dt>gas used</dt>
 							<dd>
-								{String((gasUsed) ?? '')}
+								{String(gasUsed)}
 							</dd>
 						</div>
 					{/if}
@@ -191,7 +131,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							gasFeesNano: true,
 						},
@@ -199,13 +138,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const gasFeesNano = resolvedEntity.gasFeesNano}
-					{#if gasFeesNano !== undefined && gasFeesNano !== null}
+					{@const gasFeesNano = entity.gasFeesNano}
+					{#if gasFeesNano != null}
 						<div>
 							<dt>gas fees nano</dt>
 							<dd>
-								{String((gasFeesNano) ?? '')}
+								{String(gasFeesNano)}
 							</dd>
 						</div>
 					{/if}
@@ -215,7 +153,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							storageFeesNano: true,
 						},
@@ -223,13 +160,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const storageFeesNano = resolvedEntity.storageFeesNano}
-					{#if storageFeesNano !== undefined && storageFeesNano !== null}
+					{@const storageFeesNano = entity.storageFeesNano}
+					{#if storageFeesNano != null}
 						<div>
 							<dt>storage fees nano</dt>
 							<dd>
-								{String((storageFeesNano) ?? '')}
+								{String(storageFeesNano)}
 							</dd>
 						</div>
 					{/if}
@@ -239,7 +175,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							actionResultCode: true,
 						},
@@ -247,13 +182,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const actionResultCode = resolvedEntity.actionResultCode}
-					{#if actionResultCode !== undefined && actionResultCode !== null}
+					{@const actionResultCode = entity.actionResultCode}
+					{#if actionResultCode != null}
 						<div>
 							<dt>action result code</dt>
 							<dd>
-								{String((actionResultCode) ?? '')}
+								{String(actionResultCode)}
 							</dd>
 						</div>
 					{/if}
@@ -263,7 +197,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							skippedReason: true,
 						},
@@ -271,13 +204,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const skippedReason = resolvedEntity.skippedReason}
-					{#if skippedReason !== undefined && skippedReason !== null}
+					{@const skippedReason = entity.skippedReason}
+					{#if skippedReason != null}
 						<div>
 							<dt>skipped reason</dt>
 							<dd>
-								{String((skippedReason) ?? '')}
+								{skippedReason}
 							</dd>
 						</div>
 					{/if}

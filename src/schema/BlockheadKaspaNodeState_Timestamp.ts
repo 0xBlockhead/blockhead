@@ -1,15 +1,12 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { entity, facet } from '$/schema/$schema.ts'
+import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 import { type } from 'arktype'
 
-export enum BlockheadKaspaNodeState_TimestampSelector {
-	NodeStateTimestampMsSource = 'NodeStateTimestampMsSource',
-}
-export const BlockheadKaspaNodeState_Timestamp = entity({
+export default entity({
 	entityType: EntityType.BlockheadKaspaNodeState_Timestamp,
 	labels: {
 		singular: 'blockhead kaspa node state timestamp',
@@ -63,13 +60,13 @@ export const BlockheadKaspaNodeState_Timestamp = entity({
 	virtualSelectedParentHash: {
 		label: 'virtual selected parent hash',
 		type: EntityFieldType.Primitive,
-		primitiveType: (ZeroExHex),
+		primitiveType: ZeroExHex,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	pruningPointHash: {
 		label: 'pruning point hash',
 		type: EntityFieldType.Primitive,
-		primitiveType: (ZeroExHex),
+		primitiveType: ZeroExHex,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	peerCount: {

@@ -1,15 +1,12 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { entity, facet } from '$/schema/$schema.ts'
+import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { UrlString } from '$/schema/UrlString.ts'
 import { type } from 'arktype'
 
-export enum YoutubeNetworkSelector {
-	Scope = 'Scope',
-}
-export const YoutubeNetwork = entity({
+export default entity({
 	entityType: EntityType.YoutubeNetwork,
 	labels: {
 		singular: 'YouTube Data API',
@@ -32,13 +29,13 @@ export const YoutubeNetwork = entity({
 	homeUrl: {
 		label: 'Home',
 		type: EntityFieldType.Primitive,
-		primitiveType: (UrlString),
+		primitiveType: UrlString,
 		cardinality: EntityFieldCardinality.One,
 	},
 	docsUrl: {
 		label: 'Documentation',
 		type: EntityFieldType.Primitive,
-		primitiveType: (UrlString),
+		primitiveType: UrlString,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 })({

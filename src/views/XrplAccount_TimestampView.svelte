@@ -2,15 +2,9 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
-	import { caip2StringFromValue } from '$/lib/caip2.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -22,40 +16,23 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.XrplAccount_Timestamp>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.XrplAccount_Timestamp>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.XrplAccount_Timestamp> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const xrplAccountTimestamp = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {
-			balanceDrops: true,
-		},
-	} : {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const viewSelection = $derived(selection({
+		sources: selection.sources ?? [
+			Source.Xrpl_Rippled,
+		],
+	}))
+	const xrplAccountTimestamp = $derived(viewSelection({
 		fields: {
 			balanceDrops: true,
 		},
 	}))
-	const titleFallback = $derived([String((pendingEntity.balanceDrops) ?? '')].filter(Boolean).join(' ') || 'XRPL account timestamp')
-	const viewDomId = $derived('xrpl-account-timestamp-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const titleFallback = $derived(String(pendingEntity.balanceDrops ?? '') || 'XRPL account timestamp')
 
 
 	// Components
@@ -69,75 +46,35 @@
 
 <EntityView
 	entityType={EntityType.XrplAccount_Timestamp}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'balanceDrops')}
-			{@const balanceDrops0 = pendingEntity.balanceDrops}
-			{#if balanceDrops0 !== undefined && balanceDrops0 !== null}
-				<NumberValue
-					value={balanceDrops0}
-				/>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={xrplAccountTimestamp}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const balanceDrops0 = resolvedEntity.balanceDrops}
-					{#if balanceDrops0 !== undefined && balanceDrops0 !== null}
-						<NumberValue
-							value={balanceDrops0}
-						/>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={xrplAccountTimestamp}>
+			{#snippet children(entity)}
+				{@const balanceDrops0 = entity.balanceDrops}
+				{#if balanceDrops0 != null}
+					<NumberValue
+						value={balanceDrops0}
+					/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Value()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'balanceDrops')}
-			{[String((pendingEntity.source) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.balanceDrops) ?? '')].filter(Boolean).join(' ') || titleFallback}
-		{:else}
-			<ResourceBoundary resource={xrplAccountTimestamp}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.source) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.balanceDrops) ?? '')].filter(Boolean).join(' ') || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		{(pendingEntity.source ?? '') || String(pendingEntity.balanceDrops ?? '') || titleFallback}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'balanceDrops')}
-			{@const ledgerIndex0 = pendingEntity.ledgerIndex}
-			{#if ledgerIndex0 !== undefined && ledgerIndex0 !== null}
-				<span data-text="muted">
-					<NumberValue
-						value={ledgerIndex0}
-					/>
-				</span>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={xrplAccountTimestamp}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const ledgerIndex0 = resolvedEntity.ledgerIndex}
-					{#if ledgerIndex0 !== undefined && ledgerIndex0 !== null}
-						<span data-text="muted">
-							<NumberValue
-								value={ledgerIndex0}
-							/>
-						</span>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<span data-text="muted">
+			<NumberValue
+				value={pendingEntity.ledgerIndex}
+			/>
+		</span>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -147,30 +84,6 @@
 				<dd>
 					<XrplAccountView
 						selection={select(EntityType.XrplAccount, selection.entitySelector.$account)}
-						href={
-							(
-								selection.entitySelector.$account != null && 'account' in selection.entitySelector.$account
-								&& selection.entitySelector.$account.account != null
-								&& selection.entitySelector.$account != null && '$network' in selection.entitySelector.$account ?
-									selection.entitySelector.$account.$network != null && 'caip2' in selection.entitySelector.$account.$network
-									&& selection.entitySelector.$account.$network.caip2 != null ?
-										resolve('/network/[network=networkCaip2OrNetworkSlug]/account/[accountId=polkadotAccountIdOrStringSegmentOrEvmAddressOrSolanaPubkey]', {
-									accountId: String(selection.entitySelector.$account.account ?? ''),
-									network: String(caip2StringFromValue(selection.entitySelector.$account.$network.caip2) ?? ''),
-								})
-								:
-										selection.entitySelector.$account.$network != null && 'slug' in selection.entitySelector.$account.$network
-										&& selection.entitySelector.$account.$network.slug != null ?
-											resolve('/network/[network=networkCaip2OrNetworkSlug]/account/[accountId=polkadotAccountIdOrStringSegmentOrEvmAddressOrSolanaPubkey]', {
-										accountId: String(selection.entitySelector.$account.account ?? ''),
-										network: String(selection.entitySelector.$account.$network.slug ?? ''),
-									})
-									:
-										undefined
-							:
-									undefined
-							)
-						}
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -180,50 +93,16 @@
 			<div>
 				<dt>ledger index</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									ledgerIndex: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const ledgerIndex = resolvedEntity.ledgerIndex}
-							{#if ledgerIndex !== undefined && ledgerIndex !== null}
-								<NumberValue
-									value={ledgerIndex}
-								/>
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					<NumberValue
+						value={pendingEntity.ledgerIndex}
+					/>
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									source: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const source = resolvedEntity.source}
-							{#if source !== undefined && source !== null}
-								{String((source) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{pendingEntity.source}
 				</dd>
 			</div>
 		</dl>
@@ -231,8 +110,7 @@
 		<dl data-column-item="center">
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							timestampMs: true,
 						},
@@ -240,9 +118,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const timestampMs = resolvedEntity.timestampMs}
-					{#if timestampMs !== undefined && timestampMs !== null}
+					{@const timestampMs = entity.timestampMs}
+					{#if timestampMs != null}
 						<div>
 							<dt>Timestamp</dt>
 							<dd>
@@ -254,23 +131,15 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							balanceDrops: true,
-						},
-					})
-				}
+				resource={xrplAccountTimestamp}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const balanceDrops = resolvedEntity.balanceDrops}
-					{#if balanceDrops !== undefined && balanceDrops !== null}
+					{@const balanceDrops = entity.balanceDrops}
+					{#if balanceDrops != null}
 						<div>
 							<dt>balance drops</dt>
 							<dd>
-								{String((balanceDrops) ?? '')}
+								{String(balanceDrops)}
 							</dd>
 						</div>
 					{/if}
@@ -279,8 +148,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							ownerCount: true,
 						},
@@ -288,13 +156,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const ownerCount = resolvedEntity.ownerCount}
-					{#if ownerCount !== undefined && ownerCount !== null}
+					{@const ownerCount = entity.ownerCount}
+					{#if ownerCount != null}
 						<div>
 							<dt>owner count</dt>
 							<dd>
-								{String((ownerCount) ?? '')}
+								{String(ownerCount)}
 							</dd>
 						</div>
 					{/if}
@@ -303,8 +170,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							sequence: true,
 						},
@@ -312,13 +178,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const sequence = resolvedEntity.sequence}
-					{#if sequence !== undefined && sequence !== null}
+					{@const sequence = entity.sequence}
+					{#if sequence != null}
 						<div>
 							<dt>sequence</dt>
 							<dd>
-								{String((sequence) ?? '')}
+								{String(sequence)}
 							</dd>
 						</div>
 					{/if}
@@ -327,8 +192,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							flags: true,
 						},
@@ -336,13 +200,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const flags = resolvedEntity.flags}
-					{#if flags !== undefined && flags !== null}
+					{@const flags = entity.flags}
+					{#if flags != null}
 						<div>
 							<dt>flags</dt>
 							<dd>
-								{String((flags) ?? '')}
+								{String(flags)}
 							</dd>
 						</div>
 					{/if}

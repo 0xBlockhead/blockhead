@@ -30,22 +30,28 @@
 {#key params.network}
 	<ParentPageCollapsible
 		href={
-			resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-				network: params.network,
-			})
+			resolve(
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]',
+				{
+					network: String(params.network),
+				}
+			)
 		}
 	>
 		{#snippet Summary()}
-			{@const DetailView = data.entityType === EntityType.Network && data.selectorName === 'Caip2' ? NetworkView : NetworkView}
-
-			<DetailView
-				selection={select(data.entityType, data.selector, { sources: [
-		Source.Constants_Internal,
-	] })}
+			<NetworkView
+				selection={
+					select(EntityType.Network, data.selector, { sources: [
+						Source.Constants_Internal,
+					] })
+				}
 				href={
-					resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-						network: params.network,
-					})
+					resolve(
+						'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]',
+						{
+							network: String(params.network),
+						}
+					)
 				}
 				layout={EntityLayout.SummaryInline}
 			/>

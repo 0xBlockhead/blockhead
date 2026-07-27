@@ -2,13 +2,9 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -20,42 +16,24 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.AcpTerminal>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.AcpTerminal>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.AcpTerminal> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const acpTerminal = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {
-			command: true,
-			cwd: true,
-		},
-	} : {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const viewSelection = $derived(selection({
+		sources: selection.sources ?? [
+			Source.AcpLocal_JsonRpc,
+		],
+	}))
+	const acpTerminal = $derived(viewSelection({
 		fields: {
 			command: true,
 			cwd: true,
 		},
 	}))
-	const titleFallback = $derived([String((pendingEntity.terminalId) ?? '')].filter(Boolean).join(' ') || 'ACP terminal')
-	const viewDomId = $derived('acp-terminal-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const titleFallback = $derived((pendingEntity.terminalId ?? '') || 'ACP terminal')
 
 
 	// Components
@@ -68,61 +46,35 @@
 
 <EntityView
 	entityType={EntityType.AcpTerminal}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'command') && Object.hasOwn(prefetched, 'cwd')}
-			{[String((pendingEntity.terminalId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-		{:else}
-			<ResourceBoundary resource={acpTerminal}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.terminalId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		{(pendingEntity.terminalId ?? '') || 'ACP terminal'}
 	{/snippet}
 
 	{#snippet Value()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'command') && Object.hasOwn(prefetched, 'cwd')}
-			{[String((pendingEntity.command) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.terminalId) ?? '')].filter(Boolean).join(' ') || titleFallback}
-		{:else}
-			<ResourceBoundary resource={acpTerminal}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.command) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.terminalId) ?? '')].filter(Boolean).join(' ') || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={acpTerminal}>
+			{#snippet children(entity)}
+				{(entity.command ?? '') || pendingEntity.terminalId || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'command') && Object.hasOwn(prefetched, 'cwd')}
-			{@const cwd0 = pendingEntity.cwd}
-			{#if cwd0 !== undefined && cwd0 !== null}
-				<span data-text="muted">
-					{String((cwd0) ?? '')}
-				</span>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={acpTerminal}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const cwd0 = resolvedEntity.cwd}
-					{#if cwd0 !== undefined && cwd0 !== null}
-						<span data-text="muted">
-							{String((cwd0) ?? '')}
-						</span>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={acpTerminal}>
+			{#snippet children(entity)}
+				{@const cwd0 = entity.cwd}
+				{#if cwd0 != null}
+					<span data-text="muted">
+						{cwd0}
+					</span>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -141,45 +93,20 @@
 			<div>
 				<dt>terminal ID</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									terminalId: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const terminalId = resolvedEntity.terminalId}
-							{#if terminalId !== undefined && terminalId !== null}
-								{String((terminalId) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{pendingEntity.terminalId}
 				</dd>
 			</div>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							command: true,
-						},
-					})
-				}
+				resource={acpTerminal}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const command = resolvedEntity.command}
-					{#if command !== undefined && command !== null}
+					{@const command = entity.command}
+					{#if command != null}
 						<div>
 							<dt>command</dt>
 							<dd>
-								{String((command) ?? '')}
+								{command}
 							</dd>
 						</div>
 					{/if}
@@ -187,23 +114,15 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							cwd: true,
-						},
-					})
-				}
+				resource={acpTerminal}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const cwd = resolvedEntity.cwd}
-					{#if cwd !== undefined && cwd !== null}
+					{@const cwd = entity.cwd}
+					{#if cwd != null}
 						<div>
 							<dt>cwd</dt>
 							<dd>
-								{String((cwd) ?? '')}
+								{cwd}
 							</dd>
 						</div>
 					{/if}
@@ -214,8 +133,7 @@
 		<dl data-column-item="center">
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							createdAt: true,
 						},
@@ -223,9 +141,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const createdAt = resolvedEntity.createdAt}
-					{#if createdAt !== undefined && createdAt !== null}
+					{@const createdAt = entity.createdAt}
+					{#if createdAt != null}
 						<div>
 							<dt>Created</dt>
 							<dd>
@@ -238,8 +155,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							releasedAt: true,
 						},
@@ -247,9 +163,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const releasedAt = resolvedEntity.releasedAt}
-					{#if releasedAt !== undefined && releasedAt !== null}
+					{@const releasedAt = entity.releasedAt}
+					{#if releasedAt != null}
 						<div>
 							<dt>released AT</dt>
 							<dd>
@@ -269,12 +184,12 @@
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
-				<AcpTerminal_TimestampsView
-					selection={acpTerminalAcpTerminalTimestampsViewTimestampsResource}
-					countResource={acpTerminalAcpTerminalTimestampsViewTimestampsResource.count}
-					title='timestamps'
-					id='AcpTerminal_TimestampsView-timestamps'
-				/>
+					<AcpTerminal_TimestampsView
+						selection={acpTerminalAcpTerminalTimestampsViewTimestampsResource}
+						countResource={acpTerminalAcpTerminalTimestampsViewTimestampsResource.count}
+						title='timestamps'
+						id='timestamps'
+					/>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>

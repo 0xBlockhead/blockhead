@@ -1,16 +1,13 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { entity, facet } from '$/schema/$schema.ts'
+import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { UrlString } from '$/schema/UrlString.ts'
 import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 import { type } from 'arktype'
 
-export enum BlockheadSessionSimulationSelector {
-	Id = 'Id',
-}
-export const BlockheadSessionSimulation = entity({
+export default entity({
 	entityType: EntityType.BlockheadSessionSimulation,
 	labels: {
 		singular: 'blockhead session simulation',
@@ -52,7 +49,7 @@ export const BlockheadSessionSimulation = entity({
 	paramsHash: {
 		label: 'params hash',
 		type: EntityFieldType.Primitive,
-		primitiveType: (ZeroExHex),
+		primitiveType: ZeroExHex,
 		cardinality: EntityFieldCardinality.One,
 	},
 	forkBlockNumber: {
@@ -64,7 +61,7 @@ export const BlockheadSessionSimulation = entity({
 	forkRpcOrigin: {
 		label: 'fork RPC origin',
 		type: EntityFieldType.Primitive,
-		primitiveType: (UrlString),
+		primitiveType: UrlString,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	actionCount: {
@@ -88,7 +85,7 @@ export const BlockheadSessionSimulation = entity({
 	resultPayloadHash: {
 		label: 'result payload hash',
 		type: EntityFieldType.Primitive,
-		primitiveType: (ZeroExHex),
+		primitiveType: ZeroExHex,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	error: {

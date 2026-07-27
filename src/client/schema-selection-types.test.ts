@@ -1,4 +1,3 @@
-import assert from 'node:assert/strict'
 import {
 	mkdtempSync,
 	rmSync,
@@ -7,7 +6,7 @@ import {
 import { tmpdir } from 'node:os'
 import path from 'node:path'
 import { spawnSync } from 'node:child_process'
-import test from 'node:test'
+import { expect, test } from 'vitest'
 
 test('enforces schema-derived projection selections and field addresses', () => {
 	const root = process.cwd()
@@ -28,7 +27,7 @@ test('enforces schema-derived projection selections and field addresses', () => 
 			process.execPath,
 			[
 				'--max-old-space-size=2048',
-				path.join(root, 'node_modules/typescript/bin/tsc'),
+				process.env.TSC_PATH ?? path.join(root, 'node_modules/@typescript/native/bin/tsc'),
 				'--project',
 				tsconfigPath,
 			],
@@ -38,11 +37,11 @@ test('enforces schema-derived projection selections and field addresses', () => 
 			}
 		)
 
-		assert.equal(result.status, 0, result.stderr || result.stdout)
+		expect(result.status, result.stderr || result.stdout).toBe(0)
 	} finally {
 		rmSync(typeTestRoot, {
 			force: true,
 			recursive: true,
 		})
 	}
-})
+}, 30_000)

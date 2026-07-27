@@ -18,7 +18,6 @@ import {
 test.describe('Network summary dl (collapsed): Block / Epoch / Slot live', () => {
 	test('(browser) /network/eip155:1 collapsed: head block, epoch, slot attach and block advances', async ({ page }) => {
 		test.setTimeout(400_000)
-		const { diagnostics, step } = setupNetworkLiveFailFast(page)
 		await installChainlistRpcsJsonStub(page)
 
 		const rpcUrlRaw = await publicJsonRpcHttpUrlForChainE2e(1)
@@ -45,20 +44,24 @@ test.describe('Network summary dl (collapsed): Block / Epoch / Slot live', () =>
 				jsonStringifyForExpectMessage(preflight)
 		).toBe(true)
 
-		await step(page.goto('/', { waitUntil: 'domcontentloaded' }))
-		await step(clearOriginOpfs(page))
+		const wipePage = await page.context().newPage()
+		await wipePage.goto('/', { waitUntil: 'load' })
+		await clearOriginOpfs(wipePage)
+		await wipePage.close()
+
+		const { diagnostics, step } = setupNetworkLiveFailFast(page)
 		await step(page.goto('/network/eip155:1', { waitUntil: 'load' }))
 		await expectMainVisible(page, 120_000, diagnostics)
 		await step(assertMainSettled(page, 120_000, diagnostics))
 
-		await step(expect(page.locator('#network-summary-head-block')).toBeVisible({
+		await step(expect(page.locator('.network-summary-head a[href*="/block/"]').first()).toBeVisible({
 			timeout: 45_000,
 		}))
 		await step(expect(page.locator('.network-view-collapsible-network-relationships')).toBeAttached({
 			timeout: 120_000,
 		}))
 
-		await step(expect(page.locator('#network-summary-head-block a[href*="/block/"]')).toBeAttached({
+		await step(expect(page.locator('.network-summary-head a[href*="/block/"]').first()).toBeAttached({
 			timeout: 120_000,
 		}))
 
@@ -75,9 +78,9 @@ test.describe('Network summary dl (collapsed): Block / Epoch / Slot live', () =>
 
 		await step(collapseNetworkEntityView(page))
 
-		await step(expect(page.locator('.network-view-collapsible-network-relationships')).toHaveCount(0))
-		await step(expect(page.locator('#network-summary-head-block')).toBeVisible())
-		await step(expect(page.locator('#network-summary-head-block a[href*="/block/"]')).toBeAttached({
+		await step(expect(page.locator('.network-view-collapsible-network-relationships')).toBeHidden())
+		await step(expect(page.locator('.network-summary-head a[href*="/block/"]').first()).toBeHidden())
+		await step(expect(page.locator('.network-summary-head a[href*="/block/"]').first()).toBeAttached({
 			timeout: 30_000,
 		}))
 

@@ -1,16 +1,13 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { entity, facet } from '$/schema/$schema.ts'
+import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { UrlString } from '$/schema/UrlString.ts'
 import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
-export enum TronWitness_TimestampSelector {
-	WitnessTimestampMsSource = 'WitnessTimestampMsSource',
-}
-export const TronWitness_Timestamp = entity({
+export default entity({
 	entityType: EntityType.TronWitness_Timestamp,
 	labels: {
 		singular: 'tron witness timestamp',
@@ -40,7 +37,7 @@ export const TronWitness_Timestamp = entity({
 	url: {
 		label: 'URL',
 		type: EntityFieldType.Primitive,
-		primitiveType: (UrlString),
+		primitiveType: UrlString,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
 			Source.TronGrid_Rest,

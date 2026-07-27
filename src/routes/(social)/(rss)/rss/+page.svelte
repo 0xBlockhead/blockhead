@@ -9,7 +9,6 @@
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
@@ -39,13 +38,12 @@
 
 
 <svelte:head>
-	<title>{(data.title ?? (pageSelection.entity == null ? 'RSS / Atom' : [String((({ ...data.selector, ...pageSelection.entity }).protocolName) ?? '')].filter(Boolean).join(' ') || 'RSS / Atom'))} • RSS / Atom • Blockhead</title>
+	<title>{(data.title ?? (pageSelection.entity == null ? 'RSS / Atom' : pageSelection.entity.protocolName || 'RSS / Atom'))} • RSS / Atom • Blockhead</title>
 </svelte:head>
 
 
 <Page>
 	<RssNetworkView
-		href={resolve('/rss')}
 		selection={pageSelection}
 	/>
 </Page>

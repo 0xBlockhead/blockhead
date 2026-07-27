@@ -3,12 +3,11 @@
 <script lang="ts">
 	// Types/constants
 	import type { PageProps } from './$types.ts'
+	import { resolve } from '$app/paths'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
@@ -17,11 +16,8 @@
 		data,
 		params,
 	}: PageProps = $props()
-
-
 	// Components
 	import Page from '$/components/Page.svelte'
-	import ProjectionBoundary from '$/components/ProjectionBoundary.svelte'
 	import EvmUserOperationsView from '$/views/EvmUserOperationsView.svelte'
 </script>
 
@@ -32,30 +28,20 @@
 
 
 <Page>
-	<ProjectionBoundary
-		resource={select(EntityType.Network, data.selector).Evm}
-	>
-		{#snippet Applicable(projection)}
-			<EvmUserOperationsView
-				href={
-					resolve('/network/[network=networkCaip2OrNetworkSlug]/erc-4337/user-operations', {
-						network: params.network,
-					})
+	<EvmUserOperationsView
+		href={
+			resolve(
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/erc-4337/user-operations',
+				{
+					network: String(params.network),
 				}
-				title='ERC-4337 user operations'
-				selection={
-					projection
-						.$$userOperations({
-							sources: [
-								Source.Blockscout_Rest,
-							],
-						})
-				}
-				id='account-evm-user-operation'
-				data-column-item="flexible"
-				data-card
-				data-scroll-container
-			/>
-		{/snippet}
-	</ProjectionBoundary>
+			)
+		}
+		title='ERC-4337 user operations'
+		selection={select(EntityType.Network, data.selector).Evm.$$userOperations}
+		id='user-operations'
+		data-column-item="flexible"
+		data-card
+		data-scroll-container
+	/>
 </Page>

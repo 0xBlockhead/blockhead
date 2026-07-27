@@ -2,15 +2,11 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { stringify } from 'devalue'
-	import { caip2StringFromValue } from '$/lib/caip2.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -27,31 +23,16 @@
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.LiquidityPool>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.LiquidityPool>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.LiquidityPool> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const liquidityPool = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {},
-	} : {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const viewSelection = $derived(selection({
+		sources: selection.sources ?? [
+			Source.Dexscreener_OpenApi,
+		],
 	}))
-	const titleFallback = $derived([String((pendingEntity.id) ?? '')].filter(Boolean).join(' ') || 'liquidity pool')
-	const viewDomId = $derived('liquidity-pool-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const titleFallback = $derived((pendingEntity.id ?? '') || 'liquidity pool')
+	const viewDomId = $derived('liquidity-pool-' + encodeURIComponent(stringify(selection.entitySelector)))
 
 
 	// Components
@@ -70,22 +51,20 @@
 
 <EntityView
 	entityType={EntityType.LiquidityPool}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
+	entitySelector={selection.entitySelector}
 	id={viewDomId}
 	title={title ?? titleFallback}
 	href={
 		href ?? (
-			selection.entitySelector != null && 'id' in selection.entitySelector
-			&& selection.entitySelector.id != null
-			&& selection.entitySelector != null && '$network' in selection.entitySelector
-			&& selection.entitySelector.$network != null && 'caip2' in selection.entitySelector.$network
-			&& selection.entitySelector.$network.caip2 != null && 'reference' in selection.entitySelector.$network.caip2
-			&& selection.entitySelector.$network.caip2.reference != null ?
-				resolve('/pool/[chainId=eip155ChainId]/[poolId=stringSegment]', {
-			poolId: String(selection.entitySelector.id ?? ''),
-			chainId: String(selection.entitySelector.$network.caip2.reference ?? ''),
-		})
-		:
+			'caip2' in selection.entitySelector.$network ?
+				resolve(
+					'/(assets)/pool/[chainId=eip155ChainId]/[poolId=stringSegment]',
+					{
+						chainId: String(selection.entitySelector.$network.caip2.reference),
+						poolId: String(selection.entitySelector.id),
+					}
+				)
+			:
 				undefined
 		)
 	}
@@ -94,59 +73,21 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={liquidityPool}>
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const id0 = resolvedEntity.id}
-				{#if id0 !== undefined && id0 !== null}
-					<TruncatedValue value={String((id0) ?? '')} />
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		<TruncatedValue value={pendingEntity.id} />
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={liquidityPool}>
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const id0 = resolvedEntity.id}
-				{#if id0 !== undefined && id0 !== null}
-					<TruncatedValue value={String((id0) ?? '')} />
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		<TruncatedValue value={pendingEntity.id} />
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		<ResourceBoundary resource={liquidityPool}>
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				<span data-text="muted">
-					<NetworkView
-						selection={select(EntityType.Network, selection.entitySelector.$network)}
-						href={
-							(
-								selection.entitySelector.$network != null && 'caip2' in selection.entitySelector.$network
-								&& selection.entitySelector.$network.caip2 != null ?
-									resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-								network: String(caip2StringFromValue(selection.entitySelector.$network.caip2) ?? ''),
-							})
-							:
-									selection.entitySelector.$network != null && 'slug' in selection.entitySelector.$network
-									&& selection.entitySelector.$network.slug != null ?
-										resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-									network: String(selection.entitySelector.$network.slug ?? ''),
-								})
-								:
-									undefined
-							)
-						}
-						layout={EntityLayout.Title}
-						open={false}
-					/>
-				</span>
-			{/snippet}
-		</ResourceBoundary>
+		<span data-text="muted">
+			<NetworkView
+				selection={select(EntityType.Network, selection.entitySelector.$network)}
+				layout={EntityLayout.Title}
+				open={false}
+			/>
+		</span>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -156,23 +97,6 @@
 				<dd>
 					<NetworkView
 						selection={select(EntityType.Network, selection.entitySelector.$network)}
-						href={
-							(
-								selection.entitySelector.$network != null && 'caip2' in selection.entitySelector.$network
-								&& selection.entitySelector.$network.caip2 != null ?
-									resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-								network: String(caip2StringFromValue(selection.entitySelector.$network.caip2) ?? ''),
-							})
-							:
-									selection.entitySelector.$network != null && 'slug' in selection.entitySelector.$network
-									&& selection.entitySelector.$network.slug != null ?
-										resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-									network: String(selection.entitySelector.$network.slug ?? ''),
-								})
-								:
-									undefined
-							)
-						}
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -182,71 +106,23 @@
 			<div>
 				<dt>ID</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									id: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const id = resolvedEntity.id}
-							{#if id !== undefined && id !== null}
-								<TruncatedValue value={String((id) ?? '')} />
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					<TruncatedValue value={pendingEntity.id} />
 				</dd>
 			</div>
 		</dl>
 
 		<dl data-column-item="center">
 			<ResourceBoundary
-				resource={
-					selection
-						.$baseToken({
-							sources: [
-								Source.Dexscreener_OpenApi,
-							],
-						})
-				}
+				resource={selection.$baseToken}
 			>
 				{#snippet children(evmContract)}
-					{#if evmContract != null && evmContract[EntityMetaKey.Selector] != null}
+					{#if evmContract != null}
 						<div>
 							<dt>Base token</dt>
 							<dd>
 								<EvmContractView
 									selection={select(EntityType.EvmContract, evmContract[EntityMetaKey.Selector])}
 									prefetched={evmContract}
-									href={
-										(
-											evmContract[EntityMetaKey.Selector] != null && 'address' in evmContract[EntityMetaKey.Selector]
-											&& evmContract[EntityMetaKey.Selector].address != null
-											&& evmContract[EntityMetaKey.Selector] != null && '$network' in evmContract[EntityMetaKey.Selector] ?
-												evmContract[EntityMetaKey.Selector].$network != null && 'caip2' in evmContract[EntityMetaKey.Selector].$network
-												&& evmContract[EntityMetaKey.Selector].$network.caip2 != null ?
-													resolve('/network/[network=networkCaip2OrNetworkSlug]/contract/[address=evmAddress]', {
-												address: String(evmContract[EntityMetaKey.Selector].address ?? ''),
-												network: String(caip2StringFromValue(evmContract[EntityMetaKey.Selector].$network.caip2) ?? ''),
-											})
-											:
-													evmContract[EntityMetaKey.Selector].$network != null && 'slug' in evmContract[EntityMetaKey.Selector].$network
-													&& evmContract[EntityMetaKey.Selector].$network.slug != null ?
-														resolve('/network/[network=networkCaip2OrNetworkSlug]/contract/[address=evmAddress]', {
-													address: String(evmContract[EntityMetaKey.Selector].address ?? ''),
-													network: String(evmContract[EntityMetaKey.Selector].$network.slug ?? ''),
-												})
-												:
-													undefined
-										:
-												undefined
-										)
-									}
 									layout={EntityLayout.Value}
 									open={false}
 								/>
@@ -257,47 +133,16 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={
-					selection
-						.$quoteToken({
-							sources: [
-								Source.Dexscreener_OpenApi,
-							],
-						})
-				}
+				resource={selection.$quoteToken}
 			>
 				{#snippet children(evmContract)}
-					{#if evmContract != null && evmContract[EntityMetaKey.Selector] != null}
+					{#if evmContract != null}
 						<div>
 							<dt>Quote token</dt>
 							<dd>
 								<EvmContractView
 									selection={select(EntityType.EvmContract, evmContract[EntityMetaKey.Selector])}
 									prefetched={evmContract}
-									href={
-										(
-											evmContract[EntityMetaKey.Selector] != null && 'address' in evmContract[EntityMetaKey.Selector]
-											&& evmContract[EntityMetaKey.Selector].address != null
-											&& evmContract[EntityMetaKey.Selector] != null && '$network' in evmContract[EntityMetaKey.Selector] ?
-												evmContract[EntityMetaKey.Selector].$network != null && 'caip2' in evmContract[EntityMetaKey.Selector].$network
-												&& evmContract[EntityMetaKey.Selector].$network.caip2 != null ?
-													resolve('/network/[network=networkCaip2OrNetworkSlug]/contract/[address=evmAddress]', {
-												address: String(evmContract[EntityMetaKey.Selector].address ?? ''),
-												network: String(caip2StringFromValue(evmContract[EntityMetaKey.Selector].$network.caip2) ?? ''),
-											})
-											:
-													evmContract[EntityMetaKey.Selector].$network != null && 'slug' in evmContract[EntityMetaKey.Selector].$network
-													&& evmContract[EntityMetaKey.Selector].$network.slug != null ?
-														resolve('/network/[network=networkCaip2OrNetworkSlug]/contract/[address=evmAddress]', {
-													address: String(evmContract[EntityMetaKey.Selector].address ?? ''),
-													network: String(evmContract[EntityMetaKey.Selector].$network.slug ?? ''),
-												})
-												:
-													undefined
-										:
-												undefined
-										)
-									}
 									layout={EntityLayout.Value}
 									open={false}
 								/>
@@ -311,37 +156,13 @@
 				resource={selection.$hooks}
 			>
 				{#snippet children(evmContract)}
-					{#if evmContract != null && evmContract[EntityMetaKey.Selector] != null}
+					{#if evmContract != null}
 						<div>
 							<dt>Hooks</dt>
 							<dd>
 								<EvmContractView
 									selection={select(EntityType.EvmContract, evmContract[EntityMetaKey.Selector])}
 									prefetched={evmContract}
-									href={
-										(
-											evmContract[EntityMetaKey.Selector] != null && 'address' in evmContract[EntityMetaKey.Selector]
-											&& evmContract[EntityMetaKey.Selector].address != null
-											&& evmContract[EntityMetaKey.Selector] != null && '$network' in evmContract[EntityMetaKey.Selector] ?
-												evmContract[EntityMetaKey.Selector].$network != null && 'caip2' in evmContract[EntityMetaKey.Selector].$network
-												&& evmContract[EntityMetaKey.Selector].$network.caip2 != null ?
-													resolve('/network/[network=networkCaip2OrNetworkSlug]/contract/[address=evmAddress]', {
-												address: String(evmContract[EntityMetaKey.Selector].address ?? ''),
-												network: String(caip2StringFromValue(evmContract[EntityMetaKey.Selector].$network.caip2) ?? ''),
-											})
-											:
-													evmContract[EntityMetaKey.Selector].$network != null && 'slug' in evmContract[EntityMetaKey.Selector].$network
-													&& evmContract[EntityMetaKey.Selector].$network.slug != null ?
-														resolve('/network/[network=networkCaip2OrNetworkSlug]/contract/[address=evmAddress]', {
-													address: String(evmContract[EntityMetaKey.Selector].address ?? ''),
-													network: String(evmContract[EntityMetaKey.Selector].$network.slug ?? ''),
-												})
-												:
-													undefined
-										:
-												undefined
-										)
-									}
 									layout={EntityLayout.Value}
 									open={false}
 								/>
@@ -355,8 +176,7 @@
 		<dl data-column-item="center">
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							fee: true,
 						},
@@ -364,9 +184,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const fee = resolvedEntity.fee}
-					{#if fee !== undefined && fee !== null}
+					{@const fee = entity.fee}
+					{#if fee != null}
 						<div>
 							<dt>Fee</dt>
 							<dd>
@@ -381,8 +200,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							tickSpacing: true,
 						},
@@ -390,9 +208,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const tickSpacing = resolvedEntity.tickSpacing}
-					{#if tickSpacing !== undefined && tickSpacing !== null}
+					{@const tickSpacing = entity.tickSpacing}
+					{#if tickSpacing != null}
 						<div>
 							<dt>Tick spacing</dt>
 							<dd>
@@ -407,8 +224,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							v4PoolId: true,
 						},
@@ -416,13 +232,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const v4PoolId = resolvedEntity.v4PoolId}
-					{#if v4PoolId !== undefined && v4PoolId !== null}
+					{@const v4PoolId = entity.v4PoolId}
+					{#if v4PoolId != null}
 						<div>
 							<dt>v4 pool ID</dt>
 							<dd>
-								<TruncatedValue value={String((v4PoolId) ?? '')} />
+								<TruncatedValue value={v4PoolId} />
 							</dd>
 						</div>
 					{/if}
@@ -432,263 +247,97 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-				<CollapsibleTabs
-					id={viewDomId + '-carousel-liquidity-pool-state'}
-					sectionIdPrefix={viewDomId}
-					sections={
-						[
-							{
-								id: 'liquidity-pool-blocks',
-								label: 'Blocks',
-								ownsSection: true,
-							},
-							{
-								id: 'liquidity-pool-leverages',
-								label: 'Leverage positions',
-								ownsSection: true,
-							},
-						]
-					}
+		<CollapsibleTabs
+			id={viewDomId + '-carousel-liquidity-pool-state'}
+			sectionIdPrefix={viewDomId}
+			sections={
+				[
+					{
+						id: 'liquidity-pool-blocks',
+						label: 'Blocks',
+					},
+					{
+						id: 'liquidity-pool-leverages',
+						label: 'Leverage positions',
+					},
+				]
+			}
+			data-card
+			class='network-view-collapsible-state'
+		>
+			{#snippet Summary()}
+				<header data-row-item="flexible" data-row="wrap gap-4">
+					<HeadingComponent>State</HeadingComponent>
+				</header>
+			{/snippet}
+
+			{#snippet SectionLiquidityPoolBlocks({ id, label, open })}
+				<LiquidityPool_BlocksView
+					selection={selection.$$blocks}
+					CollapsibleProps={{ canToggle: false }}
+					collapsible={false}
+					data-column-item="flexible"
 					data-card
-					class='network-view-collapsible-state'
-				>
-					{#snippet Summary()}
-						<header data-row-item="flexible" data-row="wrap gap-4">
-							<HeadingComponent>State</HeadingComponent>
-						</header>
-					{/snippet}
+					data-scroll-container
+					open={open}
+					title={label}
+					emptyText='No liquidity pool blocks yet.'
+					id={`${id}-list`}
+				/>
+			{/snippet}
 
-					{#snippet MarkerLiquidityPoolBlocks(_context, Content)}
-						{@const liquidityPoolStateLiquidityPoolBlocksResource = selection.$$blocks}
-						<ResourceBoundary
-							resource={liquidityPoolStateLiquidityPoolBlocksResource}
-						>
-							{#snippet children(_resolved)}
-								{@render Content()}
-							{/snippet}
-
-							{#snippet PendingContent()}
-								{@render Content()}
-							{/snippet}
-
-							{#snippet FailedContent(_error, _retry)}
-								{@render Content()}
-							{/snippet}
-						</ResourceBoundary>
-					{/snippet}
-
-					{#snippet SectionLiquidityPoolBlocks({ id, label, open, active })}
-						{@const liquidityPoolStateLiquidityPoolBlocksResource = selection.$$blocks}
-						<ResourceBoundary
-							resource={liquidityPoolStateLiquidityPoolBlocksResource}
-						>
-							{#snippet children(liquidityPoolBlock)}
-								<section
-									id={id}
-									aria-labelledby={`${id}:marker`}
-									data-scroll-marker-label={label}
-									data-column-item="flexible"
-									data-column
-									data-active={active}
-								>
-									<LiquidityPool_BlocksView
-										selection={liquidityPoolStateLiquidityPoolBlocksResource}
-										CollapsibleProps={{ canToggle: false }}
-										collapsible={false}
-										data-column-item="flexible"
-										data-card
-										data-scroll-container
-										open={open}
-										title={label}
-										emptyText='No liquidity pool blocks yet.'
-										id={`${id}-list`}
-									/>
-								</section>
-							{/snippet}
-
-							{#snippet Pending()}
-								<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
-									<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
-										<span data-tag data-text="muted" data-resource-state="pending" class="loading inline-placeholder" aria-busy="true" aria-label="Loading…">•••</span>
-									</article>
-								</section>
-							{/snippet}
-
-							{#snippet Failed(_error, _retry)}
-								<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
-									<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
-										<span data-tag data-resource-state="failed" class="inline-placeholder" aria-label="Failed to load">•••</span>
-									</article>
-								</section>
-							{/snippet}
-						</ResourceBoundary>
-					{/snippet}
-
-					{#snippet MarkerLiquidityPoolLeverages(_context, Content)}
-						{@const liquidityPoolStateLiquidityPoolLeveragesResource = selection.$$leverages}
-						<ResourceBoundary
-							resource={liquidityPoolStateLiquidityPoolLeveragesResource}
-						>
-							{#snippet children(_resolved)}
-								{@render Content()}
-							{/snippet}
-
-							{#snippet PendingContent()}
-								{@render Content()}
-							{/snippet}
-
-							{#snippet FailedContent(_error, _retry)}
-								{@render Content()}
-							{/snippet}
-						</ResourceBoundary>
-					{/snippet}
-
-					{#snippet SectionLiquidityPoolLeverages({ id, label, open, active })}
-						{@const liquidityPoolStateLiquidityPoolLeveragesResource = selection.$$leverages}
-						<ResourceBoundary
-							resource={liquidityPoolStateLiquidityPoolLeveragesResource}
-						>
-							{#snippet children(leverage)}
-								<section
-									id={id}
-									aria-labelledby={`${id}:marker`}
-									data-scroll-marker-label={label}
-									data-column-item="flexible"
-									data-column
-									data-active={active}
-								>
-									<LeveragesView
-										selection={liquidityPoolStateLiquidityPoolLeveragesResource}
-										CollapsibleProps={{ canToggle: false }}
-										collapsible={false}
-										data-column-item="flexible"
-										data-card
-										data-scroll-container
-										open={open}
-										title={label}
-										emptyText='No leverage positions yet.'
-										id={`${id}-list`}
-									/>
-								</section>
-							{/snippet}
-
-							{#snippet Pending()}
-								<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
-									<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
-										<span data-tag data-text="muted" data-resource-state="pending" class="loading inline-placeholder" aria-busy="true" aria-label="Loading…">•••</span>
-									</article>
-								</section>
-							{/snippet}
-
-							{#snippet Failed(_error, _retry)}
-								<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
-									<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
-										<span data-tag data-resource-state="failed" class="inline-placeholder" aria-label="Failed to load">•••</span>
-									</article>
-								</section>
-							{/snippet}
-						</ResourceBoundary>
-					{/snippet}
-
-				</CollapsibleTabs>
-
-				<CollapsibleTabs
-					id={viewDomId + '-carousel-liquidity-pool-observations'}
-					sectionIdPrefix={viewDomId}
-					sections={
-						[
-							{
-								id: 'liquidity-pool-timestamps',
-								label: 'Observations',
-								ownsSection: true,
-							},
-						]
-					}
+			{#snippet SectionLiquidityPoolLeverages({ id, label, open })}
+				<LeveragesView
+					selection={selection.$$leverages}
+					CollapsibleProps={{ canToggle: false }}
+					collapsible={false}
+					data-column-item="flexible"
 					data-card
-					class='network-view-collapsible-observations'
-				>
-					{#snippet Summary()}
-						<header data-row-item="flexible" data-row="wrap gap-4">
-							<HeadingComponent>Observations</HeadingComponent>
-						</header>
-					{/snippet}
+					data-scroll-container
+					open={open}
+					title={label}
+					emptyText='No leverage positions yet.'
+					id={`${id}-list`}
+				/>
+			{/snippet}
 
-					{#snippet MarkerLiquidityPoolTimestamps(_context, Content)}
-						{@const liquidityPoolObservationsLiquidityPoolTimestampsResource = selection
-		.$$timestamps({
-			sources: [
-				Source.Dexscreener_OpenApi,
-			],
-		})}
-						<ResourceBoundary
-							resource={liquidityPoolObservationsLiquidityPoolTimestampsResource}
-						>
-							{#snippet children(_resolved)}
-								{@render Content()}
-							{/snippet}
+		</CollapsibleTabs>
 
-							{#snippet PendingContent()}
-								{@render Content()}
-							{/snippet}
+		<CollapsibleTabs
+			id={viewDomId + '-carousel-liquidity-pool-observations'}
+			sectionIdPrefix={viewDomId}
+			sections={
+				[
+					{
+						id: 'liquidity-pool-timestamps',
+						label: 'Observations',
+					},
+				]
+			}
+			data-card
+			class='network-view-collapsible-observations'
+		>
+			{#snippet Summary()}
+				<header data-row-item="flexible" data-row="wrap gap-4">
+					<HeadingComponent>Observations</HeadingComponent>
+				</header>
+			{/snippet}
 
-							{#snippet FailedContent(_error, _retry)}
-								{@render Content()}
-							{/snippet}
-						</ResourceBoundary>
-					{/snippet}
+			{#snippet SectionLiquidityPoolTimestamps({ id, label, open })}
+				<LiquidityPool_TimestampsView
+					selection={selection.$$timestamps}
+					CollapsibleProps={{ canToggle: false }}
+					collapsible={false}
+					data-column-item="flexible"
+					data-card
+					data-scroll-container
+					open={open}
+					title={label}
+					emptyText='No liquidity pool observations yet.'
+					id={`${id}-list`}
+				/>
+			{/snippet}
 
-					{#snippet SectionLiquidityPoolTimestamps({ id, label, open, active })}
-						{@const liquidityPoolObservationsLiquidityPoolTimestampsResource = selection
-		.$$timestamps({
-			sources: [
-				Source.Dexscreener_OpenApi,
-			],
-		})}
-						<ResourceBoundary
-							resource={liquidityPoolObservationsLiquidityPoolTimestampsResource}
-						>
-							{#snippet children(liquidityPoolTimestamp)}
-								<section
-									id={id}
-									aria-labelledby={`${id}:marker`}
-									data-scroll-marker-label={label}
-									data-column-item="flexible"
-									data-column
-									data-active={active}
-								>
-									<LiquidityPool_TimestampsView
-										selection={liquidityPoolObservationsLiquidityPoolTimestampsResource}
-										CollapsibleProps={{ canToggle: false }}
-										collapsible={false}
-										data-column-item="flexible"
-										data-card
-										data-scroll-container
-										open={open}
-										title={label}
-										emptyText='No liquidity pool observations yet.'
-										id={`${id}-list`}
-									/>
-								</section>
-							{/snippet}
-
-							{#snippet Pending()}
-								<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
-									<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
-										<span data-tag data-text="muted" data-resource-state="pending" class="loading inline-placeholder" aria-busy="true" aria-label="Loading…">•••</span>
-									</article>
-								</section>
-							{/snippet}
-
-							{#snippet Failed(_error, _retry)}
-								<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
-									<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
-										<span data-tag data-resource-state="failed" class="inline-placeholder" aria-label="Failed to load">•••</span>
-									</article>
-								</section>
-							{/snippet}
-						</ResourceBoundary>
-					{/snippet}
-
-				</CollapsibleTabs>
+		</CollapsibleTabs>
 	{/snippet}
 </EntityView>

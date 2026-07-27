@@ -2,15 +2,8 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
-	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -22,35 +15,12 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.CardanoBlock>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.CardanoBlock>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.CardanoBlock> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const cardanoBlock = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {},
-	} : {
-		sources: selection.sources,
-	}))
 	const titleFallback = 'Cardano block'
-	const viewDomId = $derived('cardano-block-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -62,24 +32,14 @@
 
 <EntityView
 	entityType={EntityType.CardanoBlock}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails}
-			{title || titleFallback}
-		{:else}
-			<ResourceBoundary resource={cardanoBlock}>
-				{#snippet children(entity)}
-					{title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		Cardano block
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -89,23 +49,6 @@
 				<dd>
 					<NetworkView
 						selection={select(EntityType.Network, selection.entitySelector.$network)}
-						href={
-							(
-								selection.entitySelector.$network != null && 'caip2' in selection.entitySelector.$network
-								&& selection.entitySelector.$network.caip2 != null ?
-									resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-								network: String(caip2StringFromValue(selection.entitySelector.$network.caip2) ?? ''),
-							})
-							:
-									selection.entitySelector.$network != null && 'slug' in selection.entitySelector.$network
-									&& selection.entitySelector.$network.slug != null ?
-										resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-									network: String(selection.entitySelector.$network.slug ?? ''),
-								})
-								:
-									undefined
-							)
-						}
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -118,7 +61,6 @@
 					<ResourceBoundary
 						resource={
 							selection({
-								sources: selection.sources,
 								fields: {
 									hash: true,
 								},
@@ -126,11 +68,7 @@
 						}
 					>
 						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const hash = resolvedEntity.hash}
-							{#if hash !== undefined && hash !== null}
-								<TruncatedValue value={String((hash) ?? '')} />
-							{/if}
+							<TruncatedValue value={entity.hash} />
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -142,7 +80,6 @@
 					<ResourceBoundary
 						resource={
 							selection({
-								sources: selection.sources,
 								fields: {
 									slot: true,
 								},
@@ -150,11 +87,7 @@
 						}
 					>
 						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const slot = resolvedEntity.slot}
-							{#if slot !== undefined && slot !== null}
-								{String((slot) ?? '')}
-							{/if}
+							{String(entity.slot)}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -166,7 +99,6 @@
 					<ResourceBoundary
 						resource={
 							selection({
-								sources: selection.sources,
 								fields: {
 									blockNo: true,
 								},
@@ -174,11 +106,7 @@
 						}
 					>
 						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const blockNo = resolvedEntity.blockNo}
-							{#if blockNo !== undefined && blockNo !== null}
-								{String((blockNo) ?? '')}
-							{/if}
+							{String(entity.blockNo)}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -187,7 +115,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							epoch: true,
 						},
@@ -195,13 +122,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const epoch = resolvedEntity.epoch}
-					{#if epoch !== undefined && epoch !== null}
+					{@const epoch = entity.epoch}
+					{#if epoch != null}
 						<div>
 							<dt>epoch</dt>
 							<dd>
-								{String((epoch) ?? '')}
+								{String(epoch)}
 							</dd>
 						</div>
 					{/if}
@@ -211,7 +137,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							era: true,
 						},
@@ -219,13 +144,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const era = resolvedEntity.era}
-					{#if era !== undefined && era !== null}
+					{@const era = entity.era}
+					{#if era != null}
 						<div>
 							<dt>era</dt>
 							<dd>
-								{String((era) ?? '')}
+								{era}
 							</dd>
 						</div>
 					{/if}
@@ -235,7 +159,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							issuerVkey: true,
 						},
@@ -243,13 +166,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const issuerVkey = resolvedEntity.issuerVkey}
-					{#if issuerVkey !== undefined && issuerVkey !== null}
+					{@const issuerVkey = entity.issuerVkey}
+					{#if issuerVkey != null}
 						<div>
 							<dt>issuer vkey</dt>
 							<dd>
-								<TruncatedValue value={String((issuerVkey) ?? '')} />
+								<TruncatedValue value={issuerVkey} />
 							</dd>
 						</div>
 					{/if}

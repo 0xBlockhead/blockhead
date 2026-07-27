@@ -30,24 +30,28 @@
 {#key params.channelId}
 	<ParentPageCollapsible
 		href={
-			resolve('/farcaster/channel/[channelId=stringSegment]', {
-				channelId: params.channelId,
-			})
+			resolve(
+				'/(social)/(farcaster)/farcaster/(farcasterNetwork)/channel/[channelId=stringSegment]',
+				{
+					channelId: String(params.channelId),
+				}
+			)
 		}
 	>
 		{#snippet Summary()}
-			{@const DetailView = FarcasterChannelView}
-
-			<DetailView
-				selection={select(EntityType.FarcasterChannel, data.selector, { sources: [
-		Source.Farcaster_Rest,
-		Source.Neynar_Rest,
-		Source.Snapchain_Rest,
-	] })}
+			<FarcasterChannelView
+				selection={
+					select(EntityType.FarcasterChannel, data.selector, { sources: [
+						Source.Farcaster_Rest,
+					] })
+				}
 				href={
-					resolve('/farcaster/channel/[channelId=stringSegment]', {
-						channelId: params.channelId,
-					})
+					resolve(
+						'/(social)/(farcaster)/farcaster/(farcasterNetwork)/channel/[channelId=stringSegment]',
+						{
+							channelId: String(params.channelId),
+						}
+					)
 				}
 				layout={EntityLayout.SummaryInline}
 			/>

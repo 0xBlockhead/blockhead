@@ -9,7 +9,6 @@ import {
 
 import type { PageServerLoad } from './$types.ts'
 
-
 export const load: PageServerLoad = async ({ url }) => {
 	const urlInput = url.searchParams.get('url')
 	const legacyUrlInput = url.searchParams.get('u')

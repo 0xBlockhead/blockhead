@@ -2,13 +2,10 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -20,40 +17,23 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.ZeroGStorageProof>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.ZeroGStorageProof>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.ZeroGStorageProof> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const zeroGStorageProof = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {
-			proofKind: true,
-		},
-	} : {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const viewSelection = $derived(selection({
+		sources: selection.sources ?? [
+			Source.ZeroGStorageScan_Rest,
+		],
+	}))
+	const zeroGStorageProof = $derived(viewSelection({
 		fields: {
 			proofKind: true,
 		},
 	}))
-	const titleFallback = $derived([String((pendingEntity.proofId) ?? '')].filter(Boolean).join(' ') || 'zero g storage proof')
-	const viewDomId = $derived('zero-gstorage-proof-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const titleFallback = $derived((pendingEntity.proofId ?? '') || 'zero g storage proof')
 
 
 	// Components
@@ -67,74 +47,36 @@
 
 <EntityView
 	entityType={EntityType.ZeroGStorageProof}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, '$storageNode') && prefetched.$storageNode != null && Object.hasOwn(prefetched, 'proofKind')}
-			{[String((pendingEntity.proofId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-		{:else}
-			<ResourceBoundary resource={zeroGStorageProof}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.proofId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		{(pendingEntity.proofId ?? '') || 'zero g storage proof'}
 	{/snippet}
 
 	{#snippet Value()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, '$storageNode') && prefetched.$storageNode != null && Object.hasOwn(prefetched, 'proofKind')}
-			{@const zeroGStorageNode0 = pendingEntity.$storageNode}
-			{#if zeroGStorageNode0 != null && selection.entitySelector.$storageNode != null}
-				<ZeroGStorageNodeView
-					selection={select(EntityType.ZeroGStorageNode, selection.entitySelector.$storageNode, { sources: selection.sources })}
-					prefetched={zeroGStorageNode0}
-					href=""
-					layout={EntityLayout.Value}
-					open={false}
-				/>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={zeroGStorageProof}>
-				{#snippet children(entity)}
-					<ZeroGStorageNodeView
-						selection={select(EntityType.ZeroGStorageNode, selection.entitySelector.$storageNode)}
-						href=""
-						layout={EntityLayout.Value}
-						open={false}
-					/>
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ZeroGStorageNodeView
+			selection={select(EntityType.ZeroGStorageNode, selection.entitySelector.$storageNode)}
+			href=""
+			layout={EntityLayout.Value}
+			open={false}
+		/>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, '$storageNode') && prefetched.$storageNode != null && Object.hasOwn(prefetched, 'proofKind')}
-			{@const proofKind0 = pendingEntity.proofKind}
-			{#if proofKind0 !== undefined && proofKind0 !== null}
-				<span data-text="muted">
-					{String((proofKind0) ?? '')}
-				</span>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={zeroGStorageProof}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const proofKind0 = resolvedEntity.proofKind}
-					{#if proofKind0 !== undefined && proofKind0 !== null}
-						<span data-text="muted">
-							{String((proofKind0) ?? '')}
-						</span>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={zeroGStorageProof}>
+			{#snippet children(entity)}
+				{@const proofKind0 = entity.proofKind}
+				{#if proofKind0 != null}
+					<span data-text="muted">
+						{proofKind0}
+					</span>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -153,45 +95,20 @@
 			<div>
 				<dt>proof ID</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									proofId: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const proofId = resolvedEntity.proofId}
-							{#if proofId !== undefined && proofId !== null}
-								{String((proofId) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{pendingEntity.proofId}
 				</dd>
 			</div>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							proofKind: true,
-						},
-					})
-				}
+				resource={zeroGStorageProof}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const proofKind = resolvedEntity.proofKind}
-					{#if proofKind !== undefined && proofKind !== null}
+					{@const proofKind = entity.proofKind}
+					{#if proofKind != null}
 						<div>
 							<dt>proof kind</dt>
 							<dd>
-								{String((proofKind) ?? '')}
+								{proofKind}
 							</dd>
 						</div>
 					{/if}
@@ -200,8 +117,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							verifiedAtBlock: true,
 						},
@@ -209,9 +125,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const verifiedAtBlock = resolvedEntity.verifiedAtBlock}
-					{#if verifiedAtBlock !== undefined && verifiedAtBlock !== null}
+					{@const verifiedAtBlock = entity.verifiedAtBlock}
+					{#if verifiedAtBlock != null}
 						<div>
 							<dt>verified AT block</dt>
 							<dd>
@@ -228,7 +143,7 @@
 				resource={selection.$dataBlob}
 			>
 				{#snippet children(zeroGDataBlob)}
-					{#if zeroGDataBlob != null && zeroGDataBlob[EntityMetaKey.Selector] != null}
+					{#if zeroGDataBlob != null}
 						<div>
 							<dt>data blob</dt>
 							<dd>
@@ -248,7 +163,7 @@
 				resource={selection.$consensusNetwork}
 			>
 				{#snippet children(zeroGConsensusNetwork)}
-					{#if zeroGConsensusNetwork != null && zeroGConsensusNetwork[EntityMetaKey.Selector] != null}
+					{#if zeroGConsensusNetwork != null}
 						<div>
 							<dt>consensus network</dt>
 							<dd>

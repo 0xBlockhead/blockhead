@@ -2,15 +2,8 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
-	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -22,42 +15,19 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.BlockheadLightningInvoice_Timestamp>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.BlockheadLightningInvoice_Timestamp>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.BlockheadLightningInvoice_Timestamp> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const blockheadLightningInvoiceTimestamp = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {
-			state: true,
-			amountPaidMsat: true,
-		},
-	} : {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const blockheadLightningInvoiceTimestamp = $derived(selection({
 		fields: {
 			state: true,
 			amountPaidMsat: true,
 		},
 	}))
-	const titleFallback = $derived([String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || 'Lightning invoice timestamp')
-	const viewDomId = $derived('blockhead-lightning-invoice-timestamp-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const titleFallback = $derived(String(pendingEntity.timestampMs ?? '') || 'Lightning invoice timestamp')
 
 
 	// Components
@@ -70,44 +40,22 @@
 
 <EntityView
 	entityType={EntityType.BlockheadLightningInvoice_Timestamp}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'state') && Object.hasOwn(prefetched, 'amountPaidMsat')}
-			{@const timestampMs0 = pendingEntity.timestampMs}
-			{#if timestampMs0 !== undefined && timestampMs0 !== null}
-				<Timestamp timestamp={Number(timestampMs0)} />
-			{/if}
-		{:else}
-			<ResourceBoundary resource={blockheadLightningInvoiceTimestamp}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const timestampMs0 = resolvedEntity.timestampMs}
-					{#if timestampMs0 !== undefined && timestampMs0 !== null}
-						<Timestamp timestamp={Number(timestampMs0)} />
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
 	{/snippet}
 
 	{#snippet Value()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'state') && Object.hasOwn(prefetched, 'amountPaidMsat')}
-			{[String((pendingEntity.state) ?? ''), String((pendingEntity.amountPaidMsat) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || titleFallback}
-		{:else}
-			<ResourceBoundary resource={blockheadLightningInvoiceTimestamp}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.state) ?? ''), String((resolvedEntity.amountPaidMsat) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={blockheadLightningInvoiceTimestamp}>
+			{#snippet children(entity)}
+				{[(entity.state ?? ''), String(entity.amountPaidMsat ?? '')].filter(Boolean).join(' ') || String(pendingEntity.timestampMs) || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -117,30 +65,6 @@
 				<dd>
 					<BlockheadLightningInvoiceView
 						selection={select(EntityType.BlockheadLightningInvoice, selection.entitySelector.$invoice)}
-						href={
-							(
-								selection.entitySelector.$invoice != null && 'paymentHash' in selection.entitySelector.$invoice
-								&& selection.entitySelector.$invoice.paymentHash != null
-								&& selection.entitySelector.$invoice != null && '$network' in selection.entitySelector.$invoice ?
-									selection.entitySelector.$invoice.$network != null && 'caip2' in selection.entitySelector.$invoice.$network
-									&& selection.entitySelector.$invoice.$network.caip2 != null ?
-										resolve('/network/[network=networkCaip2OrNetworkSlug]/invoices/[paymentHash=stringSegment]', {
-									paymentHash: String(selection.entitySelector.$invoice.paymentHash ?? ''),
-									network: String(caip2StringFromValue(selection.entitySelector.$invoice.$network.caip2) ?? ''),
-								})
-								:
-										selection.entitySelector.$invoice.$network != null && 'slug' in selection.entitySelector.$invoice.$network
-										&& selection.entitySelector.$invoice.$network.slug != null ?
-											resolve('/network/[network=networkCaip2OrNetworkSlug]/invoices/[paymentHash=stringSegment]', {
-										paymentHash: String(selection.entitySelector.$invoice.paymentHash ?? ''),
-										network: String(selection.entitySelector.$invoice.$network.slug ?? ''),
-									})
-									:
-										undefined
-							:
-									undefined
-							)
-						}
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -150,31 +74,13 @@
 			<div>
 				<dt>Source</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									source: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const source = resolvedEntity.source}
-							{#if source !== undefined && source !== null}
-								{String((source) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{pendingEntity.source}
 				</dd>
 			</div>
 
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							settledAtMs: true,
 						},
@@ -182,13 +88,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const settledAtMs = resolvedEntity.settledAtMs}
-					{#if settledAtMs !== undefined && settledAtMs !== null}
+					{@const settledAtMs = entity.settledAtMs}
+					{#if settledAtMs != null}
 						<div>
 							<dt>Settled</dt>
 							<dd>
-								{String((settledAtMs) ?? '')}
+								{String(settledAtMs)}
 							</dd>
 						</div>
 					{/if}
@@ -198,7 +103,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							settleIndex: true,
 						},
@@ -206,13 +110,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const settleIndex = resolvedEntity.settleIndex}
-					{#if settleIndex !== undefined && settleIndex !== null}
+					{@const settleIndex = entity.settleIndex}
+					{#if settleIndex != null}
 						<div>
 							<dt>Settle index</dt>
 							<dd>
-								{String((settleIndex) ?? '')}
+								{String(settleIndex)}
 							</dd>
 						</div>
 					{/if}

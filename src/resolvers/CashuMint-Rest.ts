@@ -8,11 +8,6 @@ import {
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
-import { CashuMintSelector } from '$/schema/CashuMint.ts'
-import { CashuMint_TimestampSelector } from '$/schema/CashuMint_Timestamp.ts'
-import { CashuKeysetSelector } from '$/schema/CashuKeyset.ts'
-import { CashuKeyset_TimestampSelector } from '$/schema/CashuKeyset_Timestamp.ts'
-
 export default {
 	source: Source.CashuMint_Rest,
 
@@ -20,7 +15,7 @@ export default {
 		defineResolver(Source.CashuMint_Rest, {
 			entityType: EntityType.CashuMint,
 			resolve: {
-				[CashuMintSelector.MintUrl]: {
+				MintUrl: {
 					resolve: async ({ mintUrl }) => {
 						return {
 							$$timestamps: [{
@@ -41,22 +36,24 @@ export default {
 		defineResolver(Source.CashuMint_Rest, {
 			entityType: EntityType.CashuKeyset,
 			resolve: {
-				[CashuKeysetSelector.CashuMintKeysetId]: {
+				CashuMintKeysetId: {
 					resolve: async ({ $mint, keysetId }) => {
 					const {
 						getMintKeysets,
 						getMintKeysForKeyset,
 					} = await import('$/sources/Cashu/Mint/Rest/queries.ts')
-					const keyset = (await getMintKeysets({
-						mintUrl: $mint.mintUrl,
-					})).keysets.find((row) => row.id === keysetId)
+					const keyset = (
+						await getMintKeysets($mint.mintUrl)
+					).keysets.find((row) => row.id === keysetId)
 					if (keyset == null)
 						throw new Error(`CashuMint_Rest: keyset not found for ${keysetId}`)
 
-					const keys = await getMintKeysForKeyset({
-						mintUrl: $mint.mintUrl,
-						keysetId: keysetId,
-					})
+					const keys = await getMintKeysForKeyset(
+						$mint.mintUrl,
+						{
+							keysetId: keysetId,
+						}
+					)
 					const keysByAmount = keys.keysets.find((row) => row.id === keysetId)?.keys
 
 					return {
@@ -84,13 +81,15 @@ export default {
 		defineResolver(Source.CashuMint_Rest, {
 			entityType: EntityType.CashuMint_Timestamp,
 			resolve: {
-				[CashuMint_TimestampSelector.MintTimestampMsSource]: {
+				MintTimestampMsSource: {
 					resolve: async ({ $mint, timestampMs, source }) => {
 						if (source !== Source.CashuMint_Rest)
 							throw new Error(`CashuMint_Rest: unsupported source ${source}`)
 
 						const { getMintInfo } = await import('$/sources/Cashu/Mint/Rest/queries.ts')
-						const info = await getMintInfo({ mintUrl: $mint.mintUrl })
+						const info = await getMintInfo(
+							$mint.mintUrl
+						)
 						return {
 							$mint: { [EntityMetaKey.Selector]: $mint },
 							timestampMs,
@@ -126,15 +125,17 @@ export default {
 		defineResolver(Source.CashuMint_Rest, {
 			entityType: EntityType.CashuKeyset_Timestamp,
 			resolve: {
-				[CashuKeyset_TimestampSelector.KeysetTimestampMsSource]: {
+				KeysetTimestampMsSource: {
 					resolve: async ({ $keyset, timestampMs, source }) => {
 						if (source !== Source.CashuMint_Rest)
 							throw new Error(`CashuMint_Rest: unsupported source ${source}`)
 
 						const { getMintKeysets } = await import('$/sources/Cashu/Mint/Rest/queries.ts')
-						const keyset = (await getMintKeysets({
-							mintUrl: $keyset.$mint.mintUrl,
-						})).keysets.find((row) => row.id === $keyset.keysetId)
+						const keyset = (
+							await getMintKeysets(
+								$keyset.$mint.mintUrl
+							)
+						).keysets.find((row) => row.id === $keyset.keysetId)
 						if (keyset == null)
 							throw new Error(`CashuMint_Rest: keyset not found for ${$keyset.keysetId}`)
 
@@ -161,12 +162,14 @@ export default {
 		defineResolver(Source.CashuMint_Rest, {
 			entityType: EntityType.CashuMint,
 			resolve: {
-				[CashuMintSelector.MintUrl]: {
+				MintUrl: {
 					resolve: async ({ mintUrl }, context) => {
-					const { getMintKeysets } = await import('$/sources/Cashu/Mint/Rest/queries.ts')
-					return (await getMintKeysets({
-						mintUrl: mintUrl,
-					})).keysets
+						const { getMintKeysets } = await import('$/sources/Cashu/Mint/Rest/queries.ts')
+					return (
+						await getMintKeysets(
+							mintUrl
+						)
+					).keysets
 						.slice(0, resolverContextRowLimit(context))
 						.map((keyset) => ({
 							[EntityMetaKey.Selector]: {

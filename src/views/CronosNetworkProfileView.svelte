@@ -2,15 +2,9 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
-	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -22,42 +16,18 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.CronosNetworkProfile>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.CronosNetworkProfile>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.CronosNetworkProfile> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const cronosNetworkProfile = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {
-			chainKind: true,
-			consensusKind: true,
-		},
-	} : {
-		sources: selection.sources,
+	const cronosNetworkProfile = $derived(selection({
 		fields: {
 			chainKind: true,
 			consensusKind: true,
 		},
 	}))
 	const titleFallback = 'cronos network profile'
-	const viewDomId = $derived('cronos-network-profile-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -70,32 +40,25 @@
 
 <EntityView
 	entityType={EntityType.CronosNetworkProfile}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={cronosNetworkProfile}>
-			{#snippet children(entity)}
-				<NetworkView
-					selection={select(EntityType.Network, selection.entitySelector.$network)}
-					href=""
-					layout={EntityLayout.Title}
-					open={false}
-				/>
-			{/snippet}
-		</ResourceBoundary>
+		<NetworkView
+			selection={select(EntityType.Network, selection.entitySelector.$network)}
+			href=""
+			layout={EntityLayout.Title}
+			open={false}
+		/>
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={cronosNetworkProfile}>
 			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.chainKind) ?? '')].filter(Boolean).join(' ') || titleFallback}
+				{entity.chainKind || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -103,11 +66,10 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={cronosNetworkProfile}>
 			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const consensusKind0 = resolvedEntity.consensusKind}
-				{#if consensusKind0 !== undefined && consensusKind0 !== null}
+				{@const consensusKind0 = entity.consensusKind}
+				{#if consensusKind0 != null}
 					<span data-text="muted">
-						{String((consensusKind0) ?? '')}
+						{consensusKind0}
 					</span>
 				{/if}
 			{/snippet}
@@ -121,23 +83,6 @@
 				<dd>
 					<NetworkView
 						selection={select(EntityType.Network, selection.entitySelector.$network)}
-						href={
-							(
-								selection.entitySelector.$network != null && 'caip2' in selection.entitySelector.$network
-								&& selection.entitySelector.$network.caip2 != null ?
-									resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-								network: String(caip2StringFromValue(selection.entitySelector.$network.caip2) ?? ''),
-							})
-							:
-									selection.entitySelector.$network != null && 'slug' in selection.entitySelector.$network
-									&& selection.entitySelector.$network.slug != null ?
-										resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-									network: String(selection.entitySelector.$network.slug ?? ''),
-								})
-								:
-									undefined
-							)
-						}
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -148,30 +93,13 @@
 				resource={selection.$evmNetwork}
 			>
 				{#snippet children(network)}
-					{#if network != null && network[EntityMetaKey.Selector] != null}
+					{#if network != null}
 						<div>
 							<dt>EVM network</dt>
 							<dd>
 								<NetworkView
 									selection={select(EntityType.Network, network[EntityMetaKey.Selector])}
 									prefetched={network}
-									href={
-										(
-											network[EntityMetaKey.Selector] != null && 'caip2' in network[EntityMetaKey.Selector]
-											&& network[EntityMetaKey.Selector].caip2 != null ?
-												resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-											network: String(caip2StringFromValue(network[EntityMetaKey.Selector].caip2) ?? ''),
-										})
-										:
-												network[EntityMetaKey.Selector] != null && 'slug' in network[EntityMetaKey.Selector]
-												&& network[EntityMetaKey.Selector].slug != null ?
-													resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-												network: String(network[EntityMetaKey.Selector].slug ?? ''),
-											})
-											:
-												undefined
-										)
-									}
 									layout={EntityLayout.Value}
 									open={false}
 								/>
@@ -185,30 +113,13 @@
 				resource={selection.$cosmosNetwork}
 			>
 				{#snippet children(network)}
-					{#if network != null && network[EntityMetaKey.Selector] != null}
+					{#if network != null}
 						<div>
 							<dt>Cosmos network</dt>
 							<dd>
 								<NetworkView
 									selection={select(EntityType.Network, network[EntityMetaKey.Selector])}
 									prefetched={network}
-									href={
-										(
-											network[EntityMetaKey.Selector] != null && 'caip2' in network[EntityMetaKey.Selector]
-											&& network[EntityMetaKey.Selector].caip2 != null ?
-												resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-											network: String(caip2StringFromValue(network[EntityMetaKey.Selector].caip2) ?? ''),
-										})
-										:
-												network[EntityMetaKey.Selector] != null && 'slug' in network[EntityMetaKey.Selector]
-												&& network[EntityMetaKey.Selector].slug != null ?
-													resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-												network: String(network[EntityMetaKey.Selector].slug ?? ''),
-											})
-											:
-												undefined
-										)
-									}
 									layout={EntityLayout.Value}
 									open={false}
 								/>
@@ -222,44 +133,25 @@
 				<dt>chain kind</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									chainKind: true,
-								},
-							})
-						}
+						resource={cronosNetworkProfile}
 					>
 						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const chainKind = resolvedEntity.chainKind}
-							{#if chainKind !== undefined && chainKind !== null}
-								{String((chainKind) ?? '')}
-							{/if}
+							{entity.chainKind}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
 			</div>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							consensusKind: true,
-						},
-					})
-				}
+				resource={cronosNetworkProfile}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const consensusKind = resolvedEntity.consensusKind}
-					{#if consensusKind !== undefined && consensusKind !== null}
+					{@const consensusKind = entity.consensusKind}
+					{#if consensusKind != null}
 						<div>
 							<dt>consensus kind</dt>
 							<dd>
-								{String((consensusKind) ?? '')}
+								{consensusKind}
 							</dd>
 						</div>
 					{/if}
@@ -271,7 +163,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							bech32Prefix: true,
 						},
@@ -279,13 +170,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const bech32Prefix = resolvedEntity.bech32Prefix}
-					{#if bech32Prefix !== undefined && bech32Prefix !== null}
+					{@const bech32Prefix = entity.bech32Prefix}
+					{#if bech32Prefix != null}
 						<div>
 							<dt>bech32 prefix</dt>
 							<dd>
-								{String((bech32Prefix) ?? '')}
+								{bech32Prefix}
 							</dd>
 						</div>
 					{/if}
@@ -295,7 +185,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							evmChainId: true,
 						},
@@ -303,13 +192,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const evmChainId = resolvedEntity.evmChainId}
-					{#if evmChainId !== undefined && evmChainId !== null}
+					{@const evmChainId = entity.evmChainId}
+					{#if evmChainId != null}
 						<div>
 							<dt>EVM chain ID</dt>
 							<dd>
-								{String((evmChainId) ?? '')}
+								{String(evmChainId)}
 							</dd>
 						</div>
 					{/if}
@@ -319,7 +207,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							cosmosChainId: true,
 						},
@@ -327,13 +214,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const cosmosChainId = resolvedEntity.cosmosChainId}
-					{#if cosmosChainId !== undefined && cosmosChainId !== null}
+					{@const cosmosChainId = entity.cosmosChainId}
+					{#if cosmosChainId != null}
 						<div>
 							<dt>Cosmos chain ID</dt>
 							<dd>
-								{String((cosmosChainId) ?? '')}
+								{cosmosChainId}
 							</dd>
 						</div>
 					{/if}
@@ -349,12 +235,12 @@
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
-				<IbcChannelsView
-					selection={cronosNetworkProfileIbcChannelsViewIbcChannelsResource}
-					countResource={cronosNetworkProfileIbcChannelsViewIbcChannelsResource.count}
-					title='ibc channels'
-					id='IbcChannelsView-ibc-channels'
-				/>
+					<IbcChannelsView
+						selection={cronosNetworkProfileIbcChannelsViewIbcChannelsResource}
+						countResource={cronosNetworkProfileIbcChannelsViewIbcChannelsResource.count}
+						title='ibc channels'
+						id='ibc-channels'
+					/>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>
@@ -364,12 +250,12 @@
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
-				<Network_TimestampsView
-					selection={cronosNetworkProfileNetworkTimestampsViewTimestampsResource}
-					countResource={cronosNetworkProfileNetworkTimestampsViewTimestampsResource.count}
-					title='timestamps'
-					id='Network_TimestampsView-timestamps'
-				/>
+					<Network_TimestampsView
+						selection={cronosNetworkProfileNetworkTimestampsViewTimestampsResource}
+						countResource={cronosNetworkProfileNetworkTimestampsViewTimestampsResource.count}
+						title='timestamps'
+						id='timestamps'
+					/>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>

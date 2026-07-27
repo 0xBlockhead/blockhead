@@ -29,22 +29,26 @@
 {#key [params.network, params.address].join(':')}
 	<ParentPageCollapsible
 		href={
-			resolve('/network/[network=networkCaip2OrNetworkSlug]/erc-4337/account-factory/[address=evmAddress]', {
-				network: params.network,
-				address: params.address,
-			})
+			resolve(
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/erc-4337/account-factory/[address=evmAddress]',
+				{
+					network: String(params.network),
+					address: String(params.address),
+				}
+			)
 		}
 	>
 		{#snippet Summary()}
-			{@const DetailView = Erc4337AccountFactoryView}
-
-			<DetailView
+			<Erc4337AccountFactoryView
 				selection={select(EntityType.Erc4337AccountFactory, data.selector)}
 				href={
-					resolve('/network/[network=networkCaip2OrNetworkSlug]/erc-4337/account-factory/[address=evmAddress]', {
-						network: params.network,
-						address: params.address,
-					})
+					resolve(
+						'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/erc-4337/account-factory/[address=evmAddress]',
+						{
+							network: String(params.network),
+							address: String(params.address),
+						}
+					)
 				}
 				layout={EntityLayout.SummaryInline}
 			/>

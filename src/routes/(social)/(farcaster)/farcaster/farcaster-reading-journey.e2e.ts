@@ -5,10 +5,22 @@ import {
 	installChainlistRpcsJsonStub,
 } from '../../../../../tests/_e2eBrowserHelpers.ts'
 import { routeViewSmokeTimeoutsMs } from '../../../../../tests/e2e/_routeViewDiagnostics.ts'
+import farcasterBindings from '$/sources/Farcaster/bindings.ts'
+import neynarBindings from '$/sources/Neynar/bindings.ts'
+import snapchainBindings from '$/sources/Snapchain/bindings.ts'
+import { Source } from '$/sources/Source.ts'
+import type { SourceBinding } from '$/sources/SourceBinding.ts'
 
 
 const castHash = '0x1111111111111111111111111111111111111111'
 const replyHash = '0x2222222222222222222222222222222222222222'
+const proxyPath = (binding: SourceBinding) => {
+	const proxyId = binding.proxyId
+	if (proxyId == null)
+		throw new Error('Farcaster reading fixture requires a proxied source binding')
+
+	return `/api-proxy/${proxyId}/`
+}
 
 const author = {
 	fid: 101,
@@ -58,6 +70,7 @@ test('feed, cast, author, channel, and replies form a canonical reading journey'
 	testInfo.setTimeout(routeViewSmokeTimeoutsMs.test * 3)
 	const consoleErrors: string[] = []
 	const pageErrors: string[] = []
+	const farcasterProxyRequests: string[] = []
 	const neynarProxyRequests: string[] = []
 	page.on('console', (message) => {
 		if (message.type() === 'error')
@@ -77,7 +90,104 @@ test('feed, cast, author, channel, and replies form a canonical reading journey'
 	await installChainlistRpcsJsonStub(page)
 	await page.route('**/*', async (route) => {
 		const sourceUrl = decodeURIComponent(route.request().url())
-		if (sourceUrl.includes('/api-proxy/Snapchain_Rest-')) {
+		if (sourceUrl.includes(proxyPath(farcasterBindings[Source.Farcaster_Rest]))) {
+			if (sourceUrl.includes('/v1/channel-followers')) {
+				await route.fulfill({
+					json: {
+						result: {
+							users: [],
+						},
+					},
+				})
+				return
+			}
+
+			if (sourceUrl.includes('/fc/channel-members')) {
+				await route.fulfill({
+					json: {
+						result: {
+							members: [],
+						},
+					},
+				})
+				return
+			}
+
+			if (sourceUrl.includes('/v1/channel?')) {
+				await route.fulfill({
+					json: {
+						result: {
+							channel: {
+								id: 'protocol',
+								name: 'Protocol',
+								url: 'https://warpcast.com/~/channel/protocol',
+							},
+						},
+					},
+				})
+				return
+			}
+
+			farcasterProxyRequests.push(sourceUrl)
+
+			if (!sourceUrl.includes('/~api/v2/user-thread-casts')) {
+				await route.abort('blockedbyclient')
+				return
+			}
+
+			await route.fulfill({
+				json: {
+					result: {
+						casts: [
+							{
+								hash: cast.hash,
+								author: {
+									fid: cast.author.fid,
+									username: cast.author.username,
+								},
+								text: cast.text,
+								timestamp: Date.parse(cast.timestamp),
+								parentUrl: 'https://warpcast.com/~/channel/protocol',
+								channel: cast.channel,
+							},
+							{
+								hash: reply.hash,
+								author: {
+									fid: reply.author.fid,
+									username: reply.author.username,
+								},
+								text: reply.text,
+								timestamp: Date.parse(reply.timestamp),
+								parentHash: cast.hash,
+								parentAuthor: {
+									fid: author.fid,
+								},
+							},
+						],
+					},
+				},
+			})
+			return
+		}
+		if (sourceUrl.includes(proxyPath(snapchainBindings[Source.Snapchain_Rest]))) {
+			if (sourceUrl.includes('/v1/castById')) {
+				await route.fulfill({
+					json: {
+						hash: castHash,
+						data: {
+							fid: author.fid,
+							timestamp: 174515040,
+							castAddBody: {
+								text: cast.text,
+								parentUrl: 'https://warpcast.com/~/channel/protocol',
+								embeds: [],
+							},
+						},
+					},
+				})
+				return
+			}
+
 			if (![
 				'/v1/userDataByFid',
 				'/v1/userNameProofsByFid',
@@ -93,6 +203,7 @@ test('feed, cast, author, channel, and replies form a canonical reading journey'
 						messages: [
 							{
 								data: {
+									fid: author.fid,
 									userDataBody: {
 										type: 'USER_DATA_TYPE_DISPLAY',
 										value: author.display_name,
@@ -101,6 +212,7 @@ test('feed, cast, author, channel, and replies form a canonical reading journey'
 							},
 							{
 								data: {
+									fid: author.fid,
 									userDataBody: {
 										type: 'USER_DATA_TYPE_BIO',
 										value: author.profile.bio.text,
@@ -110,13 +222,13 @@ test('feed, cast, author, channel, and replies form a canonical reading journey'
 						],
 					}
 				: sourceUrl.includes('/v1/userNameProofsByFid') ?
-					{ proofs: [{ name: author.username }] }
+					{ proofs: [{ fid: author.fid, name: author.username }] }
 				:
 					{ messages: [] },
 			})
 			return
 		}
-		if (!sourceUrl.includes('/api-proxy/Neynar_Rest-')) {
+		if (!sourceUrl.includes(proxyPath(neynarBindings[Source.Neynar_Rest]))) {
 			await route.fallback()
 			return
 		}
@@ -141,7 +253,13 @@ test('feed, cast, author, channel, and replies form a canonical reading journey'
 					conversation: {
 						cast: {
 							...cast,
-							direct_replies: [reply],
+							direct_replies: [{
+								...reply,
+								parent_hash: castHash,
+								parent_author: {
+									fid: author.fid,
+								},
+							}],
 						},
 					},
 				},
@@ -184,7 +302,7 @@ test('feed, cast, author, channel, and replies form a canonical reading journey'
 	await expect(feedCards).toHaveCount(1)
 	const castLink = feedCards.locator(`a[href="/farcaster/cast/101/${castHash}"]`).first()
 	await expect(castLink).toContainText('A deterministic Farcaster reading journey.', {
-		timeout: routeViewSmokeTimeoutsMs.settle,
+		timeout: routeViewSmokeTimeoutsMs.mainSelector,
 	})
 	await castLink.click()
 
@@ -212,10 +330,24 @@ test('feed, cast, author, channel, and replies form a canonical reading journey'
 	await expect(page.locator(`#main a[href="/farcaster/cast/101/${castHash}"]`)).toContainText('A deterministic Farcaster reading journey.')
 	await expect(page.locator('#main [data-error], #main [role="alert"]')).toHaveCount(0)
 
+	await page.goto(`/farcaster/c/${author.username}/${castHash}`, {
+		waitUntil: 'load',
+		timeout: routeViewSmokeTimeoutsMs.goto,
+	})
+	await expect(page).toHaveURL(`/farcaster/c/${author.username}/${castHash}`)
+	await expect(page.locator('#main')).toContainText(cast.text, {
+		timeout: routeViewSmokeTimeoutsMs.mainSelector,
+	})
+	await expect(page.locator('#main')).toContainText(reply.text)
+	await expect(page.locator(`#main a[href="/farcaster/user/${author.fid}"]`)).toBeAttached()
+	await expect(page.locator('#main a[href="/farcaster/channel/protocol"]')).toBeAttached()
+	await expect(page.locator(`#main dt:has-text("Client URL") + dd a[href="https://warpcast.com/${author.username}/${castHash}"]`)).toBeAttached()
+	await expect(page.locator('#main [data-error], #main [role="alert"]')).toHaveCount(0)
+
+	expect(farcasterProxyRequests.some((url) => url.includes('/~api/v2/user-thread-casts'))).toBe(true)
 	expect(neynarProxyRequests.some((url) => url.includes('/v2/farcaster/feed/'))).toBe(true)
 	expect(neynarProxyRequests.some((url) => url.includes('/v2/farcaster/cast/?'))).toBe(true)
 	expect(neynarProxyRequests.some((url) => url.includes('/v2/farcaster/cast/conversation/?'))).toBe(true)
-	expect(neynarProxyRequests.some((url) => url.includes('/v2/farcaster/user/bulk/?'))).toBe(true)
 	expect(pageErrors).toEqual([])
 	expect(consoleErrors).toEqual([])
 })

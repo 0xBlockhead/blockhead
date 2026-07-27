@@ -1,15 +1,12 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { entity, facet } from '$/schema/$schema.ts'
+import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 import { type } from 'arktype'
 
-export enum BlockheadIntentOrder_TimestampSelector {
-	OrderTimestampMsSource = 'OrderTimestampMsSource',
-}
-export const BlockheadIntentOrder_Timestamp = entity({
+export default entity({
 	entityType: EntityType.BlockheadIntentOrder_Timestamp,
 	labels: {
 		singular: 'blockhead intent order timestamp',
@@ -43,13 +40,13 @@ export const BlockheadIntentOrder_Timestamp = entity({
 	fillTxHash: {
 		label: 'fill transaction hash',
 		type: EntityFieldType.Primitive,
-		primitiveType: (ZeroExHex),
+		primitiveType: ZeroExHex,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	claimTxHash: {
 		label: 'claim transaction hash',
 		type: EntityFieldType.Primitive,
-		primitiveType: (ZeroExHex),
+		primitiveType: ZeroExHex,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	gasUsed: {
@@ -61,7 +58,7 @@ export const BlockheadIntentOrder_Timestamp = entity({
 	statusPayloadHash: {
 		label: 'status payload hash',
 		type: EntityFieldType.Primitive,
-		primitiveType: (ZeroExHex),
+		primitiveType: ZeroExHex,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	error: {

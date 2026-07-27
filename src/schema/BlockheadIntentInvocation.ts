@@ -1,15 +1,12 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { entity, facet } from '$/schema/$schema.ts'
+import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 import { type } from 'arktype'
 
-export enum BlockheadIntentInvocationSelector {
-	SessionIdInvocationId = 'SessionIdInvocationId',
-}
-export const BlockheadIntentInvocation = entity({
+export default entity({
 	entityType: EntityType.BlockheadIntentInvocation,
 	labels: {
 		singular: 'blockhead intent invocation',
@@ -79,7 +76,7 @@ export const BlockheadIntentInvocation = entity({
 	invocationPayloadHash: {
 		label: 'invocation payload hash',
 		type: EntityFieldType.Primitive,
-		primitiveType: (ZeroExHex),
+		primitiveType: ZeroExHex,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	resolvedIntentType: {
@@ -97,7 +94,7 @@ export const BlockheadIntentInvocation = entity({
 	intentDefinitionHash: {
 		label: 'intent definition hash',
 		type: EntityFieldType.Primitive,
-		primitiveType: (ZeroExHex),
+		primitiveType: ZeroExHex,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	selectedOptionIndex: {
@@ -109,7 +106,7 @@ export const BlockheadIntentInvocation = entity({
 	selectedOptionHash: {
 		label: 'selected option hash',
 		type: EntityFieldType.Primitive,
-		primitiveType: (ZeroExHex),
+		primitiveType: ZeroExHex,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	createdAt: {

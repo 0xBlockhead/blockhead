@@ -2,14 +2,8 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
 
 
 	// Context
@@ -21,35 +15,13 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.ActivityPubInstancePeer>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.ActivityPubInstancePeer>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.ActivityPubInstancePeer> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const activityPubInstancePeer = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {},
-	} : {
-		sources: selection.sources,
-	}))
-	const titleFallback = $derived([String((pendingEntity.peerDomain) ?? '')].filter(Boolean).join(' ') || 'ActivityPub instance peer')
-	const viewDomId = $derived('activity-pub-instance-peer-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const titleFallback = $derived((pendingEntity.peerDomain ?? '') || 'ActivityPub instance peer')
 
 
 	// Components
@@ -60,51 +32,23 @@
 
 <EntityView
 	entityType={EntityType.ActivityPubInstancePeer}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, '$observation') && prefetched.$observation != null && Object.hasOwn(prefetched.$observation, 'title') && Object.hasOwn(prefetched.$observation, '$instance') && prefetched.$observation.$instance != null && Object.hasOwn(prefetched.$observation, 'version')}
-			{[String((pendingEntity.peerDomain) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-		{:else}
-			<ResourceBoundary resource={activityPubInstancePeer}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.peerDomain) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		{(pendingEntity.peerDomain ?? '') || 'ActivityPub instance peer'}
 	{/snippet}
 
 	{#snippet Value()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, '$observation') && prefetched.$observation != null && Object.hasOwn(prefetched.$observation, 'title') && Object.hasOwn(prefetched.$observation, '$instance') && prefetched.$observation.$instance != null && Object.hasOwn(prefetched.$observation, 'version')}
-			{@const activityPubInstanceTimestamp0 = pendingEntity.$observation}
-			{#if activityPubInstanceTimestamp0 != null && selection.entitySelector.$observation != null}
-				<ActivityPubInstance_TimestampView
-					selection={select(EntityType.ActivityPubInstance_Timestamp, selection.entitySelector.$observation, { sources: selection.sources })}
-					prefetched={activityPubInstanceTimestamp0}
-					href=""
-					layout={EntityLayout.Value}
-					open={false}
-				/>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={activityPubInstancePeer}>
-				{#snippet children(entity)}
-					<ActivityPubInstance_TimestampView
-						selection={select(EntityType.ActivityPubInstance_Timestamp, selection.entitySelector.$observation)}
-						href=""
-						layout={EntityLayout.Value}
-						open={false}
-					/>
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ActivityPubInstance_TimestampView
+			selection={select(EntityType.ActivityPubInstance_Timestamp, selection.entitySelector.$observation)}
+			href=""
+			layout={EntityLayout.Value}
+			open={false}
+		/>
 	{/snippet}
 
 	{#snippet TypeAnnotationTooltip()}
@@ -120,24 +64,6 @@
 				<dd>
 					<ActivityPubInstance_TimestampView
 						selection={select(EntityType.ActivityPubInstance_Timestamp, selection.entitySelector.$observation)}
-						href={
-							(
-								selection.entitySelector.$observation != null && 'timestampMs' in selection.entitySelector.$observation
-								&& selection.entitySelector.$observation.timestampMs != null
-								&& selection.entitySelector.$observation != null && 'source' in selection.entitySelector.$observation
-								&& selection.entitySelector.$observation.source != null
-								&& selection.entitySelector.$observation != null && '$instance' in selection.entitySelector.$observation
-								&& selection.entitySelector.$observation.$instance != null && 'instanceOrigin' in selection.entitySelector.$observation.$instance
-								&& selection.entitySelector.$observation.$instance.instanceOrigin != null ?
-									resolve('/activitypub/instance/[instanceOrigin=absoluteUrl]/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
-								timestampMs: String(selection.entitySelector.$observation.timestampMs ?? ''),
-								source: String(selection.entitySelector.$observation.source ?? ''),
-								instanceOrigin: encodeURIComponent(String(selection.entitySelector.$observation.$instance.instanceOrigin ?? '')),
-							})
-							:
-									undefined
-							)
-						}
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -147,24 +73,7 @@
 			<div>
 				<dt>Peer domain</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									peerDomain: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const peerDomain = resolvedEntity.peerDomain}
-							{#if peerDomain !== undefined && peerDomain !== null}
-								{String((peerDomain) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{pendingEntity.peerDomain}
 				</dd>
 			</div>
 		</dl>

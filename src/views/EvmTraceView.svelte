@@ -2,16 +2,10 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
 	import { EvmInternalCallType } from '$/constants/Evm.ts'
-	import { caip2StringFromValue } from '$/lib/caip2.ts'
 	import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 
 
@@ -24,44 +18,20 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.EvmTrace>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.EvmTrace>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.EvmTrace> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const evmTrace = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {
-			index: true,
-			type: true,
-			error: true,
-		},
-	} : {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const evmTrace = $derived(selection({
 		fields: {
 			index: true,
 			type: true,
 			error: true,
 		},
 	}))
-	const titleFallback = $derived((String((pendingEntity.index) ?? '') ? 'Trace #' + String((pendingEntity.index) ?? '') : '') || [String((pendingEntity.traceAddress) ?? '')].filter(Boolean).join(' ') || 'EVM trace')
-	const viewDomId = $derived('evm-trace-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const titleFallback = $derived((String(pendingEntity.index ?? '') ? 'Trace #' + String(pendingEntity.index ?? '') : '') || (pendingEntity.traceAddress ?? '') || 'EVM trace')
 
 
 	// Components
@@ -76,11 +46,9 @@
 
 <EntityView
 	entityType={EntityType.EvmTrace}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
 	idDragPlainText={String(pendingEntity.index ?? '')}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -88,18 +56,12 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={evmTrace}>
 			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const serialValue = resolvedEntity.index}
-				{#if serialValue !== undefined && serialValue !== null}
-					<span data-row="inline align-center gap-2 wrap">
-						<span>Trace </span>
-						<span data-badge="small">
-							#{String((serialValue) ?? '')}
-						</span>
+				<span data-row="inline align-center gap-2 wrap">
+					<span>Trace </span>
+					<span data-badge="small">
+						#{String(entity.index)}
 					</span>
-				{:else}
-					{[String((resolvedEntity.traceAddress) ?? '')].filter(Boolean).join(' ')}
-				{/if}
+				</span>
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -107,52 +69,27 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={evmTrace}>
 			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const serialValue = resolvedEntity.index}
-				{#if serialValue !== undefined && serialValue !== null}
-					<span data-badge="small">
-						#{String((serialValue) ?? '')}
-					</span>
-				{:else}
-					{[String((resolvedEntity.traceAddress) ?? '')].filter(Boolean).join(' ')}
-				{/if}
+				<span data-badge="small">
+					#{String(entity.index)}
+				</span>
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'index') && Object.hasOwn(prefetched, 'type') && Object.hasOwn(prefetched, 'error')}
-			{@const type0 = pendingEntity.type}
-			{#if type0 !== undefined && type0 !== null}
+		<ResourceBoundary resource={evmTrace}>
+			{#snippet children(entity)}
 				<span data-text="muted">
-					{String((type0) ?? '')}
+					{entity.type}
 				</span>
-			{/if}
-			{@const error1 = pendingEntity.error}
-			{#if error1 !== undefined && error1 !== null}
-				<span data-text="muted">
-					{String((error1) ?? '')}
-				</span>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={evmTrace}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const type0 = resolvedEntity.type}
-					{#if type0 !== undefined && type0 !== null}
-						<span data-text="muted">
-							{String((type0) ?? '')}
-						</span>
-					{/if}
-					{@const error1 = resolvedEntity.error}
-					{#if error1 !== undefined && error1 !== null}
-						<span data-text="muted">
-							{String((error1) ?? '')}
-						</span>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+				{@const error1 = entity.error}
+				{#if error1 != null}
+					<span data-text="muted">
+						{error1}
+					</span>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -160,24 +97,7 @@
 			<div>
 				<dt>Trace address</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									traceAddress: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const traceAddress = resolvedEntity.traceAddress}
-							{#if traceAddress !== undefined && traceAddress !== null}
-								<TruncatedValue value={String((traceAddress) ?? '')} />
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					<TruncatedValue value={pendingEntity.traceAddress} />
 				</dd>
 			</div>
 
@@ -185,21 +105,10 @@
 				<dt>Index</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									index: true,
-								},
-							})
-						}
+						resource={evmTrace}
 					>
 						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const index = resolvedEntity.index}
-							{#if index !== undefined && index !== null}
-								{String((index) ?? '')}
-							{/if}
+							{String(entity.index)}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -209,44 +118,25 @@
 				<dt>Type</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									type: true,
-								},
-							})
-						}
+						resource={evmTrace}
 					>
 						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const type = resolvedEntity.type}
-							{#if type !== undefined && type !== null}
-								{String((type) ?? '')}
-							{/if}
+							{entity.type}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
 			</div>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							error: true,
-						},
-					})
-				}
+				resource={evmTrace}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const error = resolvedEntity.error}
-					{#if error !== undefined && error !== null}
+					{@const error = entity.error}
+					{#if error != null}
 						<div>
 							<dt>Error</dt>
 							<dd>
-								{String((error) ?? '')}
+								{error}
 							</dd>
 						</div>
 					{/if}
@@ -259,24 +149,13 @@
 				resource={selection.$from}
 			>
 				{#snippet children(evmAccount)}
-					{#if evmAccount != null && evmAccount[EntityMetaKey.Selector] != null}
+					{#if evmAccount != null}
 						<div>
 							<dt>From</dt>
 							<dd>
 								<EvmAccountView
 									selection={select(EntityType.EvmAccount, evmAccount[EntityMetaKey.Selector])}
 									prefetched={evmAccount}
-									href={
-										(
-											evmAccount[EntityMetaKey.Selector] != null && 'address' in evmAccount[EntityMetaKey.Selector]
-											&& evmAccount[EntityMetaKey.Selector].address != null ?
-												resolve('/account/[address=evmAddress]', {
-											address: String(evmAccount[EntityMetaKey.Selector].address ?? ''),
-										})
-										:
-												undefined
-										)
-									}
 									layout={EntityLayout.Value}
 									open={false}
 								/>
@@ -290,24 +169,13 @@
 				resource={selection.$to}
 			>
 				{#snippet children(evmAccount)}
-					{#if evmAccount != null && evmAccount[EntityMetaKey.Selector] != null}
+					{#if evmAccount != null}
 						<div>
 							<dt>To</dt>
 							<dd>
 								<EvmAccountView
 									selection={select(EntityType.EvmAccount, evmAccount[EntityMetaKey.Selector])}
 									prefetched={evmAccount}
-									href={
-										(
-											evmAccount[EntityMetaKey.Selector] != null && 'address' in evmAccount[EntityMetaKey.Selector]
-											&& evmAccount[EntityMetaKey.Selector].address != null ?
-												resolve('/account/[address=evmAddress]', {
-											address: String(evmAccount[EntityMetaKey.Selector].address ?? ''),
-										})
-										:
-												undefined
-										)
-									}
 									layout={EntityLayout.Value}
 									open={false}
 								/>
@@ -320,7 +188,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							value: true,
 						},
@@ -328,13 +195,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const value = resolvedEntity.value}
-					{#if value !== undefined && value !== null}
+					{@const value = entity.value}
+					{#if value != null}
 						<div>
 							<dt>Value</dt>
 							<dd>
-								<TruncatedValue value={String((value) ?? '')} />
+								<TruncatedValue value={String(value)} />
 							</dd>
 						</div>
 					{/if}
@@ -344,7 +210,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							gas: true,
 						},
@@ -352,13 +217,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const gas = resolvedEntity.gas}
-					{#if gas !== undefined && gas !== null}
+					{@const gas = entity.gas}
+					{#if gas != null}
 						<div>
 							<dt>Gas</dt>
 							<dd>
-								{String((gas) ?? '')}
+								{String(gas)}
 							</dd>
 						</div>
 					{/if}
@@ -368,7 +232,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							gasUsed: true,
 						},
@@ -376,13 +239,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const gasUsed = resolvedEntity.gasUsed}
-					{#if gasUsed !== undefined && gasUsed !== null}
+					{@const gasUsed = entity.gasUsed}
+					{#if gasUsed != null}
 						<div>
 							<dt>Gas used</dt>
 							<dd>
-								{String((gasUsed) ?? '')}
+								{String(gasUsed)}
 							</dd>
 						</div>
 					{/if}
@@ -394,7 +256,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							input: true,
 						},
@@ -402,13 +263,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const input = resolvedEntity.input}
-					{#if input !== undefined && input !== null}
+					{@const input = entity.input}
+					{#if input != null}
 						<div>
 							<dt>Input</dt>
 							<dd>
-								<TruncatedValue value={String((input) ?? '')} />
+								<TruncatedValue value={String(input)} />
 							</dd>
 						</div>
 					{/if}
@@ -418,7 +278,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							output: true,
 						},
@@ -426,13 +285,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const output = resolvedEntity.output}
-					{#if output !== undefined && output !== null}
+					{@const output = entity.output}
+					{#if output != null}
 						<div>
 							<dt>Output</dt>
 							<dd>
-								<TruncatedValue value={String((output) ?? '')} />
+								<TruncatedValue value={String(output)} />
 							</dd>
 						</div>
 					{/if}
@@ -444,30 +302,6 @@
 				<dd>
 					<EvmTransactionView
 						selection={select(EntityType.EvmTransaction, selection.entitySelector.$transaction)}
-						href={
-							(
-								selection.entitySelector.$transaction != null && 'txHash' in selection.entitySelector.$transaction
-								&& selection.entitySelector.$transaction.txHash != null
-								&& selection.entitySelector.$transaction != null && '$network' in selection.entitySelector.$transaction ?
-									selection.entitySelector.$transaction.$network != null && 'caip2' in selection.entitySelector.$transaction.$network
-									&& selection.entitySelector.$transaction.$network.caip2 != null ?
-										resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]', {
-									transactionId: String(selection.entitySelector.$transaction.txHash ?? ''),
-									network: String(caip2StringFromValue(selection.entitySelector.$transaction.$network.caip2) ?? ''),
-								})
-								:
-										selection.entitySelector.$transaction.$network != null && 'slug' in selection.entitySelector.$transaction.$network
-										&& selection.entitySelector.$transaction.$network.slug != null ?
-											resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]', {
-										transactionId: String(selection.entitySelector.$transaction.txHash ?? ''),
-										network: String(selection.entitySelector.$transaction.$network.slug ?? ''),
-									})
-									:
-										undefined
-							:
-									undefined
-							)
-						}
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -483,12 +317,12 @@
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
-				<EvmTracesView
-					selection={evmTraceEvmTracesViewChildrenResource}
-					countResource={evmTraceEvmTracesViewChildrenResource.count}
-					title='Children'
-					id='EvmTracesView-children'
-				/>
+					<EvmTracesView
+						selection={evmTraceEvmTracesViewChildrenResource}
+						countResource={evmTraceEvmTracesViewChildrenResource.count}
+						title='Children'
+						id='children'
+					/>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>

@@ -8,14 +8,12 @@
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		data,
-		params,
 	}: PageProps = $props()
 
 	const pageSelection = $derived(select(EntityType.CardanoStakePool, data.selector, {
@@ -39,18 +37,12 @@
 
 
 <svelte:head>
-	<title>{(data.title ?? (pageSelection.entity == null ? [String((data.selector.poolId) ?? '')].filter(Boolean).join(' ') || 'Cardano stake pool' : [String((({ ...data.selector, ...pageSelection.entity }).ticker) ?? ''), String((({ ...data.selector, ...pageSelection.entity }).poolId) ?? '')].filter(Boolean).join(' ') || 'Cardano stake pool'))} • Cardano stake pool • Blockhead</title>
+	<title>{(data.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.poolId ?? '') || 'Cardano stake pool' : [(pageSelection.entity.ticker ?? ''), pageSelection.entitySelector.poolId].filter(Boolean).join(' ') || 'Cardano stake pool'))} • Cardano stake pool • Blockhead</title>
 </svelte:head>
 
 
 <Page>
 	<CardanoStakePoolView
-		href={
-			resolve('/network/[network=networkCaip2OrNetworkSlug]/stake-pool/[poolId=stringSegment]', {
-				network: params.network,
-				poolId: params.poolId,
-			})
-		}
 		selection={pageSelection}
 	/>
 </Page>

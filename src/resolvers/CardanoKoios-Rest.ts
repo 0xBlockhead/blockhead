@@ -1,28 +1,19 @@
 import { networkBySlug } from '$/constants/Network.ts'
 import { TransportType } from '$/constants/TransportType.ts'
 import { resolverContextRowLimit } from '$/resolvers/$resolvers.ts'
+import { cardanoGovernanceActionFields } from '$/resolvers/CardanoGovernance.ts'
 import { defineResolver, type SourceResolverContext } from '$/resolvers/defineResolver.ts'
 import {
 	entityFieldAddressKey,
 	EntityMetaKey,
 	type EntitySelector,
 } from '$/schema/$schema.ts'
-import { CardanoGovernanceProposalSelector } from '$/schema/CardanoGovernanceProposal.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { schema } from '$/schema/index.ts'
-import { NetworkSelector } from '$/schema/Network.ts'
-import { CardanoTransactionSelector } from '$/schema/CardanoTransaction.ts'
-import { sourceProviderDefinitions } from '$/sources/$sourceProviders.ts'
 import { firstHttpUrlForBinding } from '$/sources/_runtime/http.ts'
+import bindings from '$/sources/CardanoKoios/bindings.ts'
 import type { CardanoKoiosTransactionProposalProcedure } from '$/sources/CardanoKoios/Rest/types.ts'
 import { Source } from '$/sources/Source.ts'
-
-const cardanoKoiosBinding = sourceProviderDefinitions
-	.flatMap((provider) => provider.bindings)
-	.find((binding) => binding.source === Source.CardanoKoios_Rest)
-
-if (cardanoKoiosBinding == null)
-	throw new Error('CardanoKoios_Rest: source binding is missing')
 
 const assertCardanoMainnet = (
 	network: EntitySelector<typeof schema, EntityType.Network>
@@ -47,8 +38,8 @@ const cardanoNetworkSelectors = <const _Snapshot extends object>(
 		context: SourceResolverContext<Source.CardanoKoios_Rest>
 	) => Promise<_Snapshot>
 ) => ({
-	[NetworkSelector.Slug]: { resolve },
-	[NetworkSelector.Caip2]: { resolve },
+	Slug: { resolve },
+	Caip2: { resolve },
 })
 
 const listLimit = (context: Parameters<typeof resolverContextRowLimit>[0]) => (
@@ -60,6 +51,7 @@ const cardanoGovernanceProposalSnapshot = (
 	transactionHash: string,
 	proposal: CardanoKoiosTransactionProposalProcedure
 ) => ({
+	...cardanoGovernanceActionFields(proposal.description, network),
 	proposalKind: proposal.type,
 	$transaction: {
 		$network: network,
@@ -69,7 +61,6 @@ const cardanoGovernanceProposalSnapshot = (
 	returnAddress: proposal.return_address,
 	anchorUrl: proposal.meta_url ?? undefined,
 	anchorHash: proposal.meta_hash ?? undefined,
-	proposalPayload: proposal.description,
 })
 
 export default {
@@ -83,7 +74,7 @@ export default {
 				assertCardanoMainnet(network)
 
 				return [{
-					url: firstHttpUrlForBinding(cardanoKoiosBinding),
+					url: firstHttpUrlForBinding(bindings[Source.CardanoKoios_Rest]),
 					transportType: TransportType.Http,
 					providerName: 'Koios',
 				}]
@@ -101,7 +92,7 @@ export default {
 				async (network) => {
 				assertCardanoMainnet(network)
 				const { getTip } = await import('$/sources/CardanoKoios/Rest/queries.ts')
-				const [tip] = await getTip(cardanoKoiosBinding)
+				const [tip] = await getTip()
 
 				return [{
 					[EntityMetaKey.Selector]: {
@@ -141,7 +132,7 @@ export default {
 				assertCardanoMainnet(network)
 				const { listBlocks } = await import('$/sources/CardanoKoios/Rest/queries.ts')
 
-				return (await listBlocks(cardanoKoiosBinding, listLimit(context))).map((block) => ({
+				return (await listBlocks(listLimit(context))).map((block) => ({
 					[EntityMetaKey.Selector]: {
 						$network: network,
 						hash: block.hash,
@@ -176,7 +167,7 @@ export default {
 				assertCardanoMainnet(network)
 				const { listLatestBlockTransactions } = await import('$/sources/CardanoKoios/Rest/queries.ts')
 
-				return (await listLatestBlockTransactions(cardanoKoiosBinding, listLimit(context))).map(({ tx_hash }) => ({
+				return (await listLatestBlockTransactions(listLimit(context))).map(({ tx_hash }) => ({
 					[EntityMetaKey.Selector]: {
 						$network: network,
 						hash: tx_hash,
@@ -203,7 +194,7 @@ export default {
 				assertCardanoMainnet(network)
 				const { listStakePools } = await import('$/sources/CardanoKoios/Rest/queries.ts')
 
-				return (await listStakePools(cardanoKoiosBinding, listLimit(context))).map(({
+				return (await listStakePools(listLimit(context))).map(({
 					pool_id_bech32,
 					ticker,
 				}) => ({
@@ -239,7 +230,7 @@ export default {
 
 					return {
 						network,
-						dReps: await listDReps(cardanoKoiosBinding, listLimit(context)),
+						dReps: await listDReps(listLimit(context)),
 					}
 				}
 			),
@@ -293,7 +284,6 @@ export default {
 					const proposalLimit = listLimit(context)
 					const { listGovernanceProposals } = await import('$/sources/CardanoKoios/Rest/queries.ts')
 					const proposals = await listGovernanceProposals(
-						cardanoKoiosBinding,
 						proposalLimit,
 						proposalOffset
 					)
@@ -363,7 +353,7 @@ export default {
 
 					return {
 						network,
-						assets: await listAssets(cardanoKoiosBinding, listLimit(context)),
+						assets: await listAssets(listLimit(context)),
 					}
 				}
 			),
@@ -389,7 +379,7 @@ export default {
 				async (network) => {
 					assertCardanoMainnet(network)
 					const { getLatestProtocolParameters } = await import('$/sources/CardanoKoios/Rest/queries.ts')
-					const [parameters] = await getLatestProtocolParameters(cardanoKoiosBinding)
+					const [parameters] = await getLatestProtocolParameters()
 
 					return {
 						network,
@@ -442,8 +432,8 @@ export default {
 						[committee],
 						[tip],
 					] = await Promise.all([
-						getCommittee(cardanoKoiosBinding),
-						getTip(cardanoKoiosBinding),
+						getCommittee(),
+						getTip(),
 					])
 
 					return {
@@ -476,7 +466,7 @@ export default {
 		defineResolver(Source.CardanoKoios_Rest, {
 			entityType: EntityType.CardanoGovernanceProposal,
 			resolve: {
-				[CardanoGovernanceProposalSelector.NetworkProposalTxHashProposalIndex]: {
+				NetworkProposalTxHashProposalIndex: {
 					resolve: async ({
 						$network,
 						proposalTxHash,
@@ -485,7 +475,6 @@ export default {
 						assertCardanoMainnet($network)
 						const { getTransactionInfo } = await import('$/sources/CardanoKoios/Rest/queries.ts')
 						const transaction = await getTransactionInfo(
-							cardanoKoiosBinding,
 							proposalTxHash
 						)
 
@@ -509,23 +498,37 @@ export default {
 			},
 		})({
 			proposalKind: (proposal) => proposal.proposalKind,
-			$transaction: (proposal) => proposal.$transaction,
+			$transaction: (proposal) => ({
+				[EntityMetaKey.Selector]: proposal.$transaction,
+			}),
 			depositLovelace: (proposal) => proposal.depositLovelace,
 			returnAddress: (proposal) => proposal.returnAddress,
 			anchorUrl: (proposal) => proposal.anchorUrl,
 			anchorHash: (proposal) => proposal.anchorHash,
-			proposalPayload: (proposal) => proposal.proposalPayload,
+			$previousAction: (proposal) => proposal.$previousAction == null ? undefined : ({
+				[EntityMetaKey.Selector]: proposal.$previousAction,
+			}),
+			policyHash: (proposal) => proposal.policyHash,
+			hardForkMajor: (proposal) => proposal.hardForkMajor,
+			hardForkMinor: (proposal) => proposal.hardForkMinor,
+			treasuryWithdrawals: (proposal) => proposal.treasuryWithdrawals ?? [],
+			committeeRemovedCredentials: (proposal) => proposal.committeeRemovedCredentials ?? [],
+			committeeAdditions: (proposal) => proposal.committeeAdditions ?? [],
+			committeeQuorumNumerator: (proposal) => proposal.committeeQuorumNumerator,
+			committeeQuorumDenominator: (proposal) => proposal.committeeQuorumDenominator,
+			constitutionAnchorUrl: (proposal) => proposal.constitutionAnchorUrl,
+			constitutionAnchorHash: (proposal) => proposal.constitutionAnchorHash,
+			constitutionScript: (proposal) => proposal.constitutionScript,
 		}),
 
 		defineResolver(Source.CardanoKoios_Rest, {
 			entityType: EntityType.CardanoTransaction,
 			resolve: {
-				[CardanoTransactionSelector.NetworkHash]: {
+				NetworkHash: {
 					resolve: async (cardanoTransaction) => {
 						assertCardanoMainnet(cardanoTransaction.$network)
 						const { getTransactionInfo } = await import('$/sources/CardanoKoios/Rest/queries.ts')
 						const transaction = await getTransactionInfo(
-							cardanoKoiosBinding,
 							cardanoTransaction.hash
 						)
 
@@ -601,7 +604,20 @@ export default {
 						[entityFieldAddressKey(EntityType.CardanoGovernanceProposal, [], 'returnAddress')]: snapshot.returnAddress,
 						[entityFieldAddressKey(EntityType.CardanoGovernanceProposal, [], 'anchorUrl')]: snapshot.anchorUrl,
 						[entityFieldAddressKey(EntityType.CardanoGovernanceProposal, [], 'anchorHash')]: snapshot.anchorHash,
-						[entityFieldAddressKey(EntityType.CardanoGovernanceProposal, [], 'proposalPayload')]: snapshot.proposalPayload,
+						[entityFieldAddressKey(EntityType.CardanoGovernanceProposal, [], '$previousAction')]: snapshot.$previousAction == null ? undefined : {
+							[EntityMetaKey.Selector]: snapshot.$previousAction,
+						},
+						[entityFieldAddressKey(EntityType.CardanoGovernanceProposal, [], 'policyHash')]: snapshot.policyHash,
+						[entityFieldAddressKey(EntityType.CardanoGovernanceProposal, [], 'hardForkMajor')]: snapshot.hardForkMajor,
+						[entityFieldAddressKey(EntityType.CardanoGovernanceProposal, [], 'hardForkMinor')]: snapshot.hardForkMinor,
+						[entityFieldAddressKey(EntityType.CardanoGovernanceProposal, [], 'treasuryWithdrawals')]: snapshot.treasuryWithdrawals ?? [],
+						[entityFieldAddressKey(EntityType.CardanoGovernanceProposal, [], 'committeeRemovedCredentials')]: snapshot.committeeRemovedCredentials ?? [],
+						[entityFieldAddressKey(EntityType.CardanoGovernanceProposal, [], 'committeeAdditions')]: snapshot.committeeAdditions ?? [],
+						[entityFieldAddressKey(EntityType.CardanoGovernanceProposal, [], 'committeeQuorumNumerator')]: snapshot.committeeQuorumNumerator,
+						[entityFieldAddressKey(EntityType.CardanoGovernanceProposal, [], 'committeeQuorumDenominator')]: snapshot.committeeQuorumDenominator,
+						[entityFieldAddressKey(EntityType.CardanoGovernanceProposal, [], 'constitutionAnchorUrl')]: snapshot.constitutionAnchorUrl,
+						[entityFieldAddressKey(EntityType.CardanoGovernanceProposal, [], 'constitutionAnchorHash')]: snapshot.constitutionAnchorHash,
+						[entityFieldAddressKey(EntityType.CardanoGovernanceProposal, [], 'constitutionScript')]: snapshot.constitutionScript,
 					},
 				}
 			}),

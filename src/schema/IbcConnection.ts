@@ -1,14 +1,11 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { entity, facet } from '$/schema/$schema.ts'
+import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { type } from 'arktype'
 
-export enum IbcConnectionSelector {
-	NetworkConnectionId = 'NetworkConnectionId',
-}
-export const IbcConnection = entity({
+export default entity({
 	entityType: EntityType.IbcConnection,
 	labels: {
 		singular: 'IBC connection',

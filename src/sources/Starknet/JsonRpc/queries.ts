@@ -9,31 +9,33 @@ import type {
 	StarknetSyncStatus,
 } from '$/sources/Starknet/JsonRpc/types.ts'
 import type { JsonValue } from '$/typescript/JsonValue.ts'
+import bindings from '$/sources/Starknet/bindings.ts'
+import { Source } from '$/sources/Source.ts'
+
+const binding = bindings[Source.Starknet_JsonRpc]
 
 export const request = (
-	binding: SourceBinding,
 	method: string,
 	params?: readonly unknown[]
 ) => jsonRpc2<JsonValue>(binding, method, params)
 
-export const getBlockNumber = (binding: SourceBinding) => (
+export const getBlockNumber = () => (
 	jsonRpc2<number>(binding, 'starknet_blockNumber')
 )
 
-export const getChainId = (binding: SourceBinding) => (
+export const getChainId = () => (
 	jsonRpc2<StarknetFelt>(binding, 'starknet_chainId')
 )
 
-export const getSyncing = (binding: SourceBinding) => (
+export const getSyncing = () => (
 	jsonRpc2<StarknetSyncStatus>(binding, 'starknet_syncing')
 )
 
-export const getBlockHashAndNumber = (binding: SourceBinding) => (
+export const getBlockHashAndNumber = () => (
 	jsonRpc2<StarknetBlockHashAndNumber>(binding, 'starknet_blockHashAndNumber')
 )
 
 export const getNonce = (
-	binding: SourceBinding,
 	blockId: StarknetBlockId,
 	contractAddress: string
 ) => jsonRpc2<StarknetFelt>(binding, 'starknet_getNonce', [
@@ -42,7 +44,6 @@ export const getNonce = (
 ])
 
 export const getClassHashAt = (
-	binding: SourceBinding,
 	blockId: StarknetBlockId,
 	contractAddress: string
 ) => jsonRpc2<StarknetFelt>(binding, 'starknet_getClassHashAt', [
@@ -51,6 +52,5 @@ export const getClassHashAt = (
 ])
 
 export const getEvents = (
-	binding: SourceBinding,
 	filter: StarknetEventsFilter
 ) => jsonRpc2<StarknetEventsChunk>(binding, 'starknet_getEvents', [filter])

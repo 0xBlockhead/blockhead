@@ -2,15 +2,9 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
-	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -22,35 +16,13 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.TonNftTransfer>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.TonNftTransfer>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.TonNftTransfer> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const tonNftTransfer = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {},
-	} : {
-		sources: selection.sources,
-	}))
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const titleFallback = 'TON NFT transfer'
-	const viewDomId = $derived('ton-nft-transfer-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -68,24 +40,14 @@
 
 <EntityView
 	entityType={EntityType.TonNftTransfer}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails}
-			{title || titleFallback}
-		{:else}
-			<ResourceBoundary resource={tonNftTransfer}>
-				{#snippet children(entity)}
-					{title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		TON NFT transfer
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -95,23 +57,6 @@
 				<dd>
 					<NetworkView
 						selection={select(EntityType.Network, selection.entitySelector.$network)}
-						href={
-							(
-								selection.entitySelector.$network != null && 'caip2' in selection.entitySelector.$network
-								&& selection.entitySelector.$network.caip2 != null ?
-									resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-								network: String(caip2StringFromValue(selection.entitySelector.$network.caip2) ?? ''),
-							})
-							:
-									selection.entitySelector.$network != null && 'slug' in selection.entitySelector.$network
-									&& selection.entitySelector.$network.slug != null ?
-										resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-									network: String(selection.entitySelector.$network.slug ?? ''),
-								})
-								:
-									undefined
-							)
-						}
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -121,48 +66,14 @@
 			<div>
 				<dt>transfer ID</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									transferId: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const transferId = resolvedEntity.transferId}
-							{#if transferId !== undefined && transferId !== null}
-								{String((transferId) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{pendingEntity.transferId}
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									source: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const source = resolvedEntity.source}
-							{#if source !== undefined && source !== null}
-								{String((source) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{pendingEntity.source}
 				</dd>
 			</div>
 
@@ -170,7 +81,7 @@
 				resource={selection.$item}
 			>
 				{#snippet children(tonNftItem)}
-					{#if tonNftItem != null && tonNftItem[EntityMetaKey.Selector] != null}
+					{#if tonNftItem != null}
 						<div>
 							<dt>item</dt>
 							<dd>
@@ -190,7 +101,7 @@
 				resource={selection.$collection}
 			>
 				{#snippet children(tonNftCollection)}
-					{#if tonNftCollection != null && tonNftCollection[EntityMetaKey.Selector] != null}
+					{#if tonNftCollection != null}
 						<div>
 							<dt>collection</dt>
 							<dd>
@@ -210,37 +121,13 @@
 				resource={selection.$from}
 			>
 				{#snippet children(tonAccount)}
-					{#if tonAccount != null && tonAccount[EntityMetaKey.Selector] != null}
+					{#if tonAccount != null}
 						<div>
 							<dt>from</dt>
 							<dd>
 								<TonAccountView
 									selection={select(EntityType.TonAccount, tonAccount[EntityMetaKey.Selector])}
 									prefetched={tonAccount}
-									href={
-										(
-											tonAccount[EntityMetaKey.Selector] != null && 'address' in tonAccount[EntityMetaKey.Selector]
-											&& tonAccount[EntityMetaKey.Selector].address != null
-											&& tonAccount[EntityMetaKey.Selector] != null && '$network' in tonAccount[EntityMetaKey.Selector] ?
-												tonAccount[EntityMetaKey.Selector].$network != null && 'caip2' in tonAccount[EntityMetaKey.Selector].$network
-												&& tonAccount[EntityMetaKey.Selector].$network.caip2 != null ?
-													resolve('/network/[network=networkCaip2OrNetworkSlug]/account/[accountId=polkadotAccountIdOrStringSegmentOrEvmAddressOrSolanaPubkey]', {
-												accountId: String(tonAccount[EntityMetaKey.Selector].address ?? ''),
-												network: String(caip2StringFromValue(tonAccount[EntityMetaKey.Selector].$network.caip2) ?? ''),
-											})
-											:
-													tonAccount[EntityMetaKey.Selector].$network != null && 'slug' in tonAccount[EntityMetaKey.Selector].$network
-													&& tonAccount[EntityMetaKey.Selector].$network.slug != null ?
-														resolve('/network/[network=networkCaip2OrNetworkSlug]/account/[accountId=polkadotAccountIdOrStringSegmentOrEvmAddressOrSolanaPubkey]', {
-													accountId: String(tonAccount[EntityMetaKey.Selector].address ?? ''),
-													network: String(tonAccount[EntityMetaKey.Selector].$network.slug ?? ''),
-												})
-												:
-													undefined
-										:
-												undefined
-										)
-									}
 									layout={EntityLayout.Value}
 									open={false}
 								/>
@@ -254,37 +141,13 @@
 				resource={selection.$to}
 			>
 				{#snippet children(tonAccount)}
-					{#if tonAccount != null && tonAccount[EntityMetaKey.Selector] != null}
+					{#if tonAccount != null}
 						<div>
 							<dt>to</dt>
 							<dd>
 								<TonAccountView
 									selection={select(EntityType.TonAccount, tonAccount[EntityMetaKey.Selector])}
 									prefetched={tonAccount}
-									href={
-										(
-											tonAccount[EntityMetaKey.Selector] != null && 'address' in tonAccount[EntityMetaKey.Selector]
-											&& tonAccount[EntityMetaKey.Selector].address != null
-											&& tonAccount[EntityMetaKey.Selector] != null && '$network' in tonAccount[EntityMetaKey.Selector] ?
-												tonAccount[EntityMetaKey.Selector].$network != null && 'caip2' in tonAccount[EntityMetaKey.Selector].$network
-												&& tonAccount[EntityMetaKey.Selector].$network.caip2 != null ?
-													resolve('/network/[network=networkCaip2OrNetworkSlug]/account/[accountId=polkadotAccountIdOrStringSegmentOrEvmAddressOrSolanaPubkey]', {
-												accountId: String(tonAccount[EntityMetaKey.Selector].address ?? ''),
-												network: String(caip2StringFromValue(tonAccount[EntityMetaKey.Selector].$network.caip2) ?? ''),
-											})
-											:
-													tonAccount[EntityMetaKey.Selector].$network != null && 'slug' in tonAccount[EntityMetaKey.Selector].$network
-													&& tonAccount[EntityMetaKey.Selector].$network.slug != null ?
-														resolve('/network/[network=networkCaip2OrNetworkSlug]/account/[accountId=polkadotAccountIdOrStringSegmentOrEvmAddressOrSolanaPubkey]', {
-													accountId: String(tonAccount[EntityMetaKey.Selector].address ?? ''),
-													network: String(tonAccount[EntityMetaKey.Selector].$network.slug ?? ''),
-												})
-												:
-													undefined
-										:
-												undefined
-										)
-									}
 									layout={EntityLayout.Value}
 									open={false}
 								/>
@@ -298,7 +161,7 @@
 				resource={selection.$trace}
 			>
 				{#snippet children(tonTrace)}
-					{#if tonTrace != null && tonTrace[EntityMetaKey.Selector] != null}
+					{#if tonTrace != null}
 						<div>
 							<dt>trace</dt>
 							<dd>
@@ -318,7 +181,7 @@
 				resource={selection.$message}
 			>
 				{#snippet children(tonMessage)}
-					{#if tonMessage != null && tonMessage[EntityMetaKey.Selector] != null}
+					{#if tonMessage != null}
 						<div>
 							<dt>message</dt>
 							<dd>
@@ -337,7 +200,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							transactionLt: true,
 						},
@@ -345,13 +207,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const transactionLt = resolvedEntity.transactionLt}
-					{#if transactionLt !== undefined && transactionLt !== null}
+					{@const transactionLt = entity.transactionLt}
+					{#if transactionLt != null}
 						<div>
 							<dt>transaction lt</dt>
 							<dd>
-								{String((transactionLt) ?? '')}
+								{String(transactionLt)}
 							</dd>
 						</div>
 					{/if}
@@ -361,7 +222,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							transactionHash: true,
 						},
@@ -369,13 +229,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const transactionHash = resolvedEntity.transactionHash}
-					{#if transactionHash !== undefined && transactionHash !== null}
+					{@const transactionHash = entity.transactionHash}
+					{#if transactionHash != null}
 						<div>
 							<dt>transaction hash</dt>
 							<dd>
-								<TruncatedValue value={String((transactionHash) ?? '')} />
+								<TruncatedValue value={transactionHash} />
 							</dd>
 						</div>
 					{/if}
@@ -385,7 +244,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							timestampMs: true,
 						},
@@ -393,9 +251,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const timestampMs = resolvedEntity.timestampMs}
-					{#if timestampMs !== undefined && timestampMs !== null}
+					{@const timestampMs = entity.timestampMs}
+					{#if timestampMs != null}
 						<div>
 							<dt>Timestamp</dt>
 							<dd>
@@ -409,7 +266,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							queryId: true,
 						},
@@ -417,13 +273,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const queryId = resolvedEntity.queryId}
-					{#if queryId !== undefined && queryId !== null}
+					{@const queryId = entity.queryId}
+					{#if queryId != null}
 						<div>
 							<dt>query ID</dt>
 							<dd>
-								{String((queryId) ?? '')}
+								{String(queryId)}
 							</dd>
 						</div>
 					{/if}
@@ -433,7 +288,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							forwardAmountNano: true,
 						},
@@ -441,13 +295,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const forwardAmountNano = resolvedEntity.forwardAmountNano}
-					{#if forwardAmountNano !== undefined && forwardAmountNano !== null}
+					{@const forwardAmountNano = entity.forwardAmountNano}
+					{#if forwardAmountNano != null}
 						<div>
 							<dt>forward amount nano</dt>
 							<dd>
-								{String((forwardAmountNano) ?? '')}
+								{String(forwardAmountNano)}
 							</dd>
 						</div>
 					{/if}
@@ -457,7 +310,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							responseDestination: true,
 						},
@@ -465,13 +317,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const responseDestination = resolvedEntity.responseDestination}
-					{#if responseDestination !== undefined && responseDestination !== null}
+					{@const responseDestination = entity.responseDestination}
+					{#if responseDestination != null}
 						<div>
 							<dt>response destination</dt>
 							<dd>
-								{String((responseDestination) ?? '')}
+								{responseDestination}
 							</dd>
 						</div>
 					{/if}
@@ -481,7 +332,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							customPayloadHash: true,
 						},
@@ -489,13 +339,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const customPayloadHash = resolvedEntity.customPayloadHash}
-					{#if customPayloadHash !== undefined && customPayloadHash !== null}
+					{@const customPayloadHash = entity.customPayloadHash}
+					{#if customPayloadHash != null}
 						<div>
 							<dt>custom payload hash</dt>
 							<dd>
-								<TruncatedValue value={String((customPayloadHash) ?? '')} />
+								<TruncatedValue value={customPayloadHash} />
 							</dd>
 						</div>
 					{/if}

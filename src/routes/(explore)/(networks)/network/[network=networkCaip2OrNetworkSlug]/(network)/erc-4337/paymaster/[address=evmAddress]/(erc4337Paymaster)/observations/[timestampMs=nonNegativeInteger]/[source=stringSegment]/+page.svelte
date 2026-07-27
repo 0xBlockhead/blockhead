@@ -7,7 +7,6 @@
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
@@ -40,28 +39,12 @@
 
 
 <svelte:head>
-	<title>{(data.title ?? (pageSelection.entity == null ? [String(({
-		$paymaster: data.selector,
-		timestampMs: Number(params.timestampMs),
-		source: params.source,
-	}.timestampMs) ?? '')].filter(Boolean).join(' ') || 'ERC-4337 paymaster timestamp' : [String((({ ...{
-		$paymaster: data.selector,
-		timestampMs: Number(params.timestampMs),
-		source: params.source,
-	}, ...pageSelection.entity }).timestampMs) ?? '')].filter(Boolean).join(' ') || 'ERC-4337 paymaster timestamp'))} • ERC-4337 paymaster timestamp • Blockhead</title>
+	<title>{(data.title ?? (String(pageSelection.entitySelector.timestampMs) || 'ERC-4337 paymaster timestamp'))} • ERC-4337 paymaster timestamp • Blockhead</title>
 </svelte:head>
 
 
 <Page>
 	<Erc4337Paymaster_TimestampView
-		href={
-			resolve('/network/[network=networkCaip2OrNetworkSlug]/erc-4337/paymaster/[address=evmAddress]/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
-				network: params.network,
-				address: params.address,
-				timestampMs: params.timestampMs,
-				source: params.source,
-			})
-		}
 		selection={pageSelection}
 	/>
 </Page>

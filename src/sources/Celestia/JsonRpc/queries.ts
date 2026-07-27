@@ -1,16 +1,12 @@
 import { type as arktype } from 'arktype'
 
-import { Source } from '$/sources/Source.ts'
-import {
-	SourceTargetKind,
-	type SourceBinding,
-} from '$/sources/SourceBinding.ts'
 import { jsonRpc2 } from '$/sources/_shared/wire/JsonRpc2/client.ts'
 import type {
 	CelestiaBlobProof,
 	CelestiaExtendedHeader,
 	CelestiaHeaderSyncState,
 } from '$/sources/Celestia/JsonRpc/types.ts'
+import type { SourceBinding } from '$/sources/SourceBinding.ts'
 import type { JsonValue } from '$/typescript/JsonValue.ts'
 
 const hashPattern = /^[0-9a-fA-F]{64}$/
@@ -42,15 +38,6 @@ const syncStateWire = arktype({
 	to_height: 'string',
 })
 
-const assertBinding = (binding: SourceBinding) => {
-	if (
-		binding.source !== Source.Celestia_JsonRpc
-		|| binding.target.kind !== SourceTargetKind.NetworkSlug
-		|| binding.target.key !== 'celestia'
-	)
-		throw new Error('Celestia_JsonRpc: expected canonical Celestia network binding')
-}
-
 const assertHeight = (height: bigint) => {
 	if (height < 1n || height > 18_446_744_073_709_551_615n)
 		throw new Error('Celestia_JsonRpc: height must be a positive unsigned 64-bit integer')
@@ -61,7 +48,6 @@ const request = (
 	method: string,
 	params: readonly JsonValue[] = []
 ) => {
-	assertBinding(binding)
 	return jsonRpc2<JsonValue>(binding, method, params)
 }
 
@@ -76,7 +62,7 @@ const extendedHeaderFromWire = (
 		[wire.commit.block_id.hash, 'header hash'],
 		[wire.header.data_hash, 'header data hash'],
 		[wire.header.app_hash, 'header application hash'],
-	] as const)
+	])
 		if (!hashPattern.test(value))
 			throw new Error(`Celestia_JsonRpc: invalid ${label}`)
 	if (!/^[0-9a-fA-F]{40}$/.test(wire.header.proposer_address))
@@ -164,7 +150,7 @@ export const getBlobProof = async ({
 		throw new Error('Celestia_JsonRpc: invalid blob namespace')
 	if (!commitmentPattern.test(commitment))
 		throw new Error('Celestia_JsonRpc: invalid blob commitment')
-	return await request(
+	return request(
 		binding,
 		'blob.GetProof',
 		[

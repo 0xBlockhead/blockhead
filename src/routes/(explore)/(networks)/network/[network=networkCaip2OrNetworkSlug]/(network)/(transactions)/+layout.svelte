@@ -24,9 +24,12 @@
 <ParentPageCollapsible
 	title='Transactions'
 	href={
-		resolve('/network/[network=networkCaip2OrNetworkSlug]/transactions', {
-			network: params.network,
-		})
+		resolve(
+			'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/transactions',
+			{
+				network: String(params.network),
+			}
+		)
 	}
 >
 	{@render children()}

@@ -1,15 +1,12 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { entity, facet } from '$/schema/$schema.ts'
+import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { EvmAddress } from '$/schema/ZeroExHex.ts'
 import { type } from 'arktype'
 
-export enum Eip8004AgentRegistrationSelector {
-	NamespaceChainIdIdentityRegistryAgentId = 'NamespaceChainIdIdentityRegistryAgentId',
-}
-export const Eip8004AgentRegistration = entity({
+export default entity({
 	entityType: EntityType.Eip8004AgentRegistration,
 	labels: {
 		singular: 'EIP-8004 agent registration',
@@ -33,7 +30,7 @@ export const Eip8004AgentRegistration = entity({
 	identityRegistry: {
 		label: 'Identity registry',
 		type: EntityFieldType.Primitive,
-		primitiveType: (EvmAddress),
+		primitiveType: EvmAddress,
 		cardinality: EntityFieldCardinality.One,
 	},
 	agentId: {

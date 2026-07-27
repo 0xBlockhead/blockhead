@@ -1,16 +1,12 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { entity, facet } from '$/schema/$schema.ts'
+import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { EvmAddress } from '$/schema/ZeroExHex.ts'
 import { type } from 'arktype'
 
-export enum LensUsernameSelector {
-	NamespaceLocalName = 'NamespaceLocalName',
-	Id = 'Id',
-}
-export const LensUsername = entity({
+export default entity({
 	entityType: EntityType.LensUsername,
 	labels: {
 		singular: 'Lens username',
@@ -21,7 +17,7 @@ export const LensUsername = entity({
 		label: 'Namespace',
 		description: 'The namespace that qualifies the identifier.',
 		type: EntityFieldType.Primitive,
-		primitiveType: (EvmAddress),
+		primitiveType: EvmAddress,
 		cardinality: EntityFieldCardinality.One,
 	},
 	localName: {
@@ -47,13 +43,13 @@ export const LensUsername = entity({
 	ownedBy: {
 		label: 'Owned by',
 		type: EntityFieldType.Primitive,
-		primitiveType: (EvmAddress),
+		primitiveType: EvmAddress,
 		cardinality: EntityFieldCardinality.One,
 	},
 	linkedTo: {
 		label: 'Linked to',
 		type: EntityFieldType.Primitive,
-		primitiveType: (EvmAddress),
+		primitiveType: EvmAddress,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	timestamp: {

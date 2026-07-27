@@ -1,15 +1,12 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { entity, facet } from '$/schema/$schema.ts'
+import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { UrlString } from '$/schema/UrlString.ts'
 import { type } from 'arktype'
 
-export enum SwarmResourceSelector {
-	ResourceAddress = 'ResourceAddress',
-}
-export const SwarmResource = entity({
+export default entity({
 	entityType: EntityType.SwarmResource,
 	labels: {
 		singular: 'Swarm resource',
@@ -32,19 +29,19 @@ export const SwarmResource = entity({
 	canonicalUri: {
 		label: 'Canonical URI',
 		type: EntityFieldType.Primitive,
-		primitiveType: (UrlString),
+		primitiveType: UrlString,
 		cardinality: EntityFieldCardinality.One,
 	},
 	gatewayOrigin: {
 		label: 'Gateway origin',
 		type: EntityFieldType.Primitive,
-		primitiveType: (UrlString),
+		primitiveType: UrlString,
 		cardinality: EntityFieldCardinality.One,
 	},
 	gatewayUrl: {
 		label: 'Gateway URL',
 		type: EntityFieldType.Primitive,
-		primitiveType: (UrlString),
+		primitiveType: UrlString,
 		cardinality: EntityFieldCardinality.One,
 	},
 	fileName: {

@@ -3,12 +3,11 @@
 <script lang="ts">
 	// Types/constants
 	import type { PageProps } from './$types.ts'
+	import { resolve } from '$app/paths'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
@@ -17,11 +16,8 @@
 		data,
 		params,
 	}: PageProps = $props()
-
-
 	// Components
 	import Page from '$/components/Page.svelte'
-	import ProjectionBoundary from '$/components/ProjectionBoundary.svelte'
 	import SolanaTokenAccountsView from '$/views/SolanaTokenAccountsView.svelte'
 </script>
 
@@ -32,30 +28,20 @@
 
 
 <Page>
-	<ProjectionBoundary
-		resource={select(EntityType.Network, data.selector).Solana}
-	>
-		{#snippet Applicable(projection)}
-			<SolanaTokenAccountsView
-				href={
-					resolve('/network/[network=networkCaip2OrNetworkSlug]/token-accounts', {
-						network: params.network,
-					})
+	<SolanaTokenAccountsView
+		href={
+			resolve(
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/token-accounts',
+				{
+					network: String(params.network),
 				}
-				title='Solana token accounts'
-				selection={
-					projection
-						.$$tokenAccounts({
-							sources: [
-								Source.Solana_JsonRpc,
-							],
-						})
-				}
-				id='account-solana-token-account'
-				data-column-item="flexible"
-				data-card
-				data-scroll-container
-			/>
-		{/snippet}
-	</ProjectionBoundary>
+			)
+		}
+		title='Solana token accounts'
+		selection={select(EntityType.Network, data.selector).Solana.$$tokenAccounts}
+		id='token-accounts'
+		data-column-item="flexible"
+		data-card
+		data-scroll-container
+	/>
 </Page>

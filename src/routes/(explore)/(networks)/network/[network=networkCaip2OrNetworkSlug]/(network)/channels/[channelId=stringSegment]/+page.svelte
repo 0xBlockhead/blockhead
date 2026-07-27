@@ -8,14 +8,12 @@
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		data,
-		params,
 	}: PageProps = $props()
 
 	const pageSelection = $derived(select(EntityType.LightningChannel, data.selector, {
@@ -40,18 +38,12 @@
 
 
 <svelte:head>
-	<title>{(data.title ?? (pageSelection.entity == null ? [String((data.selector.channelId) ?? '')].filter(Boolean).join(' ') || 'Lightning channel' : [String((({ ...data.selector, ...pageSelection.entity }).shortChannelId) ?? '')].filter(Boolean).join(' ') || [String((({ ...data.selector, ...pageSelection.entity }).channelId) ?? '')].filter(Boolean).join(' ') || 'Lightning channel'))} • Lightning channel • Blockhead</title>
+	<title>{(data.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.channelId ?? '') || 'Lightning channel' : (pageSelection.entity.shortChannelId ?? '') || pageSelection.entitySelector.channelId || 'Lightning channel'))} • Lightning channel • Blockhead</title>
 </svelte:head>
 
 
 <Page>
 	<LightningChannelView
-		href={
-			resolve('/network/[network=networkCaip2OrNetworkSlug]/channels/[channelId=stringSegment]', {
-				network: params.network,
-				channelId: params.channelId,
-			})
-		}
 		selection={pageSelection}
 	/>
 </Page>

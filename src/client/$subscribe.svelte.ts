@@ -556,6 +556,7 @@ const fieldDataFromRows = <
 			...record,
 			entitySelector: selector,
 			__selector: selector,
+			[EntityMetaKey.Source]: row[EntityMetaKey.Source],
 			__selectorKey: (
 				EntityMetaKey.SelectorKey in record ?
 					record[EntityMetaKey.SelectorKey]
@@ -795,13 +796,20 @@ export function subscribeEntityField<
 	if (definition == null)
 		throw new Error(`${entityType}.${fieldName} does not exist`)
 
+	const effectiveSelection = selection.sources != null || definition.defaultSources == null ?
+		selection
+	:
+		{
+			...selection,
+			sources: definition.defaultSources,
+		}
 	const sharedResourceKey = serializableEntityFieldResourceKey(
 		context,
 		entityType,
 		entitySelector,
 		fieldName,
 		definition,
-		selection
+		effectiveSelection
 	)
 	const sharedResource = (
 		sharedResourceKey === undefined ?
@@ -818,7 +826,7 @@ export function subscribeEntityField<
 		entitySelector,
 		fieldName,
 		definition,
-		selection
+		effectiveSelection
 	)
 
 	const observedQueries: Parameters<typeof subscribeToLiveQueryCollections>[0][number][] = [
@@ -839,7 +847,10 @@ export function subscribeEntityField<
 	let nestedResourceUpdate: (() => void) | undefined
 	const resource = new TanStackLiveQueryResource(() => {
 		const rowsFailure = queries.rowsFailure()
-		const rowsFailed = rowsFailure !== undefined && queries.rows.data.length === 0
+		const rowsFailed = (
+			rowsFailure !== undefined
+			&& queries.rows.data.length === 0
+		)
 		let fieldData = fieldDataFromRows(
 			entityType,
 			entitySelector,
@@ -871,18 +882,22 @@ export function subscribeEntityField<
 				definition.type === EntityFieldType.EntityReference
 				|| definition.type === EntityFieldType.EntitiesReference
 			)
-			&& selection.fields !== undefined
+			&& effectiveSelection.fields !== undefined
 		) {
 			const selectedReference = (reference: object) => {
-				const referencedEntitySelector = Object.getOwnPropertyDescriptor(reference, EntityMetaKey.Selector)?.value
-				if (referencedEntitySelector === undefined)
-					return reference
-
-				const nestedResourceKey = entitySelectorKey(
-					context.schema,
-					context.entityDefinitionByType[definition.entityType],
-					referencedEntitySelector
+				const referencedEntitySelector = (
+					Object.getOwnPropertyDescriptor(reference, EntityMetaKey.Selector)?.value
+					?? reference
 				)
+
+				const nestedResourceKey = stringify([
+					entitySelectorKey(
+						context.schema,
+						context.entityDefinitionByType[definition.entityType],
+						referencedEntitySelector
+					),
+					Object.getOwnPropertyDescriptor(reference, EntityMetaKey.Source)?.value,
+				])
 				if (!nestedResourceBySelectorKey.has(nestedResourceKey))
 					nestedResourceBySelectorKey.set(
 						nestedResourceKey,
@@ -891,9 +906,17 @@ export function subscribeEntityField<
 							definition.entityType,
 							referencedEntitySelector,
 							{
-								fields: selection.fields,
-								sources: selection.sources,
-								selectorSources: selection.selectorSources,
+								fields: effectiveSelection.fields,
+								sources: (
+									effectiveSelection.sources?.length === 1 ?
+										effectiveSelection.sources
+									:
+										[Object.getOwnPropertyDescriptor(
+											reference,
+											EntityMetaKey.Source
+										)?.value]
+								),
+								selectorSources: effectiveSelection.selectorSources,
 							}
 						)
 					)
@@ -927,6 +950,7 @@ export function subscribeEntityField<
 				return {
 					...reference,
 					...nestedResource.current?.fields,
+					[EntityMetaKey.Selector]: referencedEntitySelector,
 				}
 			}
 
@@ -1436,7 +1460,10 @@ const subscribeEntitySelection = <
 
 	const resource = new TanStackLiveQueryResource(() => {
 		const rowsFailure = entityRowsFailure()
-		const rowsFailed = rowsFailure !== undefined && entityRows.data.length === 0
+		const rowsFailed = (
+			rowsFailure !== undefined
+			&& entityRows.data.length === 0
+		)
 		const fieldValues: SubscribeMaterializedFields = {}
 		const fieldValuesByAddress: Record<
 			string,
@@ -1464,17 +1491,20 @@ const subscribeEntitySelection = <
 				&& fieldSelection !== true
 				) {
 					const selectedReference = (reference: object) => {
-						const referencedEntitySelector = Object.getOwnPropertyDescriptor(reference, EntityMetaKey.Selector)?.value
-						if (referencedEntitySelector === undefined)
-							return reference
+						const referencedEntitySelector = (
+							Object.getOwnPropertyDescriptor(reference, EntityMetaKey.Selector)?.value
+							?? reference
+						)
 
+						const referencedEntitySelectorKey = entitySelectorKey(
+							context.schema,
+							context.entityDefinitionByType[definition.entityType],
+							referencedEntitySelector
+						)
 						const nestedResourceKey = stringify([
 							definition.entityType,
-							entitySelectorKey(
-								context.schema,
-								context.entityDefinitionByType[definition.entityType],
-								referencedEntitySelector
-							),
+							referencedEntitySelectorKey,
+							Object.getOwnPropertyDescriptor(reference, EntityMetaKey.Source)?.value,
 						])
 						if (!nestedResourceBySelection.has(fieldSelection))
 							nestedResourceBySelection.set(fieldSelection, new Map())
@@ -1489,7 +1519,16 @@ const subscribeEntitySelection = <
 									context,
 									definition.entityType,
 									referencedEntitySelector,
-									fieldSelection
+									{
+										...fieldSelection,
+										sources: (
+											fieldSelection.sources
+											?? [Object.getOwnPropertyDescriptor(
+												reference,
+												EntityMetaKey.Source
+											)?.value]
+										),
+									}
 								)
 							)
 
@@ -1522,6 +1561,7 @@ const subscribeEntitySelection = <
 						return {
 							...reference,
 							...nestedResource.current?.fields,
+							[EntityMetaKey.Selector]: referencedEntitySelector,
 						}
 				}
 				if (
@@ -1600,7 +1640,10 @@ const subscribeEntitySelection = <
 					queries,
 				}) => {
 					const fieldRowsFailure = queries.rowsFailure()
-					const fieldRowsFailed = fieldRowsFailure !== undefined && queries.rows.data.length === 0
+					const fieldRowsFailed = (
+						fieldRowsFailure !== undefined
+						&& queries.rows.data.length === 0
+					)
 					return {
 						...queries.rows,
 						isError: fieldRowsFailed,

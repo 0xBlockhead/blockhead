@@ -1,14 +1,3 @@
-import {
-	getBlock as getBitcoinCoreBlock,
-	getBlockHash as getBitcoinCoreBlockHash,
-	getMempoolInfo as getBitcoinCoreMempoolInfo,
-	getRawTransaction as getBitcoinCoreRawTransaction,
-} from '$/sources/BitcoinCore/JsonRpc/queries.ts'
-import { Source } from '$/sources/Source.ts'
-import {
-	SourceTargetKind,
-	type SourceBinding,
-} from '$/sources/SourceBinding.ts'
 import { jsonRpc2 } from '$/sources/_shared/wire/JsonRpc2/client.ts'
 import type {
 	BitcoinCashScanTxOutSet,
@@ -16,15 +5,15 @@ import type {
 	BitcoinCashTransaction,
 	BitcoinCashValidatedAddress,
 } from '$/sources/BitcoinCashNode/JsonRpc/types.ts'
+import type {
+	BitcoinCoreBlock,
+	BitcoinCoreMempoolInfo,
+} from '$/sources/BitcoinCore/JsonRpc/types.ts'
+import type { SourceBinding } from '$/sources/SourceBinding.ts'
+import bindings from '$/sources/BitcoinCashNode/bindings.ts'
+import { Source } from '$/sources/Source.ts'
 
-const assertBinding = (binding: SourceBinding) => {
-	if (
-		binding.source !== Source.BitcoinCashNode_JsonRpc
-		|| binding.target.kind !== SourceTargetKind.Caip2Network
-		|| binding.target.key !== 'bip122:000000000000000000651ef99cb9fcbe'
-	)
-		throw new Error('BitcoinCashNode_JsonRpc: expected canonical Bitcoin Cash mainnet binding')
-}
+const binding = bindings[Source.BitcoinCashNode_JsonRpc]
 
 const assertCashAddress = (address: string) => {
 	if (!/^bitcoincash:[qpzr][qpzry9x8gf2tvdw0s3jn54khce6mua7l]{41,111}$/.test(address))
@@ -77,54 +66,58 @@ const assertTokenData = (tokenData: BitcoinCashTokenData) => {
 }
 
 export const getBlockHash = ({
-	rpcUrl,
 	height,
 }: {
-	rpcUrl: string
 	height: bigint
-}) => (
-	getBitcoinCoreBlockHash({
-		rpcUrl,
-		height,
-	})
-)
+}) => {
+	return jsonRpc2<string>(
+		binding,
+		'getblockhash',
+		[Number(height)]
+	)
+}
 
-export const getBlock = ({
-	rpcUrl,
+export const getBlock = <_Verbosity extends 0 | 1 | 2 = 2>({
 	blockHash,
-	verbosity = 2,
+	verbosity,
 }: {
-	rpcUrl: string
 	blockHash: string
-	verbosity?: 0 | 1 | 2
-}) => (
-	getBitcoinCoreBlock({
-		rpcUrl,
-		blockHash,
-		verbosity,
-	})
-)
+	verbosity?: _Verbosity
+}) => {
+	return jsonRpc2<_Verbosity extends 0 ? string : BitcoinCoreBlock>(
+		binding,
+		'getblock',
+		[
+			blockHash,
+			verbosity ?? 2,
+		]
+	)
+}
 
 export const getRawTransaction = async ({
-	rpcUrl,
 	txId,
 }: {
-	rpcUrl: string
 	txId: string
-}) => (
-	await getBitcoinCoreRawTransaction({
-		rpcUrl,
-		txId,
-		verbose: true,
-	})
-) as BitcoinCashTransaction
+}) => {
+	return jsonRpc2<BitcoinCashTransaction>(
+		binding,
+		'getrawtransaction',
+		[
+			txId,
+			true,
+		]
+	)
+}
 
-export const getMempoolInfo = ({ rpcUrl }: { rpcUrl: string }) => (
-	getBitcoinCoreMempoolInfo({ rpcUrl })
-)
+export const getMempoolInfo = () => {
+	return jsonRpc2<BitcoinCoreMempoolInfo>(
+		binding,
+		'getmempoolinfo',
+		[]
+	)
+}
 
 export const getTransparentAddressUtxos = async (
-	binding: SourceBinding,
 	{
 		address,
 		maxResults,
@@ -133,7 +126,6 @@ export const getTransparentAddressUtxos = async (
 		maxResults: number
 	}
 ) => {
-	assertBinding(binding)
 	assertCashAddress(address)
 	if (!Number.isSafeInteger(maxResults) || maxResults < 0 || maxResults > 10_000)
 		throw new Error('BitcoinCashNode_JsonRpc: UTXO result limit must be an integer from 0 through 10000')

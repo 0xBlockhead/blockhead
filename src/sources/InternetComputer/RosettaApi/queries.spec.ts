@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { sourceProviderDefinitions } from '$/sources/$sourceProviders.ts'
+import bindings from '$/sources/InternetComputer/bindings.ts'
 import { Source } from '$/sources/Source.ts'
 
 const { sourceFetch } = vi.hoisted(() => ({
@@ -17,12 +17,7 @@ const {
 	getAccountTransactions,
 } = await import('$/sources/InternetComputer/RosettaApi/queries.ts')
 
-const binding = sourceProviderDefinitions
-	.flatMap((provider) => provider.bindings)
-	.find((candidate) => candidate.source === Source.InternetComputer_RosettaApi)
-
-if (binding == null)
-	throw new Error('InternetComputer_RosettaApi spec missing source binding')
+const binding = bindings[Source.InternetComputer_RosettaApi]
 
 const accountIdentifier = 'a'.repeat(64)
 const otherAccountIdentifier = 'b'.repeat(64)

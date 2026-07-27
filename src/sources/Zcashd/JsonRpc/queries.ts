@@ -1,116 +1,74 @@
-import {
-	getBlock as getBitcoinCoreBlock,
-	getBlockHash as getBitcoinCoreBlockHash,
-	getMempoolInfo as getBitcoinCoreMempoolInfo,
-} from '$/sources/BitcoinCore/JsonRpc/queries.ts'
-import { corsFetch, throwHttpError } from '$/lib/http.ts'
-import { jsonRpcHeaders, jsonRpcVersion } from '$/sources/Evm/JsonRpc/constants.ts'
-import { utxoJsonRpcOrigins } from '$/sources/_shared/interfaces/UtxoJsonRpc/localOrigins.ts'
-import type { JsonValue } from '$/typescript/JsonValue.ts'
+import type { SourceBinding } from '$/sources/SourceBinding.ts'
+import { jsonRpc2 } from '$/sources/_shared/wire/JsonRpc2/client.ts'
+import type { BitcoinCoreMempoolInfo } from '$/sources/BitcoinCore/JsonRpc/types.ts'
 import type {
 	ZcashBlock,
 	ZcashTransaction,
 	ZcashTreeState,
 } from '$/sources/Zcashd/JsonRpc/types.ts'
+import bindings from '$/sources/Zcashd/bindings.ts'
+import { Source } from '$/sources/Source.ts'
 
-type ZcashJsonRpcResponse<_Result> = {
-	jsonrpc: typeof jsonRpcVersion
-	id: number | string | null
-	result?: _Result
-	error?: {
-		code: number
-		message: string
-		data?: JsonValue
-	}
-}
-
-const zcashJsonRpc = async <_Result>({
-	rpcUrl,
-	method,
-	params,
-}: {
-	rpcUrl: string
-	method: string
-	params: JsonValue[]
-}) => {
-	const response = await corsFetch(rpcUrl, {
-		origins: utxoJsonRpcOrigins,
-		init: {
-			method: 'POST',
-			headers: jsonRpcHeaders,
-			body: JSON.stringify({
-				jsonrpc: jsonRpcVersion,
-				id: 1,
-				method,
-				params,
-			}),
-		},
-	})
-	if (!response.ok) await throwHttpError(`Zcashd ${method}`, response)
-	const json: ZcashJsonRpcResponse<_Result> = await response.json()
-	if (json.error != null) throw new Error(`Zcashd ${method}: ${json.error.message}`)
-	if (json.result === undefined) throw new Error(`Zcashd ${method}: missing result`)
-	return json.result
-}
+const binding = bindings[Source.Zcashd_JsonRpc]
 
 export const getBlockHash = ({
-	rpcUrl,
 	height,
 }: {
-	rpcUrl: string
 	height: bigint
-}) => (
-	getBitcoinCoreBlockHash({
-		rpcUrl,
-		height,
-	})
-)
+}) => {
+	return jsonRpc2<string>(
+		binding,
+		'getblockhash',
+		[Number(height)]
+	)
+}
 
 export const getBlock = async ({
-	rpcUrl,
 	blockHash,
 }: {
-	rpcUrl: string
 	blockHash: string
-}): Promise<ZcashBlock> => (
-	getBitcoinCoreBlock({
-		rpcUrl,
-		blockHash,
-		verbosity: 2,
-	})
-)
+}): Promise<ZcashBlock> => {
+	return jsonRpc2<ZcashBlock>(
+		binding,
+		'getblock',
+		[
+			blockHash,
+			2,
+		]
+	)
+}
 
 export const getRawTransaction = async ({
-	rpcUrl,
 	txId,
 }: {
-	rpcUrl: string
 	txId: string
-}): Promise<ZcashTransaction> => (
-	zcashJsonRpc<ZcashTransaction>({
-		rpcUrl,
-		method: 'getrawtransaction',
-		params: [
+}): Promise<ZcashTransaction> => {
+	return jsonRpc2<ZcashTransaction>(
+		binding,
+		'getrawtransaction',
+		[
 			txId,
 			1,
-		],
-	})
-)
+		]
+	)
+}
 
 export const getTreeState = ({
-	rpcUrl,
 	block,
 }: {
-	rpcUrl: string
 	block: string | number
-}) => (
-	zcashJsonRpc<ZcashTreeState>({
-		rpcUrl,
-		method: 'z_gettreestate',
-		params: [block],
-	})
-)
+}) => {
+	return jsonRpc2<ZcashTreeState>(
+		binding,
+		'z_gettreestate',
+		[block]
+	)
+}
 
-export const getMempoolInfo = ({ rpcUrl }: { rpcUrl: string }) => (
-	getBitcoinCoreMempoolInfo({ rpcUrl })
-)
+export const getMempoolInfo = () => {
+	return jsonRpc2<BitcoinCoreMempoolInfo>(
+		binding,
+		'getmempoolinfo',
+		[]
+	)
+}

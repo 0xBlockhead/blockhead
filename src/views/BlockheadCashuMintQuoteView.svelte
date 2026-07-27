@@ -2,13 +2,9 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
 
 
 	// Context
@@ -20,42 +16,19 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.BlockheadCashuMintQuote>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.BlockheadCashuMintQuote>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.BlockheadCashuMintQuote> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const blockheadCashuMintQuote = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {
-			amount: true,
-			unit: true,
-		},
-	} : {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const blockheadCashuMintQuote = $derived(selection({
 		fields: {
 			amount: true,
 			unit: true,
 		},
 	}))
-	const titleFallback = $derived([String((pendingEntity.quoteId) ?? '')].filter(Boolean).join(' ') || 'blockhead Cashu mint quote')
-	const viewDomId = $derived('blockhead-cashu-mint-quote-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const titleFallback = $derived((pendingEntity.quoteId ?? '') || 'blockhead Cashu mint quote')
 
 
 	// Components
@@ -69,52 +42,29 @@
 
 <EntityView
 	entityType={EntityType.BlockheadCashuMintQuote}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'amount') && Object.hasOwn(prefetched, 'unit')}
-			{[String((pendingEntity.quoteId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-		{:else}
-			<ResourceBoundary resource={blockheadCashuMintQuote}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.quoteId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		{(pendingEntity.quoteId ?? '') || 'blockhead Cashu mint quote'}
 	{/snippet}
 
 	{#snippet Value()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'amount') && Object.hasOwn(prefetched, 'unit')}
-			{@const amount0 = pendingEntity.amount}
-			{#if amount0 !== undefined && amount0 !== null}
-				<NumberValue
-					value={amount0}
-				/>
+		<ResourceBoundary resource={blockheadCashuMintQuote}>
+			{#snippet children(entity)}
+				{@const amount0 = entity.amount}
+				{#if amount0 != null}
+					<NumberValue
+						value={amount0}
+					/>
 
-				<span>{pendingEntity.unit == null ? '' : ` ${String(pendingEntity.unit)}`}</span>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={blockheadCashuMintQuote}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const amount0 = resolvedEntity.amount}
-					{#if amount0 !== undefined && amount0 !== null}
-						<NumberValue
-							value={amount0}
-						/>
-
-						<span>{resolvedEntity.unit == null ? '' : ` ${String(resolvedEntity.unit)}`}</span>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+					<span>{entity.unit == null ? '' : ` ${String(entity.unit)}`}</span>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -133,48 +83,14 @@
 			<div>
 				<dt>method</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									method: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const method = resolvedEntity.method}
-							{#if method !== undefined && method !== null}
-								{String((method) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{pendingEntity.method}
 				</dd>
 			</div>
 
 			<div>
 				<dt>quote ID</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									quoteId: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const quoteId = resolvedEntity.quoteId}
-							{#if quoteId !== undefined && quoteId !== null}
-								{String((quoteId) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{pendingEntity.quoteId}
 				</dd>
 			</div>
 
@@ -184,7 +100,6 @@
 					<ResourceBoundary
 						resource={
 							selection({
-								sources: selection.sources,
 								fields: {
 									request: true,
 								},
@@ -192,11 +107,7 @@
 						}
 					>
 						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const request = resolvedEntity.request}
-							{#if request !== undefined && request !== null}
-								{String((request) ?? '')}
-							{/if}
+							{entity.request}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -206,7 +117,7 @@
 				resource={selection.$walletState}
 			>
 				{#snippet children(blockheadCashuWalletState)}
-					{#if blockheadCashuWalletState != null && blockheadCashuWalletState[EntityMetaKey.Selector] != null}
+					{#if blockheadCashuWalletState != null}
 						<div>
 							<dt>wallet state</dt>
 							<dd>
@@ -225,20 +136,11 @@
 
 		<dl data-column-item="center">
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							amount: true,
-							unit: true,
-						},
-					})
-				}
+				resource={blockheadCashuMintQuote}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const amount = resolvedEntity.amount}
-					{#if amount !== undefined && amount !== null}
+					{@const amount = entity.amount}
+					{#if amount != null}
 						<div>
 							<dt>amount</dt>
 							<dd>
@@ -246,7 +148,7 @@
 									value={amount}
 								/>
 
-								<span>{({ value: amount, ...resolvedEntity }).unit == null ? '' : ` ${String(({ value: amount, ...resolvedEntity }).unit)}`}</span>
+								<span>{entity.unit == null ? '' : ` ${String(entity.unit)}`}</span>
 							</dd>
 						</div>
 					{/if}
@@ -262,12 +164,12 @@
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
-				<BlockheadCashuMintQuote_TimestampsView
-					selection={blockheadCashuMintQuoteBlockheadCashuMintQuoteTimestampsViewTimestampsResource}
-					countResource={blockheadCashuMintQuoteBlockheadCashuMintQuoteTimestampsViewTimestampsResource.count}
-					title='timestamps'
-					id='BlockheadCashuMintQuote_TimestampsView-timestamps'
-				/>
+					<BlockheadCashuMintQuote_TimestampsView
+						selection={blockheadCashuMintQuoteBlockheadCashuMintQuoteTimestampsViewTimestampsResource}
+						countResource={blockheadCashuMintQuoteBlockheadCashuMintQuoteTimestampsViewTimestampsResource.count}
+						title='timestamps'
+						id='timestamps'
+					/>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>

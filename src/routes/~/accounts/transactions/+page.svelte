@@ -14,22 +14,61 @@
 	// State
 	const collectionRoot0Selection = $derived(select(EntityType._Global, {
 		scope: '$$blockheadAccounts',
-	})
-		.$$blockheadAccounts({
+	}).$$blockheadAccounts.$account)
+	const collection0Selection = $derived(collectionRoot0Selection.Evm.$account
+		.$$transactions({
 			sources: [
-				Source.Local_Internal,
+				Source.Blockscout_Rest,
 			],
-		})
-		.$account({
+		}))
+	const collection1Selection = $derived(collectionRoot0Selection.Aptos.$account
+		.$$transactions({
 			sources: [
-				Source.Local_Internal,
+				Source.AptosIndexer_Graphql,
+				Source.AptosFullnode_Rest,
+			],
+		}))
+	const collection2Selection = $derived(collectionRoot0Selection.Cardano.$account
+		.$$transactions({
+			sources: [
+				Source.Blockfrost_Rest,
+			],
+		}))
+	const collection3Selection = $derived(collectionRoot0Selection.Cosmos.$account
+		.$$transactions({
+			sources: [
+				Source.CosmosSdk_Rest,
+			],
+		}))
+	const collection4Selection = $derived(collectionRoot0Selection.Hedera.$account
+		.$$transactions({
+			sources: [
+				Source.HederaMirrorNode_Rest,
+			],
+		}))
+	const collection5Selection = $derived(collectionRoot0Selection.Tron.$account
+		.$$transactions({
+			sources: [
+				Source.TronGrid_Rest,
+				Source.TronScan_Rest,
+			],
+		}))
+	const collection6Selection = $derived(collectionRoot0Selection.Utxo.$account
+		.$$transactions({
+			sources: [
+				Source.MempoolSpace_Rest,
+			],
+		}))
+	const collection7Selection = $derived(collectionRoot0Selection.Xrpl.$account
+		.$$transactions({
+			sources: [
+				Source.Xrpl_Rippled,
 			],
 		}))
 
 
 	// Components
 	import Page from '$/components/Page.svelte'
-	import ProjectionBoundary from '$/components/ProjectionBoundary.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import EvmTransactionsView from '$/views/EvmTransactionsView.svelte'
 	import AptosTransactionsView from '$/views/AptosTransactionsView.svelte'
@@ -48,277 +87,131 @@
 
 
 <Page>
-	<ProjectionBoundary
-		resource={collectionRoot0Selection.Evm}
-	>
-		{#snippet Applicable(projection)}
-			{@const collection0Selection = projection
-				.$account({
-					sources: [
-						Source.Constants_Internal,
-					],
-				})
-				.$$transactions({
-					sources: [
-						Source.Blockscout_Rest,
-					],
-				})}
-
-			<ResourceBoundary resource={collection0Selection}>
-				{#snippet children(entities)}
-					{#if entities.values.length > 0}
-						<EvmTransactionsView
-							href={resolve('/~/accounts/transactions')}
-							title='EVM transactions'
-							selection={collection0Selection}
-							id='account-evm-transaction'
-							data-column-item="flexible"
-							data-card
-							data-scroll-container
-						/>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
+	<ResourceBoundary resource={collection0Selection}>
+		{#snippet children(entities)}
+			{#if entities.values.length > 0}
+				<EvmTransactionsView
+					href={resolve('/~/accounts/transactions')}
+					title='EVM transactions'
+					selection={collection0Selection}
+					id='account-evm-transaction'
+					data-column-item="flexible"
+					data-card
+					data-scroll-container
+				/>
+			{/if}
 		{/snippet}
-	</ProjectionBoundary>
+	</ResourceBoundary>
 
-	<ProjectionBoundary
-		resource={collectionRoot0Selection.Aptos}
-	>
-		{#snippet Applicable(projection)}
-			{@const collection1Selection = projection
-				.$account({
-					sources: [
-						Source.Constants_Internal,
-					],
-				})
-				.$$transactions({
-					sources: [
-						Source.AptosIndexer_Graphql,
-						Source.AptosFullnode_Rest,
-					],
-				})}
-
-			<ResourceBoundary resource={collection1Selection}>
-				{#snippet children(entities)}
-					{#if entities.values.length > 0}
-						<AptosTransactionsView
-							href={resolve('/~/accounts/transactions')}
-							title='Aptos transactions'
-							selection={collection1Selection}
-							id='account-aptos-transaction'
-							data-column-item="flexible"
-							data-card
-							data-scroll-container
-						/>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
+	<ResourceBoundary resource={collection1Selection}>
+		{#snippet children(entities)}
+			{#if entities.values.length > 0}
+				<AptosTransactionsView
+					href={resolve('/~/accounts/transactions')}
+					title='Aptos transactions'
+					selection={collection1Selection}
+					id='account-aptos-transaction'
+					data-column-item="flexible"
+					data-card
+					data-scroll-container
+				/>
+			{/if}
 		{/snippet}
-	</ProjectionBoundary>
+	</ResourceBoundary>
 
-	<ProjectionBoundary
-		resource={collectionRoot0Selection.Cardano}
-	>
-		{#snippet Applicable(projection)}
-			{@const collection2Selection = projection
-				.$account({
-					sources: [
-						Source.Constants_Internal,
-					],
-				})
-				.$$transactions({
-					sources: [
-						Source.Blockfrost_Rest,
-					],
-				})}
-
-			<ResourceBoundary resource={collection2Selection}>
-				{#snippet children(entities)}
-					{#if entities.values.length > 0}
-						<CardanoTransactionsView
-							href={resolve('/~/accounts/transactions')}
-							title='Cardano transactions'
-							selection={collection2Selection}
-							id='account-cardano-transaction'
-							data-column-item="flexible"
-							data-card
-							data-scroll-container
-						/>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
+	<ResourceBoundary resource={collection2Selection}>
+		{#snippet children(entities)}
+			{#if entities.values.length > 0}
+				<CardanoTransactionsView
+					href={resolve('/~/accounts/transactions')}
+					title='Cardano transactions'
+					selection={collection2Selection}
+					id='account-cardano-transaction'
+					data-column-item="flexible"
+					data-card
+					data-scroll-container
+				/>
+			{/if}
 		{/snippet}
-	</ProjectionBoundary>
+	</ResourceBoundary>
 
-	<ProjectionBoundary
-		resource={collectionRoot0Selection.Cosmos}
-	>
-		{#snippet Applicable(projection)}
-			{@const collection3Selection = projection
-				.$account({
-					sources: [
-						Source.Constants_Internal,
-					],
-				})
-				.$$transactions({
-					sources: [
-						Source.CosmosSdk_Rest,
-					],
-				})}
-
-			<ResourceBoundary resource={collection3Selection}>
-				{#snippet children(entities)}
-					{#if entities.values.length > 0}
-						<CosmosTransactionsView
-							href={resolve('/~/accounts/transactions')}
-							title='Cosmos transactions'
-							selection={collection3Selection}
-							id='account-cosmos-transaction'
-							data-column-item="flexible"
-							data-card
-							data-scroll-container
-						/>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
+	<ResourceBoundary resource={collection3Selection}>
+		{#snippet children(entities)}
+			{#if entities.values.length > 0}
+				<CosmosTransactionsView
+					href={resolve('/~/accounts/transactions')}
+					title='Cosmos transactions'
+					selection={collection3Selection}
+					id='account-cosmos-transaction'
+					data-column-item="flexible"
+					data-card
+					data-scroll-container
+				/>
+			{/if}
 		{/snippet}
-	</ProjectionBoundary>
+	</ResourceBoundary>
 
-	<ProjectionBoundary
-		resource={collectionRoot0Selection.Hedera}
-	>
-		{#snippet Applicable(projection)}
-			{@const collection4Selection = projection
-				.$account({
-					sources: [
-						Source.Constants_Internal,
-					],
-				})
-				.$$transactions({
-					sources: [
-						Source.HederaMirrorNode_Rest,
-					],
-				})}
-
-			<ResourceBoundary resource={collection4Selection}>
-				{#snippet children(entities)}
-					{#if entities.values.length > 0}
-						<HederaTransactionsView
-							href={resolve('/~/accounts/transactions')}
-							title='Hedera transactions'
-							selection={collection4Selection}
-							id='account-hedera-transaction'
-							data-column-item="flexible"
-							data-card
-							data-scroll-container
-						/>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
+	<ResourceBoundary resource={collection4Selection}>
+		{#snippet children(entities)}
+			{#if entities.values.length > 0}
+				<HederaTransactionsView
+					href={resolve('/~/accounts/transactions')}
+					title='Hedera transactions'
+					selection={collection4Selection}
+					id='account-hedera-transaction'
+					data-column-item="flexible"
+					data-card
+					data-scroll-container
+				/>
+			{/if}
 		{/snippet}
-	</ProjectionBoundary>
+	</ResourceBoundary>
 
-	<ProjectionBoundary
-		resource={collectionRoot0Selection.Tron}
-	>
-		{#snippet Applicable(projection)}
-			{@const collection5Selection = projection
-				.$account({
-					sources: [
-						Source.Constants_Internal,
-					],
-				})
-				.$$transactions({
-					sources: [
-						Source.TronGrid_Rest,
-						Source.TronScan_Rest,
-					],
-				})}
-
-			<ResourceBoundary resource={collection5Selection}>
-				{#snippet children(entities)}
-					{#if entities.values.length > 0}
-						<TronTransactionsView
-							href={resolve('/~/accounts/transactions')}
-							title='Tron transactions'
-							selection={collection5Selection}
-							id='account-tron-transaction'
-							data-column-item="flexible"
-							data-card
-							data-scroll-container
-						/>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
+	<ResourceBoundary resource={collection5Selection}>
+		{#snippet children(entities)}
+			{#if entities.values.length > 0}
+				<TronTransactionsView
+					href={resolve('/~/accounts/transactions')}
+					title='Tron transactions'
+					selection={collection5Selection}
+					id='account-tron-transaction'
+					data-column-item="flexible"
+					data-card
+					data-scroll-container
+				/>
+			{/if}
 		{/snippet}
-	</ProjectionBoundary>
+	</ResourceBoundary>
 
-	<ProjectionBoundary
-		resource={collectionRoot0Selection.Utxo}
-	>
-		{#snippet Applicable(projection)}
-			{@const collection6Selection = projection
-				.$account({
-					sources: [
-						Source.Constants_Internal,
-					],
-				})
-				.$$transactions({
-					sources: [
-						Source.MempoolSpace_Rest,
-					],
-				})}
-
-			<ResourceBoundary resource={collection6Selection}>
-				{#snippet children(entities)}
-					{#if entities.values.length > 0}
-						<UtxoTransactionsView
-							href={resolve('/~/accounts/transactions')}
-							title='UTXO transactions'
-							selection={collection6Selection}
-							id='account-utxo-transaction'
-							data-column-item="flexible"
-							data-card
-							data-scroll-container
-						/>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
+	<ResourceBoundary resource={collection6Selection}>
+		{#snippet children(entities)}
+			{#if entities.values.length > 0}
+				<UtxoTransactionsView
+					href={resolve('/~/accounts/transactions')}
+					title='UTXO transactions'
+					selection={collection6Selection}
+					id='account-utxo-transaction'
+					data-column-item="flexible"
+					data-card
+					data-scroll-container
+				/>
+			{/if}
 		{/snippet}
-	</ProjectionBoundary>
+	</ResourceBoundary>
 
-	<ProjectionBoundary
-		resource={collectionRoot0Selection.Xrpl}
-	>
-		{#snippet Applicable(projection)}
-			{@const collection7Selection = projection
-				.$account({
-					sources: [
-						Source.Constants_Internal,
-					],
-				})
-				.$$transactions({
-					sources: [
-						Source.Xrpl_Rippled,
-					],
-				})}
-
-			<ResourceBoundary resource={collection7Selection}>
-				{#snippet children(entities)}
-					{#if entities.values.length > 0}
-						<XrplTransactionsView
-							href={resolve('/~/accounts/transactions')}
-							title='XRPL transactions'
-							selection={collection7Selection}
-							id='account-xrpl-transaction'
-							data-column-item="flexible"
-							data-card
-							data-scroll-container
-						/>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
+	<ResourceBoundary resource={collection7Selection}>
+		{#snippet children(entities)}
+			{#if entities.values.length > 0}
+				<XrplTransactionsView
+					href={resolve('/~/accounts/transactions')}
+					title='XRPL transactions'
+					selection={collection7Selection}
+					id='account-xrpl-transaction'
+					data-column-item="flexible"
+					data-card
+					data-scroll-container
+				/>
+			{/if}
 		{/snippet}
-	</ProjectionBoundary>
+	</ResourceBoundary>
 </Page>

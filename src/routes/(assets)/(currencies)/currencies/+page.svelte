@@ -2,11 +2,11 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
@@ -22,19 +22,15 @@
 
 
 <Page>
+	{@const collectionSelection = select(EntityType._Global, {
+		scope: '$$currencies',
+	}).$$currencies}
+
 	<CurrenciesView
-		href={resolve('/currencies')}
+		href={resolve('/(assets)/(currencies)/currencies')}
 		title='Currencies'
-		selection={
-			select(EntityType._Global, {
-				scope: '$$currencies',
-			}).$$currencies
-		}
-		countResource={
-			select(EntityType._Global, {
-				scope: '$$currencies',
-			}).$$currencies.count
-		}
+		selection={collectionSelection}
+		countResource={collectionSelection.count}
 		id='currencies'
 		data-column-item="flexible"
 		data-card

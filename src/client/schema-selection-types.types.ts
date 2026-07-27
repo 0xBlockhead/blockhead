@@ -1,6 +1,7 @@
 import {
 	entity,
 	facet,
+	indexSchema,
 	EntityMetaKey,
 	type EntityBaseFieldName,
 	type EntityFacetFieldNameAtPath,
@@ -9,6 +10,7 @@ import {
 	type EntityFieldAddressKeyFor,
 	type EntitySelectedValue,
 	type EntitySelection,
+	type EntitySelectorForSelectorName,
 } from '$/schema/$schema.ts'
 import {
 	EntityFieldCardinality,
@@ -158,6 +160,17 @@ const schema = [
 	EvmTransaction,
 	EvmLog,
 ] as const
+const schemaIndex = indexSchema(schema)
+
+schemaIndex.entitySelectorDefinitionByEntityTypeAndName.EvmTransaction.TxHash.fields
+
+// @ts-expect-error Selector indexes expose only selector names captured by the entity definition.
+schemaIndex.entitySelectorDefinitionByEntityTypeAndName.EvmTransaction.Missing
+
+type MissingTransactionSelector = EntitySelectorForSelectorName<typeof schema, EvmTransactionEntityType, 'Missing'>
+// @ts-expect-error Invalid selector names resolve to never and cannot describe a selector value.
+const missingTransactionSelector: MissingTransactionSelector = {}
+void missingTransactionSelector
 
 const baseField: EntityBaseFieldName<typeof schema, EvmTransactionEntityType> = 'txHash'
 const facetPath: EntityFacetPathFor<typeof schema, EvmTransactionEntityType> = ['Blob']

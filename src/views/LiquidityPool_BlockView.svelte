@@ -2,14 +2,10 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -26,36 +22,20 @@
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.LiquidityPool_Block>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.LiquidityPool_Block>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.LiquidityPool_Block> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const liquidityPoolBlock = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {
-			tick: true,
-		},
-	} : {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const viewSelection = $derived(selection({
+		sources: selection.sources ?? [
+			Source.Dexscreener_OpenApi,
+		],
+	}))
+	const liquidityPoolBlock = $derived(viewSelection({
 		fields: {
 			tick: true,
 		},
 	}))
-	const titleFallback = $derived([String((pendingEntity.blockNumber) ?? '')].filter(Boolean).join(' ') || 'liquidity pool block')
-	const viewDomId = $derived('liquidity-pool-block-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const titleFallback = $derived(String(pendingEntity.blockNumber ?? '') || 'liquidity pool block')
 
 
 	// Components
@@ -67,26 +47,20 @@
 
 <EntityView
 	entityType={EntityType.LiquidityPool_Block}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
 	href={
 		href ?? (
-			selection.entitySelector != null && 'blockNumber' in selection.entitySelector
-			&& selection.entitySelector.blockNumber != null
-			&& selection.entitySelector != null && '$liquidityPool' in selection.entitySelector
-			&& selection.entitySelector.$liquidityPool != null && '$network' in selection.entitySelector.$liquidityPool
-			&& selection.entitySelector.$liquidityPool.$network != null && 'caip2' in selection.entitySelector.$liquidityPool.$network
-			&& selection.entitySelector.$liquidityPool.$network.caip2 != null && 'reference' in selection.entitySelector.$liquidityPool.$network.caip2
-			&& selection.entitySelector.$liquidityPool.$network.caip2.reference != null
-			&& selection.entitySelector.$liquidityPool != null && 'id' in selection.entitySelector.$liquidityPool
-			&& selection.entitySelector.$liquidityPool.id != null ?
-				resolve('/pool/[chainId=eip155ChainId]/[poolId=stringSegment]/block/[blockNumber=nonNegativeBigInt]', {
-			blockNumber: String(selection.entitySelector.blockNumber ?? ''),
-			chainId: String(selection.entitySelector.$liquidityPool.$network.caip2.reference ?? ''),
-			poolId: String(selection.entitySelector.$liquidityPool.id ?? ''),
-		})
-		:
+			'caip2' in selection.entitySelector.$liquidityPool.$network ?
+				resolve(
+					'/(assets)/pool/[chainId=eip155ChainId]/[poolId=stringSegment]/(liquidityPool)/block/[blockNumber=nonNegativeBigInt]',
+					{
+						chainId: String(selection.entitySelector.$liquidityPool.$network.caip2.reference),
+						poolId: String(selection.entitySelector.$liquidityPool.id),
+						blockNumber: String(selection.entitySelector.blockNumber),
+					}
+				)
+			:
 				undefined
 		)
 	}
@@ -95,25 +69,16 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={liquidityPoolBlock}>
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const blockNumber0 = resolvedEntity.blockNumber}
-				{#if blockNumber0 !== undefined && blockNumber0 !== null}
-					<NumberValue
-						value={blockNumber0}
-					/>
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		<NumberValue
+			value={pendingEntity.blockNumber}
+		/>
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={liquidityPoolBlock}>
 			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const tick0 = resolvedEntity.tick}
-				{#if tick0 !== undefined && tick0 !== null}
+				{@const tick0 = entity.tick}
+				{#if tick0 != null}
 					<NumberValue
 						value={tick0}
 					/>
@@ -123,34 +88,13 @@
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		<ResourceBoundary resource={liquidityPoolBlock}>
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				<span data-text="muted">
-					<LiquidityPoolView
-						selection={select(EntityType.LiquidityPool, selection.entitySelector.$liquidityPool)}
-						href={
-							(
-								selection.entitySelector.$liquidityPool != null && 'id' in selection.entitySelector.$liquidityPool
-								&& selection.entitySelector.$liquidityPool.id != null
-								&& selection.entitySelector.$liquidityPool != null && '$network' in selection.entitySelector.$liquidityPool
-								&& selection.entitySelector.$liquidityPool.$network != null && 'caip2' in selection.entitySelector.$liquidityPool.$network
-								&& selection.entitySelector.$liquidityPool.$network.caip2 != null && 'reference' in selection.entitySelector.$liquidityPool.$network.caip2
-								&& selection.entitySelector.$liquidityPool.$network.caip2.reference != null ?
-									resolve('/pool/[chainId=eip155ChainId]/[poolId=stringSegment]', {
-								poolId: String(selection.entitySelector.$liquidityPool.id ?? ''),
-								chainId: String(selection.entitySelector.$liquidityPool.$network.caip2.reference ?? ''),
-							})
-							:
-									undefined
-							)
-						}
-						layout={EntityLayout.Title}
-						open={false}
-					/>
-				</span>
-			{/snippet}
-		</ResourceBoundary>
+		<span data-text="muted">
+			<LiquidityPoolView
+				selection={select(EntityType.LiquidityPool, selection.entitySelector.$liquidityPool)}
+				layout={EntityLayout.Title}
+				open={false}
+			/>
+		</span>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -160,22 +104,6 @@
 				<dd>
 					<LiquidityPoolView
 						selection={select(EntityType.LiquidityPool, selection.entitySelector.$liquidityPool)}
-						href={
-							(
-								selection.entitySelector.$liquidityPool != null && 'id' in selection.entitySelector.$liquidityPool
-								&& selection.entitySelector.$liquidityPool.id != null
-								&& selection.entitySelector.$liquidityPool != null && '$network' in selection.entitySelector.$liquidityPool
-								&& selection.entitySelector.$liquidityPool.$network != null && 'caip2' in selection.entitySelector.$liquidityPool.$network
-								&& selection.entitySelector.$liquidityPool.$network.caip2 != null && 'reference' in selection.entitySelector.$liquidityPool.$network.caip2
-								&& selection.entitySelector.$liquidityPool.$network.caip2.reference != null ?
-									resolve('/pool/[chainId=eip155ChainId]/[poolId=stringSegment]', {
-								poolId: String(selection.entitySelector.$liquidityPool.id ?? ''),
-								chainId: String(selection.entitySelector.$liquidityPool.$network.caip2.reference ?? ''),
-							})
-							:
-									undefined
-							)
-						}
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -185,26 +113,9 @@
 			<div>
 				<dt>Block number</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									blockNumber: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const blockNumber = resolvedEntity.blockNumber}
-							{#if blockNumber !== undefined && blockNumber !== null}
-								<NumberValue
-									value={blockNumber}
-								/>
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					<NumberValue
+						value={pendingEntity.blockNumber}
+					/>
 				</dd>
 			</div>
 
@@ -212,40 +123,15 @@
 				<dt>Parent liquidity pool</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							selection
-								.$parentLiquidityPool({
-									sources: [
-										Source.Dexscreener_OpenApi,
-									],
-								})
-						}
+						resource={selection.$parentLiquidityPool}
 					>
 						{#snippet children(liquidityPool)}
-							{#if liquidityPool != null && liquidityPool[EntityMetaKey.Selector] != null}
-								<LiquidityPoolView
-									selection={select(EntityType.LiquidityPool, liquidityPool[EntityMetaKey.Selector])}
-									prefetched={liquidityPool}
-									href={
-										(
-											liquidityPool[EntityMetaKey.Selector] != null && 'id' in liquidityPool[EntityMetaKey.Selector]
-											&& liquidityPool[EntityMetaKey.Selector].id != null
-											&& liquidityPool[EntityMetaKey.Selector] != null && '$network' in liquidityPool[EntityMetaKey.Selector]
-											&& liquidityPool[EntityMetaKey.Selector].$network != null && 'caip2' in liquidityPool[EntityMetaKey.Selector].$network
-											&& liquidityPool[EntityMetaKey.Selector].$network.caip2 != null && 'reference' in liquidityPool[EntityMetaKey.Selector].$network.caip2
-											&& liquidityPool[EntityMetaKey.Selector].$network.caip2.reference != null ?
-												resolve('/pool/[chainId=eip155ChainId]/[poolId=stringSegment]', {
-											poolId: String(liquidityPool[EntityMetaKey.Selector].id ?? ''),
-											chainId: String(liquidityPool[EntityMetaKey.Selector].$network.caip2.reference ?? ''),
-										})
-										:
-												undefined
-										)
-									}
-									layout={EntityLayout.Value}
-									open={false}
-								/>
-							{/if}
+							<LiquidityPoolView
+								selection={select(EntityType.LiquidityPool, liquidityPool[EntityMetaKey.Selector])}
+								prefetched={liquidityPool}
+								layout={EntityLayout.Value}
+								open={false}
+							/>
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -255,8 +141,7 @@
 		<dl data-column-item="center">
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							sqrtPriceX96: true,
 						},
@@ -264,9 +149,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const sqrtPriceX96 = resolvedEntity.sqrtPriceX96}
-					{#if sqrtPriceX96 !== undefined && sqrtPriceX96 !== null}
+					{@const sqrtPriceX96 = entity.sqrtPriceX96}
+					{#if sqrtPriceX96 != null}
 						<div>
 							<dt>Sqrt price X96</dt>
 							<dd>
@@ -281,8 +165,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							liquidity: true,
 						},
@@ -290,9 +173,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const liquidity = resolvedEntity.liquidity}
-					{#if liquidity !== undefined && liquidity !== null}
+					{@const liquidity = entity.liquidity}
+					{#if liquidity != null}
 						<div>
 							<dt>Liquidity</dt>
 							<dd>
@@ -306,19 +188,11 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							tick: true,
-						},
-					})
-				}
+				resource={liquidityPoolBlock}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const tick = resolvedEntity.tick}
-					{#if tick !== undefined && tick !== null}
+					{@const tick = entity.tick}
+					{#if tick != null}
 						<div>
 							<dt>Tick</dt>
 							<dd>
@@ -333,8 +207,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							feeProtocol: true,
 						},
@@ -342,9 +215,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const feeProtocol = resolvedEntity.feeProtocol}
-					{#if feeProtocol !== undefined && feeProtocol !== null}
+					{@const feeProtocol = entity.feeProtocol}
+					{#if feeProtocol != null}
 						<div>
 							<dt>Fee protocol</dt>
 							<dd>
@@ -359,8 +231,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							unlocked: true,
 						},
@@ -368,9 +239,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const unlocked = resolvedEntity.unlocked}
-					{#if unlocked !== undefined && unlocked !== null}
+					{@const unlocked = entity.unlocked}
+					{#if unlocked != null}
 						<div>
 							<dt>Unlocked</dt>
 							<dd>
@@ -385,8 +255,7 @@
 		<dl data-column-item="center">
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							observationIndex: true,
 						},
@@ -394,9 +263,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const observationIndex = resolvedEntity.observationIndex}
-					{#if observationIndex !== undefined && observationIndex !== null}
+					{@const observationIndex = entity.observationIndex}
+					{#if observationIndex != null}
 						<div>
 							<dt>Observation index</dt>
 							<dd>
@@ -411,8 +279,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							observationCardinality: true,
 						},
@@ -420,9 +287,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const observationCardinality = resolvedEntity.observationCardinality}
-					{#if observationCardinality !== undefined && observationCardinality !== null}
+					{@const observationCardinality = entity.observationCardinality}
+					{#if observationCardinality != null}
 						<div>
 							<dt>Observation cardinality</dt>
 							<dd>
@@ -437,8 +303,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							observationCardinalityNext: true,
 						},
@@ -446,9 +311,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const observationCardinalityNext = resolvedEntity.observationCardinalityNext}
-					{#if observationCardinalityNext !== undefined && observationCardinalityNext !== null}
+					{@const observationCardinalityNext = entity.observationCardinalityNext}
+					{#if observationCardinalityNext != null}
 						<div>
 							<dt>Observation cardinality next</dt>
 							<dd>

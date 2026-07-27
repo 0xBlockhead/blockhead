@@ -2,13 +2,9 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
 	import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 
 
@@ -21,42 +17,19 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.AlgorandTransaction>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.AlgorandTransaction>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.AlgorandTransaction> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const algorandTransaction = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {
-			transactionType: true,
-			sender: true,
-		},
-	} : {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const algorandTransaction = $derived(selection({
 		fields: {
 			transactionType: true,
 			sender: true,
 		},
 	}))
-	const titleFallback = $derived([String((pendingEntity.txId) ?? '')].filter(Boolean).join(' ') || 'algorand transaction')
-	const viewDomId = $derived('algorand-transaction-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const titleFallback = $derived((pendingEntity.txId ?? '') || 'algorand transaction')
 
 
 	// Components
@@ -69,61 +42,32 @@
 
 <EntityView
 	entityType={EntityType.AlgorandTransaction}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'transactionType') && Object.hasOwn(prefetched, 'sender')}
-			{[String((pendingEntity.txId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-		{:else}
-			<ResourceBoundary resource={algorandTransaction}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.txId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		{(pendingEntity.txId ?? '') || 'algorand transaction'}
 	{/snippet}
 
 	{#snippet Value()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'transactionType') && Object.hasOwn(prefetched, 'sender')}
-			{[String((pendingEntity.transactionType) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.txId) ?? '')].filter(Boolean).join(' ') || titleFallback}
-		{:else}
-			<ResourceBoundary resource={algorandTransaction}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.transactionType) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.txId) ?? '')].filter(Boolean).join(' ') || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={algorandTransaction}>
+			{#snippet children(entity)}
+				{entity.transactionType || pendingEntity.txId || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'transactionType') && Object.hasOwn(prefetched, 'sender')}
-			{@const sender0 = pendingEntity.sender}
-			{#if sender0 !== undefined && sender0 !== null}
+		<ResourceBoundary resource={algorandTransaction}>
+			{#snippet children(entity)}
 				<span data-text="muted">
-					{String((sender0) ?? '')}
+					{entity.sender}
 				</span>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={algorandTransaction}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const sender0 = resolvedEntity.sender}
-					{#if sender0 !== undefined && sender0 !== null}
-						<span data-text="muted">
-							{String((sender0) ?? '')}
-						</span>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -142,31 +86,13 @@
 			<div>
 				<dt>transaction ID</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									txId: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const txId = resolvedEntity.txId}
-							{#if txId !== undefined && txId !== null}
-								{String((txId) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{pendingEntity.txId}
 				</dd>
 			</div>
 
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							round: true,
 						},
@@ -174,13 +100,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const round = resolvedEntity.round}
-					{#if round !== undefined && round !== null}
+					{@const round = entity.round}
+					{#if round != null}
 						<div>
 							<dt>round</dt>
 							<dd>
-								{String((round) ?? '')}
+								{String(round)}
 							</dd>
 						</div>
 					{/if}
@@ -191,21 +116,10 @@
 				<dt>sender</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									sender: true,
-								},
-							})
-						}
+						resource={algorandTransaction}
 					>
 						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const sender = resolvedEntity.sender}
-							{#if sender !== undefined && sender !== null}
-								{String((sender) ?? '')}
-							{/if}
+							{entity.sender}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -215,21 +129,10 @@
 				<dt>transaction type</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									transactionType: true,
-								},
-							})
-						}
+						resource={algorandTransaction}
 					>
 						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const transactionType = resolvedEntity.transactionType}
-							{#if transactionType !== undefined && transactionType !== null}
-								{String((transactionType) ?? '')}
-							{/if}
+							{entity.transactionType}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -240,7 +143,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							fee: true,
 						},
@@ -248,13 +150,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const fee = resolvedEntity.fee}
-					{#if fee !== undefined && fee !== null}
+					{@const fee = entity.fee}
+					{#if fee != null}
 						<div>
 							<dt>fee</dt>
 							<dd>
-								{String((fee) ?? '')}
+								{String(fee)}
 							</dd>
 						</div>
 					{/if}
@@ -264,7 +165,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							group: true,
 						},
@@ -272,13 +172,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const group = resolvedEntity.group}
-					{#if group !== undefined && group !== null}
+					{@const group = entity.group}
+					{#if group != null}
 						<div>
 							<dt>group</dt>
 							<dd>
-								{String((group) ?? '')}
+								{String(group)}
 							</dd>
 						</div>
 					{/if}
@@ -289,7 +188,7 @@
 				resource={selection.$group}
 			>
 				{#snippet children(algorandTransactionGroup)}
-					{#if algorandTransactionGroup != null && algorandTransactionGroup[EntityMetaKey.Selector] != null}
+					{#if algorandTransactionGroup != null}
 						<div>
 							<dt>group</dt>
 							<dd>
@@ -308,7 +207,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							parentTransactionId: true,
 						},
@@ -316,13 +214,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const parentTransactionId = resolvedEntity.parentTransactionId}
-					{#if parentTransactionId !== undefined && parentTransactionId !== null}
+					{@const parentTransactionId = entity.parentTransactionId}
+					{#if parentTransactionId != null}
 						<div>
 							<dt>parent transaction ID</dt>
 							<dd>
-								{String((parentTransactionId) ?? '')}
+								{parentTransactionId}
 							</dd>
 						</div>
 					{/if}
@@ -332,7 +229,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							innerTransactionIndex: true,
 						},
@@ -340,13 +236,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const innerTransactionIndex = resolvedEntity.innerTransactionIndex}
-					{#if innerTransactionIndex !== undefined && innerTransactionIndex !== null}
+					{@const innerTransactionIndex = entity.innerTransactionIndex}
+					{#if innerTransactionIndex != null}
 						<div>
 							<dt>inner transaction index</dt>
 							<dd>
-								{String((innerTransactionIndex) ?? '')}
+								{String(innerTransactionIndex)}
 							</dd>
 						</div>
 					{/if}
@@ -361,7 +256,6 @@
 					<ResourceBoundary
 						resource={
 							selection({
-								sources: selection.sources,
 								fields: {
 									logs: true,
 								},
@@ -369,11 +263,7 @@
 						}
 					>
 						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const logs = resolvedEntity.logs}
-							{#if logs !== undefined && logs !== null}
-								{logs.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')}
-							{/if}
+							{entity.logs.values.join(', ')}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -388,12 +278,12 @@
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
-				<AlgorandTransactionProofsView
-					selection={algorandTransactionAlgorandTransactionProofsViewProofsResource}
-					countResource={algorandTransactionAlgorandTransactionProofsViewProofsResource.count}
-					title='proofs'
-					id='AlgorandTransactionProofsView-proofs'
-				/>
+					<AlgorandTransactionProofsView
+						selection={algorandTransactionAlgorandTransactionProofsViewProofsResource}
+						countResource={algorandTransactionAlgorandTransactionProofsViewProofsResource.count}
+						title='proofs'
+						id='proofs'
+					/>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>

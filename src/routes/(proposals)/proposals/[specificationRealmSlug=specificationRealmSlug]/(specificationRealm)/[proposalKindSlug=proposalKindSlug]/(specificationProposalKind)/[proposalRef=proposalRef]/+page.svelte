@@ -5,11 +5,10 @@
 	import type { PageProps } from './$types.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { proposalCategoryById, proposalCategoryBySlug, specificationRealmById, specificationRealmBySlug } from '$/constants/SpecificationProposal.ts'
-	import { defaultSpecificationProposalSources, specificationProposalSourceSelectionByKey } from '$/sources/$sourceSelections.ts'
+	import specificationProposalSources from '$/sources/specificationProposalSources.ts'
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
@@ -24,7 +23,10 @@
 		number: Number(params.proposalRef.slice(params.proposalRef.lastIndexOf('-') + 1)),
 	})
 	const pageSelection = $derived(select(EntityType.SpecificationProposal, pageEntitySelector, {
-		sources: specificationProposalSourceSelectionByKey[[String(pageEntitySelector.realm), String(pageEntitySelector.category)].join(':')] ?? defaultSpecificationProposalSources,
+		sources: specificationProposalSources({
+			realm: pageEntitySelector.realm,
+			category: pageEntitySelector.category,
+		}),
 		fields: {
 			documentTitle: true,
 			documentCategory: true,
@@ -41,28 +43,21 @@
 
 
 <svelte:head>
-	<title>{(pageSelection.entity == null ? [[
-			[String((proposalCategoryById[String(pageEntitySelector.category)]?.label ?? (String((pageEntitySelector.category) ?? ''))) ?? '')].filter(Boolean).join(''),
-			String((pageEntitySelector.number) ?? ''),
-		].filter(Boolean).join('-')].filter(Boolean).join(' ') || 'Specification proposal' : [[
-			[(String((proposalCategoryById[String(({ ...pageEntitySelector, ...pageSelection.entity }).category)]?.label ?? (String((({ ...pageEntitySelector, ...pageSelection.entity }).category) ?? ''))) ?? '') ? String((proposalCategoryById[String(({ ...pageEntitySelector, ...pageSelection.entity }).category)]?.label ?? (String((({ ...pageEntitySelector, ...pageSelection.entity }).category) ?? ''))) ?? '') + '-' : ''), String((({ ...pageEntitySelector, ...pageSelection.entity }).number) ?? '')].filter(Boolean).join(''),
-			String((({ ...pageEntitySelector, ...pageSelection.entity }).documentTitle) ?? ''),
-		].filter(Boolean).join(': ')].filter(Boolean).join(' ') || [[
-			[String((proposalCategoryById[String(({ ...pageEntitySelector, ...pageSelection.entity }).category)]?.label ?? (String((({ ...pageEntitySelector, ...pageSelection.entity }).category) ?? ''))) ?? '')].filter(Boolean).join(''),
-			String((({ ...pageEntitySelector, ...pageSelection.entity }).number) ?? ''),
-		].filter(Boolean).join('-')].filter(Boolean).join(' ') || 'Specification proposal')} • Specification proposal • Blockhead</title>
+	<title>{(pageSelection.entity == null ? [
+			(proposalCategoryById[String(pageSelection.entitySelector.category)]?.label ?? ((pageSelection.entitySelector.category ?? ''))),
+			String(pageSelection.entitySelector.number ?? ''),
+		].filter(Boolean).join('-') || 'Specification proposal' : ([
+			[(String((proposalCategoryById[String(pageSelection.entitySelector.category)]?.label ?? (pageSelection.entitySelector.category)) ?? '') ? String((proposalCategoryById[String(pageSelection.entitySelector.category)]?.label ?? (pageSelection.entitySelector.category)) ?? '') + '-' : ''), String(pageSelection.entitySelector.number)].filter(Boolean).join(''),
+			(pageSelection.entity.documentTitle ?? ''),
+		].filter(Boolean).join(': ')) || [
+			String((proposalCategoryById[String(pageSelection.entitySelector.category)]?.label ?? (pageSelection.entitySelector.category)) ?? ''),
+			String(pageSelection.entitySelector.number),
+		].filter(Boolean).join('-') || 'Specification proposal')} • Specification proposal • Blockhead</title>
 </svelte:head>
 
 
 <Page>
 	<SpecificationProposalView
-		href={
-			resolve('/proposals/[specificationRealmSlug=specificationRealmSlug]/[proposalKindSlug=proposalKindSlug]/[proposalRef=proposalRef]', {
-				specificationRealmSlug: params.specificationRealmSlug,
-				proposalKindSlug: params.proposalKindSlug,
-				proposalRef: params.proposalRef,
-			})
-		}
 		selection={pageSelection}
 	/>
 </Page>

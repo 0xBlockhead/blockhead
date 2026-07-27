@@ -2,7 +2,6 @@ import { readFileSync } from 'node:fs'
 import { describe, expect, it, vi } from 'vitest'
 
 import { EntityMetaKey } from '$/schema/$schema.ts'
-import { EvmBlockSelector } from '$/schema/EvmBlock.ts'
 import { Source } from '$/sources/Source.ts'
 import {
 	ApiFamily,
@@ -14,14 +13,12 @@ import {
 	WireProtocol,
 	type SourceBinding,
 } from '$/sources/SourceBinding.ts'
-import { SourceProvider } from '$/sources/SourceProvider.ts'
 import { getEvmBlock } from '$/sources/Sqd/Portal/queries.ts'
 import { SqdPortalResolution } from '$/sources/Sqd/Portal/types.ts'
 import sqdPortal from '$/resolvers/Sqd-Portal.ts'
 
 const sourceFetch = vi.hoisted(() => vi.fn())
 const resolverBinding = vi.hoisted(() => ({
-	provider: 'Sqd',
 	source: 'SqdPortal_RawHttp',
 	target: {
 		kind: 'Eip155Chain',
@@ -38,6 +35,12 @@ const resolverBinding = vi.hoisted(() => ({
 	operationGroups: ['GenericRead'],
 	delivery: 'HttpProxy',
 	credentials: [{ scope: 'None' }],
+	proxyId: 'SqdPortal_RawHttp-284',
+	artifacts: [{
+		kind: 'HandwrittenTypes',
+		path: 'src/sources/Sqd/Portal/types.ts',
+		generated: false,
+	}],
 }))
 
 vi.mock('$/sources/_runtime/http.ts', () => ({
@@ -45,14 +48,7 @@ vi.mock('$/sources/_runtime/http.ts', () => ({
 	sourceFetch,
 }))
 
-vi.mock('$/sources/$sourceProviders.ts', () => ({
-	sourceProviderDefinitions: [{
-		bindings: [resolverBinding],
-	}],
-}))
-
 const binding = {
-	provider: SourceProvider.Sqd,
 	source: Source.SqdPortal_RawHttp,
 	target: {
 		kind: SourceTargetKind.Eip155Chain,
@@ -107,7 +103,7 @@ describe('SQD Portal query boundary', () => {
 			headers: evmBlockHeaders,
 		}))
 
-		await expect(getEvmBlock(binding, 18_000_000n)).resolves.toMatchObject({
+		await expect(getEvmBlock(18_000_000n)).resolves.toMatchObject({
 			resolution: SqdPortalResolution.Complete,
 			block: {
 				header: {
@@ -138,23 +134,39 @@ describe('SQD Portal query boundary', () => {
 				},
 			},
 		})
+
+		sourceFetch.mockResolvedValueOnce(new Response(
+			evmBlockNdjson
+				.replace('"blobGasUsed":"0x20000"', '"blobGasUsed":null')
+				.replace('"excessBlobGas":"0x40000"', '"excessBlobGas":null'),
+			{ status: 200 }
+		))
+		await expect(getEvmBlock(18_000_000n)).resolves.toMatchObject({
+			resolution: SqdPortalResolution.Complete,
+			block: {
+				header: {
+					blobGasUsed: null,
+					excessBlobGas: null,
+				},
+			},
+		})
 	})
 
 	it('distinguishes complete empty, partial, and reorg responses', async () => {
 		sourceFetch.mockResolvedValueOnce(new Response(null, { status: 204 }))
-		await expect(getEvmBlock(binding, 18_000_000n)).resolves.toEqual({
+		await expect(getEvmBlock(18_000_000n)).resolves.toEqual({
 			resolution: SqdPortalResolution.Empty,
 		})
 
 		sourceFetch.mockResolvedValueOnce(new Response('', { status: 200 }))
-		await expect(getEvmBlock(binding, 18_000_000n)).resolves.toEqual({
+		await expect(getEvmBlock(18_000_000n)).resolves.toEqual({
 			resolution: SqdPortalResolution.Partial,
 			blocks: [],
 			nextBlock: 18_000_000,
 		})
 
 		sourceFetch.mockResolvedValueOnce(new Response(evmBlockReorg, { status: 409 }))
-		await expect(getEvmBlock(binding, 18_000_000n, '0xparent')).resolves.toMatchObject({
+		await expect(getEvmBlock(18_000_000n, '0xparent')).resolves.toMatchObject({
 			resolution: SqdPortalResolution.Reorg,
 			previousBlocks: [{
 				number: 17_999_999,
@@ -167,7 +179,7 @@ describe('SQD Portal query boundary', () => {
 describe('SQD Portal resolver', () => {
 	it('maps every owned EVM block field and transaction selector', async () => {
 		sourceFetch.mockResolvedValueOnce(new Response(evmBlockNdjson, { status: 200 }))
-		const block = await sqdPortal.resolvers[0].resolve[EvmBlockSelector.EvmNetworkBlockNumber].resolve({
+		const block = await sqdPortal.resolvers[0].resolve['EvmNetworkBlockNumber'].resolve({
 			$network: network,
 			blockNumber: 18_000_000n,
 		}, context)
@@ -204,7 +216,7 @@ describe('SQD Portal resolver', () => {
 	})
 
 	it('fails closed for an unsupported network', async () => {
-		await expect(sqdPortal.resolvers[0].resolve[EvmBlockSelector.EvmNetworkBlockNumber].resolve({
+		await expect(sqdPortal.resolvers[0].resolve['EvmNetworkBlockNumber'].resolve({
 			$network: {
 				caip2: {
 					namespace: 'eip155',

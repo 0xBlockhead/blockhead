@@ -1,15 +1,12 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { entity, facet } from '$/schema/$schema.ts'
+import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
-export enum SolanaTransaction_TimestampSelector {
-	TransactionSlotSource = 'TransactionSlotSource',
-}
-export const SolanaTransaction_Timestamp = entity({
+export default entity({
 	entityType: EntityType.SolanaTransaction_Timestamp,
 	labels: {
 		singular: 'solana transaction timestamp',
@@ -63,7 +60,6 @@ export const SolanaTransaction_Timestamp = entity({
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
 			Source.Solana_JsonRpc,
-			Source.Helius_Rest,
 		],
 	},
 	status: {
@@ -83,7 +79,6 @@ export const SolanaTransaction_Timestamp = entity({
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
 			Source.Solana_JsonRpc,
-			Source.Helius_Rest,
 		],
 	},
 	err: {

@@ -2,13 +2,9 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
 
 
 	// Context
@@ -20,35 +16,13 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.StellarLiquidityPool>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.StellarLiquidityPool>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.StellarLiquidityPool> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const stellarLiquidityPool = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {},
-	} : {
-		sources: selection.sources,
-	}))
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const titleFallback = 'stellar liquidity pool'
-	const viewDomId = $derived('stellar-liquidity-pool-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -60,24 +34,14 @@
 
 <EntityView
 	entityType={EntityType.StellarLiquidityPool}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails}
-			{title || titleFallback}
-		{:else}
-			<ResourceBoundary resource={stellarLiquidityPool}>
-				{#snippet children(entity)}
-					{title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		stellar liquidity pool
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -96,31 +60,13 @@
 			<div>
 				<dt>liquidity pool ID</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									liquidityPoolId: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const liquidityPoolId = resolvedEntity.liquidityPoolId}
-							{#if liquidityPoolId !== undefined && liquidityPoolId !== null}
-								{String((liquidityPoolId) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{pendingEntity.liquidityPoolId}
 				</dd>
 			</div>
 
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							poolType: true,
 						},
@@ -128,13 +74,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const poolType = resolvedEntity.poolType}
-					{#if poolType !== undefined && poolType !== null}
+					{@const poolType = entity.poolType}
+					{#if poolType != null}
 						<div>
 							<dt>pool type</dt>
 							<dd>
-								{String((poolType) ?? '')}
+								{poolType}
 							</dd>
 						</div>
 					{/if}
@@ -145,7 +90,7 @@
 				resource={selection.$assetA}
 			>
 				{#snippet children(stellarAsset)}
-					{#if stellarAsset != null && stellarAsset[EntityMetaKey.Selector] != null}
+					{#if stellarAsset != null}
 						<div>
 							<dt>asset a</dt>
 							<dd>
@@ -165,7 +110,7 @@
 				resource={selection.$assetB}
 			>
 				{#snippet children(stellarAsset)}
-					{#if stellarAsset != null && stellarAsset[EntityMetaKey.Selector] != null}
+					{#if stellarAsset != null}
 						<div>
 							<dt>asset b</dt>
 							<dd>
@@ -184,7 +129,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							feeBps: true,
 						},
@@ -192,13 +136,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const feeBps = resolvedEntity.feeBps}
-					{#if feeBps !== undefined && feeBps !== null}
+					{@const feeBps = entity.feeBps}
+					{#if feeBps != null}
 						<div>
 							<dt>fee bps</dt>
 							<dd>
-								{String((feeBps) ?? '')}
+								{String(feeBps)}
 							</dd>
 						</div>
 					{/if}

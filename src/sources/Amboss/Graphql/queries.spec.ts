@@ -1,5 +1,8 @@
 import { describe, expect, it, vi } from 'vitest'
 
+import bindings from '$/sources/Amboss/bindings.ts'
+import { Source } from '$/sources/Source.ts'
+
 const queryAmboss = vi.hoisted(() => vi.fn())
 
 vi.mock('$/sources/Amboss/Graphql/client.ts', async (importOriginal) => ({
@@ -15,6 +18,7 @@ import {
 
 const publicKey = `02${'a'.repeat(64)}`
 const peerPublicKey = `03${'b'.repeat(64)}`
+const binding = bindings[Source.Amboss_Graphql]
 
 describe('Amboss public Lightning graph queries', () => {
 	it('rejects node identity substitution', async () => {

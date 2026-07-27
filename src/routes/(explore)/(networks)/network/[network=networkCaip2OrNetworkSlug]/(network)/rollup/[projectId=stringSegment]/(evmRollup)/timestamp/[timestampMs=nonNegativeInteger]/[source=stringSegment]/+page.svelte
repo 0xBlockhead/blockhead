@@ -7,7 +7,6 @@
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
@@ -44,32 +43,12 @@
 
 
 <svelte:head>
-	<title>{(data.title ?? (pageSelection.entity == null ? [String(({
-		$rollup: data.selector,
-		timestampMs: Number(params.timestampMs),
-		source: params.source,
-	}.timestampMs) ?? '')].filter(Boolean).join(' ') || 'EVM rollup timestamp' : [String((({ ...{
-		$rollup: data.selector,
-		timestampMs: Number(params.timestampMs),
-		source: params.source,
-	}, ...pageSelection.entity }).listingStage) ?? ''), String((({ ...{
-		$rollup: data.selector,
-		timestampMs: Number(params.timestampMs),
-		source: params.source,
-	}, ...pageSelection.entity }).timestampMs) ?? '')].filter(Boolean).join(' ') || 'EVM rollup timestamp'))} • EVM rollup timestamp • Blockhead</title>
+	<title>{(data.title ?? (pageSelection.entity == null ? String(pageSelection.entitySelector.timestampMs ?? '') || 'EVM rollup timestamp' : [(pageSelection.entity.listingStage ?? ''), String(pageSelection.entitySelector.timestampMs)].filter(Boolean).join(' ') || 'EVM rollup timestamp'))} • EVM rollup timestamp • Blockhead</title>
 </svelte:head>
 
 
 <Page>
 	<EvmRollup_TimestampView
-		href={
-			resolve('/network/[network=networkCaip2OrNetworkSlug]/rollup/[projectId=stringSegment]/timestamp/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
-				network: params.network,
-				projectId: params.projectId,
-				timestampMs: params.timestampMs,
-				source: params.source,
-			})
-		}
 		selection={pageSelection}
 	/>
 </Page>

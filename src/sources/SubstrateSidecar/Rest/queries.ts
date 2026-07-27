@@ -6,12 +6,14 @@ import type {
 	SidecarRuntimeMetadata,
 	SidecarStakingValidators,
 } from '$/sources/SubstrateSidecar/Rest/types.ts'
+import bindings from '$/sources/SubstrateSidecar/bindings.ts'
+import { Source } from '$/sources/Source.ts'
+
+const binding = bindings[Source.SubstrateSidecar_Rest]
 
 export const getBlock = ({
-	binding,
 	blockId,
 }: {
-	binding: SourceBinding
 	blockId: bigint | string
 }) => (
 	getJson<SidecarBlock>(
@@ -21,10 +23,8 @@ export const getBlock = ({
 )
 
 export const getAccountBalanceInfo = ({
-	binding,
 	accountId,
 }: {
-	binding: SourceBinding
 	accountId: string
 }) => {
 	if (accountId.length === 0)
@@ -36,14 +36,14 @@ export const getAccountBalanceInfo = ({
 	)
 }
 
-export const getRuntimeMetadata = ({ binding }: { binding: SourceBinding }) => (
+export const getRuntimeMetadata = () => (
 	getJson<SidecarRuntimeMetadata>(
 		binding,
 		'/runtime/metadata'
 	)
 )
 
-export const getStakingValidators = ({ binding }: { binding: SourceBinding }) => (
+export const getStakingValidators = () => (
 	getJson<SidecarStakingValidators>(
 		binding,
 		'/pallets/staking/validators'

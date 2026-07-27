@@ -11,8 +11,18 @@ import {
 	entityFieldAddressKey,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import { HyperliquidAccountSelector } from '$/schema/HyperliquidAccount.ts'
+import bindings from '$/sources/Hyperliquid/bindings.ts'
 import { Source } from '$/sources/Source.ts'
+import {
+	ApiFamily,
+	SourceArtifactKind,
+	SourceCredentialScope,
+	SourceDelivery,
+	SourceEndpointKind,
+	SourceOperationGroup,
+	SourceTargetKind,
+	WireProtocol,
+} from '$/sources/SourceBinding.ts'
 
 const corsFetch = vi.hoisted(() => vi.fn())
 
@@ -22,6 +32,8 @@ vi.mock('$/lib/http.ts', () => ({
 }))
 
 const { default: hyperliquid } = await import('$/resolvers/Hyperliquid-Rest.ts')
+
+const binding = bindings[Source.Hyperliquid_Rest]
 
 const account = {
 	$network: {
@@ -96,10 +108,38 @@ describe('Hyperliquid public account resolvers', () => {
 		})
 	})
 
+	it('selects the exact canonical Hyperliquid mainnet REST binding', () => {
+		expect(binding).toEqual(expect.objectContaining({
+			source: Source.Hyperliquid_Rest,
+		target: {
+			kind: SourceTargetKind.NetworkSlug,
+			key: 'hyperliquid',
+		},
+			endpoints: [{
+				endpointKind: SourceEndpointKind.HttpUrl,
+				locator: 'https://api.hyperliquid.xyz/info',
+				origin: 'https://api.hyperliquid.xyz',
+				corsEnabled: true,
+			}],
+			wireProtocol: WireProtocol.HttpRest,
+			apiFamily: ApiFamily.RestJson,
+			operationGroups: [SourceOperationGroup.GenericRead],
+			delivery: SourceDelivery.BrowserDirect,
+			credentials: [{
+				scope: SourceCredentialScope.None,
+			}],
+			artifacts: [{
+				kind: SourceArtifactKind.HandwrittenTypes,
+				path: 'src/sources/Hyperliquid/Rest/types.ts',
+				generated: false,
+			}],
+		}))
+	})
+
 	it('materializes one source-timestamped perp and spot portfolio observation', async () => {
 		expect(accountResolvers).toHaveLength(4)
 		const snapshot = await accountPortfolioResolver.resolve[
-			HyperliquidAccountSelector.NetworkAddress
+			'NetworkAddress'
 		].resolve(account, context)
 		const timestamps = accountPortfolioResolver.projections.$$timestamps(snapshot)
 
@@ -146,7 +186,7 @@ describe('Hyperliquid public account resolvers', () => {
 		}))
 
 		const page = await ordersResolver.resolve[
-			HyperliquidAccountSelector.NetworkAddress
+			'NetworkAddress'
 		].resolve(account, context)
 		const orders = ordersResolver.projections.$$orders.select(page, account, context)
 
@@ -201,7 +241,7 @@ describe('Hyperliquid public account resolvers', () => {
 		}))
 
 		const page = await fillsResolver.resolve[
-			HyperliquidAccountSelector.NetworkAddress
+			'NetworkAddress'
 		].resolve(account, context)
 		const fills = fillsResolver.projections.$$fills.select(page, account, context)
 
@@ -230,7 +270,7 @@ describe('Hyperliquid public account resolvers', () => {
 		}))
 
 		const snapshot = await vaultEquitiesResolver.resolve[
-			HyperliquidAccountSelector.NetworkAddress
+			'NetworkAddress'
 		].resolve(account, context)
 		const equities = vaultEquitiesResolver.projections.$$vaultEquities(snapshot, account, context)
 
@@ -252,7 +292,7 @@ describe('Hyperliquid public account resolvers', () => {
 
 	it('rejects invalid addresses and lossy public identifiers before materialization', async () => {
 		await expect(accountPortfolioResolver.resolve[
-			HyperliquidAccountSelector.NetworkAddress
+			'NetworkAddress'
 		].resolve({
 			...account,
 			address: 'not-an-address',
@@ -283,7 +323,7 @@ describe('Hyperliquid public account resolvers', () => {
 			}],
 		}))
 		await expect(ordersResolver.resolve[
-			HyperliquidAccountSelector.NetworkAddress
+			'NetworkAddress'
 		].resolve(account, context)).rejects.toThrow('invalid order id')
 	})
 })

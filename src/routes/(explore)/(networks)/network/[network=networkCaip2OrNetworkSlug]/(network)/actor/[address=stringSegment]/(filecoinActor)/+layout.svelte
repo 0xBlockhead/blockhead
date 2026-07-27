@@ -30,24 +30,30 @@
 {#key [params.network, params.address].join(':')}
 	<ParentPageCollapsible
 		href={
-			resolve('/network/[network=networkCaip2OrNetworkSlug]/actor/[address=stringSegment]', {
-				network: params.network,
-				address: params.address,
-			})
+			resolve(
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/actor/[address=stringSegment]',
+				{
+					network: String(params.network),
+					address: String(params.address),
+				}
+			)
 		}
 	>
 		{#snippet Summary()}
-			{@const DetailView = FilecoinActorView}
-
-			<DetailView
-				selection={select(EntityType.FilecoinActor, data.selector, { sources: [
-		Source.Lotus_JsonRpc,
-	] })}
+			<FilecoinActorView
+				selection={
+					select(EntityType.FilecoinActor, data.selector, { sources: [
+						Source.Lotus_JsonRpc,
+					] })
+				}
 				href={
-					resolve('/network/[network=networkCaip2OrNetworkSlug]/actor/[address=stringSegment]', {
-						network: params.network,
-						address: params.address,
-					})
+					resolve(
+						'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/actor/[address=stringSegment]',
+						{
+							network: String(params.network),
+							address: String(params.address),
+						}
+					)
 				}
 				layout={EntityLayout.SummaryInline}
 			/>

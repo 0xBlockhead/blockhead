@@ -2,15 +2,9 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
-	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -22,40 +16,18 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.PolkadotValidator_Era>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.PolkadotValidator_Era>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.PolkadotValidator_Era> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const polkadotValidatorEra = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {
-			active: true,
-		},
-	} : {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const polkadotValidatorEra = $derived(selection({
 		fields: {
 			active: true,
 		},
 	}))
-	const titleFallback = $derived([String((pendingEntity.eraIndex) ?? '')].filter(Boolean).join(' ') || 'polkadot validator era')
-	const viewDomId = $derived('polkadot-validator-era-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const titleFallback = $derived(String(pendingEntity.eraIndex ?? '') || 'polkadot validator era')
 
 
 	// Components
@@ -67,61 +39,28 @@
 
 <EntityView
 	entityType={EntityType.PolkadotValidator_Era}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'active')}
-			{[String((pendingEntity.eraIndex) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-		{:else}
-			<ResourceBoundary resource={polkadotValidatorEra}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.eraIndex) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		{String(pendingEntity.eraIndex ?? '') || 'polkadot validator era'}
 	{/snippet}
 
 	{#snippet Value()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'active')}
-			{[String((pendingEntity.active) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.eraIndex) ?? '')].filter(Boolean).join(' ') || titleFallback}
-		{:else}
-			<ResourceBoundary resource={polkadotValidatorEra}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.active) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.eraIndex) ?? '')].filter(Boolean).join(' ') || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={polkadotValidatorEra}>
+			{#snippet children(entity)}
+				{String(entity.active ?? '') || String(pendingEntity.eraIndex) || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'active')}
-			{@const source0 = pendingEntity.source}
-			{#if source0 !== undefined && source0 !== null}
-				<span data-text="muted">
-					{String((source0) ?? '')}
-				</span>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={polkadotValidatorEra}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const source0 = resolvedEntity.source}
-					{#if source0 !== undefined && source0 !== null}
-						<span data-text="muted">
-							{String((source0) ?? '')}
-						</span>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<span data-text="muted">
+			{pendingEntity.source}
+		</span>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -140,48 +79,14 @@
 			<div>
 				<dt>era index</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									eraIndex: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const eraIndex = resolvedEntity.eraIndex}
-							{#if eraIndex !== undefined && eraIndex !== null}
-								{String((eraIndex) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{String(pendingEntity.eraIndex)}
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									source: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const source = resolvedEntity.source}
-							{#if source !== undefined && source !== null}
-								{String((source) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{pendingEntity.source}
 				</dd>
 			</div>
 
@@ -189,37 +94,13 @@
 				resource={selection.$controller}
 			>
 				{#snippet children(polkadotAccount)}
-					{#if polkadotAccount != null && polkadotAccount[EntityMetaKey.Selector] != null}
+					{#if polkadotAccount != null}
 						<div>
 							<dt>controller</dt>
 							<dd>
 								<PolkadotAccountView
 									selection={select(EntityType.PolkadotAccount, polkadotAccount[EntityMetaKey.Selector])}
 									prefetched={polkadotAccount}
-									href={
-										(
-											polkadotAccount[EntityMetaKey.Selector] != null && 'accountId' in polkadotAccount[EntityMetaKey.Selector]
-											&& polkadotAccount[EntityMetaKey.Selector].accountId != null
-											&& polkadotAccount[EntityMetaKey.Selector] != null && '$network' in polkadotAccount[EntityMetaKey.Selector] ?
-												polkadotAccount[EntityMetaKey.Selector].$network != null && 'caip2' in polkadotAccount[EntityMetaKey.Selector].$network
-												&& polkadotAccount[EntityMetaKey.Selector].$network.caip2 != null ?
-													resolve('/network/[network=networkCaip2OrNetworkSlug]/account/[accountId=polkadotAccountIdOrStringSegmentOrEvmAddressOrSolanaPubkey]', {
-												accountId: String(polkadotAccount[EntityMetaKey.Selector].accountId ?? ''),
-												network: String(caip2StringFromValue(polkadotAccount[EntityMetaKey.Selector].$network.caip2) ?? ''),
-											})
-											:
-													polkadotAccount[EntityMetaKey.Selector].$network != null && 'slug' in polkadotAccount[EntityMetaKey.Selector].$network
-													&& polkadotAccount[EntityMetaKey.Selector].$network.slug != null ?
-														resolve('/network/[network=networkCaip2OrNetworkSlug]/account/[accountId=polkadotAccountIdOrStringSegmentOrEvmAddressOrSolanaPubkey]', {
-													accountId: String(polkadotAccount[EntityMetaKey.Selector].accountId ?? ''),
-													network: String(polkadotAccount[EntityMetaKey.Selector].$network.slug ?? ''),
-												})
-												:
-													undefined
-										:
-												undefined
-										)
-									}
 									layout={EntityLayout.Value}
 									open={false}
 								/>
@@ -230,19 +111,11 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							active: true,
-						},
-					})
-				}
+				resource={polkadotValidatorEra}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const active = resolvedEntity.active}
-					{#if active !== undefined && active !== null}
+					{@const active = entity.active}
+					{#if active != null}
 						<div>
 							<dt>active</dt>
 							<dd>
@@ -256,7 +129,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							slashed: true,
 						},
@@ -264,9 +136,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const slashed = resolvedEntity.slashed}
-					{#if slashed !== undefined && slashed !== null}
+					{@const slashed = entity.slashed}
+					{#if slashed != null}
 						<div>
 							<dt>slashed</dt>
 							<dd>
@@ -282,7 +153,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							commissionPerBillion: true,
 						},
@@ -290,13 +160,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const commissionPerBillion = resolvedEntity.commissionPerBillion}
-					{#if commissionPerBillion !== undefined && commissionPerBillion !== null}
+					{@const commissionPerBillion = entity.commissionPerBillion}
+					{#if commissionPerBillion != null}
 						<div>
 							<dt>commission per billion</dt>
 							<dd>
-								{String((commissionPerBillion) ?? '')}
+								{String(commissionPerBillion)}
 							</dd>
 						</div>
 					{/if}
@@ -306,7 +175,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							totalStakePlancks: true,
 						},
@@ -314,13 +182,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const totalStakePlancks = resolvedEntity.totalStakePlancks}
-					{#if totalStakePlancks !== undefined && totalStakePlancks !== null}
+					{@const totalStakePlancks = entity.totalStakePlancks}
+					{#if totalStakePlancks != null}
 						<div>
 							<dt>total stake plancks</dt>
 							<dd>
-								{String((totalStakePlancks) ?? '')}
+								{String(totalStakePlancks)}
 							</dd>
 						</div>
 					{/if}
@@ -330,7 +197,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							ownStakePlancks: true,
 						},
@@ -338,13 +204,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const ownStakePlancks = resolvedEntity.ownStakePlancks}
-					{#if ownStakePlancks !== undefined && ownStakePlancks !== null}
+					{@const ownStakePlancks = entity.ownStakePlancks}
+					{#if ownStakePlancks != null}
 						<div>
 							<dt>own stake plancks</dt>
 							<dd>
-								{String((ownStakePlancks) ?? '')}
+								{String(ownStakePlancks)}
 							</dd>
 						</div>
 					{/if}
@@ -354,7 +219,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							nominatorStakePlancks: true,
 						},
@@ -362,13 +226,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const nominatorStakePlancks = resolvedEntity.nominatorStakePlancks}
-					{#if nominatorStakePlancks !== undefined && nominatorStakePlancks !== null}
+					{@const nominatorStakePlancks = entity.nominatorStakePlancks}
+					{#if nominatorStakePlancks != null}
 						<div>
 							<dt>nominator stake plancks</dt>
 							<dd>
-								{String((nominatorStakePlancks) ?? '')}
+								{String(nominatorStakePlancks)}
 							</dd>
 						</div>
 					{/if}
@@ -378,7 +241,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							nominatorCount: true,
 						},
@@ -386,13 +248,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const nominatorCount = resolvedEntity.nominatorCount}
-					{#if nominatorCount !== undefined && nominatorCount !== null}
+					{@const nominatorCount = entity.nominatorCount}
+					{#if nominatorCount != null}
 						<div>
 							<dt>nominator count</dt>
 							<dd>
-								{String((nominatorCount) ?? '')}
+								{String(nominatorCount)}
 							</dd>
 						</div>
 					{/if}
@@ -402,7 +263,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							rewardPoints: true,
 						},
@@ -410,13 +270,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const rewardPoints = resolvedEntity.rewardPoints}
-					{#if rewardPoints !== undefined && rewardPoints !== null}
+					{@const rewardPoints = entity.rewardPoints}
+					{#if rewardPoints != null}
 						<div>
 							<dt>reward points</dt>
 							<dd>
-								{String((rewardPoints) ?? '')}
+								{String(rewardPoints)}
 							</dd>
 						</div>
 					{/if}

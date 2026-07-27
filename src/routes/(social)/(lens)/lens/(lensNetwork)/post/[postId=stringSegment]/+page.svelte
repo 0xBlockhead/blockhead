@@ -8,14 +8,12 @@
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		data,
-		params,
 	}: PageProps = $props()
 
 	const pageSelection = $derived(select(EntityType.LensPost, data.selector, {
@@ -45,17 +43,12 @@
 
 
 <svelte:head>
-	<title>{(data.title ?? (pageSelection.entity == null ? [String((data.selector.id) ?? '')].filter(Boolean).join(' ') || 'Lens post' : [String((({ ...data.selector, ...pageSelection.entity }).text) ?? ''), String((({ ...data.selector, ...pageSelection.entity }).id) ?? '')].filter(Boolean).join(' ') || 'Lens post'))} • Lens post • Blockhead</title>
+	<title>{(data.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.id ?? '') || 'Lens post' : [(pageSelection.entity.text ?? ''), pageSelection.entitySelector.id].filter(Boolean).join(' ') || 'Lens post'))} • Lens post • Blockhead</title>
 </svelte:head>
 
 
 <Page>
 	<LensPostView
-		href={
-			resolve('/lens/post/[postId=stringSegment]', {
-				postId: params.postId,
-			})
-		}
 		selection={pageSelection}
 	/>
 </Page>

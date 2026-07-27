@@ -2,12 +2,11 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
@@ -23,31 +22,15 @@
 
 
 <Page>
+	{@const collectionSelection = select(EntityType._Global, {
+		scope: '$$networkUpgrades',
+	}).$$networkUpgrades}
+
 	<EthereumNetworkUpgradesView
 		href={resolve('/upgrades')}
 		title='Upgrades'
-		selection={
-			select(EntityType._Global, {
-				scope: '$$networkUpgrades',
-			})
-				.$$networkUpgrades({
-					sources: [
-						Source.Constants_Internal,
-					],
-					limit: 512,
-				})
-		}
-		countResource={
-			select(EntityType._Global, {
-				scope: '$$networkUpgrades',
-			})
-				.$$networkUpgrades({
-					sources: [
-						Source.Constants_Internal,
-					],
-					limit: 512,
-				}).count
-		}
+		selection={collectionSelection}
+		countResource={collectionSelection.count}
 		id='network-upgrades'
 		data-column-item="flexible"
 		data-card

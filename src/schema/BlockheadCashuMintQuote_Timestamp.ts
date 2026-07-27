@@ -1,14 +1,11 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { entity, facet } from '$/schema/$schema.ts'
+import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { type } from 'arktype'
 
-export enum BlockheadCashuMintQuote_TimestampSelector {
-	MintQuoteTimestampMsSource = 'MintQuoteTimestampMsSource',
-}
-export const BlockheadCashuMintQuote_Timestamp = entity({
+export default entity({
 	entityType: EntityType.BlockheadCashuMintQuote_Timestamp,
 	labels: {
 		singular: 'blockhead Cashu mint quote timestamp',

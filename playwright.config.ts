@@ -35,8 +35,6 @@ export default defineConfig({
 	testMatch: '**/*.e2e.{ts,js}',
 	testIgnore: [
 		'**/src/schema_/**',
-		'**/src/views_/**',
-		'**/src/views__/**',
 		'**/src/routes_/**',
 		'**/src/sources_/**',
 		'**/src/resolvers_/**',

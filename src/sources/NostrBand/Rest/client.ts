@@ -1,13 +1,11 @@
-import { sourceProviderDefinitions } from '$/sources/$sourceProviders.ts'
-import { nostrBandApiBaseUrl } from '$/sources/NostrBand/Rest/constants.ts'
-import { sourceGetJson } from '$/sources/_runtime/http.ts'
+import {
+	firstHttpUrlForBinding,
+	sourceGetJson,
+} from '$/sources/_runtime/http.ts'
+import bindings from '$/sources/NostrBand/bindings.ts'
 import { Source } from '$/sources/Source.ts'
 
-const nostrBandBinding = sourceProviderDefinitions
-	.flatMap((provider) => provider.bindings)
-	.find(({ source }) => source === Source.NostrBand_Rest)
-if (nostrBandBinding == null)
-	throw new Error('NostrBand_Rest: source binding is missing')
+const binding = bindings[Source.NostrBand_Rest]
 
 const toQuery = (params: Record<string, string | number | undefined>) => {
 	const searchParams = new URLSearchParams()
@@ -24,7 +22,7 @@ export const nostrBandGet = async <T>(
 	params?: Record<string, string | number | undefined>
 ): Promise<T> => (
 	sourceGetJson<T>(
-		nostrBandBinding,
-		`${nostrBandApiBaseUrl}${path.startsWith('/') ? path : `/${path}`}${toQuery(params ?? {})}`
+		binding,
+		`${firstHttpUrlForBinding(binding)}/v0${path.startsWith('/') ? path : `/${path}`}${toQuery(params ?? {})}`
 	)
 )

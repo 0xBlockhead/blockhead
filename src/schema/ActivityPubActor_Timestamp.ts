@@ -1,14 +1,11 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { entity, facet } from '$/schema/$schema.ts'
+import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { type } from 'arktype'
 
-export enum ActivityPubActor_TimestampSelector {
-	ActivityPubActorTimestampMsSource = 'ActivityPubActorTimestampMsSource',
-}
-export const ActivityPubActor_Timestamp = entity({
+export default entity({
 	entityType: EntityType.ActivityPubActor_Timestamp,
 	labels: {
 		singular: 'ActivityPub actor observation',
@@ -24,7 +21,7 @@ export const ActivityPubActor_Timestamp = entity({
 	timestampMs: {
 		label: 'Timestamp',
 		type: EntityFieldType.Primitive,
-		primitiveType: (type('number.integer >= 0')),
+		primitiveType: type('number.integer >= 0'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	source: {

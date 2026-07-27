@@ -2,13 +2,8 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
 	import { EvmAddress } from '$/schema/ZeroExHex.ts'
 
 
@@ -21,42 +16,19 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.OracleFeed_Timestamp>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.OracleFeed_Timestamp>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.OracleFeed_Timestamp> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const oracleFeedTimestamp = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {
-			description: true,
-			latestRoundId: true,
-		},
-	} : {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const oracleFeedTimestamp = $derived(selection({
 		fields: {
 			description: true,
 			latestRoundId: true,
 		},
 	}))
-	const titleFallback = $derived([String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || 'oracle feed timestamp')
-	const viewDomId = $derived('oracle-feed-timestamp-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const titleFallback = $derived(String(pendingEntity.timestampMs ?? '') || 'oracle feed timestamp')
 
 
 	// Components
@@ -70,67 +42,28 @@
 
 <EntityView
 	entityType={EntityType.OracleFeed_Timestamp}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'description') && Object.hasOwn(prefetched, 'latestRoundId')}
-			{@const timestampMs0 = pendingEntity.timestampMs}
-			{#if timestampMs0 !== undefined && timestampMs0 !== null}
-				<Timestamp timestamp={Number(timestampMs0)} />
-			{/if}
-		{:else}
-			<ResourceBoundary resource={oracleFeedTimestamp}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const timestampMs0 = resolvedEntity.timestampMs}
-					{#if timestampMs0 !== undefined && timestampMs0 !== null}
-						<Timestamp timestamp={Number(timestampMs0)} />
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
 	{/snippet}
 
 	{#snippet Value()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'description') && Object.hasOwn(prefetched, 'latestRoundId')}
-			{[String((pendingEntity.description) ?? ''), String((pendingEntity.latestRoundId) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || titleFallback}
-		{:else}
-			<ResourceBoundary resource={oracleFeedTimestamp}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.description) ?? ''), String((resolvedEntity.latestRoundId) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={oracleFeedTimestamp}>
+			{#snippet children(entity)}
+				{[(entity.description ?? ''), String(entity.latestRoundId ?? '')].filter(Boolean).join(' ') || String(pendingEntity.timestampMs) || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'description') && Object.hasOwn(prefetched, 'latestRoundId')}
-			{@const source0 = pendingEntity.source}
-			{#if source0 !== undefined && source0 !== null}
-				<span data-text="muted">
-					{String((source0) ?? '')}
-				</span>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={oracleFeedTimestamp}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const source0 = resolvedEntity.source}
-					{#if source0 !== undefined && source0 !== null}
-						<span data-text="muted">
-							{String((source0) ?? '')}
-						</span>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<span data-text="muted">
+			{pendingEntity.source}
+		</span>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -149,71 +82,29 @@
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									timestampMs: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const timestampMs = resolvedEntity.timestampMs}
-							{#if timestampMs !== undefined && timestampMs !== null}
-								<Timestamp timestamp={Number(timestampMs)} />
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									source: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const source = resolvedEntity.source}
-							{#if source !== undefined && source !== null}
-								{String((source) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{pendingEntity.source}
 				</dd>
 			</div>
 		</dl>
 
 		<dl data-column-item="center">
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							description: true,
-						},
-					})
-				}
+				resource={oracleFeedTimestamp}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const description = resolvedEntity.description}
-					{#if description !== undefined && description !== null}
+					{@const description = entity.description}
+					{#if description != null}
 						<div>
 							<dt>Description</dt>
 							<dd>
-								{String((description) ?? '')}
+								{description}
 							</dd>
 						</div>
 					{/if}
@@ -223,7 +114,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							decimals: true,
 						},
@@ -231,9 +121,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const decimals = resolvedEntity.decimals}
-					{#if decimals !== undefined && decimals !== null}
+					{@const decimals = entity.decimals}
+					{#if decimals != null}
 						<div>
 							<dt>Decimals</dt>
 							<dd>
@@ -249,7 +138,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							version: true,
 						},
@@ -257,9 +145,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const version = resolvedEntity.version}
-					{#if version !== undefined && version !== null}
+					{@const version = entity.version}
+					{#if version != null}
 						<div>
 							<dt>version</dt>
 							<dd>
@@ -275,7 +162,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							typeAndVersion: true,
 						},
@@ -283,13 +169,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const typeAndVersion = resolvedEntity.typeAndVersion}
-					{#if typeAndVersion !== undefined && typeAndVersion !== null}
+					{@const typeAndVersion = entity.typeAndVersion}
+					{#if typeAndVersion != null}
 						<div>
 							<dt>type and version</dt>
 							<dd>
-								{String((typeAndVersion) ?? '')}
+								{typeAndVersion}
 							</dd>
 						</div>
 					{/if}
@@ -301,7 +186,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							aggregatorAddress: true,
 						},
@@ -309,13 +193,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const aggregatorAddress = resolvedEntity.aggregatorAddress}
-					{#if aggregatorAddress !== undefined && aggregatorAddress !== null}
+					{@const aggregatorAddress = entity.aggregatorAddress}
+					{#if aggregatorAddress != null}
 						<div>
 							<dt>aggregator address</dt>
 							<dd>
-								<TruncatedValue value={String((aggregatorAddress) ?? '')} />
+								<TruncatedValue value={String(aggregatorAddress)} />
 							</dd>
 						</div>
 					{/if}
@@ -323,19 +206,11 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							latestRoundId: true,
-						},
-					})
-				}
+				resource={oracleFeedTimestamp}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const latestRoundId = resolvedEntity.latestRoundId}
-					{#if latestRoundId !== undefined && latestRoundId !== null}
+					{@const latestRoundId = entity.latestRoundId}
+					{#if latestRoundId != null}
 						<div>
 							<dt>latest round ID</dt>
 							<dd>
@@ -351,7 +226,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							latestUpdatedAtMs: true,
 						},
@@ -359,9 +233,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const latestUpdatedAtMs = resolvedEntity.latestUpdatedAtMs}
-					{#if latestUpdatedAtMs !== undefined && latestUpdatedAtMs !== null}
+					{@const latestUpdatedAtMs = entity.latestUpdatedAtMs}
+					{#if latestUpdatedAtMs != null}
 						<div>
 							<dt>latest updated AT ms</dt>
 							<dd>
@@ -377,7 +250,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							configDigest: true,
 						},
@@ -385,13 +257,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const configDigest = resolvedEntity.configDigest}
-					{#if configDigest !== undefined && configDigest !== null}
+					{@const configDigest = entity.configDigest}
+					{#if configDigest != null}
 						<div>
 							<dt>config digest</dt>
 							<dd>
-								<TruncatedValue value={String((configDigest) ?? '')} />
+								<TruncatedValue value={configDigest} />
 							</dd>
 						</div>
 					{/if}
@@ -401,7 +272,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							configBlockNumber: true,
 						},
@@ -409,9 +279,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const configBlockNumber = resolvedEntity.configBlockNumber}
-					{#if configBlockNumber !== undefined && configBlockNumber !== null}
+					{@const configBlockNumber = entity.configBlockNumber}
+					{#if configBlockNumber != null}
 						<div>
 							<dt>config block number</dt>
 							<dd>

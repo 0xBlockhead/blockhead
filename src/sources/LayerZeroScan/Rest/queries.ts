@@ -1,19 +1,13 @@
-import { Source } from '$/sources/Source.ts'
-import type { SourceBinding } from '$/sources/SourceBinding.ts'
 import { getJson } from '$/sources/_shared/wire/HttpRest/client.ts'
 import type {
 	LayerZeroMessage,
 	LayerZeroMessagesResponse,
 	LayerZeroScanObservation,
 } from '$/sources/LayerZeroScan/Rest/types.ts'
+import type { SourceBinding } from '$/sources/SourceBinding.ts'
 
 const guidPattern = /^0x[0-9a-fA-F]{64}$/
 const integerStringPattern = /^(?:0|[1-9]\d*)$/
-
-const assertBinding = (binding: SourceBinding) => {
-	if (binding.source !== Source.LayerZeroScan_Rest)
-		throw new Error('LayerZeroScan_Rest: incorrect source binding')
-}
 
 const assertEndpointId = (endpointId: number) => {
 	if (!Number.isSafeInteger(endpointId) || endpointId < 1)
@@ -83,7 +77,6 @@ const observe = async (
 	path: string,
 	limit?: number
 ): Promise<LayerZeroScanObservation> => {
-	assertBinding(binding)
 	const response = await getJson<LayerZeroMessagesResponse>(binding, path)
 	if (limit != null && response.data.length > limit)
 		throw new Error('LayerZeroScan_Rest: response exceeds requested limit')

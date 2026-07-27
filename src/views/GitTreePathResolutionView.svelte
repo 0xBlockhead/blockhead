@@ -2,13 +2,8 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
 	import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 
 
@@ -21,40 +16,18 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.GitTreePathResolution>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.GitTreePathResolution>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.GitTreePathResolution> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const gitTreePathResolution = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {
-			status: true,
-		},
-	} : {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const gitTreePathResolution = $derived(selection({
 		fields: {
 			status: true,
 		},
 	}))
-	const titleFallback = $derived([String((pendingEntity.path) ?? '')].filter(Boolean).join(' ') || 'Git tree path resolution')
-	const viewDomId = $derived('git-tree-path-resolution-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const titleFallback = $derived((pendingEntity.path ?? '') || 'Git tree path resolution')
 
 
 	// Components
@@ -66,61 +39,28 @@
 
 <EntityView
 	entityType={EntityType.GitTreePathResolution}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'status')}
-			{[String((pendingEntity.path) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-		{:else}
-			<ResourceBoundary resource={gitTreePathResolution}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.path) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		{(pendingEntity.path ?? '') || 'Git tree path resolution'}
 	{/snippet}
 
 	{#snippet Value()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'status')}
-			{[String((pendingEntity.status) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.path) ?? '')].filter(Boolean).join(' ') || titleFallback}
-		{:else}
-			<ResourceBoundary resource={gitTreePathResolution}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.status) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.path) ?? '')].filter(Boolean).join(' ') || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={gitTreePathResolution}>
+			{#snippet children(entity)}
+				{entity.status || pendingEntity.path || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'status')}
-			{@const commitObjectId0 = pendingEntity.commitObjectId}
-			{#if commitObjectId0 !== undefined && commitObjectId0 !== null}
-				<span data-text="muted">
-					<TruncatedValue value={String((commitObjectId0) ?? '')} />
-				</span>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={gitTreePathResolution}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const commitObjectId0 = resolvedEntity.commitObjectId}
-					{#if commitObjectId0 !== undefined && commitObjectId0 !== null}
-						<span data-text="muted">
-							<TruncatedValue value={String((commitObjectId0) ?? '')} />
-						</span>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<span data-text="muted">
+			<TruncatedValue value={String(pendingEntity.commitObjectId)} />
+		</span>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -139,48 +79,14 @@
 			<div>
 				<dt>commit object ID</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									commitObjectId: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const commitObjectId = resolvedEntity.commitObjectId}
-							{#if commitObjectId !== undefined && commitObjectId !== null}
-								<TruncatedValue value={String((commitObjectId) ?? '')} />
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					<TruncatedValue value={String(pendingEntity.commitObjectId)} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>path</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									path: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const path = resolvedEntity.path}
-							{#if path !== undefined && path !== null}
-								{String((path) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{pendingEntity.path}
 				</dd>
 			</div>
 
@@ -190,7 +96,6 @@
 					<ResourceBoundary
 						resource={
 							selection({
-								sources: selection.sources,
 								fields: {
 									treeObjectIds: true,
 								},
@@ -198,11 +103,7 @@
 						}
 					>
 						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const treeObjectIds = resolvedEntity.treeObjectIds}
-							{#if treeObjectIds !== undefined && treeObjectIds !== null}
-								{treeObjectIds.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')}
-							{/if}
+							{entity.treeObjectIds.values.join(', ')}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -211,7 +112,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							blobObjectId: true,
 						},
@@ -219,13 +119,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const blobObjectId = resolvedEntity.blobObjectId}
-					{#if blobObjectId !== undefined && blobObjectId !== null}
+					{@const blobObjectId = entity.blobObjectId}
+					{#if blobObjectId != null}
 						<div>
 							<dt>blob object ID</dt>
 							<dd>
-								<TruncatedValue value={String((blobObjectId) ?? '')} />
+								<TruncatedValue value={String(blobObjectId)} />
 							</dd>
 						</div>
 					{/if}
@@ -235,7 +134,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							submoduleCommitId: true,
 						},
@@ -243,13 +141,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const submoduleCommitId = resolvedEntity.submoduleCommitId}
-					{#if submoduleCommitId !== undefined && submoduleCommitId !== null}
+					{@const submoduleCommitId = entity.submoduleCommitId}
+					{#if submoduleCommitId != null}
 						<div>
 							<dt>submodule commit ID</dt>
 							<dd>
-								<TruncatedValue value={String((submoduleCommitId) ?? '')} />
+								<TruncatedValue value={String(submoduleCommitId)} />
 							</dd>
 						</div>
 					{/if}
@@ -260,21 +157,10 @@
 				<dt>status</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									status: true,
-								},
-							})
-						}
+						resource={gitTreePathResolution}
 					>
 						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const status = resolvedEntity.status}
-							{#if status !== undefined && status !== null}
-								{String((status) ?? '')}
-							{/if}
+							{entity.status}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>

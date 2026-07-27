@@ -30,36 +30,42 @@
 {#key [params.fromChainId, params.toChainId, params.fromToken, params.toToken, params.fromAmount, params.fromAddress, params.slippage, params.toAddress].join(':')}
 	<ParentPageCollapsible
 		href={
-			resolve('/bridge/route/[fromChainId=nonNegativeInteger]/[toChainId=nonNegativeInteger]/[fromToken=stringSegment]/[toToken=stringSegment]/[fromAmount=nonNegativeBigInt]/[fromAddress=evmAddress]/[slippage=nonNegativeNumber]/[toAddress=evmAddress]', {
-				fromChainId: params.fromChainId,
-				toChainId: params.toChainId,
-				fromToken: params.fromToken,
-				toToken: params.toToken,
-				fromAmount: params.fromAmount,
-				fromAddress: params.fromAddress,
-				slippage: params.slippage,
-				toAddress: params.toAddress,
-			})
+			resolve(
+				'/bridge/route/[fromChainId=nonNegativeInteger]/[toChainId=nonNegativeInteger]/[fromToken=stringSegment]/[toToken=stringSegment]/[fromAmount=nonNegativeBigInt]/[fromAddress=evmAddress]/[slippage=nonNegativeNumber]/[toAddress=evmAddress]',
+				{
+					fromChainId: String(params.fromChainId),
+					toChainId: String(params.toChainId),
+					fromToken: String(params.fromToken),
+					toToken: String(params.toToken),
+					fromAmount: String(params.fromAmount),
+					fromAddress: String(params.fromAddress),
+					slippage: String(params.slippage),
+					toAddress: String(params.toAddress),
+				}
+			)
 		}
 	>
 		{#snippet Summary()}
-			{@const DetailView = BridgeRouteView}
-
-			<DetailView
-				selection={select(EntityType.BridgeRoute, data.selector, { sources: [
-		Source.Lifi_Rest,
-	] })}
+			<BridgeRouteView
+				selection={
+					select(EntityType.BridgeRoute, data.selector, { sources: [
+						Source.Lifi_Rest,
+					] })
+				}
 				href={
-					resolve('/bridge/route/[fromChainId=nonNegativeInteger]/[toChainId=nonNegativeInteger]/[fromToken=stringSegment]/[toToken=stringSegment]/[fromAmount=nonNegativeBigInt]/[fromAddress=evmAddress]/[slippage=nonNegativeNumber]/[toAddress=evmAddress]', {
-						fromChainId: params.fromChainId,
-						toChainId: params.toChainId,
-						fromToken: params.fromToken,
-						toToken: params.toToken,
-						fromAmount: params.fromAmount,
-						fromAddress: params.fromAddress,
-						slippage: params.slippage,
-						toAddress: params.toAddress,
-					})
+					resolve(
+						'/bridge/route/[fromChainId=nonNegativeInteger]/[toChainId=nonNegativeInteger]/[fromToken=stringSegment]/[toToken=stringSegment]/[fromAmount=nonNegativeBigInt]/[fromAddress=evmAddress]/[slippage=nonNegativeNumber]/[toAddress=evmAddress]',
+						{
+							fromChainId: String(params.fromChainId),
+							toChainId: String(params.toChainId),
+							fromToken: String(params.fromToken),
+							toToken: String(params.toToken),
+							fromAmount: String(params.fromAmount),
+							fromAddress: String(params.fromAddress),
+							slippage: String(params.slippage),
+							toAddress: String(params.toAddress),
+						}
+					)
 				}
 				layout={EntityLayout.SummaryInline}
 			/>

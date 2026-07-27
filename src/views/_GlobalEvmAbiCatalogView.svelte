@@ -2,15 +2,10 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { stringify } from 'devalue'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// State
@@ -18,35 +13,14 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType._GlobalEvmAbiCatalog>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType._GlobalEvmAbiCatalog>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType._GlobalEvmAbiCatalog> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const globalEvmAbiCatalog = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {},
-	} : {
-		sources: selection.sources,
-	}))
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const titleFallback = 'global EVM ABI catalog'
-	const viewDomId = $derived('-global-evm-abi-catalog-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const viewDomId = $derived('-global-evm-abi-catalog-' + encodeURIComponent(stringify(selection.entitySelector)))
 
 
 	// Components
@@ -62,398 +36,132 @@
 
 <EntityView
 	entityType={EntityType._GlobalEvmAbiCatalog}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
+	entitySelector={selection.entitySelector}
 	id={viewDomId}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails}
-			{title || titleFallback}
-		{:else}
-			<ResourceBoundary resource={globalEvmAbiCatalog}>
-				{#snippet children(entity)}
-					{title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		global EVM ABI catalog
 	{/snippet}
 
 	{#snippet Value()}
-		{#if layout !== EntityLayout.SummaryDetails}
-			{[String((pendingEntity.scope) ?? '')].filter(Boolean).join(' ') || titleFallback}
-		{:else}
-			<ResourceBoundary resource={globalEvmAbiCatalog}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.scope) ?? '')].filter(Boolean).join(' ') || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		{(pendingEntity.scope ?? '') || titleFallback}
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-				<CollapsibleTabs
-					id={viewDomId + '-carousel-evm-abi-signatures'}
-					sectionIdPrefix={viewDomId}
-					sections={
-						[
-							{
-								id: 'evm-abi-selectors',
-								label: 'Selectors',
-								ownsSection: true,
-							},
-							{
-								id: 'evm-abi-topics',
-								label: 'Topics',
-								ownsSection: true,
-							},
-							{
-								id: 'evm-abi-errors',
-								label: 'Errors',
-								ownsSection: true,
-							},
-						]
-					}
+		<CollapsibleTabs
+			id={viewDomId + '-carousel-evm-abi-signatures'}
+			sectionIdPrefix={viewDomId}
+			sections={
+				[
+					{
+						id: 'evm-abi-selectors',
+						label: 'Selectors',
+					},
+					{
+						id: 'evm-abi-topics',
+						label: 'Topics',
+					},
+					{
+						id: 'evm-abi-errors',
+						label: 'Errors',
+					},
+				]
+			}
+			data-card
+			class='network-view-collapsible-signatures'
+		>
+			{#snippet Summary()}
+				<header data-row-item="flexible" data-row="wrap gap-4">
+					<HeadingComponent>Signatures</HeadingComponent>
+				</header>
+			{/snippet}
+
+			{#snippet SectionEvmAbiSelectors({ id, label, open })}
+				<EvmSelectorsView
+					selection={selection.$$observedSelectors}
+					CollapsibleProps={{ canToggle: false }}
+					collapsible={false}
+					data-column-item="flexible"
 					data-card
-					class='network-view-collapsible-signatures'
-				>
-					{#snippet Summary()}
-						<header data-row-item="flexible" data-row="wrap gap-4">
-							<HeadingComponent>Signatures</HeadingComponent>
-						</header>
-					{/snippet}
+					data-scroll-container
+					open={open}
+					title={label}
+					emptyText='No EVM selectors in this catalog window.'
+					id={`${id}-list`}
+				/>
+			{/snippet}
 
-					{#snippet MarkerEvmAbiSelectors(_context, Content)}
-						{@const evmAbiSignaturesEvmAbiSelectorsResource = selection
-		.$$observedSelectors({
-			sources: [
-				Source.Local_Internal,
-			],
-		})}
-						<ResourceBoundary
-							resource={evmAbiSignaturesEvmAbiSelectorsResource}
-						>
-							{#snippet children(_resolved)}
-								{@render Content()}
-							{/snippet}
-
-							{#snippet PendingContent()}
-								{@render Content()}
-							{/snippet}
-
-							{#snippet FailedContent(_error, _retry)}
-								{@render Content()}
-							{/snippet}
-						</ResourceBoundary>
-					{/snippet}
-
-					{#snippet SectionEvmAbiSelectors({ id, label, open, active })}
-						{@const evmAbiSignaturesEvmAbiSelectorsResource = selection
-		.$$observedSelectors({
-			sources: [
-				Source.Local_Internal,
-			],
-		})}
-						<ResourceBoundary
-							resource={evmAbiSignaturesEvmAbiSelectorsResource}
-						>
-							{#snippet children(evmSelector)}
-								<section
-									id={id}
-									aria-labelledby={`${id}:marker`}
-									data-scroll-marker-label={label}
-									data-column-item="flexible"
-									data-column
-									data-active={active}
-								>
-									<EvmSelectorsView
-										selection={evmAbiSignaturesEvmAbiSelectorsResource}
-										CollapsibleProps={{ canToggle: false }}
-										collapsible={false}
-										data-column-item="flexible"
-										data-card
-										data-scroll-container
-										open={open}
-										title={label}
-										emptyText='No EVM selectors in this catalog window.'
-										id={`${id}-list`}
-									/>
-								</section>
-							{/snippet}
-
-							{#snippet Pending()}
-								<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
-									<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
-										<span data-tag data-text="muted" data-resource-state="pending" class="loading inline-placeholder" aria-busy="true" aria-label="Loading…">•••</span>
-									</article>
-								</section>
-							{/snippet}
-
-							{#snippet Failed(_error, _retry)}
-								<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
-									<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
-										<span data-tag data-resource-state="failed" class="inline-placeholder" aria-label="Failed to load">•••</span>
-									</article>
-								</section>
-							{/snippet}
-						</ResourceBoundary>
-					{/snippet}
-
-					{#snippet MarkerEvmAbiTopics(_context, Content)}
-						{@const evmAbiSignaturesEvmAbiTopicsResource = selection
-		.$$observedTopics({
-			sources: [
-				Source.Local_Internal,
-			],
-		})}
-						<ResourceBoundary
-							resource={evmAbiSignaturesEvmAbiTopicsResource}
-						>
-							{#snippet children(_resolved)}
-								{@render Content()}
-							{/snippet}
-
-							{#snippet PendingContent()}
-								{@render Content()}
-							{/snippet}
-
-							{#snippet FailedContent(_error, _retry)}
-								{@render Content()}
-							{/snippet}
-						</ResourceBoundary>
-					{/snippet}
-
-					{#snippet SectionEvmAbiTopics({ id, label, open, active })}
-						{@const evmAbiSignaturesEvmAbiTopicsResource = selection
-		.$$observedTopics({
-			sources: [
-				Source.Local_Internal,
-			],
-		})}
-						<ResourceBoundary
-							resource={evmAbiSignaturesEvmAbiTopicsResource}
-						>
-							{#snippet children(evmTopic)}
-								<section
-									id={id}
-									aria-labelledby={`${id}:marker`}
-									data-scroll-marker-label={label}
-									data-column-item="flexible"
-									data-column
-									data-active={active}
-								>
-									<EvmTopicsView
-										selection={evmAbiSignaturesEvmAbiTopicsResource}
-										CollapsibleProps={{ canToggle: false }}
-										collapsible={false}
-										data-column-item="flexible"
-										data-card
-										data-scroll-container
-										open={open}
-										title={label}
-										emptyText='No EVM topics in this catalog window.'
-										id={`${id}-list`}
-									/>
-								</section>
-							{/snippet}
-
-							{#snippet Pending()}
-								<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
-									<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
-										<span data-tag data-text="muted" data-resource-state="pending" class="loading inline-placeholder" aria-busy="true" aria-label="Loading…">•••</span>
-									</article>
-								</section>
-							{/snippet}
-
-							{#snippet Failed(_error, _retry)}
-								<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
-									<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
-										<span data-tag data-resource-state="failed" class="inline-placeholder" aria-label="Failed to load">•••</span>
-									</article>
-								</section>
-							{/snippet}
-						</ResourceBoundary>
-					{/snippet}
-
-					{#snippet MarkerEvmAbiErrors(_context, Content)}
-						{@const evmAbiSignaturesEvmAbiErrorsResource = selection
-		.$$observedErrors({
-			sources: [
-				Source.Local_Internal,
-			],
-		})}
-						<ResourceBoundary
-							resource={evmAbiSignaturesEvmAbiErrorsResource}
-						>
-							{#snippet children(_resolved)}
-								{@render Content()}
-							{/snippet}
-
-							{#snippet PendingContent()}
-								{@render Content()}
-							{/snippet}
-
-							{#snippet FailedContent(_error, _retry)}
-								{@render Content()}
-							{/snippet}
-						</ResourceBoundary>
-					{/snippet}
-
-					{#snippet SectionEvmAbiErrors({ id, label, open, active })}
-						{@const evmAbiSignaturesEvmAbiErrorsResource = selection
-		.$$observedErrors({
-			sources: [
-				Source.Local_Internal,
-			],
-		})}
-						<ResourceBoundary
-							resource={evmAbiSignaturesEvmAbiErrorsResource}
-						>
-							{#snippet children(evmError)}
-								<section
-									id={id}
-									aria-labelledby={`${id}:marker`}
-									data-scroll-marker-label={label}
-									data-column-item="flexible"
-									data-column
-									data-active={active}
-								>
-									<EvmErrorsView
-										selection={evmAbiSignaturesEvmAbiErrorsResource}
-										CollapsibleProps={{ canToggle: false }}
-										collapsible={false}
-										data-column-item="flexible"
-										data-card
-										data-scroll-container
-										open={open}
-										title={label}
-										emptyText='No EVM errors in this catalog window.'
-										id={`${id}-list`}
-									/>
-								</section>
-							{/snippet}
-
-							{#snippet Pending()}
-								<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
-									<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
-										<span data-tag data-text="muted" data-resource-state="pending" class="loading inline-placeholder" aria-busy="true" aria-label="Loading…">•••</span>
-									</article>
-								</section>
-							{/snippet}
-
-							{#snippet Failed(_error, _retry)}
-								<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
-									<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
-										<span data-tag data-resource-state="failed" class="inline-placeholder" aria-label="Failed to load">•••</span>
-									</article>
-								</section>
-							{/snippet}
-						</ResourceBoundary>
-					{/snippet}
-
-				</CollapsibleTabs>
-
-				<CollapsibleTabs
-					id={viewDomId + '-carousel-evm-abi-observations'}
-					sectionIdPrefix={viewDomId}
-					sections={
-						[
-							{
-								id: 'evm-abi-timestamps',
-								label: 'Observations',
-								ownsSection: true,
-							},
-						]
-					}
+			{#snippet SectionEvmAbiTopics({ id, label, open })}
+				<EvmTopicsView
+					selection={selection.$$observedTopics}
+					CollapsibleProps={{ canToggle: false }}
+					collapsible={false}
+					data-column-item="flexible"
 					data-card
-					class='network-view-collapsible-observations'
-				>
-					{#snippet Summary()}
-						<header data-row-item="flexible" data-row="wrap gap-4">
-							<HeadingComponent>Observations</HeadingComponent>
-						</header>
-					{/snippet}
+					data-scroll-container
+					open={open}
+					title={label}
+					emptyText='No EVM topics in this catalog window.'
+					id={`${id}-list`}
+				/>
+			{/snippet}
 
-					{#snippet MarkerEvmAbiTimestamps(_context, Content)}
-						{@const evmAbiObservationsEvmAbiTimestampsResource = selection
-		.$$timestamps({
-			sources: [
-				Source.Local_Internal,
-			],
-		})}
-						<ResourceBoundary
-							resource={evmAbiObservationsEvmAbiTimestampsResource}
-						>
-							{#snippet children(_resolved)}
-								{@render Content()}
-							{/snippet}
+			{#snippet SectionEvmAbiErrors({ id, label, open })}
+				<EvmErrorsView
+					selection={selection.$$observedErrors}
+					CollapsibleProps={{ canToggle: false }}
+					collapsible={false}
+					data-column-item="flexible"
+					data-card
+					data-scroll-container
+					open={open}
+					title={label}
+					emptyText='No EVM errors in this catalog window.'
+					id={`${id}-list`}
+				/>
+			{/snippet}
 
-							{#snippet PendingContent()}
-								{@render Content()}
-							{/snippet}
+		</CollapsibleTabs>
 
-							{#snippet FailedContent(_error, _retry)}
-								{@render Content()}
-							{/snippet}
-						</ResourceBoundary>
-					{/snippet}
+		<CollapsibleTabs
+			id={viewDomId + '-carousel-evm-abi-observations'}
+			sectionIdPrefix={viewDomId}
+			sections={
+				[
+					{
+						id: 'evm-abi-timestamps',
+						label: 'Observations',
+					},
+				]
+			}
+			data-card
+			class='network-view-collapsible-observations'
+		>
+			{#snippet Summary()}
+				<header data-row-item="flexible" data-row="wrap gap-4">
+					<HeadingComponent>Observations</HeadingComponent>
+				</header>
+			{/snippet}
 
-					{#snippet SectionEvmAbiTimestamps({ id, label, open, active })}
-						{@const evmAbiObservationsEvmAbiTimestampsResource = selection
-		.$$timestamps({
-			sources: [
-				Source.Local_Internal,
-			],
-		})}
-						<ResourceBoundary
-							resource={evmAbiObservationsEvmAbiTimestampsResource}
-						>
-							{#snippet children(globalEvmAbiCatalogTimestamp)}
-								<section
-									id={id}
-									aria-labelledby={`${id}:marker`}
-									data-scroll-marker-label={label}
-									data-column-item="flexible"
-									data-column
-									data-active={active}
-								>
-									<GlobalEvmAbiCatalog_TimestampsView
-										selection={evmAbiObservationsEvmAbiTimestampsResource}
-										CollapsibleProps={{ canToggle: false }}
-										collapsible={false}
-										data-column-item="flexible"
-										data-card
-										data-scroll-container
-										open={open}
-										title={label}
-										emptyText='No EVM ABI catalog observations.'
-										id={`${id}-list`}
-									/>
-								</section>
-							{/snippet}
+			{#snippet SectionEvmAbiTimestamps({ id, label, open })}
+				<GlobalEvmAbiCatalog_TimestampsView
+					selection={selection.$$timestamps}
+					CollapsibleProps={{ canToggle: false }}
+					collapsible={false}
+					data-column-item="flexible"
+					data-card
+					data-scroll-container
+					open={open}
+					title={label}
+					emptyText='No EVM ABI catalog observations.'
+					id={`${id}-list`}
+				/>
+			{/snippet}
 
-							{#snippet Pending()}
-								<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
-									<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
-										<span data-tag data-text="muted" data-resource-state="pending" class="loading inline-placeholder" aria-busy="true" aria-label="Loading…">•••</span>
-									</article>
-								</section>
-							{/snippet}
-
-							{#snippet Failed(_error, _retry)}
-								<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
-									<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
-										<span data-tag data-resource-state="failed" class="inline-placeholder" aria-label="Failed to load">•••</span>
-									</article>
-								</section>
-							{/snippet}
-						</ResourceBoundary>
-					{/snippet}
-
-				</CollapsibleTabs>
+		</CollapsibleTabs>
 	{/snippet}
 </EntityView>

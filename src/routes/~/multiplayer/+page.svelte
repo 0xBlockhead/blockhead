@@ -2,16 +2,15 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
 	import BlockheadRoomPeersView from '$/views/BlockheadRoomPeersView.svelte'
 	import BlockheadRoomsView from '$/views/BlockheadRoomsView.svelte'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
@@ -47,28 +46,24 @@
 		{#snippet SectionRooms()}
 			<BlockheadRoomsView
 				href={resolve('/~/multiplayer/rooms')}
-				selection={select(EntityType._Global, { scope: '$$blockheadRooms' }).$$blockheadRooms({
-					sources: [Source.Local_Internal],
-				})}
-						id='rooms'
-						open={true}
-						data-column-item='flexible'
-						data-card
-						data-scroll-container
+				selection={select(EntityType._Global, { scope: '$$blockheadRooms' }).$$blockheadRooms}
+				id='rooms'
+				open={true}
+				data-column-item='flexible'
+				data-card
+				data-scroll-container
 			/>
 		{/snippet}
 
 		{#snippet SectionContacts()}
 			<BlockheadRoomPeersView
 				href={resolve('/~/multiplayer/contacts')}
-				selection={select(EntityType._Global, { scope: '$$blockheadRoomPeers' }).$$blockheadRoomPeers({
-					sources: [Source.Local_Internal],
-				})}
-						id='contacts'
-						open={true}
-						data-column-item='flexible'
-						data-card
-						data-scroll-container
+				selection={select(EntityType._Global, { scope: '$$blockheadRoomPeers' }).$$blockheadRoomPeers}
+				id='contacts'
+				open={true}
+				data-column-item='flexible'
+				data-card
+				data-scroll-container
 			/>
 		{/snippet}
 	</CollapsibleTabs>

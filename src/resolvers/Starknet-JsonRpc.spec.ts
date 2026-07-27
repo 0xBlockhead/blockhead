@@ -13,8 +13,6 @@ import {
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { schema } from '$/schema/index.ts'
-import { StarknetAccount_TimestampSelector } from '$/schema/StarknetAccount_Timestamp.ts'
-import { StarknetContractSelector } from '$/schema/StarknetContract.ts'
 import { Source } from '$/sources/Source.ts'
 import type { StarknetEvent } from '$/sources/Starknet/JsonRpc/types.ts'
 
@@ -82,7 +80,7 @@ describe('Starknet JSON-RPC account resolver', () => {
 	it('materializes the latest accepted contract state and exact historical state', async () => {
 		const relationshipResolver = starknetJsonRpc.resolvers[0]
 		const snapshot = await relationshipResolver.resolve[
-			StarknetContractSelector.NetworkAddress
+			'NetworkAddress'
 		].resolve(contract, context)
 		const rows = relationshipResolver.projections.$$accountStates(snapshot, contract, context)
 
@@ -123,7 +121,7 @@ describe('Starknet JSON-RPC account resolver', () => {
 
 		const stateResolver = starknetJsonRpc.resolvers[1]
 		const state = await stateResolver.resolve[
-			StarknetAccount_TimestampSelector.ContractBlockNumberSource
+			'ContractBlockNumberSource'
 		].resolve({
 			$contract: contract,
 			blockNumber: 899_999n,
@@ -140,7 +138,6 @@ describe('Starknet JSON-RPC account resolver', () => {
 			found: true,
 		})
 		expect(getNonce).toHaveBeenLastCalledWith(
-			expect.anything(),
 			{ block_number: 899_999 },
 			contract.address
 		)
@@ -149,12 +146,11 @@ describe('Starknet JSON-RPC account resolver', () => {
 	it('materializes emitted events with canonical transaction and contract identities', async () => {
 		const relationshipResolver = starknetJsonRpc.resolvers[2]
 		const chunk = await relationshipResolver.resolve[
-			StarknetContractSelector.NetworkAddress
+			'NetworkAddress'
 		].resolve(contract, context)
 		const rows = relationshipResolver.projections.$$events.select(chunk, contract, context)
 
 		expect(getEvents).toHaveBeenCalledWith(
-			expect.anything(),
 			{
 				address: contract.address,
 				chunk_size: 2,
@@ -213,7 +209,7 @@ describe('Starknet JSON-RPC account resolver', () => {
 			events: [],
 		})
 		const emptyChunk = await relationshipResolver.resolve[
-			StarknetContractSelector.NetworkAddress
+			'NetworkAddress'
 		].resolve(contract, context)
 		expect(relationshipResolver.projections.$$events.select(
 			emptyChunk,
@@ -231,7 +227,7 @@ describe('Starknet JSON-RPC account resolver', () => {
 
 	it('rejects cross-network subjects and provider rows that escape the address filter', async () => {
 		await expect(starknetJsonRpc.resolvers[0].resolve[
-			StarknetContractSelector.NetworkAddress
+			'NetworkAddress'
 		].resolve({
 			...contract,
 			$network: {
@@ -249,7 +245,7 @@ describe('Starknet JSON-RPC account resolver', () => {
 			}],
 		})
 		const chunk = await starknetJsonRpc.resolvers[2].resolve[
-			StarknetContractSelector.NetworkAddress
+			'NetworkAddress'
 		].resolve(contract, context)
 		expect(() => starknetJsonRpc.resolvers[2].projections.$$events.select(
 			chunk,

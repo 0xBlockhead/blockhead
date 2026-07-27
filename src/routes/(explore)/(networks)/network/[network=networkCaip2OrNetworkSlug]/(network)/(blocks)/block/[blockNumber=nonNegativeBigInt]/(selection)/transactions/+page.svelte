@@ -3,11 +3,11 @@
 <script lang="ts">
 	// Types/constants
 	import type { PageProps } from './$types.ts'
+	import { resolve } from '$app/paths'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
@@ -16,8 +16,6 @@
 		data,
 		params,
 	}: PageProps = $props()
-
-
 	// Components
 	import Page from '$/components/Page.svelte'
 	import EvmTransactionsView from '$/views/EvmTransactionsView.svelte'
@@ -30,16 +28,21 @@
 
 
 <Page>
+	{@const collectionSelection = select(EntityType.EvmBlock, data.selector).$$transactions}
+
 	<EvmTransactionsView
 		href={
-			resolve('/network/[network=networkCaip2OrNetworkSlug]/block/[blockNumber=nonNegativeBigInt]/transactions', {
-				network: params.network,
-				blockNumber: params.blockNumber,
-			})
+			resolve(
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(blocks)/block/[blockNumber=nonNegativeBigInt]/(selection)/transactions',
+				{
+					network: String(params.network),
+					blockNumber: String(params.blockNumber),
+				}
+			)
 		}
 		title='Block transactions'
-		selection={select(EntityType.EvmBlock, data.selector).$$transactions}
-		countResource={select(EntityType.EvmBlock, data.selector).$$transactions.count}
+		selection={collectionSelection}
+		countResource={collectionSelection.count}
 		id='transactions'
 		data-column-item="flexible"
 		data-card

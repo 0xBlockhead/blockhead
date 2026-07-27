@@ -1,4 +1,4 @@
-import type { SourceBinding } from '$/sources/SourceBinding.ts'
+import bindings from '$/sources/HederaMirrorNode/bindings.ts'
 import {
 	firstHttpUrlForBinding,
 	sourceGetJson,
@@ -18,6 +18,9 @@ import type {
 	HederaMirrorNodeTransactionResponse,
 	HederaMirrorNodeTransactions,
 } from '$/sources/HederaMirrorNode/Rest/types.ts'
+import { Source } from '$/sources/Source.ts'
+
+const binding = bindings[Source.HederaMirrorNode_Rest]
 
 const accountIdPattern = /^\d{1,10}\.\d{1,10}\.\d{1,10}$/
 const bigintWireKeys = new Set([
@@ -65,7 +68,6 @@ const decimalIntegerFromJsonNumberSource = (source: string) => {
 }
 
 const sourceGetHederaJson = <_Response>(
-	binding: SourceBinding,
 	url: string
 ): Promise<_Response> => sourceGetText(binding, url).then((text) => JSON.parse(
 	text,
@@ -82,7 +84,6 @@ const sourceGetHederaJson = <_Response>(
 ) as _Response)
 
 const paginatedUrl = (
-	binding: SourceBinding,
 	pathname: string,
 	continuationToken?: string
 ) => {
@@ -104,7 +105,6 @@ const paginatedUrl = (
 }
 
 const accountCollectionUrl = (
-	binding: SourceBinding,
 	accountId: string,
 	pathname: string,
 	limit: number,
@@ -118,7 +118,7 @@ const accountCollectionUrl = (
 	if (!Number.isSafeInteger(limit) || limit < 1 || limit > 100)
 		throw new Error('HederaMirrorNode_Rest: invalid account collection limit')
 
-	const url = paginatedUrl(binding, pathname, continuationToken)
+	const url = paginatedUrl(pathname, continuationToken)
 	if (
 		continuationToken == null
 		|| (allowEmptyContinuation && url.search === '')
@@ -158,7 +158,6 @@ const accountCollectionUrl = (
 }
 
 export const getAccount = (
-	binding: SourceBinding,
 	accountId: string
 ): Promise<HederaMirrorNodeAccount> => {
 	if (!accountIdPattern.test(accountId))
@@ -170,18 +169,17 @@ export const getAccount = (
 	)
 	url.searchParams.set('transactions', 'false')
 
-	return sourceGetHederaJson<HederaMirrorNodeAccount>(binding, url.toString())
+	return sourceGetHederaJson<HederaMirrorNodeAccount>(url.toString())
 }
 
 export const getAccounts = (
-	binding: SourceBinding,
 	limit: number,
 	continuationToken?: string
 ): Promise<HederaMirrorNodeAccounts> => {
 	if (!Number.isSafeInteger(limit) || limit < 1 || limit > 100)
 		throw new Error('HederaMirrorNode_Rest: invalid account list limit')
 
-	const url = paginatedUrl(binding, '/api/v1/accounts', continuationToken)
+	const url = paginatedUrl('/api/v1/accounts', continuationToken)
 	if (continuationToken == null) {
 		url.searchParams.set('limit', String(limit))
 		url.searchParams.set('order', 'desc')
@@ -200,11 +198,10 @@ export const getAccounts = (
 	)
 		throw new Error('HederaMirrorNode_Rest: invalid account list continuation')
 
-	return sourceGetHederaJson<HederaMirrorNodeAccounts>(binding, url.toString())
+	return sourceGetHederaJson<HederaMirrorNodeAccounts>(url.toString())
 }
 
 export const getAccountTransactions = (
-	binding: SourceBinding,
 	accountId: string,
 	limit: number,
 	continuationToken?: string
@@ -214,7 +211,7 @@ export const getAccountTransactions = (
 	if (!Number.isSafeInteger(limit) || limit < 1 || limit > 100)
 		throw new Error('HederaMirrorNode_Rest: invalid transaction list limit')
 
-	const url = paginatedUrl(binding, '/api/v1/transactions', continuationToken)
+	const url = paginatedUrl('/api/v1/transactions', continuationToken)
 	if (continuationToken == null) {
 		url.searchParams.set('account.id', accountId)
 		url.searchParams.set('limit', String(limit))
@@ -240,11 +237,10 @@ export const getAccountTransactions = (
 	)
 		throw new Error('HederaMirrorNode_Rest: invalid account transaction continuation')
 
-	return sourceGetHederaJson<HederaMirrorNodeTransactions>(binding, url.toString())
+	return sourceGetHederaJson<HederaMirrorNodeTransactions>(url.toString())
 }
 
 export const getTransactionByConsensusTimestamp = (
-	binding: SourceBinding,
 	consensusTimestamp: string
 ): Promise<HederaMirrorNodeTransactions> => {
 	if (!/^\d{1,10}(?:\.\d{1,9})?$/.test(consensusTimestamp))
@@ -255,11 +251,10 @@ export const getTransactionByConsensusTimestamp = (
 	url.searchParams.set('order', 'desc')
 	url.searchParams.set('timestamp', `eq:${consensusTimestamp}`)
 
-	return sourceGetHederaJson<HederaMirrorNodeTransactions>(binding, url.toString())
+	return sourceGetHederaJson<HederaMirrorNodeTransactions>(url.toString())
 }
 
 export const getTransactionByIdNonce = (
-	binding: SourceBinding,
 	transactionId: string,
 	nonce: number
 ): Promise<HederaMirrorNodeTransactionResponse> => {
@@ -274,18 +269,17 @@ export const getTransactionByIdNonce = (
 	)
 	url.searchParams.set('nonce', nonce.toString())
 
-	return sourceGetHederaJson<HederaMirrorNodeTransactionResponse>(binding, url.toString())
+	return sourceGetHederaJson<HederaMirrorNodeTransactionResponse>(url.toString())
 }
 
 export const getTransactions = (
-	binding: SourceBinding,
 	limit: number,
 	continuationToken?: string
 ): Promise<HederaMirrorNodeTransactions> => {
 	if (!Number.isSafeInteger(limit) || limit < 1 || limit > 100)
 		throw new Error('HederaMirrorNode_Rest: invalid transaction list limit')
 
-	const url = paginatedUrl(binding, '/api/v1/transactions', continuationToken)
+	const url = paginatedUrl('/api/v1/transactions', continuationToken)
 	if (continuationToken == null) {
 		url.searchParams.set('limit', String(limit))
 		url.searchParams.set('order', 'desc')
@@ -306,18 +300,17 @@ export const getTransactions = (
 	)
 		throw new Error('HederaMirrorNode_Rest: invalid global transaction continuation')
 
-	return sourceGetHederaJson<HederaMirrorNodeTransactions>(binding, url.toString())
+	return sourceGetHederaJson<HederaMirrorNodeTransactions>(url.toString())
 }
 
 export const getNodes = (
-	binding: SourceBinding,
 	limit: number,
 	continuationToken?: string
 ): Promise<HederaMirrorNodeNodes> => {
 	if (!Number.isSafeInteger(limit) || limit < 1 || limit > 100)
 		throw new Error('HederaMirrorNode_Rest: invalid node list limit')
 
-	const url = paginatedUrl(binding, '/api/v1/network/nodes', continuationToken)
+	const url = paginatedUrl('/api/v1/network/nodes', continuationToken)
 	if (continuationToken == null) {
 		url.searchParams.set('limit', String(limit))
 		url.searchParams.set('order', 'asc')
@@ -336,11 +329,10 @@ export const getNodes = (
 	)
 		throw new Error('HederaMirrorNode_Rest: invalid node continuation')
 
-	return sourceGetHederaJson<HederaMirrorNodeNodes>(binding, url.toString())
+	return sourceGetHederaJson<HederaMirrorNodeNodes>(url.toString())
 }
 
 export const getAccountAllowances = async (
-	binding: SourceBinding,
 	accountId: string,
 	limit: number,
 	continuationToken?: string
@@ -358,11 +350,9 @@ export const getAccountAllowances = async (
 
 	if (continuationPathname === cryptoPathname)
 		return {
-			allowanceKind: 'crypto' as const,
+			allowanceKind: 'crypto',
 			page: await sourceGetHederaJson<HederaMirrorNodeCryptoAllowances>(
-				binding,
 				accountCollectionUrl(
-					binding,
 					accountId,
 					cryptoPathname,
 					limit,
@@ -377,11 +367,9 @@ export const getAccountAllowances = async (
 		}
 	if (continuationPathname === tokenPathname)
 		return {
-			allowanceKind: 'token' as const,
+			allowanceKind: 'token',
 			page: await sourceGetHederaJson<HederaMirrorNodeTokenAllowances>(
-				binding,
 				accountCollectionUrl(
-					binding,
 					accountId,
 					tokenPathname,
 					limit,
@@ -397,7 +385,6 @@ export const getAccountAllowances = async (
 		}
 	if (continuationPathname === nftPathname) {
 		const url = accountCollectionUrl(
-			binding,
 			accountId,
 			nftPathname,
 			limit,
@@ -412,9 +399,8 @@ export const getAccountAllowances = async (
 		url.searchParams.set('owner', 'true')
 
 		return {
-			allowanceKind: 'nft' as const,
+			allowanceKind: 'nft',
 			page: await sourceGetHederaJson<HederaMirrorNodeNftAllowances>(
-				binding,
 				url.toString()
 			),
 		}
@@ -424,14 +410,11 @@ export const getAccountAllowances = async (
 }
 
 export const getAccountTokens = (
-	binding: SourceBinding,
 	accountId: string,
 	limit: number,
 	continuationToken?: string
 ): Promise<HederaMirrorNodeAccountTokens> => sourceGetHederaJson<HederaMirrorNodeAccountTokens>(
-	binding,
 	accountCollectionUrl(
-		binding,
 		accountId,
 		`/api/v1/accounts/${encodeURIComponent(accountId)}/tokens`,
 		limit,
@@ -445,14 +428,11 @@ export const getAccountTokens = (
 )
 
 export const getAccountNfts = (
-	binding: SourceBinding,
 	accountId: string,
 	limit: number,
 	continuationToken?: string
 ): Promise<HederaMirrorNodeNfts> => sourceGetHederaJson<HederaMirrorNodeNfts>(
-	binding,
 	accountCollectionUrl(
-		binding,
 		accountId,
 		`/api/v1/accounts/${encodeURIComponent(accountId)}/nfts`,
 		limit,
@@ -468,7 +448,6 @@ export const getAccountNfts = (
 )
 
 export const getBlocks = (
-	binding: SourceBinding,
 	limit: number
 ): Promise<HederaMirrorNodeBlocks> => {
 	const url = new URL('/api/v1/blocks', firstHttpUrlForBinding(binding))
@@ -479,7 +458,6 @@ export const getBlocks = (
 }
 
 export const getBlock = (
-	binding: SourceBinding,
 	hashOrNumber: string
 ): Promise<HederaMirrorNodeBlock> => {
 	if (!/^(?:\d{1,10}|(?:0x)?(?:[A-Fa-f0-9]{64}|[A-Fa-f0-9]{96}))$/.test(hashOrNumber))

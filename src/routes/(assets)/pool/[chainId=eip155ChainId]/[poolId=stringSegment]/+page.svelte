@@ -8,14 +8,12 @@
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		data,
-		params,
 	}: PageProps = $props()
 
 	const pageSelection = $derived(select(EntityType.LiquidityPool, data.selector, {
@@ -40,18 +38,12 @@
 
 
 <svelte:head>
-	<title>{(data.title ?? (pageSelection.entity == null ? [String((data.selector.id) ?? '')].filter(Boolean).join(' ') || 'liquidity pool' : [String((({ ...data.selector, ...pageSelection.entity }).id) ?? '')].filter(Boolean).join(' ') || 'liquidity pool'))} • liquidity pool • Blockhead</title>
+	<title>{(data.title ?? (pageSelection.entitySelector.id || 'liquidity pool'))} • liquidity pool • Blockhead</title>
 </svelte:head>
 
 
 <Page>
 	<LiquidityPoolView
-		href={
-			resolve('/pool/[chainId=eip155ChainId]/[poolId=stringSegment]', {
-				chainId: params.chainId,
-				poolId: params.poolId,
-			})
-		}
 		selection={pageSelection}
 	/>
 </Page>

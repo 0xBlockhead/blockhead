@@ -10,8 +10,8 @@ export const SqdPortalEvmBlock = type({
 		gasUsed: 'string',
 		gasLimit: 'string',
 		'baseFeePerGas?': 'string',
-		'blobGasUsed?': 'string',
-		'excessBlobGas?': 'string',
+		'blobGasUsed?': 'string | null',
+		'excessBlobGas?': 'string | null',
 	},
 	transactions: type({
 		hash: 'string',

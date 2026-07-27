@@ -5,7 +5,7 @@ import { error } from '@sveltejs/kit'
 import { match as matchAbsoluteUrl } from '$/params/absoluteUrl.ts'
 import { match as matchStringSegment } from '$/params/stringSegment.ts'
 import { parseEntitySelector } from '$/schema/$schema.ts'
-import { ActivityPubActor as ActivityPubActorSchema } from '$/schema/ActivityPubActor.ts'
+import ActivityPubActorSchema from '$/schema/ActivityPubActor.ts'
 import { schema } from '$/schema/index.ts'
 import { type as arktype } from 'arktype'
 

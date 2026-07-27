@@ -1,4 +1,10 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import bindings from '$/sources/Subscan/bindings.ts'
+import { Source } from '$/sources/Source.ts'
+import {
+	SourceEndpointKind,
+	SourceTargetKind,
+} from '$/sources/SourceBinding.ts'
 
 const corsFetch = vi.hoisted(() => vi.fn())
 
@@ -11,8 +17,9 @@ const {
 	getReferendum,
 	listAccountExtrinsics,
 	listReferenda,
-	subscanOrigins,
 } = await import('$/sources/Subscan/Rest/queries.ts')
+
+const binding = bindings[Source.Subscan_Rest]
 
 const publicEnv = {
 	PUBLIC_SUBSCAN_API_KEY: 'subscan-key',
@@ -61,7 +68,7 @@ describe('Subscan referendum list', () => {
 
 	it('uses the registered proxied origin, credential, filters, and zero-based provider pagination', async () => {
 		await expect(listReferenda({
-			restBaseUrl: 'https://polkadot.api.subscan.io/',
+			binding,
 			page: 2,
 			row: 10,
 			status: 'active',
@@ -80,7 +87,15 @@ describe('Subscan referendum list', () => {
 		expect(corsFetch).toHaveBeenCalledWith(
 			'https://polkadot.api.subscan.io/api/scan/referenda/referendums',
 			{
-				origins: subscanOrigins,
+				delivery: binding.delivery,
+				origins: [{
+					origin: 'https://polkadot.api.subscan.io',
+					corsEnabled: false,
+				}],
+				proxy: {
+					proxyId: binding.proxyId,
+					endpointIndex: 0,
+				},
 				init: {
 					method: 'POST',
 					headers: {
@@ -107,7 +122,7 @@ describe('Subscan referendum list', () => {
 		], 31))
 
 		await expect(listReferenda({
-			restBaseUrl: 'https://polkadot.api.subscan.io',
+			binding,
 			page: 3,
 			row: 10,
 			statuses: [
@@ -134,7 +149,7 @@ describe('Subscan referendum list', () => {
 		corsFetch.mockResolvedValueOnce(response([], 35))
 
 		await expect(listReferenda({
-			restBaseUrl: 'https://polkadot.api.subscan.io',
+			binding,
 			page: 4,
 			row: 10,
 			publicEnv,
@@ -184,7 +199,7 @@ describe('Subscan referendum list', () => {
 		for (const { value, message } of cases) {
 			corsFetch.mockResolvedValueOnce(value)
 			await expect(listReferenda({
-				restBaseUrl: 'https://polkadot.api.subscan.io',
+				binding,
 				page: message === 'exceeded its reported count' ? 2 : 0,
 				row: message === 'exceeded the requested row limit' ? 1 : 10,
 				statuses: message === 'mismatched status' ? ['Approved'] : undefined,
@@ -208,14 +223,14 @@ describe('Subscan referendum list', () => {
 		]
 		for (const request of invalidRequests)
 			await expect(listReferenda({
-				restBaseUrl: 'https://polkadot.api.subscan.io',
+				binding,
 				...request,
 				publicEnv,
 			})).rejects.toThrow()
 
 		expect(corsFetch).not.toHaveBeenCalled()
 		await expect(listReferenda({
-			restBaseUrl: 'https://polkadot.api.subscan.io',
+			binding,
 			page: 12,
 			row: 0,
 			publicEnv,
@@ -238,7 +253,7 @@ describe('Subscan referendum list', () => {
 			Number.MAX_SAFE_INTEGER + 1,
 		])
 				expect(() => getReferendum({
-					restBaseUrl: 'https://polkadot.api.subscan.io',
+					binding,
 					referendumIndex,
 					publicEnv,
 				})).toThrow('nonnegative safe integer')
@@ -251,7 +266,7 @@ describe('Subscan referendum list', () => {
 			data: null,
 		})))
 		await expect(getReferendum({
-			restBaseUrl: 'https://polkadot.api.subscan.io',
+			binding,
 			referendumIndex: 23,
 			publicEnv,
 		})).rejects.toThrow('Record Not Found')
@@ -274,7 +289,7 @@ describe('Subscan account extrinsic list', () => {
 
 	it('preserves the SS58 subject and lossless indexed extrinsic facts', async () => {
 		await expect(listAccountExtrinsics({
-			restBaseUrl: 'https://polkadot.api.subscan.io/',
+			binding,
 			accountId,
 			page: 1,
 			row: 10,
@@ -315,7 +330,7 @@ describe('Subscan account extrinsic list', () => {
 				},
 			})))
 			await expect(listAccountExtrinsics({
-				restBaseUrl: 'https://polkadot.api.subscan.io',
+				binding,
 				accountId,
 				page: 0,
 				row: 10,
@@ -332,14 +347,14 @@ describe('Subscan account extrinsic list', () => {
 			{ accountId, page: Number.MAX_SAFE_INTEGER, row: 2 },
 		])
 			await expect(listAccountExtrinsics({
-				restBaseUrl: 'https://polkadot.api.subscan.io',
+				binding,
 				...request,
 				publicEnv,
 			})).rejects.toThrow()
 
 		expect(corsFetch).not.toHaveBeenCalled()
 		await expect(listAccountExtrinsics({
-			restBaseUrl: 'https://polkadot.api.subscan.io',
+			binding,
 			accountId,
 			page: 7,
 			row: 0,

@@ -3,11 +3,11 @@
 <script lang="ts">
 	// Types/constants
 	import type { PageProps } from './$types.ts'
+	import { resolve } from '$app/paths'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
@@ -16,8 +16,6 @@
 		data,
 		params,
 	}: PageProps = $props()
-
-
 	// Components
 	import Page from '$/components/Page.svelte'
 	import ZcashShieldedActionsView from '$/views/ZcashShieldedActionsView.svelte'
@@ -30,16 +28,21 @@
 
 
 <Page>
+	{@const collectionSelection = select(EntityType.UtxoTransaction, data.selector).$$zcashShieldedActions}
+
 	<ZcashShieldedActionsView
 		href={
-			resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/shielded-actions', {
-				network: params.network,
-				transactionId: params.transactionId,
-			})
+			resolve(
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(transactions)/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/(selection)/shielded-actions',
+				{
+					network: String(params.network),
+					transactionId: String(params.transactionId),
+				}
+			)
 		}
 		title='Zcash shielded actions'
-		selection={select(EntityType.UtxoTransaction, data.selector).$$zcashShieldedActions}
-		countResource={select(EntityType.UtxoTransaction, data.selector).$$zcashShieldedActions.count}
+		selection={collectionSelection}
+		countResource={collectionSelection.count}
 		id='zcash-shielded-actions'
 		data-column-item="flexible"
 		data-card

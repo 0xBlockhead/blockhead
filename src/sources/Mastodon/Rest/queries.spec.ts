@@ -124,7 +124,10 @@ describe('Mastodon public timeline', () => {
 			statuses: [],
 			continuationToken: undefined,
 		})
-		expect(mastodonFetchPublicTimelineUrl).toHaveBeenCalledWith({}, continuationToken)
+		expect(mastodonFetchPublicTimelineUrl).toHaveBeenCalledWith(
+			{},
+			continuationToken
+		)
 	})
 
 	it.each([
@@ -196,7 +199,11 @@ describe('Mastodon public timeline', () => {
 			statuses: [],
 			continuationToken: undefined,
 		})
-		expect(mastodonFetchUrl).toHaveBeenNthCalledWith(2, {}, firstPage.continuationToken)
+		expect(mastodonFetchUrl).toHaveBeenNthCalledWith(
+			2,
+			{},
+			firstPage.continuationToken
+		)
 	})
 
 	it.each([

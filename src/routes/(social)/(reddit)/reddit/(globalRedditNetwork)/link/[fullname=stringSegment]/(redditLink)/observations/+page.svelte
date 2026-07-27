@@ -3,12 +3,11 @@
 <script lang="ts">
 	// Types/constants
 	import type { PageProps } from './$types.ts'
+	import { resolve } from '$app/paths'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
@@ -16,8 +15,6 @@
 	let {
 		params,
 	}: PageProps = $props()
-
-
 	// Components
 	import Page from '$/components/Page.svelte'
 	import RedditLink_TimestampsView from '$/views/RedditLink_TimestampsView.svelte'
@@ -30,33 +27,22 @@
 
 
 <Page>
+	{@const collectionSelection = select(EntityType.RedditLink, {
+		fullname: decodeURIComponent(params.fullname),
+	}).$$timestamps}
+
 	<RedditLink_TimestampsView
 		href={
-			resolve('/reddit/link/[fullname=stringSegment]/observations', {
-				fullname: params.fullname,
-			})
+			resolve(
+				'/(social)/(reddit)/reddit/(globalRedditNetwork)/link/[fullname=stringSegment]/(redditLink)/observations',
+				{
+					fullname: String(params.fullname),
+				}
+			)
 		}
 		title='Submission observations'
-		selection={
-			select(EntityType.RedditLink, {
-				fullname: decodeURIComponent(params.fullname),
-			})
-				.$$timestamps({
-					sources: [
-						Source.Reddit_PublicJson,
-					],
-				})
-		}
-		countResource={
-			select(EntityType.RedditLink, {
-				fullname: decodeURIComponent(params.fullname),
-			})
-				.$$timestamps({
-					sources: [
-						Source.Reddit_PublicJson,
-					],
-				}).count
-		}
+		selection={collectionSelection}
+		countResource={collectionSelection.count}
 		id='timestamps'
 		data-column-item="flexible"
 		data-card

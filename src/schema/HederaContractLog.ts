@@ -1,16 +1,12 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { entity, facet } from '$/schema/$schema.ts'
+import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { EvmAddress } from '$/schema/ZeroExHex.ts'
 import { type } from 'arktype'
 
-export enum HederaContractLogSelector {
-	ResultLogIndex = 'ResultLogIndex',
-	ContractConsensusTimestampLogIndex = 'ContractConsensusTimestampLogIndex',
-}
-export const HederaContractLog = entity({
+export default entity({
 	entityType: EntityType.HederaContractLog,
 	labels: {
 		singular: 'hedera contract log',
@@ -45,7 +41,7 @@ export const HederaContractLog = entity({
 		label: 'Address',
 		description: 'The address or account identifier used by the source protocol.',
 		type: EntityFieldType.Primitive,
-		primitiveType: (EvmAddress),
+		primitiveType: EvmAddress,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	bloom: {

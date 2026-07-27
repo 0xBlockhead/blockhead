@@ -8,7 +8,6 @@
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
@@ -52,11 +51,6 @@
 
 <Page>
 	<BlockheadWalletConnectionView
-		href={
-			resolve('/~/accounts/connections/[connectionKey=stringSegment]', {
-				connectionKey: params.connectionKey,
-			})
-		}
 		selection={pageSelection}
 	/>
 </Page>

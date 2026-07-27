@@ -2,15 +2,9 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
-	import { caip2StringFromValue } from '$/lib/caip2.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -22,42 +16,23 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.LitecoinMwebBlock>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.LitecoinMwebBlock>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.LitecoinMwebBlock> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const litecoinMwebBlock = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {
-			hogExTransactionId: true,
-			kernelRoot: true,
-		},
-	} : {
-		sources: selection.sources,
+	const viewSelection = $derived(selection({
+		sources: selection.sources ?? [
+			Source.LitecoinCore_JsonRpc,
+		],
+	}))
+	const litecoinMwebBlock = $derived(viewSelection({
 		fields: {
 			hogExTransactionId: true,
 			kernelRoot: true,
 		},
 	}))
 	const titleFallback = 'litecoin MWEB block'
-	const viewDomId = $derived('litecoin-mweb-block-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -69,74 +44,40 @@
 
 <EntityView
 	entityType={EntityType.LitecoinMwebBlock}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, '$block') && prefetched.$block != null && Object.hasOwn(prefetched.$block, 'hash') && Object.hasOwn(prefetched.$block, 'transactionCount') && Object.hasOwn(prefetched, 'hogExTransactionId') && Object.hasOwn(prefetched, 'kernelRoot')}
-			{@const utxoBlock0 = pendingEntity.$block}
-			{#if utxoBlock0 != null && selection.entitySelector.$block != null}
-				<UtxoBlockView
-					selection={select(EntityType.UtxoBlock, selection.entitySelector.$block, { sources: selection.sources })}
-					prefetched={utxoBlock0}
-					href=""
-					layout={EntityLayout.Title}
-					open={false}
-				/>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={litecoinMwebBlock}>
-				{#snippet children(entity)}
-					<UtxoBlockView
-						selection={select(EntityType.UtxoBlock, selection.entitySelector.$block)}
-						href=""
-						layout={EntityLayout.Title}
-						open={false}
-					/>
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<UtxoBlockView
+			selection={select(EntityType.UtxoBlock, selection.entitySelector.$block)}
+			href=""
+			layout={EntityLayout.Title}
+			open={false}
+		/>
 	{/snippet}
 
 	{#snippet Value()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, '$block') && prefetched.$block != null && Object.hasOwn(prefetched.$block, 'hash') && Object.hasOwn(prefetched.$block, 'transactionCount') && Object.hasOwn(prefetched, 'hogExTransactionId') && Object.hasOwn(prefetched, 'kernelRoot')}
-			{[String((pendingEntity.hogExTransactionId) ?? '')].filter(Boolean).join(' ') || titleFallback}
-		{:else}
-			<ResourceBoundary resource={litecoinMwebBlock}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.hogExTransactionId) ?? '')].filter(Boolean).join(' ') || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={litecoinMwebBlock}>
+			{#snippet children(entity)}
+				{(entity.hogExTransactionId ?? '') || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, '$block') && prefetched.$block != null && Object.hasOwn(prefetched.$block, 'hash') && Object.hasOwn(prefetched.$block, 'transactionCount') && Object.hasOwn(prefetched, 'hogExTransactionId') && Object.hasOwn(prefetched, 'kernelRoot')}
-			{@const kernelRoot0 = pendingEntity.kernelRoot}
-			{#if kernelRoot0 !== undefined && kernelRoot0 !== null}
-				<span data-text="muted">
-					{String((kernelRoot0) ?? '')}
-				</span>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={litecoinMwebBlock}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const kernelRoot0 = resolvedEntity.kernelRoot}
-					{#if kernelRoot0 !== undefined && kernelRoot0 !== null}
-						<span data-text="muted">
-							{String((kernelRoot0) ?? '')}
-						</span>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={litecoinMwebBlock}>
+			{#snippet children(entity)}
+				{@const kernelRoot0 = entity.kernelRoot}
+				{#if kernelRoot0 != null}
+					<span data-text="muted">
+						{kernelRoot0}
+					</span>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -146,34 +87,6 @@
 				<dd>
 					<UtxoBlockView
 						selection={select(EntityType.UtxoBlock, selection.entitySelector.$block)}
-						href={
-							(
-								selection.entitySelector.$block != null && 'height' in selection.entitySelector.$block
-								&& selection.entitySelector.$block.height != null
-								&& selection.entitySelector.$block != null && 'hash' in selection.entitySelector.$block
-								&& selection.entitySelector.$block.hash != null
-								&& selection.entitySelector.$block != null && '$network' in selection.entitySelector.$block ?
-									selection.entitySelector.$block.$network != null && 'caip2' in selection.entitySelector.$block.$network
-									&& selection.entitySelector.$block.$network.caip2 != null ?
-										resolve('/network/[network=networkCaip2OrNetworkSlug]/block/[blockNumber=nonNegativeBigInt]/[hash=stringSegment]', {
-									blockNumber: String(selection.entitySelector.$block.height ?? ''),
-									hash: String(selection.entitySelector.$block.hash ?? ''),
-									network: String(caip2StringFromValue(selection.entitySelector.$block.$network.caip2) ?? ''),
-								})
-								:
-										selection.entitySelector.$block.$network != null && 'slug' in selection.entitySelector.$block.$network
-										&& selection.entitySelector.$block.$network.slug != null ?
-											resolve('/network/[network=networkCaip2OrNetworkSlug]/block/[blockNumber=nonNegativeBigInt]/[hash=stringSegment]', {
-										blockNumber: String(selection.entitySelector.$block.height ?? ''),
-										hash: String(selection.entitySelector.$block.hash ?? ''),
-										network: String(selection.entitySelector.$block.$network.slug ?? ''),
-									})
-									:
-										undefined
-							:
-									undefined
-							)
-						}
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -181,23 +94,15 @@
 			</div>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							hogExTransactionId: true,
-						},
-					})
-				}
+				resource={litecoinMwebBlock}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const hogExTransactionId = resolvedEntity.hogExTransactionId}
-					{#if hogExTransactionId !== undefined && hogExTransactionId !== null}
+					{@const hogExTransactionId = entity.hogExTransactionId}
+					{#if hogExTransactionId != null}
 						<div>
 							<dt>hog ex transaction ID</dt>
 							<dd>
-								{String((hogExTransactionId) ?? '')}
+								{hogExTransactionId}
 							</dd>
 						</div>
 					{/if}
@@ -205,23 +110,15 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							kernelRoot: true,
-						},
-					})
-				}
+				resource={litecoinMwebBlock}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const kernelRoot = resolvedEntity.kernelRoot}
-					{#if kernelRoot !== undefined && kernelRoot !== null}
+					{@const kernelRoot = entity.kernelRoot}
+					{#if kernelRoot != null}
 						<div>
 							<dt>kernel root</dt>
 							<dd>
-								{String((kernelRoot) ?? '')}
+								{kernelRoot}
 							</dd>
 						</div>
 					{/if}
@@ -237,12 +134,12 @@
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
-				<LitecoinMwebTransactionsView
-					selection={litecoinMwebBlockLitecoinMwebTransactionsViewTransactionsResource}
-					countResource={litecoinMwebBlockLitecoinMwebTransactionsViewTransactionsResource.count}
-					title='transactions'
-					id='LitecoinMwebTransactionsView-transactions'
-				/>
+					<LitecoinMwebTransactionsView
+						selection={litecoinMwebBlockLitecoinMwebTransactionsViewTransactionsResource}
+						countResource={litecoinMwebBlockLitecoinMwebTransactionsViewTransactionsResource.count}
+						title='transactions'
+						id='transactions'
+					/>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>

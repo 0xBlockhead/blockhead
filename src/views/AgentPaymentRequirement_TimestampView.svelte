@@ -2,13 +2,9 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
 
 
 	// Context
@@ -20,35 +16,13 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.AgentPaymentRequirement_Timestamp>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.AgentPaymentRequirement_Timestamp>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.AgentPaymentRequirement_Timestamp> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const agentPaymentRequirementTimestamp = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {},
-	} : {
-		sources: selection.sources,
-	}))
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const titleFallback = 'agent payment requirement timestamp'
-	const viewDomId = $derived('agent-payment-requirement-timestamp-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -64,24 +38,14 @@
 
 <EntityView
 	entityType={EntityType.AgentPaymentRequirement_Timestamp}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails}
-			{title || titleFallback}
-		{:else}
-			<ResourceBoundary resource={agentPaymentRequirementTimestamp}>
-				{#snippet children(entity)}
-					{title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		agent payment requirement timestamp
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -89,96 +53,28 @@
 			<div>
 				<dt>subject kind</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									subjectKind: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const subjectKind = resolvedEntity.subjectKind}
-							{#if subjectKind !== undefined && subjectKind !== null}
-								{String((subjectKind) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{pendingEntity.subjectKind}
 				</dd>
 			</div>
 
 			<div>
 				<dt>payment protocol</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									paymentProtocol: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const paymentProtocol = resolvedEntity.paymentProtocol}
-							{#if paymentProtocol !== undefined && paymentProtocol !== null}
-								{String((paymentProtocol) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{pendingEntity.paymentProtocol}
 				</dd>
 			</div>
 
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									timestampMs: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const timestampMs = resolvedEntity.timestampMs}
-							{#if timestampMs !== undefined && timestampMs !== null}
-								<Timestamp timestamp={Number(timestampMs)} />
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									source: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const source = resolvedEntity.source}
-							{#if source !== undefined && source !== null}
-								{String((source) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{pendingEntity.source}
 				</dd>
 			</div>
 
@@ -186,7 +82,7 @@
 				resource={selection.$a2aAgentService}
 			>
 				{#snippet children(a2aAgentService)}
-					{#if a2aAgentService != null && a2aAgentService[EntityMetaKey.Selector] != null}
+					{#if a2aAgentService != null}
 						<div>
 							<dt>A2A agent service</dt>
 							<dd>
@@ -206,7 +102,7 @@
 				resource={selection.$mcpServer}
 			>
 				{#snippet children(mcpServer)}
-					{#if mcpServer != null && mcpServer[EntityMetaKey.Selector] != null}
+					{#if mcpServer != null}
 						<div>
 							<dt>MCP server</dt>
 							<dd>
@@ -226,7 +122,7 @@
 				resource={selection.$eip8004ServiceEndpoint}
 			>
 				{#snippet children(eip8004AgentServiceEndpoint)}
-					{#if eip8004AgentServiceEndpoint != null && eip8004AgentServiceEndpoint[EntityMetaKey.Selector] != null}
+					{#if eip8004AgentServiceEndpoint != null}
 						<div>
 							<dt>EIP-8004 service endpoint</dt>
 							<dd>
@@ -246,7 +142,7 @@
 				resource={selection.$blockheadConnection}
 			>
 				{#snippet children(blockheadAgentConnection)}
-					{#if blockheadAgentConnection != null && blockheadAgentConnection[EntityMetaKey.Selector] != null}
+					{#if blockheadAgentConnection != null}
 						<div>
 							<dt>blockhead connection</dt>
 							<dd>
@@ -265,7 +161,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							required: true,
 						},
@@ -273,9 +168,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const required = resolvedEntity.required}
-					{#if required !== undefined && required !== null}
+					{@const required = entity.required}
+					{#if required != null}
 						<div>
 							<dt>required</dt>
 							<dd>
@@ -289,7 +183,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							httpStatus: true,
 						},
@@ -297,13 +190,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const httpStatus = resolvedEntity.httpStatus}
-					{#if httpStatus !== undefined && httpStatus !== null}
+					{@const httpStatus = entity.httpStatus}
+					{#if httpStatus != null}
 						<div>
 							<dt>HTTP status</dt>
 							<dd>
-								{String((httpStatus) ?? '')}
+								{String(httpStatus)}
 							</dd>
 						</div>
 					{/if}
@@ -313,7 +205,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							requestMethod: true,
 						},
@@ -321,13 +212,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const requestMethod = resolvedEntity.requestMethod}
-					{#if requestMethod !== undefined && requestMethod !== null}
+					{@const requestMethod = entity.requestMethod}
+					{#if requestMethod != null}
 						<div>
 							<dt>request method</dt>
 							<dd>
-								{String((requestMethod) ?? '')}
+								{requestMethod}
 							</dd>
 						</div>
 					{/if}
@@ -337,7 +227,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							resourceUrl: true,
 						},
@@ -345,20 +234,18 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const resourceUrl = resolvedEntity.resourceUrl}
-					{#if resourceUrl !== undefined && resourceUrl !== null}
+					{@const resourceUrl = entity.resourceUrl}
+					{#if resourceUrl != null}
 						<div>
 							<dt>resource URL</dt>
 							<dd>
-								<svelte:element
-									this={'a'}
+								<a
 									href={String(resourceUrl)}
 									target="_blank"
 									rel="noreferrer noopener"
 								>
 									<TruncatedValue value={String(resourceUrl)} />
-								</svelte:element>
+								</a>
 							</dd>
 						</div>
 					{/if}
@@ -368,7 +255,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							paymentRequiredHeader: true,
 						},
@@ -376,13 +262,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const paymentRequiredHeader = resolvedEntity.paymentRequiredHeader}
-					{#if paymentRequiredHeader !== undefined && paymentRequiredHeader !== null}
+					{@const paymentRequiredHeader = entity.paymentRequiredHeader}
+					{#if paymentRequiredHeader != null}
 						<div>
 							<dt>payment required header</dt>
 							<dd>
-								{String((paymentRequiredHeader) ?? '')}
+								{paymentRequiredHeader}
 							</dd>
 						</div>
 					{/if}
@@ -392,7 +277,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							paymentSignatureHeader: true,
 						},
@@ -400,13 +284,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const paymentSignatureHeader = resolvedEntity.paymentSignatureHeader}
-					{#if paymentSignatureHeader !== undefined && paymentSignatureHeader !== null}
+					{@const paymentSignatureHeader = entity.paymentSignatureHeader}
+					{#if paymentSignatureHeader != null}
 						<div>
 							<dt>payment signature header</dt>
 							<dd>
-								<TruncatedValue value={String((paymentSignatureHeader) ?? '')} />
+								<TruncatedValue value={paymentSignatureHeader} />
 							</dd>
 						</div>
 					{/if}
@@ -416,7 +299,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							paymentResponseHeader: true,
 						},
@@ -424,13 +306,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const paymentResponseHeader = resolvedEntity.paymentResponseHeader}
-					{#if paymentResponseHeader !== undefined && paymentResponseHeader !== null}
+					{@const paymentResponseHeader = entity.paymentResponseHeader}
+					{#if paymentResponseHeader != null}
 						<div>
 							<dt>payment response header</dt>
 							<dd>
-								{String((paymentResponseHeader) ?? '')}
+								{paymentResponseHeader}
 							</dd>
 						</div>
 					{/if}
@@ -440,7 +321,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							facilitatorUrl: true,
 						},
@@ -448,20 +328,18 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const facilitatorUrl = resolvedEntity.facilitatorUrl}
-					{#if facilitatorUrl !== undefined && facilitatorUrl !== null}
+					{@const facilitatorUrl = entity.facilitatorUrl}
+					{#if facilitatorUrl != null}
 						<div>
 							<dt>facilitator URL</dt>
 							<dd>
-								<svelte:element
-									this={'a'}
+								<a
 									href={String(facilitatorUrl)}
 									target="_blank"
 									rel="noreferrer noopener"
 								>
 									<TruncatedValue value={String(facilitatorUrl)} />
-								</svelte:element>
+								</a>
 							</dd>
 						</div>
 					{/if}
@@ -471,7 +349,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							scheme: true,
 						},
@@ -479,13 +356,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const scheme = resolvedEntity.scheme}
-					{#if scheme !== undefined && scheme !== null}
+					{@const scheme = entity.scheme}
+					{#if scheme != null}
 						<div>
 							<dt>scheme</dt>
 							<dd>
-								{String((scheme) ?? '')}
+								{scheme}
 							</dd>
 						</div>
 					{/if}
@@ -495,7 +371,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							maxAmountRequired: true,
 						},
@@ -503,13 +378,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const maxAmountRequired = resolvedEntity.maxAmountRequired}
-					{#if maxAmountRequired !== undefined && maxAmountRequired !== null}
+					{@const maxAmountRequired = entity.maxAmountRequired}
+					{#if maxAmountRequired != null}
 						<div>
 							<dt>max amount required</dt>
 							<dd>
-								{String((maxAmountRequired) ?? '')}
+								{maxAmountRequired}
 							</dd>
 						</div>
 					{/if}
@@ -519,7 +393,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							maxTimeoutSeconds: true,
 						},
@@ -527,13 +400,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const maxTimeoutSeconds = resolvedEntity.maxTimeoutSeconds}
-					{#if maxTimeoutSeconds !== undefined && maxTimeoutSeconds !== null}
+					{@const maxTimeoutSeconds = entity.maxTimeoutSeconds}
+					{#if maxTimeoutSeconds != null}
 						<div>
 							<dt>max timeout seconds</dt>
 							<dd>
-								{String((maxTimeoutSeconds) ?? '')}
+								{String(maxTimeoutSeconds)}
 							</dd>
 						</div>
 					{/if}
@@ -543,7 +415,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							evidenceUri: true,
 						},
@@ -551,20 +422,18 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const evidenceUri = resolvedEntity.evidenceUri}
-					{#if evidenceUri !== undefined && evidenceUri !== null}
+					{@const evidenceUri = entity.evidenceUri}
+					{#if evidenceUri != null}
 						<div>
 							<dt>evidence URI</dt>
 							<dd>
-								<svelte:element
-									this={'a'}
+								<a
 									href={String(evidenceUri)}
 									target="_blank"
 									rel="noreferrer noopener"
 								>
 									<TruncatedValue value={String(evidenceUri)} />
-								</svelte:element>
+								</a>
 							</dd>
 						</div>
 					{/if}
@@ -574,7 +443,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							error: true,
 						},
@@ -582,13 +450,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const error = resolvedEntity.error}
-					{#if error !== undefined && error !== null}
+					{@const error = entity.error}
+					{#if error != null}
 						<div>
 							<dt>error</dt>
 							<dd>
-								{String((error) ?? '')}
+								{error}
 							</dd>
 						</div>
 					{/if}

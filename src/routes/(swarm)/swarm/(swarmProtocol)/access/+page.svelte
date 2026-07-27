@@ -8,7 +8,6 @@
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
@@ -31,13 +30,12 @@
 
 
 <svelte:head>
-	<title>{(data.title ?? (pageSelection.entity == null ? 'global Swarm access' : 'global Swarm access'))} • global Swarm access • Blockhead</title>
+	<title>{(data.title ?? ('global Swarm access'))} • global Swarm access • Blockhead</title>
 </svelte:head>
 
 
 <Page>
 	<GlobalSwarmAccessView
-		href={resolve('/swarm/access')}
 		selection={pageSelection}
 	/>
 </Page>

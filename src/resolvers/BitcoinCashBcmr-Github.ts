@@ -4,7 +4,6 @@ import {
 import { bitcoinNetworkBySlug } from '$/constants/BitcoinNetwork.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
-import { BitcoinCashBcmrMetadataSelector } from '$/schema/BitcoinCashBcmrMetadata.ts'
 
 export default {
 	source: Source.BitcoinCashBcmr_Github,
@@ -13,7 +12,7 @@ export default {
 		defineResolver(Source.BitcoinCashBcmr_Github, {
 			entityType: EntityType.BitcoinCashBcmrMetadata,
 			resolve: {
-				[BitcoinCashBcmrMetadataSelector.NetworkCategoryIdRegistryUrl]: {
+				NetworkCategoryIdRegistryUrl: {
 					resolve: async ({ $network, categoryId, registryUrl }) => {
 						if (
 							!(
@@ -27,7 +26,9 @@ export default {
 							throw new Error('BitcoinCashBcmr_Github: unsupported network')
 
 						const { getRegistry } = await import('$/sources/BitcoinCashBcmr/Github/queries.ts')
-						const registry = await getRegistry({ url: registryUrl })
+						const registry = await getRegistry(
+							{ url: registryUrl }
+						)
 						const registryIdentity = registry.identities?.[categoryId]
 						if (registryIdentity == null)
 							throw new Error(`BitcoinCashBcmr_Github: category not found ${categoryId}`)

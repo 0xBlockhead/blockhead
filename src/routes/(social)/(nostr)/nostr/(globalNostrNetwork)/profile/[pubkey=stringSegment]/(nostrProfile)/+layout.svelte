@@ -30,24 +30,30 @@
 {#key params.pubkey}
 	<ParentPageCollapsible
 		href={
-			resolve('/nostr/profile/[pubkey=stringSegment]', {
-				pubkey: params.pubkey,
-			})
+			resolve(
+				'/(social)/(nostr)/nostr/(globalNostrNetwork)/profile/[pubkey=stringSegment]',
+				{
+					pubkey: String(params.pubkey),
+				}
+			)
 		}
 	>
 		{#snippet Summary()}
-			{@const DetailView = NostrProfileView}
-
-			<DetailView
-				selection={select(EntityType.NostrProfile, data.selector, { sources: [
-		Source.Constants_Internal,
-		Source.NostrBand_Rest,
-		Source.Primal_Rest,
-	] })}
+			<NostrProfileView
+				selection={
+					select(EntityType.NostrProfile, data.selector, { sources: [
+						Source.Constants_Internal,
+						Source.NostrBand_Rest,
+						Source.Primal_Rest,
+					] })
+				}
 				href={
-					resolve('/nostr/profile/[pubkey=stringSegment]', {
-						pubkey: params.pubkey,
-					})
+					resolve(
+						'/(social)/(nostr)/nostr/(globalNostrNetwork)/profile/[pubkey=stringSegment]',
+						{
+							pubkey: String(params.pubkey),
+						}
+					)
 				}
 				layout={EntityLayout.SummaryInline}
 			/>

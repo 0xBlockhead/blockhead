@@ -7,10 +7,7 @@ import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
-export enum MarketAssetSelector {
-	KindAssetKey = 'KindAssetKey',
-}
-export const MarketAsset = entity({
+export default entity({
 	entityType: EntityType.MarketAsset,
 	labels: {
 		singular: 'Market asset',

@@ -11,9 +11,6 @@ import {
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
-import { _GlobalSelector } from '$/schema/_Global.ts'
-import { SpecificationProposalSelector } from '$/schema/SpecificationProposal.ts'
-
 const metadataValue = (text: string, key: string) => (
 	new RegExp(`^\\s*${key}:\\s*(.+?)\\s*$`, 'im').exec(text)?.[1]?.trim()
 )
@@ -42,7 +39,7 @@ export default {
 		defineResolver(Source.LitecoinLips_Github, {
 			entityType: EntityType.SpecificationProposal,
 			resolve: {
-				[SpecificationProposalSelector.RealmCategoryNumber]: {
+				RealmCategoryNumber: {
 					appliesTo: [
 						{
 							realm: OwnedSpecificationRealm.Litecoin,
@@ -55,7 +52,9 @@ export default {
 						throw new Error('LitecoinLips_Github: proposal resolver only supports Litecoin LIPs')
 					}
 					const { getMediaWikiText } = await import('$/sources/LitecoinLips/Github/queries.ts')
-					const text = await getMediaWikiText({ number: number })
+					const text = await getMediaWikiText({
+						number: number,
+					})
 					return {
 						documentCategory: metadataValue(text, 'Type') ?? 'LIP',
 						documentTitle: metadataValue(text, 'Title'),
@@ -75,7 +74,7 @@ export default {
 		defineResolver(Source.LitecoinLips_Github, {
 			entityType: EntityType._Global,
 			resolve: {
-				[_GlobalSelector.Scope]: {
+				Scope: {
 					resolve: async () => {
 					const { getContents } = await import('$/sources/LitecoinLips/Github/queries.ts')
 					return litecoinLipRows(await getContents())

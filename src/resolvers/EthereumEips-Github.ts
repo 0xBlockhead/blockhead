@@ -15,29 +15,8 @@ import {
 	EntityMetaKey,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import { sourceProviderDefinitions } from '$/sources/$sourceProviders.ts'
 import { Source } from '$/sources/Source.ts'
 import { ethereumEipSpecGithubRepoByLedger } from '$/sources/EthereumEips/Github/constants.ts'
-import { _GlobalSelector } from '$/schema/_Global.ts'
-import { SpecificationProposalKindSelector } from '$/schema/SpecificationProposalKind.ts'
-import { SpecificationProposalSelector } from '$/schema/SpecificationProposal.ts'
-
-const ethereumEipsGithubBindingForLedger = (
-	ledger: 'eip' | 'erc'
-) => {
-	const target = ethereumEipSpecGithubRepoByLedger[ledger]
-	const binding = sourceProviderDefinitions
-		.flatMap((provider) => provider.bindings)
-		.find((candidate) => (
-			candidate.source === Source.EthereumEips_Github
-			&& candidate.target.key === `${target.owner}/${target.repo}@${target.ref}:${target.path}`
-		))
-	if (binding == null)
-		throw new Error(`EthereumEips_Github: missing ${ledger.toUpperCase()} source binding`)
-
-	return binding
-}
-
 const ethereumProposalMarkdownBody = async (
 	text: string,
 	ledger: 'eip' | 'erc'
@@ -84,14 +63,14 @@ const ethereumEipErcProposalRowsFromGithubSpecs = async ({
 	const { ProposalCategory } = await import('$/constants/SpecificationProposal.ts')
 	const ledgers = (
 		category === ProposalCategory.Erc ?
-			[{ ledger: 'erc' as const, category: ProposalCategory.Erc }]
+			[{ ledger: 'erc', category: ProposalCategory.Erc }] as const
 		: category === ProposalCategory.Eip ?
-			[{ ledger: 'eip' as const, category: ProposalCategory.Eip }]
+			[{ ledger: 'eip', category: ProposalCategory.Eip }] as const
 		:
 			[
-				{ ledger: 'eip' as const, category: ProposalCategory.Eip },
-				{ ledger: 'erc' as const, category: ProposalCategory.Erc },
-			]
+				{ ledger: 'eip', category: ProposalCategory.Eip },
+				{ ledger: 'erc', category: ProposalCategory.Erc },
+			] as const
 	)
 	const { SpecificationRealm } = await import('$/constants/SpecificationProposal.ts')
 	const byLedger = await Promise.all(
@@ -146,7 +125,7 @@ export default {
 		defineResolver(Source.EthereumEips_Github, {
 			entityType: EntityType.SpecificationProposal,
 			resolve: {
-				[SpecificationProposalSelector.RealmCategoryNumber]: {
+				RealmCategoryNumber: {
 					appliesTo: [
 						{
 							realm: OwnedSpecificationRealm.Ethereum,
@@ -172,7 +151,6 @@ export default {
 						const text = await getProposalMarkdownText({
 							ledger: category === ProposalCategory.Erc ? 'erc' : 'eip',
 							number: number,
-							binding: ethereumEipsGithubBindingForLedger(category === ProposalCategory.Erc ? 'erc' : 'eip'),
 						})
 						if (text.trim() === '') throw new Error('EthereumEips_Github: empty proposal markdown')
 						const body = await ethereumProposalMarkdownBody(
@@ -199,13 +177,12 @@ export default {
 		defineResolver(Source.EthereumEips_Github, {
 			entityType: EntityType._Global,
 			resolve: {
-				[_GlobalSelector.Scope]: {
+				Scope: {
 					resolve: async (_selector, context) => {
 					const { getContents } = await import('$/sources/EthereumEips/Github/queries.ts')
 					return ethereumEipErcProposalRowsFromGithubSpecs({
 						getContents: ({ ledger }) => getContents({
 							ledger,
-							binding: ethereumEipsGithubBindingForLedger(ledger),
 						}),
 						context,
 					})
@@ -222,7 +199,7 @@ export default {
 		defineResolver(Source.EthereumEips_Github, {
 			entityType: EntityType.SpecificationProposalKind,
 			resolve: {
-				[SpecificationProposalKindSelector.RealmCategory]: {
+				RealmCategory: {
 					resolve: async ({ category, realm }, context) => {
 						const { getContents } = await import('$/sources/EthereumEips/Github/queries.ts')
 						const { ProposalCategory, SpecificationRealm } = await import('$/constants/SpecificationProposal.ts')
@@ -236,7 +213,6 @@ export default {
 							category,
 							getContents: ({ ledger }) => getContents({
 								ledger,
-								binding: ethereumEipsGithubBindingForLedger(ledger),
 							}),
 							context,
 						})

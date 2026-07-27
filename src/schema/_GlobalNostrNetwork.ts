@@ -1,16 +1,13 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { entity, facet } from '$/schema/$schema.ts'
+import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { UrlString } from '$/schema/UrlString.ts'
 import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
-export enum _GlobalNostrNetworkSelector {
-	Scope = 'Scope',
-}
-export const _GlobalNostrNetwork = entity({
+export default entity({
 	entityType: EntityType._GlobalNostrNetwork,
 	labels: {
 		singular: 'Nostr',
@@ -46,7 +43,7 @@ export const _GlobalNostrNetwork = entity({
 	homeUrl: {
 		label: 'Home',
 		type: EntityFieldType.Primitive,
-		primitiveType: (UrlString),
+		primitiveType: UrlString,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
 			Source.Constants_Internal,
@@ -55,7 +52,7 @@ export const _GlobalNostrNetwork = entity({
 	docsUrl: {
 		label: 'Docs',
 		type: EntityFieldType.Primitive,
-		primitiveType: (UrlString),
+		primitiveType: UrlString,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
 			Source.Constants_Internal,
@@ -76,6 +73,7 @@ export const _GlobalNostrNetwork = entity({
 		entityType: EntityType.NostrProfile,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
+			Source.Constants_Internal,
 			Source.NostrBand_Rest,
 		],
 	},
@@ -105,7 +103,6 @@ export const _GlobalNostrNetwork = entity({
 		entityType: EntityType.NostrRepost,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
-			Source.Constants_Internal,
 			Source.NostrBand_Rest,
 		],
 	},
@@ -114,10 +111,6 @@ export const _GlobalNostrNetwork = entity({
 		type: EntityFieldType.EntitiesReference,
 		entityType: EntityType.NostrReaction,
 		cardinality: EntityFieldCardinality.Many,
-		defaultSources: [
-			Source.NostrBand_Rest,
-			Source.Primal_Rest,
-		],
 	},
 	$$observedArticles: {
 		label: 'Articles',
@@ -125,7 +118,6 @@ export const _GlobalNostrNetwork = entity({
 		entityType: EntityType.NostrArticle,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
-			Source.Constants_Internal,
 			Source.NostrBand_Rest,
 		],
 	},

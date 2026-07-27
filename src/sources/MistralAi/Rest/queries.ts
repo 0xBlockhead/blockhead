@@ -3,7 +3,7 @@ import { sourceFetch, firstHttpUrlForBinding } from '$/sources/_runtime/http.ts'
 import { throwHttpError } from '$/lib/http.ts'
 import type { MistralAiJson } from '$/sources/MistralAi/Rest/types.ts'
 
-const getJson = async ({
+const requestMistralAiJson = async ({
 	binding,
 	path,
 	credential,
@@ -30,7 +30,7 @@ export const listModels = ({
 }: {
 	binding: SourceBinding
 	credential: string
-}) => getJson({
+}) => requestMistralAiJson({
 	binding,
 	path: '/v1/models',
 	credential,
@@ -44,7 +44,7 @@ export const retrieveModel = ({
 	binding: SourceBinding
 	modelId: string
 	credential: string
-}) => getJson({
+}) => requestMistralAiJson({
 	binding,
 	path: `/v1/models/${encodeURIComponent(modelId)}`,
 	credential,

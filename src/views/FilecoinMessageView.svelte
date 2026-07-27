@@ -2,15 +2,9 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
-	import { caip2StringFromValue } from '$/lib/caip2.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -23,40 +17,23 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.FilecoinMessage>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.FilecoinMessage>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.FilecoinMessage> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const filecoinMessage = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {
-			valueAttoFil: true,
-		},
-	} : {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const viewSelection = $derived(selection({
+		sources: selection.sources ?? [
+			Source.Filfox_Rest,
+		],
+	}))
+	const filecoinMessage = $derived(viewSelection({
 		fields: {
 			valueAttoFil: true,
 		},
 	}))
-	const titleFallback = $derived([String((pendingEntity.cid) ?? '')].filter(Boolean).join(' ') || 'filecoin message')
-	const viewDomId = $derived('filecoin-message-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const titleFallback = $derived((pendingEntity.cid ?? '') || 'filecoin message')
 
 
 	// Components
@@ -70,74 +47,46 @@
 
 <EntityView
 	entityType={EntityType.FilecoinMessage}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={filecoinMessage}>
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const cid0 = resolvedEntity.cid}
-				{#if cid0 !== undefined && cid0 !== null}
-					<TruncatedValue value={String((cid0) ?? '')} />
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		<TruncatedValue value={pendingEntity.cid} />
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={filecoinMessage}>
-			{#snippet children(entity)}
-				<ResourceBoundary
-					resource={
-						selection
-							.$from({
-								sources: [
-									Source.Filfox_Rest,
-								],
-							})
-					}
-				>
-					{#snippet children(filecoinActor)}
-						{#if filecoinActor != null && filecoinActor[EntityMetaKey.Selector] != null}
-							<FilecoinActorView
-								selection={select(EntityType.FilecoinActor, filecoinActor[EntityMetaKey.Selector])}
-								prefetched={filecoinActor}
-								href=""
-								layout={EntityLayout.Value}
-								open={false}
-							/>
-						{/if}
-					{/snippet}
-				</ResourceBoundary>
+		<ResourceBoundary
+			resource={selection.$from}
+		>
+			{#snippet children(filecoinActor)}
+				{#if filecoinActor != null}
+					<FilecoinActorView
+						selection={select(EntityType.FilecoinActor, filecoinActor[EntityMetaKey.Selector])}
+						prefetched={filecoinActor}
+						href=""
+						layout={EntityLayout.Value}
+						open={false}
+					/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 
-				<ResourceBoundary
-					resource={
-						selection
-							.$to({
-								sources: [
-									Source.Filfox_Rest,
-								],
-							})
-					}
-				>
-					{#snippet children(filecoinActor)}
-						{#if filecoinActor != null && filecoinActor[EntityMetaKey.Selector] != null}
-							<FilecoinActorView
-								selection={select(EntityType.FilecoinActor, filecoinActor[EntityMetaKey.Selector])}
-								prefetched={filecoinActor}
-								href=""
-								layout={EntityLayout.Value}
-								open={false}
-							/>
-						{/if}
-					{/snippet}
-				</ResourceBoundary>
+		<ResourceBoundary
+			resource={selection.$to}
+		>
+			{#snippet children(filecoinActor)}
+				{#if filecoinActor != null}
+					<FilecoinActorView
+						selection={select(EntityType.FilecoinActor, filecoinActor[EntityMetaKey.Selector])}
+						prefetched={filecoinActor}
+						href=""
+						layout={EntityLayout.Value}
+						open={false}
+					/>
+				{/if}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -145,9 +94,8 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={filecoinMessage}>
 			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const valueAttoFil0 = resolvedEntity.valueAttoFil}
-				{#if valueAttoFil0 !== undefined && valueAttoFil0 !== null}
+				{@const valueAttoFil0 = entity.valueAttoFil}
+				{#if valueAttoFil0 != null}
 					<span data-text="muted">
 						<NumberValue
 							value={valueAttoFil0}
@@ -165,23 +113,6 @@
 				<dd>
 					<NetworkView
 						selection={select(EntityType.Network, selection.entitySelector.$network)}
-						href={
-							(
-								selection.entitySelector.$network != null && 'caip2' in selection.entitySelector.$network
-								&& selection.entitySelector.$network.caip2 != null ?
-									resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-								network: String(caip2StringFromValue(selection.entitySelector.$network.caip2) ?? ''),
-							})
-							:
-									selection.entitySelector.$network != null && 'slug' in selection.entitySelector.$network
-									&& selection.entitySelector.$network.slug != null ?
-										resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-									network: String(selection.entitySelector.$network.slug ?? ''),
-								})
-								:
-									undefined
-							)
-						}
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -191,69 +122,21 @@
 			<div>
 				<dt>CID</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									cid: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const cid = resolvedEntity.cid}
-							{#if cid !== undefined && cid !== null}
-								<TruncatedValue value={String((cid) ?? '')} />
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					<TruncatedValue value={pendingEntity.cid} />
 				</dd>
 			</div>
 
 			<ResourceBoundary
-				resource={
-					selection
-						.$from({
-							sources: [
-								Source.Filfox_Rest,
-							],
-						})
-				}
+				resource={selection.$from}
 			>
 				{#snippet children(filecoinActor)}
-					{#if filecoinActor != null && filecoinActor[EntityMetaKey.Selector] != null}
+					{#if filecoinActor != null}
 						<div>
 							<dt>From</dt>
 							<dd>
 								<FilecoinActorView
 									selection={select(EntityType.FilecoinActor, filecoinActor[EntityMetaKey.Selector])}
 									prefetched={filecoinActor}
-									href={
-										(
-											filecoinActor[EntityMetaKey.Selector] != null && 'address' in filecoinActor[EntityMetaKey.Selector]
-											&& filecoinActor[EntityMetaKey.Selector].address != null
-											&& filecoinActor[EntityMetaKey.Selector] != null && '$network' in filecoinActor[EntityMetaKey.Selector] ?
-												filecoinActor[EntityMetaKey.Selector].$network != null && 'caip2' in filecoinActor[EntityMetaKey.Selector].$network
-												&& filecoinActor[EntityMetaKey.Selector].$network.caip2 != null ?
-													resolve('/network/[network=networkCaip2OrNetworkSlug]/actor/[address=stringSegment]', {
-												address: String(filecoinActor[EntityMetaKey.Selector].address ?? ''),
-												network: String(caip2StringFromValue(filecoinActor[EntityMetaKey.Selector].$network.caip2) ?? ''),
-											})
-											:
-													filecoinActor[EntityMetaKey.Selector].$network != null && 'slug' in filecoinActor[EntityMetaKey.Selector].$network
-													&& filecoinActor[EntityMetaKey.Selector].$network.slug != null ?
-														resolve('/network/[network=networkCaip2OrNetworkSlug]/actor/[address=stringSegment]', {
-													address: String(filecoinActor[EntityMetaKey.Selector].address ?? ''),
-													network: String(filecoinActor[EntityMetaKey.Selector].$network.slug ?? ''),
-												})
-												:
-													undefined
-										:
-												undefined
-										)
-									}
 									layout={EntityLayout.Value}
 									open={false}
 								/>
@@ -264,47 +147,16 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={
-					selection
-						.$to({
-							sources: [
-								Source.Filfox_Rest,
-							],
-						})
-				}
+				resource={selection.$to}
 			>
 				{#snippet children(filecoinActor)}
-					{#if filecoinActor != null && filecoinActor[EntityMetaKey.Selector] != null}
+					{#if filecoinActor != null}
 						<div>
 							<dt>To</dt>
 							<dd>
 								<FilecoinActorView
 									selection={select(EntityType.FilecoinActor, filecoinActor[EntityMetaKey.Selector])}
 									prefetched={filecoinActor}
-									href={
-										(
-											filecoinActor[EntityMetaKey.Selector] != null && 'address' in filecoinActor[EntityMetaKey.Selector]
-											&& filecoinActor[EntityMetaKey.Selector].address != null
-											&& filecoinActor[EntityMetaKey.Selector] != null && '$network' in filecoinActor[EntityMetaKey.Selector] ?
-												filecoinActor[EntityMetaKey.Selector].$network != null && 'caip2' in filecoinActor[EntityMetaKey.Selector].$network
-												&& filecoinActor[EntityMetaKey.Selector].$network.caip2 != null ?
-													resolve('/network/[network=networkCaip2OrNetworkSlug]/actor/[address=stringSegment]', {
-												address: String(filecoinActor[EntityMetaKey.Selector].address ?? ''),
-												network: String(caip2StringFromValue(filecoinActor[EntityMetaKey.Selector].$network.caip2) ?? ''),
-											})
-											:
-													filecoinActor[EntityMetaKey.Selector].$network != null && 'slug' in filecoinActor[EntityMetaKey.Selector].$network
-													&& filecoinActor[EntityMetaKey.Selector].$network.slug != null ?
-														resolve('/network/[network=networkCaip2OrNetworkSlug]/actor/[address=stringSegment]', {
-													address: String(filecoinActor[EntityMetaKey.Selector].address ?? ''),
-													network: String(filecoinActor[EntityMetaKey.Selector].$network.slug ?? ''),
-												})
-												:
-													undefined
-										:
-												undefined
-										)
-									}
 									layout={EntityLayout.Value}
 									open={false}
 								/>
@@ -316,8 +168,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							method: true,
 						},
@@ -325,9 +176,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const method = resolvedEntity.method}
-					{#if method !== undefined && method !== null}
+					{@const method = entity.method}
+					{#if method != null}
 						<div>
 							<dt>Method</dt>
 							<dd>
@@ -342,8 +192,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							nonce: true,
 						},
@@ -351,9 +200,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const nonce = resolvedEntity.nonce}
-					{#if nonce !== undefined && nonce !== null}
+					{@const nonce = entity.nonce}
+					{#if nonce != null}
 						<div>
 							<dt>Nonce</dt>
 							<dd>
@@ -367,19 +215,11 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							valueAttoFil: true,
-						},
-					})
-				}
+				resource={filecoinMessage}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const valueAttoFil = resolvedEntity.valueAttoFil}
-					{#if valueAttoFil !== undefined && valueAttoFil !== null}
+					{@const valueAttoFil = entity.valueAttoFil}
+					{#if valueAttoFil != null}
 						<div>
 							<dt>Value attoFIL</dt>
 							<dd>
@@ -394,8 +234,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							gasLimit: true,
 						},
@@ -403,9 +242,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const gasLimit = resolvedEntity.gasLimit}
-					{#if gasLimit !== undefined && gasLimit !== null}
+					{@const gasLimit = entity.gasLimit}
+					{#if gasLimit != null}
 						<div>
 							<dt>Gas limit</dt>
 							<dd>

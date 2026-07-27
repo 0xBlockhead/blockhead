@@ -4,11 +4,9 @@
 	// Types/constants
 	import type { PageProps } from './$types.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
@@ -48,20 +46,12 @@
 
 
 <svelte:head>
-	<title>{(pageSelection.entity == null ? 'ActivityPub note observation' : 'ActivityPub note observation')} • ActivityPub note observation • Blockhead</title>
+	<title>{('ActivityPub note observation')} • ActivityPub note observation • Blockhead</title>
 </svelte:head>
 
 
 <Page>
 	<ActivityPubNote_TimestampView
-		href={
-			resolve('/activitypub/note/[instanceOrigin=absoluteUrl]/[localStatusId=stringSegment]/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
-				instanceOrigin: params.instanceOrigin,
-				localStatusId: params.localStatusId,
-				timestampMs: params.timestampMs,
-				source: params.source,
-			})
-		}
 		selection={pageSelection}
 	/>
 </Page>

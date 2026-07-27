@@ -2,13 +2,8 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
 
 
 	// Context
@@ -20,35 +15,13 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.SuiObjectVersion>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.SuiObjectVersion>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.SuiObjectVersion> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const suiObjectVersion = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {},
-	} : {
-		sources: selection.sources,
-	}))
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const titleFallback = 'Sui object version'
-	const viewDomId = $derived('sui-object-version-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -60,24 +33,14 @@
 
 <EntityView
 	entityType={EntityType.SuiObjectVersion}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails}
-			{title || titleFallback}
-		{:else}
-			<ResourceBoundary resource={suiObjectVersion}>
-				{#snippet children(entity)}
-					{title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		Sui object version
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -96,79 +59,27 @@
 			<div>
 				<dt>object ID</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									objectId: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const objectId = resolvedEntity.objectId}
-							{#if objectId !== undefined && objectId !== null}
-								{String((objectId) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{pendingEntity.objectId}
 				</dd>
 			</div>
 
 			<div>
 				<dt>version</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									version: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const version = resolvedEntity.version}
-							{#if version !== undefined && version !== null}
-								{String((version) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{String(pendingEntity.version)}
 				</dd>
 			</div>
 
 			<div>
 				<dt>digest</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									digest: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const digest = resolvedEntity.digest}
-							{#if digest !== undefined && digest !== null}
-								<TruncatedValue value={String((digest) ?? '')} />
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					<TruncatedValue value={pendingEntity.digest} />
 				</dd>
 			</div>
 
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							objectType: true,
 						},
@@ -176,13 +87,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const objectType = resolvedEntity.objectType}
-					{#if objectType !== undefined && objectType !== null}
+					{@const objectType = entity.objectType}
+					{#if objectType != null}
 						<div>
 							<dt>object type</dt>
 							<dd>
-								{String((objectType) ?? '')}
+								{objectType}
 							</dd>
 						</div>
 					{/if}
@@ -192,7 +102,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							previousTransaction: true,
 						},
@@ -200,13 +109,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const previousTransaction = resolvedEntity.previousTransaction}
-					{#if previousTransaction !== undefined && previousTransaction !== null}
+					{@const previousTransaction = entity.previousTransaction}
+					{#if previousTransaction != null}
 						<div>
 							<dt>previous transaction</dt>
 							<dd>
-								{String((previousTransaction) ?? '')}
+								{previousTransaction}
 							</dd>
 						</div>
 					{/if}
@@ -216,7 +124,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							storageRebate: true,
 						},
@@ -224,13 +131,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const storageRebate = resolvedEntity.storageRebate}
-					{#if storageRebate !== undefined && storageRebate !== null}
+					{@const storageRebate = entity.storageRebate}
+					{#if storageRebate != null}
 						<div>
 							<dt>storage rebate</dt>
 							<dd>
-								{String((storageRebate) ?? '')}
+								{String(storageRebate)}
 							</dd>
 						</div>
 					{/if}

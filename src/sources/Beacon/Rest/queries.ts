@@ -2,12 +2,13 @@
  * Standard Ethereum beacon node REST (`/eth/v1/...`) — @see https://github.com/ethereum/beacon-APIs
  */
 
-import { corsFetch, throwHttpError } from '$/lib/http.ts'
+import { throwHttpError } from '$/lib/http.ts'
 import { with0xHex, zeroExLowerCase } from '$/lib/hexLowerOfByteSize.ts'
 import {
-	beaconOrigins,
-	beaconRestEndpointByExecutionChainId,
-} from '$/sources/Beacon/Rest/constants.ts'
+	firstHttpUrlForBinding,
+	sourceFetch,
+} from '$/sources/_runtime/http.ts'
+import bindings from '$/sources/Beacon/bindings.ts'
 import type {
 	BeaconFinalityCheckpoints,
 	BeaconForkScheduleEntry,
@@ -20,24 +21,33 @@ import type {
 	BeaconValidatorResponse,
 	BeaconValidatorSummary,
 } from '$/sources/Beacon/Rest/types.ts'
+import { Source } from '$/sources/Source.ts'
 import { isJsonObject, type JsonValue } from '$/typescript/JsonValue.ts'
 
-export const beaconRestBaseUrlForChain = (chainId: number) =>
-	beaconRestEndpointByExecutionChainId[chainId]?.restBaseUrl
-
-const beaconFetch = (
-	url: string,
-	init?: RequestInit
-) => (
-	corsFetch(url, {
-		origins: beaconOrigins,
-		init,
-	})
+const bindingByChainId = Object.fromEntries(
+	bindings[Source.Beacon_Rest].map((binding) => [binding.target.key, binding])
 )
 
-export const getHeadSlot = async (beaconRestBaseUrl: string): Promise<number> => {
-	const base = beaconRestBaseUrl.replace(/\/$/, '')
-	const res = await beaconFetch(`${base}/eth/v1/beacon/headers/head`, {
+export const beaconRestBinding = (chainId: number) => bindingByChainId[String(chainId)]
+
+const beaconFetch = (
+	chainId: number,
+	path: `/${string}`,
+	init?: RequestInit
+) => {
+	const binding = beaconRestBinding(chainId)
+	if (binding == null)
+		throw new Error(`Beacon_Rest: no binding for chain ${String(chainId)}`)
+
+	return sourceFetch(
+		binding,
+		`${firstHttpUrlForBinding(binding).replace(/\/$/, '')}${path}`,
+		init
+	)
+}
+
+export const getHeadSlot = async (chainId: number): Promise<number> => {
+	const res = await beaconFetch(chainId, '/eth/v1/beacon/headers/head', {
 		headers: { accept: 'application/json' },
 	})
 	if (!res.ok) await throwHttpError('Beacon GET head', res)
@@ -56,11 +66,10 @@ export const getHeadSlot = async (beaconRestBaseUrl: string): Promise<number> =>
 }
 
 export const getHeader = async (
-	beaconRestBaseUrl: string,
+	chainId: number,
 	blockId: string | number
 ): Promise<BeaconHeader> => {
-	const base = beaconRestBaseUrl.replace(/\/$/, '')
-	const res = await beaconFetch(`${base}/eth/v1/beacon/headers/${blockId}`, {
+	const res = await beaconFetch(chainId, `/eth/v1/beacon/headers/${blockId}`, {
 		headers: { accept: 'application/json' },
 	})
 	if (!res.ok) await throwHttpError('Beacon GET header', res)
@@ -106,15 +115,15 @@ export const getHeader = async (
  * Keeps `Network` validator discovery inside a small, constant-time window instead of paging the full validator set.
  */
 export const getRecentProposerValidatorIndices = async ({
-	beaconRestBaseUrl,
+	chainId,
 	limit,
 	slotLookbackCap,
 }: {
-	beaconRestBaseUrl: string
+	chainId: number
 	limit: number
 	slotLookbackCap: number
 }): Promise<number[]> => {
-	const head = await getHeadSlot(beaconRestBaseUrl)
+	const head = await getHeadSlot(chainId)
 	const seen = new Map<number, true>()
 	const ordered: number[] = []
 	for (let slotOffset = 0;
@@ -123,7 +132,7 @@ export const getRecentProposerValidatorIndices = async ({
 	) {
 		const slot = head - slotOffset
 		if (slot < 0) break
-		const header = await getHeader(beaconRestBaseUrl, slot)
+		const header = await getHeader(chainId, slot)
 		const index = header.proposerIndex
 		if (seen.has(index)) continue
 		seen.set(index, true)
@@ -140,12 +149,12 @@ const nonNegativeDecimalBigIntFromWire = (raw: string | undefined): bigint | und
 )
 
 export const getValidatorSummaryAtHead = async (
-	beaconRestBaseUrl: string,
+	chainId: number,
 	validatorIndex: number
 ): Promise<BeaconValidatorSummary | null> => {
-	const base = beaconRestBaseUrl.replace(/\/$/, '')
 	const res = await beaconFetch(
-		`${base}/eth/v1/beacon/states/head/validators/${String(validatorIndex)}`,
+		chainId,
+		`/eth/v1/beacon/states/head/validators/${String(validatorIndex)}`,
 		{
 			headers: { accept: 'application/json' },
 		}
@@ -228,10 +237,9 @@ export const getFinalityCheckpointsFromWire = (
 }
 
 export const getFinalityCheckpoints = async (
-	beaconRestBaseUrl: string
+	chainId: number
 ): Promise<BeaconFinalityCheckpoints | undefined> => {
-	const base = beaconRestBaseUrl.replace(/\/$/, '')
-	const res = await beaconFetch(`${base}/eth/v1/beacon/states/head/finality_checkpoints`, {
+	const res = await beaconFetch(chainId, '/eth/v1/beacon/states/head/finality_checkpoints', {
 		headers: { accept: 'application/json' },
 	})
 	if (!res.ok) await throwHttpError('Beacon GET finality_checkpoints', res)
@@ -282,10 +290,9 @@ export const getForkScheduleFromWire = (
 }
 
 export const getForkSchedule = async (
-	beaconRestBaseUrl: string
+	chainId: number
 ): Promise<BeaconForkScheduleEntry[]> => {
-	const base = beaconRestBaseUrl.replace(/\/$/, '')
-	const res = await beaconFetch(`${base}/eth/v1/config/fork_schedule`, {
+	const res = await beaconFetch(chainId, '/eth/v1/config/fork_schedule', {
 		headers: { accept: 'application/json' },
 	})
 	if (!res.ok) await throwHttpError('Beacon GET fork_schedule', res)
@@ -294,10 +301,9 @@ export const getForkSchedule = async (
 }
 
 export const getGenesisTimeSeconds = async (
-	beaconRestBaseUrl: string
+	chainId: number
 ): Promise<number | undefined> => {
-	const base = beaconRestBaseUrl.replace(/\/$/, '')
-	const res = await beaconFetch(`${base}/eth/v1/beacon/genesis`, {
+	const res = await beaconFetch(chainId, '/eth/v1/beacon/genesis', {
 		headers: { accept: 'application/json' },
 	})
 	if (!res.ok) await throwHttpError('Beacon GET genesis', res)
@@ -343,11 +349,10 @@ export const getCommitteesFromWire = (wire: JsonValue): BeaconCommittee[] => {
 }
 
 export const getCommittees = async (
-	beaconRestBaseUrl: string,
+	chainId: number,
 	stateId = 'head'
 ): Promise<BeaconCommittee[]> => {
-	const base = beaconRestBaseUrl.replace(/\/$/, '')
-	const res = await beaconFetch(`${base}/eth/v1/beacon/states/${stateId}/committees`, {
+	const res = await beaconFetch(chainId, `/eth/v1/beacon/states/${stateId}/committees`, {
 		headers: { accept: 'application/json' },
 	})
 	if (!res.ok) await throwHttpError('Beacon GET committees', res)
@@ -369,11 +374,10 @@ export const getSyncCommitteeFromWire = (wire: JsonValue): BeaconSyncCommittee |
 }
 
 export const getSyncCommittee = async (
-	beaconRestBaseUrl: string,
+	chainId: number,
 	stateId = 'head'
 ): Promise<BeaconSyncCommittee | undefined> => {
-	const base = beaconRestBaseUrl.replace(/\/$/, '')
-	const res = await beaconFetch(`${base}/eth/v1/beacon/states/${stateId}/sync_committees`, {
+	const res = await beaconFetch(chainId, `/eth/v1/beacon/states/${stateId}/sync_committees`, {
 		headers: { accept: 'application/json' },
 	})
 	if (!res.ok) await throwHttpError('Beacon GET sync_committees', res)
@@ -444,18 +448,18 @@ export const getBlockDutySummaryFromWire = (wire: JsonValue): BeaconBlockDutySum
 	)
 	const proposerSlashings = (
 		Array.isArray(body.proposer_slashings) ?
-			body.proposer_slashings.map((_slashing, index) => ({
+			body.proposer_slashings.map<BeaconBlockDutySummary['slashings'][number]>((_slashing, index) => ({
 				index,
-				kind: 'proposer' as const,
+				kind: 'proposer',
 			}))
 		:
 			[]
 	)
 	const attesterSlashings = (
 		Array.isArray(body.attester_slashings) ?
-			body.attester_slashings.map((_slashing, index) => ({
+			body.attester_slashings.map<BeaconBlockDutySummary['slashings'][number]>((_slashing, index) => ({
 				index,
-				kind: 'attester' as const,
+				kind: 'attester',
 			}))
 		:
 			[]
@@ -471,11 +475,10 @@ export const getBlockDutySummaryFromWire = (wire: JsonValue): BeaconBlockDutySum
 }
 
 export const getBlockDutySummary = async (
-	beaconRestBaseUrl: string,
+	chainId: number,
 	blockId: string | number
 ): Promise<BeaconBlockDutySummary> => {
-	const base = beaconRestBaseUrl.replace(/\/$/, '')
-	const res = await beaconFetch(`${base}/eth/v2/beacon/blocks/${blockId}`, {
+	const res = await beaconFetch(chainId, `/eth/v2/beacon/blocks/${blockId}`, {
 		headers: { accept: 'application/json' },
 	})
 	if (!res.ok) await throwHttpError('Beacon GET block', res)

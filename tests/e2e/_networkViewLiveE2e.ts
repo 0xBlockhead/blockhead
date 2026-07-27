@@ -88,7 +88,7 @@ export const runNetworkViewLiveE2E = async (page: Page, chain: NetworkViewLiveE2
 		await expect(page.locator('#main')).toBeVisible()
 		await assertMainSettled(page, 120_000)
 
-		await expect(page.locator('#network-summary-head-block')).toBeVisible(
+		await expect(page.locator('.network-summary-head a[href*="/block/"]').first()).toBeVisible(
 			{ timeout: 45_000 }
 		)
 		const headBaseline = await readNetworkHeadBlockBigint(page)
@@ -128,8 +128,8 @@ export const runNetworkViewLiveE2E = async (page: Page, chain: NetworkViewLiveE2
 		expect(head1, 'head after tick').not.toBeNull()
 		expect((head1 ?? 0n) > (head0 ?? 0n)).toBe(true)
 
-		await expect(page.locator('[data-scroll-marker-label="Blocks"]')).toBeAttached({ timeout: 120_000 })
-		await expect(page.locator('[data-scroll-marker-label="Transactions"]')).toBeAttached({ timeout: 120_000 })
+		await expect(page.locator('section[data-scroll-marker-label="Blocks"]')).toBeAttached({ timeout: 120_000 })
+		await expect(page.locator('section[data-scroll-marker-label="Transactions"]')).toBeAttached({ timeout: 120_000 })
 
 		await expect.poll(
 			async () => {
@@ -153,9 +153,7 @@ export const runNetworkViewLiveE2E = async (page: Page, chain: NetworkViewLiveE2
 		expect(maxCarousel >= (head1 ?? 0n)).toBe(true)
 
 		await expect(
-			page.locator(
-				'.network-carousel-execution[data-scroll-container~="layout-carousel"] a[href*="/tx/"]'
-			).first()
+			page.locator('section[data-scroll-marker-label="Transactions"] a[href*="/tx/"]').first()
 		).toBeVisible({ timeout: 90_000 })
 
 		const txBefore = await readTxHrefsJoin(page)

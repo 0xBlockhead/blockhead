@@ -2,14 +2,9 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
 
 
 	// Context
@@ -25,38 +20,16 @@
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.RedditLink_Timestamp>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.RedditLink_Timestamp>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.RedditLink_Timestamp> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const redditLinkTimestamp = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {
-			score: true,
-			commentCount: true,
-		},
-	} : {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const redditLinkTimestamp = $derived(selection({
 		fields: {
 			score: true,
 			commentCount: true,
 		},
 	}))
-	const titleFallback = $derived([String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || 'Reddit submission timestamp')
-	const viewDomId = $derived('reddit-link-timestamp-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const titleFallback = $derived(String(pendingEntity.timestampMs ?? '') || 'Reddit submission timestamp')
 
 
 	// Components
@@ -69,25 +42,16 @@
 
 <EntityView
 	entityType={EntityType.RedditLink_Timestamp}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
 	href={
-		href ?? (
-			selection.entitySelector != null && 'timestampMs' in selection.entitySelector
-			&& selection.entitySelector.timestampMs != null
-			&& selection.entitySelector != null && 'source' in selection.entitySelector
-			&& selection.entitySelector.source != null
-			&& selection.entitySelector != null && '$link' in selection.entitySelector
-			&& selection.entitySelector.$link != null && 'fullname' in selection.entitySelector.$link
-			&& selection.entitySelector.$link.fullname != null ?
-				resolve('/reddit/link/[fullname=stringSegment]/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
-			timestampMs: String(selection.entitySelector.timestampMs ?? ''),
-			source: String(selection.entitySelector.source ?? ''),
-			fullname: encodeURIComponent(String(selection.entitySelector.$link.fullname ?? '')),
-		})
-		:
-				undefined
+		href ?? resolve(
+			'/(social)/(reddit)/reddit/(globalRedditNetwork)/link/[fullname=stringSegment]/(redditLink)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
+			{
+				fullname: encodeURIComponent(String(selection.entitySelector.$link.fullname)),
+				timestampMs: String(selection.entitySelector.timestampMs),
+				source: String(selection.entitySelector.source),
+			}
 		)
 	}
 	{layout}
@@ -95,88 +59,40 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'score') && Object.hasOwn(prefetched, 'commentCount')}
-			{@const timestampMs0 = pendingEntity.timestampMs}
-			{#if timestampMs0 !== undefined && timestampMs0 !== null}
-				<Timestamp timestamp={Number(timestampMs0)} />
-			{/if}
-		{:else}
-			<ResourceBoundary resource={redditLinkTimestamp}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const timestampMs0 = resolvedEntity.timestampMs}
-					{#if timestampMs0 !== undefined && timestampMs0 !== null}
-						<Timestamp timestamp={Number(timestampMs0)} />
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
 	{/snippet}
 
 	{#snippet Value()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'score') && Object.hasOwn(prefetched, 'commentCount')}
-			{@const score0 = pendingEntity.score}
-			{#if score0 !== undefined && score0 !== null}
-				<NumberValue
-					value={score0}
-				/>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={redditLinkTimestamp}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const score0 = resolvedEntity.score}
-					{#if score0 !== undefined && score0 !== null}
-						<NumberValue
-							value={score0}
-						/>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={redditLinkTimestamp}>
+			{#snippet children(entity)}
+				{@const score0 = entity.score}
+				{#if score0 != null}
+					<NumberValue
+						value={score0}
+					/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'score') && Object.hasOwn(prefetched, 'commentCount')}
-			{@const source0 = pendingEntity.source}
-			{#if source0 !== undefined && source0 !== null}
+		<ResourceBoundary resource={redditLinkTimestamp}>
+			{#snippet children(entity)}
 				<span data-text="muted">
-					{String((source0) ?? '')}
+					{pendingEntity.source}
 				</span>
-			{/if}
-			{@const commentCount1 = pendingEntity.commentCount}
-			{#if commentCount1 !== undefined && commentCount1 !== null}
-				<span data-text="muted">
-					<NumberValue
-						value={commentCount1}
-					/>
+				{@const commentCount1 = entity.commentCount}
+				{#if commentCount1 != null}
+					<span data-text="muted">
+						<NumberValue
+							value={commentCount1}
+						/>
 
-					<span> comments</span>
-				</span>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={redditLinkTimestamp}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const source0 = resolvedEntity.source}
-					{#if source0 !== undefined && source0 !== null}
-						<span data-text="muted">
-							{String((source0) ?? '')}
-						</span>
-					{/if}
-					{@const commentCount1 = resolvedEntity.commentCount}
-					{#if commentCount1 !== undefined && commentCount1 !== null}
-						<span data-text="muted">
-							<NumberValue
-								value={commentCount1}
-							/>
-
-							<span> comments</span>
-						</span>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+						<span> comments</span>
+					</span>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -184,65 +100,23 @@
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									timestampMs: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const timestampMs = resolvedEntity.timestampMs}
-							{#if timestampMs !== undefined && timestampMs !== null}
-								<Timestamp timestamp={Number(timestampMs)} />
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									source: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const source = resolvedEntity.source}
-							{#if source !== undefined && source !== null}
-								{String((source) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{pendingEntity.source}
 				</dd>
 			</div>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							score: true,
-						},
-					})
-				}
+				resource={redditLinkTimestamp}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const score = resolvedEntity.score}
-					{#if score !== undefined && score !== null}
+					{@const score = entity.score}
+					{#if score != null}
 						<div>
 							<dt>Score</dt>
 							<dd>
@@ -256,19 +130,11 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							commentCount: true,
-						},
-					})
-				}
+				resource={redditLinkTimestamp}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const commentCount = resolvedEntity.commentCount}
-					{#if commentCount !== undefined && commentCount !== null}
+					{@const commentCount = entity.commentCount}
+					{#if commentCount != null}
 						<div>
 							<dt>Comments</dt>
 							<dd>
@@ -288,17 +154,6 @@
 				<dd>
 					<RedditLinkView
 						selection={select(EntityType.RedditLink, selection.entitySelector.$link)}
-						href={
-							(
-								selection.entitySelector.$link != null && 'fullname' in selection.entitySelector.$link
-								&& selection.entitySelector.$link.fullname != null ?
-									resolve('/reddit/link/[fullname=stringSegment]', {
-								fullname: encodeURIComponent(String(selection.entitySelector.$link.fullname ?? '')),
-							})
-							:
-									undefined
-							)
-						}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

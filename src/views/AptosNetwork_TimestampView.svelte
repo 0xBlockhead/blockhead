@@ -2,13 +2,8 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
 
 
 	// Context
@@ -20,42 +15,19 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.AptosNetwork_Timestamp>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.AptosNetwork_Timestamp>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.AptosNetwork_Timestamp> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const aptosNetworkTimestamp = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {
-			blockHeight: true,
-			timestampMs: true,
-		},
-	} : {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const aptosNetworkTimestamp = $derived(selection({
 		fields: {
 			blockHeight: true,
 			timestampMs: true,
 		},
 	}))
-	const titleFallback = $derived([String((pendingEntity.ledgerVersion) ?? '')].filter(Boolean).join(' ') || 'aptos network timestamp')
-	const viewDomId = $derived('aptos-network-timestamp-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const titleFallback = $derived(String(pendingEntity.ledgerVersion ?? '') || 'aptos network timestamp')
 
 
 	// Components
@@ -68,71 +40,30 @@
 
 <EntityView
 	entityType={EntityType.AptosNetwork_Timestamp}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'blockHeight') && Object.hasOwn(prefetched, 'timestampMs')}
-			{@const ledgerVersion0 = pendingEntity.ledgerVersion}
-			{#if ledgerVersion0 !== undefined && ledgerVersion0 !== null}
-				<NumberValue
-					value={ledgerVersion0}
-				/>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={aptosNetworkTimestamp}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const ledgerVersion0 = resolvedEntity.ledgerVersion}
-					{#if ledgerVersion0 !== undefined && ledgerVersion0 !== null}
-						<NumberValue
-							value={ledgerVersion0}
-						/>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<NumberValue
+			value={pendingEntity.ledgerVersion}
+		/>
 	{/snippet}
 
 	{#snippet Value()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'blockHeight') && Object.hasOwn(prefetched, 'timestampMs')}
-			{[String((pendingEntity.blockHeight) ?? ''), String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.ledgerVersion) ?? '')].filter(Boolean).join(' ') || titleFallback}
-		{:else}
-			<ResourceBoundary resource={aptosNetworkTimestamp}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.blockHeight) ?? ''), String((resolvedEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.ledgerVersion) ?? '')].filter(Boolean).join(' ') || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={aptosNetworkTimestamp}>
+			{#snippet children(entity)}
+				{[String(entity.blockHeight ?? ''), String(entity.timestampMs ?? '')].filter(Boolean).join(' ') || String(pendingEntity.ledgerVersion) || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'blockHeight') && Object.hasOwn(prefetched, 'timestampMs')}
-			{@const source0 = pendingEntity.source}
-			{#if source0 !== undefined && source0 !== null}
-				<span data-text="muted">
-					{String((source0) ?? '')}
-				</span>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={aptosNetworkTimestamp}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const source0 = resolvedEntity.source}
-					{#if source0 !== undefined && source0 !== null}
-						<span data-text="muted">
-							{String((source0) ?? '')}
-						</span>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<span data-text="muted">
+			{pendingEntity.source}
+		</span>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -149,19 +80,11 @@
 			</div>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							timestampMs: true,
-						},
-					})
-				}
+				resource={aptosNetworkTimestamp}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const timestampMs = resolvedEntity.timestampMs}
-					{#if timestampMs !== undefined && timestampMs !== null}
+					{@const timestampMs = entity.timestampMs}
+					{#if timestampMs != null}
 						<div>
 							<dt>Timestamp</dt>
 							<dd>
@@ -175,31 +98,13 @@
 			<div>
 				<dt>Source</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									source: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const source = resolvedEntity.source}
-							{#if source !== undefined && source !== null}
-								{String((source) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{pendingEntity.source}
 				</dd>
 			</div>
 
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							chainId: true,
 						},
@@ -207,9 +112,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const chainId = resolvedEntity.chainId}
-					{#if chainId !== undefined && chainId !== null}
+					{@const chainId = entity.chainId}
+					{#if chainId != null}
 						<div>
 							<dt>Chain ID</dt>
 							<dd>
@@ -227,43 +131,18 @@
 			<div>
 				<dt>ledger version</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									ledgerVersion: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const ledgerVersion = resolvedEntity.ledgerVersion}
-							{#if ledgerVersion !== undefined && ledgerVersion !== null}
-								<NumberValue
-									value={ledgerVersion}
-								/>
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					<NumberValue
+						value={pendingEntity.ledgerVersion}
+					/>
 				</dd>
 			</div>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							blockHeight: true,
-						},
-					})
-				}
+				resource={aptosNetworkTimestamp}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const blockHeight = resolvedEntity.blockHeight}
-					{#if blockHeight !== undefined && blockHeight !== null}
+					{@const blockHeight = entity.blockHeight}
+					{#if blockHeight != null}
 						<div>
 							<dt>block height</dt>
 							<dd>
@@ -279,7 +158,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							epoch: true,
 						},
@@ -287,9 +165,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const epoch = resolvedEntity.epoch}
-					{#if epoch !== undefined && epoch !== null}
+					{@const epoch = entity.epoch}
+					{#if epoch != null}
 						<div>
 							<dt>epoch</dt>
 							<dd>
@@ -307,7 +184,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							oldestLedgerVersion: true,
 						},
@@ -315,9 +191,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const oldestLedgerVersion = resolvedEntity.oldestLedgerVersion}
-					{#if oldestLedgerVersion !== undefined && oldestLedgerVersion !== null}
+					{@const oldestLedgerVersion = entity.oldestLedgerVersion}
+					{#if oldestLedgerVersion != null}
 						<div>
 							<dt>oldest ledger version</dt>
 							<dd>
@@ -333,7 +208,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							oldestBlockHeight: true,
 						},
@@ -341,9 +215,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const oldestBlockHeight = resolvedEntity.oldestBlockHeight}
-					{#if oldestBlockHeight !== undefined && oldestBlockHeight !== null}
+					{@const oldestBlockHeight = entity.oldestBlockHeight}
+					{#if oldestBlockHeight != null}
 						<div>
 							<dt>oldest block height</dt>
 							<dd>
@@ -359,7 +232,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							nodeRole: true,
 						},
@@ -367,13 +239,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const nodeRole = resolvedEntity.nodeRole}
-					{#if nodeRole !== undefined && nodeRole !== null}
+					{@const nodeRole = entity.nodeRole}
+					{#if nodeRole != null}
 						<div>
 							<dt>node role</dt>
 							<dd>
-								{String((nodeRole) ?? '')}
+								{nodeRole}
 							</dd>
 						</div>
 					{/if}

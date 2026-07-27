@@ -1,15 +1,12 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { entity, facet } from '$/schema/$schema.ts'
+import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 import { type } from 'arktype'
 
-export enum AlgorandBox_RoundSelector {
-	BoxRoundSource = 'BoxRoundSource',
-}
-export const AlgorandBox_Round = entity({
+export default entity({
 	entityType: EntityType.AlgorandBox_Round,
 	labels: {
 		singular: 'algorand box round',
@@ -45,7 +42,7 @@ export const AlgorandBox_Round = entity({
 	valueHash: {
 		label: 'value hash',
 		type: EntityFieldType.Primitive,
-		primitiveType: (ZeroExHex),
+		primitiveType: ZeroExHex,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	deleted: {

@@ -7,7 +7,6 @@
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
@@ -47,28 +46,12 @@
 
 
 <svelte:head>
-	<title>{(data.title ?? (pageSelection.entity == null ? [String(({
-		$address: data.selector,
-		timestampMs: Number(params.timestampMs),
-		source: params.source,
-	}.timestampMs) ?? '')].filter(Boolean).join(' ') || 'UTXO address timestamp' : [String((({ ...{
-		$address: data.selector,
-		timestampMs: Number(params.timestampMs),
-		source: params.source,
-	}, ...pageSelection.entity }).timestampMs) ?? '')].filter(Boolean).join(' ') || 'UTXO address timestamp'))} • UTXO address timestamp • Blockhead</title>
+	<title>{(data.title ?? (String(pageSelection.entitySelector.timestampMs) || 'UTXO address timestamp'))} • UTXO address timestamp • Blockhead</title>
 </svelte:head>
 
 
 <Page>
 	<UtxoAddress_TimestampView
-		href={
-			resolve('/network/[network=networkCaip2OrNetworkSlug]/address/[address=stringSegment]/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
-				network: params.network,
-				address: params.address,
-				timestampMs: params.timestampMs,
-				source: params.source,
-			})
-		}
 		selection={pageSelection}
 	/>
 </Page>

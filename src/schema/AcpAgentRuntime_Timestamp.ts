@@ -1,14 +1,11 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { entity, facet } from '$/schema/$schema.ts'
+import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { type } from 'arktype'
 
-export enum AcpAgentRuntime_TimestampSelector {
-	RuntimeTimestampMsSource = 'RuntimeTimestampMsSource',
-}
-export const AcpAgentRuntime_Timestamp = entity({
+export default entity({
 	entityType: EntityType.AcpAgentRuntime_Timestamp,
 	labels: {
 		singular: 'acp agent runtime timestamp',

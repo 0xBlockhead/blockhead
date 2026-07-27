@@ -2,13 +2,10 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -20,35 +17,20 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.StarknetEvent>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.StarknetEvent>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.StarknetEvent> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const starknetEvent = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {},
-	} : {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const viewSelection = $derived(selection({
+		sources: selection.sources ?? [
+			Source.Starknet_JsonRpc,
+			Source.Starkscan_Rest,
+			Source.Voyager_Rest,
+		],
 	}))
-	const titleFallback = $derived([String((pendingEntity.eventIndex) ?? '')].filter(Boolean).join(' ') || 'starknet event')
-	const viewDomId = $derived('starknet-event-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const titleFallback = $derived(String(pendingEntity.eventIndex ?? '') || 'starknet event')
 
 
 	// Components
@@ -61,61 +43,42 @@
 
 <EntityView
 	entityType={EntityType.StarknetEvent}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={starknetEvent}>
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const eventIndex0 = resolvedEntity.eventIndex}
-				{#if eventIndex0 !== undefined && eventIndex0 !== null}
-					<NumberValue
-						value={eventIndex0}
-					/>
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		<NumberValue
+			value={pendingEntity.eventIndex}
+		/>
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={starknetEvent}>
-			{#snippet children(entity)}
-				<StarknetTransactionView
-					selection={select(EntityType.StarknetTransaction, selection.entitySelector.$transaction)}
-					href=""
-					layout={EntityLayout.Value}
-					open={false}
-				/>
-			{/snippet}
-		</ResourceBoundary>
+		<StarknetTransactionView
+			selection={select(EntityType.StarknetTransaction, selection.entitySelector.$transaction)}
+			href=""
+			layout={EntityLayout.Value}
+			open={false}
+		/>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		<ResourceBoundary resource={starknetEvent}>
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				<ResourceBoundary
-					resource={selection.$fromContract}
-				>
-					{#snippet children(starknetContract)}
-						{#if starknetContract != null && starknetContract[EntityMetaKey.Selector] != null}
-							<span data-text="muted">
-								<StarknetContractView
-									selection={select(EntityType.StarknetContract, starknetContract[EntityMetaKey.Selector])}
-									prefetched={starknetContract}
-									layout={EntityLayout.Title}
-									open={false}
-								/>
-							</span>
-						{/if}
-					{/snippet}
-				</ResourceBoundary>
+		<ResourceBoundary
+			resource={selection.$fromContract}
+		>
+			{#snippet children(starknetContract)}
+				{#if starknetContract != null}
+					<span data-text="muted">
+						<StarknetContractView
+							selection={select(EntityType.StarknetContract, starknetContract[EntityMetaKey.Selector])}
+							prefetched={starknetContract}
+							layout={EntityLayout.Title}
+							open={false}
+						/>
+					</span>
+				{/if}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -136,26 +99,9 @@
 			<div>
 				<dt>event index</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									eventIndex: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const eventIndex = resolvedEntity.eventIndex}
-							{#if eventIndex !== undefined && eventIndex !== null}
-								<NumberValue
-									value={eventIndex}
-								/>
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					<NumberValue
+						value={pendingEntity.eventIndex}
+					/>
 				</dd>
 			</div>
 
@@ -163,7 +109,7 @@
 				resource={selection.$fromContract}
 			>
 				{#snippet children(starknetContract)}
-					{#if starknetContract != null && starknetContract[EntityMetaKey.Selector] != null}
+					{#if starknetContract != null}
 						<div>
 							<dt>from contract</dt>
 							<dd>
@@ -184,8 +130,7 @@
 				<dd>
 					<ResourceBoundary
 						resource={
-							selection({
-								sources: selection.sources,
+							viewSelection({
 								fields: {
 									keys: true,
 								},
@@ -193,11 +138,7 @@
 						}
 					>
 						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const keys = resolvedEntity.keys}
-							{#if keys !== undefined && keys !== null}
-								{keys.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')}
-							{/if}
+							{entity.keys.values.join(', ')}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -208,8 +149,7 @@
 				<dd>
 					<ResourceBoundary
 						resource={
-							selection({
-								sources: selection.sources,
+							viewSelection({
 								fields: {
 									data: true,
 								},
@@ -217,11 +157,7 @@
 						}
 					>
 						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const data = resolvedEntity.data}
-							{#if data !== undefined && data !== null}
-								{data.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')}
-							{/if}
+							{entity.data.values.join(', ')}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>

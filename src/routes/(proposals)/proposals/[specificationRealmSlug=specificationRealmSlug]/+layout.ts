@@ -6,7 +6,7 @@ import { specificationRealmBySlug } from '$/constants/SpecificationProposal.ts'
 import { match as matchSpecificationRealmSlug } from '$/params/specificationRealmSlug.ts'
 import { parseEntitySelector } from '$/schema/$schema.ts'
 import { schema } from '$/schema/index.ts'
-import { SpecificationRealm as SpecificationRealmSchema } from '$/schema/SpecificationRealm.ts'
+import SpecificationRealmSchema from '$/schema/SpecificationRealm.ts'
 import { type as arktype } from 'arktype'
 
 export const load: LayoutLoad = ({ params }) => {

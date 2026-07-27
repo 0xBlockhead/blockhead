@@ -2,13 +2,10 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -20,42 +17,24 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.FilecoinMessageReceipt>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.FilecoinMessageReceipt>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.FilecoinMessageReceipt> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const filecoinMessageReceipt = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {
-			exitCode: true,
-			gasUsed: true,
-		},
-	} : {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const viewSelection = $derived(selection({
+		sources: selection.sources ?? [
+			Source.Filfox_Rest,
+		],
+	}))
+	const filecoinMessageReceipt = $derived(viewSelection({
 		fields: {
 			exitCode: true,
 			gasUsed: true,
 		},
 	}))
-	const titleFallback = $derived([String((pendingEntity.tipsetKey) ?? '')].filter(Boolean).join(' ') || 'filecoin message receipt')
-	const viewDomId = $derived('filecoin-message-receipt-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const titleFallback = $derived((pendingEntity.tipsetKey ?? '') || 'filecoin message receipt')
 
 
 	// Components
@@ -69,75 +48,42 @@
 
 <EntityView
 	entityType={EntityType.FilecoinMessageReceipt}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'exitCode') && Object.hasOwn(prefetched, 'gasUsed')}
-			{[String((pendingEntity.tipsetKey) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-		{:else}
-			<ResourceBoundary resource={filecoinMessageReceipt}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.tipsetKey) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		{(pendingEntity.tipsetKey ?? '') || 'filecoin message receipt'}
 	{/snippet}
 
 	{#snippet Value()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'exitCode') && Object.hasOwn(prefetched, 'gasUsed')}
-			{@const exitCode0 = pendingEntity.exitCode}
-			{#if exitCode0 !== undefined && exitCode0 !== null}
-				<NumberValue
-					value={exitCode0}
-				/>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={filecoinMessageReceipt}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const exitCode0 = resolvedEntity.exitCode}
-					{#if exitCode0 !== undefined && exitCode0 !== null}
-						<NumberValue
-							value={exitCode0}
-						/>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={filecoinMessageReceipt}>
+			{#snippet children(entity)}
+				{@const exitCode0 = entity.exitCode}
+				{#if exitCode0 != null}
+					<NumberValue
+						value={exitCode0}
+					/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'exitCode') && Object.hasOwn(prefetched, 'gasUsed')}
-			{@const gasUsed0 = pendingEntity.gasUsed}
-			{#if gasUsed0 !== undefined && gasUsed0 !== null}
-				<span data-text="muted">
-					<NumberValue
-						value={gasUsed0}
-					/>
-				</span>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={filecoinMessageReceipt}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const gasUsed0 = resolvedEntity.gasUsed}
-					{#if gasUsed0 !== undefined && gasUsed0 !== null}
-						<span data-text="muted">
-							<NumberValue
-								value={gasUsed0}
-							/>
-						</span>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={filecoinMessageReceipt}>
+			{#snippet children(entity)}
+				{@const gasUsed0 = entity.gasUsed}
+				{#if gasUsed0 != null}
+					<span data-text="muted">
+						<NumberValue
+							value={gasUsed0}
+						/>
+					</span>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -156,48 +102,14 @@
 			<div>
 				<dt>Tipset key</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									tipsetKey: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const tipsetKey = resolvedEntity.tipsetKey}
-							{#if tipsetKey !== undefined && tipsetKey !== null}
-								{String((tipsetKey) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{pendingEntity.tipsetKey}
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									source: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const source = resolvedEntity.source}
-							{#if source !== undefined && source !== null}
-								{String((source) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{pendingEntity.source}
 				</dd>
 			</div>
 
@@ -205,7 +117,7 @@
 				resource={selection.$tipset}
 			>
 				{#snippet children(filecoinTipset)}
-					{#if filecoinTipset != null && filecoinTipset[EntityMetaKey.Selector] != null}
+					{#if filecoinTipset != null}
 						<div>
 							<dt>Tipset</dt>
 							<dd>
@@ -223,8 +135,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							height: true,
 						},
@@ -232,9 +143,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const height = resolvedEntity.height}
-					{#if height !== undefined && height !== null}
+					{@const height = entity.height}
+					{#if height != null}
 						<div>
 							<dt>Height</dt>
 							<dd>
@@ -249,8 +159,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							blockCid: true,
 						},
@@ -258,13 +167,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const blockCid = resolvedEntity.blockCid}
-					{#if blockCid !== undefined && blockCid !== null}
+					{@const blockCid = entity.blockCid}
+					{#if blockCid != null}
 						<div>
 							<dt>Block CID</dt>
 							<dd>
-								<TruncatedValue value={String((blockCid) ?? '')} />
+								<TruncatedValue value={blockCid} />
 							</dd>
 						</div>
 					{/if}
@@ -272,19 +180,11 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							exitCode: true,
-						},
-					})
-				}
+				resource={filecoinMessageReceipt}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const exitCode = resolvedEntity.exitCode}
-					{#if exitCode !== undefined && exitCode !== null}
+					{@const exitCode = entity.exitCode}
+					{#if exitCode != null}
 						<div>
 							<dt>Exit code</dt>
 							<dd>
@@ -299,8 +199,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							returnData: true,
 						},
@@ -308,13 +207,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const returnData = resolvedEntity.returnData}
-					{#if returnData !== undefined && returnData !== null}
+					{@const returnData = entity.returnData}
+					{#if returnData != null}
 						<div>
 							<dt>Return data</dt>
 							<dd>
-								{String((returnData) ?? '')}
+								{returnData}
 							</dd>
 						</div>
 					{/if}
@@ -322,19 +220,11 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							gasUsed: true,
-						},
-					})
-				}
+				resource={filecoinMessageReceipt}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const gasUsed = resolvedEntity.gasUsed}
-					{#if gasUsed !== undefined && gasUsed !== null}
+					{@const gasUsed = entity.gasUsed}
+					{#if gasUsed != null}
 						<div>
 							<dt>Gas used</dt>
 							<dd>
@@ -349,8 +239,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							replacedMessageCid: true,
 						},
@@ -358,13 +247,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const replacedMessageCid = resolvedEntity.replacedMessageCid}
-					{#if replacedMessageCid !== undefined && replacedMessageCid !== null}
+					{@const replacedMessageCid = entity.replacedMessageCid}
+					{#if replacedMessageCid != null}
 						<div>
 							<dt>Replaced message CID</dt>
 							<dd>
-								<TruncatedValue value={String((replacedMessageCid) ?? '')} />
+								<TruncatedValue value={replacedMessageCid} />
 							</dd>
 						</div>
 					{/if}

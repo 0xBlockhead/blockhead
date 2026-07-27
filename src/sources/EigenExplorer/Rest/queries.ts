@@ -1,5 +1,5 @@
-import type { SourceBinding } from '$/sources/SourceBinding.ts'
 import { throwHttpError } from '$/lib/http.ts'
+import type { SourceBinding } from '$/sources/SourceBinding.ts'
 import { httpUrl } from '$/sources/_shared/wire/HttpRest/client.ts'
 import { sourceFetch } from '$/sources/_runtime/http.ts'
 import type {
@@ -14,7 +14,7 @@ const evmAddressPattern = /^0x[0-9a-f]{40}$/i
 const bytes32Pattern = /^0x[0-9a-f]{64}$/i
 const unsignedIntegerPattern = /^(0|[1-9][0-9]*)$/
 
-const getJson = <_Json>(
+const fetchEigenExplorerJson = <_Json>(
 	binding: SourceBinding,
 	apiToken: string,
 	path: string
@@ -119,7 +119,7 @@ export const getStaker = async (
 ) => {
 	assertAddress(address, 'staker address')
 
-	const staker = await getJson<EigenExplorerStaker>(
+	const staker = await fetchEigenExplorerJson<EigenExplorerStaker>(
 		binding,
 		apiToken,
 		`/stakers/${encodeURIComponent(address)}`
@@ -159,7 +159,7 @@ export const getStakerDeposits = async (
 	assertAddress(address, 'staker address')
 
 	const page = assertPage(
-		await getJson<EigenExplorerPage<EigenExplorerDeposit>>(
+		await fetchEigenExplorerJson<EigenExplorerPage<EigenExplorerDeposit>>(
 			binding,
 			apiToken,
 			paginationPath({
@@ -218,7 +218,7 @@ export const getStakerWithdrawals = async (
 	assertAddress(address, 'staker address')
 
 	const page = assertPage(
-		await getJson<EigenExplorerPage<EigenExplorerWithdrawal>>(
+		await fetchEigenExplorerJson<EigenExplorerPage<EigenExplorerWithdrawal>>(
 			binding,
 			apiToken,
 			paginationPath({
@@ -274,7 +274,7 @@ export const getOperatorRewardInfo = async (
 ) => {
 	assertAddress(address, 'operator address')
 
-	const rewardInfo = await getJson<EigenExplorerOperatorRewardInfo>(
+	const rewardInfo = await fetchEigenExplorerJson<EigenExplorerOperatorRewardInfo>(
 		binding,
 		apiToken,
 		`/operators/${encodeURIComponent(address)}/rewards`

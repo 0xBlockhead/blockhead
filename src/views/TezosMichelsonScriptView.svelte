@@ -2,13 +2,8 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
 
 
 	// Context
@@ -20,35 +15,13 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.TezosMichelsonScript>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.TezosMichelsonScript>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.TezosMichelsonScript> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const tezosMichelsonScript = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {},
-	} : {
-		sources: selection.sources,
-	}))
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const titleFallback = 'tezos michelson script'
-	const viewDomId = $derived('tezos-michelson-script-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -60,24 +33,14 @@
 
 <EntityView
 	entityType={EntityType.TezosMichelsonScript}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails}
-			{title || titleFallback}
-		{:else}
-			<ResourceBoundary resource={tezosMichelsonScript}>
-				{#snippet children(entity)}
-					{title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		tezos michelson script
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -96,31 +59,13 @@
 			<div>
 				<dt>script hash</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									scriptHash: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const scriptHash = resolvedEntity.scriptHash}
-							{#if scriptHash !== undefined && scriptHash !== null}
-								<TruncatedValue value={String((scriptHash) ?? '')} />
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					<TruncatedValue value={pendingEntity.scriptHash} />
 				</dd>
 			</div>
 
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							codeHash: true,
 						},
@@ -128,13 +73,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const codeHash = resolvedEntity.codeHash}
-					{#if codeHash !== undefined && codeHash !== null}
+					{@const codeHash = entity.codeHash}
+					{#if codeHash != null}
 						<div>
 							<dt>code hash</dt>
 							<dd>
-								<TruncatedValue value={String((codeHash) ?? '')} />
+								<TruncatedValue value={codeHash} />
 							</dd>
 						</div>
 					{/if}
@@ -144,7 +88,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							michelson: true,
 						},
@@ -152,13 +95,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const michelson = resolvedEntity.michelson}
-					{#if michelson !== undefined && michelson !== null}
+					{@const michelson = entity.michelson}
+					{#if michelson != null}
 						<div>
 							<dt>michelson</dt>
 							<dd>
-								{String((michelson) ?? '')}
+								{michelson}
 							</dd>
 						</div>
 					{/if}
@@ -168,7 +110,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							tzip16MetadataUri: true,
 						},
@@ -176,20 +117,18 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const tzip16MetadataUri = resolvedEntity.tzip16MetadataUri}
-					{#if tzip16MetadataUri !== undefined && tzip16MetadataUri !== null}
+					{@const tzip16MetadataUri = entity.tzip16MetadataUri}
+					{#if tzip16MetadataUri != null}
 						<div>
 							<dt>tzip16 metadata URI</dt>
 							<dd>
-								<svelte:element
-									this={'a'}
+								<a
 									href={String(tzip16MetadataUri)}
 									target="_blank"
 									rel="noreferrer noopener"
 								>
 									<TruncatedValue value={String(tzip16MetadataUri)} />
-								</svelte:element>
+								</a>
 							</dd>
 						</div>
 					{/if}

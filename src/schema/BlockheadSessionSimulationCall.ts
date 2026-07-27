@@ -1,15 +1,12 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { entity, facet } from '$/schema/$schema.ts'
+import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { EvmAddress, ZeroExHex } from '$/schema/ZeroExHex.ts'
 import { type } from 'arktype'
 
-export enum BlockheadSessionSimulationCallSelector {
-	SimulationIdCallPath = 'SimulationIdCallPath',
-}
-export const BlockheadSessionSimulationCall = entity({
+export default entity({
 	entityType: EntityType.BlockheadSessionSimulationCall,
 	labels: {
 		singular: 'blockhead session simulation call',
@@ -61,13 +58,13 @@ export const BlockheadSessionSimulationCall = entity({
 	fromAddress: {
 		label: 'from address',
 		type: EntityFieldType.Primitive,
-		primitiveType: (EvmAddress),
+		primitiveType: EvmAddress,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	toAddress: {
 		label: 'to address',
 		type: EntityFieldType.Primitive,
-		primitiveType: (EvmAddress),
+		primitiveType: EvmAddress,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	value: {
@@ -80,19 +77,19 @@ export const BlockheadSessionSimulationCall = entity({
 	inputSelector: {
 		label: 'input selector',
 		type: EntityFieldType.Primitive,
-		primitiveType: (ZeroExHex),
+		primitiveType: ZeroExHex,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	inputDataHash: {
 		label: 'input data hash',
 		type: EntityFieldType.Primitive,
-		primitiveType: (ZeroExHex),
+		primitiveType: ZeroExHex,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	outputDataHash: {
 		label: 'output data hash',
 		type: EntityFieldType.Primitive,
-		primitiveType: (ZeroExHex),
+		primitiveType: ZeroExHex,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	gasUsed: {

@@ -5,7 +5,6 @@ import {
 	EntityMetaKey,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import { StellarAccountSelector } from '$/schema/StellarAccount.ts'
 
 const { getJson } = vi.hoisted(() => ({
 	getJson: vi.fn(),
@@ -95,7 +94,7 @@ describe('Stellar Horizon public-account resolver', () => {
 			],
 		})
 		const resolver = resolverFor('$$timestamps')
-		const timestamps = await resolver.resolve[StellarAccountSelector.NetworkAccountId].resolve(
+		const timestamps = await resolver.resolve['NetworkAccountId'].resolve(
 			account,
 			context
 		)
@@ -163,7 +162,7 @@ describe('Stellar Horizon public-account resolver', () => {
 			},
 		]))
 		const resolver = resolverFor('$$transactions')
-		const snapshot = await resolver.resolve[StellarAccountSelector.NetworkAccountId].resolve(
+		const snapshot = await resolver.resolve['NetworkAccountId'].resolve(
 			account,
 			context
 		)
@@ -216,7 +215,7 @@ describe('Stellar Horizon public-account resolver', () => {
 	it('caps Horizon pages, terminates short pages, and rejects non-G or foreign-network subjects', async () => {
 		getJson.mockResolvedValueOnce(page([]))
 		const resolver = resolverFor('$$transactions')
-		const snapshot = await resolver.resolve[StellarAccountSelector.NetworkAccountId].resolve(account, {
+		const snapshot = await resolver.resolve['NetworkAccountId'].resolve(account, {
 			...context,
 			pagination: {
 				limit: 1_000,
@@ -233,11 +232,11 @@ describe('Stellar Horizon public-account resolver', () => {
 		})
 
 		vi.clearAllMocks()
-		await expect(resolver.resolve[StellarAccountSelector.NetworkAccountId].resolve({
+		await expect(resolver.resolve['NetworkAccountId'].resolve({
 			...account,
 			accountId: `M${'A'.repeat(68)}`,
 		}, context)).rejects.toThrow('invalid account ID')
-		await expect(resolver.resolve[StellarAccountSelector.NetworkAccountId].resolve({
+		await expect(resolver.resolve['NetworkAccountId'].resolve({
 			...account,
 			$network: {
 				$network: {
@@ -264,7 +263,7 @@ describe('Stellar Horizon public-account resolver', () => {
 			signers: [],
 		})
 		await expect(timestampResolver.resolve[
-			StellarAccountSelector.NetworkAccountId
+			'NetworkAccountId'
 		].resolve(account, context)).rejects.toThrow('invalid account modification time')
 
 		const transactionResolver = resolverFor('$$transactions')
@@ -284,7 +283,7 @@ describe('Stellar Horizon public-account resolver', () => {
 			memo_type: 'none',
 		}]))
 		const snapshot = await transactionResolver.resolve[
-			StellarAccountSelector.NetworkAccountId
+			'NetworkAccountId'
 		].resolve(account, context)
 		expect(() => transactionResolver.projections.$$transactions.select(
 			snapshot,

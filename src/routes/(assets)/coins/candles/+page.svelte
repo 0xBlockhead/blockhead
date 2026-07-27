@@ -2,12 +2,12 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
@@ -23,31 +23,21 @@
 
 
 <Page>
+	{@const collectionSelection = select(EntityType._Global, {
+		scope: '$$marketTimeIntervalTimestamps',
+	})
+		.$$marketTimeIntervalTimestamps({
+			sources: [
+				Source.Constants_Internal,
+			],
+			limit: 256,
+		})}
+
 	<Market_TimeInterval_TimestampsView
-		href={resolve('/coins/candles')}
+		href={resolve('/(assets)/coins/candles')}
 		title='All OHLC candles'
-		selection={
-			select(EntityType._Global, {
-				scope: '$$marketTimeIntervalTimestamps',
-			})
-				.$$marketTimeIntervalTimestamps({
-					sources: [
-						Source.Constants_Internal,
-					],
-					limit: 256,
-				})
-		}
-		countResource={
-			select(EntityType._Global, {
-				scope: '$$marketTimeIntervalTimestamps',
-			})
-				.$$marketTimeIntervalTimestamps({
-					sources: [
-						Source.Constants_Internal,
-					],
-					limit: 256,
-				}).count
-		}
+		selection={collectionSelection}
+		countResource={collectionSelection.count}
 		id='market-time-interval-timestamps'
 		data-column-item="flexible"
 		data-card

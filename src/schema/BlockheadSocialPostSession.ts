@@ -1,6 +1,6 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { entity, facet } from '$/schema/$schema.ts'
+import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { type } from 'arktype'
@@ -10,6 +10,7 @@ export enum BlockheadSocialPostSessionStatus {
 	Submitted = 'Submitted',
 	Finalized = 'Finalized',
 }
+
 export enum SocialProtocol {
 	Farcaster = 'Farcaster',
 	Atproto = 'Atproto',
@@ -17,10 +18,8 @@ export enum SocialProtocol {
 	Nostr = 'Nostr',
 	X = 'X',
 }
-export enum BlockheadSocialPostSessionSelector {
-	Id = 'Id',
-}
-export const BlockheadSocialPostSession = entity({
+
+export default entity({
 	entityType: EntityType.BlockheadSocialPostSession,
 	labels: {
 		singular: 'blockhead social post session',

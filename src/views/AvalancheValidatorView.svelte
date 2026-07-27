@@ -2,15 +2,9 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
-	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -22,40 +16,18 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.AvalancheValidator>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.AvalancheValidator>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.AvalancheValidator> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const avalancheValidator = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {
-			stakeAmountNavax: true,
-		},
-	} : {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const avalancheValidator = $derived(selection({
 		fields: {
 			stakeAmountNavax: true,
 		},
 	}))
-	const titleFallback = $derived([String((pendingEntity.nodeId) ?? '')].filter(Boolean).join(' ') || 'avalanche validator')
-	const viewDomId = $derived('avalanche-validator-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const titleFallback = $derived((pendingEntity.nodeId ?? '') || 'avalanche validator')
 
 
 	// Components
@@ -71,71 +43,33 @@
 
 <EntityView
 	entityType={EntityType.AvalancheValidator}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'stakeAmountNavax')}
-			{[String((pendingEntity.nodeId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-		{:else}
-			<ResourceBoundary resource={avalancheValidator}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.nodeId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		{(pendingEntity.nodeId ?? '') || 'avalanche validator'}
 	{/snippet}
 
 	{#snippet Value()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'stakeAmountNavax')}
-			{@const stakeAmountNavax0 = pendingEntity.stakeAmountNavax}
-			{#if stakeAmountNavax0 !== undefined && stakeAmountNavax0 !== null}
-				<NumberValue
-					value={stakeAmountNavax0}
-				/>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={avalancheValidator}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const stakeAmountNavax0 = resolvedEntity.stakeAmountNavax}
-					{#if stakeAmountNavax0 !== undefined && stakeAmountNavax0 !== null}
-						<NumberValue
-							value={stakeAmountNavax0}
-						/>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={avalancheValidator}>
+			{#snippet children(entity)}
+				{@const stakeAmountNavax0 = entity.stakeAmountNavax}
+				{#if stakeAmountNavax0 != null}
+					<NumberValue
+						value={stakeAmountNavax0}
+					/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'stakeAmountNavax')}
-			{@const startTimeMs0 = pendingEntity.startTimeMs}
-			{#if startTimeMs0 !== undefined && startTimeMs0 !== null}
-				<span data-text="muted">
-					<Timestamp timestamp={Number(startTimeMs0)} />
-				</span>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={avalancheValidator}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const startTimeMs0 = resolvedEntity.startTimeMs}
-					{#if startTimeMs0 !== undefined && startTimeMs0 !== null}
-						<span data-text="muted">
-							<Timestamp timestamp={Number(startTimeMs0)} />
-						</span>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<span data-text="muted">
+			<Timestamp timestamp={Number(pendingEntity.startTimeMs)} />
+		</span>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -143,48 +77,14 @@
 			<div>
 				<dt>node ID</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									nodeId: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const nodeId = resolvedEntity.nodeId}
-							{#if nodeId !== undefined && nodeId !== null}
-								{String((nodeId) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{pendingEntity.nodeId}
 				</dd>
 			</div>
 
 			<div>
 				<dt>subnet ID</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									subnetId: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const subnetId = resolvedEntity.subnetId}
-							{#if subnetId !== undefined && subnetId !== null}
-								{String((subnetId) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{pendingEntity.subnetId}
 				</dd>
 			</div>
 
@@ -192,7 +92,7 @@
 				resource={selection.$subnet}
 			>
 				{#snippet children(avalancheSubnet)}
-					{#if avalancheSubnet != null && avalancheSubnet[EntityMetaKey.Selector] != null}
+					{#if avalancheSubnet != null}
 						<div>
 							<dt>subnet</dt>
 							<dd>
@@ -212,30 +112,13 @@
 				resource={selection.$network}
 			>
 				{#snippet children(network)}
-					{#if network != null && network[EntityMetaKey.Selector] != null}
+					{#if network != null}
 						<div>
 							<dt>network</dt>
 							<dd>
 								<NetworkView
 									selection={select(EntityType.Network, network[EntityMetaKey.Selector])}
 									prefetched={network}
-									href={
-										(
-											network[EntityMetaKey.Selector] != null && 'caip2' in network[EntityMetaKey.Selector]
-											&& network[EntityMetaKey.Selector].caip2 != null ?
-												resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-											network: String(caip2StringFromValue(network[EntityMetaKey.Selector].caip2) ?? ''),
-										})
-										:
-												network[EntityMetaKey.Selector] != null && 'slug' in network[EntityMetaKey.Selector]
-												&& network[EntityMetaKey.Selector].slug != null ?
-													resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-												network: String(network[EntityMetaKey.Selector].slug ?? ''),
-											})
-											:
-												undefined
-										)
-									}
 									layout={EntityLayout.Value}
 									open={false}
 								/>
@@ -250,31 +133,13 @@
 			<div>
 				<dt>start time ms</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									startTimeMs: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const startTimeMs = resolvedEntity.startTimeMs}
-							{#if startTimeMs !== undefined && startTimeMs !== null}
-								<Timestamp timestamp={Number(startTimeMs)} />
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					<Timestamp timestamp={Number(pendingEntity.startTimeMs)} />
 				</dd>
 			</div>
 
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							endTimeMs: true,
 						},
@@ -282,9 +147,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const endTimeMs = resolvedEntity.endTimeMs}
-					{#if endTimeMs !== undefined && endTimeMs !== null}
+					{@const endTimeMs = entity.endTimeMs}
+					{#if endTimeMs != null}
 						<div>
 							<dt>end time ms</dt>
 							<dd>
@@ -296,19 +160,11 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							stakeAmountNavax: true,
-						},
-					})
-				}
+				resource={avalancheValidator}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const stakeAmountNavax = resolvedEntity.stakeAmountNavax}
-					{#if stakeAmountNavax !== undefined && stakeAmountNavax !== null}
+					{@const stakeAmountNavax = entity.stakeAmountNavax}
+					{#if stakeAmountNavax != null}
 						<div>
 							<dt>stake amount navax</dt>
 							<dd>
@@ -324,7 +180,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							potentialRewardNavax: true,
 						},
@@ -332,9 +187,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const potentialRewardNavax = resolvedEntity.potentialRewardNavax}
-					{#if potentialRewardNavax !== undefined && potentialRewardNavax !== null}
+					{@const potentialRewardNavax = entity.potentialRewardNavax}
+					{#if potentialRewardNavax != null}
 						<div>
 							<dt>potential reward navax</dt>
 							<dd>
@@ -352,7 +206,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							txId: true,
 						},
@@ -360,13 +213,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const txId = resolvedEntity.txId}
-					{#if txId !== undefined && txId !== null}
+					{@const txId = entity.txId}
+					{#if txId != null}
 						<div>
 							<dt>transaction ID</dt>
 							<dd>
-								<TruncatedValue value={String((txId) ?? '')} />
+								<TruncatedValue value={txId} />
 							</dd>
 						</div>
 					{/if}
@@ -376,7 +228,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							delegationFeePercent: true,
 						},
@@ -384,9 +235,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const delegationFeePercent = resolvedEntity.delegationFeePercent}
-					{#if delegationFeePercent !== undefined && delegationFeePercent !== null}
+					{@const delegationFeePercent = entity.delegationFeePercent}
+					{#if delegationFeePercent != null}
 						<div>
 							<dt>delegation fee percent</dt>
 							<dd>
@@ -408,12 +258,12 @@
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
-				<AvalancheValidator_TimestampsView
-					selection={avalancheValidatorAvalancheValidatorTimestampsViewTimestampsResource}
-					countResource={avalancheValidatorAvalancheValidatorTimestampsViewTimestampsResource.count}
-					title='timestamps'
-					id='AvalancheValidator_TimestampsView-timestamps'
-				/>
+					<AvalancheValidator_TimestampsView
+						selection={avalancheValidatorAvalancheValidatorTimestampsViewTimestampsResource}
+						countResource={avalancheValidatorAvalancheValidatorTimestampsViewTimestampsResource.count}
+						title='timestamps'
+						id='timestamps'
+					/>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>

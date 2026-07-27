@@ -73,8 +73,13 @@ export type FetchLifiTokensOptions = {
 }
 
 export type LifiToolChainPair = {
-	fromChainId: number
-	toChainId: number
+	fromChainId: string
+	toChainId: string
+}
+
+export type LifiToolChainPairWire = {
+	fromChainId?: number | string
+	toChainId?: number | string
 }
 
 export type LifiBridgeTool = {
@@ -84,6 +89,13 @@ export type LifiBridgeTool = {
 	supportedChains: LifiToolChainPair[]
 }
 
+export type LifiBridgeToolWire = {
+	key?: string
+	name?: string
+	logoURI?: string
+	supportedChains?: LifiToolChainPairWire[]
+}
+
 export type LifiToolsResponse = {
 	bridges: LifiBridgeTool[]
 	exchanges?: {
@@ -91,6 +103,16 @@ export type LifiToolsResponse = {
 		name: string
 		logoURI?: string
 		supportedChains: (number | string)[]
+	}[]
+}
+
+export type LifiToolsWireResponse = {
+	bridges?: LifiBridgeToolWire[]
+	exchanges?: {
+		key?: string
+		name?: string
+		logoURI?: string
+		supportedChains?: (number | string)[]
 	}[]
 }
 

@@ -2,15 +2,8 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
-	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -22,35 +15,13 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.XrplTransaction_Timestamp>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.XrplTransaction_Timestamp>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.XrplTransaction_Timestamp> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const xrplTransactionTimestamp = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {},
-	} : {
-		sources: selection.sources,
-	}))
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const titleFallback = 'XRPL transaction timestamp'
-	const viewDomId = $derived('xrpl-transaction-timestamp-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -62,24 +33,14 @@
 
 <EntityView
 	entityType={EntityType.XrplTransaction_Timestamp}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails}
-			{title || titleFallback}
-		{:else}
-			<ResourceBoundary resource={xrplTransactionTimestamp}>
-				{#snippet children(entity)}
-					{title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		XRPL transaction timestamp
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -89,30 +50,6 @@
 				<dd>
 					<XrplTransactionView
 						selection={select(EntityType.XrplTransaction, selection.entitySelector.$transaction)}
-						href={
-							(
-								selection.entitySelector.$transaction != null && 'hash' in selection.entitySelector.$transaction
-								&& selection.entitySelector.$transaction.hash != null
-								&& selection.entitySelector.$transaction != null && '$network' in selection.entitySelector.$transaction ?
-									selection.entitySelector.$transaction.$network != null && 'caip2' in selection.entitySelector.$transaction.$network
-									&& selection.entitySelector.$transaction.$network.caip2 != null ?
-										resolve('/network/[network=networkCaip2OrNetworkSlug]/transaction/[hash=stringSegment]', {
-									hash: String(selection.entitySelector.$transaction.hash ?? ''),
-									network: String(caip2StringFromValue(selection.entitySelector.$transaction.$network.caip2) ?? ''),
-								})
-								:
-										selection.entitySelector.$transaction.$network != null && 'slug' in selection.entitySelector.$transaction.$network
-										&& selection.entitySelector.$transaction.$network.slug != null ?
-											resolve('/network/[network=networkCaip2OrNetworkSlug]/transaction/[hash=stringSegment]', {
-										hash: String(selection.entitySelector.$transaction.hash ?? ''),
-										network: String(selection.entitySelector.$transaction.$network.slug ?? ''),
-									})
-									:
-										undefined
-							:
-									undefined
-							)
-						}
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -122,55 +59,20 @@
 			<div>
 				<dt>ledger index</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									ledgerIndex: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const ledgerIndex = resolvedEntity.ledgerIndex}
-							{#if ledgerIndex !== undefined && ledgerIndex !== null}
-								{String((ledgerIndex) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{String(pendingEntity.ledgerIndex)}
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									source: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const source = resolvedEntity.source}
-							{#if source !== undefined && source !== null}
-								{String((source) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{pendingEntity.source}
 				</dd>
 			</div>
 
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							timestampMs: true,
 						},
@@ -178,9 +80,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const timestampMs = resolvedEntity.timestampMs}
-					{#if timestampMs !== undefined && timestampMs !== null}
+					{@const timestampMs = entity.timestampMs}
+					{#if timestampMs != null}
 						<div>
 							<dt>Timestamp</dt>
 							<dd>
@@ -194,7 +95,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							fee: true,
 						},
@@ -202,13 +102,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const fee = resolvedEntity.fee}
-					{#if fee !== undefined && fee !== null}
+					{@const fee = entity.fee}
+					{#if fee != null}
 						<div>
 							<dt>fee</dt>
 							<dd>
-								{String((fee) ?? '')}
+								{String(fee)}
 							</dd>
 						</div>
 					{/if}
@@ -218,7 +117,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							status: true,
 						},
@@ -226,13 +124,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const status = resolvedEntity.status}
-					{#if status !== undefined && status !== null}
+					{@const status = entity.status}
+					{#if status != null}
 						<div>
 							<dt>status</dt>
 							<dd>
-								{String((status) ?? '')}
+								{status}
 							</dd>
 						</div>
 					{/if}
@@ -242,7 +139,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							validated: true,
 						},
@@ -250,9 +146,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const validated = resolvedEntity.validated}
-					{#if validated !== undefined && validated !== null}
+					{@const validated = entity.validated}
+					{#if validated != null}
 						<div>
 							<dt>validated</dt>
 							<dd>
@@ -266,7 +161,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							resultCode: true,
 						},
@@ -274,13 +168,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const resultCode = resolvedEntity.resultCode}
-					{#if resultCode !== undefined && resultCode !== null}
+					{@const resultCode = entity.resultCode}
+					{#if resultCode != null}
 						<div>
 							<dt>result code</dt>
 							<dd>
-								{String((resultCode) ?? '')}
+								{resultCode}
 							</dd>
 						</div>
 					{/if}

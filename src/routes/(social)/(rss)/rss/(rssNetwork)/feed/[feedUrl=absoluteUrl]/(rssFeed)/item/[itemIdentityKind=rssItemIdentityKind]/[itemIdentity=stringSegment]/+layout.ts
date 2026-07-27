@@ -6,7 +6,7 @@ import { match as matchRssItemIdentityKind } from '$/params/rssItemIdentityKind.
 import { match as matchStringSegment } from '$/params/stringSegment.ts'
 import { parseEntitySelector } from '$/schema/$schema.ts'
 import { schema } from '$/schema/index.ts'
-import { RssItem as RssItemSchema } from '$/schema/RssItem.ts'
+import RssItemSchema from '$/schema/RssItem.ts'
 import { type as arktype } from 'arktype'
 
 export const load: LayoutLoad = async ({ params, parent }) => {

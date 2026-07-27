@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { sourceProviderDefinitions } from '$/sources/$sourceProviders.ts'
+import bindings from '$/sources/BitcoinCashNode/bindings.ts'
 import { Source } from '$/sources/Source.ts'
 
 const { jsonRpc2 } = vi.hoisted(() => ({
@@ -13,12 +13,7 @@ vi.mock('$/sources/_shared/wire/JsonRpc2/client.ts', () => ({
 
 const { getTransparentAddressUtxos } = await import('$/sources/BitcoinCashNode/JsonRpc/queries.ts')
 
-const binding = sourceProviderDefinitions
-	.flatMap((provider) => provider.bindings)
-	.find((candidate) => candidate.source === Source.BitcoinCashNode_JsonRpc)
-
-if (binding == null)
-	throw new Error('BitcoinCashNode_JsonRpc spec missing source binding')
+const binding = bindings[Source.BitcoinCashNode_JsonRpc]
 
 const address = `bitcoincash:q${'q'.repeat(41)}`
 
@@ -56,7 +51,7 @@ describe('Bitcoin Cash Node public address transport', () => {
 			},
 		})
 
-		await expect(getTransparentAddressUtxos(binding, {
+		await expect(getTransparentAddressUtxos({
 			address,
 			maxResults: 25,
 		})).resolves.toMatchObject({
@@ -92,7 +87,7 @@ describe('Bitcoin Cash Node public address transport', () => {
 			unspents: [],
 			total_amount: 0,
 		})
-		await expect(getTransparentAddressUtxos(binding, {
+		await expect(getTransparentAddressUtxos({
 			address,
 			maxResults: 1,
 		})).rejects.toThrow('did not complete')
@@ -121,12 +116,12 @@ describe('Bitcoin Cash Node public address transport', () => {
 			],
 			total_amount: 2,
 		})
-		await expect(getTransparentAddressUtxos(binding, {
+		await expect(getTransparentAddressUtxos({
 			address,
 			maxResults: 2,
 		})).rejects.toThrow('duplicate UTXO outpoint')
 
-		await expect(getTransparentAddressUtxos(binding, {
+		await expect(getTransparentAddressUtxos({
 			address,
 			maxResults: 10_001,
 		})).rejects.toThrow('0 through 10000')
@@ -134,7 +129,7 @@ describe('Bitcoin Cash Node public address transport', () => {
 	})
 
 	it('does not transport zero-cardinality scans', async () => {
-		await expect(getTransparentAddressUtxos(binding, {
+		await expect(getTransparentAddressUtxos({
 			address,
 			maxResults: 0,
 		})).resolves.toMatchObject({

@@ -4,7 +4,7 @@ import {
 	WireProtocol,
 	type SourceBinding,
 } from '$/sources/SourceBinding.ts'
-import { sourceServerCredentialsById } from '$/sources/$sourceServerCredentials.server.ts'
+import sourceServerCredentialsById from '$/sources/$sourceServerCredentials.server.ts'
 import { remoteLiveBindings } from '$/sources/index.server.ts'
 
 export type SourceLiveRequest = {

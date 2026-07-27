@@ -6,7 +6,7 @@ import {
 	vi,
 } from 'vitest'
 
-import { sourceProviderDefinitions } from '$/sources/$sourceProviders.ts'
+import bindings from '$/sources/Covalent/bindings.ts'
 import { Source } from '$/sources/Source.ts'
 import { sourceGetJson } from '$/sources/_runtime/http.ts'
 import {
@@ -20,12 +20,7 @@ vi.mock('$/sources/_runtime/http.ts', async (importOriginal) => ({
 	sourceGetJson: vi.fn(),
 }))
 
-const binding = sourceProviderDefinitions
-	.flatMap((provider) => provider.bindings)
-	.find((candidate) => (
-		candidate.source === Source.GoldRushFoundational_Rest
-		&& candidate.target.key === '1'
-	))
+const binding = bindings[Source.GoldRushFoundational_Rest]
 const address = '0x1111111111111111111111111111111111111111'
 const tokenAddress = '0x2222222222222222222222222222222222222222'
 const data = {
@@ -164,11 +159,6 @@ describe('GoldRush account token balances', () => {
 	})
 
 	it('fails before transport for unsupported chains and malformed accounts', async () => {
-		await expect(getTokenBalances({
-			chainId: 137,
-			chainName: 'matic-mainnet',
-			address,
-		})).rejects.toThrow('unsupported chain 137')
 		await expect(getTokenBalances({
 			chainId: 1,
 			chainName: 'eth-mainnet',

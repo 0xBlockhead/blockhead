@@ -1,6 +1,5 @@
 import { throwHttpError } from '$/lib/http.ts'
 import type { SourcePublicEnv } from '$/sources/$sources.ts'
-import type { SourceBinding } from '$/sources/SourceBinding.ts'
 import {
 	firstHttpUrlForBinding,
 	sourceFetch,
@@ -14,14 +13,16 @@ import type {
 	SubscanResponse,
 } from '$/sources/Subscan/Rest/types.ts'
 import type { JsonValue } from '$/typescript/JsonValue.ts'
+import bindings from '$/sources/Subscan/bindings.ts'
+import { Source } from '$/sources/Source.ts'
+
+const binding = bindings[Source.Subscan_Rest]
 
 const post = async <_Result>({
-	binding,
 	path,
 	body,
 	publicEnv,
 }: {
-	binding: SourceBinding
 	path: string
 	body: JsonValue
 	publicEnv: SourcePublicEnv
@@ -46,16 +47,13 @@ const post = async <_Result>({
 }
 
 export const getBlock = ({
-	binding,
 	height,
 	publicEnv,
 }: {
-	binding: SourceBinding
 	height: bigint
 	publicEnv: SourcePublicEnv
 }) => (
 	post<SubscanBlock>({
-		binding,
 		path: '/api/scan/block',
 		body: {
 			block_num: Number(height),
@@ -65,16 +63,13 @@ export const getBlock = ({
 )
 
 export const getExtrinsic = ({
-	binding,
 	extrinsicIndex,
 	publicEnv,
 }: {
-	binding: SourceBinding
 	extrinsicIndex: string
 	publicEnv: SourcePublicEnv
 }) => (
 	post<SubscanExtrinsic>({
-		binding,
 		path: '/api/scan/extrinsic',
 		body: {
 			extrinsic_index: extrinsicIndex,
@@ -84,13 +79,11 @@ export const getExtrinsic = ({
 )
 
 export const listAccountExtrinsics = async ({
-	binding,
 	accountId,
 	page,
 	row,
 	publicEnv,
 }: {
-	binding: SourceBinding
 	accountId: string
 	page: number
 	row: number
@@ -116,7 +109,6 @@ export const listAccountExtrinsics = async ({
 		}
 
 	const response = await post<SubscanExtrinsicList>({
-		binding,
 		path: '/api/scan/extrinsics',
 		body: {
 			address: accountId,
@@ -181,11 +173,9 @@ export const listAccountExtrinsics = async ({
 }
 
 export const getReferendum = ({
-	binding,
 	referendumIndex,
 	publicEnv,
 }: {
-	binding: SourceBinding
 	referendumIndex: number
 	publicEnv: SourcePublicEnv
 }) => {
@@ -193,7 +183,6 @@ export const getReferendum = ({
 		throw new Error('Subscan referendum index must be a nonnegative safe integer')
 
 	return post<SubscanReferendum>({
-		binding,
 		path: '/api/scan/referenda/referendum',
 		body: {
 			referendum_index: referendumIndex,
@@ -203,7 +192,6 @@ export const getReferendum = ({
 }
 
 export const listReferenda = async ({
-	binding,
 	page,
 	row,
 	status,
@@ -211,7 +199,6 @@ export const listReferenda = async ({
 	origin,
 	publicEnv,
 }: {
-	binding: SourceBinding
 	page: number
 	row: number
 	status?: string
@@ -247,7 +234,6 @@ export const listReferenda = async ({
 		}
 
 	const response = await post<SubscanReferendumList>({
-		binding,
 		path: '/api/scan/referenda/referendums',
 		body: {
 			page,

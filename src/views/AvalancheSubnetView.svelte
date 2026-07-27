@@ -2,13 +2,8 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
 
 
 	// State
@@ -16,42 +11,19 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.AvalancheSubnet>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.AvalancheSubnet>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.AvalancheSubnet> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const avalancheSubnet = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {
-			label: true,
-			threshold: true,
-		},
-	} : {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const avalancheSubnet = $derived(selection({
 		fields: {
 			label: true,
 			threshold: true,
 		},
 	}))
-	const titleFallback = $derived([String((pendingEntity.label) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.subnetId) ?? '')].filter(Boolean).join(' ') || 'avalanche subnet')
-	const viewDomId = $derived('avalanche-subnet-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const titleFallback = $derived((pendingEntity.label ?? '') || (pendingEntity.subnetId ?? '') || 'avalanche subnet')
 
 
 	// Components
@@ -67,48 +39,31 @@
 
 <EntityView
 	entityType={EntityType.AvalancheSubnet}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'label') && Object.hasOwn(prefetched, 'threshold')}
-			{[String((pendingEntity.label) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-		{:else}
-			<ResourceBoundary resource={avalancheSubnet}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.label) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={avalancheSubnet}>
+			{#snippet children(entity)}
+				{(entity.label ?? '') || title || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Value()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'label') && Object.hasOwn(prefetched, 'threshold')}
-			{@const threshold0 = pendingEntity.threshold}
-			{#if threshold0 !== undefined && threshold0 !== null}
-				<NumberValue
-					value={threshold0}
-				/>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={avalancheSubnet}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const threshold0 = resolvedEntity.threshold}
-					{#if threshold0 !== undefined && threshold0 !== null}
-						<NumberValue
-							value={threshold0}
-						/>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={avalancheSubnet}>
+			{#snippet children(entity)}
+				{@const threshold0 = entity.threshold}
+				{#if threshold0 != null}
+					<NumberValue
+						value={threshold0}
+					/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -116,41 +71,16 @@
 			<div>
 				<dt>subnet ID</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									subnetId: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const subnetId = resolvedEntity.subnetId}
-							{#if subnetId !== undefined && subnetId !== null}
-								<TruncatedValue value={String((subnetId) ?? '')} />
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					<TruncatedValue value={pendingEntity.subnetId} />
 				</dd>
 			</div>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							threshold: true,
-						},
-					})
-				}
+				resource={avalancheSubnet}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const threshold = resolvedEntity.threshold}
-					{#if threshold !== undefined && threshold !== null}
+					{@const threshold = entity.threshold}
+					{#if threshold != null}
 						<div>
 							<dt>threshold</dt>
 							<dd>
@@ -172,12 +102,12 @@
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
-				<AvalancheSubnet_TimestampsView
-					selection={avalancheSubnetAvalancheSubnetTimestampsViewTimestampsResource}
-					countResource={avalancheSubnetAvalancheSubnetTimestampsViewTimestampsResource.count}
-					title='timestamps'
-					id='AvalancheSubnet_TimestampsView-timestamps'
-				/>
+					<AvalancheSubnet_TimestampsView
+						selection={avalancheSubnetAvalancheSubnetTimestampsViewTimestampsResource}
+						countResource={avalancheSubnetAvalancheSubnetTimestampsViewTimestampsResource.count}
+						title='timestamps'
+						id='timestamps'
+					/>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>
@@ -187,12 +117,12 @@
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
-				<AvalancheBlockchainsView
-					selection={avalancheSubnetAvalancheBlockchainsViewBlockchainsResource}
-					countResource={avalancheSubnetAvalancheBlockchainsViewBlockchainsResource.count}
-					title='blockchains'
-					id='AvalancheBlockchainsView-blockchains'
-				/>
+					<AvalancheBlockchainsView
+						selection={avalancheSubnetAvalancheBlockchainsViewBlockchainsResource}
+						countResource={avalancheSubnetAvalancheBlockchainsViewBlockchainsResource.count}
+						title='blockchains'
+						id='blockchains'
+					/>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>
@@ -202,12 +132,12 @@
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
-				<AvalancheValidatorsView
-					selection={avalancheSubnetAvalancheValidatorsViewValidatorsResource}
-					countResource={avalancheSubnetAvalancheValidatorsViewValidatorsResource.count}
-					title='validators'
-					id='AvalancheValidatorsView-validators'
-				/>
+					<AvalancheValidatorsView
+						selection={avalancheSubnetAvalancheValidatorsViewValidatorsResource}
+						countResource={avalancheSubnetAvalancheValidatorsViewValidatorsResource.count}
+						title='validators'
+						id='validators'
+					/>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>
@@ -217,12 +147,12 @@
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
-				<AvalancheDelegatorsView
-					selection={avalancheSubnetAvalancheDelegatorsViewDelegatorsResource}
-					countResource={avalancheSubnetAvalancheDelegatorsViewDelegatorsResource.count}
-					title='delegators'
-					id='AvalancheDelegatorsView-delegators'
-				/>
+					<AvalancheDelegatorsView
+						selection={avalancheSubnetAvalancheDelegatorsViewDelegatorsResource}
+						countResource={avalancheSubnetAvalancheDelegatorsViewDelegatorsResource.count}
+						title='delegators'
+						id='delegators'
+					/>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>

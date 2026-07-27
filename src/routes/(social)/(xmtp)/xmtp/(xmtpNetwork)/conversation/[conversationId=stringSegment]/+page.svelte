@@ -8,7 +8,6 @@
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
@@ -39,25 +38,12 @@
 
 
 <svelte:head>
-	<title>{(pageSelection.entity == null ? [String(({
-		id: params.conversationId,
-	}.id) ?? '')].filter(Boolean).join(' ') || 'XMTP conversation' : [String((({ ...{
-		id: params.conversationId,
-	}, ...pageSelection.entity }).topic) ?? ''), String((({ ...{
-		id: params.conversationId,
-	}, ...pageSelection.entity }).peerInboxId) ?? ''), String((({ ...{
-		id: params.conversationId,
-	}, ...pageSelection.entity }).id) ?? '')].filter(Boolean).join(' ') || 'XMTP conversation')} • XMTP conversation • Blockhead</title>
+	<title>{(pageSelection.entity == null ? (pageSelection.entitySelector.id ?? '') || 'XMTP conversation' : [(pageSelection.entity.topic ?? ''), (pageSelection.entity.peerInboxId ?? ''), pageSelection.entitySelector.id].filter(Boolean).join(' ') || 'XMTP conversation')} • XMTP conversation • Blockhead</title>
 </svelte:head>
 
 
 <Page>
 	<XmtpConversationView
-		href={
-			resolve('/xmtp/conversation/[conversationId=stringSegment]', {
-				conversationId: params.conversationId,
-			})
-		}
 		selection={pageSelection}
 	/>
 </Page>

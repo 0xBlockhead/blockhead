@@ -8,7 +8,6 @@
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
@@ -55,73 +54,12 @@
 
 
 <svelte:head>
-	<title>{(pageSelection.entity == null ? (String(({
-		$route: {
-			fromChainId: Number(params.fromChainId),
-			toChainId: Number(params.toChainId),
-			fromToken: params.fromToken,
-			toToken: params.toToken,
-			fromAmount: BigInt(params.fromAmount),
-			fromAddress: params.fromAddress,
-			slippage: Number(params.slippage),
-			toAddress: params.toAddress,
-		},
-		indexInRoute: Number(params.stepIndex),
-	}.indexInRoute) ?? '') ? 'Step #' + String(({
-		$route: {
-			fromChainId: Number(params.fromChainId),
-			toChainId: Number(params.toChainId),
-			fromToken: params.fromToken,
-			toToken: params.toToken,
-			fromAmount: BigInt(params.fromAmount),
-			fromAddress: params.fromAddress,
-			slippage: Number(params.slippage),
-			toAddress: params.toAddress,
-		},
-		indexInRoute: Number(params.stepIndex),
-	}.indexInRoute) ?? '') : '') || 'bridge route step' : (String((({ ...{
-		$route: {
-			fromChainId: Number(params.fromChainId),
-			toChainId: Number(params.toChainId),
-			fromToken: params.fromToken,
-			toToken: params.toToken,
-			fromAmount: BigInt(params.fromAmount),
-			fromAddress: params.fromAddress,
-			slippage: Number(params.slippage),
-			toAddress: params.toAddress,
-		},
-		indexInRoute: Number(params.stepIndex),
-	}, ...pageSelection.entity }).indexInRoute) ?? '') ? 'Step #' + String((({ ...{
-		$route: {
-			fromChainId: Number(params.fromChainId),
-			toChainId: Number(params.toChainId),
-			fromToken: params.fromToken,
-			toToken: params.toToken,
-			fromAmount: BigInt(params.fromAmount),
-			fromAddress: params.fromAddress,
-			slippage: Number(params.slippage),
-			toAddress: params.toAddress,
-		},
-		indexInRoute: Number(params.stepIndex),
-	}, ...pageSelection.entity }).indexInRoute) ?? '') : '') || 'bridge route step')} • bridge route step • Blockhead</title>
+	<title>{((String(pageSelection.entitySelector.indexInRoute ?? '') ? 'Step #' + String(pageSelection.entitySelector.indexInRoute ?? '') : '') || 'bridge route step')} • bridge route step • Blockhead</title>
 </svelte:head>
 
 
 <Page>
 	<BridgeRouteStepView
-		href={
-			resolve('/bridge/route/[fromChainId=nonNegativeInteger]/[toChainId=nonNegativeInteger]/[fromToken=stringSegment]/[toToken=stringSegment]/[fromAmount=nonNegativeBigInt]/[fromAddress=evmAddress]/[slippage=nonNegativeNumber]/[toAddress=evmAddress]/step/[stepIndex=bridgeRouteStepIndex]', {
-				fromChainId: params.fromChainId,
-				toChainId: params.toChainId,
-				fromToken: params.fromToken,
-				toToken: params.toToken,
-				fromAmount: params.fromAmount,
-				fromAddress: params.fromAddress,
-				slippage: params.slippage,
-				toAddress: params.toAddress,
-				stepIndex: params.stepIndex,
-			})
-		}
 		selection={pageSelection}
 	/>
 </Page>

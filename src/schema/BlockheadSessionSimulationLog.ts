@@ -1,15 +1,12 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { entity, facet } from '$/schema/$schema.ts'
+import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { EvmAddress, ZeroExHex } from '$/schema/ZeroExHex.ts'
 import { type } from 'arktype'
 
-export enum BlockheadSessionSimulationLogSelector {
-	SimulationIdLogIndex = 'SimulationIdLogIndex',
-}
-export const BlockheadSessionSimulationLog = entity({
+export default entity({
 	entityType: EntityType.BlockheadSessionSimulationLog,
 	labels: {
 		singular: 'blockhead session simulation log',
@@ -44,25 +41,25 @@ export const BlockheadSessionSimulationLog = entity({
 		label: 'Address',
 		description: 'The address or account identifier used by the source protocol.',
 		type: EntityFieldType.Primitive,
-		primitiveType: (EvmAddress),
+		primitiveType: EvmAddress,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	topic0: {
 		label: 'topic0',
 		type: EntityFieldType.Primitive,
-		primitiveType: (ZeroExHex),
+		primitiveType: ZeroExHex,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	topics: {
 		label: 'topics',
 		type: EntityFieldType.Primitive,
-		primitiveType: (ZeroExHex),
+		primitiveType: ZeroExHex,
 		cardinality: EntityFieldCardinality.Many,
 	},
 	dataHash: {
 		label: 'data hash',
 		type: EntityFieldType.Primitive,
-		primitiveType: (ZeroExHex),
+		primitiveType: ZeroExHex,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	decodedEventName: {

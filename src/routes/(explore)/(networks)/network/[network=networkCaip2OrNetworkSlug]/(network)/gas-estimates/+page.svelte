@@ -3,12 +3,11 @@
 <script lang="ts">
 	// Types/constants
 	import type { PageProps } from './$types.ts'
+	import { resolve } from '$app/paths'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
@@ -17,11 +16,8 @@
 		data,
 		params,
 	}: PageProps = $props()
-
-
 	// Components
 	import Page from '$/components/Page.svelte'
-	import ProjectionBoundary from '$/components/ProjectionBoundary.svelte'
 	import EvmNetwork_GasEstimate_TimestampsView from '$/views/EvmNetwork_GasEstimate_TimestampsView.svelte'
 </script>
 
@@ -32,31 +28,20 @@
 
 
 <Page>
-	<ProjectionBoundary
-		resource={select(EntityType.Network, data.selector).Evm}
-	>
-		{#snippet Applicable(projection)}
-			<EvmNetwork_GasEstimate_TimestampsView
-				href={
-					resolve('/network/[network=networkCaip2OrNetworkSlug]/gas-estimates', {
-						network: params.network,
-					})
+	<EvmNetwork_GasEstimate_TimestampsView
+		href={
+			resolve(
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/gas-estimates',
+				{
+					network: String(params.network),
 				}
-				title='Gas estimates'
-				selection={
-					projection
-						.$$gasEstimateTimestamps({
-							sources: [
-								Source.Blockscout_Rest,
-								Source.Etherscan_Rest,
-							],
-						})
-				}
-				id='account-evm-network-gas-estimate-timestamp'
-				data-column-item="flexible"
-				data-card
-				data-scroll-container
-			/>
-		{/snippet}
-	</ProjectionBoundary>
+			)
+		}
+		title='Gas estimates'
+		selection={select(EntityType.Network, data.selector).Evm.$$gasEstimateTimestamps}
+		id='gas-estimate-timestamps'
+		data-column-item="flexible"
+		data-card
+		data-scroll-container
+	/>
 </Page>

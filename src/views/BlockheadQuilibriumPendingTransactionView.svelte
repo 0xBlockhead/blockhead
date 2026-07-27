@@ -2,13 +2,10 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -20,42 +17,25 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.BlockheadQuilibriumPendingTransaction>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.BlockheadQuilibriumPendingTransaction>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.BlockheadQuilibriumPendingTransaction> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const blockheadQuilibriumPendingTransaction = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {
-			amount: true,
-			deliveryType: true,
-		},
-	} : {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const viewSelection = $derived(selection({
+		sources: selection.sources ?? [
+			Source.Local_Internal,
+			Source.QuilibriumNode_Grpc,
+		],
+	}))
+	const blockheadQuilibriumPendingTransaction = $derived(viewSelection({
 		fields: {
 			amount: true,
 			deliveryType: true,
 		},
 	}))
-	const titleFallback = $derived([String((pendingEntity.transactionAddress) ?? '')].filter(Boolean).join(' ') || 'blockhead quilibrium pending transaction')
-	const viewDomId = $derived('blockhead-quilibrium-pending-transaction-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const titleFallback = $derived((pendingEntity.transactionAddress ?? '') || 'blockhead quilibrium pending transaction')
 
 
 	// Components
@@ -70,71 +50,40 @@
 
 <EntityView
 	entityType={EntityType.BlockheadQuilibriumPendingTransaction}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'amount') && Object.hasOwn(prefetched, 'deliveryType')}
-			{[String((pendingEntity.transactionAddress) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-		{:else}
-			<ResourceBoundary resource={blockheadQuilibriumPendingTransaction}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.transactionAddress) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		{(pendingEntity.transactionAddress ?? '') || 'blockhead quilibrium pending transaction'}
 	{/snippet}
 
 	{#snippet Value()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'amount') && Object.hasOwn(prefetched, 'deliveryType')}
-			{@const amount0 = pendingEntity.amount}
-			{#if amount0 !== undefined && amount0 !== null}
-				<NumberValue
-					value={amount0}
-				/>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={blockheadQuilibriumPendingTransaction}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const amount0 = resolvedEntity.amount}
-					{#if amount0 !== undefined && amount0 !== null}
-						<NumberValue
-							value={amount0}
-						/>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={blockheadQuilibriumPendingTransaction}>
+			{#snippet children(entity)}
+				{@const amount0 = entity.amount}
+				{#if amount0 != null}
+					<NumberValue
+						value={amount0}
+					/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'amount') && Object.hasOwn(prefetched, 'deliveryType')}
-			{@const deliveryType0 = pendingEntity.deliveryType}
-			{#if deliveryType0 !== undefined && deliveryType0 !== null}
-				<span data-text="muted">
-					{String((deliveryType0) ?? '')}
-				</span>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={blockheadQuilibriumPendingTransaction}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const deliveryType0 = resolvedEntity.deliveryType}
-					{#if deliveryType0 !== undefined && deliveryType0 !== null}
-						<span data-text="muted">
-							{String((deliveryType0) ?? '')}
-						</span>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={blockheadQuilibriumPendingTransaction}>
+			{#snippet children(entity)}
+				{@const deliveryType0 = entity.deliveryType}
+				{#if deliveryType0 != null}
+					<span data-text="muted">
+						{deliveryType0}
+					</span>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -153,24 +102,7 @@
 			<div>
 				<dt>transaction address</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									transactionAddress: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const transactionAddress = resolvedEntity.transactionAddress}
-							{#if transactionAddress !== undefined && transactionAddress !== null}
-								<TruncatedValue value={String((transactionAddress) ?? '')} />
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					<TruncatedValue value={pendingEntity.transactionAddress} />
 				</dd>
 			</div>
 
@@ -178,7 +110,7 @@
 				resource={selection.$account}
 			>
 				{#snippet children(quilibriumAccount)}
-					{#if quilibriumAccount != null && quilibriumAccount[EntityMetaKey.Selector] != null}
+					{#if quilibriumAccount != null}
 						<div>
 							<dt>account</dt>
 							<dd>
@@ -198,7 +130,7 @@
 				resource={selection.$refundAccount}
 			>
 				{#snippet children(quilibriumAccount)}
-					{#if quilibriumAccount != null && quilibriumAccount[EntityMetaKey.Selector] != null}
+					{#if quilibriumAccount != null}
 						<div>
 							<dt>refund account</dt>
 							<dd>
@@ -216,8 +148,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							coinAddress: true,
 						},
@@ -225,13 +156,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const coinAddress = resolvedEntity.coinAddress}
-					{#if coinAddress !== undefined && coinAddress !== null}
+					{@const coinAddress = entity.coinAddress}
+					{#if coinAddress != null}
 						<div>
 							<dt>coin address</dt>
 							<dd>
-								<TruncatedValue value={String((coinAddress) ?? '')} />
+								<TruncatedValue value={coinAddress} />
 							</dd>
 						</div>
 					{/if}
@@ -241,19 +171,11 @@
 
 		<dl data-column-item="center">
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							amount: true,
-						},
-					})
-				}
+				resource={blockheadQuilibriumPendingTransaction}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const amount = resolvedEntity.amount}
-					{#if amount !== undefined && amount !== null}
+					{@const amount = entity.amount}
+					{#if amount != null}
 						<div>
 							<dt>amount</dt>
 							<dd>
@@ -267,23 +189,15 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							deliveryType: true,
-						},
-					})
-				}
+				resource={blockheadQuilibriumPendingTransaction}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const deliveryType = resolvedEntity.deliveryType}
-					{#if deliveryType !== undefined && deliveryType !== null}
+					{@const deliveryType = entity.deliveryType}
+					{#if deliveryType != null}
 						<div>
 							<dt>delivery type</dt>
 							<dd>
-								{String((deliveryType) ?? '')}
+								{deliveryType}
 							</dd>
 						</div>
 					{/if}
@@ -292,8 +206,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							deliveryAddress: true,
 						},
@@ -301,13 +214,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const deliveryAddress = resolvedEntity.deliveryAddress}
-					{#if deliveryAddress !== undefined && deliveryAddress !== null}
+					{@const deliveryAddress = entity.deliveryAddress}
+					{#if deliveryAddress != null}
 						<div>
 							<dt>delivery address</dt>
 							<dd>
-								<TruncatedValue value={String((deliveryAddress) ?? '')} />
+								<TruncatedValue value={deliveryAddress} />
 							</dd>
 						</div>
 					{/if}
@@ -316,8 +228,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							observedAt: true,
 						},
@@ -325,9 +236,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const observedAt = resolvedEntity.observedAt}
-					{#if observedAt !== undefined && observedAt !== null}
+					{@const observedAt = entity.observedAt}
+					{#if observedAt != null}
 						<div>
 							<dt>observed AT</dt>
 							<dd>

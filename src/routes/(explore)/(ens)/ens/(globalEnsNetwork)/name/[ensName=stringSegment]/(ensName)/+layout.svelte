@@ -30,23 +30,29 @@
 {#key params.ensName}
 	<ParentPageCollapsible
 		href={
-			resolve('/ens/name/[ensName=stringSegment]', {
-				ensName: params.ensName,
-			})
+			resolve(
+				'/(explore)/(ens)/ens/(globalEnsNetwork)/name/[ensName=stringSegment]',
+				{
+					ensName: String(params.ensName),
+				}
+			)
 		}
 	>
 		{#snippet Summary()}
-			{@const DetailView = EnsNameView}
-
-			<DetailView
-				selection={select(EntityType.EnsName, data.selector, { sources: [
-		Source.TheGraph_Graphql,
-		Source.Voltaire_JsonRpc,
-	] })}
+			<EnsNameView
+				selection={
+					select(EntityType.EnsName, data.selector, { sources: [
+						Source.TheGraph_Graphql,
+						Source.Voltaire_JsonRpc,
+					] })
+				}
 				href={
-					resolve('/ens/name/[ensName=stringSegment]', {
-						ensName: params.ensName,
-					})
+					resolve(
+						'/(explore)/(ens)/ens/(globalEnsNetwork)/name/[ensName=stringSegment]',
+						{
+							ensName: String(params.ensName),
+						}
+					)
 				}
 				layout={EntityLayout.SummaryInline}
 			/>

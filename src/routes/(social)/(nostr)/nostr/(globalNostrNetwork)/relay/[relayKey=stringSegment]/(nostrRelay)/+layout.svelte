@@ -29,20 +29,24 @@
 {#key params.relayKey}
 	<ParentPageCollapsible
 		href={
-			resolve('/nostr/relay/[relayKey=stringSegment]', {
-				relayKey: params.relayKey,
-			})
+			resolve(
+				'/(social)/(nostr)/nostr/(globalNostrNetwork)/relay/[relayKey=stringSegment]',
+				{
+					relayKey: String(params.relayKey),
+				}
+			)
 		}
 	>
 		{#snippet Summary()}
-			{@const DetailView = NostrRelayView}
-
-			<DetailView
+			<NostrRelayView
 				selection={select(EntityType.NostrRelay, data.selector)}
 				href={
-					resolve('/nostr/relay/[relayKey=stringSegment]', {
-						relayKey: params.relayKey,
-					})
+					resolve(
+						'/(social)/(nostr)/nostr/(globalNostrNetwork)/relay/[relayKey=stringSegment]',
+						{
+							relayKey: String(params.relayKey),
+						}
+					)
 				}
 				layout={EntityLayout.SummaryInline}
 			/>

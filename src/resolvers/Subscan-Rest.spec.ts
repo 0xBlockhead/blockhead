@@ -2,9 +2,6 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { EntityMetaKey } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import { PolkadotExtrinsicSelector } from '$/schema/PolkadotExtrinsic.ts'
-import { PolkadotReferendumSelector } from '$/schema/PolkadotReferendum.ts'
-import { PolkadotReferendum_TimestampSelector } from '$/schema/PolkadotReferendum_Timestamp.ts'
 import { Source } from '$/sources/Source.ts'
 
 const corsFetch = vi.hoisted(() => vi.fn())
@@ -101,7 +98,7 @@ describe('Subscan OpenGov referendum resolver', () => {
 			$network: polkadotNetwork,
 			referendumId: '123',
 		}
-		const referendum = await referendumResolver.resolve[PolkadotReferendumSelector.NetworkReferendumId].resolve(selector, context)
+		const referendum = await referendumResolver.resolve['NetworkReferendumId'].resolve(selector, context)
 
 		expect(referendum).toMatchObject({
 			track: 'root',
@@ -121,7 +118,7 @@ describe('Subscan OpenGov referendum resolver', () => {
 	})
 
 	it('resolves an exact observation and rejects unsupported identities', async () => {
-		const resolve = referendumObservationResolver.resolve[PolkadotReferendum_TimestampSelector.ReferendumTimestampMsSource].resolve
+		const resolve = referendumObservationResolver.resolve['ReferendumTimestampMsSource'].resolve
 		await expect(resolve({
 			$referendum: {
 				$network: polkadotNetwork,
@@ -156,7 +153,7 @@ describe('Subscan OpenGov referendum resolver', () => {
 		})))
 
 		await expect(referendumObservationResolver.resolve[
-			PolkadotReferendum_TimestampSelector.ReferendumTimestampMsSource
+			'ReferendumTimestampMsSource'
 		].resolve({
 			$referendum: {
 				$network: polkadotNetwork,
@@ -199,7 +196,7 @@ describe('Subscan extrinsic resolver', () => {
 	it('preserves exact block, index, signer, and call identities', async () => {
 		corsFetch.mockResolvedValueOnce(new Response(JSON.stringify(extrinsicResponse)))
 		await expect(extrinsicResolver.resolve[
-			PolkadotExtrinsicSelector.BlockIndexInBlock
+			'BlockIndexInBlock'
 		].resolve(selector, context)).resolves.toMatchObject({
 			hash: '0xEXTRINSIC_HASH',
 			$signer: {
@@ -233,7 +230,7 @@ describe('Subscan extrinsic resolver', () => {
 				data,
 			})))
 			await expect(extrinsicResolver.resolve[
-				PolkadotExtrinsicSelector.BlockIndexInBlock
+				'BlockIndexInBlock'
 			].resolve(selector, context)).rejects.toThrow()
 		}
 	})

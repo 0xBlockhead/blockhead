@@ -17,12 +17,6 @@ import { indexResolvers } from '$/resolvers/$resolvers.ts'
 import { EntityMetaKey, entityFieldAddressKey } from '$/schema/$schema.ts'
 import { schema } from '$/schema/index.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import { NetworkSelector } from '$/schema/Network.ts'
-import { AccountSelector } from '$/schema/Account.ts'
-import { NostrProfileSelector } from '$/schema/NostrProfile.ts'
-import { _GlobalArweaveNetworkSelector } from '$/schema/_GlobalArweaveNetwork.ts'
-import { _GlobalIpfsAccessSelector } from '$/schema/_GlobalIpfsAccess.ts'
-import { _GlobalSwarmAccessSelector } from '$/schema/_GlobalSwarmAccess.ts'
 import { Source } from '$/sources/Source.ts'
 
 const resolverContext = {
@@ -113,7 +107,7 @@ describe('Constants resolver projections', () => {
 			'pubkey',
 		])
 
-		await expect(nostrProfileResolver.resolve[NostrProfileSelector.CanonicalPubkey].resolve({
+		await expect(nostrProfileResolver.resolve['CanonicalPubkey'].resolve({
 			pubkey: nostrNetworkSeedProfiles[0].pubkey,
 		}, resolverContext)).resolves.toEqual({
 			pubkey: nostrNetworkSeedProfiles[0].pubkey,
@@ -365,7 +359,7 @@ describe('Constants resolver projections', () => {
 				},
 			},
 		] as const) {
-			const account = await accountResolver.resolve[AccountSelector.Caip10].resolve({
+			const account = await accountResolver.resolve['Caip10'].resolve({
 				caip10,
 			}, resolverContext)
 			expect(account).toEqual({
@@ -393,21 +387,21 @@ describe('Constants resolver projections', () => {
 
 	it('materializes fixed Arweave, IPFS, and Swarm hubs without fabricating live fields', async () => {
 		await expect(globalArweaveNetworkResolver.resolve[
-			_GlobalArweaveNetworkSelector.Scope
+			'Scope'
 		].resolve({
 			scope: '_GlobalArweaveNetwork',
 		}, resolverContext)).resolves.toEqual({
 			scope: '_GlobalArweaveNetwork',
 		})
 		await expect(globalIpfsAccessResolver.resolve[
-			_GlobalIpfsAccessSelector.Scope
+			'Scope'
 		].resolve({
 			scope: '_GlobalIpfsAccess',
 		}, resolverContext)).resolves.toEqual({
 			scope: '_GlobalIpfsAccess',
 		})
 		await expect(globalSwarmAccessResolver.resolve[
-			_GlobalSwarmAccessSelector.Scope
+			'Scope'
 		].resolve({
 			scope: '_GlobalSwarmAccess',
 		}, resolverContext)).resolves.toEqual({
@@ -425,7 +419,7 @@ describe('Constants resolver projections', () => {
 			nativeAssetCoinId: CoinId.ADA,
 		})
 
-		const network = await networkNativeAssetsResolver.resolve[NetworkSelector.Slug].resolve({
+		const network = await networkNativeAssetsResolver.resolve['Slug'].resolve({
 			slug: 'cardano',
 		}, resolverContext)
 
@@ -444,10 +438,10 @@ describe('Constants resolver projections', () => {
 
 	it('returns empty EVM-only relationships for a slug-only Cardano network', async () => {
 		await expect(Promise.all([
-			networkMevRelaysResolver.resolve[NetworkSelector.Slug].resolve({ slug: 'cardano' }, resolverContext),
-			networkUpgradesResolver.resolve[NetworkSelector.Slug].resolve({ slug: 'cardano' }, resolverContext),
-			networkExecutionUpgradesResolver.resolve[NetworkSelector.Slug].resolve({ slug: 'cardano' }, resolverContext),
-			networkConsensusUpgradesResolver.resolve[NetworkSelector.Slug].resolve({ slug: 'cardano' }, resolverContext),
+			networkMevRelaysResolver.resolve['Slug'].resolve({ slug: 'cardano' }, resolverContext),
+			networkUpgradesResolver.resolve['Slug'].resolve({ slug: 'cardano' }, resolverContext),
+			networkExecutionUpgradesResolver.resolve['Slug'].resolve({ slug: 'cardano' }, resolverContext),
+			networkConsensusUpgradesResolver.resolve['Slug'].resolve({ slug: 'cardano' }, resolverContext),
 		])).resolves.toEqual([
 			[],
 			[],
@@ -457,7 +451,7 @@ describe('Constants resolver projections', () => {
 	})
 
 	it('maps the XRPL native asset to the canonical XRP coin', async () => {
-		const network = await networkNativeAssetsResolver.resolve[NetworkSelector.Slug].resolve({
+		const network = await networkNativeAssetsResolver.resolve['Slug'].resolve({
 			slug: 'xrpl',
 		}, resolverContext)
 
@@ -475,7 +469,7 @@ describe('Constants resolver projections', () => {
 	})
 
 	it('maps the Hedera native asset to the canonical HBAR coin', async () => {
-		const network = await networkNativeAssetsResolver.resolve[NetworkSelector.Slug].resolve({
+		const network = await networkNativeAssetsResolver.resolve['Slug'].resolve({
 			slug: 'hedera',
 		}, resolverContext)
 
@@ -493,7 +487,7 @@ describe('Constants resolver projections', () => {
 	})
 
 	it('materializes Network.Evm.$$upgrades with only declared child fields', async () => {
-		const upgrades = await networkUpgradesResolver.resolve[NetworkSelector.Caip2].resolve({
+		const upgrades = await networkUpgradesResolver.resolve['Caip2'].resolve({
 			caip2: {
 				namespace: 'eip155',
 				reference: '1',
@@ -518,7 +512,7 @@ describe('Constants resolver projections', () => {
 	})
 
 	it('materializes Network.Evm.$$executionUpgrades with only declared child fields', async () => {
-		const upgrades = await networkExecutionUpgradesResolver.resolve[NetworkSelector.Caip2].resolve({
+		const upgrades = await networkExecutionUpgradesResolver.resolve['Caip2'].resolve({
 			caip2: {
 				namespace: 'eip155',
 				reference: '1',
@@ -550,7 +544,7 @@ describe('Constants resolver projections', () => {
 	})
 
 	it('materializes Network.Evm.$$consensusUpgrades with only declared child fields', async () => {
-		const upgrades = await networkConsensusUpgradesResolver.resolve[NetworkSelector.Caip2].resolve({
+		const upgrades = await networkConsensusUpgradesResolver.resolve['Caip2'].resolve({
 			caip2: {
 				namespace: 'eip155',
 				reference: '1',

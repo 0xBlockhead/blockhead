@@ -2,69 +2,32 @@
 
 <script lang="ts">
 	// Types/constants
-	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
-	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
-	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
+	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-
-
 
 
 	// State
 	let {
 		selection,
-		countResource,
 		title = 'Blockhead 0G storage node state observations',
-		typeAnnotationParagraphs = [],
-		placeholderText = undefined,
-		emptyText = undefined,
 		open = $bindable(true),
-		collapsible = true,
-		showTypeAnnotation = true,
-		id = 'BlockheadZeroGStorageNodeState_Timestamps-list',
 		...EntitiesListProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyEntitiesSelection<EntityType.BlockheadZeroGStorageNodeState_Timestamp>
-			countResource?: SvelteKitResource<number>
-			title?: string
-			typeAnnotationParagraphs?: string[]
-			placeholderText?: string
-			emptyText?: string
-			open?: boolean
-			collapsible?: boolean
-			showTypeAnnotation?: boolean
-			id?: string
-		},
-		EntitiesListForwardProps
-	> = $props()
+	}: EntityListViewProps<EntityType.BlockheadZeroGStorageNodeState_Timestamp> = $props()
 
 
 	// Components
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView from '$/components/EntityView.svelte'
 </script>
 
-
-{#snippet TypeAnnotationParagraphs()}
-	{#each typeAnnotationParagraphs as paragraph (paragraph)}
-		<p>{paragraph}</p>
-	{/each}
-{/snippet}
 
 <EntitiesList
 	{...EntitiesListProps}
 	entityType={EntityType.BlockheadZeroGStorageNodeState_Timestamp}
-	{id}
 	{title}
 	bind:open
-	{collapsible}
-	{showTypeAnnotation}
-	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
 	resource={
 		selection({
-			sources: selection.sources,
 			fields: {
 				timestampMs: true,
 				$nodeState: {
@@ -81,38 +44,23 @@
 			},
 		})
 	}
-	{countResource}
-	getResourceItems={(blockheadZeroGStorageNodeStateTimestamps) => [...new Map(blockheadZeroGStorageNodeStateTimestamps.values.map((blockheadZeroGStorageNodeStateTimestamp) => [blockheadZeroGStorageNodeStateTimestamp[EntityMetaKey.SelectorKey], blockheadZeroGStorageNodeStateTimestamp])).values()]}
-	getKey={(blockheadZeroGStorageNodeStateTimestamp) => blockheadZeroGStorageNodeStateTimestamp[EntityMetaKey.SelectorKey]}
-	{placeholderText}
 >
-	{#snippet Empty()}
-		{#if emptyText != null}
-			<p data-text="muted">{emptyText}</p>
-		{:else}
-			<p data-text="muted">No Blockhead zero g storage node state observations yet.</p>
-		{/if}
-	{/snippet}
-
 	{#snippet Item({ item: blockheadZeroGStorageNodeStateTimestamp })}
-		{@const blockheadZeroGStorageNodeStateTimestampFields = { ...blockheadZeroGStorageNodeStateTimestamp[EntityMetaKey.Selector], ...blockheadZeroGStorageNodeStateTimestamp }}
+		{@const blockheadZeroGStorageNodeStateTimestampSelector = blockheadZeroGStorageNodeStateTimestamp[EntityMetaKey.Selector]}
 		<EntityView
 			entityType={EntityType.BlockheadZeroGStorageNodeState_Timestamp}
-			entitySelector={blockheadZeroGStorageNodeStateTimestamp[EntityMetaKey.Selector]}
-			layout={EntityLayout.Summary}
-			open={false}
-			showTypeAnnotation={false}
+			entitySelector={blockheadZeroGStorageNodeStateTimestampSelector}
 		>
 			{#snippet Title()}
-				{[String((blockheadZeroGStorageNodeStateTimestampFields.timestampMs) ?? '')].filter(Boolean).join(' ') || 'blockhead zero g storage node state timestamp'}
+				{String(blockheadZeroGStorageNodeStateTimestampSelector.timestampMs) || 'blockhead zero g storage node state timestamp'}
 			{/snippet}
 
 			{#snippet Value()}
-				{[[String((blockheadZeroGStorageNodeStateTimestampFields.$nodeState.nodeId) ?? '')].filter(Boolean).join(' ') || 'blockhead zero g storage node state'].filter(Boolean).join(' ')}
+				{String(blockheadZeroGStorageNodeStateTimestampSelector.$nodeState.nodeId) || 'blockhead zero g storage node state'}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{[String((blockheadZeroGStorageNodeStateTimestampFields.localChunkCount) ?? '')].filter(Boolean).join(' ')}</span>
+				<span data-text="annotation">{String(blockheadZeroGStorageNodeStateTimestamp.localChunkCount ?? '')}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

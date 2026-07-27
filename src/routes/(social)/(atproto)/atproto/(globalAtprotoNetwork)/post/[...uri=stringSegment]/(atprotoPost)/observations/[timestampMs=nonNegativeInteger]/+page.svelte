@@ -7,7 +7,6 @@
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
@@ -38,28 +37,12 @@
 
 
 <svelte:head>
-	<title>{(pageSelection.entity == null ? [String(({
-		$post: {
-			uri: decodeURIComponent(params.uri),
-		},
-		timestampMs: Number(params.timestampMs),
-	}.timestampMs) ?? '')].filter(Boolean).join(' ') || 'AT Protocol post observation' : [String((({ ...{
-		$post: {
-			uri: decodeURIComponent(params.uri),
-		},
-		timestampMs: Number(params.timestampMs),
-	}, ...pageSelection.entity }).timestampMs) ?? '')].filter(Boolean).join(' ') || 'AT Protocol post observation')} • AT Protocol post observation • Blockhead</title>
+	<title>{(String(pageSelection.entitySelector.timestampMs) || 'AT Protocol post observation')} • AT Protocol post observation • Blockhead</title>
 </svelte:head>
 
 
 <Page>
 	<AtprotoPost_TimestampView
-		href={
-			resolve('/atproto/post/[...uri=stringSegment]/observations/[timestampMs=nonNegativeInteger]', {
-				uri: params.uri,
-				timestampMs: params.timestampMs,
-			})
-		}
 		selection={pageSelection}
 	/>
 </Page>

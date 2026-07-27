@@ -12,6 +12,7 @@ import {
 	type WalletConnectV2Client,
 	type WalletConnectV2ClientEvent,
 	type WalletConnectV2Session,
+	walletConnectV2ClientFromSignClient,
 } from './walletConnectV2.ts'
 import type { WalletCandidate, WalletConnection } from './types.ts'
 
@@ -113,6 +114,156 @@ describe('WalletConnect v2 adapter', () => {
 		vi.useRealTimers()
 	})
 
+	it('translates the official Sign Client lifecycle into the adapter client boundary', async () => {
+		const session = eip155Session()
+		const on = vi.fn()
+		const off = vi.fn()
+		const disconnect = vi.fn(async () => {})
+		const connect = vi.fn(async () => ({
+			uri: 'wc:official@2',
+			approval: async () => session,
+		}))
+		const client = walletConnectV2ClientFromSignClient({
+			connect,
+			disconnect,
+			session: {
+				keys: [session.topic],
+				get: () => ({
+					...session,
+					expiry: session.expiry + 600,
+				}),
+				getAll: () => [session],
+			},
+			on,
+			off,
+		})
+
+		await expect(client.connect({
+			requiredNamespaces: {},
+			optionalNamespaces: {
+				eip155: {
+					chains: ['eip155:1'],
+					methods: ['personal_sign'],
+					events: [
+						'accountsChanged',
+						'chainChanged',
+					],
+				},
+			},
+		})).resolves.toMatchObject({
+			uri: 'wc:official@2',
+		})
+		expect(connect).toHaveBeenCalledWith({
+			requiredNamespaces: {},
+			optionalNamespaces: {
+				eip155: {
+					chains: ['eip155:1'],
+					methods: ['personal_sign'],
+					events: [
+						'accountsChanged',
+						'chainChanged',
+					],
+				},
+			},
+		})
+		expect(client.session.getAll()).toEqual([session])
+
+		const events: WalletConnectV2ClientEvent[] = []
+		const stop = client.listen((event) => events.push(event))
+		expect(on.mock.calls.map(([event]) => event)).toEqual([
+			'session_update',
+			'session_extend',
+			'session_event',
+			'session_delete',
+			'session_expire',
+		])
+
+		on.mock.calls[0]?.[1]({
+			topic: session.topic,
+			params: {
+				namespaces: session.namespaces,
+			},
+		})
+		on.mock.calls[1]?.[1]({
+			topic: session.topic,
+		})
+		on.mock.calls[2]?.[1]({
+			topic: session.topic,
+			params: {
+				chainId: 'eip155:1',
+				event: {
+					name: 'accountsChanged',
+					data: [
+						'0x3333333333333333333333333333333333333333',
+					],
+				},
+			},
+		})
+		on.mock.calls[2]?.[1]({
+			topic: session.topic,
+			params: {
+				chainId: 'eip155:1',
+				event: {
+					name: 'chainChanged',
+					data: '0x89',
+				},
+			},
+		})
+		on.mock.calls[3]?.[1]({
+			topic: session.topic,
+		})
+		on.mock.calls[4]?.[1]({
+			topic: session.topic,
+		})
+		expect(events).toEqual([
+			{
+				event: 'session_update',
+				topic: session.topic,
+				namespaces: session.namespaces,
+			},
+			{
+				event: 'session_extend',
+				topic: session.topic,
+				expiry: session.expiry + 600,
+			},
+			{
+				event: 'session_event',
+				topic: session.topic,
+				chainId: 'eip155:1',
+				name: 'accountsChanged',
+				accountAddresses: [
+					'0x3333333333333333333333333333333333333333',
+				],
+			},
+			{
+				event: 'session_event',
+				topic: session.topic,
+				chainId: 'eip155:1',
+				name: 'chainChanged',
+				nextChainId: 'eip155:137',
+			},
+			{
+				event: 'session_delete',
+				topic: session.topic,
+			},
+			{
+				event: 'session_expire',
+				topic: session.topic,
+			},
+		])
+
+		await client.disconnect({
+			topic: session.topic,
+			reason: {
+				code: 6000,
+				message: 'User disconnected',
+			},
+		})
+		stop()
+		expect(disconnect).toHaveBeenCalledTimes(1)
+		expect(off).toHaveBeenCalledTimes(5)
+	})
+
 	it('requests exact scopes as optional account access and owns the QR through exact-topic approval', async () => {
 		const mock = createClient()
 		const candidates: WalletCandidate[][] = []
@@ -126,6 +277,10 @@ describe('WalletConnect v2 adapter', () => {
 		const connectionPromise = adapter.connect('walletconnect-v2')
 
 		await vi.waitFor(() => expect(displayUri).toHaveBeenCalledWith('wc:proposal@2'))
+		expect(candidates.at(-1)?.at(0)).toMatchObject({
+			id: 'walletconnect-v2',
+			connectionUri: 'wc:proposal@2',
+		})
 		expect(mock.client.connect).toHaveBeenCalledWith({
 			requiredNamespaces: {},
 			optionalNamespaces: {
@@ -134,12 +289,18 @@ describe('WalletConnect v2 adapter', () => {
 						'eip155:1',
 						'eip155:137',
 					],
-					methods: [],
-					events: [],
+					methods: [
+						'personal_sign',
+						'eth_sendTransaction',
+					],
+					events: [
+						'accountsChanged',
+						'chainChanged',
+					],
 				},
 			},
 		})
-		expect(candidates).toEqual([[
+		expect(candidates.at(0)).toEqual([
 			{
 				id: 'walletconnect-v2',
 				name: 'WalletConnect',
@@ -156,7 +317,7 @@ describe('WalletConnect v2 adapter', () => {
 					WalletCapability.WatchScopes,
 				],
 			},
-		]])
+		])
 
 		mock.approve()
 		await expect(connectionPromise).resolves.toMatchObject({
@@ -182,6 +343,7 @@ describe('WalletConnect v2 adapter', () => {
 			['wc:proposal@2'],
 			[undefined],
 		])
+		expect(candidates.at(-1)?.at(0)).not.toHaveProperty('connectionUri')
 
 		stop()
 	})
@@ -268,17 +430,20 @@ describe('WalletConnect v2 adapter', () => {
 	it('clears a rejected or invalid approval and tears down an invalid session', async () => {
 		const displayUri = vi.fn()
 		const rejected = createClient()
+		const rejectedCandidates: WalletCandidate[][] = []
 		const rejectedAdapter = createWalletConnectV2Adapter({
 			client: rejected.client,
 			requestedScopes,
 			onDisplayUri: displayUri,
 		})
-		rejectedAdapter.start(() => {})
+		rejectedAdapter.start((candidates) => rejectedCandidates.push(candidates))
 		const rejectedConnection = rejectedAdapter.connect('walletconnect-v2')
 		await vi.waitFor(() => expect(displayUri).toHaveBeenCalledTimes(1))
+		expect(rejectedCandidates.at(-1)?.at(0).connectionUri).toBe('wc:proposal@2')
 		const rejection = new Error('User rejected WalletConnect proposal')
 		rejected.reject(rejection)
 		await expect(rejectedConnection).rejects.toBe(rejection)
+		expect(rejectedCandidates.at(-1)?.at(0)).not.toHaveProperty('connectionUri')
 
 		const expired = createClient({
 			session: eip155Session(
@@ -328,11 +493,7 @@ describe('WalletConnect v2 adapter', () => {
 			'event-topic'
 		)
 
-		expect(updates.at(-1)).toMatchObject({
-			connectionKey: 'event-topic',
-			walletId: 'walletconnect-v2',
-			sessionTopic: 'event-topic',
-		})
+		expect(updates).toEqual([])
 		expect(mock.client.connect).not.toHaveBeenCalled()
 
 		mock.emit({
@@ -341,6 +502,11 @@ describe('WalletConnect v2 adapter', () => {
 			chainId: 'eip155:1',
 			name: 'chainChanged',
 			nextChainId: 'eip155:137',
+		})
+		expect(updates.at(-1)).toMatchObject({
+			connectionKey: 'event-topic',
+			walletId: 'walletconnect-v2',
+			sessionTopic: 'event-topic',
 		})
 		mock.emit({
 			event: 'session_event',
@@ -408,7 +574,7 @@ describe('WalletConnect v2 adapter', () => {
 		})
 
 		vi.advanceTimersByTime(10_000)
-		expect(updates.at(-1)?.status).toBe(BlockheadConnectionStatus.Connected)
+		expect(updates).toEqual([])
 		vi.advanceTimersByTime(10_000)
 		expect(updates.at(-1)).toMatchObject({
 			status: BlockheadConnectionStatus.Disconnected,
@@ -442,12 +608,13 @@ describe('WalletConnect v2 adapter', () => {
 				approval: () => secondApproval.promise,
 			})
 		const displayUri = vi.fn()
+		const candidates: WalletCandidate[][] = []
 		const adapter = createWalletConnectV2Adapter({
 			client: mock.client,
 			requestedScopes,
 			onDisplayUri: displayUri,
 		})
-		adapter.start(() => {})
+		adapter.start((nextCandidates) => candidates.push(nextCandidates))
 		const firstConnection = adapter.connect('walletconnect-v2')
 		await vi.waitFor(() => expect(displayUri).toHaveBeenCalledWith('wc:first@2'))
 		const secondConnection = adapter.connect('walletconnect-v2')
@@ -468,6 +635,13 @@ describe('WalletConnect v2 adapter', () => {
 			connectionKey: 'second-topic',
 		})
 		expect(displayUri.mock.calls.at(-1)).toEqual([undefined])
+		expect(candidates.map(([candidate]) => candidate.connectionUri)).toEqual([
+			undefined,
+			'wc:first@2',
+			undefined,
+			'wc:second@2',
+			undefined,
+		])
 		expect(mock.client.disconnect).toHaveBeenCalledWith({
 			topic: 'first-topic',
 			reason: {
@@ -478,6 +652,24 @@ describe('WalletConnect v2 adapter', () => {
 	})
 
 	it('suppresses a proposal URI that arrives after stop', async () => {
+		const visible = createClient()
+		const visibleCandidates: WalletCandidate[][] = []
+		const visibleAdapter = createWalletConnectV2Adapter({
+			client: visible.client,
+			requestedScopes,
+		})
+		const stopVisible = visibleAdapter.start((candidates) => visibleCandidates.push(candidates))
+		const visibleConnection = visibleAdapter.connect('walletconnect-v2')
+		await vi.waitFor(() => expect(
+			visibleCandidates.at(-1)?.at(0).connectionUri
+		).toBe('wc:proposal@2'))
+		stopVisible()
+		expect(visibleCandidates.at(-1)?.at(0)).not.toHaveProperty('connectionUri')
+		visible.approve()
+		await expect(visibleConnection).rejects.toThrow(
+			'WalletConnect connection request was superseded'
+		)
+
 		const proposal = Promise.withResolvers<Awaited<
 			ReturnType<WalletConnectV2Client['connect']>
 		>>()
@@ -624,6 +816,46 @@ describe('WalletConnect v2 adapter', () => {
 			reason: {
 				code: 6000,
 				message: 'WalletConnect account "eip155:10:0x3333333333333333333333333333333333333333" was not requested',
+			},
+		})
+	})
+
+	it('rejects approved methods and events outside the optional proposal authority', async () => {
+		const mock = createClient({
+			session: {
+				...eip155Session(),
+				topic: 'widened-capabilities-topic',
+				namespaces: {
+					eip155: {
+						...eip155Session().namespaces.eip155,
+						methods: [
+							'personal_sign',
+							'wallet_sendCalls',
+						],
+						events: [
+							'accountsChanged',
+							'chainChanged',
+						],
+					},
+				},
+			},
+		})
+		const adapter = createWalletConnectV2Adapter({
+			client: mock.client,
+			requestedScopes,
+		})
+		adapter.start(() => {})
+		const connection = adapter.connect('walletconnect-v2')
+		mock.approve()
+
+		await expect(connection).rejects.toThrow(
+			'WalletConnect namespace "eip155" exceeded requested authority'
+		)
+		expect(mock.client.disconnect).toHaveBeenCalledWith({
+			topic: 'widened-capabilities-topic',
+			reason: {
+				code: 6000,
+				message: 'WalletConnect namespace "eip155" exceeded requested authority',
 			},
 		})
 	})

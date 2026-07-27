@@ -1,11 +1,28 @@
 import { describe, expect, it, vi } from 'vitest'
 
-import * as http from '$/lib/http.ts'
+import bindings from '$/sources/LightningLnd/bindings.ts'
+import { Source } from '$/sources/Source.ts'
+import {
+	ApiFamily,
+	SourceDelivery,
+	SourceTargetKind,
+	WireProtocol,
+	type SourceBinding,
+} from '$/sources/SourceBinding.ts'
+
+const sourceFetch = vi.hoisted(() => vi.fn())
+
+vi.mock('$/sources/_runtime/http.ts', () => ({
+	firstHttpUrlForBinding: (binding: SourceBinding) => binding.endpoints[0]?.locator,
+	sourceFetch,
+}))
 import {
 	getChannelInfo,
 	getNetworkInfo,
 	getNodeInfo,
 } from '$/sources/LightningLnd/Rest/queries.ts'
+
+const binding = bindings[Source.LightningLnd_Rest]
 
 const publicEnv = {
 	PUBLIC_LND_MACAROON_HEX: 'macaroon',
@@ -13,23 +30,28 @@ const publicEnv = {
 const publicKey = `02${'a'.repeat(64)}`
 const peerPublicKey = `03${'b'.repeat(64)}`
 
+const respond = (body: unknown) => {
+	sourceFetch.mockResolvedValueOnce(new Response(JSON.stringify(body)))
+}
+
 describe('LND authenticated public graph reads', () => {
 	it('preserves network capacities as lossless decimal strings', async () => {
-		vi.spyOn(http, 'getJson').mockResolvedValue({
+		respond({
 			num_nodes: 20_000,
 			num_channels: 80_000,
 			total_network_capacity: '5000000000000',
 			num_zombie_chans: '1000',
 		})
 
-		await expect(getNetworkInfo(publicEnv)).resolves.toMatchObject({
+		await expect(getNetworkInfo({
+			publicEnv,
+		})).resolves.toMatchObject({
 			total_network_capacity: '5000000000000',
 		})
 	})
 
 	it('rejects node identity substitution and foreign channels', async () => {
-		const getJson = vi.spyOn(http, 'getJson')
-		getJson.mockResolvedValueOnce({
+		respond({
 			node: {
 				pub_key: peerPublicKey,
 			},
@@ -39,7 +61,7 @@ describe('LND authenticated public graph reads', () => {
 			publicKey,
 		})).rejects.toThrow('mismatched identity')
 
-		getJson.mockResolvedValueOnce({
+		respond({
 			node: {
 				pub_key: publicKey,
 			},
@@ -60,7 +82,7 @@ describe('LND authenticated public graph reads', () => {
 	})
 
 	it('loads an exact public channel edge without numeric coercion', async () => {
-		vi.spyOn(http, 'getJson').mockResolvedValue({
+		respond({
 			channel_id: '123',
 			node1_pub: publicKey,
 			node2_pub: peerPublicKey,

@@ -1,16 +1,13 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { entity, facet } from '$/schema/$schema.ts'
+import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { UrlString } from '$/schema/UrlString.ts'
 import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 import { type } from 'arktype'
 
-export enum A2aAgentCard_SnapshotSelector {
-	CardContentHash = 'CardContentHash',
-}
-export const A2aAgentCard_Snapshot = entity({
+export default entity({
 	entityType: EntityType.A2aAgentCard_Snapshot,
 	labels: {
 		singular: 'a2a agent card snapshot',
@@ -32,7 +29,7 @@ export const A2aAgentCard_Snapshot = entity({
 	contentHash: {
 		label: 'content hash',
 		type: EntityFieldType.Primitive,
-		primitiveType: (ZeroExHex),
+		primitiveType: ZeroExHex,
 		cardinality: EntityFieldCardinality.One,
 	},
 	fetchedAt: {
@@ -82,7 +79,7 @@ export const A2aAgentCard_Snapshot = entity({
 	providerUrl: {
 		label: 'provider URL',
 		type: EntityFieldType.Primitive,
-		primitiveType: (UrlString),
+		primitiveType: UrlString,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	preferredTransport: {

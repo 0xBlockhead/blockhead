@@ -2,15 +2,9 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
-	import { caip2StringFromValue } from '$/lib/caip2.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -23,39 +17,24 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.Account>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.Account>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.Account> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const account = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {},
-	} : {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const viewSelection = $derived(selection({
+		sources: selection.sources ?? [
+			Source.Constants_Internal,
+		],
+	}))
+	const account = $derived(viewSelection({
 		fields: {
 			namespace: true,
 			address: true,
 		},
 	}))
-	const titleFallback = $derived([pendingEntity.caip10 == null ? '' : String(`${(pendingEntity.caip10).namespace}:${(pendingEntity.caip10).reference}:${(pendingEntity.caip10).accountAddress}`)].filter(Boolean).join(' ') || 'account')
-	const viewDomId = $derived('account-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const titleFallback = $derived((pendingEntity.caip10 == null ? '' : `${pendingEntity.caip10.namespace}:${pendingEntity.caip10.reference}:${pendingEntity.caip10.accountAddress}`) || 'account')
 
 
 	// Components
@@ -67,25 +46,14 @@
 
 <EntityView
 	entityType={EntityType.Account}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails}
-			{[pendingEntity.caip10 == null ? '' : String(`${(pendingEntity.caip10).namespace}:${(pendingEntity.caip10).reference}:${(pendingEntity.caip10).accountAddress}`)].filter(Boolean).join(' ') || title || titleFallback}
-		{:else}
-			<ResourceBoundary resource={account}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[resolvedEntity.caip10 == null ? '' : String(`${(resolvedEntity.caip10).namespace}:${(resolvedEntity.caip10).reference}:${(resolvedEntity.caip10).accountAddress}`)].filter(Boolean).join(' ') || title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		{(pendingEntity.caip10 == null ? '' : `${pendingEntity.caip10.namespace}:${pendingEntity.caip10.reference}:${pendingEntity.caip10.accountAddress}`) || 'account'}
 	{/snippet}
 
 	{#snippet TypeAnnotationTooltip()}
@@ -99,24 +67,7 @@
 			<div>
 				<dt>CAIP-10</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									caip10: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const caip10 = resolvedEntity.caip10}
-							{#if caip10 !== undefined && caip10 !== null}
-								<TruncatedValue value={caip10 == null ? '' : String(`${(caip10).namespace}:${(caip10).reference}:${(caip10).accountAddress}`)} />
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					<TruncatedValue value={`${pendingEntity.caip10.namespace}:${pendingEntity.caip10.reference}:${pendingEntity.caip10.accountAddress}`} />
 				</dd>
 			</div>
 
@@ -124,41 +75,15 @@
 				<dt>network</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							selection
-								.$network({
-									sources: [
-										Source.Constants_Internal,
-									],
-								})
-						}
+						resource={selection.$network}
 					>
 						{#snippet children(network)}
-							{#if network != null && network[EntityMetaKey.Selector] != null}
-								<NetworkView
-									selection={select(EntityType.Network, network[EntityMetaKey.Selector])}
-									prefetched={network}
-									href={
-										(
-											network[EntityMetaKey.Selector] != null && 'caip2' in network[EntityMetaKey.Selector]
-											&& network[EntityMetaKey.Selector].caip2 != null ?
-												resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-											network: String(caip2StringFromValue(network[EntityMetaKey.Selector].caip2) ?? ''),
-										})
-										:
-												network[EntityMetaKey.Selector] != null && 'slug' in network[EntityMetaKey.Selector]
-												&& network[EntityMetaKey.Selector].slug != null ?
-													resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-												network: String(network[EntityMetaKey.Selector].slug ?? ''),
-											})
-											:
-												undefined
-										)
-									}
-									layout={EntityLayout.Value}
-									open={false}
-								/>
-							{/if}
+							<NetworkView
+								selection={select(EntityType.Network, network[EntityMetaKey.Selector])}
+								prefetched={network}
+								layout={EntityLayout.Value}
+								open={false}
+							/>
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -168,21 +93,10 @@
 				<dt>Namespace</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									namespace: true,
-								},
-							})
-						}
+						resource={account}
 					>
 						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const namespace = resolvedEntity.namespace}
-							{#if namespace !== undefined && namespace !== null}
-								{String((namespace) ?? '')}
-							{/if}
+							{entity.namespace}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -192,21 +106,10 @@
 				<dt>Address</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									address: true,
-								},
-							})
-						}
+						resource={account}
 					>
 						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const address = resolvedEntity.address}
-							{#if address !== undefined && address !== null}
-								<TruncatedValue value={String((address) ?? '')} />
-							{/if}
+							<TruncatedValue value={entity.address} />
 						{/snippet}
 					</ResourceBoundary>
 				</dd>

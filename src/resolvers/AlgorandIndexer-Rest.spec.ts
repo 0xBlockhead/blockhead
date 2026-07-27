@@ -5,10 +5,8 @@ import {
 	entityFieldAddressKey,
 	EntityMetaKey,
 } from '$/schema/$schema.ts'
-import { AlgorandAccountSelector } from '$/schema/AlgorandAccount.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
-import { sourceProviderDefinitions } from '$/sources/$sourceProviders.ts'
 
 const {
 	getAccount,
@@ -34,17 +32,6 @@ const observationsResolver = algorandIndexerResolvers.resolvers.find((resolver) 
 
 if (holdingsResolver == null || observationsResolver == null)
 	throw new Error('AlgorandIndexer-Rest spec missing account portfolio resolvers')
-
-const binding = sourceProviderDefinitions
-	.flatMap((provider) => provider.bindings)
-	.find((candidate) => (
-		candidate.source === Source.Nodely_AlgorandIndexer_Rest
-		&& candidate.target.kind === 'NetworkSlug'
-		&& candidate.target.key === networkBySlug.algorand.slug
-	))
-
-if (binding == null)
-	throw new Error('AlgorandIndexer-Rest spec missing canonical Nodely source binding')
 
 const network = {
 	$network: {
@@ -73,9 +60,9 @@ describe('Algorand Indexer account portfolio resolver', () => {
 		vi.clearAllMocks()
 	})
 
-	it('declares the canonical architecture-neutral Algorand selector applicability', () => {
+	it('declares the architecture-neutral Algorand selector applicability', () => {
 		expect(holdingsResolver.resolve[
-			AlgorandAccountSelector.NetworkAddress
+			'NetworkAddress'
 		].appliesTo).toEqual([{
 			$network: {
 				$network: {
@@ -104,7 +91,7 @@ describe('Algorand Indexer account portfolio resolver', () => {
 		})
 
 		const page = await holdingsResolver.resolve[
-			AlgorandAccountSelector.NetworkAddress
+			'NetworkAddress'
 		].resolve(account, resolverContext)
 		const projection = holdingsResolver.projections.$$assetHoldingRounds
 		if (
@@ -116,14 +103,11 @@ describe('Algorand Indexer account portfolio resolver', () => {
 
 		const holdings = projection.select(page, account, resolverContext)
 		const [holding] = holdings
-		expect(getAccountAssets).toHaveBeenCalledWith(
-			binding,
-			{
-				address: account.address,
-				limit: 2,
-				next: 'opaque-current',
-			}
-		)
+		expect(getAccountAssets).toHaveBeenCalledWith({
+			address: account.address,
+			limit: 2,
+			next: 'opaque-current',
+		})
 		expect(holding[EntityMetaKey.Selector]).toEqual({
 			$account: account,
 			$asset: {
@@ -164,7 +148,7 @@ describe('Algorand Indexer account portfolio resolver', () => {
 		})
 
 		const observations = await observationsResolver.resolve[
-			AlgorandAccountSelector.NetworkAddress
+			'NetworkAddress'
 		].resolve(account, {
 			...resolverContext,
 			providerContinuationToken: undefined,
@@ -186,7 +170,7 @@ describe('Algorand Indexer account portfolio resolver', () => {
 		})
 
 		await observationsResolver.resolve[
-			AlgorandAccountSelector.NetworkAddress
+			'NetworkAddress'
 		].resolve(account, {
 			...resolverContext,
 			pagination: {
@@ -198,7 +182,7 @@ describe('Algorand Indexer account portfolio resolver', () => {
 
 	it('rejects a foreign network before invoking provider transport', async () => {
 		await expect(holdingsResolver.resolve[
-			AlgorandAccountSelector.NetworkAddress
+			'NetworkAddress'
 		].resolve({
 			$network: {
 				$network: {

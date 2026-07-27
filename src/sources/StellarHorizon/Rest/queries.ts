@@ -1,9 +1,5 @@
-import { Source } from '$/sources/Source.ts'
-import {
-	SourceTargetKind,
-	type SourceBinding,
-} from '$/sources/SourceBinding.ts'
 import { getJson } from '$/sources/_shared/wire/HttpRest/client.ts'
+import bindings from '$/sources/StellarHorizon/bindings.ts'
 import type {
 	StellarHorizonAccount,
 	StellarHorizonBalance,
@@ -12,15 +8,9 @@ import type {
 	StellarHorizonPayment,
 	StellarHorizonTransaction,
 } from '$/sources/StellarHorizon/Rest/types.ts'
+import { Source } from '$/sources/Source.ts'
 
-const assertBinding = (binding: SourceBinding) => {
-	if (
-		binding.source !== Source.StellarHorizon_Rest
-		|| binding.target.kind !== SourceTargetKind.Global
-		|| binding.target.key !== 'stellar-public-horizon'
-	)
-		throw new Error('StellarHorizon_Rest: expected canonical public-network binding')
-}
+const binding = bindings[Source.StellarHorizon_Rest]
 
 const assertAccountId = (
 	accountId: string,
@@ -149,19 +139,16 @@ const touchesAccount = (
 )
 
 export const query = <_Json>(
-	binding: SourceBinding,
 	path: string
 ) => (
 	getJson<_Json>(binding, path)
 )
 
 export const getAccount = async (
-	binding: SourceBinding,
 	accountId: string
 ) => {
-	assertBinding(binding)
 	assertAccountId(accountId)
-	const account = await query<StellarHorizonAccount>(binding, accountPath(accountId))
+	const account = await query<StellarHorizonAccount>(accountPath(accountId))
 	if (account.id !== accountId || account.account_id !== accountId)
 		throw new Error('StellarHorizon_Rest: account response identity mismatch')
 	assertUnsignedIntegerString(account.sequence, 'account sequence')
@@ -189,13 +176,11 @@ const getAccountPage = async <_Record extends {
 	id: string
 	paging_token: string
 }>(
-	binding: SourceBinding,
 	accountId: string,
 	resource: 'operations' | 'payments' | 'transactions',
 	limit: number,
 	cursor?: string
 ) => {
-	assertBinding(binding)
 	assertAccountId(accountId)
 	const parameters = pageParameters(limit, cursor)
 	if (limit === 0)
@@ -210,7 +195,6 @@ const getAccountPage = async <_Record extends {
 			},
 		} satisfies StellarHorizonPage<_Record>
 	const page = await query<StellarHorizonPage<_Record>>(
-		binding,
 		`${accountPath(accountId)}/${resource}?${parameters.toString()}`
 	)
 	assertPage(page, limit, cursor)
@@ -218,13 +202,11 @@ const getAccountPage = async <_Record extends {
 }
 
 export const getAccountPayments = async (
-	binding: SourceBinding,
 	accountId: string,
 	limit: number,
 	cursor?: string
 ) => {
 	const page = await getAccountPage<StellarHorizonPayment>(
-		binding,
 		accountId,
 		'payments',
 		limit,
@@ -242,13 +224,11 @@ export const getAccountPayments = async (
 }
 
 export const getAccountOperations = async (
-	binding: SourceBinding,
 	accountId: string,
 	limit: number,
 	cursor?: string
 ) => {
 	const page = await getAccountPage<StellarHorizonOperation>(
-		binding,
 		accountId,
 		'operations',
 		limit,
@@ -265,13 +245,11 @@ export const getAccountOperations = async (
 }
 
 export const getAccountTransactions = async (
-	binding: SourceBinding,
 	accountId: string,
 	limit: number,
 	cursor?: string
 ) => {
 	const page = await getAccountPage<StellarHorizonTransaction>(
-		binding,
 		accountId,
 		'transactions',
 		limit,

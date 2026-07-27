@@ -2,13 +2,10 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -20,40 +17,24 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.AcpAgentProgramVersion>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.AcpAgentProgramVersion>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.AcpAgentProgramVersion> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const acpAgentProgramVersion = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const viewSelection = $derived(selection({
+		sources: selection.sources ?? [
+			Source.AcpRegistry_Rest,
+		],
+	}))
+	const acpAgentProgramVersion = $derived(viewSelection({
 		fields: {
-			distributionKind: true,
-		},
-	} : {
-		sources: selection.sources,
-		fields: {
+			version: true,
 			distributionKind: true,
 		},
 	}))
-	const titleFallback = $derived([String((pendingEntity.version) ?? '')].filter(Boolean).join(' ') || 'ACP agent program version')
-	const viewDomId = $derived('acp-agent-program-version-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const titleFallback = $derived((pendingEntity.version ?? '') || 'ACP agent program version')
 
 
 	// Components
@@ -67,10 +48,8 @@
 
 <EntityView
 	entityType={EntityType.AcpAgentProgramVersion}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -78,30 +57,25 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={acpAgentProgramVersion}>
 			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.version) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+				{(entity.version ?? '') || title || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={acpAgentProgramVersion}>
-			{#snippet children(entity)}
-				<ResourceBoundary
-					resource={selection.$program}
-				>
-					{#snippet children(acpAgentProgram)}
-						{#if acpAgentProgram != null && acpAgentProgram[EntityMetaKey.Selector] != null}
-							<AcpAgentProgramView
-								selection={select(EntityType.AcpAgentProgram, acpAgentProgram[EntityMetaKey.Selector])}
-								prefetched={acpAgentProgram}
-								href=""
-								layout={EntityLayout.Value}
-								open={false}
-							/>
-						{/if}
-					{/snippet}
-				</ResourceBoundary>
+		<ResourceBoundary
+			resource={selection.$program}
+		>
+			{#snippet children(acpAgentProgram)}
+				{#if acpAgentProgram != null}
+					<AcpAgentProgramView
+						selection={select(EntityType.AcpAgentProgram, acpAgentProgram[EntityMetaKey.Selector])}
+						prefetched={acpAgentProgram}
+						href=""
+						layout={EntityLayout.Value}
+						open={false}
+					/>
+				{/if}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -109,11 +83,10 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={acpAgentProgramVersion}>
 			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const distributionKind0 = resolvedEntity.distributionKind}
-				{#if distributionKind0 !== undefined && distributionKind0 !== null}
+				{@const distributionKind0 = entity.distributionKind}
+				{#if distributionKind0 != null}
 					<span data-text="muted">
-						{String((distributionKind0) ?? '')}
+						{distributionKind0}
 					</span>
 				{/if}
 			{/snippet}
@@ -126,7 +99,7 @@
 				resource={selection.$program}
 			>
 				{#snippet children(acpAgentProgram)}
-					{#if acpAgentProgram != null && acpAgentProgram[EntityMetaKey.Selector] != null}
+					{#if acpAgentProgram != null}
 						<div>
 							<dt>program</dt>
 							<dd>
@@ -143,23 +116,15 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							version: true,
-						},
-					})
-				}
+				resource={acpAgentProgramVersion}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const version = resolvedEntity.version}
-					{#if version !== undefined && version !== null}
+					{@const version = entity.version}
+					{#if version != null}
 						<div>
 							<dt>version</dt>
 							<dd>
-								{String((version) ?? '')}
+								{version}
 							</dd>
 						</div>
 					{/if}
@@ -170,7 +135,7 @@
 				resource={selection.$artifact}
 			>
 				{#snippet children(aiArtifact)}
-					{#if aiArtifact != null && aiArtifact[EntityMetaKey.Selector] != null}
+					{#if aiArtifact != null}
 						<div>
 							<dt>artifact</dt>
 							<dd>
@@ -190,8 +155,7 @@
 		<dl data-column-item="center">
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							releaseDate: true,
 						},
@@ -199,9 +163,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const releaseDate = resolvedEntity.releaseDate}
-					{#if releaseDate !== undefined && releaseDate !== null}
+					{@const releaseDate = entity.releaseDate}
+					{#if releaseDate != null}
 						<div>
 							<dt>release date</dt>
 							<dd>
@@ -213,23 +176,15 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							distributionKind: true,
-						},
-					})
-				}
+				resource={acpAgentProgramVersion}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const distributionKind = resolvedEntity.distributionKind}
-					{#if distributionKind !== undefined && distributionKind !== null}
+					{@const distributionKind = entity.distributionKind}
+					{#if distributionKind != null}
 						<div>
 							<dt>distribution kind</dt>
 							<dd>
-								{String((distributionKind) ?? '')}
+								{distributionKind}
 							</dd>
 						</div>
 					{/if}
@@ -238,8 +193,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							command: true,
 						},
@@ -247,13 +201,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const command = resolvedEntity.command}
-					{#if command !== undefined && command !== null}
+					{@const command = entity.command}
+					{#if command != null}
 						<div>
 							<dt>command</dt>
 							<dd>
-								{String((command) ?? '')}
+								{command}
 							</dd>
 						</div>
 					{/if}
@@ -269,12 +222,12 @@
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
-				<AiDocumentsView
-					selection={acpAgentProgramVersionAiDocumentsViewDocumentsResource}
-					countResource={acpAgentProgramVersionAiDocumentsViewDocumentsResource.count}
-					title='documents'
-					id='AiDocumentsView-documents'
-				/>
+					<AiDocumentsView
+						selection={acpAgentProgramVersionAiDocumentsViewDocumentsResource}
+						countResource={acpAgentProgramVersionAiDocumentsViewDocumentsResource.count}
+						title='documents'
+						id='documents'
+					/>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>

@@ -2,13 +2,9 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
 
 
 	// Context
@@ -20,35 +16,13 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.IcpRequestStatus>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.IcpRequestStatus>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.IcpRequestStatus> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const icpRequestStatus = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {},
-	} : {
-		sources: selection.sources,
-	}))
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const titleFallback = 'ICP request status'
-	const viewDomId = $derived('icp-request-status-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -60,24 +34,14 @@
 
 <EntityView
 	entityType={EntityType.IcpRequestStatus}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails}
-			{title || titleFallback}
-		{:else}
-			<ResourceBoundary resource={icpRequestStatus}>
-				{#snippet children(entity)}
-					{title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		ICP request status
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -96,24 +60,7 @@
 			<div>
 				<dt>request ID</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									requestId: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const requestId = resolvedEntity.requestId}
-							{#if requestId !== undefined && requestId !== null}
-								{String((requestId) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{pendingEntity.requestId}
 				</dd>
 			</div>
 
@@ -121,7 +68,7 @@
 				resource={selection.$canister}
 			>
 				{#snippet children(icpCanister)}
-					{#if icpCanister != null && icpCanister[EntityMetaKey.Selector] != null}
+					{#if icpCanister != null}
 						<div>
 							<dt>canister</dt>
 							<dd>
@@ -140,7 +87,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							methodName: true,
 						},
@@ -148,13 +94,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const methodName = resolvedEntity.methodName}
-					{#if methodName !== undefined && methodName !== null}
+					{@const methodName = entity.methodName}
+					{#if methodName != null}
 						<div>
 							<dt>method name</dt>
 							<dd>
-								{String((methodName) ?? '')}
+								{methodName}
 							</dd>
 						</div>
 					{/if}
@@ -164,7 +109,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							requestKind: true,
 						},
@@ -172,13 +116,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const requestKind = resolvedEntity.requestKind}
-					{#if requestKind !== undefined && requestKind !== null}
+					{@const requestKind = entity.requestKind}
+					{#if requestKind != null}
 						<div>
 							<dt>request kind</dt>
 							<dd>
-								{String((requestKind) ?? '')}
+								{requestKind}
 							</dd>
 						</div>
 					{/if}
@@ -188,7 +131,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							callerPrincipal: true,
 						},
@@ -196,13 +138,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const callerPrincipal = resolvedEntity.callerPrincipal}
-					{#if callerPrincipal !== undefined && callerPrincipal !== null}
+					{@const callerPrincipal = entity.callerPrincipal}
+					{#if callerPrincipal != null}
 						<div>
 							<dt>caller principal</dt>
 							<dd>
-								{String((callerPrincipal) ?? '')}
+								{callerPrincipal}
 							</dd>
 						</div>
 					{/if}
@@ -212,7 +153,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							ingressExpiryNs: true,
 						},
@@ -220,13 +160,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const ingressExpiryNs = resolvedEntity.ingressExpiryNs}
-					{#if ingressExpiryNs !== undefined && ingressExpiryNs !== null}
+					{@const ingressExpiryNs = entity.ingressExpiryNs}
+					{#if ingressExpiryNs != null}
 						<div>
 							<dt>ingress expiry ns</dt>
 							<dd>
-								{String((ingressExpiryNs) ?? '')}
+								{String(ingressExpiryNs)}
 							</dd>
 						</div>
 					{/if}

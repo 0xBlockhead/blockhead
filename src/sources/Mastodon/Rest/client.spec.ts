@@ -1,67 +1,35 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-const { bindings, sourceFetch } = vi.hoisted(() => ({
-	bindings: [
-		{
-			source: 'Mastodon_Rest',
-			target: {
-				kind: 'Global',
-				key: 'mastodon-instance:https://mastodon.social',
-			},
-			endpoints: [{
-				endpointKind: 'HttpUrl',
-				locator: 'https://mastodon.social',
-				origin: 'https://mastodon.social',
-			}],
-		},
-		{
-			source: 'Mastodon_Rest',
-			target: {
-				kind: 'Global',
-				key: 'mastodon-instance:https://fosstodon.org',
-			},
-			endpoints: [{
-				endpointKind: 'HttpUrl',
-				locator: 'https://fosstodon.org',
-				origin: 'https://fosstodon.org',
-			}],
-		},
-		{
-			source: 'Mastodon_Rest',
-			target: {
-				kind: 'Feed',
-				key: 'mastodon-public-timeline:https://fosstodon.org',
-			},
-			endpoints: [{
-				endpointKind: 'HttpUrl',
-				locator: 'https://fosstodon.org',
-				origin: 'https://fosstodon.org',
-			}],
-		},
-	],
-	sourceFetch: vi.fn(),
-}))
+import bindings from '$/sources/Mastodon/bindings.ts'
+import { Source } from '$/sources/Source.ts'
+import {
+	mastodonFetchPublicTimelineUrl,
+	mastodonFetchUrl,
+	mastodonGet,
+} from '$/sources/Mastodon/Rest/client.ts'
 
-vi.mock('$/sources/$sourceProviders.ts', () => ({
-	sourceProviderDefinitions: [{
-		bindings,
-	}],
-}))
+const sourceFetch = vi.hoisted(() => vi.fn())
+
 vi.mock('$/sources/_runtime/http.ts', () => ({
-	httpOriginsForBinding: (binding: (typeof bindings)[number]) => binding.endpoints.map(({ origin }) => ({
-		origin,
-		corsEnabled: false,
-	})),
 	sourceFetch,
 }))
 
-const {
-	mastodonFetchUrl,
-	mastodonFetchPublicTimelineUrl,
-	mastodonGet,
-	mastodonInstanceOrigins,
-	mastodonPublicTimelineOrigins,
-} = await import('$/sources/Mastodon/Rest/client.ts')
+const mastodonSocialBinding = bindings[Source.Mastodon_Rest].find(
+	({ target }) => target.key === 'mastodon-instance:https://mastodon.social'
+)
+const fosstodonInstanceBinding = bindings[Source.Mastodon_Rest].find(
+	({ target }) => target.key === 'mastodon-instance:https://fosstodon.org'
+)
+const fosstodonTimelineBinding = bindings[Source.Mastodon_Rest].find(
+	({ target }) => target.key === 'mastodon-public-timeline:https://fosstodon.org'
+)
+
+if (
+	mastodonSocialBinding == null
+	|| fosstodonInstanceBinding == null
+	|| fosstodonTimelineBinding == null
+)
+	throw new Error('Mastodon REST test bindings are missing')
 
 describe('Mastodon REST client', () => {
 	beforeEach(() => {
@@ -71,65 +39,53 @@ describe('Mastodon REST client', () => {
 		}))
 	})
 
-	it('uses the registered delivery binding without inventing authorization', async () => {
-		expect(mastodonInstanceOrigins).toEqual([
+	it('uses the resolver-selected instance binding without inventing authorization', async () => {
+		await mastodonGet(
+			{
+				PUBLIC_MASTODON_ACCESS_TOKEN: 'mastodon-token',
+			},
 			'https://mastodon.social',
-			'https://fosstodon.org',
-		])
-		expect(mastodonPublicTimelineOrigins).toEqual([
-			'https://fosstodon.org',
-		])
-
-		await mastodonGet({}, 'https://mastodon.social', '/timelines/public', {
-			limit: '20',
-		})
+			'/timelines/public',
+			{
+				limit: '20',
+			}
+		)
 
 		expect(sourceFetch).toHaveBeenCalledWith(
-			bindings[0],
+			mastodonSocialBinding,
 			'https://mastodon.social/api/v1/timelines/public?limit=20'
 		)
 	})
 
-	it('does not invent browser credentials that the proxy cannot forward', async () => {
-		await mastodonGet({
-			PUBLIC_MASTODON_ACCESS_TOKEN: 'mastodon-token',
-		}, 'https://mastodon.social', '/timelines/public')
-
-		expect(sourceFetch).toHaveBeenCalledWith(
-			bindings[0],
-			'https://mastodon.social/api/v1/timelines/public'
-		)
-	})
-
-	it('passes public timeline continuations only through the declared anonymous feed binding', async () => {
+	it('passes public timeline continuations through the selected feed binding', async () => {
 		await mastodonFetchPublicTimelineUrl(
 			{},
 			'https://fosstodon.org/api/v1/timelines/public?max_id=opaque%2B%2F%3D'
 		)
 
 		expect(sourceFetch).toHaveBeenCalledWith(
-			bindings[2],
+			fosstodonTimelineBinding,
 			'https://fosstodon.org/api/v1/timelines/public?max_id=opaque%2B%2F%3D'
 		)
 	})
 
-	it('rejects undeclared public timeline origins before delivery', async () => {
-		await expect(mastodonFetchPublicTimelineUrl(
-			{},
-			'https://mastodon.social/api/v1/timelines/public?max_id=opaque%2B%2F%3D'
-		)).rejects.toThrow('public timeline binding is missing')
-		expect(sourceFetch).not.toHaveBeenCalled()
-	})
-
-	it('keeps instance continuations on their exact instance binding', async () => {
+	it('keeps instance continuations on the selected instance binding', async () => {
 		await mastodonFetchUrl(
 			{},
 			'https://fosstodon.org/api/v1/accounts/123/statuses?max_id=opaque%2B%2F%3D'
 		)
 
 		expect(sourceFetch).toHaveBeenCalledWith(
-			bindings[1],
+			fosstodonInstanceBinding,
 			'https://fosstodon.org/api/v1/accounts/123/statuses?max_id=opaque%2B%2F%3D'
 		)
+	})
+
+	it('rejects malformed public timeline continuation URLs before delivery', async () => {
+		await expect(mastodonFetchPublicTimelineUrl(
+			{},
+			'https://fosstodon.org/api/v1/accounts/123/statuses'
+		)).rejects.toThrow('invalid public timeline URL')
+		expect(sourceFetch).not.toHaveBeenCalled()
 	})
 })

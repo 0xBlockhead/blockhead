@@ -30,22 +30,28 @@
 {#key params.hex}
 	<ParentPageCollapsible
 		href={
-			resolve('/evm/topic/[hex=evmTopicHash]', {
-				hex: params.hex,
-			})
+			resolve(
+				'/(explore)/(protocols)/evm/(evmProtocol)/(topics)/topic/[hex=evmTopicHash]',
+				{
+					hex: String(params.hex),
+				}
+			)
 		}
 	>
 		{#snippet Summary()}
-			{@const DetailView = EvmTopicView}
-
-			<DetailView
-				selection={select(EntityType.EvmTopic, data.selector, { sources: [
-		Source.Openchain_Rest,
-	] })}
+			<EvmTopicView
+				selection={
+					select(EntityType.EvmTopic, data.selector, { sources: [
+						Source.Openchain_Rest,
+					] })
+				}
 				href={
-					resolve('/evm/topic/[hex=evmTopicHash]', {
-						hex: params.hex,
-					})
+					resolve(
+						'/(explore)/(protocols)/evm/(evmProtocol)/(topics)/topic/[hex=evmTopicHash]',
+						{
+							hex: String(params.hex),
+						}
+					)
 				}
 				layout={EntityLayout.SummaryInline}
 			/>

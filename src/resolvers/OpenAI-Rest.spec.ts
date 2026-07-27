@@ -1,10 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { EntityMetaKey } from '$/schema/$schema.ts'
-import { AiModelSelector } from '$/schema/AiModel.ts'
-import { AiProviderApiOperationSelector } from '$/schema/AiProviderApiOperation.ts'
-import { AiProviderCatalogEntrySelector } from '$/schema/AiProviderCatalogEntry.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import bindings from '$/sources/OpenAI/bindings.ts'
+import { Source } from '$/sources/Source.ts'
 
 const sourceFetch = vi.fn()
 
@@ -14,6 +13,8 @@ vi.mock('$/sources/_runtime/http.ts', () => ({
 }))
 
 const { default: openAiResolvers } = await import('$/resolvers/OpenAI-Rest.ts')
+
+const openAiBinding = bindings[Source.OpenAI_Rest]
 
 const resolverFor = (entityType: EntityType) => {
 	const resolver = openAiResolvers.resolvers.find((candidate) => candidate.entityType === entityType)
@@ -56,7 +57,7 @@ describe('OpenAI AI catalog source and resolver materialization', () => {
 	it('maps a provider-native model id to AiModel', async () => {
 		sourceFetch.mockResolvedValueOnce(new Response(JSON.stringify(model)))
 		const resolver = resolverFor(EntityType.AiModel)
-		const snapshot = await resolver.resolve[AiModelSelector.ProviderModelId].resolve({
+		const snapshot = await resolver.resolve['ProviderModelId'].resolve({
 			$provider,
 			providerModelId: model.id,
 		}, context)
@@ -72,7 +73,7 @@ describe('OpenAI AI catalog source and resolver materialization', () => {
 			providerCreatedAt: model.created * 1_000,
 		})
 		expect(sourceFetch).toHaveBeenCalledWith(
-			expect.anything(),
+			openAiBinding,
 			`https://api.openai.test/v1/models/${model.id}`
 		)
 	})
@@ -80,7 +81,7 @@ describe('OpenAI AI catalog source and resolver materialization', () => {
 	it('maps a model result through an explicit AiProviderCatalogEntry', async () => {
 		sourceFetch.mockResolvedValueOnce(new Response(JSON.stringify(model)))
 		const resolver = resolverFor(EntityType.AiProviderCatalogEntry)
-		await expect(resolver.resolve[AiProviderCatalogEntrySelector.ProviderCatalogKindProviderEntryId].resolve({
+		await expect(resolver.resolve['ProviderCatalogKindProviderEntryId'].resolve({
 			$provider,
 			catalogKind: 'model',
 			providerEntryId: model.id,
@@ -98,7 +99,7 @@ describe('OpenAI AI catalog source and resolver materialization', () => {
 
 	it('maps the verified catalog endpoint to AiProviderApiOperation', async () => {
 		const resolver = resolverFor(EntityType.AiProviderApiOperation)
-		await expect(resolver.resolve[AiProviderApiOperationSelector.ProviderOperationId].resolve({
+		await expect(resolver.resolve['ProviderOperationId'].resolve({
 			$provider,
 			operationId: 'listModels',
 		}, context)).resolves.toMatchObject({
@@ -108,14 +109,14 @@ describe('OpenAI AI catalog source and resolver materialization', () => {
 			pathTemplate: '/v1/models',
 		})
 		expect(sourceFetch).toHaveBeenCalledWith(
-			expect.anything(),
+			openAiBinding,
 			'https://api.openai.test/v1/models'
 		)
 	})
 
 	it('rejects unknown operation identities before provider work', async () => {
 		const resolver = resolverFor(EntityType.AiProviderApiOperation)
-		await expect(resolver.resolve[AiProviderApiOperationSelector.ProviderOperationId].resolve({
+		await expect(resolver.resolve['ProviderOperationId'].resolve({
 			$provider,
 			operationId: 'unknownOperation',
 		}, context)).rejects.toThrow('OpenAI_Rest: unsupported operation unknownOperation')

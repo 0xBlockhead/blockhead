@@ -30,10 +30,13 @@
 {#key [params.network, params.validatorId].join(':')}
 	<ParentPageCollapsible
 		href={
-			resolve('/network/[network=networkCaip2OrNetworkSlug]/validator/[validatorId=nonNegativeIntegerOrSolanaPubkey]', {
-				network: params.network,
-				validatorId: params.validatorId,
-			})
+			resolve(
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/validator/[validatorId=nonNegativeIntegerOrSolanaPubkey]',
+				{
+					network: String(params.network),
+					validatorId: String(params.validatorId),
+				}
+			)
 		}
 	>
 		{#snippet Summary()}
@@ -42,10 +45,13 @@
 			<DetailView
 				selection={select(data.entityType, data.selector)}
 				href={
-					resolve('/network/[network=networkCaip2OrNetworkSlug]/validator/[validatorId=nonNegativeIntegerOrSolanaPubkey]', {
-						network: params.network,
-						validatorId: params.validatorId,
-					})
+					resolve(
+						'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/validator/[validatorId=nonNegativeIntegerOrSolanaPubkey]',
+						{
+							network: String(params.network),
+							validatorId: String(params.validatorId),
+						}
+					)
 				}
 				layout={EntityLayout.SummaryInline}
 			/>

@@ -1,61 +1,63 @@
-import { getJson } from '$/lib/http.ts'
+import {
+	firstHttpUrlForBinding,
+	sourceGetJson,
+} from '$/sources/_runtime/http.ts'
+import bindings from '$/sources/Cashu/bindings.ts'
+import { Source } from '$/sources/Source.ts'
 import type {
 	CashuMintInfoWire,
 	CashuMintKeysWire,
 	CashuMintKeysetsWire,
 } from '$/sources/Cashu/Mint/Rest/types.ts'
 
-const cashuOrigins = [
+const binding = bindings[Source.CashuMint_Rest]
+
+const assertMintUrl = (mintUrl: string) => {
+	if (binding.target.key !== mintUrl)
+		throw new Error(`CashuMint_Rest: no binding for mint ${mintUrl}`)
+}
+
+export const getMintInfo = (
+	mintUrl: string
+) => (
+	assertMintUrl(mintUrl),
+	sourceGetJson<CashuMintInfoWire>(
+		binding,
+		`${firstHttpUrlForBinding(binding)}/v1/info`
+	)
+)
+
+export const getMintKeysets = (
+	mintUrl: string
+) => (
+	assertMintUrl(mintUrl),
+	sourceGetJson<CashuMintKeysetsWire>(
+		binding,
+		`${firstHttpUrlForBinding(binding)}/v1/keysets`
+	)
+)
+
+export const getMintKeys = (
+	mintUrl: string
+) => (
+	assertMintUrl(mintUrl),
+	sourceGetJson<CashuMintKeysWire>(
+		binding,
+		`${firstHttpUrlForBinding(binding)}/v1/keys`
+	)
+)
+
+export const getMintKeysForKeyset = (
+	mintUrl: string,
 	{
-		origin: 'https://8333.space:3338',
-		corsEnabled: false,
-	},
-] as const
-
-const base = (mintUrl: string) => mintUrl.replace(/\/$/, '')
-
-export const getMintInfo = ({
-	mintUrl,
-}: {
-	mintUrl: string
-}) => (
-	getJson<CashuMintInfoWire>(
-		`${base(mintUrl)}/v1/info`,
-		{ origins: cashuOrigins }
-	)
-)
-
-export const getMintKeysets = ({
-	mintUrl,
-}: {
-	mintUrl: string
-}) => (
-	getJson<CashuMintKeysetsWire>(
-		`${base(mintUrl)}/v1/keysets`,
-		{ origins: cashuOrigins }
-	)
-)
-
-export const getMintKeys = ({
-	mintUrl,
-}: {
-	mintUrl: string
-}) => (
-	getJson<CashuMintKeysWire>(
-		`${base(mintUrl)}/v1/keys`,
-		{ origins: cashuOrigins }
-	)
-)
-
-export const getMintKeysForKeyset = ({
-	mintUrl,
-	keysetId,
-}: {
-	mintUrl: string
-	keysetId: string
-}) => (
-	getJson<CashuMintKeysWire>(
-		`${base(mintUrl)}/v1/keys/${encodeURIComponent(keysetId)}`,
-		{ origins: cashuOrigins }
+		keysetId,
+	}: {
+		keysetId: string
+	}
+) => (
+	assertMintUrl(mintUrl),
+	sourceGetJson<CashuMintKeysWire>(
+		binding,
+		`${firstHttpUrlForBinding(binding)}/v1/keys/${encodeURIComponent(keysetId)}`
 	)
 )

@@ -2,13 +2,9 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -20,35 +16,24 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.AiArtifactAttestation>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.AiArtifactAttestation>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.AiArtifactAttestation> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const aiArtifactAttestation = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {},
-	} : {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const viewSelection = $derived(selection({
+		sources: selection.sources ?? [
+			Source.Eip8004Scan_Rest,
+			Source.Ipfs_Rest,
+		],
 	}))
-	const titleFallback = $derived([String((pendingEntity.attestationKind) ?? '')].filter(Boolean).join(' ') || 'AI artifact attestation')
-	const viewDomId = $derived('ai-artifact-attestation-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const aiArtifactAttestation = $derived(viewSelection({
+		fields: {
+			logEntryId: true,
+		},
+	}))
+	const titleFallback = $derived((pendingEntity.attestationKind ?? '') || 'AI artifact attestation')
 
 
 	// Components
@@ -62,74 +47,36 @@
 
 <EntityView
 	entityType={EntityType.AiArtifactAttestation}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, '$artifact') && prefetched.$artifact != null && Object.hasOwn(prefetched.$artifact, 'artifactType') && Object.hasOwn(prefetched.$artifact, 'mediaType') && Object.hasOwn(prefetched.$artifact, 'providerArtifactId') && Object.hasOwn(prefetched.$artifact, 'ociDigest') && Object.hasOwn(prefetched.$artifact, 'ipfsCid') && Object.hasOwn(prefetched.$artifact, 'arweaveId') && Object.hasOwn(prefetched.$artifact, 'gitObject') && Object.hasOwn(prefetched.$artifact, 'digest') && Object.hasOwn(prefetched.$artifact, 'size') && Object.hasOwn(prefetched, 'logEntryId')}
-			{[String((pendingEntity.attestationKind) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-		{:else}
-			<ResourceBoundary resource={aiArtifactAttestation}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.attestationKind) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		{(pendingEntity.attestationKind ?? '') || 'AI artifact attestation'}
 	{/snippet}
 
 	{#snippet Value()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, '$artifact') && prefetched.$artifact != null && Object.hasOwn(prefetched.$artifact, 'artifactType') && Object.hasOwn(prefetched.$artifact, 'mediaType') && Object.hasOwn(prefetched.$artifact, 'providerArtifactId') && Object.hasOwn(prefetched.$artifact, 'ociDigest') && Object.hasOwn(prefetched.$artifact, 'ipfsCid') && Object.hasOwn(prefetched.$artifact, 'arweaveId') && Object.hasOwn(prefetched.$artifact, 'gitObject') && Object.hasOwn(prefetched.$artifact, 'digest') && Object.hasOwn(prefetched.$artifact, 'size') && Object.hasOwn(prefetched, 'logEntryId')}
-			{@const aiArtifact0 = pendingEntity.$artifact}
-			{#if aiArtifact0 != null && selection.entitySelector.$artifact != null}
-				<AiArtifactView
-					selection={select(EntityType.AiArtifact, selection.entitySelector.$artifact, { sources: selection.sources })}
-					prefetched={aiArtifact0}
-					href=""
-					layout={EntityLayout.Value}
-					open={false}
-				/>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={aiArtifactAttestation}>
-				{#snippet children(entity)}
-					<AiArtifactView
-						selection={select(EntityType.AiArtifact, selection.entitySelector.$artifact)}
-						href=""
-						layout={EntityLayout.Value}
-						open={false}
-					/>
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<AiArtifactView
+			selection={select(EntityType.AiArtifact, selection.entitySelector.$artifact)}
+			href=""
+			layout={EntityLayout.Value}
+			open={false}
+		/>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, '$artifact') && prefetched.$artifact != null && Object.hasOwn(prefetched.$artifact, 'artifactType') && Object.hasOwn(prefetched.$artifact, 'mediaType') && Object.hasOwn(prefetched.$artifact, 'providerArtifactId') && Object.hasOwn(prefetched.$artifact, 'ociDigest') && Object.hasOwn(prefetched.$artifact, 'ipfsCid') && Object.hasOwn(prefetched.$artifact, 'arweaveId') && Object.hasOwn(prefetched.$artifact, 'gitObject') && Object.hasOwn(prefetched.$artifact, 'digest') && Object.hasOwn(prefetched.$artifact, 'size') && Object.hasOwn(prefetched, 'logEntryId')}
-			{@const logEntryId0 = pendingEntity.logEntryId}
-			{#if logEntryId0 !== undefined && logEntryId0 !== null}
-				<span data-text="muted">
-					{String((logEntryId0) ?? '')}
-				</span>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={aiArtifactAttestation}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const logEntryId0 = resolvedEntity.logEntryId}
-					{#if logEntryId0 !== undefined && logEntryId0 !== null}
-						<span data-text="muted">
-							{String((logEntryId0) ?? '')}
-						</span>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={aiArtifactAttestation}>
+			{#snippet children(entity)}
+				{@const logEntryId0 = entity.logEntryId}
+				{#if logEntryId0 != null}
+					<span data-text="muted">
+						{logEntryId0}
+					</span>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -148,45 +95,20 @@
 			<div>
 				<dt>attestation kind</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									attestationKind: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const attestationKind = resolvedEntity.attestationKind}
-							{#if attestationKind !== undefined && attestationKind !== null}
-								{String((attestationKind) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{pendingEntity.attestationKind}
 				</dd>
 			</div>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							logEntryId: true,
-						},
-					})
-				}
+				resource={aiArtifactAttestation}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const logEntryId = resolvedEntity.logEntryId}
-					{#if logEntryId !== undefined && logEntryId !== null}
+					{@const logEntryId = entity.logEntryId}
+					{#if logEntryId != null}
 						<div>
 							<dt>log entry ID</dt>
 							<dd>
-								{String((logEntryId) ?? '')}
+								{logEntryId}
 							</dd>
 						</div>
 					{/if}
@@ -195,8 +117,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							signatureHashAlgorithm: true,
 						},
@@ -204,13 +125,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const signatureHashAlgorithm = resolvedEntity.signatureHashAlgorithm}
-					{#if signatureHashAlgorithm !== undefined && signatureHashAlgorithm !== null}
+					{@const signatureHashAlgorithm = entity.signatureHashAlgorithm}
+					{#if signatureHashAlgorithm != null}
 						<div>
 							<dt>signature hash algorithm</dt>
 							<dd>
-								<TruncatedValue value={String((signatureHashAlgorithm) ?? '')} />
+								<TruncatedValue value={signatureHashAlgorithm} />
 							</dd>
 						</div>
 					{/if}
@@ -219,8 +139,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							signatureHash: true,
 						},
@@ -228,13 +147,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const signatureHash = resolvedEntity.signatureHash}
-					{#if signatureHash !== undefined && signatureHash !== null}
+					{@const signatureHash = entity.signatureHash}
+					{#if signatureHash != null}
 						<div>
 							<dt>signature hash</dt>
 							<dd>
-								<TruncatedValue value={String((signatureHash) ?? '')} />
+								<TruncatedValue value={signatureHash} />
 							</dd>
 						</div>
 					{/if}
@@ -245,8 +163,7 @@
 		<dl data-column-item="center">
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							certificateIdentity: true,
 						},
@@ -254,13 +171,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const certificateIdentity = resolvedEntity.certificateIdentity}
-					{#if certificateIdentity !== undefined && certificateIdentity !== null}
+					{@const certificateIdentity = entity.certificateIdentity}
+					{#if certificateIdentity != null}
 						<div>
 							<dt>certificate identity</dt>
 							<dd>
-								{String((certificateIdentity) ?? '')}
+								{certificateIdentity}
 							</dd>
 						</div>
 					{/if}
@@ -269,8 +185,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							certificateIssuer: true,
 						},
@@ -278,13 +193,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const certificateIssuer = resolvedEntity.certificateIssuer}
-					{#if certificateIssuer !== undefined && certificateIssuer !== null}
+					{@const certificateIssuer = entity.certificateIssuer}
+					{#if certificateIssuer != null}
 						<div>
 							<dt>certificate issuer</dt>
 							<dd>
-								<TruncatedValue value={String((certificateIssuer) ?? '')} />
+								<TruncatedValue value={certificateIssuer} />
 							</dd>
 						</div>
 					{/if}
@@ -293,8 +207,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							logIndex: true,
 						},
@@ -302,9 +215,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const logIndex = resolvedEntity.logIndex}
-					{#if logIndex !== undefined && logIndex !== null}
+					{@const logIndex = entity.logIndex}
+					{#if logIndex != null}
 						<div>
 							<dt>log index</dt>
 							<dd>
@@ -319,8 +231,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							integratedTime: true,
 						},
@@ -328,9 +239,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const integratedTime = resolvedEntity.integratedTime}
-					{#if integratedTime !== undefined && integratedTime !== null}
+					{@const integratedTime = entity.integratedTime}
+					{#if integratedTime != null}
 						<div>
 							<dt>integrated time</dt>
 							<dd>

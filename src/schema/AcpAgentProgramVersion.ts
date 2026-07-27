@@ -1,15 +1,11 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { entity, facet } from '$/schema/$schema.ts'
+import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { type } from 'arktype'
 
-export enum AcpAgentProgramVersionSelector {
-	ProgramVersion = 'ProgramVersion',
-	Artifact = 'Artifact',
-}
-export const AcpAgentProgramVersion = entity({
+export default entity({
 	entityType: EntityType.AcpAgentProgramVersion,
 	labels: {
 		singular: 'acp agent program version',

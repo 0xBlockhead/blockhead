@@ -2,13 +2,9 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -20,44 +16,25 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.BlockheadAvalancheNodeState_Timestamp>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.BlockheadAvalancheNodeState_Timestamp>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.BlockheadAvalancheNodeState_Timestamp> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const blockheadAvalancheNodeStateTimestamp = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {
-			nodeVersion: true,
-			networkName: true,
-			connectedPeerCount: true,
-		},
-	} : {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const viewSelection = $derived(selection({
+		sources: selection.sources ?? [
+			Source.Local_Internal,
+		],
+	}))
+	const blockheadAvalancheNodeStateTimestamp = $derived(viewSelection({
 		fields: {
 			nodeVersion: true,
 			networkName: true,
 			connectedPeerCount: true,
 		},
 	}))
-	const titleFallback = $derived([String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || 'blockhead avalanche node state timestamp')
-	const viewDomId = $derived('blockhead-avalanche-node-state-timestamp-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const titleFallback = $derived(String(pendingEntity.timestampMs ?? '') || 'blockhead avalanche node state timestamp')
 
 
 	// Components
@@ -70,71 +47,37 @@
 
 <EntityView
 	entityType={EntityType.BlockheadAvalancheNodeState_Timestamp}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'nodeVersion') && Object.hasOwn(prefetched, 'networkName') && Object.hasOwn(prefetched, 'connectedPeerCount')}
-			{@const timestampMs0 = pendingEntity.timestampMs}
-			{#if timestampMs0 !== undefined && timestampMs0 !== null}
-				<Timestamp timestamp={Number(timestampMs0)} />
-			{/if}
-		{:else}
-			<ResourceBoundary resource={blockheadAvalancheNodeStateTimestamp}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const timestampMs0 = resolvedEntity.timestampMs}
-					{#if timestampMs0 !== undefined && timestampMs0 !== null}
-						<Timestamp timestamp={Number(timestampMs0)} />
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
 	{/snippet}
 
 	{#snippet Value()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'nodeVersion') && Object.hasOwn(prefetched, 'networkName') && Object.hasOwn(prefetched, 'connectedPeerCount')}
-			{[String((pendingEntity.nodeVersion) ?? ''), String((pendingEntity.networkName) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || titleFallback}
-		{:else}
-			<ResourceBoundary resource={blockheadAvalancheNodeStateTimestamp}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.nodeVersion) ?? ''), String((resolvedEntity.networkName) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={blockheadAvalancheNodeStateTimestamp}>
+			{#snippet children(entity)}
+				{[(entity.nodeVersion ?? ''), (entity.networkName ?? '')].filter(Boolean).join(' ') || String(pendingEntity.timestampMs) || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'nodeVersion') && Object.hasOwn(prefetched, 'networkName') && Object.hasOwn(prefetched, 'connectedPeerCount')}
-			{@const connectedPeerCount0 = pendingEntity.connectedPeerCount}
-			{#if connectedPeerCount0 !== undefined && connectedPeerCount0 !== null}
-				<span data-text="muted">
-					<NumberValue
-						value={connectedPeerCount0}
-					/>
-				</span>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={blockheadAvalancheNodeStateTimestamp}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const connectedPeerCount0 = resolvedEntity.connectedPeerCount}
-					{#if connectedPeerCount0 !== undefined && connectedPeerCount0 !== null}
-						<span data-text="muted">
-							<NumberValue
-								value={connectedPeerCount0}
-							/>
-						</span>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={blockheadAvalancheNodeStateTimestamp}>
+			{#snippet children(entity)}
+				{@const connectedPeerCount0 = entity.connectedPeerCount}
+				{#if connectedPeerCount0 != null}
+					<span data-text="muted">
+						<NumberValue
+							value={connectedPeerCount0}
+						/>
+					</span>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -153,69 +96,27 @@
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									timestampMs: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const timestampMs = resolvedEntity.timestampMs}
-							{#if timestampMs !== undefined && timestampMs !== null}
-								<Timestamp timestamp={Number(timestampMs)} />
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									source: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const source = resolvedEntity.source}
-							{#if source !== undefined && source !== null}
-								{String((source) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{pendingEntity.source}
 				</dd>
 			</div>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							networkName: true,
-						},
-					})
-				}
+				resource={blockheadAvalancheNodeStateTimestamp}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const networkName = resolvedEntity.networkName}
-					{#if networkName !== undefined && networkName !== null}
+					{@const networkName = entity.networkName}
+					{#if networkName != null}
 						<div>
 							<dt>network name</dt>
 							<dd>
-								{String((networkName) ?? '')}
+								{networkName}
 							</dd>
 						</div>
 					{/if}
@@ -225,23 +126,15 @@
 
 		<dl data-column-item="center">
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							nodeVersion: true,
-						},
-					})
-				}
+				resource={blockheadAvalancheNodeStateTimestamp}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const nodeVersion = resolvedEntity.nodeVersion}
-					{#if nodeVersion !== undefined && nodeVersion !== null}
+					{@const nodeVersion = entity.nodeVersion}
+					{#if nodeVersion != null}
 						<div>
 							<dt>node version</dt>
 							<dd>
-								{String((nodeVersion) ?? '')}
+								{nodeVersion}
 							</dd>
 						</div>
 					{/if}
@@ -250,8 +143,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							databaseVersion: true,
 						},
@@ -259,13 +151,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const databaseVersion = resolvedEntity.databaseVersion}
-					{#if databaseVersion !== undefined && databaseVersion !== null}
+					{@const databaseVersion = entity.databaseVersion}
+					{#if databaseVersion != null}
 						<div>
 							<dt>database version</dt>
 							<dd>
-								{String((databaseVersion) ?? '')}
+								{databaseVersion}
 							</dd>
 						</div>
 					{/if}
@@ -274,8 +165,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							gitCommit: true,
 						},
@@ -283,13 +173,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const gitCommit = resolvedEntity.gitCommit}
-					{#if gitCommit !== undefined && gitCommit !== null}
+					{@const gitCommit = entity.gitCommit}
+					{#if gitCommit != null}
 						<div>
 							<dt>Git commit</dt>
 							<dd>
-								{String((gitCommit) ?? '')}
+								{gitCommit}
 							</dd>
 						</div>
 					{/if}
@@ -298,8 +187,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							rpcProtocolVersion: true,
 						},
@@ -307,13 +195,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const rpcProtocolVersion = resolvedEntity.rpcProtocolVersion}
-					{#if rpcProtocolVersion !== undefined && rpcProtocolVersion !== null}
+					{@const rpcProtocolVersion = entity.rpcProtocolVersion}
+					{#if rpcProtocolVersion != null}
 						<div>
 							<dt>RPC protocol version</dt>
 							<dd>
-								{String((rpcProtocolVersion) ?? '')}
+								{rpcProtocolVersion}
 							</dd>
 						</div>
 					{/if}
@@ -323,19 +210,11 @@
 
 		<dl data-column-item="center">
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							connectedPeerCount: true,
-						},
-					})
-				}
+				resource={blockheadAvalancheNodeStateTimestamp}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const connectedPeerCount = resolvedEntity.connectedPeerCount}
-					{#if connectedPeerCount !== undefined && connectedPeerCount !== null}
+					{@const connectedPeerCount = entity.connectedPeerCount}
+					{#if connectedPeerCount != null}
 						<div>
 							<dt>connected peer count</dt>
 							<dd>
@@ -350,8 +229,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							uptimePercent: true,
 						},
@@ -359,9 +237,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const uptimePercent = resolvedEntity.uptimePercent}
-					{#if uptimePercent !== undefined && uptimePercent !== null}
+					{@const uptimePercent = entity.uptimePercent}
+					{#if uptimePercent != null}
 						<div>
 							<dt>uptime percent</dt>
 							<dd>
@@ -376,8 +253,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							lastSyncedAt: true,
 						},
@@ -385,9 +261,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const lastSyncedAt = resolvedEntity.lastSyncedAt}
-					{#if lastSyncedAt !== undefined && lastSyncedAt !== null}
+					{@const lastSyncedAt = entity.lastSyncedAt}
+					{#if lastSyncedAt != null}
 						<div>
 							<dt>last synced AT</dt>
 							<dd>

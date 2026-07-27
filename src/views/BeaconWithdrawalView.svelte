@@ -2,15 +2,12 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -26,36 +23,20 @@
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.BeaconWithdrawal>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.BeaconWithdrawal>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.BeaconWithdrawal> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const beaconWithdrawal = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {
-			amountGwei: true,
-		},
-	} : {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const viewSelection = $derived(selection({
+		sources: selection.sources ?? [
+			Source.Beacon_Rest,
+		],
+	}))
+	const beaconWithdrawal = $derived(viewSelection({
 		fields: {
 			amountGwei: true,
 		},
 	}))
-	const titleFallback = $derived((String((pendingEntity.indexInSlot) ?? '') ? 'Withdrawal #' + String((pendingEntity.indexInSlot) ?? '') : '') || 'beacon withdrawal')
-	const viewDomId = $derived('beacon-withdrawal-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const titleFallback = $derived((String(pendingEntity.indexInSlot ?? '') ? 'Withdrawal #' + String(pendingEntity.indexInSlot ?? '') : '') || 'beacon withdrawal')
 
 
 	// Components
@@ -70,36 +51,22 @@
 
 <EntityView
 	entityType={EntityType.BeaconWithdrawal}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
 	idDragPlainText={String(pendingEntity.indexInSlot ?? '')}
 	href={
-		href ?? (
-			selection.entitySelector != null && 'slot' in selection.entitySelector
-			&& selection.entitySelector.slot != null
-			&& selection.entitySelector != null && 'indexInSlot' in selection.entitySelector
-			&& selection.entitySelector.indexInSlot != null
-			&& selection.entitySelector != null && '$network' in selection.entitySelector ?
-				selection.entitySelector.$network != null && 'caip2' in selection.entitySelector.$network
-				&& selection.entitySelector.$network.caip2 != null ?
-					resolve('/network/[network=networkCaip2OrNetworkSlug]/slot/[slot=nonNegativeInteger]/withdrawal/[index=nonNegativeInteger]', {
-				slot: String(selection.entitySelector.slot ?? ''),
-				index: String(selection.entitySelector.indexInSlot ?? ''),
-				network: String(caip2StringFromValue(selection.entitySelector.$network.caip2) ?? ''),
-			})
-			:
-					selection.entitySelector.$network != null && 'slug' in selection.entitySelector.$network
-					&& selection.entitySelector.$network.slug != null ?
-						resolve('/network/[network=networkCaip2OrNetworkSlug]/slot/[slot=nonNegativeInteger]/withdrawal/[index=nonNegativeInteger]', {
-					slot: String(selection.entitySelector.slot ?? ''),
-					index: String(selection.entitySelector.indexInSlot ?? ''),
-					network: String(selection.entitySelector.$network.slug ?? ''),
-				})
-				:
-					undefined
-		:
-				undefined
+		href ?? resolve(
+			'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/slot/[slot=nonNegativeInteger]/(beaconSlot)/withdrawal/[index=nonNegativeInteger]',
+			{
+				network: (
+					'caip2' in selection.entitySelector.$network ?
+						String(caip2StringFromValue(selection.entitySelector.$network.caip2))
+					:
+						String(selection.entitySelector.$network.slug)
+				),
+				slot: String(selection.entitySelector.slot),
+				index: String(selection.entitySelector.indexInSlot),
+			}
 		)
 	}
 	{layout}
@@ -107,71 +74,36 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{@const serialValue = pendingEntity.indexInSlot}
-		{#if serialValue !== undefined && serialValue !== null}
-			<span data-row="inline align-center gap-2 wrap">
-				<span>Withdrawal </span>
-				<span data-badge="small">
-					#{String((serialValue) ?? '')}
-				</span>
+		<span data-row="inline align-center gap-2 wrap">
+			<span>Withdrawal </span>
+			<span data-badge="small">
+				#{String(pendingEntity.indexInSlot)}
 			</span>
-		{/if}
+		</span>
 	{/snippet}
 
 	{#snippet Value()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'amountGwei')}
-			{@const amountGwei0 = pendingEntity.amountGwei}
-			{#if amountGwei0 !== undefined && amountGwei0 !== null}
-				<NumberValue
-					value={amountGwei0}
-				/>
+		<ResourceBoundary resource={beaconWithdrawal}>
+			{#snippet children(entity)}
+				{@const amountGwei0 = entity.amountGwei}
+				{#if amountGwei0 != null}
+					<NumberValue
+						value={amountGwei0}
+					/>
 
-				<span> gwei</span>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={beaconWithdrawal}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const amountGwei0 = resolvedEntity.amountGwei}
-					{#if amountGwei0 !== undefined && amountGwei0 !== null}
-						<NumberValue
-							value={amountGwei0}
-						/>
-
-						<span> gwei</span>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+					<span> gwei</span>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'amountGwei')}
-			{@const slot0 = pendingEntity.slot}
-			{#if slot0 !== undefined && slot0 !== null}
-				<span data-text="muted">
-					<span>Slot </span>
-					<NumberValue
-						value={slot0}
-					/>
-				</span>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={beaconWithdrawal}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const slot0 = resolvedEntity.slot}
-					{#if slot0 !== undefined && slot0 !== null}
-						<span data-text="muted">
-							<span>Slot </span>
-							<NumberValue
-								value={slot0}
-							/>
-						</span>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<span data-text="muted">
+			<span>Slot </span>
+			<NumberValue
+				value={pendingEntity.slot}
+			/>
+		</span>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -179,59 +111,24 @@
 			<div>
 				<dt>Index in slot</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									indexInSlot: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const indexInSlot = resolvedEntity.indexInSlot}
-							{#if indexInSlot !== undefined && indexInSlot !== null}
-								<NumberValue
-									value={indexInSlot}
-								/>
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					<NumberValue
+						value={pendingEntity.indexInSlot}
+					/>
 				</dd>
 			</div>
 
 			<div>
 				<dt>Slot</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									slot: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const slot = resolvedEntity.slot}
-							{#if slot !== undefined && slot !== null}
-								<NumberValue
-									value={slot}
-								/>
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					<NumberValue
+						value={pendingEntity.slot}
+					/>
 				</dd>
 			</div>
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							validatorIndex: true,
 						},
@@ -239,9 +136,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const validatorIndex = resolvedEntity.validatorIndex}
-					{#if validatorIndex !== undefined && validatorIndex !== null}
+					{@const validatorIndex = entity.validatorIndex}
+					{#if validatorIndex != null}
 						<div>
 							<dt>Validator index</dt>
 							<dd>
@@ -255,19 +151,11 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							amountGwei: true,
-						},
-					})
-				}
+				resource={beaconWithdrawal}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const amountGwei = resolvedEntity.amountGwei}
-					{#if amountGwei !== undefined && amountGwei !== null}
+					{@const amountGwei = entity.amountGwei}
+					{#if amountGwei != null}
 						<div>
 							<dt>Amount</dt>
 							<dd>
@@ -288,37 +176,13 @@
 				resource={selection.$validator}
 			>
 				{#snippet children(beaconValidator)}
-					{#if beaconValidator != null && beaconValidator[EntityMetaKey.Selector] != null}
+					{#if beaconValidator != null}
 						<div>
 							<dt>Validator</dt>
 							<dd>
 								<BeaconValidatorView
 									selection={select(EntityType.BeaconValidator, beaconValidator[EntityMetaKey.Selector])}
 									prefetched={beaconValidator}
-									href={
-										(
-											beaconValidator[EntityMetaKey.Selector] != null && 'indexInNetwork' in beaconValidator[EntityMetaKey.Selector]
-											&& beaconValidator[EntityMetaKey.Selector].indexInNetwork != null
-											&& beaconValidator[EntityMetaKey.Selector] != null && '$network' in beaconValidator[EntityMetaKey.Selector] ?
-												beaconValidator[EntityMetaKey.Selector].$network != null && 'caip2' in beaconValidator[EntityMetaKey.Selector].$network
-												&& beaconValidator[EntityMetaKey.Selector].$network.caip2 != null ?
-													resolve('/network/[network=networkCaip2OrNetworkSlug]/validator/[validatorId=nonNegativeIntegerOrSolanaPubkey]', {
-												validatorId: String(beaconValidator[EntityMetaKey.Selector].indexInNetwork ?? ''),
-												network: String(caip2StringFromValue(beaconValidator[EntityMetaKey.Selector].$network.caip2) ?? ''),
-											})
-											:
-													beaconValidator[EntityMetaKey.Selector].$network != null && 'slug' in beaconValidator[EntityMetaKey.Selector].$network
-													&& beaconValidator[EntityMetaKey.Selector].$network.slug != null ?
-														resolve('/network/[network=networkCaip2OrNetworkSlug]/validator/[validatorId=nonNegativeIntegerOrSolanaPubkey]', {
-													validatorId: String(beaconValidator[EntityMetaKey.Selector].indexInNetwork ?? ''),
-													network: String(beaconValidator[EntityMetaKey.Selector].$network.slug ?? ''),
-												})
-												:
-													undefined
-										:
-												undefined
-										)
-									}
 									layout={EntityLayout.Value}
 									open={false}
 								/>
@@ -332,24 +196,13 @@
 				resource={selection.$account}
 			>
 				{#snippet children(evmAccount)}
-					{#if evmAccount != null && evmAccount[EntityMetaKey.Selector] != null}
+					{#if evmAccount != null}
 						<div>
 							<dt>Account</dt>
 							<dd>
 								<EvmAccountView
 									selection={select(EntityType.EvmAccount, evmAccount[EntityMetaKey.Selector])}
 									prefetched={evmAccount}
-									href={
-										(
-											evmAccount[EntityMetaKey.Selector] != null && 'address' in evmAccount[EntityMetaKey.Selector]
-											&& evmAccount[EntityMetaKey.Selector].address != null ?
-												resolve('/account/[address=evmAddress]', {
-											address: String(evmAccount[EntityMetaKey.Selector].address ?? ''),
-										})
-										:
-												undefined
-										)
-									}
 									layout={EntityLayout.Value}
 									open={false}
 								/>
@@ -364,23 +217,6 @@
 				<dd>
 					<NetworkView
 						selection={select(EntityType.Network, selection.entitySelector.$network)}
-						href={
-							(
-								selection.entitySelector.$network != null && 'caip2' in selection.entitySelector.$network
-								&& selection.entitySelector.$network.caip2 != null ?
-									resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-								network: String(caip2StringFromValue(selection.entitySelector.$network.caip2) ?? ''),
-							})
-							:
-									selection.entitySelector.$network != null && 'slug' in selection.entitySelector.$network
-									&& selection.entitySelector.$network.slug != null ?
-										resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-									network: String(selection.entitySelector.$network.slug ?? ''),
-								})
-								:
-									undefined
-							)
-						}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

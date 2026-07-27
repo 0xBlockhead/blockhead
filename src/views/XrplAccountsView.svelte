@@ -3,128 +3,64 @@
 <script lang="ts">
 	// Types/constants
 	import { resolve } from '$app/paths'
-	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
-	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
-	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
+	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
-
-
 	// State
 	let {
 		selection,
-		countResource,
-		title = 'XRPL accounts',
-		typeAnnotationParagraphs = [],
-		placeholderText = undefined,
-		emptyText = undefined,
 		open = $bindable(true),
-		collapsible = true,
-		showTypeAnnotation = true,
-		id = 'XrplAccounts-list',
 		...EntitiesListProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyEntitiesSelection<EntityType.XrplAccount>
-			countResource?: SvelteKitResource<number>
-			title?: string
-			typeAnnotationParagraphs?: string[]
-			placeholderText?: string
-			emptyText?: string
-			open?: boolean
-			collapsible?: boolean
-			showTypeAnnotation?: boolean
-			id?: string
-		},
-		EntitiesListForwardProps
-	> = $props()
+	}: EntityListViewProps<EntityType.XrplAccount> = $props()
 
 
 	// Components
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView from '$/components/EntityView.svelte'
 </script>
 
-
-{#snippet TypeAnnotationParagraphs()}
-	{#each typeAnnotationParagraphs as paragraph (paragraph)}
-		<p>{paragraph}</p>
-	{/each}
-{/snippet}
 
 <EntitiesList
 	{...EntitiesListProps}
 	entityType={EntityType.XrplAccount}
-	{id}
-	{title}
 	bind:open
-	{collapsible}
-	{showTypeAnnotation}
-	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
 	resource={
 		selection({
-			sources: selection.sources,
 			fields: {
 				account: true,
 				$network: true,
 			},
 		})
 	}
-	{countResource}
-	getResourceItems={(xrplAccounts) => [...new Map(xrplAccounts.values.map((xrplAccount) => [xrplAccount[EntityMetaKey.SelectorKey], xrplAccount])).values()]}
-	getKey={(xrplAccount) => xrplAccount[EntityMetaKey.SelectorKey]}
-	{placeholderText}
 >
-	{#snippet Empty()}
-		{#if emptyText != null}
-			<p data-text="muted">{emptyText}</p>
-		{:else}
-			<p data-text="muted">No XRPL accounts yet.</p>
-		{/if}
-	{/snippet}
-
 	{#snippet Item({ item: xrplAccount })}
-		{@const xrplAccountFields = { ...xrplAccount[EntityMetaKey.Selector], ...xrplAccount }}
+		{@const xrplAccountSelector = xrplAccount[EntityMetaKey.Selector]}
 		<EntityView
 			entityType={EntityType.XrplAccount}
-			entitySelector={xrplAccount[EntityMetaKey.Selector]}
+			entitySelector={xrplAccountSelector}
 			href={
-				(
-					xrplAccount[EntityMetaKey.Selector] != null && 'account' in xrplAccount[EntityMetaKey.Selector]
-					&& xrplAccount[EntityMetaKey.Selector].account != null
-					&& xrplAccount[EntityMetaKey.Selector] != null && '$network' in xrplAccount[EntityMetaKey.Selector] ?
-						xrplAccount[EntityMetaKey.Selector].$network != null && 'caip2' in xrplAccount[EntityMetaKey.Selector].$network
-						&& xrplAccount[EntityMetaKey.Selector].$network.caip2 != null ?
-							resolve('/network/[network=networkCaip2OrNetworkSlug]/account/[accountId=polkadotAccountIdOrStringSegmentOrEvmAddressOrSolanaPubkey]', {
-						accountId: String(xrplAccount[EntityMetaKey.Selector].account ?? ''),
-						network: String(caip2StringFromValue(xrplAccount[EntityMetaKey.Selector].$network.caip2) ?? ''),
-					})
-					:
-							xrplAccount[EntityMetaKey.Selector].$network != null && 'slug' in xrplAccount[EntityMetaKey.Selector].$network
-							&& xrplAccount[EntityMetaKey.Selector].$network.slug != null ?
-								resolve('/network/[network=networkCaip2OrNetworkSlug]/account/[accountId=polkadotAccountIdOrStringSegmentOrEvmAddressOrSolanaPubkey]', {
-							accountId: String(xrplAccount[EntityMetaKey.Selector].account ?? ''),
-							network: String(xrplAccount[EntityMetaKey.Selector].$network.slug ?? ''),
-						})
-						:
-							undefined
-				:
-						undefined
+				resolve(
+					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(accounts)/account/[accountId=polkadotAccountIdOrStringSegmentOrEvmAddressOrSolanaPubkey]',
+					{
+						network: (
+							'caip2' in xrplAccountSelector.$network ?
+								String(caip2StringFromValue(xrplAccountSelector.$network.caip2))
+							:
+								String(xrplAccountSelector.$network.slug)
+						),
+						accountId: String(xrplAccountSelector.account),
+					}
 				)
 			}
-			layout={EntityLayout.Summary}
-			open={false}
-			showTypeAnnotation={false}
 		>
 			{#snippet Title()}
-				{[String((xrplAccountFields.account) ?? '')].filter(Boolean).join(' ') || 'XRPL account'}
+				{xrplAccountSelector.account || 'XRPL account'}
 			{/snippet}
 
 			{#snippet Value()}
-				{[[String((xrplAccountFields.$network.name) ?? '')].filter(Boolean).join(' ') || [xrplAccountFields.$network.caip2 == null ? '' : String(`${(xrplAccountFields.$network.caip2).namespace}:${(xrplAccountFields.$network.caip2).reference}`)].filter(Boolean).join(' ') || 'Network'].filter(Boolean).join(' ')}
+				{xrplAccount.$network.name || (xrplAccountSelector.$network.caip2 == null ? '' : `${xrplAccountSelector.$network.caip2.namespace}:${xrplAccountSelector.$network.caip2.reference}`) || 'Network'}
 			{/snippet}
 		</EntityView>
 	{/snippet}

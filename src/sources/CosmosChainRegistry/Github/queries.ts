@@ -1,39 +1,47 @@
-import { getJson } from '$/lib/http.ts'
 import type {
 	CosmosChainRegistryAssetList,
 	CosmosChainRegistryChain,
 } from '$/sources/CosmosChainRegistry/Github/types.ts'
+import bindings from '$/sources/CosmosChainRegistry/bindings.ts'
+import {
+	sourceGetJson,
+} from '$/sources/_runtime/http.ts'
 import { githubRawUrl } from '$/sources/_shared/hosts/Github/Http/client.ts'
-import { githubHttpEndpoints } from '$/sources/_shared/hosts/Github/Http/constants.ts'
+import { Source } from '$/sources/Source.ts'
 
-const origins = githubHttpEndpoints.map((endpoint) => ({
-	origin: endpoint.origin,
-	corsEnabled: endpoint.corsEnabled,
-}))
+const binding = bindings[Source.CosmosChainRegistry_Github]
 
 const cosmosChainRegistryRepo = {
 	owner: 'cosmos',
 	repo: 'chain-registry',
 	path: '',
 	ref: 'master',
-} as const
+}
 
-export const getChain = ({ chainName }: { chainName: string }) => (
-	getJson<CosmosChainRegistryChain>(
+export const getChain = ({
+	chainName,
+}: {
+	chainName: string
+}) => (
+	sourceGetJson<CosmosChainRegistryChain>(
+		binding,
 		githubRawUrl({
 			...cosmosChainRegistryRepo,
 			path: `${chainName}/chain.json`,
-		}),
-		{ origins }
+		})
 	)
 )
 
-export const getAssetList = ({ chainName }: { chainName: string }) => (
-	getJson<CosmosChainRegistryAssetList>(
+export const getAssetList = ({
+	chainName,
+}: {
+	chainName: string
+}) => (
+	sourceGetJson<CosmosChainRegistryAssetList>(
+		binding,
 		githubRawUrl({
 			...cosmosChainRegistryRepo,
 			path: `${chainName}/assetlist.json`,
-		}),
-		{ origins }
+		})
 	)
 )

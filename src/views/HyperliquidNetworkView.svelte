@@ -2,15 +2,9 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { stringify } from 'devalue'
-	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -22,35 +16,13 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.HyperliquidNetwork>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.HyperliquidNetwork>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.HyperliquidNetwork> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const hyperliquidNetwork = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {},
-	} : {
-		sources: selection.sources,
-	}))
 	const titleFallback = 'hyperliquid network'
-	const viewDomId = $derived('hyperliquid-network-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const viewDomId = $derived('hyperliquid-network-' + encodeURIComponent(stringify(selection.entitySelector)))
 
 
 	// Components
@@ -71,33 +43,24 @@
 
 <EntityView
 	entityType={EntityType.HyperliquidNetwork}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
+	entitySelector={selection.entitySelector}
 	id={viewDomId}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={hyperliquidNetwork}>
-			{#snippet children(entity)}
-				<NetworkView
-					selection={select(EntityType.Network, selection.entitySelector.$network)}
-					href=""
-					layout={EntityLayout.Title}
-					open={false}
-				/>
-			{/snippet}
-		</ResourceBoundary>
+		<NetworkView
+			selection={select(EntityType.Network, selection.entitySelector.$network)}
+			href=""
+			layout={EntityLayout.Title}
+			open={false}
+		/>
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={hyperliquidNetwork}>
-			{#snippet children(entity)}
-				{titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{titleFallback}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -107,23 +70,6 @@
 				<dd>
 					<NetworkView
 						selection={select(EntityType.Network, selection.entitySelector.$network)}
-						href={
-							(
-								selection.entitySelector.$network != null && 'caip2' in selection.entitySelector.$network
-								&& selection.entitySelector.$network.caip2 != null ?
-									resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-								network: String(caip2StringFromValue(selection.entitySelector.$network.caip2) ?? ''),
-							})
-							:
-									selection.entitySelector.$network != null && 'slug' in selection.entitySelector.$network
-									&& selection.entitySelector.$network.slug != null ?
-										resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-									network: String(selection.entitySelector.$network.slug ?? ''),
-								})
-								:
-									undefined
-							)
-						}
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -141,17 +87,14 @@
 					{
 						id: 'hyperliquid-chain-observations',
 						label: 'Observations',
-						ownsSection: true,
 					},
 					{
 						id: 'hyperliquid-chain-blocks',
 						label: 'Blocks',
-						ownsSection: true,
 					},
 					{
 						id: 'hyperliquid-chain-transactions',
 						label: 'Transactions',
-						ownsSection: true,
 					},
 				]
 			}
@@ -164,202 +107,49 @@
 				</header>
 			{/snippet}
 
-			{#snippet MarkerHyperliquidChainObservations(_context, Content)}
-				{@const hyperliquidChainActivityHyperliquidChainObservationsResource = selection.$$timestamps}
-				<ResourceBoundary
-					resource={hyperliquidChainActivityHyperliquidChainObservationsResource}
-				>
-					{#snippet children(_resolved)}
-						{@render Content()}
-					{/snippet}
-
-					{#snippet PendingContent()}
-						{@render Content()}
-					{/snippet}
-
-					{#snippet FailedContent(_error, _retry)}
-						{@render Content()}
-					{/snippet}
-				</ResourceBoundary>
+			{#snippet SectionHyperliquidChainObservations({ id, label, open })}
+				<HyperliquidNetwork_TimestampsView
+					selection={selection.$$timestamps}
+					CollapsibleProps={{ canToggle: false }}
+					collapsible={false}
+					data-column-item="flexible"
+					data-card
+					data-scroll-container
+					open={open}
+					title={label}
+					emptyText='No Hyperliquid network observations.'
+					id={`${id}-list`}
+				/>
 			{/snippet}
 
-			{#snippet SectionHyperliquidChainObservations({ id, label, open, active })}
-				{@const hyperliquidChainActivityHyperliquidChainObservationsResource = selection.$$timestamps}
-				<ResourceBoundary
-					resource={hyperliquidChainActivityHyperliquidChainObservationsResource}
-				>
-					{#snippet children(hyperliquidNetworkTimestamp)}
-						<section
-							id={id}
-							aria-labelledby={`${id}:marker`}
-							data-scroll-marker-label={label}
-							data-column-item="flexible"
-							data-column
-							data-active={active}
-						>
-							<HyperliquidNetwork_TimestampsView
-								selection={hyperliquidChainActivityHyperliquidChainObservationsResource}
-								CollapsibleProps={{ canToggle: false }}
-								collapsible={false}
-								data-column-item="flexible"
-								data-card
-								data-scroll-container
-								open={open}
-								title={label}
-								emptyText='No Hyperliquid network observations.'
-								id={`${id}-list`}
-							/>
-						</section>
-					{/snippet}
-
-					{#snippet Pending()}
-						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
-							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
-								<span data-tag data-text="muted" data-resource-state="pending" class="loading inline-placeholder" aria-busy="true" aria-label="Loading…">•••</span>
-							</article>
-						</section>
-					{/snippet}
-
-					{#snippet Failed(_error, _retry)}
-						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
-							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
-								<span data-tag data-resource-state="failed" class="inline-placeholder" aria-label="Failed to load">•••</span>
-							</article>
-						</section>
-					{/snippet}
-				</ResourceBoundary>
+			{#snippet SectionHyperliquidChainBlocks({ id, label, open })}
+				<HyperliquidBlocksView
+					selection={selection.$$blocks}
+					CollapsibleProps={{ canToggle: false }}
+					collapsible={false}
+					data-column-item="flexible"
+					data-card
+					data-scroll-container
+					open={open}
+					title={label}
+					emptyText='No Hyperliquid blocks.'
+					id={`${id}-list`}
+				/>
 			{/snippet}
 
-			{#snippet MarkerHyperliquidChainBlocks(_context, Content)}
-				{@const hyperliquidChainActivityHyperliquidChainBlocksResource = selection.$$blocks}
-				<ResourceBoundary
-					resource={hyperliquidChainActivityHyperliquidChainBlocksResource}
-				>
-					{#snippet children(_resolved)}
-						{@render Content()}
-					{/snippet}
-
-					{#snippet PendingContent()}
-						{@render Content()}
-					{/snippet}
-
-					{#snippet FailedContent(_error, _retry)}
-						{@render Content()}
-					{/snippet}
-				</ResourceBoundary>
-			{/snippet}
-
-			{#snippet SectionHyperliquidChainBlocks({ id, label, open, active })}
-				{@const hyperliquidChainActivityHyperliquidChainBlocksResource = selection.$$blocks}
-				<ResourceBoundary
-					resource={hyperliquidChainActivityHyperliquidChainBlocksResource}
-				>
-					{#snippet children(hyperliquidBlock)}
-						<section
-							id={id}
-							aria-labelledby={`${id}:marker`}
-							data-scroll-marker-label={label}
-							data-column-item="flexible"
-							data-column
-							data-active={active}
-						>
-							<HyperliquidBlocksView
-								selection={hyperliquidChainActivityHyperliquidChainBlocksResource}
-								CollapsibleProps={{ canToggle: false }}
-								collapsible={false}
-								data-column-item="flexible"
-								data-card
-								data-scroll-container
-								open={open}
-								title={label}
-								emptyText='No Hyperliquid blocks.'
-								id={`${id}-list`}
-							/>
-						</section>
-					{/snippet}
-
-					{#snippet Pending()}
-						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
-							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
-								<span data-tag data-text="muted" data-resource-state="pending" class="loading inline-placeholder" aria-busy="true" aria-label="Loading…">•••</span>
-							</article>
-						</section>
-					{/snippet}
-
-					{#snippet Failed(_error, _retry)}
-						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
-							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
-								<span data-tag data-resource-state="failed" class="inline-placeholder" aria-label="Failed to load">•••</span>
-							</article>
-						</section>
-					{/snippet}
-				</ResourceBoundary>
-			{/snippet}
-
-			{#snippet MarkerHyperliquidChainTransactions(_context, Content)}
-				{@const hyperliquidChainActivityHyperliquidChainTransactionsResource = selection.$$transactions}
-				<ResourceBoundary
-					resource={hyperliquidChainActivityHyperliquidChainTransactionsResource}
-				>
-					{#snippet children(_resolved)}
-						{@render Content()}
-					{/snippet}
-
-					{#snippet PendingContent()}
-						{@render Content()}
-					{/snippet}
-
-					{#snippet FailedContent(_error, _retry)}
-						{@render Content()}
-					{/snippet}
-				</ResourceBoundary>
-			{/snippet}
-
-			{#snippet SectionHyperliquidChainTransactions({ id, label, open, active })}
-				{@const hyperliquidChainActivityHyperliquidChainTransactionsResource = selection.$$transactions}
-				<ResourceBoundary
-					resource={hyperliquidChainActivityHyperliquidChainTransactionsResource}
-				>
-					{#snippet children(hyperliquidTransaction)}
-						<section
-							id={id}
-							aria-labelledby={`${id}:marker`}
-							data-scroll-marker-label={label}
-							data-column-item="flexible"
-							data-column
-							data-active={active}
-						>
-							<HyperliquidTransactionsView
-								selection={hyperliquidChainActivityHyperliquidChainTransactionsResource}
-								CollapsibleProps={{ canToggle: false }}
-								collapsible={false}
-								data-column-item="flexible"
-								data-card
-								data-scroll-container
-								open={open}
-								title={label}
-								emptyText='No Hyperliquid transactions.'
-								id={`${id}-list`}
-							/>
-						</section>
-					{/snippet}
-
-					{#snippet Pending()}
-						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
-							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
-								<span data-tag data-text="muted" data-resource-state="pending" class="loading inline-placeholder" aria-busy="true" aria-label="Loading…">•••</span>
-							</article>
-						</section>
-					{/snippet}
-
-					{#snippet Failed(_error, _retry)}
-						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
-							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
-								<span data-tag data-resource-state="failed" class="inline-placeholder" aria-label="Failed to load">•••</span>
-							</article>
-						</section>
-					{/snippet}
-				</ResourceBoundary>
+			{#snippet SectionHyperliquidChainTransactions({ id, label, open })}
+				<HyperliquidTransactionsView
+					selection={selection.$$transactions}
+					CollapsibleProps={{ canToggle: false }}
+					collapsible={false}
+					data-column-item="flexible"
+					data-card
+					data-scroll-container
+					open={open}
+					title={label}
+					emptyText='No Hyperliquid transactions.'
+					id={`${id}-list`}
+				/>
 			{/snippet}
 
 		</CollapsibleTabs>
@@ -372,7 +162,6 @@
 					{
 						id: 'hyperliquid-validator-list',
 						label: 'Validators',
-						ownsSection: true,
 					},
 				]
 			}
@@ -385,70 +174,19 @@
 				</header>
 			{/snippet}
 
-			{#snippet MarkerHyperliquidValidatorList(_context, Content)}
-				{@const hyperliquidValidatorsHyperliquidValidatorListResource = selection.$$validators}
-				<ResourceBoundary
-					resource={hyperliquidValidatorsHyperliquidValidatorListResource}
-				>
-					{#snippet children(_resolved)}
-						{@render Content()}
-					{/snippet}
-
-					{#snippet PendingContent()}
-						{@render Content()}
-					{/snippet}
-
-					{#snippet FailedContent(_error, _retry)}
-						{@render Content()}
-					{/snippet}
-				</ResourceBoundary>
-			{/snippet}
-
-			{#snippet SectionHyperliquidValidatorList({ id, label, open, active })}
-				{@const hyperliquidValidatorsHyperliquidValidatorListResource = selection.$$validators}
-				<ResourceBoundary
-					resource={hyperliquidValidatorsHyperliquidValidatorListResource}
-				>
-					{#snippet children(hyperliquidValidator)}
-						<section
-							id={id}
-							aria-labelledby={`${id}:marker`}
-							data-scroll-marker-label={label}
-							data-column-item="flexible"
-							data-column
-							data-active={active}
-						>
-							<HyperliquidValidatorsView
-								selection={hyperliquidValidatorsHyperliquidValidatorListResource}
-								CollapsibleProps={{ canToggle: false }}
-								collapsible={false}
-								data-column-item="flexible"
-								data-card
-								data-scroll-container
-								open={open}
-								title={label}
-								emptyText='No Hyperliquid validators.'
-								id={`${id}-list`}
-							/>
-						</section>
-					{/snippet}
-
-					{#snippet Pending()}
-						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
-							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
-								<span data-tag data-text="muted" data-resource-state="pending" class="loading inline-placeholder" aria-busy="true" aria-label="Loading…">•••</span>
-							</article>
-						</section>
-					{/snippet}
-
-					{#snippet Failed(_error, _retry)}
-						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
-							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
-								<span data-tag data-resource-state="failed" class="inline-placeholder" aria-label="Failed to load">•••</span>
-							</article>
-						</section>
-					{/snippet}
-				</ResourceBoundary>
+			{#snippet SectionHyperliquidValidatorList({ id, label, open })}
+				<HyperliquidValidatorsView
+					selection={selection.$$validators}
+					CollapsibleProps={{ canToggle: false }}
+					collapsible={false}
+					data-column-item="flexible"
+					data-card
+					data-scroll-container
+					open={open}
+					title={label}
+					emptyText='No Hyperliquid validators.'
+					id={`${id}-list`}
+				/>
 			{/snippet}
 
 		</CollapsibleTabs>
@@ -461,22 +199,18 @@
 					{
 						id: 'hyperliquid-spot-assets',
 						label: 'Spot assets',
-						ownsSection: true,
 					},
 					{
 						id: 'hyperliquid-spot-pairs',
 						label: 'Spot pairs',
-						ownsSection: true,
 					},
 					{
 						id: 'hyperliquid-perp-markets',
 						label: 'Perp markets',
-						ownsSection: true,
 					},
 					{
 						id: 'hyperliquid-vaults',
 						label: 'Vaults',
-						ownsSection: true,
 					},
 				]
 			}
@@ -489,268 +223,64 @@
 				</header>
 			{/snippet}
 
-			{#snippet MarkerHyperliquidSpotAssets(_context, Content)}
-				{@const hyperliquidMarketsHyperliquidSpotAssetsResource = selection.$$spotAssets}
-				<ResourceBoundary
-					resource={hyperliquidMarketsHyperliquidSpotAssetsResource}
-				>
-					{#snippet children(_resolved)}
-						{@render Content()}
-					{/snippet}
-
-					{#snippet PendingContent()}
-						{@render Content()}
-					{/snippet}
-
-					{#snippet FailedContent(_error, _retry)}
-						{@render Content()}
-					{/snippet}
-				</ResourceBoundary>
+			{#snippet SectionHyperliquidSpotAssets({ id, label, open })}
+				<HyperliquidSpotAssetsView
+					selection={selection.$$spotAssets}
+					CollapsibleProps={{ canToggle: false }}
+					collapsible={false}
+					data-column-item="flexible"
+					data-card
+					data-scroll-container
+					open={open}
+					title={label}
+					emptyText='No Hyperliquid spot assets.'
+					id={`${id}-list`}
+				/>
 			{/snippet}
 
-			{#snippet SectionHyperliquidSpotAssets({ id, label, open, active })}
-				{@const hyperliquidMarketsHyperliquidSpotAssetsResource = selection.$$spotAssets}
-				<ResourceBoundary
-					resource={hyperliquidMarketsHyperliquidSpotAssetsResource}
-				>
-					{#snippet children(hyperliquidSpotAsset)}
-						<section
-							id={id}
-							aria-labelledby={`${id}:marker`}
-							data-scroll-marker-label={label}
-							data-column-item="flexible"
-							data-column
-							data-active={active}
-						>
-							<HyperliquidSpotAssetsView
-								selection={hyperliquidMarketsHyperliquidSpotAssetsResource}
-								CollapsibleProps={{ canToggle: false }}
-								collapsible={false}
-								data-column-item="flexible"
-								data-card
-								data-scroll-container
-								open={open}
-								title={label}
-								emptyText='No Hyperliquid spot assets.'
-								id={`${id}-list`}
-							/>
-						</section>
-					{/snippet}
-
-					{#snippet Pending()}
-						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
-							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
-								<span data-tag data-text="muted" data-resource-state="pending" class="loading inline-placeholder" aria-busy="true" aria-label="Loading…">•••</span>
-							</article>
-						</section>
-					{/snippet}
-
-					{#snippet Failed(_error, _retry)}
-						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
-							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
-								<span data-tag data-resource-state="failed" class="inline-placeholder" aria-label="Failed to load">•••</span>
-							</article>
-						</section>
-					{/snippet}
-				</ResourceBoundary>
+			{#snippet SectionHyperliquidSpotPairs({ id, label, open })}
+				<HyperliquidSpotPairsView
+					selection={selection.$$spotPairs}
+					CollapsibleProps={{ canToggle: false }}
+					collapsible={false}
+					data-column-item="flexible"
+					data-card
+					data-scroll-container
+					open={open}
+					title={label}
+					emptyText='No Hyperliquid spot pairs.'
+					id={`${id}-list`}
+				/>
 			{/snippet}
 
-			{#snippet MarkerHyperliquidSpotPairs(_context, Content)}
-				{@const hyperliquidMarketsHyperliquidSpotPairsResource = selection.$$spotPairs}
-				<ResourceBoundary
-					resource={hyperliquidMarketsHyperliquidSpotPairsResource}
-				>
-					{#snippet children(_resolved)}
-						{@render Content()}
-					{/snippet}
-
-					{#snippet PendingContent()}
-						{@render Content()}
-					{/snippet}
-
-					{#snippet FailedContent(_error, _retry)}
-						{@render Content()}
-					{/snippet}
-				</ResourceBoundary>
+			{#snippet SectionHyperliquidPerpMarkets({ id, label, open })}
+				<HyperliquidPerpMarketsView
+					selection={selection.$$perpMarkets}
+					CollapsibleProps={{ canToggle: false }}
+					collapsible={false}
+					data-column-item="flexible"
+					data-card
+					data-scroll-container
+					open={open}
+					title={label}
+					emptyText='No Hyperliquid perp markets.'
+					id={`${id}-list`}
+				/>
 			{/snippet}
 
-			{#snippet SectionHyperliquidSpotPairs({ id, label, open, active })}
-				{@const hyperliquidMarketsHyperliquidSpotPairsResource = selection.$$spotPairs}
-				<ResourceBoundary
-					resource={hyperliquidMarketsHyperliquidSpotPairsResource}
-				>
-					{#snippet children(hyperliquidSpotPair)}
-						<section
-							id={id}
-							aria-labelledby={`${id}:marker`}
-							data-scroll-marker-label={label}
-							data-column-item="flexible"
-							data-column
-							data-active={active}
-						>
-							<HyperliquidSpotPairsView
-								selection={hyperliquidMarketsHyperliquidSpotPairsResource}
-								CollapsibleProps={{ canToggle: false }}
-								collapsible={false}
-								data-column-item="flexible"
-								data-card
-								data-scroll-container
-								open={open}
-								title={label}
-								emptyText='No Hyperliquid spot pairs.'
-								id={`${id}-list`}
-							/>
-						</section>
-					{/snippet}
-
-					{#snippet Pending()}
-						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
-							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
-								<span data-tag data-text="muted" data-resource-state="pending" class="loading inline-placeholder" aria-busy="true" aria-label="Loading…">•••</span>
-							</article>
-						</section>
-					{/snippet}
-
-					{#snippet Failed(_error, _retry)}
-						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
-							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
-								<span data-tag data-resource-state="failed" class="inline-placeholder" aria-label="Failed to load">•••</span>
-							</article>
-						</section>
-					{/snippet}
-				</ResourceBoundary>
-			{/snippet}
-
-			{#snippet MarkerHyperliquidPerpMarkets(_context, Content)}
-				{@const hyperliquidMarketsHyperliquidPerpMarketsResource = selection.$$perpMarkets}
-				<ResourceBoundary
-					resource={hyperliquidMarketsHyperliquidPerpMarketsResource}
-				>
-					{#snippet children(_resolved)}
-						{@render Content()}
-					{/snippet}
-
-					{#snippet PendingContent()}
-						{@render Content()}
-					{/snippet}
-
-					{#snippet FailedContent(_error, _retry)}
-						{@render Content()}
-					{/snippet}
-				</ResourceBoundary>
-			{/snippet}
-
-			{#snippet SectionHyperliquidPerpMarkets({ id, label, open, active })}
-				{@const hyperliquidMarketsHyperliquidPerpMarketsResource = selection.$$perpMarkets}
-				<ResourceBoundary
-					resource={hyperliquidMarketsHyperliquidPerpMarketsResource}
-				>
-					{#snippet children(hyperliquidPerpMarket)}
-						<section
-							id={id}
-							aria-labelledby={`${id}:marker`}
-							data-scroll-marker-label={label}
-							data-column-item="flexible"
-							data-column
-							data-active={active}
-						>
-							<HyperliquidPerpMarketsView
-								selection={hyperliquidMarketsHyperliquidPerpMarketsResource}
-								CollapsibleProps={{ canToggle: false }}
-								collapsible={false}
-								data-column-item="flexible"
-								data-card
-								data-scroll-container
-								open={open}
-								title={label}
-								emptyText='No Hyperliquid perp markets.'
-								id={`${id}-list`}
-							/>
-						</section>
-					{/snippet}
-
-					{#snippet Pending()}
-						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
-							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
-								<span data-tag data-text="muted" data-resource-state="pending" class="loading inline-placeholder" aria-busy="true" aria-label="Loading…">•••</span>
-							</article>
-						</section>
-					{/snippet}
-
-					{#snippet Failed(_error, _retry)}
-						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
-							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
-								<span data-tag data-resource-state="failed" class="inline-placeholder" aria-label="Failed to load">•••</span>
-							</article>
-						</section>
-					{/snippet}
-				</ResourceBoundary>
-			{/snippet}
-
-			{#snippet MarkerHyperliquidVaults(_context, Content)}
-				{@const hyperliquidMarketsHyperliquidVaultsResource = selection.$$vaults}
-				<ResourceBoundary
-					resource={hyperliquidMarketsHyperliquidVaultsResource}
-				>
-					{#snippet children(_resolved)}
-						{@render Content()}
-					{/snippet}
-
-					{#snippet PendingContent()}
-						{@render Content()}
-					{/snippet}
-
-					{#snippet FailedContent(_error, _retry)}
-						{@render Content()}
-					{/snippet}
-				</ResourceBoundary>
-			{/snippet}
-
-			{#snippet SectionHyperliquidVaults({ id, label, open, active })}
-				{@const hyperliquidMarketsHyperliquidVaultsResource = selection.$$vaults}
-				<ResourceBoundary
-					resource={hyperliquidMarketsHyperliquidVaultsResource}
-				>
-					{#snippet children(hyperliquidVault)}
-						<section
-							id={id}
-							aria-labelledby={`${id}:marker`}
-							data-scroll-marker-label={label}
-							data-column-item="flexible"
-							data-column
-							data-active={active}
-						>
-							<HyperliquidVaultsView
-								selection={hyperliquidMarketsHyperliquidVaultsResource}
-								CollapsibleProps={{ canToggle: false }}
-								collapsible={false}
-								data-column-item="flexible"
-								data-card
-								data-scroll-container
-								open={open}
-								title={label}
-								emptyText='No Hyperliquid vaults.'
-								id={`${id}-list`}
-							/>
-						</section>
-					{/snippet}
-
-					{#snippet Pending()}
-						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
-							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
-								<span data-tag data-text="muted" data-resource-state="pending" class="loading inline-placeholder" aria-busy="true" aria-label="Loading…">•••</span>
-							</article>
-						</section>
-					{/snippet}
-
-					{#snippet Failed(_error, _retry)}
-						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
-							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
-								<span data-tag data-resource-state="failed" class="inline-placeholder" aria-label="Failed to load">•••</span>
-							</article>
-						</section>
-					{/snippet}
-				</ResourceBoundary>
+			{#snippet SectionHyperliquidVaults({ id, label, open })}
+				<HyperliquidVaultsView
+					selection={selection.$$vaults}
+					CollapsibleProps={{ canToggle: false }}
+					collapsible={false}
+					data-column-item="flexible"
+					data-card
+					data-scroll-container
+					open={open}
+					title={label}
+					emptyText='No Hyperliquid vaults.'
+					id={`${id}-list`}
+				/>
 			{/snippet}
 
 		</CollapsibleTabs>

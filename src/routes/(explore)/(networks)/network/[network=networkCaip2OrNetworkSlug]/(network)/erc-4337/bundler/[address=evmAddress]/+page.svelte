@@ -8,14 +8,12 @@
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		data,
-		params,
 	}: PageProps = $props()
 
 	const pageSelection = $derived(select(EntityType.Erc4337Bundler, data.selector, {
@@ -32,18 +30,12 @@
 
 
 <svelte:head>
-	<title>{(data.title ?? (pageSelection.entity == null ? [String((data.selector.address) ?? '')].filter(Boolean).join(' ') || 'ERC-4337 bundler' : [String((({ ...data.selector, ...pageSelection.entity }).address) ?? '')].filter(Boolean).join(' ') || 'ERC-4337 bundler'))} • ERC-4337 bundler • Blockhead</title>
+	<title>{(data.title ?? (String(pageSelection.entitySelector.address) || 'ERC-4337 bundler'))} • ERC-4337 bundler • Blockhead</title>
 </svelte:head>
 
 
 <Page>
 	<Erc4337BundlerView
-		href={
-			resolve('/network/[network=networkCaip2OrNetworkSlug]/erc-4337/bundler/[address=evmAddress]', {
-				network: params.network,
-				address: params.address,
-			})
-		}
 		selection={pageSelection}
 	/>
 </Page>

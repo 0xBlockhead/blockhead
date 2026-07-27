@@ -2,13 +2,9 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -20,35 +16,21 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.KaspaNetwork_Timestamp>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.KaspaNetwork_Timestamp>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.KaspaNetwork_Timestamp> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const kaspaNetworkTimestamp = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {},
-	} : {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const viewSelection = $derived(selection({
+		sources: selection.sources ?? [
+			Source.KaspaExplorer_Rest,
+			Source.KaspaNode_Grpc,
+			Source.KaspaNode_Rest,
+			Source.KaspaNode_Wrpc,
+		],
 	}))
 	const titleFallback = 'kaspa network timestamp'
-	const viewDomId = $derived('kaspa-network-timestamp-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -62,24 +44,14 @@
 
 <EntityView
 	entityType={EntityType.KaspaNetwork_Timestamp}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails}
-			{title || titleFallback}
-		{:else}
-			<ResourceBoundary resource={kaspaNetworkTimestamp}>
-				{#snippet children(entity)}
-					{title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		kaspa network timestamp
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -98,55 +70,20 @@
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									timestampMs: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const timestampMs = resolvedEntity.timestampMs}
-							{#if timestampMs !== undefined && timestampMs !== null}
-								<Timestamp timestamp={Number(timestampMs)} />
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									source: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const source = resolvedEntity.source}
-							{#if source !== undefined && source !== null}
-								{String((source) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{pendingEntity.source}
 				</dd>
 			</div>
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							virtualDaaScore: true,
 						},
@@ -154,9 +91,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const virtualDaaScore = resolvedEntity.virtualDaaScore}
-					{#if virtualDaaScore !== undefined && virtualDaaScore !== null}
+					{@const virtualDaaScore = entity.virtualDaaScore}
+					{#if virtualDaaScore != null}
 						<div>
 							<dt>virtual daa score</dt>
 							<dd>
@@ -171,8 +107,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							virtualBlueScore: true,
 						},
@@ -180,9 +115,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const virtualBlueScore = resolvedEntity.virtualBlueScore}
-					{#if virtualBlueScore !== undefined && virtualBlueScore !== null}
+					{@const virtualBlueScore = entity.virtualBlueScore}
+					{#if virtualBlueScore != null}
 						<div>
 							<dt>virtual blue score</dt>
 							<dd>
@@ -197,8 +131,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							virtualSelectedParentHash: true,
 						},
@@ -206,13 +139,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const virtualSelectedParentHash = resolvedEntity.virtualSelectedParentHash}
-					{#if virtualSelectedParentHash !== undefined && virtualSelectedParentHash !== null}
+					{@const virtualSelectedParentHash = entity.virtualSelectedParentHash}
+					{#if virtualSelectedParentHash != null}
 						<div>
 							<dt>virtual selected parent hash</dt>
 							<dd>
-								<TruncatedValue value={String((virtualSelectedParentHash) ?? '')} />
+								<TruncatedValue value={virtualSelectedParentHash} />
 							</dd>
 						</div>
 					{/if}
@@ -223,8 +155,7 @@
 		<dl data-column-item="center">
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							pruningPointHash: true,
 						},
@@ -232,13 +163,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const pruningPointHash = resolvedEntity.pruningPointHash}
-					{#if pruningPointHash !== undefined && pruningPointHash !== null}
+					{@const pruningPointHash = entity.pruningPointHash}
+					{#if pruningPointHash != null}
 						<div>
 							<dt>pruning point hash</dt>
 							<dd>
-								<TruncatedValue value={String((pruningPointHash) ?? '')} />
+								<TruncatedValue value={pruningPointHash} />
 							</dd>
 						</div>
 					{/if}
@@ -247,8 +177,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							sinkCount: true,
 						},
@@ -256,9 +185,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const sinkCount = resolvedEntity.sinkCount}
-					{#if sinkCount !== undefined && sinkCount !== null}
+					{@const sinkCount = entity.sinkCount}
+					{#if sinkCount != null}
 						<div>
 							<dt>sink count</dt>
 							<dd>
@@ -273,8 +201,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							blockCount: true,
 						},
@@ -282,9 +209,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const blockCount = resolvedEntity.blockCount}
-					{#if blockCount !== undefined && blockCount !== null}
+					{@const blockCount = entity.blockCount}
+					{#if blockCount != null}
 						<div>
 							<dt>block count</dt>
 							<dd>
@@ -299,8 +225,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							transactionCount: true,
 						},
@@ -308,9 +233,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const transactionCount = resolvedEntity.transactionCount}
-					{#if transactionCount !== undefined && transactionCount !== null}
+					{@const transactionCount = entity.transactionCount}
+					{#if transactionCount != null}
 						<div>
 							<dt>transaction count</dt>
 							<dd>
@@ -325,8 +249,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							difficulty: true,
 						},
@@ -334,9 +257,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const difficulty = resolvedEntity.difficulty}
-					{#if difficulty !== undefined && difficulty !== null}
+					{@const difficulty = entity.difficulty}
+					{#if difficulty != null}
 						<div>
 							<dt>difficulty</dt>
 							<dd>
@@ -353,8 +275,7 @@
 		<dl data-column-item="center">
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							hasUtxoIndex: true,
 						},
@@ -362,9 +283,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const hasUtxoIndex = resolvedEntity.hasUtxoIndex}
-					{#if hasUtxoIndex !== undefined && hasUtxoIndex !== null}
+					{@const hasUtxoIndex = entity.hasUtxoIndex}
+					{#if hasUtxoIndex != null}
 						<div>
 							<dt>has UTXO index</dt>
 							<dd>
@@ -377,8 +297,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							serverVersion: true,
 						},
@@ -386,13 +305,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const serverVersion = resolvedEntity.serverVersion}
-					{#if serverVersion !== undefined && serverVersion !== null}
+					{@const serverVersion = entity.serverVersion}
+					{#if serverVersion != null}
 						<div>
 							<dt>server version</dt>
 							<dd>
-								{String((serverVersion) ?? '')}
+								{serverVersion}
 							</dd>
 						</div>
 					{/if}

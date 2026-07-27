@@ -1,15 +1,12 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { entity, facet } from '$/schema/$schema.ts'
+import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
-export enum SolanaBlockSelector {
-	Slot = 'Slot',
-}
-export const SolanaBlock = entity({
+export default entity({
 	entityType: EntityType.SolanaBlock,
 	labels: {
 		singular: 'solana block',
@@ -25,7 +22,7 @@ export const SolanaBlock = entity({
 	slot: {
 		label: 'Slot',
 		type: EntityFieldType.Primitive,
-		primitiveType: (type('bigint').narrow((value) => value >= 0n)),
+		primitiveType: type('bigint').narrow((value) => value >= 0n),
 		cardinality: EntityFieldCardinality.One,
 	},
 	blockHeight: {

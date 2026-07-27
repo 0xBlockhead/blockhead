@@ -2,13 +2,8 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -21,42 +16,24 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.ElementsAsset>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.ElementsAsset>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.ElementsAsset> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const elementsAsset = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {
-			name: true,
-			ticker: true,
-		},
-	} : {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const viewSelection = $derived(selection({
+		sources: selection.sources ?? [
+			Source.Esplora_Rest,
+		],
+	}))
+	const elementsAsset = $derived(viewSelection({
 		fields: {
 			name: true,
 			ticker: true,
 		},
 	}))
-	const titleFallback = $derived([String((pendingEntity.name) ?? ''), String((pendingEntity.ticker) ?? ''), String((pendingEntity.assetId) ?? '')].filter(Boolean).join(' ') || 'Elements asset')
-	const viewDomId = $derived('elements-asset-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const titleFallback = $derived([(pendingEntity.name ?? ''), (pendingEntity.ticker ?? ''), (pendingEntity.assetId ?? '')].filter(Boolean).join(' ') || 'Elements asset')
 
 
 	// Components
@@ -71,61 +48,32 @@
 
 <EntityView
 	entityType={EntityType.ElementsAsset}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'name') && Object.hasOwn(prefetched, 'ticker')}
-			{[String((pendingEntity.name) ?? ''), String((pendingEntity.ticker) ?? ''), String((pendingEntity.assetId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-		{:else}
-			<ResourceBoundary resource={elementsAsset}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.name) ?? ''), String((resolvedEntity.ticker) ?? ''), String((resolvedEntity.assetId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={elementsAsset}>
+			{#snippet children(entity)}
+				{[(entity.name ?? ''), (entity.ticker ?? ''), pendingEntity.assetId].filter(Boolean).join(' ') || title || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Value()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'name') && Object.hasOwn(prefetched, 'ticker')}
-			{[String((pendingEntity.ticker) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.name) ?? ''), String((pendingEntity.ticker) ?? ''), String((pendingEntity.assetId) ?? '')].filter(Boolean).join(' ') || titleFallback}
-		{:else}
-			<ResourceBoundary resource={elementsAsset}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.ticker) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.name) ?? ''), String((resolvedEntity.ticker) ?? ''), String((resolvedEntity.assetId) ?? '')].filter(Boolean).join(' ') || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={elementsAsset}>
+			{#snippet children(entity)}
+				{(entity.ticker ?? '') || [(entity.name ?? ''), (entity.ticker ?? ''), pendingEntity.assetId].filter(Boolean).join(' ') || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'name') && Object.hasOwn(prefetched, 'ticker')}
-			{@const assetId0 = pendingEntity.assetId}
-			{#if assetId0 !== undefined && assetId0 !== null}
-				<span data-text="muted">
-					<TruncatedValue value={String((assetId0) ?? '')} />
-				</span>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={elementsAsset}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const assetId0 = resolvedEntity.assetId}
-					{#if assetId0 !== undefined && assetId0 !== null}
-						<span data-text="muted">
-							<TruncatedValue value={String((assetId0) ?? '')} />
-						</span>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<span data-text="muted">
+			<TruncatedValue value={pendingEntity.assetId} />
+		</span>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -144,45 +92,20 @@
 			<div>
 				<dt>Asset ID</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									assetId: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const assetId = resolvedEntity.assetId}
-							{#if assetId !== undefined && assetId !== null}
-								<TruncatedValue value={String((assetId) ?? '')} />
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					<TruncatedValue value={pendingEntity.assetId} />
 				</dd>
 			</div>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							name: true,
-						},
-					})
-				}
+				resource={elementsAsset}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const name = resolvedEntity.name}
-					{#if name !== undefined && name !== null}
+					{@const name = entity.name}
+					{#if name != null}
 						<div>
 							<dt>Name</dt>
 							<dd>
-								{String((name) ?? '')}
+								{name}
 							</dd>
 						</div>
 					{/if}
@@ -190,23 +113,15 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							ticker: true,
-						},
-					})
-				}
+				resource={elementsAsset}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const ticker = resolvedEntity.ticker}
-					{#if ticker !== undefined && ticker !== null}
+					{@const ticker = entity.ticker}
+					{#if ticker != null}
 						<div>
 							<dt>Ticker</dt>
 							<dd>
-								{String((ticker) ?? '')}
+								{ticker}
 							</dd>
 						</div>
 					{/if}
@@ -215,8 +130,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							precision: true,
 						},
@@ -224,9 +138,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const precision = resolvedEntity.precision}
-					{#if precision !== undefined && precision !== null}
+					{@const precision = entity.precision}
+					{#if precision != null}
 						<div>
 							<dt>Precision</dt>
 							<dd>
@@ -243,8 +156,7 @@
 		<dl data-column-item="center">
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							entityDomain: true,
 						},
@@ -252,13 +164,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const entityDomain = resolvedEntity.entityDomain}
-					{#if entityDomain !== undefined && entityDomain !== null}
+					{@const entityDomain = entity.entityDomain}
+					{#if entityDomain != null}
 						<div>
 							<dt>Entity domain</dt>
 							<dd>
-								{String((entityDomain) ?? '')}
+								{entityDomain}
 							</dd>
 						</div>
 					{/if}
@@ -267,8 +178,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							hasBlindedIssuances: true,
 						},
@@ -276,9 +186,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const hasBlindedIssuances = resolvedEntity.hasBlindedIssuances}
-					{#if hasBlindedIssuances !== undefined && hasBlindedIssuances !== null}
+					{@const hasBlindedIssuances = entity.hasBlindedIssuances}
+					{#if hasBlindedIssuances != null}
 						<div>
 							<dt>Has blinded issuances</dt>
 							<dd>
@@ -291,8 +200,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							contractJson: true,
 						},
@@ -300,13 +208,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const contractJson = resolvedEntity.contractJson}
-					{#if contractJson !== undefined && contractJson !== null}
+					{@const contractJson = entity.contractJson}
+					{#if contractJson != null}
 						<div>
 							<dt>Contract JSON</dt>
 							<dd>
-								<span data-text="long-text">{String((contractJson) ?? '')}</span>
+								<span data-text="long-text">{contractJson}</span>
 							</dd>
 						</div>
 					{/if}
@@ -316,40 +223,35 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-				{@const elementsAssetElementsAssetTimestampsViewTimestampsResource = selection
-		.$$timestamps({
-			sources: [
-				Source.Esplora_Rest,
-			],
-		})}
-				<ResourceBoundary
-					resource={elementsAssetElementsAssetTimestampsViewTimestampsResource}
-				>
-					{#snippet children(entities)}
-						{#if entities.values.length > 0}
-						<ElementsAsset_TimestampsView
-							selection={elementsAssetElementsAssetTimestampsViewTimestampsResource}
-							countResource={elementsAssetElementsAssetTimestampsViewTimestampsResource.count}
-							title='Observations'
-							id='ElementsAsset_TimestampsView-timestamps'
-						/>
-						{/if}
-					{/snippet}
-				</ResourceBoundary>
-				{@const elementsAssetElementsIssuancesViewIssuancesResource = selection.$$issuances}
-				<ResourceBoundary
-					resource={elementsAssetElementsIssuancesViewIssuancesResource}
-				>
-					{#snippet children(entities)}
-						{#if entities.values.length > 0}
-						<ElementsIssuancesView
-							selection={elementsAssetElementsIssuancesViewIssuancesResource}
-							countResource={elementsAssetElementsIssuancesViewIssuancesResource.count}
-							title='Issuances'
-							id='ElementsIssuancesView-issuances'
-						/>
-						{/if}
-					{/snippet}
-				</ResourceBoundary>
+		{@const elementsAssetElementsAssetTimestampsViewTimestampsResource = selection.$$timestamps}
+		<ResourceBoundary
+			resource={elementsAssetElementsAssetTimestampsViewTimestampsResource}
+		>
+			{#snippet children(entities)}
+				{#if entities.values.length > 0}
+					<ElementsAsset_TimestampsView
+						selection={elementsAssetElementsAssetTimestampsViewTimestampsResource}
+						countResource={elementsAssetElementsAssetTimestampsViewTimestampsResource.count}
+						title='Observations'
+						id='timestamps'
+					/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
+		{@const elementsAssetElementsIssuancesViewIssuancesResource = selection.$$issuances}
+		<ResourceBoundary
+			resource={elementsAssetElementsIssuancesViewIssuancesResource}
+		>
+			{#snippet children(entities)}
+				{#if entities.values.length > 0}
+					<ElementsIssuancesView
+						selection={elementsAssetElementsIssuancesViewIssuancesResource}
+						countResource={elementsAssetElementsIssuancesViewIssuancesResource.count}
+						title='Issuances'
+						id='issuances'
+					/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 </EntityView>

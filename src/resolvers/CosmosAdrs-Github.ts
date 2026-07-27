@@ -11,9 +11,6 @@ import {
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
-import { _GlobalSelector } from '$/schema/_Global.ts'
-import { SpecificationProposalSelector } from '$/schema/SpecificationProposal.ts'
-
 const markdownTitle = (text: string) => text.match(/^#\s*(.+)$/m)?.[1]?.trim()
 
 const markdownStatus = (text: string) => (
@@ -45,7 +42,7 @@ export default {
 		defineResolver(Source.CosmosAdrs_Github, {
 			entityType: EntityType.SpecificationProposal,
 			resolve: {
-				[SpecificationProposalSelector.RealmCategoryNumber]: {
+				RealmCategoryNumber: {
 					appliesTo: [
 						{
 							realm: OwnedSpecificationRealm.Cosmos,
@@ -58,7 +55,9 @@ export default {
 							throw new Error('CosmosAdrs_Github: proposal resolver only supports Cosmos SDK ADRs')
 						}
 						const { getMarkdownText } = await import('$/sources/CosmosAdrs/Github/queries.ts')
-						const text = await getMarkdownText({ number: number })
+						const text = await getMarkdownText({
+							number: number,
+						})
 						return {
 							documentCategory: 'ADR',
 							documentTitle: markdownTitle(text),
@@ -78,7 +77,7 @@ export default {
 		defineResolver(Source.CosmosAdrs_Github, {
 			entityType: EntityType._Global,
 			resolve: {
-				[_GlobalSelector.Scope]: {
+				Scope: {
 					resolve: async () => {
 						const { getContents } = await import('$/sources/CosmosAdrs/Github/queries.ts')
 						return cosmosAdrRows(await getContents())

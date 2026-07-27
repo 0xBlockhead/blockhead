@@ -8,7 +8,6 @@
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
@@ -49,25 +48,12 @@
 
 
 <svelte:head>
-	<title>{(pageSelection.entity == null ? 'URL preview timestamp' : [String((({ ...{
-		$url: {
-			url: decodeURIComponent(params.url),
-		},
-		timestampMs: Number(params.timestampMs),
-		source: params.source,
-	}, ...pageSelection.entity }).title) ?? '')].filter(Boolean).join(' ') || 'URL preview timestamp')} • URL preview timestamp • Blockhead</title>
+	<title>{(pageSelection.entity == null ? 'URL preview timestamp' : (pageSelection.entity.title ?? '') || 'URL preview timestamp')} • URL preview timestamp • Blockhead</title>
 </svelte:head>
 
 
 <Page>
 	<UrlPreview_TimestampView
-		href={
-			resolve('/url/[url=absoluteUrl]/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
-				url: params.url,
-				timestampMs: params.timestampMs,
-				source: params.source,
-			})
-		}
 		selection={pageSelection}
 	/>
 </Page>

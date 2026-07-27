@@ -2,15 +2,10 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
-	import { caip2StringFromValue } from '$/lib/caip2.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -22,40 +17,23 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.BittensorBlock>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.BittensorBlock>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.BittensorBlock> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const bittensorBlock = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {
-			extrinsicCount: true,
-		},
-	} : {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const viewSelection = $derived(selection({
+		sources: selection.sources ?? [
+			Source.Bittensor_JsonRpc,
+		],
+	}))
+	const bittensorBlock = $derived(viewSelection({
 		fields: {
 			extrinsicCount: true,
 		},
 	}))
-	const titleFallback = $derived([String((pendingEntity.blockNumber) ?? '')].filter(Boolean).join(' ') || 'Bittensor block')
-	const viewDomId = $derived('bittensor-block-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const titleFallback = $derived(String(pendingEntity.blockNumber ?? '') || 'Bittensor block')
 
 
 	// Components
@@ -69,85 +47,37 @@
 
 <EntityView
 	entityType={EntityType.BittensorBlock}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'extrinsicCount')}
-			{@const blockNumber0 = pendingEntity.blockNumber}
-			{#if blockNumber0 !== undefined && blockNumber0 !== null}
-				<NumberValue
-					value={blockNumber0}
-				/>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={bittensorBlock}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const blockNumber0 = resolvedEntity.blockNumber}
-					{#if blockNumber0 !== undefined && blockNumber0 !== null}
-						<NumberValue
-							value={blockNumber0}
-						/>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<NumberValue
+			value={pendingEntity.blockNumber}
+		/>
 	{/snippet}
 
 	{#snippet Value()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'extrinsicCount')}
-			{@const hash0 = pendingEntity.hash}
-			{#if hash0 !== undefined && hash0 !== null}
-				<TruncatedValue value={String((hash0) ?? '')} />
-			{/if}
-		{:else}
-			<ResourceBoundary resource={bittensorBlock}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const hash0 = resolvedEntity.hash}
-					{#if hash0 !== undefined && hash0 !== null}
-						<TruncatedValue value={String((hash0) ?? '')} />
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<TruncatedValue value={pendingEntity.hash} />
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'extrinsicCount')}
-			{@const extrinsicCount0 = pendingEntity.extrinsicCount}
-			{#if extrinsicCount0 !== undefined && extrinsicCount0 !== null}
-				<span data-text="muted">
-					<NumberValue
-						value={extrinsicCount0}
-					/>
+		<ResourceBoundary resource={bittensorBlock}>
+			{#snippet children(entity)}
+				{@const extrinsicCount0 = entity.extrinsicCount}
+				{#if extrinsicCount0 != null}
+					<span data-text="muted">
+						<NumberValue
+							value={extrinsicCount0}
+						/>
 
-					<span> extrinsics</span>
-				</span>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={bittensorBlock}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const extrinsicCount0 = resolvedEntity.extrinsicCount}
-					{#if extrinsicCount0 !== undefined && extrinsicCount0 !== null}
-						<span data-text="muted">
-							<NumberValue
-								value={extrinsicCount0}
-							/>
-
-							<span> extrinsics</span>
-						</span>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+						<span> extrinsics</span>
+					</span>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -157,23 +87,6 @@
 				<dd>
 					<NetworkView
 						selection={select(EntityType.Network, selection.entitySelector.$network)}
-						href={
-							(
-								selection.entitySelector.$network != null && 'caip2' in selection.entitySelector.$network
-								&& selection.entitySelector.$network.caip2 != null ?
-									resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-								network: String(caip2StringFromValue(selection.entitySelector.$network.caip2) ?? ''),
-							})
-							:
-									selection.entitySelector.$network != null && 'slug' in selection.entitySelector.$network
-									&& selection.entitySelector.$network.slug != null ?
-										resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-									network: String(selection.entitySelector.$network.slug ?? ''),
-								})
-								:
-									undefined
-							)
-						}
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -183,50 +96,16 @@
 			<div>
 				<dt>Block number</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									blockNumber: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const blockNumber = resolvedEntity.blockNumber}
-							{#if blockNumber !== undefined && blockNumber !== null}
-								<NumberValue
-									value={blockNumber}
-								/>
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					<NumberValue
+						value={pendingEntity.blockNumber}
+					/>
 				</dd>
 			</div>
 
 			<div>
 				<dt>Hash</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									hash: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const hash = resolvedEntity.hash}
-							{#if hash !== undefined && hash !== null}
-								<TruncatedValue value={String((hash) ?? '')} />
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					<TruncatedValue value={pendingEntity.hash} />
 				</dd>
 			</div>
 
@@ -234,7 +113,7 @@
 				resource={selection.$parent}
 			>
 				{#snippet children(bittensorBlock)}
-					{#if bittensorBlock != null && bittensorBlock[EntityMetaKey.Selector] != null}
+					{#if bittensorBlock != null}
 						<div>
 							<dt>Parent</dt>
 							<dd>
@@ -254,8 +133,7 @@
 		<dl data-column-item="center">
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							stateRoot: true,
 						},
@@ -263,13 +141,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const stateRoot = resolvedEntity.stateRoot}
-					{#if stateRoot !== undefined && stateRoot !== null}
+					{@const stateRoot = entity.stateRoot}
+					{#if stateRoot != null}
 						<div>
 							<dt>State root</dt>
 							<dd>
-								<TruncatedValue value={String((stateRoot) ?? '')} />
+								<TruncatedValue value={stateRoot} />
 							</dd>
 						</div>
 					{/if}
@@ -278,8 +155,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							extrinsicsRoot: true,
 						},
@@ -287,13 +163,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const extrinsicsRoot = resolvedEntity.extrinsicsRoot}
-					{#if extrinsicsRoot !== undefined && extrinsicsRoot !== null}
+					{@const extrinsicsRoot = entity.extrinsicsRoot}
+					{#if extrinsicsRoot != null}
 						<div>
 							<dt>Extrinsics root</dt>
 							<dd>
-								<TruncatedValue value={String((extrinsicsRoot) ?? '')} />
+								<TruncatedValue value={extrinsicsRoot} />
 							</dd>
 						</div>
 					{/if}
@@ -301,19 +176,11 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							extrinsicCount: true,
-						},
-					})
-				}
+				resource={bittensorBlock}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const extrinsicCount = resolvedEntity.extrinsicCount}
-					{#if extrinsicCount !== undefined && extrinsicCount !== null}
+					{@const extrinsicCount = entity.extrinsicCount}
+					{#if extrinsicCount != null}
 						<div>
 							<dt>Extrinsics</dt>
 							<dd>

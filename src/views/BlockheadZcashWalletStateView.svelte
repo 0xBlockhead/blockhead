@@ -2,15 +2,11 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { stringify } from 'devalue'
-	import { caip2StringFromValue } from '$/lib/caip2.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -22,40 +18,27 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.BlockheadZcashWalletState>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.BlockheadZcashWalletState>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.BlockheadZcashWalletState> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const blockheadZcashWalletState = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {
-			unifiedAddress: true,
-		},
-	} : {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const viewSelection = $derived(selection({
+		sources: selection.sources ?? [
+			Source.Local_Internal,
+			Source.ZcashClientBackend_Local,
+			Source.ZcashLightwalletd_Grpc,
+			Source.ZcashdWallet_JsonRpc,
+		],
+	}))
+	const blockheadZcashWalletState = $derived(viewSelection({
 		fields: {
 			unifiedAddress: true,
 		},
 	}))
-	const titleFallback = $derived([String((pendingEntity.walletId) ?? '')].filter(Boolean).join(' ') || 'blockhead zcash wallet state')
-	const viewDomId = $derived('blockhead-zcash-wallet-state-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const titleFallback = $derived((pendingEntity.walletId ?? '') || 'blockhead zcash wallet state')
+	const viewDomId = $derived('blockhead-zcash-wallet-state-' + encodeURIComponent(stringify(selection.entitySelector)))
 
 
 	// Components
@@ -74,41 +57,29 @@
 
 <EntityView
 	entityType={EntityType.BlockheadZcashWalletState}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
+	entitySelector={selection.entitySelector}
 	id={viewDomId}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={blockheadZcashWalletState}>
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.walletId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{(pendingEntity.walletId ?? '') || 'blockhead zcash wallet state'}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={blockheadZcashWalletState}>
-			{#snippet children(entity)}
-				<ResourceBoundary
-					resource={selection.$network}
-				>
-					{#snippet children(network)}
-						{#if network != null && network[EntityMetaKey.Selector] != null}
-						<NetworkView
-							selection={select(EntityType.Network, network[EntityMetaKey.Selector])}
-							prefetched={network}
-							href=""
-							layout={EntityLayout.Value}
-							open={false}
-						/>
-						{/if}
-					{/snippet}
-				</ResourceBoundary>
+		<ResourceBoundary
+			resource={selection.$network}
+		>
+			{#snippet children(network)}
+				<NetworkView
+					selection={select(EntityType.Network, network[EntityMetaKey.Selector])}
+					prefetched={network}
+					href=""
+					layout={EntityLayout.Value}
+					open={false}
+				/>
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -116,11 +87,10 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={blockheadZcashWalletState}>
 			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const unifiedAddress0 = resolvedEntity.unifiedAddress}
-				{#if unifiedAddress0 !== undefined && unifiedAddress0 !== null}
+				{@const unifiedAddress0 = entity.unifiedAddress}
+				{#if unifiedAddress0 != null}
 					<span data-text="muted">
-						<TruncatedValue value={String((unifiedAddress0) ?? '')} />
+						<TruncatedValue value={unifiedAddress0} />
 					</span>
 				{/if}
 			{/snippet}
@@ -132,24 +102,7 @@
 			<div>
 				<dt>wallet ID</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									walletId: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const walletId = resolvedEntity.walletId}
-							{#if walletId !== undefined && walletId !== null}
-								{String((walletId) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{pendingEntity.walletId}
 				</dd>
 			</div>
 
@@ -157,7 +110,7 @@
 				resource={selection.$wallet}
 			>
 				{#snippet children(blockheadWallet)}
-					{#if blockheadWallet != null && blockheadWallet[EntityMetaKey.Selector] != null}
+					{#if blockheadWallet != null}
 						<div>
 							<dt>wallet</dt>
 							<dd>
@@ -180,31 +133,12 @@
 						resource={selection.$network}
 					>
 						{#snippet children(network)}
-							{#if network != null && network[EntityMetaKey.Selector] != null}
-								<NetworkView
-									selection={select(EntityType.Network, network[EntityMetaKey.Selector])}
-									prefetched={network}
-									href={
-										(
-											network[EntityMetaKey.Selector] != null && 'caip2' in network[EntityMetaKey.Selector]
-											&& network[EntityMetaKey.Selector].caip2 != null ?
-												resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-											network: String(caip2StringFromValue(network[EntityMetaKey.Selector].caip2) ?? ''),
-										})
-										:
-												network[EntityMetaKey.Selector] != null && 'slug' in network[EntityMetaKey.Selector]
-												&& network[EntityMetaKey.Selector].slug != null ?
-													resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-												network: String(network[EntityMetaKey.Selector].slug ?? ''),
-											})
-											:
-												undefined
-										)
-									}
-									layout={EntityLayout.Value}
-									open={false}
-								/>
-							{/if}
+							<NetworkView
+								selection={select(EntityType.Network, network[EntityMetaKey.Selector])}
+								prefetched={network}
+								layout={EntityLayout.Value}
+								open={false}
+							/>
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -212,8 +146,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							accountIndex: true,
 						},
@@ -221,9 +154,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const accountIndex = resolvedEntity.accountIndex}
-					{#if accountIndex !== undefined && accountIndex !== null}
+					{@const accountIndex = entity.accountIndex}
+					{#if accountIndex != null}
 						<div>
 							<dt>account index</dt>
 							<dd>
@@ -239,23 +171,15 @@
 
 		<dl data-column-item="center">
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							unifiedAddress: true,
-						},
-					})
-				}
+				resource={blockheadZcashWalletState}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const unifiedAddress = resolvedEntity.unifiedAddress}
-					{#if unifiedAddress !== undefined && unifiedAddress !== null}
+					{@const unifiedAddress = entity.unifiedAddress}
+					{#if unifiedAddress != null}
 						<div>
 							<dt>unified address</dt>
 							<dd>
-								<TruncatedValue value={String((unifiedAddress) ?? '')} />
+								<TruncatedValue value={unifiedAddress} />
 							</dd>
 						</div>
 					{/if}
@@ -264,8 +188,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							transparentAddress: true,
 						},
@@ -273,13 +196,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const transparentAddress = resolvedEntity.transparentAddress}
-					{#if transparentAddress !== undefined && transparentAddress !== null}
+					{@const transparentAddress = entity.transparentAddress}
+					{#if transparentAddress != null}
 						<div>
 							<dt>transparent address</dt>
 							<dd>
-								<TruncatedValue value={String((transparentAddress) ?? '')} />
+								<TruncatedValue value={transparentAddress} />
 							</dd>
 						</div>
 					{/if}
@@ -288,8 +210,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							saplingAddress: true,
 						},
@@ -297,13 +218,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const saplingAddress = resolvedEntity.saplingAddress}
-					{#if saplingAddress !== undefined && saplingAddress !== null}
+					{@const saplingAddress = entity.saplingAddress}
+					{#if saplingAddress != null}
 						<div>
 							<dt>sapling address</dt>
 							<dd>
-								<TruncatedValue value={String((saplingAddress) ?? '')} />
+								<TruncatedValue value={saplingAddress} />
 							</dd>
 						</div>
 					{/if}
@@ -312,8 +232,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							orchardAddress: true,
 						},
@@ -321,13 +240,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const orchardAddress = resolvedEntity.orchardAddress}
-					{#if orchardAddress !== undefined && orchardAddress !== null}
+					{@const orchardAddress = entity.orchardAddress}
+					{#if orchardAddress != null}
 						<div>
 							<dt>orchard address</dt>
 							<dd>
-								<TruncatedValue value={String((orchardAddress) ?? '')} />
+								<TruncatedValue value={orchardAddress} />
 							</dd>
 						</div>
 					{/if}
@@ -338,8 +256,7 @@
 		<dl data-column-item="center">
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							birthdayHeight: true,
 						},
@@ -347,9 +264,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const birthdayHeight = resolvedEntity.birthdayHeight}
-					{#if birthdayHeight !== undefined && birthdayHeight !== null}
+					{@const birthdayHeight = entity.birthdayHeight}
+					{#if birthdayHeight != null}
 						<div>
 							<dt>birthday height</dt>
 							<dd>
@@ -373,12 +289,10 @@
 					{
 						id: 'zcash-viewing-keys',
 						label: 'Viewing keys',
-						ownsSection: true,
 					},
 					{
 						id: 'zcash-notes',
 						label: 'Notes',
-						ownsSection: true,
 					},
 				]
 			}
@@ -391,136 +305,34 @@
 				</header>
 			{/snippet}
 
-			{#snippet MarkerZcashViewingKeys(_context, Content)}
-				{@const zcashWalletKeysNotesZcashViewingKeysResource = selection.$$viewingKeys}
-				<ResourceBoundary
-					resource={zcashWalletKeysNotesZcashViewingKeysResource}
-				>
-					{#snippet children(_resolved)}
-						{@render Content()}
-					{/snippet}
-
-					{#snippet PendingContent()}
-						{@render Content()}
-					{/snippet}
-
-					{#snippet FailedContent(_error, _retry)}
-						{@render Content()}
-					{/snippet}
-				</ResourceBoundary>
+			{#snippet SectionZcashViewingKeys({ id, label, open })}
+				<BlockheadZcashViewingKeysView
+					selection={selection.$$viewingKeys}
+					CollapsibleProps={{ canToggle: false }}
+					collapsible={false}
+					data-column-item="flexible"
+					data-card
+					data-scroll-container
+					open={open}
+					title={label}
+					emptyText='No Zcash viewing keys.'
+					id={`${id}-list`}
+				/>
 			{/snippet}
 
-			{#snippet SectionZcashViewingKeys({ id, label, open, active })}
-				{@const zcashWalletKeysNotesZcashViewingKeysResource = selection.$$viewingKeys}
-				<ResourceBoundary
-					resource={zcashWalletKeysNotesZcashViewingKeysResource}
-				>
-					{#snippet children(blockheadZcashViewingKey)}
-						<section
-							id={id}
-							aria-labelledby={`${id}:marker`}
-							data-scroll-marker-label={label}
-							data-column-item="flexible"
-							data-column
-							data-active={active}
-						>
-							<BlockheadZcashViewingKeysView
-								selection={zcashWalletKeysNotesZcashViewingKeysResource}
-								CollapsibleProps={{ canToggle: false }}
-								collapsible={false}
-								data-column-item="flexible"
-								data-card
-								data-scroll-container
-								open={open}
-								title={label}
-								emptyText='No Zcash viewing keys.'
-								id={`${id}-list`}
-							/>
-						</section>
-					{/snippet}
-
-					{#snippet Pending()}
-						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
-							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
-								<span data-tag data-text="muted" data-resource-state="pending" class="loading inline-placeholder" aria-busy="true" aria-label="Loading…">•••</span>
-							</article>
-						</section>
-					{/snippet}
-
-					{#snippet Failed(_error, _retry)}
-						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
-							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
-								<span data-tag data-resource-state="failed" class="inline-placeholder" aria-label="Failed to load">•••</span>
-							</article>
-						</section>
-					{/snippet}
-				</ResourceBoundary>
-			{/snippet}
-
-			{#snippet MarkerZcashNotes(_context, Content)}
-				{@const zcashWalletKeysNotesZcashNotesResource = selection.$$notes}
-				<ResourceBoundary
-					resource={zcashWalletKeysNotesZcashNotesResource}
-				>
-					{#snippet children(_resolved)}
-						{@render Content()}
-					{/snippet}
-
-					{#snippet PendingContent()}
-						{@render Content()}
-					{/snippet}
-
-					{#snippet FailedContent(_error, _retry)}
-						{@render Content()}
-					{/snippet}
-				</ResourceBoundary>
-			{/snippet}
-
-			{#snippet SectionZcashNotes({ id, label, open, active })}
-				{@const zcashWalletKeysNotesZcashNotesResource = selection.$$notes}
-				<ResourceBoundary
-					resource={zcashWalletKeysNotesZcashNotesResource}
-				>
-					{#snippet children(blockheadZcashNoteState)}
-						<section
-							id={id}
-							aria-labelledby={`${id}:marker`}
-							data-scroll-marker-label={label}
-							data-column-item="flexible"
-							data-column
-							data-active={active}
-						>
-							<BlockheadZcashNoteStatesView
-								selection={zcashWalletKeysNotesZcashNotesResource}
-								CollapsibleProps={{ canToggle: false }}
-								collapsible={false}
-								data-column-item="flexible"
-								data-card
-								data-scroll-container
-								open={open}
-								title={label}
-								emptyText='No Zcash notes.'
-								id={`${id}-list`}
-							/>
-						</section>
-					{/snippet}
-
-					{#snippet Pending()}
-						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
-							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
-								<span data-tag data-text="muted" data-resource-state="pending" class="loading inline-placeholder" aria-busy="true" aria-label="Loading…">•••</span>
-							</article>
-						</section>
-					{/snippet}
-
-					{#snippet Failed(_error, _retry)}
-						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
-							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
-								<span data-tag data-resource-state="failed" class="inline-placeholder" aria-label="Failed to load">•••</span>
-							</article>
-						</section>
-					{/snippet}
-				</ResourceBoundary>
+			{#snippet SectionZcashNotes({ id, label, open })}
+				<BlockheadZcashNoteStatesView
+					selection={selection.$$notes}
+					CollapsibleProps={{ canToggle: false }}
+					collapsible={false}
+					data-column-item="flexible"
+					data-card
+					data-scroll-container
+					open={open}
+					title={label}
+					emptyText='No Zcash notes.'
+					id={`${id}-list`}
+				/>
 			{/snippet}
 
 		</CollapsibleTabs>
@@ -533,7 +345,6 @@
 					{
 						id: 'zcash-wallet-timestamps',
 						label: 'Observations',
-						ownsSection: true,
 					},
 				]
 			}
@@ -546,70 +357,19 @@
 				</header>
 			{/snippet}
 
-			{#snippet MarkerZcashWalletTimestamps(_context, Content)}
-				{@const zcashWalletObservationsZcashWalletTimestampsResource = selection.$$timestamps}
-				<ResourceBoundary
-					resource={zcashWalletObservationsZcashWalletTimestampsResource}
-				>
-					{#snippet children(_resolved)}
-						{@render Content()}
-					{/snippet}
-
-					{#snippet PendingContent()}
-						{@render Content()}
-					{/snippet}
-
-					{#snippet FailedContent(_error, _retry)}
-						{@render Content()}
-					{/snippet}
-				</ResourceBoundary>
-			{/snippet}
-
-			{#snippet SectionZcashWalletTimestamps({ id, label, open, active })}
-				{@const zcashWalletObservationsZcashWalletTimestampsResource = selection.$$timestamps}
-				<ResourceBoundary
-					resource={zcashWalletObservationsZcashWalletTimestampsResource}
-				>
-					{#snippet children(blockheadZcashWalletStateTimestamp)}
-						<section
-							id={id}
-							aria-labelledby={`${id}:marker`}
-							data-scroll-marker-label={label}
-							data-column-item="flexible"
-							data-column
-							data-active={active}
-						>
-							<BlockheadZcashWalletState_TimestampsView
-								selection={zcashWalletObservationsZcashWalletTimestampsResource}
-								CollapsibleProps={{ canToggle: false }}
-								collapsible={false}
-								data-column-item="flexible"
-								data-card
-								data-scroll-container
-								open={open}
-								title={label}
-								emptyText='No Zcash wallet observations.'
-								id={`${id}-list`}
-							/>
-						</section>
-					{/snippet}
-
-					{#snippet Pending()}
-						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
-							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
-								<span data-tag data-text="muted" data-resource-state="pending" class="loading inline-placeholder" aria-busy="true" aria-label="Loading…">•••</span>
-							</article>
-						</section>
-					{/snippet}
-
-					{#snippet Failed(_error, _retry)}
-						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
-							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
-								<span data-tag data-resource-state="failed" class="inline-placeholder" aria-label="Failed to load">•••</span>
-							</article>
-						</section>
-					{/snippet}
-				</ResourceBoundary>
+			{#snippet SectionZcashWalletTimestamps({ id, label, open })}
+				<BlockheadZcashWalletState_TimestampsView
+					selection={selection.$$timestamps}
+					CollapsibleProps={{ canToggle: false }}
+					collapsible={false}
+					data-column-item="flexible"
+					data-card
+					data-scroll-container
+					open={open}
+					title={label}
+					emptyText='No Zcash wallet observations.'
+					id={`${id}-list`}
+				/>
 			{/snippet}
 
 		</CollapsibleTabs>

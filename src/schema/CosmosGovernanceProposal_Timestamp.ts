@@ -1,14 +1,11 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { entity, facet } from '$/schema/$schema.ts'
+import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { type } from 'arktype'
 
-export enum CosmosGovernanceProposal_TimestampSelector {
-	ProposalTimestampMsSource = 'ProposalTimestampMsSource',
-}
-export const CosmosGovernanceProposal_Timestamp = entity({
+export default entity({
 	entityType: EntityType.CosmosGovernanceProposal_Timestamp,
 	labels: {
 		singular: 'Cosmos governance proposal timestamp',
@@ -25,7 +22,7 @@ export const CosmosGovernanceProposal_Timestamp = entity({
 		label: 'Timestamp',
 		description: 'The observation time in Unix milliseconds.',
 		type: EntityFieldType.Primitive,
-		primitiveType: (type('number.integer >= 0')),
+		primitiveType: type('number.integer >= 0'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	source: {

@@ -1,9 +1,13 @@
-import { getJson } from '$/lib/http.ts'
+
 import {
-	pipedApiDefaultOrigin,
-	pipedApiOrigins,
-} from '$/sources/Piped/Rest/constants.ts'
+	firstHttpUrlForBinding,
+	sourceGetJson,
+} from '$/sources/_runtime/http.ts'
 import type { SourcePublicEnv } from '$/sources/$sources.ts'
+import bindings from '$/sources/Piped/bindings.ts'
+import { Source } from '$/sources/Source.ts'
+
+const binding = bindings[Source.Piped_Rest]
 
 const toQuery = (params: Record<string, string | undefined>) => {
 	const sp = new URLSearchParams()
@@ -20,8 +24,8 @@ export const pipedApiGet = async <T>(
 	path: `/${string}`,
 	params?: Record<string, string | undefined>
 ): Promise<T> => (
-	getJson<T>(
-		`${pipedApiDefaultOrigin}${path}${toQuery(params ?? {})}`,
-		{ origins: pipedApiOrigins }
+	sourceGetJson<T>(
+		binding,
+		`${firstHttpUrlForBinding(binding)}${path}${toQuery(params ?? {})}`
 	)
 )

@@ -2,14 +2,10 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
 	import { ZeroExHex } from '$/schema/ZeroExHex.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -21,42 +17,28 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.EasAttestation_Timestamp>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.EasAttestation_Timestamp>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.EasAttestation_Timestamp> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const easAttestationTimestamp = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {
-			valid: true,
-			revoked: true,
-		},
-	} : {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const viewSelection = $derived(selection({
+		sources: selection.sources ?? [
+			Source.Blockscout_Rest,
+			Source.EasContracts_Evm,
+			Source.EasScan_Graphql,
+			Source.Etherscan_Rest,
+			Source.Voltaire_JsonRpc,
+		],
+	}))
+	const easAttestationTimestamp = $derived(viewSelection({
 		fields: {
 			valid: true,
 			revoked: true,
 		},
 	}))
-	const titleFallback = $derived([String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || 'EAS attestation timestamp')
-	const viewDomId = $derived('eas-attestation-timestamp-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const titleFallback = $derived(String(pendingEntity.timestampMs ?? '') || 'EAS attestation timestamp')
 
 
 	// Components
@@ -70,67 +52,35 @@
 
 <EntityView
 	entityType={EntityType.EasAttestation_Timestamp}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'valid') && Object.hasOwn(prefetched, 'revoked')}
-			{@const timestampMs0 = pendingEntity.timestampMs}
-			{#if timestampMs0 !== undefined && timestampMs0 !== null}
-				<Timestamp timestamp={Number(timestampMs0)} />
-			{/if}
-		{:else}
-			<ResourceBoundary resource={easAttestationTimestamp}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const timestampMs0 = resolvedEntity.timestampMs}
-					{#if timestampMs0 !== undefined && timestampMs0 !== null}
-						<Timestamp timestamp={Number(timestampMs0)} />
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
 	{/snippet}
 
 	{#snippet Value()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'valid') && Object.hasOwn(prefetched, 'revoked')}
-			{[String((pendingEntity.valid) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || titleFallback}
-		{:else}
-			<ResourceBoundary resource={easAttestationTimestamp}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.valid) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={easAttestationTimestamp}>
+			{#snippet children(entity)}
+				{String(entity.valid ?? '') || String(pendingEntity.timestampMs) || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'valid') && Object.hasOwn(prefetched, 'revoked')}
-			{@const revoked0 = pendingEntity.revoked}
-			{#if revoked0 !== undefined && revoked0 !== null}
-				<span data-text="muted">
-					{revoked0 ? 'Yes' : 'No'}
-				</span>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={easAttestationTimestamp}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const revoked0 = resolvedEntity.revoked}
-					{#if revoked0 !== undefined && revoked0 !== null}
-						<span data-text="muted">
-							{revoked0 ? 'Yes' : 'No'}
-						</span>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={easAttestationTimestamp}>
+			{#snippet children(entity)}
+				{@const revoked0 = entity.revoked}
+				{#if revoked0 != null}
+					<span data-text="muted">
+						{revoked0 ? 'Yes' : 'No'}
+					</span>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -149,65 +99,23 @@
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									timestampMs: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const timestampMs = resolvedEntity.timestampMs}
-							{#if timestampMs !== undefined && timestampMs !== null}
-								<Timestamp timestamp={Number(timestampMs)} />
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									source: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const source = resolvedEntity.source}
-							{#if source !== undefined && source !== null}
-								{String((source) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{pendingEntity.source}
 				</dd>
 			</div>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							valid: true,
-						},
-					})
-				}
+				resource={easAttestationTimestamp}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const valid = resolvedEntity.valid}
-					{#if valid !== undefined && valid !== null}
+					{@const valid = entity.valid}
+					{#if valid != null}
 						<div>
 							<dt>Valid</dt>
 							<dd>
@@ -219,19 +127,11 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							revoked: true,
-						},
-					})
-				}
+				resource={easAttestationTimestamp}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const revoked = resolvedEntity.revoked}
-					{#if revoked !== undefined && revoked !== null}
+					{@const revoked = entity.revoked}
+					{#if revoked != null}
 						<div>
 							<dt>Revoked</dt>
 							<dd>
@@ -244,8 +144,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							expired: true,
 						},
@@ -253,9 +152,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const expired = resolvedEntity.expired}
-					{#if expired !== undefined && expired !== null}
+					{@const expired = entity.expired}
+					{#if expired != null}
 						<div>
 							<dt>Expired</dt>
 							<dd>
@@ -268,8 +166,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							revocationTime: true,
 						},
@@ -277,9 +174,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const revocationTime = resolvedEntity.revocationTime}
-					{#if revocationTime !== undefined && revocationTime !== null}
+					{@const revocationTime = entity.revocationTime}
+					{#if revocationTime != null}
 						<div>
 							<dt>Revocation time</dt>
 							<dd>
@@ -294,8 +190,7 @@
 		<dl data-column-item="center">
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							blockNumber: true,
 						},
@@ -303,9 +198,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const blockNumber = resolvedEntity.blockNumber}
-					{#if blockNumber !== undefined && blockNumber !== null}
+					{@const blockNumber = entity.blockNumber}
+					{#if blockNumber != null}
 						<div>
 							<dt>Block number</dt>
 							<dd>
@@ -320,8 +214,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							transactionHash: true,
 						},
@@ -329,13 +222,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const transactionHash = resolvedEntity.transactionHash}
-					{#if transactionHash !== undefined && transactionHash !== null}
+					{@const transactionHash = entity.transactionHash}
+					{#if transactionHash != null}
 						<div>
 							<dt>Transaction hash</dt>
 							<dd>
-								<TruncatedValue value={String((transactionHash) ?? '')} />
+								<TruncatedValue value={String(transactionHash)} />
 							</dd>
 						</div>
 					{/if}
@@ -344,8 +236,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							logIndex: true,
 						},
@@ -353,9 +244,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const logIndex = resolvedEntity.logIndex}
-					{#if logIndex !== undefined && logIndex !== null}
+					{@const logIndex = entity.logIndex}
+					{#if logIndex != null}
 						<div>
 							<dt>Log index</dt>
 							<dd>
@@ -370,8 +260,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							revokedTransactionHash: true,
 						},
@@ -379,13 +268,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const revokedTransactionHash = resolvedEntity.revokedTransactionHash}
-					{#if revokedTransactionHash !== undefined && revokedTransactionHash !== null}
+					{@const revokedTransactionHash = entity.revokedTransactionHash}
+					{#if revokedTransactionHash != null}
 						<div>
 							<dt>Revoked transaction hash</dt>
 							<dd>
-								<TruncatedValue value={String((revokedTransactionHash) ?? '')} />
+								<TruncatedValue value={String(revokedTransactionHash)} />
 							</dd>
 						</div>
 					{/if}
@@ -394,8 +282,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							revokedLogIndex: true,
 						},
@@ -403,9 +290,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const revokedLogIndex = resolvedEntity.revokedLogIndex}
-					{#if revokedLogIndex !== undefined && revokedLogIndex !== null}
+					{@const revokedLogIndex = entity.revokedLogIndex}
+					{#if revokedLogIndex != null}
 						<div>
 							<dt>Revoked log index</dt>
 							<dd>

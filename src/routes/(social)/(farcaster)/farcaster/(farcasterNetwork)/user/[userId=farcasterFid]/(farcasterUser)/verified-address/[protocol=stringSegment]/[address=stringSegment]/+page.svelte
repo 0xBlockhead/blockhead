@@ -7,7 +7,6 @@
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
@@ -36,27 +35,12 @@
 
 
 <svelte:head>
-	<title>{(pageSelection.entity == null ? [String(({
-		fid: Number(params.userId),
-		protocol: params.protocol,
-		address: params.address,
-	}.address) ?? '')].filter(Boolean).join(' ') || 'Farcaster verified address' : [String((({ ...{
-		fid: Number(params.userId),
-		protocol: params.protocol,
-		address: params.address,
-	}, ...pageSelection.entity }).address) ?? '')].filter(Boolean).join(' ') || 'Farcaster verified address')} • Farcaster verified address • Blockhead</title>
+	<title>{(pageSelection.entitySelector.address || 'Farcaster verified address')} • Farcaster verified address • Blockhead</title>
 </svelte:head>
 
 
 <Page>
 	<FarcasterVerifiedAddressView
-		href={
-			resolve('/farcaster/user/[userId=farcasterFid]/verified-address/[protocol=stringSegment]/[address=stringSegment]', {
-				userId: params.userId,
-				protocol: params.protocol,
-				address: params.address,
-			})
-		}
 		selection={pageSelection}
 	/>
 </Page>

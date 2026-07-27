@@ -5,7 +5,7 @@ import { error } from '@sveltejs/kit'
 import { networkByCaip2, networkBySlug } from '$/constants/Network.ts'
 import { match as matchStringSegment } from '$/params/stringSegment.ts'
 import { parseEntitySelector } from '$/schema/$schema.ts'
-import { FilecoinActor as FilecoinActorSchema } from '$/schema/FilecoinActor.ts'
+import FilecoinActorSchema from '$/schema/FilecoinActor.ts'
 import { schema } from '$/schema/index.ts'
 import { type as arktype } from 'arktype'
 
@@ -16,7 +16,7 @@ export const load: LayoutLoad = async ({ params, parent }) => {
 	const projectionNetwork = (Object.getOwnPropertyDescriptor(networkByCaip2, decodeURIComponent(params.network))?.value ?? Object.getOwnPropertyDescriptor(networkBySlug, params.network)?.value)
 	if (projectionNetwork == null) error(404, 'Network projection context not found')
 
-	if (!((projectionNetwork.namespace === 'Filecoin' && projectionNetwork.namespace === 'Filecoin') && matchStringSegment(params.address))) error(404, 'Route mapping not applicable')
+	if (!(projectionNetwork.namespace === 'Filecoin' && matchStringSegment(params.address))) error(404, 'Route mapping not applicable')
 
 	const filecoinActorNetworkAddressSelector = parseEntitySelector(
 		schema,

@@ -2,14 +2,9 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
 
 
 	// State
@@ -17,35 +12,19 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.AtprotoRepoCommit>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.AtprotoRepoCommit>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.AtprotoRepoCommit> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const atprotoRepoCommit = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {},
-	} : {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const atprotoRepoCommit = $derived(selection({
+		fields: {
+			rev: true,
+			commitCid: true,
+		},
 	}))
-	const titleFallback = $derived([String((pendingEntity.rev) ?? ''), String((pendingEntity.commitCid) ?? '')].filter(Boolean).join(' ') || 'AT Protocol repo commit')
-	const viewDomId = $derived('atproto-repo-commit-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const titleFallback = $derived([(pendingEntity.rev ?? ''), (pendingEntity.commitCid ?? '')].filter(Boolean).join(' ') || 'AT Protocol repo commit')
 
 
 	// Components
@@ -58,61 +37,28 @@
 
 <EntityView
 	entityType={EntityType.AtprotoRepoCommit}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'rev') && Object.hasOwn(prefetched, 'commitCid')}
-			{[String((pendingEntity.rev) ?? ''), String((pendingEntity.commitCid) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-		{:else}
-			<ResourceBoundary resource={atprotoRepoCommit}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.rev) ?? ''), String((resolvedEntity.commitCid) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={atprotoRepoCommit}>
+			{#snippet children(entity)}
+				{[entity.rev, entity.commitCid].filter(Boolean).join(' ') || title || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Value()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'rev') && Object.hasOwn(prefetched, 'commitCid')}
-			{[String((pendingEntity.repoDid) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.rev) ?? ''), String((pendingEntity.commitCid) ?? '')].filter(Boolean).join(' ') || titleFallback}
-		{:else}
-			<ResourceBoundary resource={atprotoRepoCommit}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.repoDid) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.rev) ?? ''), String((resolvedEntity.commitCid) ?? '')].filter(Boolean).join(' ') || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		{(pendingEntity.repoDid ?? '') || [(pendingEntity.rev ?? ''), (pendingEntity.commitCid ?? '')].filter(Boolean).join(' ') || titleFallback}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'rev') && Object.hasOwn(prefetched, 'commitCid')}
-			{@const source0 = pendingEntity.source}
-			{#if source0 !== undefined && source0 !== null}
-				<span data-text="muted">
-					{String((source0) ?? '')}
-				</span>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={atprotoRepoCommit}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const source0 = resolvedEntity.source}
-					{#if source0 !== undefined && source0 !== null}
-						<span data-text="muted">
-							{String((source0) ?? '')}
-						</span>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<span data-text="muted">
+			{pendingEntity.source}
+		</span>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -120,24 +66,7 @@
 			<div>
 				<dt>Repo DID</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									repoDid: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const repoDid = resolvedEntity.repoDid}
-							{#if repoDid !== undefined && repoDid !== null}
-								{String((repoDid) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{pendingEntity.repoDid}
 				</dd>
 			</div>
 
@@ -145,21 +74,10 @@
 				<dt>Rev</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									rev: true,
-								},
-							})
-						}
+						resource={atprotoRepoCommit}
 					>
 						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const rev = resolvedEntity.rev}
-							{#if rev !== undefined && rev !== null}
-								{String((rev) ?? '')}
-							{/if}
+							{entity.rev}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -168,24 +86,7 @@
 			<div>
 				<dt>Source</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									source: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const source = resolvedEntity.source}
-							{#if source !== undefined && source !== null}
-								{String((source) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{pendingEntity.source}
 				</dd>
 			</div>
 
@@ -193,21 +94,10 @@
 				<dt>Commit CID</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									commitCid: true,
-								},
-							})
-						}
+						resource={atprotoRepoCommit}
 					>
 						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const commitCid = resolvedEntity.commitCid}
-							{#if commitCid !== undefined && commitCid !== null}
-								<TruncatedValue value={String((commitCid) ?? '')} />
-							{/if}
+							<TruncatedValue value={entity.commitCid} />
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -218,7 +108,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							previousRev: true,
 						},
@@ -226,13 +115,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const previousRev = resolvedEntity.previousRev}
-					{#if previousRev !== undefined && previousRev !== null}
+					{@const previousRev = entity.previousRev}
+					{#if previousRev != null}
 						<div>
 							<dt>Previous rev</dt>
 							<dd>
-								{String((previousRev) ?? '')}
+								{previousRev}
 							</dd>
 						</div>
 					{/if}
@@ -242,7 +130,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							previousDataCid: true,
 						},
@@ -250,13 +137,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const previousDataCid = resolvedEntity.previousDataCid}
-					{#if previousDataCid !== undefined && previousDataCid !== null}
+					{@const previousDataCid = entity.previousDataCid}
+					{#if previousDataCid != null}
 						<div>
 							<dt>Previous data CID</dt>
 							<dd>
-								<TruncatedValue value={String((previousDataCid) ?? '')} />
+								<TruncatedValue value={previousDataCid} />
 							</dd>
 						</div>
 					{/if}
@@ -266,7 +152,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							dataCid: true,
 						},
@@ -274,13 +159,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const dataCid = resolvedEntity.dataCid}
-					{#if dataCid !== undefined && dataCid !== null}
+					{@const dataCid = entity.dataCid}
+					{#if dataCid != null}
 						<div>
 							<dt>Data CID</dt>
 							<dd>
-								<TruncatedValue value={String((dataCid) ?? '')} />
+								<TruncatedValue value={dataCid} />
 							</dd>
 						</div>
 					{/if}
@@ -292,7 +176,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							sequence: true,
 						},
@@ -300,13 +183,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const sequence = resolvedEntity.sequence}
-					{#if sequence !== undefined && sequence !== null}
+					{@const sequence = entity.sequence}
+					{#if sequence != null}
 						<div>
 							<dt>Sequence</dt>
 							<dd>
-								{String((sequence) ?? '')}
+								{String(sequence)}
 							</dd>
 						</div>
 					{/if}
@@ -316,7 +198,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							pdsHost: true,
 						},
@@ -324,13 +205,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const pdsHost = resolvedEntity.pdsHost}
-					{#if pdsHost !== undefined && pdsHost !== null}
+					{@const pdsHost = entity.pdsHost}
+					{#if pdsHost != null}
 						<div>
 							<dt>PDS host</dt>
 							<dd>
-								{String((pdsHost) ?? '')}
+								{pdsHost}
 							</dd>
 						</div>
 					{/if}
@@ -340,7 +220,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							relayHost: true,
 						},
@@ -348,13 +227,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const relayHost = resolvedEntity.relayHost}
-					{#if relayHost !== undefined && relayHost !== null}
+					{@const relayHost = entity.relayHost}
+					{#if relayHost != null}
 						<div>
 							<dt>Relay host</dt>
 							<dd>
-								{String((relayHost) ?? '')}
+								{relayHost}
 							</dd>
 						</div>
 					{/if}
@@ -364,7 +242,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							time: true,
 						},
@@ -372,9 +249,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const time = resolvedEntity.time}
-					{#if time !== undefined && time !== null}
+					{@const time = entity.time}
+					{#if time != null}
 						<div>
 							<dt>Time</dt>
 							<dd>
@@ -390,7 +266,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							tooBig: true,
 						},
@@ -398,9 +273,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const tooBig = resolvedEntity.tooBig}
-					{#if tooBig !== undefined && tooBig !== null}
+					{@const tooBig = entity.tooBig}
+					{#if tooBig != null}
 						<div>
 							<dt>Too big</dt>
 							<dd>
@@ -414,7 +288,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							rebase: true,
 						},
@@ -422,9 +295,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const rebase = resolvedEntity.rebase}
-					{#if rebase !== undefined && rebase !== null}
+					{@const rebase = entity.rebase}
+					{#if rebase != null}
 						<div>
 							<dt>Rebase</dt>
 							<dd>
@@ -438,7 +310,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							operationCount: true,
 						},
@@ -446,13 +317,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const operationCount = resolvedEntity.operationCount}
-					{#if operationCount !== undefined && operationCount !== null}
+					{@const operationCount = entity.operationCount}
+					{#if operationCount != null}
 						<div>
 							<dt>Operation count</dt>
 							<dd>
-								{String((operationCount) ?? '')}
+								{String(operationCount)}
 							</dd>
 						</div>
 					{/if}
@@ -462,7 +332,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							blobCount: true,
 						},
@@ -470,13 +339,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const blobCount = resolvedEntity.blobCount}
-					{#if blobCount !== undefined && blobCount !== null}
+					{@const blobCount = entity.blobCount}
+					{#if blobCount != null}
 						<div>
 							<dt>Blob count</dt>
 							<dd>
-								{String((blobCount) ?? '')}
+								{String(blobCount)}
 							</dd>
 						</div>
 					{/if}
@@ -486,7 +354,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							carByteLength: true,
 						},
@@ -494,13 +361,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const carByteLength = resolvedEntity.carByteLength}
-					{#if carByteLength !== undefined && carByteLength !== null}
+					{@const carByteLength = entity.carByteLength}
+					{#if carByteLength != null}
 						<div>
 							<dt>CAR byte length</dt>
 							<dd>
-								{String((carByteLength) ?? '')}
+								{String(carByteLength)}
 							</dd>
 						</div>
 					{/if}
@@ -515,7 +381,6 @@
 					<ResourceBoundary
 						resource={
 							selection({
-								sources: selection.sources,
 								fields: {
 									operationPaths: true,
 								},
@@ -523,11 +388,7 @@
 						}
 					>
 						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const operationPaths = resolvedEntity.operationPaths}
-							{#if operationPaths !== undefined && operationPaths !== null}
-								{operationPaths.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')}
-							{/if}
+							{entity.operationPaths.values.join(', ')}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -539,7 +400,6 @@
 					<ResourceBoundary
 						resource={
 							selection({
-								sources: selection.sources,
 								fields: {
 									createdRecordCids: true,
 								},
@@ -547,11 +407,7 @@
 						}
 					>
 						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const createdRecordCids = resolvedEntity.createdRecordCids}
-							{#if createdRecordCids !== undefined && createdRecordCids !== null}
-								{createdRecordCids.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')}
-							{/if}
+							{entity.createdRecordCids.values.join(', ')}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -563,7 +419,6 @@
 					<ResourceBoundary
 						resource={
 							selection({
-								sources: selection.sources,
 								fields: {
 									updatedRecordCids: true,
 								},
@@ -571,11 +426,7 @@
 						}
 					>
 						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const updatedRecordCids = resolvedEntity.updatedRecordCids}
-							{#if updatedRecordCids !== undefined && updatedRecordCids !== null}
-								{updatedRecordCids.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')}
-							{/if}
+							{entity.updatedRecordCids.values.join(', ')}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -587,7 +438,6 @@
 					<ResourceBoundary
 						resource={
 							selection({
-								sources: selection.sources,
 								fields: {
 									deletedRecordPaths: true,
 								},
@@ -595,11 +445,7 @@
 						}
 					>
 						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const deletedRecordPaths = resolvedEntity.deletedRecordPaths}
-							{#if deletedRecordPaths !== undefined && deletedRecordPaths !== null}
-								{deletedRecordPaths.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')}
-							{/if}
+							{entity.deletedRecordPaths.values.join(', ')}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -614,12 +460,12 @@
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
-				<AtprotoPostsView
-					selection={atprotoRepoCommitAtprotoPostsViewPostsResource}
-					countResource={atprotoRepoCommitAtprotoPostsViewPostsResource.count}
-					title='Posts'
-					id='AtprotoPostsView-posts'
-				/>
+					<AtprotoPostsView
+						selection={atprotoRepoCommitAtprotoPostsViewPostsResource}
+						countResource={atprotoRepoCommitAtprotoPostsViewPostsResource.count}
+						title='Posts'
+						id='posts'
+					/>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>

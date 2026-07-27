@@ -1,5 +1,6 @@
-import type { SourceBinding } from '$/sources/SourceBinding.ts'
 import { throwHttpError } from '$/lib/http.ts'
+import { TransportType } from '$/constants/TransportType.ts'
+import { Source } from '$/sources/Source.ts'
 import {
 	firstHttpUrlForBinding,
 	sourceFetch,
@@ -16,12 +17,19 @@ import type {
 	HyperliquidUserVaultEquity,
 	HyperliquidValidatorSummary,
 } from '$/sources/Hyperliquid/Rest/types.ts'
+import bindings from '$/sources/Hyperliquid/bindings.ts'
+
+const binding = bindings[Source.Hyperliquid_Rest]
+
+export const hyperliquidRestEndpoints = binding.endpoints.map((endpoint) => ({
+	url: endpoint.locator,
+	transportType: TransportType.Http,
+	providerName: 'Hyperliquid',
+}))
 
 const info = async <_Result>({
-	binding,
 	body,
 }: {
-	binding: SourceBinding
 	body: JsonValue
 }) => {
 	const response = await sourceFetch(
@@ -33,24 +41,22 @@ const info = async <_Result>({
 				'content-type': 'application/json',
 			},
 			body: JSON.stringify(body),
-		},
+		}
 	)
 	if (!response.ok) await throwHttpError('Hyperliquid info', response)
 	return response.json<_Result>()
 }
 
-export const getMeta = ({ binding }: { binding: SourceBinding }) => (
+export const getMeta = () => (
 	info<HyperliquidMeta>({
-		binding,
 		body: {
 			type: 'meta',
 		},
 	})
 )
 
-export const getSpotMeta = ({ binding }: { binding: SourceBinding }) => (
+export const getSpotMeta = () => (
 	info<HyperliquidSpotMeta>({
-		binding,
 		body: {
 			type: 'spotMeta',
 		},
@@ -58,14 +64,11 @@ export const getSpotMeta = ({ binding }: { binding: SourceBinding }) => (
 )
 
 export const getClearinghouseState = ({
-	binding,
 	user,
 }: {
-	binding: SourceBinding
 	user: string
 }) => (
 	info<HyperliquidClearinghouseState>({
-		binding,
 		body: {
 			type: 'clearinghouseState',
 			user,
@@ -74,14 +77,11 @@ export const getClearinghouseState = ({
 )
 
 export const getSpotClearinghouseState = ({
-	binding,
 	user,
 }: {
-	binding: SourceBinding
 	user: string
 }) => (
 	info<HyperliquidSpotClearinghouseState>({
-		binding,
 		body: {
 			type: 'spotClearinghouseState',
 			user,
@@ -90,14 +90,11 @@ export const getSpotClearinghouseState = ({
 )
 
 export const getHistoricalOrders = ({
-	binding,
 	user,
 }: {
-	binding: SourceBinding
 	user: string
 }) => (
 	info<HyperliquidHistoricalOrder[]>({
-		binding,
 		body: {
 			type: 'historicalOrders',
 			user,
@@ -106,12 +103,10 @@ export const getHistoricalOrders = ({
 )
 
 export const getUserFillsByTime = ({
-	binding,
 	user,
 	startTime,
 	endTime,
 }: {
-	binding: SourceBinding
 	user: string
 	startTime: number
 	endTime?: number
@@ -123,7 +118,6 @@ export const getUserFillsByTime = ({
 		throw new Error(`Hyperliquid_Rest: invalid fill end time ${endTime}`)
 
 	return info<HyperliquidFill[]>({
-		binding,
 		body: {
 			type: 'userFillsByTime',
 			user,
@@ -135,14 +129,11 @@ export const getUserFillsByTime = ({
 }
 
 export const getUserVaultEquities = ({
-	binding,
 	user,
 }: {
-	binding: SourceBinding
 	user: string
 }) => (
 	info<HyperliquidUserVaultEquity[]>({
-		binding,
 		body: {
 			type: 'userVaultEquities',
 			user,
@@ -151,14 +142,11 @@ export const getUserVaultEquities = ({
 )
 
 export const getUserRole = ({
-	binding,
 	user,
 }: {
-	binding: SourceBinding
 	user: string
 }) => (
 	info<HyperliquidUserRole>({
-		binding,
 		body: {
 			type: 'userRole',
 			user,
@@ -166,9 +154,8 @@ export const getUserRole = ({
 	})
 )
 
-export const getValidatorSummaries = ({ binding }: { binding: SourceBinding }) => (
+export const getValidatorSummaries = () => (
 	info<HyperliquidValidatorSummary[]>({
-		binding,
 		body: {
 			type: 'validatorSummaries',
 		},

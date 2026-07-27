@@ -84,15 +84,25 @@ export type NostrComment = {
 
 const lowercaseHex64 = /^[0-9a-f]{64}$/
 
-const singleTagValue = (
+function singleTagValue(
+	tags: readonly string[][],
+	name: string,
+	required: true
+): string
+function singleTagValue(
+	tags: readonly string[][],
+	name: string,
+	required?: false
+): string | undefined
+function singleTagValue(
 	tags: readonly string[][],
 	name: string,
 	required = false
-) => {
+) {
 	const matchingTags = tags.filter((tag) => tag[0] === name)
 	if (matchingTags.length > 1 || (required && matchingTags.length !== 1))
 		throw new Error(`NIP-57 ${name} tag cardinality is invalid`)
-	const value = matchingTags[0]?.[1]
+	const value = matchingTags[0]?.at(1)
 	if (matchingTags.length === 1 && (value == null || value === ''))
 		throw new Error(`NIP-57 ${name} tag value is invalid`)
 	return value
@@ -193,7 +203,7 @@ const nostrCommentTargetFromTags = (
 		throw new Error(`NIP-22 ${root ? 'root' : 'parent'} author is invalid`)
 
 	if (addressTags.length === 1) {
-		const coordinate = addressTags[0][1] ?? ''
+		const coordinate = addressTags[0].at(1) ?? ''
 		const match = /^([0-9]+):([0-9a-f]{64}):(.*)$/.exec(coordinate)
 		if (
 			match == null
@@ -206,7 +216,7 @@ const nostrCommentTargetFromTags = (
 				|| (numericKind >= 30_000 && numericKind < 40_000)
 			)
 		) throw new Error(`NIP-22 ${root ? 'root' : 'parent'} addressable target is invalid`)
-		const supplementalEventId = eventTags[0]?.[1]
+		const supplementalEventId = eventTags[0]?.at(1)
 		if (supplementalEventId != null && !lowercaseHex64.test(supplementalEventId))
 			throw new Error('NIP-22 supplemental parent event id is invalid')
 		return {
@@ -218,10 +228,10 @@ const nostrCommentTargetFromTags = (
 		}
 	}
 
-	const eventId = eventTags[0]?.[1]
+	const eventId = eventTags[0]?.at(1)
 	if (eventId == null || !lowercaseHex64.test(eventId))
 		throw new Error(`NIP-22 ${root ? 'root' : 'parent'} event id is invalid`)
-	const hintedAuthor = eventTags[0][3]
+	const hintedAuthor = eventTags[0].at(3)
 	if (hintedAuthor != null && hintedAuthor !== '' && hintedAuthor !== authorPubkey)
 		throw new Error(`NIP-22 ${root ? 'root' : 'parent'} author hint does not match`)
 	return {
@@ -276,16 +286,18 @@ export const nostrRelayListFromEvent = (
 	}>()
 
 	for (const tag of validatedEvent.tags) {
+		const relayUrlValue = tag.at(1)
+		const marker = tag.at(2)
 		if (
 			tag[0] !== 'r'
-			|| tag[1] == null
+			|| relayUrlValue == null
 			|| tag.length > 3
-			|| (tag[2] != null && tag[2] !== 'read' && tag[2] !== 'write')
+			|| (marker != null && marker !== 'read' && marker !== 'write')
 		) continue
 
 		let relayUrl: string
 		try {
-			relayUrl = relayWebSocketUrl(tag[1])
+			relayUrl = relayWebSocketUrl(relayUrlValue)
 		} catch {
 			continue
 		}
@@ -295,8 +307,8 @@ export const nostrRelayListFromEvent = (
 			write: false,
 		}
 		accessByRelayUrl.set(relayUrl, {
-			read: access.read || tag[2] !== 'write',
-			write: access.write || tag[2] !== 'read',
+			read: access.read || marker !== 'write',
+			write: access.write || marker !== 'read',
 		})
 	}
 
@@ -561,7 +573,12 @@ export const openRelaySubscription = ({
 				&& isJsonString(message[2].id)
 				&& isJsonNumber(message[2].created_at)
 			) {
-				if (seenEventIds.has(message[2].id)) return
+				const event = {
+					...message[2],
+					id: message[2].id,
+					created_at: message[2].created_at,
+				}
+				if (seenEventIds.has(event.id)) return
 				if (seenEventIds.size >= maxSeenEventIds) {
 					closeWithEvent({
 						type: 'closed',
@@ -571,16 +588,16 @@ export const openRelaySubscription = ({
 					}, true)
 					return
 				}
-				seenEventIds.add(message[2].id)
+				seenEventIds.add(event.id)
 				highestCreatedAt = Math.max(
-					highestCreatedAt ?? message[2].created_at,
-					message[2].created_at
+					highestCreatedAt ?? event.created_at,
+					event.created_at
 				)
 				onEvent({
 					type: 'event',
 					relayUrl: normalizedRelayUrl,
 					subscriptionId,
-					event: message[2] as NostrRelayEvent,
+					event,
 				})
 				return
 			}

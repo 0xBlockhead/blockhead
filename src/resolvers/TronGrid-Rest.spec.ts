@@ -6,9 +6,11 @@ import {
 	EntityMetaKey,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import { NetworkSelector } from '$/schema/Network.ts'
 
 vi.mock('$/sources/TronGrid/Rest/queries.ts', () => ({
+	getAccount: vi.fn().mockResolvedValue({
+		latest_opration_time: 1_720_000_000_123,
+	}),
 	listWitnesses: vi.fn().mockResolvedValue({
 		witnesses: [{
 			address: 'TExampleWitness',
@@ -25,6 +27,38 @@ vi.mock('$/sources/TronGrid/Rest/queries.ts', () => ({
 const { default: tronGridRest } = await import('$/resolvers/TronGrid-Rest.ts')
 
 describe('TronGrid REST network relationships', () => {
+	it('uses the upstream account observation clock', async () => {
+		const resolver = tronGridRest.resolvers.find((candidate) => (
+			candidate.entityType === EntityType.TronAccount
+			&& '$$timestamps' in candidate.projections
+		))
+		if (resolver == null) throw new Error('Tron account resolver is missing')
+
+		const account = {
+			$network: {
+				caip2: networkBySlug.tron.caip2,
+			},
+			address: 'TExampleAccount',
+		}
+		const resolved = await resolver.resolve['NetworkAddress'].resolve(account, {
+			filters: [],
+			sorts: [],
+			pagination: {},
+			selectorKeys: [],
+			parentSelectorKeys: [],
+			sources: [],
+			publicEnv: {},
+		})
+
+		expect(resolver.projections.$$timestamps(resolved)).toEqual([{
+			[EntityMetaKey.Selector]: {
+				$account: account,
+				timestampMs: 1_720_000_000_123,
+				source: 'TronGrid_Rest',
+			},
+		}])
+	})
+
 	it('embeds witness observations through canonical field addresses', async () => {
 		const resolver = tronGridRest.resolvers.find((candidate) => (
 			candidate.entityType === EntityType.Network
@@ -38,7 +72,7 @@ describe('TronGrid REST network relationships', () => {
 			caip2: networkBySlug.tron.caip2,
 		}
 		const witnesses = resolver.projections.Tron.$$witnesses(
-			await resolver.resolve[NetworkSelector.Caip2].resolve(networkSelector, {
+			await resolver.resolve['Caip2'].resolve(networkSelector, {
 				filters: [],
 				sorts: [],
 				pagination: {},

@@ -30,22 +30,28 @@
 {#key params.conversationId}
 	<ParentPageCollapsible
 		href={
-			resolve('/~/agents/conversation/[conversationId=stringSegment]', {
-				conversationId: params.conversationId,
-			})
+			resolve(
+				'/~/agents/conversation/[conversationId=stringSegment]',
+				{
+					conversationId: String(params.conversationId),
+				}
+			)
 		}
 	>
 		{#snippet Summary()}
-			{@const DetailView = BlockheadAgentConversationView}
-
-			<DetailView
-				selection={select(EntityType.BlockheadAgentConversation, data.selector, { sources: [
-		Source.Local_Internal,
-	] })}
+			<BlockheadAgentConversationView
+				selection={
+					select(EntityType.BlockheadAgentConversation, data.selector, { sources: [
+						Source.Local_Internal,
+					] })
+				}
 				href={
-					resolve('/~/agents/conversation/[conversationId=stringSegment]', {
-						conversationId: params.conversationId,
-					})
+					resolve(
+						'/~/agents/conversation/[conversationId=stringSegment]',
+						{
+							conversationId: String(params.conversationId),
+						}
+					)
 				}
 				layout={EntityLayout.SummaryInline}
 			/>

@@ -1,8 +1,3 @@
-export type SafeTransactionServiceNetwork = {
-	chainId: '1' | '100' | '8453'
-	chainPrefix: 'eth' | 'gno' | 'base'
-}
-
 export type SafeStatus = {
 	address: string
 	nonce: string

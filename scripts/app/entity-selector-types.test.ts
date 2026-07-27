@@ -40,20 +40,21 @@ test('requires nonempty selectors with existing One or ZeroOrOne fields at compi
 	try {
 		const typeTestPath = path.join(typeTestRoot, 'entity-selector-types.types.ts')
 		mkdirSync(path.join(typeTestRoot, 'scripts/app/inputs'), { recursive: true })
+		mkdirSync(path.join(typeTestRoot, 'src/constants'), { recursive: true })
 		cpSync(
 			path.join(root, 'scripts/app/inputs/source-target.ts'),
 			path.join(typeTestRoot, 'scripts/app/inputs/source-target.ts')
 		)
 		cpSync(
-			path.join(root, 'scripts/app/inputs/Network.ts'),
-			path.join(typeTestRoot, 'scripts/app/inputs/Network.ts')
+			path.join(root, 'src/constants/Network.ts'),
+			path.join(typeTestRoot, 'src/constants/Network.ts')
 		)
 		writeFileSync(typeTestPath, `${appSource.slice(0, facetStatement.end)}\n${fixtureSource.slice(fixtureImport.end)}`)
 		const typeTestResult = spawnSync(
 			process.execPath,
 			[
 				'--max-old-space-size=1024',
-				path.join(root, 'node_modules/typescript/bin/tsc'),
+				process.env.TSC_PATH ?? path.join(root, 'node_modules/@typescript/native/bin/tsc'),
 				'--noEmit',
 				'--ignoreConfig',
 				'--allowImportingTsExtensions',

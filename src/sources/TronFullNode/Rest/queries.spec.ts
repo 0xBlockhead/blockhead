@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { sourceProviderDefinitions } from '$/sources/$sourceProviders.ts'
+import bindings from '$/sources/TronFullNode/bindings.ts'
 import { Source } from '$/sources/Source.ts'
 import { SourceTargetKind } from '$/sources/SourceBinding.ts'
 
@@ -13,16 +13,7 @@ vi.mock('$/sources/_runtime/http.ts', () => ({
 
 const { getBlockByNumber } = await import('$/sources/TronFullNode/Rest/queries.ts')
 
-const binding = sourceProviderDefinitions
-	.flatMap((provider) => provider.bindings)
-	.find((candidate) => (
-		candidate.source === Source.TronFullNode_Rest
-		&& candidate.target.kind === SourceTargetKind.LocalDevice
-		&& candidate.target.key === 'tron-full-node'
-	))
-
-if (binding == null)
-	throw new Error('TronFullNode_Rest spec missing canonical binding')
+const binding = bindings[Source.TronFullNode_Rest]
 
 describe('TRON local FullNode transport', () => {
 	beforeEach(() => {

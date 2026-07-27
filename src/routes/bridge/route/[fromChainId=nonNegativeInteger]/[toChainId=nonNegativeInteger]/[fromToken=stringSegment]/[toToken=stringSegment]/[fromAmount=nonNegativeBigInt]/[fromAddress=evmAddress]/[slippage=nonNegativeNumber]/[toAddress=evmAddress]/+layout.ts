@@ -8,7 +8,7 @@ import { match as matchNonNegativeInteger } from '$/params/nonNegativeInteger.ts
 import { match as matchNonNegativeNumber } from '$/params/nonNegativeNumber.ts'
 import { match as matchStringSegment } from '$/params/stringSegment.ts'
 import { parseEntitySelector } from '$/schema/$schema.ts'
-import { BridgeRoute as BridgeRouteSchema } from '$/schema/BridgeRoute.ts'
+import BridgeRouteSchema from '$/schema/BridgeRoute.ts'
 import { schema } from '$/schema/index.ts'
 import { type as arktype } from 'arktype'
 

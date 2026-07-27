@@ -13,20 +13,9 @@ import {
 } from '$/constants/Network.ts'
 import { NetworkStackId } from '$/constants/NetworkStack.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import { EvmRollupSelector } from '$/schema/EvmRollup.ts'
-import { NetworkSelector } from '$/schema/Network.ts'
-import { _GlobalSelector } from '$/schema/_Global.ts'
 import { l2BeatProjectIdByChainId } from '$/sources/L2Beat/Rest/constants.ts'
-import { sourceProviderDefinitions } from '$/sources/$sourceProviders.ts'
 import type { L2BeatScalingSummaryProject } from '$/sources/L2Beat/Rest/types.ts'
 import { Source } from '$/sources/Source.ts'
-
-const l2BeatBinding = sourceProviderDefinitions
-	.flatMap((provider) => provider.bindings)
-	.find((binding) => binding.source === Source.L2Beat_Rest)
-
-if (l2BeatBinding == null)
-	throw new Error('L2Beat_Rest: source binding is missing')
 
 const evmRollupReference = (
 	$network: {
@@ -69,7 +58,7 @@ export default {
 		defineResolver(Source.L2Beat_Rest, {
 			entityType: EntityType.Network,
 			resolve: {
-				[NetworkSelector.Caip2]: {
+				Caip2: {
 					appliesTo: Object.keys(l2BeatProjectIdByChainId).map((reference) => ({
 						caip2: {
 							namespace: 'eip155',
@@ -80,7 +69,7 @@ export default {
 						const project = (
 							await (
 								await import('$/sources/L2Beat/Rest/queries.ts')
-							).fetchScalingSummary(l2BeatBinding)
+							).fetchScalingSummary()
 						).projects[l2BeatProjectIdByChainId[entitySelector.caip2.reference]]
 						if (project == null)
 							throw new Error('L2Beat_Rest: network project not found')
@@ -114,13 +103,13 @@ export default {
 		defineResolver(Source.L2Beat_Rest, {
 			entityType: EntityType.EvmRollup,
 			resolve: {
-				[EvmRollupSelector.EvmNetworkProjectId]: {
+				EvmNetworkProjectId: {
 					resolve: async ({ $network, projectId }) => {
 						const {
 							l2beatHostChainToParentChainId,
 						} = await import('$/sources/L2Beat/Rest/constants.ts')
 						const { fetchScalingSummary } = await import('$/sources/L2Beat/Rest/queries.ts')
-						const project = (await fetchScalingSummary(l2BeatBinding)).projects[projectId]
+						const project = (await fetchScalingSummary()).projects[projectId]
 						if (project == null)
 							throw new Error('L2Beat_Rest: rollup project not found')
 
@@ -145,14 +134,14 @@ export default {
 		defineResolver(Source.L2Beat_Rest, {
 			entityType: EntityType._Global,
 			resolve: {
-				[_GlobalSelector.Scope]: {
+				Scope: {
 					resolve: async () => {
 						const {
 							chainIdByL2BeatProjectId,
 							ethereumChainId,
 							l2BeatProjectChainIds,
 						} = await import('$/sources/L2Beat/Rest/constants.ts')
-						await (await import('$/sources/L2Beat/Rest/queries.ts')).fetchScalingSummary(l2BeatBinding)
+						await (await import('$/sources/L2Beat/Rest/queries.ts')).fetchScalingSummary()
 						return [
 							{
 								[EntityMetaKey.Selector]: {
@@ -186,7 +175,7 @@ export default {
 		defineResolver(Source.L2Beat_Rest, {
 			entityType: EntityType.Network,
 			resolve: {
-				[NetworkSelector.Caip2]: {
+				Caip2: {
 					resolve: async (entitySelector) => {
 						const {
 							chainIdByL2BeatProjectId,
@@ -208,7 +197,7 @@ export default {
 
 						const summary = await (
 							await import('$/sources/L2Beat/Rest/queries.ts')
-						).fetchScalingSummary(l2BeatBinding)
+						).fetchScalingSummary()
 						const project = projectId == null ? undefined : summary.projects[projectId]
 						return {
 							parent: (

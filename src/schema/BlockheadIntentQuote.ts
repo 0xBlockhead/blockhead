@@ -1,15 +1,12 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { entity, facet } from '$/schema/$schema.ts'
+import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 import { type } from 'arktype'
 
-export enum BlockheadIntentQuoteSelector {
-	Id = 'Id',
-}
-export const BlockheadIntentQuote = entity({
+export default entity({
 	entityType: EntityType.BlockheadIntentQuote,
 	labels: {
 		singular: 'blockhead intent quote',
@@ -32,7 +29,7 @@ export const BlockheadIntentQuote = entity({
 	quoteRequestHash: {
 		label: 'quote request hash',
 		type: EntityFieldType.Primitive,
-		primitiveType: (ZeroExHex),
+		primitiveType: ZeroExHex,
 		cardinality: EntityFieldCardinality.One,
 	},
 	$sessionAction: {
@@ -56,7 +53,7 @@ export const BlockheadIntentQuote = entity({
 	userInteropAddress: {
 		label: 'user interop address',
 		type: EntityFieldType.Primitive,
-		primitiveType: (ZeroExHex),
+		primitiveType: ZeroExHex,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	requestedAt: {
@@ -68,7 +65,7 @@ export const BlockheadIntentQuote = entity({
 	requestPayloadHash: {
 		label: 'request payload hash',
 		type: EntityFieldType.Primitive,
-		primitiveType: (ZeroExHex),
+		primitiveType: ZeroExHex,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	requestSummary: {

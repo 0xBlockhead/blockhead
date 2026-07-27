@@ -28,16 +28,16 @@
 
 
 <ParentPageCollapsible
-	href={resolve('/rss')}
+	href={resolve('/(social)/(rss)/rss')}
 >
 	{#snippet Summary()}
-		{@const DetailView = RssNetworkView}
-
-		<DetailView
-			selection={select(EntityType.RssNetwork, data.selector, { sources: [
-	Source.Constants_Internal,
-] })}
-			href={resolve('/rss')}
+		<RssNetworkView
+			selection={
+				select(EntityType.RssNetwork, data.selector, { sources: [
+					Source.Constants_Internal,
+				] })
+			}
+			href={resolve('/(social)/(rss)/rss')}
 			layout={EntityLayout.SummaryInline}
 		/>
 	{/snippet}

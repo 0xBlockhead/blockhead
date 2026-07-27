@@ -332,16 +332,6 @@ function materializeEntityReference(
 	return {
 		[EntityMetaKey.Selector]: selector,
 		[EntityMetaKey.SelectorKey]: selectorKey,
-		...Object.fromEntries(materializedFieldEntries.flatMap(([
-			,
-			fieldValue,
-			denormalizedFieldDefinition,
-		]) => (
-			denormalizedFieldDefinition.facetPath == null ? [[
-				denormalizedFieldDefinition.name,
-				fieldValue,
-			]] : []
-		))),
 		...(materializedFieldEntries.length > 0 && {
 			[EntityMetaKey.Fields]: materializedFields,
 		}),

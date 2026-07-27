@@ -2,12 +2,8 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { stringify } from 'devalue'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
@@ -27,38 +23,22 @@
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.CardanoTransaction>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.CardanoTransaction>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.CardanoTransaction> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const cardanoTransaction = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {
-			blockSlot: true,
-			fee: true,
-		},
-	} : {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const viewSelection = $derived(selection({
+		sources: selection.sources ?? [
+			Source.Blockfrost_Rest,
+		],
+	}))
+	const cardanoTransaction = $derived(viewSelection({
 		fields: {
 			blockSlot: true,
 			fee: true,
 		},
 	}))
-	const titleFallback = $derived([String((pendingEntity.hash) ?? '')].filter(Boolean).join(' ') || 'Cardano transaction')
-	const viewDomId = $derived('cardano-transaction-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const titleFallback = $derived((pendingEntity.hash ?? '') || 'Cardano transaction')
+	const viewDomId = $derived('cardano-transaction-' + encodeURIComponent(stringify(selection.entitySelector)))
 
 
 	// Components
@@ -79,31 +59,21 @@
 
 <EntityView
 	entityType={EntityType.CardanoTransaction}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
+	entitySelector={selection.entitySelector}
 	id={viewDomId}
 	title={title ?? titleFallback}
 	href={
-		href ?? (
-			selection.entitySelector != null && 'hash' in selection.entitySelector
-			&& selection.entitySelector.hash != null
-			&& selection.entitySelector != null && '$network' in selection.entitySelector ?
-				selection.entitySelector.$network != null && 'caip2' in selection.entitySelector.$network
-				&& selection.entitySelector.$network.caip2 != null ?
-					resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]', {
-				transactionId: String(selection.entitySelector.hash ?? ''),
-				network: String(caip2StringFromValue(selection.entitySelector.$network.caip2) ?? ''),
-			})
-			:
-					selection.entitySelector.$network != null && 'slug' in selection.entitySelector.$network
-					&& selection.entitySelector.$network.slug != null ?
-						resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]', {
-					transactionId: String(selection.entitySelector.hash ?? ''),
-					network: String(selection.entitySelector.$network.slug ?? ''),
-				})
-				:
-					undefined
-		:
-				undefined
+		href ?? resolve(
+			'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(transactions)/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]',
+			{
+				network: (
+					'caip2' in selection.entitySelector.$network ?
+						String(caip2StringFromValue(selection.entitySelector.$network.caip2))
+					:
+						String(selection.entitySelector.$network.slug)
+				),
+				transactionId: String(selection.entitySelector.hash),
+			}
 		)
 	}
 	{layout}
@@ -111,52 +81,28 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'blockSlot') && Object.hasOwn(prefetched, 'fee')}
-			{[String((pendingEntity.hash) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-		{:else}
-			<ResourceBoundary resource={cardanoTransaction}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.hash) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		{(pendingEntity.hash ?? '') || 'Cardano transaction'}
 	{/snippet}
 
 	{#snippet Value()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'blockSlot') && Object.hasOwn(prefetched, 'fee')}
-			{[String((pendingEntity.blockSlot) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.hash) ?? '')].filter(Boolean).join(' ') || titleFallback}
-		{:else}
-			<ResourceBoundary resource={cardanoTransaction}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.blockSlot) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.hash) ?? '')].filter(Boolean).join(' ') || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={cardanoTransaction}>
+			{#snippet children(entity)}
+				{String(entity.blockSlot ?? '') || pendingEntity.hash || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'blockSlot') && Object.hasOwn(prefetched, 'fee')}
-			{@const fee0 = pendingEntity.fee}
-			{#if fee0 !== undefined && fee0 !== null}
-				<span data-text="muted">
-					{String((fee0) ?? '')}
-				</span>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={cardanoTransaction}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const fee0 = resolvedEntity.fee}
-					{#if fee0 !== undefined && fee0 !== null}
-						<span data-text="muted">
-							{String((fee0) ?? '')}
-						</span>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={cardanoTransaction}>
+			{#snippet children(entity)}
+				{@const fee0 = entity.fee}
+				{#if fee0 != null}
+					<span data-text="muted">
+						{String(fee0)}
+					</span>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -166,23 +112,6 @@
 				<dd>
 					<NetworkView
 						selection={select(EntityType.Network, selection.entitySelector.$network)}
-						href={
-							(
-								selection.entitySelector.$network != null && 'caip2' in selection.entitySelector.$network
-								&& selection.entitySelector.$network.caip2 != null ?
-									resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-								network: String(caip2StringFromValue(selection.entitySelector.$network.caip2) ?? ''),
-							})
-							:
-									selection.entitySelector.$network != null && 'slug' in selection.entitySelector.$network
-									&& selection.entitySelector.$network.slug != null ?
-										resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-									network: String(selection.entitySelector.$network.slug ?? ''),
-								})
-								:
-									undefined
-							)
-						}
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -192,45 +121,20 @@
 			<div>
 				<dt>Hash</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									hash: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const hash = resolvedEntity.hash}
-							{#if hash !== undefined && hash !== null}
-								<TruncatedValue value={String((hash) ?? '')} />
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					<TruncatedValue value={pendingEntity.hash} />
 				</dd>
 			</div>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							blockSlot: true,
-						},
-					})
-				}
+				resource={cardanoTransaction}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const blockSlot = resolvedEntity.blockSlot}
-					{#if blockSlot !== undefined && blockSlot !== null}
+					{@const blockSlot = entity.blockSlot}
+					{#if blockSlot != null}
 						<div>
 							<dt>block slot</dt>
 							<dd>
-								{String((blockSlot) ?? '')}
+								{String(blockSlot)}
 							</dd>
 						</div>
 					{/if}
@@ -240,23 +144,15 @@
 
 		<dl data-column-item="center">
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							fee: true,
-						},
-					})
-				}
+				resource={cardanoTransaction}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const fee = resolvedEntity.fee}
-					{#if fee !== undefined && fee !== null}
+					{@const fee = entity.fee}
+					{#if fee != null}
 						<div>
 							<dt>fee</dt>
 							<dd>
-								{String((fee) ?? '')}
+								{String(fee)}
 							</dd>
 						</div>
 					{/if}
@@ -265,8 +161,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							deposit: true,
 						},
@@ -274,13 +169,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const deposit = resolvedEntity.deposit}
-					{#if deposit !== undefined && deposit !== null}
+					{@const deposit = entity.deposit}
+					{#if deposit != null}
 						<div>
 							<dt>deposit</dt>
 							<dd>
-								{String((deposit) ?? '')}
+								{String(deposit)}
 							</dd>
 						</div>
 					{/if}
@@ -289,8 +183,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							sizeBytes: true,
 						},
@@ -298,13 +191,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const sizeBytes = resolvedEntity.sizeBytes}
-					{#if sizeBytes !== undefined && sizeBytes !== null}
+					{@const sizeBytes = entity.sizeBytes}
+					{#if sizeBytes != null}
 						<div>
 							<dt>size bytes</dt>
 							<dd>
-								{String((sizeBytes) ?? '')}
+								{String(sizeBytes)}
 							</dd>
 						</div>
 					{/if}
@@ -313,8 +205,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							validityStartSlot: true,
 						},
@@ -322,13 +213,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const validityStartSlot = resolvedEntity.validityStartSlot}
-					{#if validityStartSlot !== undefined && validityStartSlot !== null}
+					{@const validityStartSlot = entity.validityStartSlot}
+					{#if validityStartSlot != null}
 						<div>
 							<dt>validity start slot</dt>
 							<dd>
-								{String((validityStartSlot) ?? '')}
+								{String(validityStartSlot)}
 							</dd>
 						</div>
 					{/if}
@@ -337,8 +227,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							ttlSlot: true,
 						},
@@ -346,13 +235,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const ttlSlot = resolvedEntity.ttlSlot}
-					{#if ttlSlot !== undefined && ttlSlot !== null}
+					{@const ttlSlot = entity.ttlSlot}
+					{#if ttlSlot != null}
 						<div>
 							<dt>ttl slot</dt>
 							<dd>
-								{String((ttlSlot) ?? '')}
+								{String(ttlSlot)}
 							</dd>
 						</div>
 					{/if}
@@ -362,607 +250,173 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-				<CollapsibleTabs
-					id={viewDomId + '-carousel-cardano-transaction-activity'}
-					sectionIdPrefix={viewDomId}
-					sections={
-						[
-							{
-								id: 'cardano-transaction-inputs',
-								label: 'Inputs',
-								ownsSection: true,
-							},
-							{
-								id: 'cardano-transaction-outputs',
-								label: 'Outputs',
-								ownsSection: true,
-							},
-							{
-								id: 'cardano-transaction-certificates',
-								label: 'Certificates',
-								ownsSection: true,
-							},
-							{
-								id: 'cardano-transaction-scripts',
-								label: 'Scripts',
-								ownsSection: true,
-							},
-						]
-					}
+		<CollapsibleTabs
+			id={viewDomId + '-carousel-cardano-transaction-activity'}
+			sectionIdPrefix={viewDomId}
+			sections={
+				[
+					{
+						id: 'cardano-transaction-inputs',
+						label: 'Inputs',
+					},
+					{
+						id: 'cardano-transaction-outputs',
+						label: 'Outputs',
+					},
+					{
+						id: 'cardano-transaction-certificates',
+						label: 'Certificates',
+					},
+					{
+						id: 'cardano-transaction-scripts',
+						label: 'Scripts',
+					},
+				]
+			}
+			data-card
+			class='network-view-collapsible-activity'
+		>
+			{#snippet Summary()}
+				<header data-row-item="flexible" data-row="wrap gap-4">
+					<HeadingComponent>Activity</HeadingComponent>
+				</header>
+			{/snippet}
+
+			{#snippet SectionCardanoTransactionInputs({ id, label, open })}
+				<CardanoTxInputsView
+					selection={selection.$$inputs}
+					CollapsibleProps={{ canToggle: false }}
+					collapsible={false}
+					data-column-item="flexible"
 					data-card
-					class='network-view-collapsible-activity'
-				>
-					{#snippet Summary()}
-						<header data-row-item="flexible" data-row="wrap gap-4">
-							<HeadingComponent>Activity</HeadingComponent>
-						</header>
-					{/snippet}
+					data-scroll-container
+					open={open}
+					title={label}
+					emptyText='No inputs.'
+					id={`${id}-list`}
+				/>
+			{/snippet}
 
-					{#snippet MarkerCardanoTransactionInputs(_context, Content)}
-						{@const cardanoTransactionActivityCardanoTransactionInputsResource = selection
-		.$$inputs({
-			sources: [
-				Source.Blockfrost_Rest,
-			],
-		})}
-						<ResourceBoundary
-							resource={cardanoTransactionActivityCardanoTransactionInputsResource}
-						>
-							{#snippet children(_resolved)}
-								{@render Content()}
-							{/snippet}
-
-							{#snippet PendingContent()}
-								{@render Content()}
-							{/snippet}
-
-							{#snippet FailedContent(_error, _retry)}
-								{@render Content()}
-							{/snippet}
-						</ResourceBoundary>
-					{/snippet}
-
-					{#snippet SectionCardanoTransactionInputs({ id, label, open, active })}
-						{@const cardanoTransactionActivityCardanoTransactionInputsResource = selection
-		.$$inputs({
-			sources: [
-				Source.Blockfrost_Rest,
-			],
-		})}
-						<ResourceBoundary
-							resource={cardanoTransactionActivityCardanoTransactionInputsResource}
-						>
-							{#snippet children(cardanoTxInput)}
-								<section
-									id={id}
-									aria-labelledby={`${id}:marker`}
-									data-scroll-marker-label={label}
-									data-column-item="flexible"
-									data-column
-									data-active={active}
-								>
-									<CardanoTxInputsView
-										selection={cardanoTransactionActivityCardanoTransactionInputsResource}
-										CollapsibleProps={{ canToggle: false }}
-										collapsible={false}
-										data-column-item="flexible"
-										data-card
-										data-scroll-container
-										open={open}
-										title={label}
-										emptyText='No inputs.'
-										id={`${id}-list`}
-									/>
-								</section>
-							{/snippet}
-
-							{#snippet Pending()}
-								<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
-									<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
-										<span data-tag data-text="muted" data-resource-state="pending" class="loading inline-placeholder" aria-busy="true" aria-label="Loading…">•••</span>
-									</article>
-								</section>
-							{/snippet}
-
-							{#snippet Failed(_error, _retry)}
-								<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
-									<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
-										<span data-tag data-resource-state="failed" class="inline-placeholder" aria-label="Failed to load">•••</span>
-									</article>
-								</section>
-							{/snippet}
-						</ResourceBoundary>
-					{/snippet}
-
-					{#snippet MarkerCardanoTransactionOutputs(_context, Content)}
-						{@const cardanoTransactionActivityCardanoTransactionOutputsResource = selection
-		.$$outputs({
-			sources: [
-				Source.Blockfrost_Rest,
-			],
-		})}
-						<ResourceBoundary
-							resource={cardanoTransactionActivityCardanoTransactionOutputsResource}
-						>
-							{#snippet children(_resolved)}
-								{@render Content()}
-							{/snippet}
-
-							{#snippet PendingContent()}
-								{@render Content()}
-							{/snippet}
-
-							{#snippet FailedContent(_error, _retry)}
-								{@render Content()}
-							{/snippet}
-						</ResourceBoundary>
-					{/snippet}
-
-					{#snippet SectionCardanoTransactionOutputs({ id, label, open, active })}
-						{@const cardanoTransactionActivityCardanoTransactionOutputsResource = selection
-		.$$outputs({
-			sources: [
-				Source.Blockfrost_Rest,
-			],
-		})}
-						<ResourceBoundary
-							resource={cardanoTransactionActivityCardanoTransactionOutputsResource}
-						>
-							{#snippet children(cardanoTxOutput)}
-								<section
-									id={id}
-									aria-labelledby={`${id}:marker`}
-									data-scroll-marker-label={label}
-									data-column-item="flexible"
-									data-column
-									data-active={active}
-								>
-									<CardanoTxOutputsView
-										selection={cardanoTransactionActivityCardanoTransactionOutputsResource}
-										CollapsibleProps={{ canToggle: false }}
-										collapsible={false}
-										data-column-item="flexible"
-										data-card
-										data-scroll-container
-										open={open}
-										title={label}
-										emptyText='No outputs.'
-										id={`${id}-list`}
-									/>
-								</section>
-							{/snippet}
-
-							{#snippet Pending()}
-								<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
-									<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
-										<span data-tag data-text="muted" data-resource-state="pending" class="loading inline-placeholder" aria-busy="true" aria-label="Loading…">•••</span>
-									</article>
-								</section>
-							{/snippet}
-
-							{#snippet Failed(_error, _retry)}
-								<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
-									<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
-										<span data-tag data-resource-state="failed" class="inline-placeholder" aria-label="Failed to load">•••</span>
-									</article>
-								</section>
-							{/snippet}
-						</ResourceBoundary>
-					{/snippet}
-
-					{#snippet MarkerCardanoTransactionCertificates(_context, Content)}
-						{@const cardanoTransactionActivityCardanoTransactionCertificatesResource = selection
-		.$$certificates({
-			sources: [
-				Source.CardanoKoios_Rest,
-			],
-		})}
-						<ResourceBoundary
-							resource={cardanoTransactionActivityCardanoTransactionCertificatesResource}
-						>
-							{#snippet children(_resolved)}
-								{@render Content()}
-							{/snippet}
-
-							{#snippet PendingContent()}
-								{@render Content()}
-							{/snippet}
-
-							{#snippet FailedContent(_error, _retry)}
-								{@render Content()}
-							{/snippet}
-						</ResourceBoundary>
-					{/snippet}
-
-					{#snippet SectionCardanoTransactionCertificates({ id, label, open, active })}
-						{@const cardanoTransactionActivityCardanoTransactionCertificatesResource = selection
-		.$$certificates({
-			sources: [
-				Source.CardanoKoios_Rest,
-			],
-		})}
-						<ResourceBoundary
-							resource={cardanoTransactionActivityCardanoTransactionCertificatesResource}
-						>
-							{#snippet children(cardanoCertificate)}
-								<section
-									id={id}
-									aria-labelledby={`${id}:marker`}
-									data-scroll-marker-label={label}
-									data-column-item="flexible"
-									data-column
-									data-active={active}
-								>
-									<CardanoCertificatesView
-										selection={cardanoTransactionActivityCardanoTransactionCertificatesResource}
-										CollapsibleProps={{ canToggle: false }}
-										collapsible={false}
-										data-column-item="flexible"
-										data-card
-										data-scroll-container
-										open={open}
-										title={label}
-										emptyText='No certificates.'
-										id={`${id}-list`}
-									/>
-								</section>
-							{/snippet}
-
-							{#snippet Pending()}
-								<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
-									<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
-										<span data-tag data-text="muted" data-resource-state="pending" class="loading inline-placeholder" aria-busy="true" aria-label="Loading…">•••</span>
-									</article>
-								</section>
-							{/snippet}
-
-							{#snippet Failed(_error, _retry)}
-								<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
-									<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
-										<span data-tag data-resource-state="failed" class="inline-placeholder" aria-label="Failed to load">•••</span>
-									</article>
-								</section>
-							{/snippet}
-						</ResourceBoundary>
-					{/snippet}
-
-					{#snippet MarkerCardanoTransactionScripts(_context, Content)}
-						{@const cardanoTransactionActivityCardanoTransactionScriptsResource = selection
-		.$$scripts({
-			sources: [
-				Source.CardanoKoios_Rest,
-			],
-		})}
-						<ResourceBoundary
-							resource={cardanoTransactionActivityCardanoTransactionScriptsResource}
-						>
-							{#snippet children(_resolved)}
-								{@render Content()}
-							{/snippet}
-
-							{#snippet PendingContent()}
-								{@render Content()}
-							{/snippet}
-
-							{#snippet FailedContent(_error, _retry)}
-								{@render Content()}
-							{/snippet}
-						</ResourceBoundary>
-					{/snippet}
-
-					{#snippet SectionCardanoTransactionScripts({ id, label, open, active })}
-						{@const cardanoTransactionActivityCardanoTransactionScriptsResource = selection
-		.$$scripts({
-			sources: [
-				Source.CardanoKoios_Rest,
-			],
-		})}
-						<ResourceBoundary
-							resource={cardanoTransactionActivityCardanoTransactionScriptsResource}
-						>
-							{#snippet children(cardanoScriptWitness)}
-								<section
-									id={id}
-									aria-labelledby={`${id}:marker`}
-									data-scroll-marker-label={label}
-									data-column-item="flexible"
-									data-column
-									data-active={active}
-								>
-									<CardanoScriptWitnessesView
-										selection={cardanoTransactionActivityCardanoTransactionScriptsResource}
-										CollapsibleProps={{ canToggle: false }}
-										collapsible={false}
-										data-column-item="flexible"
-										data-card
-										data-scroll-container
-										open={open}
-										title={label}
-										emptyText='No scripts.'
-										id={`${id}-list`}
-									/>
-								</section>
-							{/snippet}
-
-							{#snippet Pending()}
-								<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
-									<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
-										<span data-tag data-text="muted" data-resource-state="pending" class="loading inline-placeholder" aria-busy="true" aria-label="Loading…">•••</span>
-									</article>
-								</section>
-							{/snippet}
-
-							{#snippet Failed(_error, _retry)}
-								<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
-									<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
-										<span data-tag data-resource-state="failed" class="inline-placeholder" aria-label="Failed to load">•••</span>
-									</article>
-								</section>
-							{/snippet}
-						</ResourceBoundary>
-					{/snippet}
-
-				</CollapsibleTabs>
-
-				<CollapsibleTabs
-					id={viewDomId + '-carousel-cardano-transaction-related'}
-					sectionIdPrefix={viewDomId}
-					sections={
-						[
-							{
-								id: 'cardano-transaction-governance-proposals',
-								label: 'Governance Proposals',
-								ownsSection: true,
-							},
-							{
-								id: 'cardano-transaction-governance-votes',
-								label: 'Governance Votes',
-								ownsSection: true,
-							},
-							{
-								id: 'cardano-transaction-assets',
-								label: 'Assets',
-								ownsSection: true,
-							},
-						]
-					}
+			{#snippet SectionCardanoTransactionOutputs({ id, label, open })}
+				<CardanoTxOutputsView
+					selection={selection.$$outputs}
+					CollapsibleProps={{ canToggle: false }}
+					collapsible={false}
+					data-column-item="flexible"
 					data-card
-					class='network-view-collapsible-related'
-				>
-					{#snippet Summary()}
-						<header data-row-item="flexible" data-row="wrap gap-4">
-							<HeadingComponent>Related</HeadingComponent>
-						</header>
-					{/snippet}
+					data-scroll-container
+					open={open}
+					title={label}
+					emptyText='No outputs.'
+					id={`${id}-list`}
+				/>
+			{/snippet}
 
-					{#snippet MarkerCardanoTransactionGovernanceProposals(_context, Content)}
-						{@const cardanoTransactionRelatedCardanoTransactionGovernanceProposalsResource = selection
-		.$$governanceProposals({
-			sources: [
-				Source.CardanoKoios_Rest,
-			],
-		})}
-						<ResourceBoundary
-							resource={cardanoTransactionRelatedCardanoTransactionGovernanceProposalsResource}
-						>
-							{#snippet children(_resolved)}
-								{@render Content()}
-							{/snippet}
+			{#snippet SectionCardanoTransactionCertificates({ id, label, open })}
+				<CardanoCertificatesView
+					selection={selection.$$certificates}
+					CollapsibleProps={{ canToggle: false }}
+					collapsible={false}
+					data-column-item="flexible"
+					data-card
+					data-scroll-container
+					open={open}
+					title={label}
+					emptyText='No certificates.'
+					id={`${id}-list`}
+				/>
+			{/snippet}
 
-							{#snippet PendingContent()}
-								{@render Content()}
-							{/snippet}
+			{#snippet SectionCardanoTransactionScripts({ id, label, open })}
+				<CardanoScriptWitnessesView
+					selection={selection.$$scripts}
+					CollapsibleProps={{ canToggle: false }}
+					collapsible={false}
+					data-column-item="flexible"
+					data-card
+					data-scroll-container
+					open={open}
+					title={label}
+					emptyText='No scripts.'
+					id={`${id}-list`}
+				/>
+			{/snippet}
 
-							{#snippet FailedContent(_error, _retry)}
-								{@render Content()}
-							{/snippet}
-						</ResourceBoundary>
-					{/snippet}
+		</CollapsibleTabs>
 
-					{#snippet SectionCardanoTransactionGovernanceProposals({ id, label, open, active })}
-						{@const cardanoTransactionRelatedCardanoTransactionGovernanceProposalsResource = selection
-		.$$governanceProposals({
-			sources: [
-				Source.CardanoKoios_Rest,
-			],
-		})}
-						<ResourceBoundary
-							resource={cardanoTransactionRelatedCardanoTransactionGovernanceProposalsResource}
-						>
-							{#snippet children(cardanoGovernanceProposal)}
-								<section
-									id={id}
-									aria-labelledby={`${id}:marker`}
-									data-scroll-marker-label={label}
-									data-column-item="flexible"
-									data-column
-									data-active={active}
-								>
-									<CardanoGovernanceProposalsView
-										selection={cardanoTransactionRelatedCardanoTransactionGovernanceProposalsResource}
-										CollapsibleProps={{ canToggle: false }}
-										collapsible={false}
-										data-column-item="flexible"
-										data-card
-										data-scroll-container
-										open={open}
-										title={label}
-										emptyText='No governance proposals.'
-										id={`${id}-list`}
-									/>
-								</section>
-							{/snippet}
+		<CollapsibleTabs
+			id={viewDomId + '-carousel-cardano-transaction-related'}
+			sectionIdPrefix={viewDomId}
+			sections={
+				[
+					{
+						id: 'cardano-transaction-governance-proposals',
+						label: 'Governance Proposals',
+					},
+					{
+						id: 'cardano-transaction-governance-votes',
+						label: 'Governance Votes',
+					},
+					{
+						id: 'cardano-transaction-assets',
+						label: 'Assets',
+					},
+				]
+			}
+			data-card
+			class='network-view-collapsible-related'
+		>
+			{#snippet Summary()}
+				<header data-row-item="flexible" data-row="wrap gap-4">
+					<HeadingComponent>Related</HeadingComponent>
+				</header>
+			{/snippet}
 
-							{#snippet Pending()}
-								<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
-									<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
-										<span data-tag data-text="muted" data-resource-state="pending" class="loading inline-placeholder" aria-busy="true" aria-label="Loading…">•••</span>
-									</article>
-								</section>
-							{/snippet}
+			{#snippet SectionCardanoTransactionGovernanceProposals({ id, label, open })}
+				<CardanoGovernanceProposalsView
+					selection={selection.$$governanceProposals}
+					CollapsibleProps={{ canToggle: false }}
+					collapsible={false}
+					data-column-item="flexible"
+					data-card
+					data-scroll-container
+					open={open}
+					title={label}
+					emptyText='No governance proposals.'
+					id={`${id}-list`}
+				/>
+			{/snippet}
 
-							{#snippet Failed(_error, _retry)}
-								<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
-									<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
-										<span data-tag data-resource-state="failed" class="inline-placeholder" aria-label="Failed to load">•••</span>
-									</article>
-								</section>
-							{/snippet}
-						</ResourceBoundary>
-					{/snippet}
+			{#snippet SectionCardanoTransactionGovernanceVotes({ id, label, open })}
+				<CardanoGovernanceVotesView
+					selection={selection.$$governanceVotes}
+					CollapsibleProps={{ canToggle: false }}
+					collapsible={false}
+					data-column-item="flexible"
+					data-card
+					data-scroll-container
+					open={open}
+					title={label}
+					emptyText='No governance votes.'
+					id={`${id}-list`}
+				/>
+			{/snippet}
 
-					{#snippet MarkerCardanoTransactionGovernanceVotes(_context, Content)}
-						{@const cardanoTransactionRelatedCardanoTransactionGovernanceVotesResource = selection
-		.$$governanceVotes({
-			sources: [
-				Source.CardanoKoios_Rest,
-			],
-		})}
-						<ResourceBoundary
-							resource={cardanoTransactionRelatedCardanoTransactionGovernanceVotesResource}
-						>
-							{#snippet children(_resolved)}
-								{@render Content()}
-							{/snippet}
+			{#snippet SectionCardanoTransactionAssets({ id, label, open })}
+				<CardanoNativeAssetsView
+					selection={selection.$$assets}
+					CollapsibleProps={{ canToggle: false }}
+					collapsible={false}
+					data-column-item="flexible"
+					data-card
+					data-scroll-container
+					open={open}
+					title={label}
+					emptyText='No assets.'
+					id={`${id}-list`}
+				/>
+			{/snippet}
 
-							{#snippet PendingContent()}
-								{@render Content()}
-							{/snippet}
-
-							{#snippet FailedContent(_error, _retry)}
-								{@render Content()}
-							{/snippet}
-						</ResourceBoundary>
-					{/snippet}
-
-					{#snippet SectionCardanoTransactionGovernanceVotes({ id, label, open, active })}
-						{@const cardanoTransactionRelatedCardanoTransactionGovernanceVotesResource = selection
-		.$$governanceVotes({
-			sources: [
-				Source.CardanoKoios_Rest,
-			],
-		})}
-						<ResourceBoundary
-							resource={cardanoTransactionRelatedCardanoTransactionGovernanceVotesResource}
-						>
-							{#snippet children(cardanoGovernanceVote)}
-								<section
-									id={id}
-									aria-labelledby={`${id}:marker`}
-									data-scroll-marker-label={label}
-									data-column-item="flexible"
-									data-column
-									data-active={active}
-								>
-									<CardanoGovernanceVotesView
-										selection={cardanoTransactionRelatedCardanoTransactionGovernanceVotesResource}
-										CollapsibleProps={{ canToggle: false }}
-										collapsible={false}
-										data-column-item="flexible"
-										data-card
-										data-scroll-container
-										open={open}
-										title={label}
-										emptyText='No governance votes.'
-										id={`${id}-list`}
-									/>
-								</section>
-							{/snippet}
-
-							{#snippet Pending()}
-								<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
-									<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
-										<span data-tag data-text="muted" data-resource-state="pending" class="loading inline-placeholder" aria-busy="true" aria-label="Loading…">•••</span>
-									</article>
-								</section>
-							{/snippet}
-
-							{#snippet Failed(_error, _retry)}
-								<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
-									<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
-										<span data-tag data-resource-state="failed" class="inline-placeholder" aria-label="Failed to load">•••</span>
-									</article>
-								</section>
-							{/snippet}
-						</ResourceBoundary>
-					{/snippet}
-
-					{#snippet MarkerCardanoTransactionAssets(_context, Content)}
-						{@const cardanoTransactionRelatedCardanoTransactionAssetsResource = selection
-		.$$assets({
-			sources: [
-				Source.Blockfrost_Rest,
-			],
-		})}
-						<ResourceBoundary
-							resource={cardanoTransactionRelatedCardanoTransactionAssetsResource}
-						>
-							{#snippet children(_resolved)}
-								{@render Content()}
-							{/snippet}
-
-							{#snippet PendingContent()}
-								{@render Content()}
-							{/snippet}
-
-							{#snippet FailedContent(_error, _retry)}
-								{@render Content()}
-							{/snippet}
-						</ResourceBoundary>
-					{/snippet}
-
-					{#snippet SectionCardanoTransactionAssets({ id, label, open, active })}
-						{@const cardanoTransactionRelatedCardanoTransactionAssetsResource = selection
-		.$$assets({
-			sources: [
-				Source.Blockfrost_Rest,
-			],
-		})}
-						<ResourceBoundary
-							resource={cardanoTransactionRelatedCardanoTransactionAssetsResource}
-						>
-							{#snippet children(cardanoNativeAsset)}
-								<section
-									id={id}
-									aria-labelledby={`${id}:marker`}
-									data-scroll-marker-label={label}
-									data-column-item="flexible"
-									data-column
-									data-active={active}
-								>
-									<CardanoNativeAssetsView
-										selection={cardanoTransactionRelatedCardanoTransactionAssetsResource}
-										CollapsibleProps={{ canToggle: false }}
-										collapsible={false}
-										data-column-item="flexible"
-										data-card
-										data-scroll-container
-										open={open}
-										title={label}
-										emptyText='No assets.'
-										id={`${id}-list`}
-									/>
-								</section>
-							{/snippet}
-
-							{#snippet Pending()}
-								<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
-									<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
-										<span data-tag data-text="muted" data-resource-state="pending" class="loading inline-placeholder" aria-busy="true" aria-label="Loading…">•••</span>
-									</article>
-								</section>
-							{/snippet}
-
-							{#snippet Failed(_error, _retry)}
-								<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
-									<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
-										<span data-tag data-resource-state="failed" class="inline-placeholder" aria-label="Failed to load">•••</span>
-									</article>
-								</section>
-							{/snippet}
-						</ResourceBoundary>
-					{/snippet}
-
-				</CollapsibleTabs>
+		</CollapsibleTabs>
 	{/snippet}
 </EntityView>

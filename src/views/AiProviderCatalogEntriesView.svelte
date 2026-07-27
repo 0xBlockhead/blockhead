@@ -2,69 +2,32 @@
 
 <script lang="ts">
 	// Types/constants
-	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
-	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
-	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
+	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-
-
 
 
 	// State
 	let {
 		selection,
-		countResource,
-		title = 'AI provider catalog entries',
-		typeAnnotationParagraphs = [],
-		placeholderText = undefined,
-		emptyText = undefined,
 		open = $bindable(true),
-		collapsible = true,
-		showTypeAnnotation = true,
 		id = 'AiProviderCatalogEntries-list',
 		...EntitiesListProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyEntitiesSelection<EntityType.AiProviderCatalogEntry>
-			countResource?: SvelteKitResource<number>
-			title?: string
-			typeAnnotationParagraphs?: string[]
-			placeholderText?: string
-			emptyText?: string
-			open?: boolean
-			collapsible?: boolean
-			showTypeAnnotation?: boolean
-			id?: string
-		},
-		EntitiesListForwardProps
-	> = $props()
+	}: EntityListViewProps<EntityType.AiProviderCatalogEntry> = $props()
 
 
 	// Components
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView from '$/components/EntityView.svelte'
 </script>
 
-
-{#snippet TypeAnnotationParagraphs()}
-	{#each typeAnnotationParagraphs as paragraph (paragraph)}
-		<p>{paragraph}</p>
-	{/each}
-{/snippet}
 
 <EntitiesList
 	{...EntitiesListProps}
 	entityType={EntityType.AiProviderCatalogEntry}
 	{id}
-	{title}
 	bind:open
-	{collapsible}
-	{showTypeAnnotation}
-	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
 	resource={
 		selection({
-			sources: selection.sources,
 			fields: {
 				entryLabel: true,
 				catalogKind: true,
@@ -73,38 +36,23 @@
 			},
 		})
 	}
-	{countResource}
-	getResourceItems={(aiProviderCatalogEntries) => [...new Map(aiProviderCatalogEntries.values.map((aiProviderCatalogEntry) => [aiProviderCatalogEntry[EntityMetaKey.SelectorKey], aiProviderCatalogEntry])).values()]}
-	getKey={(aiProviderCatalogEntry) => aiProviderCatalogEntry[EntityMetaKey.SelectorKey]}
-	{placeholderText}
 >
-	{#snippet Empty()}
-		{#if emptyText != null}
-			<p data-text="muted">{emptyText}</p>
-		{:else}
-			<p data-text="muted">No AI provider catalog entries yet.</p>
-		{/if}
-	{/snippet}
-
 	{#snippet Item({ item: aiProviderCatalogEntry })}
-		{@const aiProviderCatalogEntryFields = { ...aiProviderCatalogEntry[EntityMetaKey.Selector], ...aiProviderCatalogEntry }}
+		{@const aiProviderCatalogEntrySelector = aiProviderCatalogEntry[EntityMetaKey.Selector]}
 		<EntityView
 			entityType={EntityType.AiProviderCatalogEntry}
-			entitySelector={aiProviderCatalogEntry[EntityMetaKey.Selector]}
-			layout={EntityLayout.Summary}
-			open={false}
-			showTypeAnnotation={false}
+			entitySelector={aiProviderCatalogEntrySelector}
 		>
 			{#snippet Title()}
-				{[String((aiProviderCatalogEntryFields.entryLabel) ?? '')].filter(Boolean).join(' ') || [String((aiProviderCatalogEntryFields.providerEntryId) ?? '')].filter(Boolean).join(' ') || 'AI provider catalog entry'}
+				{(aiProviderCatalogEntry.entryLabel ?? '') || aiProviderCatalogEntrySelector.providerEntryId || 'AI provider catalog entry'}
 			{/snippet}
 
 			{#snippet Value()}
-				{[String((aiProviderCatalogEntryFields.catalogKind) ?? '')].filter(Boolean).join(' ')}
+				{aiProviderCatalogEntrySelector.catalogKind}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{[String((aiProviderCatalogEntryFields.subjectKind) ?? '')].filter(Boolean).join(' ')}</span>
+				<span data-text="annotation">{(aiProviderCatalogEntry.subjectKind ?? '')}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

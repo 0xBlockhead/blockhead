@@ -4,7 +4,6 @@
 	// Types/constants
 	import type { PageProps } from './$types.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -17,7 +16,6 @@
 		data,
 		params,
 	}: PageProps = $props()
-
 
 
 	// Components
@@ -34,19 +32,17 @@
 
 <Page>
 	{#if data.entityType === EntityType.CardanoTransaction}
-		{@const collection0Selection = select(EntityType.CardanoTransaction, data.selector)
-			.$$inputs({
-				sources: [
-					Source.Blockfrost_Rest,
-				],
-			})}
+		{@const collection0Selection = select(EntityType.CardanoTransaction, data.selector).$$inputs}
 
 		<CardanoTxInputsView
 			href={
-				resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/inputs', {
-					network: params.network,
-					transactionId: params.transactionId,
-				})
+				resolve(
+					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(transactions)/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/(selection)/inputs',
+					{
+						network: String(params.network),
+						transactionId: String(params.transactionId),
+					}
+				)
 			}
 			title='Cardano inputs'
 			selection={collection0Selection}
@@ -63,10 +59,13 @@
 
 		<UtxoInputsView
 			href={
-				resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/inputs', {
-					network: params.network,
-					transactionId: params.transactionId,
-				})
+				resolve(
+					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(transactions)/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/(selection)/inputs',
+					{
+						network: String(params.network),
+						transactionId: String(params.transactionId),
+					}
+				)
 			}
 			title='UTXO inputs'
 			selection={collection1Selection}

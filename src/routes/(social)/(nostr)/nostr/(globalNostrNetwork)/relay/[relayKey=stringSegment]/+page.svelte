@@ -7,14 +7,12 @@
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		data,
-		params,
 	}: PageProps = $props()
 
 	const pageSelection = $derived(select(EntityType.NostrRelay, data.selector))
@@ -27,17 +25,12 @@
 
 
 <svelte:head>
-	<title>{(data.title ?? (pageSelection.entity == null ? [String((data.selector.relayUrl) ?? '')].filter(Boolean).join(' ') || 'Nostr relay' : [String((({ ...data.selector, ...pageSelection.entity }).relayUrl) ?? '')].filter(Boolean).join(' ') || 'Nostr relay'))} • Nostr relay • Blockhead</title>
+	<title>{(data.title ?? (pageSelection.entitySelector.relayUrl || 'Nostr relay'))} • Nostr relay • Blockhead</title>
 </svelte:head>
 
 
 <Page>
 	<NostrRelayView
-		href={
-			resolve('/nostr/relay/[relayKey=stringSegment]', {
-				relayKey: params.relayKey,
-			})
-		}
 		selection={pageSelection}
 	/>
 </Page>

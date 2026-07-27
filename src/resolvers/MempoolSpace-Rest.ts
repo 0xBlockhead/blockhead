@@ -17,32 +17,9 @@ import {
 import type { EntitySelector } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { schema } from '$/schema/index.ts'
-import { sourceProviderDefinitions } from '$/sources/$sourceProviders.ts'
 import { Source } from '$/sources/Source.ts'
-import { SourceTargetKind } from '$/sources/SourceBinding.ts'
-import { NetworkSelector } from '$/schema/Network.ts'
-import { Network_TimestampSelector } from '$/schema/Network_Timestamp.ts'
-import { UtxoBlockSelector } from '$/schema/UtxoBlock.ts'
-import { UtxoTransactionSelector } from '$/schema/UtxoTransaction.ts'
-import { UtxoInputSelector } from '$/schema/UtxoInput.ts'
-import { UtxoAddressSelector } from '$/schema/UtxoAddress.ts'
-import { UtxoAddress_TimestampSelector } from '$/schema/UtxoAddress_Timestamp.ts'
-import { UtxoOutputSelector } from '$/schema/UtxoOutput.ts'
 
 type NetworkId = EntitySelector<typeof schema, EntityType.Network>
-
-const mempoolSpaceBindings = sourceProviderDefinitions
-	.flatMap((provider) => provider.bindings)
-	.filter((binding) => (
-		binding.source === Source.MempoolSpace_Rest
-		&& binding.target.kind === SourceTargetKind.Caip2Network
-		&& binding.target.key === `${bitcoinNetworkBySlug.bitcoin.caip2.namespace}:${bitcoinNetworkBySlug.bitcoin.caip2.reference}`
-	))
-
-if (mempoolSpaceBindings.length !== 1)
-	throw new Error('MempoolSpace_Rest: canonical Bitcoin mainnet source binding is missing or ambiguous')
-
-const mempoolSpaceBinding = mempoolSpaceBindings[0]
 
 const bitcoinNetworkApplicability = [
 	{
@@ -112,17 +89,19 @@ const bitcoinMainnet = {
 	caip2: bitcoinNetworkBySlug.bitcoin.caip2,
 } as const
 
-const bitcoinNetworkSelectors = <const _Snapshot extends object>(
+const bitcoinNetworkSelectors = <
+
+const _Snapshot extends object>(
 	resolve: (
 		network: NetworkId,
 		context: SourceResolverContext<Source.MempoolSpace_Rest>
 	) => Promise<_Snapshot>
 ) => ({
-	[NetworkSelector.Caip2]: {
+	Caip2: {
 		appliesTo: [bitcoinNetworkApplicability[0]],
 		resolve,
 	},
-	[NetworkSelector.Slug]: {
+	Slug: {
 		appliesTo: [bitcoinNetworkApplicability[1]],
 		resolve,
 	},
@@ -134,7 +113,7 @@ const getTransaction = async ({ $network, txId }: {
 }) => {
 	assertBitcoinMainnet($network)
 	const { getTransaction } = await import('$/sources/MempoolSpace/Rest/queries.ts')
-	return getTransaction(mempoolSpaceBinding, txId)
+	return getTransaction(txId)
 }
 
 export default {
@@ -157,14 +136,14 @@ export default {
 		defineResolver(Source.MempoolSpace_Rest, {
 			entityType: EntityType.UtxoBlock,
 			resolve: {
-				[UtxoBlockSelector.NetworkHeightHash]: {
+				NetworkHeightHash: {
 					appliesTo: bitcoinNetworkReferenceApplicability,
 					resolve: async ({ $network, hash }) => {
 						assertBitcoinMainnet($network)
 						const {
 							getBlock,
 						} = await import('$/sources/MempoolSpace/Rest/queries.ts')
-						const block = await getBlock(mempoolSpaceBinding, hash)
+						const block = await getBlock(hash)
 						return {
 							hash: block.id,
 							...(block.previousblockhash != null && {
@@ -202,7 +181,7 @@ export default {
 		defineResolver(Source.MempoolSpace_Rest, {
 			entityType: EntityType.UtxoTransaction,
 			resolve: {
-				[UtxoTransactionSelector.NetworkTxId]: {
+				NetworkTxId: {
 					appliesTo: bitcoinNetworkReferenceApplicability,
 					resolve: async (entitySelector) => {
 						const transaction = await getTransaction(entitySelector)
@@ -249,7 +228,7 @@ export default {
 		defineResolver(Source.MempoolSpace_Rest, {
 			entityType: EntityType.UtxoInput,
 			resolve: {
-				[UtxoInputSelector.TransactionIndexInTransaction]: {
+				TransactionIndexInTransaction: {
 					appliesTo: bitcoinTransactionReferenceApplicability,
 					resolve: async ({ $transaction, indexInTransaction }) => {
 						const input = (await getTransaction($transaction)).vin[indexInTransaction]
@@ -294,7 +273,7 @@ export default {
 		defineResolver(Source.MempoolSpace_Rest, {
 			entityType: EntityType.UtxoAddress,
 			resolve: {
-					[UtxoAddressSelector.NetworkAddress]: {
+					NetworkAddress: {
 						appliesTo: bitcoinNetworkReferenceApplicability,
 						resolve: async ({ $network, address: addressSelector }) => {
 							assertBitcoinMainnet($network)
@@ -324,7 +303,7 @@ export default {
 		defineResolver(Source.MempoolSpace_Rest, {
 			entityType: EntityType.UtxoAddress,
 			resolve: {
-				[UtxoAddressSelector.NetworkAddress]: {
+				NetworkAddress: {
 					appliesTo: bitcoinNetworkReferenceApplicability,
 					resolve: async (utxoAddress, context) => {
 						assertBitcoinMainnet(utxoAddress.$network)
@@ -334,7 +313,6 @@ export default {
 
 						const { getAddressTransactions } = await import('$/sources/MempoolSpace/Rest/queries.ts')
 						const transactions = await getAddressTransactions(
-							mempoolSpaceBinding,
 							utxoAddress.address,
 							context.providerContinuationToken
 						)
@@ -378,12 +356,12 @@ export default {
 			defineResolver(Source.MempoolSpace_Rest, {
 				entityType: EntityType.UtxoAddress_Timestamp,
 				resolve: {
-					[UtxoAddress_TimestampSelector.AddressTimestampMsSource]: {
+					AddressTimestampMsSource: {
 						appliesTo: bitcoinAddressTimestampApplicability,
 						resolve: async ({ $address }) => {
 							assertBitcoinMainnet($address.$network)
 							const { getAddress } = await import('$/sources/MempoolSpace/Rest/queries.ts')
-							const address = await getAddress(mempoolSpaceBinding, $address.address)
+							const address = await getAddress($address.address)
 							const chainStats = address.chain_stats
 							return {
 								balanceSats: BigInt(chainStats.funded_txo_sum - chainStats.spent_txo_sum),
@@ -410,7 +388,7 @@ export default {
 		defineResolver(Source.MempoolSpace_Rest, {
 			entityType: EntityType.UtxoOutput,
 			resolve: {
-				[UtxoOutputSelector.TransactionIndexInTransaction]: {
+				TransactionIndexInTransaction: {
 					appliesTo: bitcoinTransactionReferenceApplicability,
 					resolve: async ({ $transaction, indexInTransaction }) => {
 						const output = (await getTransaction($transaction)).vout[indexInTransaction]
@@ -448,7 +426,7 @@ export default {
 		defineResolver(Source.MempoolSpace_Rest, {
 			entityType: EntityType.Network_Timestamp,
 			resolve: {
-				[Network_TimestampSelector.NetworkTimestampMsSource]: {
+				NetworkTimestampMsSource: {
 					appliesTo: bitcoinNetworkTimestampApplicability,
 					resolve: async ({
 						$network,
@@ -465,9 +443,9 @@ export default {
 							getRecommendedFees,
 						} = await import('$/sources/MempoolSpace/Rest/queries.ts')
 						const [blocks, mempoolStats, fees] = await Promise.all([
-							getBlocks(mempoolSpaceBinding),
-							getMempoolStats(mempoolSpaceBinding),
-							getRecommendedFees(mempoolSpaceBinding),
+							getBlocks(),
+							getMempoolStats(),
+							getRecommendedFees(),
 						])
 						const block = blocks.at(0)
 						if (block == null) throw new Error('MempoolSpace_Rest: no blocks returned')
@@ -526,9 +504,9 @@ export default {
 					getRecommendedFees,
 				} = await import('$/sources/MempoolSpace/Rest/queries.ts')
 				const [blocks, mempoolStats, fees] = await Promise.all([
-					getBlocks(mempoolSpaceBinding),
-					getMempoolStats(mempoolSpaceBinding),
-					getRecommendedFees(mempoolSpaceBinding),
+					getBlocks(),
+					getMempoolStats(),
+					getRecommendedFees(),
 				])
 				const block = blocks.at(0)
 				if (block == null) throw new Error('MempoolSpace_Rest: no blocks returned')
@@ -558,7 +536,7 @@ export default {
 			resolve: bitcoinNetworkSelectors(async (network, context) => {
 				assertBitcoinMainnet(network)
 				const { getBlocks } = await import('$/sources/MempoolSpace/Rest/queries.ts')
-				const blocks = await getBlocks(mempoolSpaceBinding)
+				const blocks = await getBlocks()
 				return blocks.slice(0, resolverContextRowLimit(context)).map((block) => ({
 					[EntityMetaKey.Selector]: {
 						$network: network,
@@ -582,8 +560,8 @@ export default {
 					getMempoolStats,
 				} = await import('$/sources/MempoolSpace/Rest/queries.ts')
 				const [blocks, mempoolStats] = await Promise.all([
-					getBlocks(mempoolSpaceBinding),
-					getMempoolStats(mempoolSpaceBinding),
+					getBlocks(),
+					getMempoolStats(),
 				])
 				const latestBlock = blocks.at(0)
 				if (latestBlock == null)
@@ -610,7 +588,7 @@ export default {
 			resolve: bitcoinNetworkSelectors(async (network, context) => {
 				assertBitcoinMainnet(network)
 				const { getMempoolTxids } = await import('$/sources/MempoolSpace/Rest/queries.ts')
-				const txids = await getMempoolTxids(mempoolSpaceBinding)
+				const txids = await getMempoolTxids()
 				return txids.slice(0, resolverContextRowLimit(context)).map((txId) => ({
 					[EntityMetaKey.Selector]: {
 						$network: network,
@@ -627,13 +605,13 @@ export default {
 		defineResolver(Source.MempoolSpace_Rest, {
 			entityType: EntityType.UtxoBlock,
 			resolve: {
-				[UtxoBlockSelector.NetworkHeightHash]: {
+				NetworkHeightHash: {
 					appliesTo: bitcoinNetworkReferenceApplicability,
 					resolve: async ({ $network, hash }) => {
 						assertBitcoinMainnet($network)
 						const { getBlockTransactionIds } = await import('$/sources/MempoolSpace/Rest/queries.ts')
 						return (
-							await getBlockTransactionIds(mempoolSpaceBinding, hash)
+							await getBlockTransactionIds(hash)
 						).map((txId) => ({
 							[EntityMetaKey.Selector]: {
 								$network,
@@ -650,7 +628,7 @@ export default {
 		defineResolver(Source.MempoolSpace_Rest, {
 			entityType: EntityType.UtxoTransaction,
 			resolve: {
-				[UtxoTransactionSelector.NetworkTxId]: {
+				NetworkTxId: {
 					appliesTo: bitcoinNetworkReferenceApplicability,
 					resolve: async (entitySelector) => (
 						(await getTransaction(entitySelector)).vin.map((input, indexInTransaction) => (
@@ -671,7 +649,7 @@ export default {
 		defineResolver(Source.MempoolSpace_Rest, {
 			entityType: EntityType.UtxoTransaction,
 			resolve: {
-				[UtxoTransactionSelector.NetworkTxId]: {
+				NetworkTxId: {
 					appliesTo: bitcoinNetworkReferenceApplicability,
 					resolve: async (entitySelector) => (
 						(await getTransaction(entitySelector)).vout.map((output, indexInTransaction) => (

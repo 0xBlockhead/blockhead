@@ -1,15 +1,12 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { entity, facet } from '$/schema/$schema.ts'
+import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 import { type } from 'arktype'
 
-export enum BlockheadActionOutcomeSelector {
-	SessionIdActionIdOutcomeId = 'SessionIdActionIdOutcomeId',
-}
-export const BlockheadActionOutcome = entity({
+export default entity({
 	entityType: EntityType.BlockheadActionOutcome,
 	labels: {
 		singular: 'blockhead action outcome',
@@ -67,7 +64,7 @@ export const BlockheadActionOutcome = entity({
 	transactionHash: {
 		label: 'transaction hash',
 		type: EntityFieldType.Primitive,
-		primitiveType: (ZeroExHex),
+		primitiveType: ZeroExHex,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	transactionId: {
@@ -98,7 +95,7 @@ export const BlockheadActionOutcome = entity({
 	outcomePayloadHash: {
 		label: 'outcome payload hash',
 		type: EntityFieldType.Primitive,
-		primitiveType: (ZeroExHex),
+		primitiveType: ZeroExHex,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$$timestamps: {

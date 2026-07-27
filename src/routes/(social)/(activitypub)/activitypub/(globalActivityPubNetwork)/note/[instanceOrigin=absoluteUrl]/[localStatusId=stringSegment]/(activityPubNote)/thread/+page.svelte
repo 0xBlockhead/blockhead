@@ -3,12 +3,12 @@
 <script lang="ts">
 	// Types/constants
 	import type { PageProps } from './$types.ts'
+	import { resolve } from '$app/paths'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
@@ -16,8 +16,6 @@
 	let {
 		params,
 	}: PageProps = $props()
-
-
 	// Components
 	import Page from '$/components/Page.svelte'
 	import ActivityPubNotesView from '$/views/ActivityPubNotesView.svelte'
@@ -30,36 +28,29 @@
 
 
 <Page>
+	{@const collectionSelection = select(EntityType.ActivityPubNote, {
+		instanceOrigin: decodeURIComponent(params.instanceOrigin),
+		localStatusId: params.localStatusId,
+	})
+		.$$thread({
+			sources: [
+				Source.Mastodon_Rest,
+			],
+		})}
+
 	<ActivityPubNotesView
 		href={
-			resolve('/activitypub/note/[instanceOrigin=absoluteUrl]/[localStatusId=stringSegment]/thread', {
-				instanceOrigin: params.instanceOrigin,
-				localStatusId: params.localStatusId,
-			})
+			resolve(
+				'/(social)/(activitypub)/activitypub/(globalActivityPubNetwork)/note/[instanceOrigin=absoluteUrl]/[localStatusId=stringSegment]/(activityPubNote)/thread',
+				{
+					instanceOrigin: String(params.instanceOrigin),
+					localStatusId: String(params.localStatusId),
+				}
+			)
 		}
 		title='ActivityPub note thread'
-		selection={
-			select(EntityType.ActivityPubNote, {
-				instanceOrigin: decodeURIComponent(params.instanceOrigin),
-				localStatusId: params.localStatusId,
-			})
-				.$$thread({
-					sources: [
-						Source.Mastodon_Rest,
-					],
-				})
-		}
-		countResource={
-			select(EntityType.ActivityPubNote, {
-				instanceOrigin: decodeURIComponent(params.instanceOrigin),
-				localStatusId: params.localStatusId,
-			})
-				.$$thread({
-					sources: [
-						Source.Mastodon_Rest,
-					],
-				}).count
-		}
+		selection={collectionSelection}
+		countResource={collectionSelection.count}
 		id='thread'
 		data-column-item="flexible"
 		data-card

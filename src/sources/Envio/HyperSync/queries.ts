@@ -1,5 +1,6 @@
 import { fetchFailedMessage } from '$/lib/http.ts'
-import type { SourceBinding } from '$/sources/SourceBinding.ts'
+import bindings from '$/sources/Envio/bindings.ts'
+import { Source } from '$/sources/Source.ts'
 import {
 	firstHttpUrlForBinding,
 	sourceFetch,
@@ -12,13 +13,13 @@ import {
 	EnvioHyperSyncResolution,
 } from '$/sources/Envio/HyperSync/types.ts'
 
+const binding = bindings[Source.EnvioHyperSync_RawHttp]
+
 export const getEvmBlockRangePage = async ({
-	binding,
 	fromBlock,
 	toBlock,
 	rollbackGuard,
 }: {
-	binding: SourceBinding
 	fromBlock: bigint
 	toBlock: bigint
 	rollbackGuard?: EnvioHyperSyncRollbackGuard

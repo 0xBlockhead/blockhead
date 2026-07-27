@@ -2,15 +2,8 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
-	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -22,40 +15,18 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.AssetFormatSupport_Timestamp>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.AssetFormatSupport_Timestamp>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.AssetFormatSupport_Timestamp> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const assetFormatSupportTimestamp = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {
-			confidence: true,
-		},
-	} : {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const assetFormatSupportTimestamp = $derived(selection({
 		fields: {
 			confidence: true,
 		},
 	}))
-	const titleFallback = $derived([String((pendingEntity.formatId) ?? '')].filter(Boolean).join(' ') || 'asset format support timestamp')
-	const viewDomId = $derived('asset-format-support-timestamp-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const titleFallback = $derived((pendingEntity.formatId ?? '') || 'asset format support timestamp')
 
 
 	// Components
@@ -68,61 +39,31 @@
 
 <EntityView
 	entityType={EntityType.AssetFormatSupport_Timestamp}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'confidence')}
-			{[String((pendingEntity.formatId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-		{:else}
-			<ResourceBoundary resource={assetFormatSupportTimestamp}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.formatId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		{(pendingEntity.formatId ?? '') || 'asset format support timestamp'}
 	{/snippet}
 
 	{#snippet Value()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'confidence')}
-			{[String((pendingEntity.formatId) ?? '')].filter(Boolean).join(' ') || titleFallback}
-		{:else}
-			<ResourceBoundary resource={assetFormatSupportTimestamp}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.formatId) ?? '')].filter(Boolean).join(' ') || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		{(pendingEntity.formatId ?? '') || titleFallback}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'confidence')}
-			{@const confidence0 = pendingEntity.confidence}
-			{#if confidence0 !== undefined && confidence0 !== null}
-				<span data-text="muted">
-					{String((confidence0) ?? '')}
-				</span>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={assetFormatSupportTimestamp}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const confidence0 = resolvedEntity.confidence}
-					{#if confidence0 !== undefined && confidence0 !== null}
-						<span data-text="muted">
-							{String((confidence0) ?? '')}
-						</span>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={assetFormatSupportTimestamp}>
+			{#snippet children(entity)}
+				{@const confidence0 = entity.confidence}
+				{#if confidence0 != null}
+					<span data-text="muted">
+						{confidence0}
+					</span>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -130,93 +71,34 @@
 			<div>
 				<dt>Format ID</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									formatId: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const formatId = resolvedEntity.formatId}
-							{#if formatId !== undefined && formatId !== null}
-								{String((formatId) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{pendingEntity.formatId}
 				</dd>
 			</div>
 
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									timestampMs: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const timestampMs = resolvedEntity.timestampMs}
-							{#if timestampMs !== undefined && timestampMs !== null}
-								<Timestamp timestamp={Number(timestampMs)} />
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									source: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const source = resolvedEntity.source}
-							{#if source !== undefined && source !== null}
-								{String((source) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{pendingEntity.source}
 				</dd>
 			</div>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							confidence: true,
-						},
-					})
-				}
+				resource={assetFormatSupportTimestamp}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const confidence = resolvedEntity.confidence}
-					{#if confidence !== undefined && confidence !== null}
+					{@const confidence = entity.confidence}
+					{#if confidence != null}
 						<div>
 							<dt>Confidence</dt>
 							<dd>
-								{String((confidence) ?? '')}
+								{confidence}
 							</dd>
 						</div>
 					{/if}
@@ -226,7 +108,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							evidenceKind: true,
 						},
@@ -234,13 +115,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const evidenceKind = resolvedEntity.evidenceKind}
-					{#if evidenceKind !== undefined && evidenceKind !== null}
+					{@const evidenceKind = entity.evidenceKind}
+					{#if evidenceKind != null}
 						<div>
 							<dt>Evidence kind</dt>
 							<dd>
-								{String((evidenceKind) ?? '')}
+								{evidenceKind}
 							</dd>
 						</div>
 					{/if}
@@ -250,7 +130,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							ledgerCoordinateKind: true,
 						},
@@ -258,13 +137,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const ledgerCoordinateKind = resolvedEntity.ledgerCoordinateKind}
-					{#if ledgerCoordinateKind !== undefined && ledgerCoordinateKind !== null}
+					{@const ledgerCoordinateKind = entity.ledgerCoordinateKind}
+					{#if ledgerCoordinateKind != null}
 						<div>
 							<dt>Ledger coordinate kind</dt>
 							<dd>
-								{String((ledgerCoordinateKind) ?? '')}
+								{ledgerCoordinateKind}
 							</dd>
 						</div>
 					{/if}
@@ -274,7 +152,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							ledgerCoordinateValue: true,
 						},
@@ -282,13 +159,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const ledgerCoordinateValue = resolvedEntity.ledgerCoordinateValue}
-					{#if ledgerCoordinateValue !== undefined && ledgerCoordinateValue !== null}
+					{@const ledgerCoordinateValue = entity.ledgerCoordinateValue}
+					{#if ledgerCoordinateValue != null}
 						<div>
 							<dt>Ledger coordinate value</dt>
 							<dd>
-								{String((ledgerCoordinateValue) ?? '')}
+								{String(ledgerCoordinateValue)}
 							</dd>
 						</div>
 					{/if}
@@ -300,7 +176,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							interfaceId: true,
 						},
@@ -308,13 +183,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const interfaceId = resolvedEntity.interfaceId}
-					{#if interfaceId !== undefined && interfaceId !== null}
+					{@const interfaceId = entity.interfaceId}
+					{#if interfaceId != null}
 						<div>
 							<dt>Interface ID</dt>
 							<dd>
-								{String((interfaceId) ?? '')}
+								{interfaceId}
 							</dd>
 						</div>
 					{/if}
@@ -324,7 +198,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							programId: true,
 						},
@@ -332,13 +205,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const programId = resolvedEntity.programId}
-					{#if programId !== undefined && programId !== null}
+					{@const programId = entity.programId}
+					{#if programId != null}
 						<div>
 							<dt>Program ID</dt>
 							<dd>
-								{String((programId) ?? '')}
+								{programId}
 							</dd>
 						</div>
 					{/if}
@@ -348,7 +220,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							moduleId: true,
 						},
@@ -356,13 +227,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const moduleId = resolvedEntity.moduleId}
-					{#if moduleId !== undefined && moduleId !== null}
+					{@const moduleId = entity.moduleId}
+					{#if moduleId != null}
 						<div>
 							<dt>Module ID</dt>
 							<dd>
-								{String((moduleId) ?? '')}
+								{moduleId}
 							</dd>
 						</div>
 					{/if}
@@ -372,7 +242,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							contractAddress: true,
 						},
@@ -380,13 +249,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const contractAddress = resolvedEntity.contractAddress}
-					{#if contractAddress !== undefined && contractAddress !== null}
+					{@const contractAddress = entity.contractAddress}
+					{#if contractAddress != null}
 						<div>
 							<dt>Contract address</dt>
 							<dd>
-								<TruncatedValue value={String((contractAddress) ?? '')} />
+								<TruncatedValue value={contractAddress} />
 							</dd>
 						</div>
 					{/if}
@@ -396,7 +264,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							tokenProgram: true,
 						},
@@ -404,13 +271,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const tokenProgram = resolvedEntity.tokenProgram}
-					{#if tokenProgram !== undefined && tokenProgram !== null}
+					{@const tokenProgram = entity.tokenProgram}
+					{#if tokenProgram != null}
 						<div>
 							<dt>Token program</dt>
 							<dd>
-								{String((tokenProgram) ?? '')}
+								{tokenProgram}
 							</dd>
 						</div>
 					{/if}
@@ -420,7 +286,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							notes: true,
 						},
@@ -428,13 +293,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const notes = resolvedEntity.notes}
-					{#if notes !== undefined && notes !== null}
+					{@const notes = entity.notes}
+					{#if notes != null}
 						<div>
 							<dt>Notes</dt>
 							<dd>
-								{String((notes) ?? '')}
+								{notes}
 							</dd>
 						</div>
 					{/if}
@@ -446,34 +310,6 @@
 				<dd>
 					<AssetInstanceView
 						selection={select(EntityType.AssetInstance, selection.entitySelector.$assetInstance)}
-						href={
-							(
-								selection.entitySelector.$assetInstance != null && 'kind' in selection.entitySelector.$assetInstance
-								&& selection.entitySelector.$assetInstance.kind != null
-								&& selection.entitySelector.$assetInstance != null && 'assetKey' in selection.entitySelector.$assetInstance
-								&& selection.entitySelector.$assetInstance.assetKey != null
-								&& selection.entitySelector.$assetInstance != null && '$network' in selection.entitySelector.$assetInstance ?
-									selection.entitySelector.$assetInstance.$network != null && 'caip2' in selection.entitySelector.$assetInstance.$network
-									&& selection.entitySelector.$assetInstance.$network.caip2 != null ?
-										resolve('/network/[network=networkCaip2OrNetworkSlug]/asset/[kind=stringSegment]/[assetKey=stringSegment]', {
-									kind: String(selection.entitySelector.$assetInstance.kind ?? ''),
-									assetKey: String(selection.entitySelector.$assetInstance.assetKey ?? ''),
-									network: String(caip2StringFromValue(selection.entitySelector.$assetInstance.$network.caip2) ?? ''),
-								})
-								:
-										selection.entitySelector.$assetInstance.$network != null && 'slug' in selection.entitySelector.$assetInstance.$network
-										&& selection.entitySelector.$assetInstance.$network.slug != null ?
-											resolve('/network/[network=networkCaip2OrNetworkSlug]/asset/[kind=stringSegment]/[assetKey=stringSegment]', {
-										kind: String(selection.entitySelector.$assetInstance.kind ?? ''),
-										assetKey: String(selection.entitySelector.$assetInstance.assetKey ?? ''),
-										network: String(selection.entitySelector.$assetInstance.$network.slug ?? ''),
-									})
-									:
-										undefined
-							:
-									undefined
-							)
-						}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

@@ -2,14 +2,9 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
 	import { EvmAddress } from '$/schema/ZeroExHex.ts'
 
 
@@ -22,35 +17,13 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.Eip8004AgentRegistration>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.Eip8004AgentRegistration>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.Eip8004AgentRegistration> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const eip8004AgentRegistration = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {},
-	} : {
-		sources: selection.sources,
-	}))
-	const titleFallback = $derived([String((pendingEntity.agentId) ?? '')].filter(Boolean).join(' ') || 'EIP-8004 agent registration')
-	const viewDomId = $derived('eip8004agent-registration-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const titleFallback = $derived((pendingEntity.agentId ?? '') || 'EIP-8004 agent registration')
 
 
 	// Components
@@ -64,61 +37,24 @@
 
 <EntityView
 	entityType={EntityType.Eip8004AgentRegistration}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails}
-			{[String((pendingEntity.agentId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-		{:else}
-			<ResourceBoundary resource={eip8004AgentRegistration}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.agentId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		{(pendingEntity.agentId ?? '') || 'EIP-8004 agent registration'}
 	{/snippet}
 
 	{#snippet Value()}
-		{#if layout !== EntityLayout.SummaryDetails}
-			{[String((pendingEntity.namespace) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.agentId) ?? '')].filter(Boolean).join(' ') || titleFallback}
-		{:else}
-			<ResourceBoundary resource={eip8004AgentRegistration}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.namespace) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.agentId) ?? '')].filter(Boolean).join(' ') || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		{(pendingEntity.namespace ?? '') || (pendingEntity.agentId ?? '') || titleFallback}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if layout !== EntityLayout.SummaryDetails}
-			{@const chainId0 = pendingEntity.chainId}
-			{#if chainId0 !== undefined && chainId0 !== null}
-				<span data-text="muted">
-					{String((chainId0) ?? '')}
-				</span>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={eip8004AgentRegistration}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const chainId0 = resolvedEntity.chainId}
-					{#if chainId0 !== undefined && chainId0 !== null}
-						<span data-text="muted">
-							{String((chainId0) ?? '')}
-						</span>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<span data-text="muted">
+			{String(pendingEntity.chainId)}
+		</span>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -126,98 +62,30 @@
 			<div>
 				<dt>Namespace</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									namespace: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const namespace = resolvedEntity.namespace}
-							{#if namespace !== undefined && namespace !== null}
-								{String((namespace) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{pendingEntity.namespace}
 				</dd>
 			</div>
 
 			<div>
 				<dt>Chain ID</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									chainId: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const chainId = resolvedEntity.chainId}
-							{#if chainId !== undefined && chainId !== null}
-								<NumberValue
-									value={chainId}
-								/>
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					<NumberValue
+						value={pendingEntity.chainId}
+					/>
 				</dd>
 			</div>
 
 			<div>
 				<dt>Identity registry</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									identityRegistry: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const identityRegistry = resolvedEntity.identityRegistry}
-							{#if identityRegistry !== undefined && identityRegistry !== null}
-								{String((identityRegistry) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{String(pendingEntity.identityRegistry)}
 				</dd>
 			</div>
 
 			<div>
 				<dt>Agent ID</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									agentId: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const agentId = resolvedEntity.agentId}
-							{#if agentId !== undefined && agentId !== null}
-								{String((agentId) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{pendingEntity.agentId}
 				</dd>
 			</div>
 		</dl>
@@ -227,33 +95,13 @@
 				resource={selection.$evmNft}
 			>
 				{#snippet children(evmNft)}
-					{#if evmNft != null && evmNft[EntityMetaKey.Selector] != null}
+					{#if evmNft != null}
 						<div>
 							<dt>EVM NFT</dt>
 							<dd>
 								<EvmNftView
 									selection={select(EntityType.EvmNft, evmNft[EntityMetaKey.Selector])}
 									prefetched={evmNft}
-									href={
-										(
-											evmNft[EntityMetaKey.Selector] != null && 'tokenId' in evmNft[EntityMetaKey.Selector]
-											&& evmNft[EntityMetaKey.Selector].tokenId != null
-											&& evmNft[EntityMetaKey.Selector] != null && '$contract' in evmNft[EntityMetaKey.Selector]
-											&& evmNft[EntityMetaKey.Selector].$contract != null && '$network' in evmNft[EntityMetaKey.Selector].$contract
-											&& evmNft[EntityMetaKey.Selector].$contract.$network != null && 'caip2' in evmNft[EntityMetaKey.Selector].$contract.$network
-											&& evmNft[EntityMetaKey.Selector].$contract.$network.caip2 != null && 'reference' in evmNft[EntityMetaKey.Selector].$contract.$network.caip2
-											&& evmNft[EntityMetaKey.Selector].$contract.$network.caip2.reference != null
-											&& evmNft[EntityMetaKey.Selector].$contract != null && 'address' in evmNft[EntityMetaKey.Selector].$contract
-											&& evmNft[EntityMetaKey.Selector].$contract.address != null ?
-												resolve('/services/agent/[chainId=eip155ChainId]/[contractAddress=evmAddress]/[tokenId=stringSegment]', {
-											tokenId: String(evmNft[EntityMetaKey.Selector].tokenId ?? ''),
-											chainId: String(evmNft[EntityMetaKey.Selector].$contract.$network.caip2.reference ?? ''),
-											contractAddress: String(evmNft[EntityMetaKey.Selector].$contract.address ?? ''),
-										})
-										:
-												undefined
-										)
-									}
 									layout={EntityLayout.Value}
 									open={false}
 								/>
@@ -272,12 +120,12 @@
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
-				<Eip8004AgentRegistration_TimestampsView
-					selection={eip8004AgentRegistrationEip8004AgentRegistrationTimestampsViewTimestampsResource}
-					countResource={eip8004AgentRegistrationEip8004AgentRegistrationTimestampsViewTimestampsResource.count}
-					title='Timestamps'
-					id='Eip8004AgentRegistration_TimestampsView-timestamps'
-				/>
+					<Eip8004AgentRegistration_TimestampsView
+						selection={eip8004AgentRegistrationEip8004AgentRegistrationTimestampsViewTimestampsResource}
+						countResource={eip8004AgentRegistrationEip8004AgentRegistrationTimestampsViewTimestampsResource.count}
+						title='Timestamps'
+						id='timestamps'
+					/>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>
@@ -287,12 +135,12 @@
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
-				<Eip8004AgentRegistrationFilesView
-					selection={eip8004AgentRegistrationEip8004AgentRegistrationFilesViewFilesResource}
-					countResource={eip8004AgentRegistrationEip8004AgentRegistrationFilesViewFilesResource.count}
-					title='Files'
-					id='Eip8004AgentRegistrationFilesView-files'
-				/>
+					<Eip8004AgentRegistrationFilesView
+						selection={eip8004AgentRegistrationEip8004AgentRegistrationFilesViewFilesResource}
+						countResource={eip8004AgentRegistrationEip8004AgentRegistrationFilesViewFilesResource.count}
+						title='Files'
+						id='files'
+					/>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>

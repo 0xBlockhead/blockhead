@@ -2,16 +2,11 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
-	import { caip2StringFromValue } from '$/lib/caip2.ts'
 	import { EvmAddress, ZeroExHex } from '$/schema/ZeroExHex.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -23,42 +18,28 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.EasSchema>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.EasSchema>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.EasSchema> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const easSchema = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {
-			schema: true,
-			resolver: true,
-		},
-	} : {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const viewSelection = $derived(selection({
+		sources: selection.sources ?? [
+			Source.Blockscout_Rest,
+			Source.EasContracts_Evm,
+			Source.EasScan_Graphql,
+			Source.Etherscan_Rest,
+			Source.Voltaire_JsonRpc,
+		],
+	}))
+	const easSchema = $derived(viewSelection({
 		fields: {
 			schema: true,
 			resolver: true,
 		},
 	}))
-	const titleFallback = $derived([String((pendingEntity.schemaUid) ?? '')].filter(Boolean).join(' ') || 'EAS schema')
-	const viewDomId = $derived('eas-schema-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const titleFallback = $derived(String(pendingEntity.schemaUid ?? '') || 'EAS schema')
 
 
 	// Components
@@ -75,61 +56,35 @@
 
 <EntityView
 	entityType={EntityType.EasSchema}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'schema') && Object.hasOwn(prefetched, 'resolver')}
-			{[String((pendingEntity.schemaUid) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-		{:else}
-			<ResourceBoundary resource={easSchema}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.schemaUid) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		{String(pendingEntity.schemaUid ?? '') || 'EAS schema'}
 	{/snippet}
 
 	{#snippet Value()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'schema') && Object.hasOwn(prefetched, 'resolver')}
-			{[String((pendingEntity.schema) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.schemaUid) ?? '')].filter(Boolean).join(' ') || titleFallback}
-		{:else}
-			<ResourceBoundary resource={easSchema}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.schema) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.schemaUid) ?? '')].filter(Boolean).join(' ') || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={easSchema}>
+			{#snippet children(entity)}
+				{entity.schema || String(pendingEntity.schemaUid) || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'schema') && Object.hasOwn(prefetched, 'resolver')}
-			{@const resolver0 = pendingEntity.resolver}
-			{#if resolver0 !== undefined && resolver0 !== null}
-				<span data-text="muted">
-					{String((resolver0) ?? '')}
-				</span>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={easSchema}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const resolver0 = resolvedEntity.resolver}
-					{#if resolver0 !== undefined && resolver0 !== null}
-						<span data-text="muted">
-							{String((resolver0) ?? '')}
-						</span>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={easSchema}>
+			{#snippet children(entity)}
+				{@const resolver0 = entity.resolver}
+				{#if resolver0 != null}
+					<span data-text="muted">
+						{String(resolver0)}
+					</span>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -137,24 +92,7 @@
 			<div>
 				<dt>Schema UID</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									schemaUid: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const schemaUid = resolvedEntity.schemaUid}
-							{#if schemaUid !== undefined && schemaUid !== null}
-								{String((schemaUid) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{String(pendingEntity.schemaUid)}
 				</dd>
 			</div>
 
@@ -163,23 +101,6 @@
 				<dd>
 					<NetworkView
 						selection={select(EntityType.Network, selection.entitySelector.$network)}
-						href={
-							(
-								selection.entitySelector.$network != null && 'caip2' in selection.entitySelector.$network
-								&& selection.entitySelector.$network.caip2 != null ?
-									resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-								network: String(caip2StringFromValue(selection.entitySelector.$network.caip2) ?? ''),
-							})
-							:
-									selection.entitySelector.$network != null && 'slug' in selection.entitySelector.$network
-									&& selection.entitySelector.$network.slug != null ?
-										resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-									network: String(selection.entitySelector.$network.slug ?? ''),
-								})
-								:
-									undefined
-							)
-						}
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -190,44 +111,25 @@
 				<dt>Schema</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									schema: true,
-								},
-							})
-						}
+						resource={easSchema}
 					>
 						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const schema = resolvedEntity.schema}
-							{#if schema !== undefined && schema !== null}
-								{String((schema) ?? '')}
-							{/if}
+							{entity.schema}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
 			</div>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							resolver: true,
-						},
-					})
-				}
+				resource={easSchema}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const resolver = resolvedEntity.resolver}
-					{#if resolver !== undefined && resolver !== null}
+					{@const resolver = entity.resolver}
+					{#if resolver != null}
 						<div>
 							<dt>Resolver</dt>
 							<dd>
-								{String((resolver) ?? '')}
+								{String(resolver)}
 							</dd>
 						</div>
 					{/if}
@@ -236,8 +138,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							revocable: true,
 						},
@@ -245,9 +146,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const revocable = resolvedEntity.revocable}
-					{#if revocable !== undefined && revocable !== null}
+					{@const revocable = entity.revocable}
+					{#if revocable != null}
 						<div>
 							<dt>Revocable</dt>
 							<dd>
@@ -260,8 +160,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							registerer: true,
 						},
@@ -269,13 +168,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const registerer = resolvedEntity.registerer}
-					{#if registerer !== undefined && registerer !== null}
+					{@const registerer = entity.registerer}
+					{#if registerer != null}
 						<div>
 							<dt>Registerer</dt>
 							<dd>
-								{String((registerer) ?? '')}
+								{String(registerer)}
 							</dd>
 						</div>
 					{/if}
@@ -284,8 +182,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							registeredAt: true,
 						},
@@ -293,9 +190,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const registeredAt = resolvedEntity.registeredAt}
-					{#if registeredAt !== undefined && registeredAt !== null}
+					{@const registeredAt = entity.registeredAt}
+					{#if registeredAt != null}
 						<div>
 							<dt>Registered at</dt>
 							<dd>
@@ -310,8 +206,7 @@
 		<dl data-column-item="center">
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							registeredTransactionHash: true,
 						},
@@ -319,13 +214,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const registeredTransactionHash = resolvedEntity.registeredTransactionHash}
-					{#if registeredTransactionHash !== undefined && registeredTransactionHash !== null}
+					{@const registeredTransactionHash = entity.registeredTransactionHash}
+					{#if registeredTransactionHash != null}
 						<div>
 							<dt>Registered transaction hash</dt>
 							<dd>
-								<TruncatedValue value={String((registeredTransactionHash) ?? '')} />
+								<TruncatedValue value={String(registeredTransactionHash)} />
 							</dd>
 						</div>
 					{/if}
@@ -334,8 +228,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							registeredLogIndex: true,
 						},
@@ -343,9 +236,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const registeredLogIndex = resolvedEntity.registeredLogIndex}
-					{#if registeredLogIndex !== undefined && registeredLogIndex !== null}
+					{@const registeredLogIndex = entity.registeredLogIndex}
+					{#if registeredLogIndex != null}
 						<div>
 							<dt>Registered log index</dt>
 							<dd>
@@ -362,37 +254,13 @@
 				resource={selection.$resolverContract}
 			>
 				{#snippet children(evmContract)}
-					{#if evmContract != null && evmContract[EntityMetaKey.Selector] != null}
+					{#if evmContract != null}
 						<div>
 							<dt>Resolver contract</dt>
 							<dd>
 								<EvmContractView
 									selection={select(EntityType.EvmContract, evmContract[EntityMetaKey.Selector])}
 									prefetched={evmContract}
-									href={
-										(
-											evmContract[EntityMetaKey.Selector] != null && 'address' in evmContract[EntityMetaKey.Selector]
-											&& evmContract[EntityMetaKey.Selector].address != null
-											&& evmContract[EntityMetaKey.Selector] != null && '$network' in evmContract[EntityMetaKey.Selector] ?
-												evmContract[EntityMetaKey.Selector].$network != null && 'caip2' in evmContract[EntityMetaKey.Selector].$network
-												&& evmContract[EntityMetaKey.Selector].$network.caip2 != null ?
-													resolve('/network/[network=networkCaip2OrNetworkSlug]/contract/[address=evmAddress]', {
-												address: String(evmContract[EntityMetaKey.Selector].address ?? ''),
-												network: String(caip2StringFromValue(evmContract[EntityMetaKey.Selector].$network.caip2) ?? ''),
-											})
-											:
-													evmContract[EntityMetaKey.Selector].$network != null && 'slug' in evmContract[EntityMetaKey.Selector].$network
-													&& evmContract[EntityMetaKey.Selector].$network.slug != null ?
-														resolve('/network/[network=networkCaip2OrNetworkSlug]/contract/[address=evmAddress]', {
-													address: String(evmContract[EntityMetaKey.Selector].address ?? ''),
-													network: String(evmContract[EntityMetaKey.Selector].$network.slug ?? ''),
-												})
-												:
-													undefined
-										:
-												undefined
-										)
-									}
 									layout={EntityLayout.Value}
 									open={false}
 								/>
@@ -406,38 +274,13 @@
 				resource={selection.$registererAccount}
 			>
 				{#snippet children(evmNetworkAccount)}
-					{#if evmNetworkAccount != null && evmNetworkAccount[EntityMetaKey.Selector] != null}
+					{#if evmNetworkAccount != null}
 						<div>
 							<dt>Registerer account</dt>
 							<dd>
 								<EvmNetworkAccountView
 									selection={select(EntityType.EvmNetworkAccount, evmNetworkAccount[EntityMetaKey.Selector])}
 									prefetched={evmNetworkAccount}
-									href={
-										(
-											evmNetworkAccount[EntityMetaKey.Selector] != null && '$actor' in evmNetworkAccount[EntityMetaKey.Selector]
-											&& evmNetworkAccount[EntityMetaKey.Selector].$actor != null && 'address' in evmNetworkAccount[EntityMetaKey.Selector].$actor
-											&& evmNetworkAccount[EntityMetaKey.Selector].$actor.address != null
-											&& evmNetworkAccount[EntityMetaKey.Selector] != null && '$network' in evmNetworkAccount[EntityMetaKey.Selector] ?
-												evmNetworkAccount[EntityMetaKey.Selector].$network != null && 'caip2' in evmNetworkAccount[EntityMetaKey.Selector].$network
-												&& evmNetworkAccount[EntityMetaKey.Selector].$network.caip2 != null ?
-													resolve('/network/[network=networkCaip2OrNetworkSlug]/account/[accountId=polkadotAccountIdOrStringSegmentOrEvmAddressOrSolanaPubkey]', {
-												accountId: String(evmNetworkAccount[EntityMetaKey.Selector].$actor.address ?? ''),
-												network: String(caip2StringFromValue(evmNetworkAccount[EntityMetaKey.Selector].$network.caip2) ?? ''),
-											})
-											:
-													evmNetworkAccount[EntityMetaKey.Selector].$network != null && 'slug' in evmNetworkAccount[EntityMetaKey.Selector].$network
-													&& evmNetworkAccount[EntityMetaKey.Selector].$network.slug != null ?
-														resolve('/network/[network=networkCaip2OrNetworkSlug]/account/[accountId=polkadotAccountIdOrStringSegmentOrEvmAddressOrSolanaPubkey]', {
-													accountId: String(evmNetworkAccount[EntityMetaKey.Selector].$actor.address ?? ''),
-													network: String(evmNetworkAccount[EntityMetaKey.Selector].$network.slug ?? ''),
-												})
-												:
-													undefined
-										:
-												undefined
-										)
-									}
 									layout={EntityLayout.Value}
 									open={false}
 								/>
@@ -456,12 +299,12 @@
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
-				<EasAttestationsView
-					selection={easSchemaEasAttestationsViewAttestationsResource}
-					countResource={easSchemaEasAttestationsViewAttestationsResource.count}
-					title='Attestations'
-					id='EasAttestationsView-attestations'
-				/>
+					<EasAttestationsView
+						selection={easSchemaEasAttestationsViewAttestationsResource}
+						countResource={easSchemaEasAttestationsViewAttestationsResource.count}
+						title='Attestations'
+						id='attestations'
+					/>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>

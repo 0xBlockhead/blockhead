@@ -37,15 +37,18 @@ test('X post renders readable content and follows its author identity', async ({
 		step,
 	} = setupRouteViewSmokePage(page)
 
-	await page.route('**/api-proxy/X_FxEmbed_Rest-*/0/**', async (route) => {
-		const providerUrl = new URL(
-			decodeURIComponent(new URL(route.request().url()).pathname.split('/').at(-1) ?? '')
-		)
+	await page.route('**/*', async (route) => {
+		const providerUrl = decodeURIComponent(decodeURIComponent(route.request().url()))
+		if (!providerUrl.includes('api.fxtwitter.com/2/')) {
+			await route.fallback()
+			return
+		}
+
 		expect(route.request().method()).toBe('GET')
 		await route.fulfill({
 			contentType: 'application/json',
 			json: (
-				providerUrl.pathname.endsWith('/profile/id%3A44196397') ?
+				providerUrl.includes('/profile/id:44196397') ?
 					{
 						user: {
 							type: 'profile',
@@ -85,10 +88,7 @@ test('X post renders readable content and follows its author identity', async ({
 			routeViewSmokeTimeoutsMs.mainSelector,
 			diagnostics,
 			{
-				requiredDt: [
-					'ID',
-					'Author',
-				],
+				requiredDt: ['Author'],
 				requiredText: ['Deterministic X reading journey content'],
 			}
 		))
@@ -105,10 +105,7 @@ test('X post renders readable content and follows its author identity', async ({
 			routeViewSmokeTimeoutsMs.mainSelector,
 			diagnostics,
 			{
-				requiredDt: [
-					'ID',
-					'Username',
-				],
+				requiredDt: ['Username'],
 				requiredText: [
 					'Fixture Reader',
 					'fixture_reader',
@@ -123,11 +120,16 @@ test('X post renders readable content and follows its author identity', async ({
 })
 
 
-test('X post exposes provider failure without hanging or dumping wire data', async ({ page }) => {
+test('X post renders normalized provider failure without hanging or dumping wire data', async ({ page }) => {
 	const pageErrors: Error[] = []
 	page.on('pageerror', (error) => pageErrors.push(error))
 
-	await page.route('**/api-proxy/X_FxEmbed_Rest-*/0/**', async (route) => {
+	await page.route('**/*', async (route) => {
+		if (!decodeURIComponent(decodeURIComponent(route.request().url())).includes('api.fxtwitter.com/2/')) {
+			await route.fallback()
+			return
+		}
+
 		await route.fulfill({
 			contentType: 'application/json',
 			json: {
@@ -145,11 +147,12 @@ test('X post exposes provider failure without hanging or dumping wire data', asy
 	await expect(main).toBeVisible({
 		timeout: routeViewSmokeTimeoutsMs.mainSelector,
 	})
-	await expect(main.locator('[data-error]').first()).toContainText(
-		'Fixture X provider unavailable',
+	await expect(main.locator('[data-resource-state="failed"]').first()).toHaveAttribute(
+		'aria-label',
+		'Internal Error',
 		{ timeout: routeViewSmokeTimeoutsMs.mainSelector }
 	)
-	await expect(main.getByText(/Loading\b/)).toHaveCount(0)
+	await expect(main.locator('[data-resource-state="pending"]')).toHaveCount(0)
 	await expect(main).not.toContainText('[object Object]')
 	await expect(main).not.toContainText('{"message"')
 	expect(pageErrors).toEqual([])

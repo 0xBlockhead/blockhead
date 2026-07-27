@@ -11,10 +11,7 @@ import {
 	entityFieldAddressKey,
 	EntityMetaKey,
 } from '$/schema/$schema.ts'
-import { CardanoGovernanceProposalSelector } from '$/schema/CardanoGovernanceProposal.ts'
-import { CardanoTransactionSelector } from '$/schema/CardanoTransaction.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import { NetworkSelector } from '$/schema/Network.ts'
 import type {
 	CardanoKoiosStakePool,
 	CardanoKoiosTransactionInfo,
@@ -161,6 +158,18 @@ const transactionInfo = {
 			meta_hash: 'proposal-metadata-hash',
 			description: {
 				tag: 'TreasuryWithdrawals',
+				contents: [
+					[[
+						{
+							network: 'Mainnet',
+							credential: {
+								keyHash: 'treasury-key',
+							},
+						},
+						42,
+					]],
+					'treasury-policy',
+				],
 			},
 			return_address: 'stake1return',
 		},
@@ -176,7 +185,7 @@ describe('Cardano Koios transaction relationships', () => {
 		getTransactionInfo.mockResolvedValueOnce(transactionInfo)
 
 		const snapshot = await cardanoTransactionRelationshipResolver.resolve[
-			CardanoTransactionSelector.NetworkHash
+			'NetworkHash'
 		].resolve(
 			cardanoTransaction,
 			resolverContext
@@ -285,7 +294,7 @@ describe('Cardano Koios transaction relationships', () => {
 		})
 
 		const snapshot = await cardanoTransactionRelationshipResolver.resolve[
-			CardanoTransactionSelector.NetworkHash
+			'NetworkHash'
 		].resolve(
 			cardanoTransaction,
 			resolverContext
@@ -299,7 +308,7 @@ describe('Cardano Koios transaction relationships', () => {
 
 	it('rejects unsupported networks before transport and mismatched subjects after transport', async () => {
 		await expect(cardanoTransactionRelationshipResolver.resolve[
-			CardanoTransactionSelector.NetworkHash
+			'NetworkHash'
 		].resolve(
 			{
 				$network: {
@@ -316,7 +325,7 @@ describe('Cardano Koios transaction relationships', () => {
 			tx_hash: 'different-transaction-hash',
 		})
 		await expect(cardanoTransactionRelationshipResolver.resolve[
-			CardanoTransactionSelector.NetworkHash
+			'NetworkHash'
 		].resolve(
 			cardanoTransaction,
 			resolverContext
@@ -348,7 +357,7 @@ describe('Cardano Koios governance proposal detail', () => {
 		}
 
 		await expect(cardanoGovernanceProposalResolver.resolve[
-			CardanoGovernanceProposalSelector.NetworkProposalTxHashProposalIndex
+			'NetworkProposalTxHashProposalIndex'
 		].resolve(
 			proposal,
 			resolverContext
@@ -362,14 +371,14 @@ describe('Cardano Koios governance proposal detail', () => {
 			returnAddress: 'stake1return',
 			anchorUrl: 'ipfs://proposal',
 			anchorHash: 'proposal-metadata-hash',
-			proposalPayload: {
-				tag: 'TreasuryWithdrawals',
-			},
+			policyHash: 'treasury-policy',
+			treasuryWithdrawals: [{
+				recipientNetwork: 'Mainnet',
+				recipientCredential: 'key:treasury-key',
+				lovelace: 42n,
+			}],
 		})
 		expect(getTransactionInfo).toHaveBeenCalledWith(
-			expect.objectContaining({
-				source: Source.CardanoKoios_Rest,
-			}),
 			cardanoTransaction.hash
 		)
 		expect(cardanoGovernanceProposalResolver.projections).not.toHaveProperty('governanceActionId')
@@ -379,7 +388,7 @@ describe('Cardano Koios governance proposal detail', () => {
 
 	it('rejects unsupported networks and responses that do not own the exact proposal identity', async () => {
 		await expect(cardanoGovernanceProposalResolver.resolve[
-			CardanoGovernanceProposalSelector.NetworkProposalTxHashProposalIndex
+			'NetworkProposalTxHashProposalIndex'
 		].resolve(
 			{
 				$network: {
@@ -397,7 +406,7 @@ describe('Cardano Koios governance proposal detail', () => {
 			tx_hash: 'different-transaction-hash',
 		})
 		await expect(cardanoGovernanceProposalResolver.resolve[
-			CardanoGovernanceProposalSelector.NetworkProposalTxHashProposalIndex
+			'NetworkProposalTxHashProposalIndex'
 		].resolve(
 			{
 				$network: cardanoNetwork,
@@ -415,7 +424,7 @@ describe('Cardano Koios governance proposal detail', () => {
 			}],
 		})
 		await expect(cardanoGovernanceProposalResolver.resolve[
-			CardanoGovernanceProposalSelector.NetworkProposalTxHashProposalIndex
+			'NetworkProposalTxHashProposalIndex'
 		].resolve(
 			{
 				$network: cardanoNetwork,
@@ -433,7 +442,7 @@ describe('Cardano Koios governance proposal detail', () => {
 			],
 		})
 		await expect(cardanoGovernanceProposalResolver.resolve[
-			CardanoGovernanceProposalSelector.NetworkProposalTxHashProposalIndex
+			'NetworkProposalTxHashProposalIndex'
 		].resolve(
 			{
 				$network: cardanoNetwork,
@@ -454,8 +463,8 @@ describe('Cardano Koios network relationships', () => {
 		for (const resolver of cardanoKoiosResolvers.resolvers.filter(({ entityType }) => (
 			entityType === EntityType.Network
 		))) {
-			expect(resolver.resolve).toHaveProperty(NetworkSelector.Slug)
-			expect(resolver.resolve).toHaveProperty(NetworkSelector.Caip2)
+			expect(resolver.resolve).toHaveProperty('Slug')
+			expect(resolver.resolve).toHaveProperty('Caip2')
 		}
 	})
 
@@ -481,14 +490,11 @@ describe('Cardano Koios network relationships', () => {
 			pagination: { limit: 1 },
 			providerContinuationToken: 'after=previous-hash%3A0&offset=1',
 		}
-		const snapshot = await resolver.resolve[NetworkSelector.Caip2].resolve(
+		const snapshot = await resolver.resolve['Caip2'].resolve(
 			cardanoNetwork,
 			context
 		)
 		expect(listGovernanceProposals).toHaveBeenCalledWith(
-			expect.objectContaining({
-				source: Source.CardanoKoios_Rest,
-			}),
 			1,
 			1
 		)
@@ -505,7 +511,7 @@ describe('Cardano Koios network relationships', () => {
 			token: 'after=proposal-hash%3A0&offset=2',
 		})
 
-		await expect(resolver.resolve[NetworkSelector.Caip2].resolve(
+		await expect(resolver.resolve['Caip2'].resolve(
 			cardanoNetwork,
 			{
 				...resolverContext,
@@ -517,7 +523,7 @@ describe('Cardano Koios network relationships', () => {
 			proposal_index: 0,
 			proposal_type: 'InfoAction',
 		}])
-		await expect(resolver.resolve[NetworkSelector.Caip2].resolve(
+		await expect(resolver.resolve['Caip2'].resolve(
 			cardanoNetwork,
 			{
 				...resolverContext,
@@ -536,7 +542,7 @@ describe('Cardano Koios network relationships', () => {
 				proposal_type: 'InfoAction',
 			},
 		])
-		await expect(resolver.resolve[NetworkSelector.Caip2].resolve(
+		await expect(resolver.resolve['Caip2'].resolve(
 			cardanoNetwork,
 			resolverContext
 		)).rejects.toThrow('governance proposals page contains duplicate identities')
@@ -602,11 +608,11 @@ describe('Cardano Koios network relationships', () => {
 			drep_id: 'drep1example',
 			has_script: false,
 		}])
-		await expect(assetResolver.resolve[NetworkSelector.Caip2].resolve(
+		await expect(assetResolver.resolve['Caip2'].resolve(
 			cardanoNetwork,
 			resolverContext
 		)).rejects.toThrow('asset endpoint unavailable')
-		await expect(dRepResolver.resolve[NetworkSelector.Caip2].resolve(
+		await expect(dRepResolver.resolve['Caip2'].resolve(
 			cardanoNetwork,
 			resolverContext
 		)).resolves.toMatchObject({
@@ -625,11 +631,11 @@ describe('Cardano Koios network relationships', () => {
 		getTip.mockResolvedValueOnce([{
 			epoch_no: 500,
 		}])
-		await expect(protocolParametersResolver.resolve[NetworkSelector.Caip2].resolve(
+		await expect(protocolParametersResolver.resolve['Caip2'].resolve(
 			cardanoNetwork,
 			resolverContext
 		)).rejects.toThrow('protocol parameters unavailable')
-		await expect(committeeResolver.resolve[NetworkSelector.Caip2].resolve(
+		await expect(committeeResolver.resolve['Caip2'].resolve(
 			cardanoNetwork,
 			resolverContext
 		)).resolves.toMatchObject({
@@ -666,7 +672,7 @@ describe('Cardano Koios network relationships', () => {
 		if (resolver == null)
 			throw new Error('CardanoKoios-Rest spec missing Network.Cardano.$$stakePools resolver')
 
-		const snapshot = await resolver.resolve[NetworkSelector.Caip2].resolve(
+		const snapshot = await resolver.resolve['Caip2'].resolve(
 			cardanoNetwork,
 			resolverContext
 		)

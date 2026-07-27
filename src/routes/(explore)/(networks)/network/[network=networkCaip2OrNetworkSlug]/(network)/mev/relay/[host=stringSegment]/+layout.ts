@@ -6,7 +6,7 @@ import { networkByCaip2, networkBySlug } from '$/constants/Network.ts'
 import { match as matchStringSegment } from '$/params/stringSegment.ts'
 import { parseEntitySelector } from '$/schema/$schema.ts'
 import { schema } from '$/schema/index.ts'
-import { MevRelay as MevRelaySchema } from '$/schema/MevRelay.ts'
+import MevRelaySchema from '$/schema/MevRelay.ts'
 import { type as arktype } from 'arktype'
 
 // Projection eligibility: facetPath=['Evm']

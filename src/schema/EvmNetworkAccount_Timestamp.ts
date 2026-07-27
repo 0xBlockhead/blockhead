@@ -1,14 +1,11 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { entity, facet } from '$/schema/$schema.ts'
+import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { type } from 'arktype'
 
-export enum EvmNetworkAccount_TimestampSelector {
-	AccountTimestampMsSource = 'AccountTimestampMsSource',
-}
-export const EvmNetworkAccount_Timestamp = entity({
+export default entity({
 	entityType: EntityType.EvmNetworkAccount_Timestamp,
 	labels: {
 		singular: 'EVM network account timestamp',

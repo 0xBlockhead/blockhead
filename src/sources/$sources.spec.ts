@@ -11,15 +11,11 @@ import {
 	resolve,
 } from 'node:path'
 
-import { sourceProviderDefinitions } from '$/sources/$sourceProviders.ts'
+import sourceProviderDefinitions from '$/sources/$sourceProviders.ts'
 import { indexSourceProviders } from '$/sources/$sources.ts'
 import type { SourceProviderDefinition } from '$/sources/$sources.ts'
 import { TransportType } from '$/constants/TransportType.ts'
-import {
-	beaconOrigins,
-	beaconRestEndpoints,
-} from '$/sources/Beacon/Rest/constants.ts'
-import { pipedApiOrigins } from '$/sources/Piped/Rest/constants.ts'
+import pipedBindings from '$/sources/Piped/bindings.ts'
 import { SourceProvider } from '$/sources/SourceProvider.ts'
 import { Source } from '$/sources/Source.ts'
 import {
@@ -33,39 +29,23 @@ import {
 } from '$/sources/Voltaire/JsonRpc/types.ts'
 
 import {
-	executionEndpoints,
-	voltaireJsonRpcTransportCandidates,
-} from '$/sources/Voltaire/JsonRpc/executionEndpoints.ts'
-import {
-	voltaireJsonRpcTransportsWithOriginsByChainId,
-	voltaireJsonRpcTransportWithOriginsByChainId,
+	voltaireJsonRpcTransports,
 } from '$/sources/Voltaire/JsonRpc/queries.ts'
+import { beaconRestBinding } from '$/sources/Beacon/Rest/queries.ts'
 import {
 	SourceArtifactKind,
 	SourceDelivery,
 	SourceEndpointKind,
 	SourceTargetKind,
 } from '$/sources/SourceBinding.ts'
-import {
-	zeroGMainnetRpcEndpoints,
-	zeroGOrigins as zeroGChainOrigins,
-} from '$/sources/ZeroG/Chain/JsonRpc/endpoints.ts'
-import {
-	zeroGMainnetExplorerEndpoints,
-	zeroGOrigins as zeroGChainScanOrigins,
-} from '$/sources/ZeroG/ChainScan/Rest/endpoints.ts'
-import {
-	zeroGOrigins as zeroGStorageNodeOrigins,
-	zeroGStorageNodeRpcEndpoints,
-} from '$/sources/ZeroG/StorageNode/JsonRpc/endpoints.ts'
-import {
-	zeroGMainnetStorageEndpoints,
-	zeroGOrigins as zeroGStorageScanOrigins,
-} from '$/sources/ZeroG/StorageScan/Rest/endpoints.ts'
 import { sourceProviders as appSourceProviders } from '$/sources/index.ts'
 
 const sourceBindingArtifacts = sourceProviderDefinitions.flatMap((provider) => provider.bindings)
 	.flatMap((binding) => binding.artifacts ?? [])
+const {
+	transportsByChainId: voltaireJsonRpcTransportsByChainId,
+	transportByChainId: voltaireJsonRpcTransportByChainId,
+} = voltaireJsonRpcTransports
 
 const fixtureSourceProviders = [
 	{
@@ -76,12 +56,10 @@ const fixtureSourceProviders = [
 		}),
 		sources: [
 			{
-				provider: 'ProviderWithEnv',
 				source: 'ProviderOnlySource',
 				label: 'Provider-only source',
 			},
 			{
-				provider: 'ProviderWithEnv',
 				source: 'ProviderAndSourceEnvSource',
 				label: 'Provider and source env source',
 				env: arktype({
@@ -89,7 +67,6 @@ const fixtureSourceProviders = [
 				}),
 			},
 			{
-				provider: 'ProviderWithEnv',
 				source: 'FailingSourceEnvSource',
 				label: 'Failing source env source',
 				env: arktype({
@@ -103,7 +80,6 @@ const fixtureSourceProviders = [
 		label: 'Provider without env',
 		sources: [
 			{
-				provider: 'ProviderWithoutEnv',
 				source: 'SourceOnlyEnvSource',
 				label: 'Source-only env source',
 				env: arktype({
@@ -111,12 +87,10 @@ const fixtureSourceProviders = [
 				}),
 			},
 			{
-				provider: 'ProviderWithoutEnv',
 				source: 'OpenSource',
 				label: 'Open source',
 			},
 			{
-				provider: 'ProviderWithoutEnv',
 				source: 'OptionalEnvSource',
 				label: 'Optional-env source',
 				env: arktype({
@@ -133,7 +107,6 @@ const fixtureSourceProviders = [
 		}),
 		sources: [
 			{
-				provider: 'FailingProvider',
 				source: 'ProviderDisabledSource',
 				label: 'Provider disabled source',
 			},
@@ -298,22 +271,23 @@ describe('source provider registry', () => {
 		})
 	})
 
-	it('keeps provider origins canonical and non-conflicting', () => {
+	it('keeps binding origins canonical and non-conflicting', () => {
 		const corsEnabledByOrigin = new Map<string, boolean>()
 
 		for (const sourceProvider of appSourceProviders) {
 			expect(sourceProvider.provider, sourceProvider.label).toBeDefined()
 			expect(sourceProvider.sources.length, String(sourceProvider.provider)).toBeGreaterThan(0)
 
-			for (const { origin, corsEnabled } of sourceProvider.origins ?? []) {
-				expect(new URL(origin).origin, `${sourceProvider.provider}: ${origin}`).toBe(origin)
-				expect(origin, String(sourceProvider.provider)).not.toMatch(/[/?#]$/)
-				expect(
-					corsEnabledByOrigin.get(origin) ?? corsEnabled,
-					`${sourceProvider.provider}: ${origin}`
-					).toBe(corsEnabled)
-				corsEnabledByOrigin.set(origin, corsEnabled)
-			}
+			for (const { origin, corsEnabled } of sourceProvider.bindings.flatMap(({ endpoints }) => endpoints))
+				if (origin != null) {
+					expect(new URL(origin).origin, `${sourceProvider.provider}: ${origin}`).toBe(origin)
+					expect(origin, String(sourceProvider.provider)).not.toMatch(/[/?#]$/)
+					expect(
+						corsEnabledByOrigin.get(origin) ?? corsEnabled === true,
+						`${sourceProvider.provider}: ${origin}`
+					).toBe(corsEnabled === true)
+					corsEnabledByOrigin.set(origin, corsEnabled === true)
+				}
 		}
 	})
 
@@ -322,7 +296,6 @@ describe('source provider registry', () => {
 
 		for (const sourceProvider of appSourceProviders) {
 			for (const sourceDefinition of sourceProvider.sources) {
-				expect(sourceDefinition.provider, String(sourceDefinition.source)).toBe(sourceProvider.provider)
 				expect(sourceProvidersBySource.has(sourceDefinition.source), String(sourceDefinition.source)).toBe(false)
 				sourceProvidersBySource.set(sourceDefinition.source, sourceProvider.provider)
 			}
@@ -359,15 +332,12 @@ describe('source provider registry', () => {
 		]))
 	})
 
-	it('keeps CORS-aware source callers backed by provider origins', () => {
-		const providersWithOrigins = new Set(
-			appSourceProviders
-				.filter((sourceProvider) => (sourceProvider.origins ?? []).length > 0)
-				.map((sourceProvider) => String(sourceProvider.provider))
-		)
-
+	it('keeps browser source callers bound to source runtime transport', () => {
+		let sourceCallerCount = 0
 		for (const filePath of globSync('src/sources/**/*.ts')) {
 			if (
+				filePath.includes('/_runtime/')
+				||
 				filePath.endsWith('/index.ts')
 				|| filePath.endsWith('/constants.ts')
 				|| filePath.endsWith('.spec.ts')
@@ -376,36 +346,23 @@ describe('source provider registry', () => {
 				continue
 
 			const source = readFileSync(filePath, 'utf8')
-			if (!/\b(?:corsFetch|getJson|getText)\b/.test(source))
+			if (!/\b(?:sourceFetch|sourceGetJson|sourceGetText)\b/.test(source))
 				continue
+			sourceCallerCount++
 
-			for (const provider of source.matchAll(/\borigins:\s*([A-Z][A-Za-z0-9_]*)\.origins\b/g))
-				expect(providersWithOrigins, `${filePath}: ${provider[1]}.origins`).toContain(provider[1])
-
-			for (const origins of source.matchAll(/\borigins:\s*([A-Za-z0-9_]+Origins)\b/g))
-				expect(
-					source,
-					`${filePath}: ${origins[1]}`
-				).toMatch(new RegExp(`(?:import\\s*\\{[^}]*\\b${origins[1]}\\b[^}]*\\}\\s*from\\s*'\\$/sources/[^']+\\.ts'|(?:export\\s+)?const\\s+${origins[1]}\\s*=)`))
+			expect(source, filePath).toMatch(/from '\$\/sources\/_runtime\/http\.ts'/)
 		}
+
+		expect(sourceCallerCount).toBeGreaterThan(0)
 	})
 
 	it('keeps every provider origin represented in the proxy allow-list source', () => {
 		const serverSource = readFileSync(join(process.cwd(), 'src', 'sources', 'index.server.ts'), 'utf8')
 
-		expect(serverSource).toMatch(/\bsourceProviderDefinitions\.flatMap\(\(provider\) => provider\.bindings\)/)
+		expect(serverSource).toMatch(/\bsourceProviders\s*\.flatMap\(\(provider\)(?:: readonly SourceBinding\[\])? => provider\.bindings\)/)
 		expect(serverSource).toMatch(/\bbinding\.delivery === SourceDelivery\.HttpProxy\b/)
 		expect(serverSource).toMatch(/\bendpoint\.endpointKind === SourceEndpointKind\.HttpUrl\b/)
 		expect(serverSource).not.toMatch(/\bnew Set\(\s*\[/)
-
-		for (const sourceProvider of appSourceProviders)
-			for (const { origin } of sourceProvider.origins ?? [])
-				expect(
-					appSourceProviders.flatMap((provider) => (
-						(provider.origins ?? []).map((entry) => entry.origin)
-					)),
-					`${sourceProvider.provider}: ${origin}`
-				).toContain(origin)
 	})
 
 	it('keeps source modules from bypassing source-aware browser fetch routing or importing provider-local bindings', () => {
@@ -502,97 +459,86 @@ describe('source provider registry', () => {
 		}
 	})
 
-	it('keeps Piped origins in static protocol metadata instead of public-env call-site rows', () => {
-		expect(pipedApiOrigins).toEqual([{
+	it('derives Piped transport metadata from its canonical binding', () => {
+		expect(pipedBindings[Source.Piped_Rest].endpoints).toEqual([{
+			endpointKind: SourceEndpointKind.HttpUrl,
+			locator: 'https://api.piped.private.coffee',
 			origin: 'https://api.piped.private.coffee',
 			corsEnabled: true,
 		}])
-		expect(readFileSync(join(process.cwd(), 'src', 'sources', 'Piped', 'Rest', 'client.ts'), 'utf8')).toMatch(/\borigins:\s*pipedApiOrigins\b/)
 		for (const filePath of globSync('src/sources/Piped/**/*.ts'))
 			expect(readFileSync(filePath, 'utf8'), filePath).not.toMatch(/\bOriginsForPublicEnv\b|\bPUBLIC_PIPED_API_BASE_URL\b/)
 	})
 
-	it('keeps Voltaire origins aligned with source JSON-RPC transport candidates', () => {
-		expect(new Set(Object.values(voltaireJsonRpcTransportsWithOriginsByChainId).flatMap((entries) => (
-			entries.flatMap((entry) => entry.origins.map((origin) => origin.origin))
+	it('derives Beacon REST chain support from its canonical bindings', () => {
+		expect(beaconRestBinding(1)?.source).toBe(Source.Beacon_Rest)
+		expect(beaconRestBinding(11_155_111)?.source).toBe(Source.Beacon_Rest)
+		expect(beaconRestBinding(10)).toBeUndefined()
+	})
+
+	it('keeps Voltaire transport endpoints aligned with canonical bindings', () => {
+		expect(new Set(Object.values(voltaireJsonRpcTransportsByChainId).flatMap((entries) => (
+			entries.map((entry) => entry.endpoint.locator)
 		)))).toEqual(
 			new Set(
 				sourceProviderDefinitions
 					.filter((provider) => provider.provider === SourceProvider.Voltaire)
 					.flatMap((provider) => provider.bindings)
 					.flatMap((binding) => binding.endpoints)
-					.filter((endpoint) => endpoint.endpointKind === SourceEndpointKind.HttpUrl)
-					.map((endpoint) => endpoint.origin ?? new URL(endpoint.locator).origin)
+					.filter((endpoint) => (
+						endpoint.endpointKind === SourceEndpointKind.HttpUrl
+						|| endpoint.endpointKind === SourceEndpointKind.WebSocketUrl
+					))
+					.map((endpoint) => endpoint.locator)
 			)
 		)
 	})
 
 	it('keeps Voltaire default JSON-RPC transport HTTP when the chain has any HTTP candidate', () => {
-		for (const [chainId, transports] of Object.entries(voltaireJsonRpcTransportsWithOriginsByChainId)) {
+		for (const [chainId, transports] of Object.entries(voltaireJsonRpcTransportsByChainId)) {
 			const httpCandidate = transports.find((entry) => entry.transportType === TransportType.Http)
 			if (httpCandidate != null)
-				expect(voltaireJsonRpcTransportWithOriginsByChainId[Number(chainId)]).toBe(httpCandidate)
+				expect(voltaireJsonRpcTransportByChainId[Number(chainId)]).toBe(httpCandidate)
 		}
 	})
 
-	it('keeps every Voltaire executable transport joined to its delivery binding', () => {
-		for (const transport of Object.values(voltaireJsonRpcTransportsWithOriginsByChainId).flat()) {
-			expect(transport.binding.target.key).toBe(String(transport.chainId))
-			expect(transport.binding.endpoints.some((endpoint) => (
-				endpoint.locator === transport.rpcUrl
-				&& endpoint.endpointKind === (
-					transport.transportType === TransportType.Http ?
-						SourceEndpointKind.HttpUrl
-					:
-						SourceEndpointKind.WebSocketUrl
-				)
-			))).toBe(true)
+	it('keeps every Voltaire executable transport joined to its canonical binding', () => {
+		for (const transport of Object.values(voltaireJsonRpcTransportsByChainId).flat()) {
+			const binding = sourceProviderDefinitions
+				.find((provider) => provider.provider === SourceProvider.Voltaire)!
+				.bindings.find((candidate) => candidate.endpoints.includes(transport.endpoint))!
+			expect(binding.target.key).toBe(String(transport.chainId))
+			expect(transport.endpoint.endpointKind).toBe(
+				transport.transportType === TransportType.Http ?
+					SourceEndpointKind.HttpUrl
+				:
+					SourceEndpointKind.WebSocketUrl
+			)
 			if (transport.transportType === TransportType.WebSocket)
-				expect(transport.binding.delivery).toBe(SourceDelivery.RemoteLive)
+				expect(binding.delivery).toBe(SourceDelivery.RemoteLive)
 			else {
-				const endpoint = transport.binding.endpoints.find((candidate) => (
-					candidate.endpointKind === SourceEndpointKind.HttpUrl
-					&& candidate.locator === transport.rpcUrl
-				))
-				expect(endpoint).toBeDefined()
-				if (endpoint?.corsEnabled !== true) {
-					expect(transport.binding.delivery).toBe(SourceDelivery.HttpProxy)
-					expect(transport.binding.proxyId).toBeTruthy()
+				if (transport.endpoint.corsEnabled !== true) {
+					expect(binding.delivery).toBe(SourceDelivery.HttpProxy)
+					expect(binding.proxyId).toBeTruthy()
 				}
 			}
 		}
-	})
-
-	it('keeps Voltaire JSON-RPC transport candidates derived from source endpoint rows', () => {
-		const byChainUrlTransport = (entry: {
-			chainId: number
-			rpcUrl: string
-			transportType: TransportType
-		}) => `${entry.chainId}:${entry.rpcUrl}:${entry.transportType}`
-		expect(voltaireJsonRpcTransportCandidates.toSorted((left, right) => byChainUrlTransport(left).localeCompare(byChainUrlTransport(right)))).toEqual(executionEndpoints.map((executionEndpoint) => ({
-			chainId: executionEndpoint.chainId,
-			rpcUrl: executionEndpoint.url,
-			transportType: executionEndpoint.transportType,
-		})).toSorted((left, right) => byChainUrlTransport(left).localeCompare(byChainUrlTransport(right))))
 	})
 
 	it('uses generated Voltaire bindings as the executable transport authority', () => {
 		expect(readFileSync(join(process.cwd(), 'src', 'sources', 'Voltaire', 'JsonRpc', 'queries.ts'), 'utf8'))
 			.not.toMatch(/executionEndpoints\.ts|voltaireJsonRpcTransportCandidates/)
 
-		expect(Object.values(voltaireJsonRpcTransportsWithOriginsByChainId).flat().map((transport) => ({
+		expect(Object.values(voltaireJsonRpcTransportsByChainId).flat().map((transport) => ({
 			chainId: transport.chainId,
-			rpcUrl: transport.rpcUrl,
+			rpcUrl: transport.endpoint.locator,
 			transportType: transport.transportType,
 		}))).toEqual(
 			sourceProviderDefinitions
 				.filter((provider) => provider.provider === SourceProvider.Voltaire)
 				.flatMap((provider) => provider.bindings)
 				.flatMap((binding) => (
-					binding.endpoints.flatMap((endpoint) => (
-						endpoint.endpointKind === SourceEndpointKind.HttpUrl
-							|| endpoint.endpointKind === SourceEndpointKind.WebSocketUrl ?
-							[{
+					binding.endpoints.map((endpoint) => ({
 								chainId: Number(binding.target.key),
 								rpcUrl: endpoint.locator,
 								transportType: (
@@ -601,19 +547,9 @@ describe('source provider registry', () => {
 									:
 										TransportType.WebSocket
 								),
-							}]
-						:
-							[]
-					))
+							}))
 				))
 		)
-	})
-
-	it('keeps Beacon origins aligned with source endpoint rows', () => {
-		expect(beaconOrigins).toEqual(beaconRestEndpoints.map((beaconRestEndpoint) => ({
-			origin: new URL(beaconRestEndpoint.restBaseUrl).origin,
-			corsEnabled: beaconRestEndpoint.corsEnabled,
-		})))
 	})
 
 	it('keeps Quilibrium docs endpoints in generated APP binding metadata', () => {
@@ -639,22 +575,6 @@ describe('source provider registry', () => {
 		])
 	})
 
-	it('keeps ZeroG origins aligned with source endpoint rows', () => {
-		expect(new Set([
-			...zeroGChainOrigins,
-			...zeroGChainScanOrigins,
-			...zeroGStorageNodeOrigins,
-			...zeroGStorageScanOrigins,
-		].map((entry) => entry.origin))).toEqual(
-			new Set([
-				...zeroGMainnetExplorerEndpoints.map((entry) => new URL(entry.url).origin),
-				...zeroGMainnetStorageEndpoints.map((entry) => new URL(entry.url).origin),
-				...zeroGMainnetRpcEndpoints.map((entry) => new URL(entry.url).origin),
-				...zeroGStorageNodeRpcEndpoints.map((entry) => new URL(entry.url).origin),
-			])
-		)
-	})
-
 	it('keeps generated OpenAPI sources reproducible from checked-in schema manifests', () => {
 		const packageJson = readFileSync(join(process.cwd(), 'package.json'), 'utf8')
 		const manifestFiles = globSync('src/sources/*/OpenApi/schema-source.ts')
@@ -666,8 +586,8 @@ describe('source provider registry', () => {
 		const coveredTypesFiles = new Set<string>()
 		const inactiveManifests: string[] = []
 
-		expect(packageJson).toMatch(/"sources:openapi": "pnpm exec tsx scripts\/sources\/openapi\.ts"/)
-		expect(packageJson).toMatch(/"sources:openapi:check": "pnpm exec tsx scripts\/sources\/openapi\.ts check"/)
+		expect(packageJson).toMatch(/"sources:openapi": "node --import tsx scripts\/sources\/openapi\.ts"/)
+		expect(packageJson).toMatch(/"sources:openapi:check": "node --import tsx scripts\/sources\/openapi\.ts check"/)
 		expect(readFileSync(join(process.cwd(), 'scripts', 'sources', 'openapi.ts'), 'utf8')).toMatch(/glob\('\/?\*\/OpenApi\/schema-source\.ts'|glob\('\*\/OpenApi\/schema-source\.ts'/)
 
 		for (const manifestFile of manifestFiles) {
@@ -710,8 +630,8 @@ describe('source provider registry', () => {
 		const coveredOutputFiles = new Set<string>()
 		const inactiveManifests: string[] = []
 
-		expect(packageJson).toMatch(/"sources:graphql": "pnpm exec tsx scripts\/sources\/graphql\.ts"/)
-		expect(packageJson).toMatch(/"sources:graphql:check": "pnpm exec tsx scripts\/sources\/graphql\.ts check"/)
+		expect(packageJson).toMatch(/"sources:graphql": "node --import tsx scripts\/sources\/graphql\.ts"/)
+		expect(packageJson).toMatch(/"sources:graphql:check": "node --import tsx scripts\/sources\/graphql\.ts check"/)
 		expect(readFileSync(join(process.cwd(), 'scripts', 'sources', 'graphql.ts'), 'utf8')).toMatch(/glob\('\*\/Graphql\/\*\*\/schema-source\.ts'/)
 
 		for (const manifestFile of manifestFiles) {
@@ -759,8 +679,8 @@ describe('source provider registry', () => {
 		const definitions = new Set<string>()
 		const schedules = globSync('src/data/precompiles/eip155-*-schedule.json')
 
-		expect(packageJson).toMatch(/"sources:precompiles:sync": "pnpm exec tsx scripts\/sources\/precompiles\/source\.ts sync"/)
-		expect(packageJson).toMatch(/"sources:precompiles:check": "pnpm exec tsx scripts\/sources\/precompiles\/source\.ts check"/)
+		expect(packageJson).toMatch(/"sources:precompiles:sync": "node --import tsx scripts\/sources\/precompiles\/source\.ts sync"/)
+		expect(packageJson).toMatch(/"sources:precompiles:check": "node --import tsx scripts\/sources\/precompiles\/source\.ts check"/)
 		expect(scriptSource).toContain("action === 'check'")
 		expect(manifest.source).toBe('https://github.com/shemnon/precompiles')
 		expect(manifest.ref).toBeTruthy()

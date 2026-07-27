@@ -30,22 +30,28 @@
 {#key params.reference}
 	<ParentPageCollapsible
 		href={
-			resolve('/swarm/[reference=stringSegment]', {
-				reference: params.reference,
-			})
+			resolve(
+				'/(swarm)/swarm/(swarmProtocol)/[reference=stringSegment]',
+				{
+					reference: String(params.reference),
+				}
+			)
 		}
 	>
 		{#snippet Summary()}
-			{@const DetailView = SwarmResourceView}
-
-			<DetailView
-				selection={select(EntityType.SwarmResource, data.selector, { sources: [
-		Source.Swarm_Rest,
-	] })}
+			<SwarmResourceView
+				selection={
+					select(EntityType.SwarmResource, data.selector, { sources: [
+						Source.Swarm_Rest,
+					] })
+				}
 				href={
-					resolve('/swarm/[reference=stringSegment]', {
-						reference: params.reference,
-					})
+					resolve(
+						'/(swarm)/swarm/(swarmProtocol)/[reference=stringSegment]',
+						{
+							reference: String(params.reference),
+						}
+					)
 				}
 				layout={EntityLayout.SummaryInline}
 			/>

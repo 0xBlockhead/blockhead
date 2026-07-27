@@ -8,16 +8,16 @@ import { match as matchPolkadotAccountId } from '$/params/polkadotAccountId.ts'
 import { match as matchSolanaPubkey } from '$/params/solanaPubkey.ts'
 import { match as matchStringSegment } from '$/params/stringSegment.ts'
 import { parseEntitySelector, type EntitySelectorForSelectorName } from '$/schema/$schema.ts'
-import { CardanoAddress as CardanoAddressSchema } from '$/schema/CardanoAddress.ts'
-import { CosmosAccount as CosmosAccountSchema } from '$/schema/CosmosAccount.ts'
+import CardanoAddressSchema from '$/schema/CardanoAddress.ts'
+import CosmosAccountSchema from '$/schema/CosmosAccount.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import { EvmNetworkAccount as EvmNetworkAccountSchema } from '$/schema/EvmNetworkAccount.ts'
-import { HederaAccount as HederaAccountSchema } from '$/schema/HederaAccount.ts'
+import EvmNetworkAccountSchema from '$/schema/EvmNetworkAccount.ts'
+import HederaAccountSchema from '$/schema/HederaAccount.ts'
 import { schema } from '$/schema/index.ts'
-import { PolkadotAccount as PolkadotAccountSchema } from '$/schema/PolkadotAccount.ts'
-import { SolanaAccount as SolanaAccountSchema } from '$/schema/SolanaAccount.ts'
-import { TonAccount as TonAccountSchema } from '$/schema/TonAccount.ts'
-import { XrplAccount as XrplAccountSchema } from '$/schema/XrplAccount.ts'
+import PolkadotAccountSchema from '$/schema/PolkadotAccount.ts'
+import SolanaAccountSchema from '$/schema/SolanaAccount.ts'
+import TonAccountSchema from '$/schema/TonAccount.ts'
+import XrplAccountSchema from '$/schema/XrplAccount.ts'
 import { type as arktype } from 'arktype'
 
 export const load: LayoutLoad = async ({ params, parent }) => {
@@ -127,7 +127,7 @@ export const load: LayoutLoad = async ({ params, parent }) => {
 			routeCandidates.push({ entityType: EntityType.CosmosAccount, selectorName: 'NetworkAddress', selector: cosmosAccountNetworkAddressSelector })
 	}
 
-	if ((projectionNetwork.namespace === 'Hedera' && projectionNetwork.namespace === 'Hedera') && matchStringSegment(params.accountId)) {
+	if (projectionNetwork.namespace === 'Hedera' && matchStringSegment(params.accountId)) {
 		const hederaAccountNetworkAccountIdSelector = parseEntitySelector(
 			schema,
 			HederaAccountSchema,
@@ -181,7 +181,7 @@ export const load: LayoutLoad = async ({ params, parent }) => {
 			routeCandidates.push({ entityType: EntityType.SolanaAccount, selectorName: 'NetworkPubkey', selector: solanaAccountNetworkPubkeySelector })
 	}
 
-	if ((projectionNetwork.namespace === 'Ton' && projectionNetwork.namespace === 'Ton') && matchStringSegment(params.accountId)) {
+	if (projectionNetwork.namespace === 'Ton' && matchStringSegment(params.accountId)) {
 		const tonAccountNetworkAddressSelector = parseEntitySelector(
 			schema,
 			TonAccountSchema,
@@ -194,7 +194,7 @@ export const load: LayoutLoad = async ({ params, parent }) => {
 			routeCandidates.push({ entityType: EntityType.TonAccount, selectorName: 'NetworkAddress', selector: tonAccountNetworkAddressSelector })
 	}
 
-	if ((projectionNetwork.namespace === 'Xrpl' && projectionNetwork.namespace === 'Xrpl') && matchStringSegment(params.accountId)) {
+	if (projectionNetwork.namespace === 'Xrpl' && matchStringSegment(params.accountId)) {
 		const xrplAccountNetworkAccountSelector = parseEntitySelector(
 			schema,
 			XrplAccountSchema,

@@ -5,7 +5,7 @@ import { error } from '@sveltejs/kit'
 import { networkByCaip2, networkBySlug } from '$/constants/Network.ts'
 import { match as matchUserOperationHash } from '$/params/userOperationHash.ts'
 import { parseEntitySelector } from '$/schema/$schema.ts'
-import { EvmUserOperation as EvmUserOperationSchema } from '$/schema/EvmUserOperation.ts'
+import EvmUserOperationSchema from '$/schema/EvmUserOperation.ts'
 import { schema } from '$/schema/index.ts'
 import { type as arktype } from 'arktype'
 

@@ -2,13 +2,9 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
 
 
 	// Context
@@ -20,42 +16,19 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.BnbBeaconTransaction>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.BnbBeaconTransaction>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.BnbBeaconTransaction> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const bnbBeaconTransaction = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {
-			txType: true,
-			tokenSymbol: true,
-		},
-	} : {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const bnbBeaconTransaction = $derived(selection({
 		fields: {
 			txType: true,
 			tokenSymbol: true,
 		},
 	}))
-	const titleFallback = $derived([String((pendingEntity.txHash) ?? '')].filter(Boolean).join(' ') || 'bnb beacon transaction')
-	const viewDomId = $derived('bnb-beacon-transaction-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const titleFallback = $derived((pendingEntity.txHash ?? '') || 'bnb beacon transaction')
 
 
 	// Components
@@ -70,55 +43,39 @@
 
 <EntityView
 	entityType={EntityType.BnbBeaconTransaction}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={bnbBeaconTransaction}>
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const txHash0 = resolvedEntity.txHash}
-				{#if txHash0 !== undefined && txHash0 !== null}
-					<TruncatedValue value={String((txHash0) ?? '')} />
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		<TruncatedValue value={pendingEntity.txHash} />
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={bnbBeaconTransaction}>
 			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.txType) ?? ''), String((resolvedEntity.tokenSymbol) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.txHash) ?? '')].filter(Boolean).join(' ') || titleFallback}
+				{[(entity.txType ?? ''), (entity.tokenSymbol ?? '')].filter(Boolean).join(' ') || pendingEntity.txHash || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		<ResourceBoundary resource={bnbBeaconTransaction}>
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				<ResourceBoundary
-					resource={selection.$block}
-				>
-					{#snippet children(bnbBeaconBlock)}
-						{#if bnbBeaconBlock != null && bnbBeaconBlock[EntityMetaKey.Selector] != null}
-							<span data-text="muted">
-								<BnbBeaconBlockView
-									selection={select(EntityType.BnbBeaconBlock, bnbBeaconBlock[EntityMetaKey.Selector])}
-									prefetched={bnbBeaconBlock}
-									layout={EntityLayout.Title}
-									open={false}
-								/>
-							</span>
-						{/if}
-					{/snippet}
-				</ResourceBoundary>
+		<ResourceBoundary
+			resource={selection.$block}
+		>
+			{#snippet children(bnbBeaconBlock)}
+				{#if bnbBeaconBlock != null}
+					<span data-text="muted">
+						<BnbBeaconBlockView
+							selection={select(EntityType.BnbBeaconBlock, bnbBeaconBlock[EntityMetaKey.Selector])}
+							prefetched={bnbBeaconBlock}
+							layout={EntityLayout.Title}
+							open={false}
+						/>
+					</span>
+				{/if}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -139,45 +96,20 @@
 			<div>
 				<dt>Transaction hash</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									txHash: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const txHash = resolvedEntity.txHash}
-							{#if txHash !== undefined && txHash !== null}
-								<TruncatedValue value={String((txHash) ?? '')} />
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					<TruncatedValue value={pendingEntity.txHash} />
 				</dd>
 			</div>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							txType: true,
-						},
-					})
-				}
+				resource={bnbBeaconTransaction}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const txType = resolvedEntity.txType}
-					{#if txType !== undefined && txType !== null}
+					{@const txType = entity.txType}
+					{#if txType != null}
 						<div>
 							<dt>transaction type</dt>
 							<dd>
-								{String((txType) ?? '')}
+								{txType}
 							</dd>
 						</div>
 					{/if}
@@ -189,7 +121,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							sourceAddress: true,
 						},
@@ -197,13 +128,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const sourceAddress = resolvedEntity.sourceAddress}
-					{#if sourceAddress !== undefined && sourceAddress !== null}
+					{@const sourceAddress = entity.sourceAddress}
+					{#if sourceAddress != null}
 						<div>
 							<dt>source address</dt>
 							<dd>
-								<TruncatedValue value={String((sourceAddress) ?? '')} />
+								<TruncatedValue value={sourceAddress} />
 							</dd>
 						</div>
 					{/if}
@@ -213,7 +143,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							destinationAddress: true,
 						},
@@ -221,13 +150,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const destinationAddress = resolvedEntity.destinationAddress}
-					{#if destinationAddress !== undefined && destinationAddress !== null}
+					{@const destinationAddress = entity.destinationAddress}
+					{#if destinationAddress != null}
 						<div>
 							<dt>destination address</dt>
 							<dd>
-								<TruncatedValue value={String((destinationAddress) ?? '')} />
+								<TruncatedValue value={destinationAddress} />
 							</dd>
 						</div>
 					{/if}
@@ -237,7 +165,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							amount: true,
 						},
@@ -245,9 +172,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const amount = resolvedEntity.amount}
-					{#if amount !== undefined && amount !== null}
+					{@const amount = entity.amount}
+					{#if amount != null}
 						<div>
 							<dt>amount</dt>
 							<dd>
@@ -263,7 +189,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							feeAmount: true,
 						},
@@ -271,9 +196,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const feeAmount = resolvedEntity.feeAmount}
-					{#if feeAmount !== undefined && feeAmount !== null}
+					{@const feeAmount = entity.feeAmount}
+					{#if feeAmount != null}
 						<div>
 							<dt>fee amount</dt>
 							<dd>
@@ -287,23 +211,15 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							tokenSymbol: true,
-						},
-					})
-				}
+				resource={bnbBeaconTransaction}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const tokenSymbol = resolvedEntity.tokenSymbol}
-					{#if tokenSymbol !== undefined && tokenSymbol !== null}
+					{@const tokenSymbol = entity.tokenSymbol}
+					{#if tokenSymbol != null}
 						<div>
 							<dt>token symbol</dt>
 							<dd>
-								{String((tokenSymbol) ?? '')}
+								{tokenSymbol}
 							</dd>
 						</div>
 					{/if}
@@ -315,7 +231,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							memo: true,
 						},
@@ -323,13 +238,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const memo = resolvedEntity.memo}
-					{#if memo !== undefined && memo !== null}
+					{@const memo = entity.memo}
+					{#if memo != null}
 						<div>
 							<dt>memo</dt>
 							<dd>
-								{String((memo) ?? '')}
+								{memo}
 							</dd>
 						</div>
 					{/if}
@@ -339,7 +253,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							orderId: true,
 						},
@@ -347,13 +260,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const orderId = resolvedEntity.orderId}
-					{#if orderId !== undefined && orderId !== null}
+					{@const orderId = entity.orderId}
+					{#if orderId != null}
 						<div>
 							<dt>order ID</dt>
 							<dd>
-								{String((orderId) ?? '')}
+								{orderId}
 							</dd>
 						</div>
 					{/if}
@@ -363,7 +275,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							sequence: true,
 						},
@@ -371,9 +282,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const sequence = resolvedEntity.sequence}
-					{#if sequence !== undefined && sequence !== null}
+					{@const sequence = entity.sequence}
+					{#if sequence != null}
 						<div>
 							<dt>sequence</dt>
 							<dd>
@@ -389,7 +299,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							code: true,
 						},
@@ -397,9 +306,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const code = resolvedEntity.code}
-					{#if code !== undefined && code !== null}
+					{@const code = entity.code}
+					{#if code != null}
 						<div>
 							<dt>code</dt>
 							<dd>
@@ -415,7 +323,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							log: true,
 						},
@@ -423,13 +330,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const log = resolvedEntity.log}
-					{#if log !== undefined && log !== null}
+					{@const log = entity.log}
+					{#if log != null}
 						<div>
 							<dt>log</dt>
 							<dd>
-								{String((log) ?? '')}
+								{log}
 							</dd>
 						</div>
 					{/if}
@@ -445,12 +351,12 @@
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
-				<BnbBeaconTokenTransfersView
-					selection={bnbBeaconTransactionBnbBeaconTokenTransfersViewTokenEffectsResource}
-					countResource={bnbBeaconTransactionBnbBeaconTokenTransfersViewTokenEffectsResource.count}
-					title='token effects'
-					id='BnbBeaconTokenTransfersView-token-effects'
-				/>
+					<BnbBeaconTokenTransfersView
+						selection={bnbBeaconTransactionBnbBeaconTokenTransfersViewTokenEffectsResource}
+						countResource={bnbBeaconTransactionBnbBeaconTokenTransfersViewTokenEffectsResource.count}
+						title='token effects'
+						id='token-effects'
+					/>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>

@@ -9,10 +9,31 @@ import {
 	setupPageRuntimeDiagnostics,
 } from '../_e2eBrowserHelpers.ts'
 
+const proposalPath = '/proposals/ethereum/eip/EIP-1559'
+const proposalTitle = 'EIP-1559: Fee market change for ETH 1.0 chain'
+const proposalBody = 'This deterministic fixture introduces a base fee that adjusts with network demand.'
+const contentsUrl = 'https://api.github.com/repos/ethereum/EIPs/contents/EIPS?ref=master'
+const markdownUrl = 'https://raw.githubusercontent.com/ethereum/EIPs/master/EIPS/eip-1559.md'
+const proposalRequestUrls = [
+	contentsUrl,
+	markdownUrl,
+]
+const proposalMarkdown = [
+	'---',
+	'eip: 1559',
+	'title: Fee market change for ETH 1.0 chain',
+	'status: Final',
+	'category: Core',
+	'---',
+	'',
+	'# Abstract',
+	'',
+	proposalBody,
+].join('\n')
+
 const persistenceFailureDetails = (failures: readonly string[]) => (
 	failures.length === 0 ? '' : `\n${failures.join('\n')}`
 )
-
 
 test.describe('production OPFS lifecycle', () => {
 	test('commits local data, closes, and hydrates direct and boundary resources', async ({ browser }, testInfo) => {
@@ -20,50 +41,47 @@ test.describe('production OPFS lifecycle', () => {
 
 		const context = await browser.newContext(e2eBrowserNewContextOptions())
 		const page = await context.newPage()
-		const remotePostId = `189${Date.now()}000`
-		const remotePostPath = `/x/post/${remotePostId}`
-		const remotePostText = `OPFS remote replay fixture ${remotePostId}`
 		const persistenceFailures: string[] = []
-		const remoteRequests = new Set<string>()
-		const reopenedRemoteRequests = new Set<string>()
+		const initialProposalRequests = new Set<string>()
+		const reopenedProposalRequests = new Set<string>()
+		const unexpectedProposalRequests: string[] = []
 		const recordPersistenceFailure = (message: string, location: string) => {
 			if (/sqlite3_open_v2|OPFS|database is locked|requires an index|index/i.test(message))
 				persistenceFailures.push(`${location}: ${message}`)
 		}
-		await context.route('**/api-proxy/X_FxEmbed_Rest-*/0/**', async (route) => {
-			const providerUrl = new URL(
-				decodeURIComponent(new URL(route.request().url()).pathname.split('/').at(-1) ?? '')
-			)
-			await route.fulfill({
-				contentType: 'application/json',
-				json: (
-					providerUrl.pathname.includes('/profile/') ?
+		await context.route('**/api-proxy/**', async (route) => {
+			const decodedUrl = decodeURIComponent(route.request().url())
+			if (
+				route.request().method() === 'GET'
+				&& decodedUrl.endsWith(contentsUrl)
+			) {
+				await route.fulfill({
+					contentType: 'application/json',
+					json: [
 						{
-							user: {
-								type: 'profile',
-								id: '44196397',
-								screen_name: 'opfs_fixture',
-								name: 'OPFS Fixture',
-								description: 'Production persistence fixture',
-							},
-						}
-					:
-						{
-							status: {
-								type: 'status',
-								id: remotePostId,
-								text: remotePostText,
-								created_timestamp: 1_768_435_200,
-								author: {
-									type: 'profile',
-									id: '44196397',
-									screen_name: 'opfs_fixture',
-									name: 'OPFS Fixture',
-								},
-							},
-						}
-				),
-			})
+							type: 'file',
+							name: 'eip-1559.md',
+						},
+					],
+				})
+				return
+			}
+
+			if (
+				route.request().method() === 'GET'
+				&& decodedUrl.endsWith(markdownUrl)
+			) {
+				await route.fulfill({
+					body: proposalMarkdown,
+					contentType: 'text/markdown',
+				})
+				return
+			}
+
+			if (proposalRequestUrls.some((url) => decodedUrl.includes(url)))
+				unexpectedProposalRequests.push(`${route.request().method()} ${decodedUrl}`)
+
+			await route.fallback()
 		})
 
 		page.on('console', (message) => recordPersistenceFailure(message.text(), `console ${message.type()}`))
@@ -73,8 +91,8 @@ test.describe('production OPFS lifecycle', () => {
 			`request ${request.url()}`
 		))
 		page.on('request', (request) => {
-			if (request.url().includes('/api-proxy/'))
-				remoteRequests.add(request.url())
+			if (proposalRequestUrls.some((url) => decodeURIComponent(request.url()).includes(url)))
+				initialProposalRequests.add(request.url())
 		})
 
 		try {
@@ -83,19 +101,23 @@ test.describe('production OPFS lifecycle', () => {
 				forwardConsole: true,
 				failOnTanStackWarnings: true,
 			})
-			await diagnostics.step(page.goto(remotePostPath, {
+			await diagnostics.step(page.goto(proposalPath, {
 				waitUntil: 'domcontentloaded',
 				timeout: 120_000,
 			}))
 			await expectMainVisible(page, 120_000, diagnostics)
-			await expect(page.locator('#main')).toContainText(remotePostText, {
+			await expect(page.locator('#main')).toContainText(proposalTitle, {
+				timeout: 120_000,
+			})
+			await expect(page.locator('#main')).toContainText(proposalBody, {
 				timeout: 120_000,
 			})
 			await diagnostics.step(page.waitForLoadState('load'))
 			expect(
-				remoteRequests.size,
+				initialProposalRequests.size,
 				'expected the unique product selector to materialize through its remote source'
 			).toBeGreaterThan(0)
+			expect(unexpectedProposalRequests).toEqual([])
 
 			await diagnostics.step(page.goto('/test/local-mutation-authority', {
 				waitUntil: 'domcontentloaded',
@@ -125,8 +147,8 @@ test.describe('production OPFS lifecycle', () => {
 			reopenedPage.on('console', (message) => recordPersistenceFailure(message.text(), `reopened console ${message.type()}`))
 			reopenedPage.on('pageerror', (error) => recordPersistenceFailure(error.message, 'reopened pageerror'))
 			reopenedPage.on('request', (request) => {
-				if (request.url().includes('/api-proxy/'))
-					reopenedRemoteRequests.add(request.url())
+				if (proposalRequestUrls.some((url) => decodeURIComponent(request.url()).includes(url)))
+					reopenedProposalRequests.add(request.url())
 			})
 			const reopenedDiagnostics = setupPageRuntimeDiagnostics(reopenedPage, {
 				failFast: true,
@@ -143,15 +165,19 @@ test.describe('production OPFS lifecycle', () => {
 			await expect(reopenedPage.locator('#local-authority-sessions')).toContainText('Authority Session B')
 			await expect(reopenedDiagnostics.issues, reopenedDiagnostics.issues.join('\n')).toEqual([])
 
-			await reopenedDiagnostics.step(reopenedPage.goto(remotePostPath, {
+			await reopenedDiagnostics.step(reopenedPage.goto(proposalPath, {
 				waitUntil: 'domcontentloaded',
 				timeout: 120_000,
 			}))
 			await expectMainVisible(reopenedPage, 120_000, reopenedDiagnostics)
-			await expect(reopenedPage.locator('#main')).toContainText(remotePostText, {
+			await expect(reopenedPage.locator('#main')).toContainText(proposalTitle, {
 				timeout: 120_000,
 			})
-			expect(reopenedRemoteRequests, 'reopened remote state must hydrate without source replay').toEqual(new Set())
+			await expect(reopenedPage.locator('#main')).toContainText(proposalBody, {
+				timeout: 120_000,
+			})
+			expect(unexpectedProposalRequests).toEqual([])
+			expect(reopenedProposalRequests, 'reopened remote state must hydrate without source replay').toEqual(new Set())
 
 		} finally {
 			await context.close()

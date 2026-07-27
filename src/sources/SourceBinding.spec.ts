@@ -12,23 +12,17 @@ import {
 } from 'vitest'
 
 import { Source } from '$/sources/Source.ts'
-import {
-	SourceProvider,
-	type SourceProviderDefinition,
-} from '$/sources/SourceProvider.ts'
+import type { SourceProviderDefinition } from '$/sources/SourceProvider.ts'
 import {
 	ApiFamily,
 	SourceArtifactKind,
 	SourceCredentialScope,
 	SourceDelivery,
 	SourceEndpointKind,
-	SourceOperationGroup,
 	SourceTargetKind,
-	WireProtocol,
 	type SourceBinding,
 } from '$/sources/SourceBinding.ts'
-import { sourceProviders as generatedSourceProviders } from '$/sources/$sourceProviders.ts'
-import { sourceBindingCompatibility } from '$/sources/$sourceBindingCompatibility.ts'
+import generatedSourceProviders from '$/sources/$sourceProviders.ts'
 import { auditSourceProviders } from '$/sources/auditSourceProviders.ts'
 import { sourceBindings as browserSourceBindings } from '$/sources/index.ts'
 import {
@@ -37,309 +31,24 @@ import {
 	remoteLiveBindings,
 } from '$/sources/index.server.ts'
 import { sourceFetch } from '$/sources/_runtime/http.ts'
+import neynarBindings from '$/sources/Neynar/bindings.ts'
 import { neynarFetch } from '$/sources/Neynar/Rest/client.ts'
+import redditPublicBindings from '$/sources/RedditPublic/bindings.ts'
 import { redditTextGet } from '$/sources/RedditPublic/Rest/client.ts'
+import snapchainBindings from '$/sources/Snapchain/bindings.ts'
 import { snapchainGet } from '$/sources/Snapchain/Rest/client.ts'
-import { validateSourceBinding } from '$/sources/validateSourceBindings.ts'
-import { validateSourceBindings } from '$/sources/validateSourceBindings.ts'
-
-const validBinding = {
-	provider: SourceProvider.Blockscout,
-	source: Source.Blockscout_Rest,
-	target: {
-		kind: SourceTargetKind.Eip155Chain,
-		key: '1',
-	},
-	endpoints: [
-		{
-			endpointKind: SourceEndpointKind.HttpUrl,
-			locator: 'https://eth.blockscout.com',
-			origin: 'https://eth.blockscout.com',
-			corsEnabled: false,
-		},
-	],
-	wireProtocol: WireProtocol.HttpRest,
-	apiFamily: ApiFamily.BlockscoutRestV2,
-	operationGroups: [
-		SourceOperationGroup.GenericRead,
-	],
-	delivery: SourceDelivery.HttpProxy,
-	credentials: [
-		{
-			scope: SourceCredentialScope.None,
-		},
-	],
-} as const satisfies SourceBinding
 
 let sourceProviders: SourceProviderDefinition[]
 let sourceBindings: readonly SourceBinding[]
 
 beforeAll(() => {
 	sourceProviders = [...generatedSourceProviders]
-	sourceBindings = validateSourceBindings(sourceProviders.flatMap((provider) => provider.bindings))
+	sourceBindings = sourceProviders.flatMap((provider) => provider.bindings)
 })
 
 const sourceMember = (
 	name: string
 ) => (Source as Record<string, Source | undefined>)[name]
-
-describe('SourceBinding validation', () => {
-	it('accepts a valid HTTP proxy binding', () => {
-		expect(validateSourceBinding(validBinding)).toBe(validBinding)
-	})
-
-	it('rejects empty endpoint and operation-group arrays', () => {
-		expect(() => validateSourceBinding({
-			...validBinding,
-			endpoints: [],
-		})).toThrow('source binding requires at least one endpoint')
-		expect(() => validateSourceBinding({
-			...validBinding,
-			operationGroups: [],
-		})).toThrow('source binding requires at least one operation group')
-	})
-
-	it('rejects an API family incompatible with the wire protocol', () => {
-		expect(() => validateSourceBinding({
-			...validBinding,
-			apiFamily: ApiFamily.GraphqlHttp,
-		})).toThrow('GraphqlHttp is incompatible with HttpRest')
-	})
-
-	it('fails closed when a compatibility policy marker is absent', () => {
-		const compatibility = sourceBindingCompatibility.find((candidate) => (
-			candidate.wireProtocol === validBinding.wireProtocol
-			&& candidate.apiFamilies.includes(validBinding.apiFamily)
-		))
-
-		expect(compatibility).toBeDefined()
-		const operationGroups = compatibility?.operationGroups
-		Reflect.deleteProperty(compatibility ?? {}, 'operationGroups')
-		try {
-			expect(() => validateSourceBinding(validBinding)).toThrow('compatibility row requires an explicit operation group policy')
-		} finally {
-			Reflect.set(compatibility ?? {}, 'operationGroups', operationGroups)
-		}
-	})
-
-	it('rejects an endpoint kind incompatible with the protocol and API family', () => {
-		expect(() => validateSourceBinding({
-			...validBinding,
-			endpoints: [{
-				endpointKind: SourceEndpointKind.LocalProcess,
-				locator: 'local:blockscout',
-			}],
-			delivery: SourceDelivery.LocalOnly,
-		})).toThrow('endpoint kind is incompatible with HttpRest/BlockscoutRestV2')
-	})
-
-	it('accepts GrpcService over a TCP endpoint', () => {
-		const binding = {
-			...validBinding,
-			endpoints: [{
-				endpointKind: SourceEndpointKind.TcpAddress,
-				locator: 'mainnet-public.mirrornode.hedera.com:443',
-			}],
-			wireProtocol: WireProtocol.Grpc,
-			apiFamily: ApiFamily.GrpcService,
-			delivery: SourceDelivery.RemoteQuery,
-		} as const satisfies SourceBinding
-
-		expect(validateSourceBinding(binding)).toBe(binding)
-	})
-
-	it('rejects GrpcService over a WebSocket endpoint', () => {
-		expect(() => validateSourceBinding({
-			...validBinding,
-			endpoints: [{
-				endpointKind: SourceEndpointKind.WebSocketUrl,
-				locator: 'wss://example.test/grpc',
-			}],
-			wireProtocol: WireProtocol.Grpc,
-			apiFamily: ApiFamily.GrpcService,
-			delivery: SourceDelivery.RemoteQuery,
-		})).toThrow('endpoint kind is incompatible with Grpc/GrpcService')
-	})
-
-	it('rejects an operation group incompatible with a constrained API family', () => {
-		expect(() => validateSourceBinding({
-			...validBinding,
-			wireProtocol: WireProtocol.JsonRpc2,
-			apiFamily: ApiFamily.EvmExecutionJsonRpc,
-			operationGroups: [
-				SourceOperationGroup.GenericRead,
-			],
-		})).toThrow('operation group is incompatible with EvmExecutionJsonRpc')
-	})
-
-	it('rejects an artifact kind incompatible with a constrained API family', () => {
-		expect(() => validateSourceBinding({
-			...validBinding,
-			apiFamily: ApiFamily.OpenApiHttp,
-			artifacts: [{
-				kind: SourceArtifactKind.GraphqlSchema,
-				path: 'schema.graphql',
-				generated: false,
-			}],
-		})).toThrow('artifact kind is incompatible with OpenApiHttp')
-	})
-
-	it('rejects CORS metadata on non-HTTP endpoints', () => {
-		expect(() => validateSourceBinding({
-			...validBinding,
-			wireProtocol: WireProtocol.JsonRpc2,
-			apiFamily: ApiFamily.EvmExecutionJsonRpc,
-			operationGroups: [
-				SourceOperationGroup.EvmRpcCore,
-			],
-			endpoints: [
-				{
-					endpointKind: SourceEndpointKind.WebSocketUrl,
-					locator: 'wss://ethereum.publicnode.com',
-					corsEnabled: true,
-				},
-			],
-			delivery: SourceDelivery.RemoteLive,
-		})).toThrow('corsEnabled is only valid on HTTP endpoints')
-	})
-
-	it('rejects vague endpoint placeholders', () => {
-		expect(() => validateSourceBinding({
-			...validBinding,
-			endpoints: [
-				{
-					endpointKind: SourceEndpointKind.HttpUrl,
-					locator: 'configured-url',
-					origin: 'configured-url',
-					corsEnabled: false,
-				},
-			],
-		})).toThrow('endpoint locators must be concrete, env:, or browser:')
-	})
-
-	it('rejects HTTP proxy delivery for non-HTTP endpoints', () => {
-		expect(() => validateSourceBinding({
-			...validBinding,
-			wireProtocol: WireProtocol.JsonRpc2,
-			apiFamily: ApiFamily.EvmExecutionJsonRpc,
-			operationGroups: [
-				SourceOperationGroup.EvmRpcCore,
-			],
-			endpoints: [
-				{
-					endpointKind: SourceEndpointKind.WebSocketUrl,
-					locator: 'wss://ethereum.publicnode.com',
-				},
-			],
-		})).toThrow('HttpProxy requires HTTP endpoints')
-	})
-
-	it('rejects HTTP proxy delivery for templated origins', () => {
-		expect(() => validateSourceBinding({
-			...validBinding,
-			endpoints: [
-				{
-					endpointKind: SourceEndpointKind.HttpUrl,
-					locator: 'https://{origin}/.well-known/agent.json',
-					origin: 'https://{origin}',
-					corsEnabled: false,
-				},
-			],
-		})).toThrow('HttpProxy requires concrete HTTP origins')
-	})
-
-	it('rejects remote live bindings without WebSocket endpoints', () => {
-		expect(() => validateSourceBinding({
-			...validBinding,
-			delivery: SourceDelivery.RemoteLive,
-		})).toThrow('RemoteLive requires WebSocket endpoints with at most one leading HTTP endpoint')
-	})
-
-	it('rejects RemoteLive endpoints outside the declared sequence', () => {
-		expect(() => validateSourceBinding({
-			...validBinding,
-			wireProtocol: WireProtocol.JsonRpc2,
-			apiFamily: ApiFamily.EvmExecutionJsonRpc,
-			operationGroups: [
-				SourceOperationGroup.EvmRpcCore,
-			],
-			endpoints: [
-				{
-					endpointKind: SourceEndpointKind.WebSocketUrl,
-					locator: 'wss://ethereum.publicnode.com',
-				},
-				validBinding.endpoints[0],
-			],
-			delivery: SourceDelivery.RemoteLive,
-		})).toThrow('RemoteLive requires WebSocket endpoints with at most one leading HTTP endpoint')
-	})
-
-	it('accepts managed gRPC RemoteLive over an HTTP endpoint', () => {
-		const binding = {
-			...validBinding,
-			wireProtocol: WireProtocol.Grpc,
-			apiFamily: ApiFamily.GrpcService,
-			delivery: SourceDelivery.RemoteLive,
-			credentials: [{
-				scope: SourceCredentialScope.RuntimeSecret,
-			}],
-			serverCredentialId: 'grpc-live-fixture',
-		} as const satisfies SourceBinding
-
-		expect(validateSourceBinding(binding)).toBe(binding)
-	})
-
-	it('rejects server-mediated runtime secrets without an opaque credential id', () => {
-		expect(() => validateSourceBinding({
-			...validBinding,
-			wireProtocol: WireProtocol.Grpc,
-			apiFamily: ApiFamily.GrpcService,
-			delivery: SourceDelivery.RemoteLive,
-			credentials: [{
-				scope: SourceCredentialScope.RuntimeSecret,
-			}],
-		})).toThrow('server-mediated runtime secret requires an opaque server credential id')
-	})
-
-	it('rejects orphaned server credential ids', () => {
-		expect(() => validateSourceBinding({
-			...validBinding,
-			serverCredentialId: 'orphaned-credential',
-		})).toThrow('server credential id requires a server-mediated runtime secret')
-	})
-
-	it('rejects mismatched managed gRPC RemoteLive axes', () => {
-		expect(() => validateSourceBinding({
-			...validBinding,
-			wireProtocol: WireProtocol.Grpc,
-			apiFamily: ApiFamily.GrpcService,
-			endpoints: [
-				validBinding.endpoints[0],
-				{
-					endpointKind: SourceEndpointKind.TcpAddress,
-					locator: 'mainnet-public.mirrornode.hedera.com:443',
-				},
-			],
-			delivery: SourceDelivery.RemoteLive,
-		})).toThrow('managed RemoteLive gRPC requires GrpcService over HTTP endpoints')
-	})
-
-	it('rejects browser delivery with runtime secrets', () => {
-		expect(() => validateSourceBinding({
-			...validBinding,
-			delivery: SourceDelivery.BrowserDirect,
-			endpoints: [{
-				...validBinding.endpoints[0],
-				corsEnabled: true,
-			}],
-			credentials: [
-				{
-					scope: SourceCredentialScope.RuntimeSecret,
-				},
-			],
-		})).toThrow('browser delivery cannot require runtime/local secrets')
-	})
-})
 
 describe('source binding indexes', () => {
 	it('keeps every Source enum member represented by one provider source row and one binding source', () => {
@@ -490,14 +199,19 @@ describe('source binding indexes', () => {
 
 	it('routes source HTTP from the binding delivery contract', async () => {
 		const fetchMock = vi.fn<typeof fetch>().mockResolvedValue(new Response('ok'))
+		const binding = sourceBindings.find((binding) => binding.source === Source.Blockscout_Rest)
+		expect(binding).toBeDefined()
+		if (binding == null)
+			throw new Error('Blockscout binding is missing')
+
 		vi.stubGlobal('fetch', fetchMock)
 		vi.stubGlobal('window', {})
 		try {
 			await sourceFetch({
-				...validBinding,
+				...binding,
 				proxyId: 'blockscout-rest-fixture',
 				endpoints: [{
-					...validBinding.endpoints[0],
+					...binding.endpoints[0],
 					corsEnabled: true,
 				}],
 			}, 'https://eth.blockscout.com/api')
@@ -525,9 +239,9 @@ describe('source binding indexes', () => {
 			await snapchainGet('/v1/fids', { pageSize: 100 })
 
 			expect(fetchMock.mock.calls.map(([url]) => url)).toEqual([
-				expect.stringMatching(/^\/api-proxy\/Reddit_PublicJson-\d+\/0\/https%3A%2F%2Fwww\.reddit\.com%2Fr%2Fpopular%2F\.rss$/),
-				expect.stringMatching(/^\/api-proxy\/Neynar_Rest-\d+\/0\/https%3A%2F%2Fapi\.neynar\.com%2Fv2%2Ffarcaster%2Ffeed%2F%3Ffeed_type%3Dfilter%26filter_type%3Dglobal_trending$/),
-				expect.stringMatching(/^\/api-proxy\/Snapchain_Rest-\d+\/0\/https%3A%2F%2Fhub\.pinata\.cloud%2Fv1%2Ffids%3FpageSize%3D100$/),
+				`/api-proxy/${encodeURIComponent(redditPublicBindings[Source.Reddit_PublicJson].proxyId)}/0/https%3A%2F%2Fwww.reddit.com%2Fr%2Fpopular%2F.rss`,
+				`/api-proxy/${encodeURIComponent(neynarBindings[Source.Neynar_Rest].proxyId)}/0/https%3A%2F%2Fapi.neynar.com%2Fv2%2Ffarcaster%2Ffeed%2F%3Ffeed_type%3Dfilter%26filter_type%3Dglobal_trending`,
+				`/api-proxy/${encodeURIComponent(snapchainBindings[Source.Snapchain_Rest].proxyId)}/0/https%3A%2F%2Fhub.pinata.cloud%2Fv1%2Ffids%3FpageSize%3D100`,
 			])
 		} finally {
 			vi.unstubAllGlobals()

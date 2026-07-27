@@ -6,7 +6,7 @@ import {
 	vi,
 } from 'vitest'
 
-import { sourceProviderDefinitions } from '$/sources/$sourceProviders.ts'
+import bindings from '$/sources/CircleCctp/bindings.ts'
 import { Source } from '$/sources/Source.ts'
 import { SourceEndpointKind } from '$/sources/SourceBinding.ts'
 import { sourceFetch } from '$/sources/_runtime/http.ts'
@@ -21,11 +21,7 @@ vi.mock('$/sources/_runtime/http.ts', async (importOriginal) => ({
 	sourceFetch: vi.fn(),
 }))
 
-const placeholderBinding = sourceProviderDefinitions
-	.flatMap((provider) => provider.bindings)
-	.find((binding) => binding.source === Source.CircleCctp_IrisApi)
-if (placeholderBinding == null)
-	throw new Error('Circle CCTP Iris test binding is missing')
+const placeholderBinding = bindings[Source.CircleCctp_IrisApi]
 
 const binding = {
 	...placeholderBinding,

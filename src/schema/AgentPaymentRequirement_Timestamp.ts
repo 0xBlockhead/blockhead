@@ -1,15 +1,12 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { entity, facet } from '$/schema/$schema.ts'
+import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { UrlString } from '$/schema/UrlString.ts'
 import { type } from 'arktype'
 
-export enum AgentPaymentRequirement_TimestampSelector {
-	SubjectKindSubjectSelectorPaymentProtocolTimestampMsSource = 'SubjectKindSubjectSelectorPaymentProtocolTimestampMsSource',
-}
-export const AgentPaymentRequirement_Timestamp = entity({
+export default entity({
 	entityType: EntityType.AgentPaymentRequirement_Timestamp,
 	labels: {
 		singular: 'agent payment requirement timestamp',
@@ -93,7 +90,7 @@ export const AgentPaymentRequirement_Timestamp = entity({
 	resourceUrl: {
 		label: 'resource URL',
 		type: EntityFieldType.Primitive,
-		primitiveType: (UrlString),
+		primitiveType: UrlString,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	paymentRequiredHeader: {
@@ -135,7 +132,7 @@ export const AgentPaymentRequirement_Timestamp = entity({
 	facilitatorUrl: {
 		label: 'facilitator URL',
 		type: EntityFieldType.Primitive,
-		primitiveType: (UrlString),
+		primitiveType: UrlString,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	scheme: {
@@ -183,7 +180,7 @@ export const AgentPaymentRequirement_Timestamp = entity({
 	evidenceUri: {
 		label: 'evidence URI',
 		type: EntityFieldType.Primitive,
-		primitiveType: (UrlString),
+		primitiveType: UrlString,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	error: {

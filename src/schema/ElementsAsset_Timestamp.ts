@@ -1,14 +1,11 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { entity, facet } from '$/schema/$schema.ts'
+import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { type } from 'arktype'
 
-export enum ElementsAsset_TimestampSelector {
-	AssetTimestampMsSource = 'AssetTimestampMsSource',
-}
-export const ElementsAsset_Timestamp = entity({
+export default entity({
 	entityType: EntityType.ElementsAsset_Timestamp,
 	labels: {
 		singular: 'Elements asset observation',

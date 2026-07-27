@@ -88,9 +88,7 @@ describe('LI.FI public quote observations', () => {
 		const result = await fetchQuote(request)
 
 		expect(lifiRestFetch).toHaveBeenCalledWith(
-			expect.stringContaining(`fromAmount=${request.fromAmount}`),
-			undefined,
-			undefined
+			expect.stringContaining(`fromAmount=${request.fromAmount}`)
 		)
 		expect(result.estimate).toEqual(quote.estimate)
 		expect(result.action).toEqual(quote.action)
@@ -186,7 +184,13 @@ describe('LI.FI public catalogs', () => {
 		await expect(fetchChains()).resolves.toMatchObject({ chains: [{ id: 1 }] })
 		await expect(fetchTokens()).resolves.toMatchObject({ tokens: { 1: [{ chainId: 1 }] } })
 		await expect(fetchTools()).resolves.toMatchObject({
-			bridges: [{ key: 'across' }],
+			bridges: [{
+				key: 'across',
+				supportedChains: [{
+					fromChainId: '1',
+					toChainId: '10',
+				}],
+			}],
 			exchanges: [{ key: 'uniswap' }],
 		})
 	})
@@ -203,8 +207,8 @@ describe('LI.FI public catalogs', () => {
 					key: 'across',
 					name: 'Across',
 					supportedChains: [
-						{ fromChainId: 1, toChainId: 10 },
-						{ fromChainId: 1, toChainId: 10 },
+						{ fromChainId: '1', toChainId: '10' },
+						{ fromChainId: '1', toChainId: '10' },
 					],
 				}],
 			})))

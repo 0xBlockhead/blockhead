@@ -16,9 +16,8 @@ import {
 import { EntityType } from '$/schema/EntityType.ts'
 import { schema } from '$/schema/index.ts'
 import { Source } from '$/sources/Source.ts'
-import { sourceProviderDefinitions } from '$/sources/$sourceProviders.ts'
 import { firstHttpUrlForBinding } from '$/sources/_runtime/http.ts'
-import { SourceTargetKind } from '$/sources/SourceBinding.ts'
+import bindings from '$/sources/TronGrid/bindings.ts'
 import type {
 	TronNodeBlock,
 	TronNodeContractValue,
@@ -26,15 +25,6 @@ import type {
 	TronNodeTransactionInfo,
 	TronNodeWitness,
 } from '$/sources/TronGrid/Rest/types.ts'
-import { TronNetwork_TimestampSelector } from '$/schema/TronNetwork_Timestamp.ts'
-import { TronBlockSelector } from '$/schema/TronBlock.ts'
-import { TronTransactionSelector } from '$/schema/TronTransaction.ts'
-import { TronAccountSelector } from '$/schema/TronAccount.ts'
-import { TronAccount_TimestampSelector } from '$/schema/TronAccount_Timestamp.ts'
-import { TronWitnessSelector } from '$/schema/TronWitness.ts'
-import { TronWitness_TimestampSelector } from '$/schema/TronWitness_Timestamp.ts'
-import { TronTransactionReceiptSelector } from '$/schema/TronTransactionReceipt.ts'
-import { NetworkSelector } from '$/schema/Network.ts'
 
 type NetworkId = EntitySelector<typeof schema, EntityType.Network>
 
@@ -42,19 +32,6 @@ const tronMainnetCaip2 = {
 	namespace: Caip2Namespace.Tron,
 	reference: Caip2Reference.TronMainnet,
 } as const
-
-const tronGridBindings = sourceProviderDefinitions
-	.flatMap((provider) => provider.bindings)
-	.filter((binding) => (
-		binding.source === Source.TronGrid_Rest
-		&& binding.target.kind === SourceTargetKind.Caip2Network
-		&& binding.target.key === `${tronMainnetCaip2.namespace}:${tronMainnetCaip2.reference}`
-	))
-
-if (tronGridBindings.length !== 1)
-	throw new Error('TronGrid_Rest: canonical TRON mainnet source binding is missing or ambiguous')
-
-const tronGridBinding = tronGridBindings[0]
 
 const tronNetworkApplicability = [
 	{
@@ -346,26 +323,26 @@ export default {
 		defineResolver(Source.TronGrid_Rest, {
 			entityType: EntityType.Network,
 			resolve: {
-				[NetworkSelector.Caip2]: {
+				Caip2: {
 					appliesTo: [tronNetworkApplicability[0]],
 					resolve: async (network) => {
 						assertTronMainnet(network)
 						return [
 							{
-								url: firstHttpUrlForBinding(tronGridBinding),
+								url: firstHttpUrlForBinding(bindings[Source.TronGrid_Rest]),
 								transportType: TransportType.Http,
 								providerName: 'TronGrid',
 							},
 						]
 					},
 				},
-				[NetworkSelector.Slug]: {
+				Slug: {
 					appliesTo: [tronNetworkApplicability[1]],
 					resolve: async (network) => {
 						assertTronMainnet(network)
 						return [
 							{
-								url: firstHttpUrlForBinding(tronGridBinding),
+								url: firstHttpUrlForBinding(bindings[Source.TronGrid_Rest]),
 								transportType: TransportType.Http,
 								providerName: 'TronGrid',
 							},
@@ -382,7 +359,7 @@ export default {
 		defineResolver(Source.TronGrid_Rest, {
 			entityType: EntityType.TronNetwork_Timestamp,
 			resolve: {
-				[TronNetwork_TimestampSelector.NetworkTimestampMsSource]: {
+				NetworkTimestampMsSource: {
 					appliesTo: tronNetworkTimestampApplicability,
 					resolve: async ({ $network }) => {
 						assertTronMainnet($network)
@@ -392,10 +369,10 @@ export default {
 							getNowBlock,
 							listWitnesses,
 						} = await import('$/sources/TronGrid/Rest/queries.ts')
-						const block = await getNowBlock({ binding: tronGridBinding })
-						const witnesses = await listWitnesses({ binding: tronGridBinding })
-						const chainParameters = await getChainParameters({ binding: tronGridBinding }).catch(() => undefined)
-						const nodeInfo = await getNodeInfo({ binding: tronGridBinding }).catch(() => undefined)
+						const block = await getNowBlock()
+						const witnesses = await listWitnesses()
+						const chainParameters = await getChainParameters()
+						const nodeInfo = await getNodeInfo()
 						return {
 							latestBlockHeight: BigInt(block.block_header?.raw_data?.number ?? 0),
 							latestBlockHash: block.blockID,
@@ -403,12 +380,12 @@ export default {
 							latestBlockTransactionCount: block.transactions?.length ?? 0,
 							witnessCount: witnesses.witnesses.length,
 							activeWitnessCount: witnesses.witnesses.filter((witness) => witness.isJobs).length,
-							nodeBlockHeight: heightFromNodeInfoBlock(nodeInfo?.block),
-							solidityBlockHeight: heightFromNodeInfoBlock(nodeInfo?.solidityBlock),
-							currentPeerCount: nodeInfo?.currentConnectCount,
-							maintenanceIntervalMs: chainParameters == null ? undefined : Number(chainParameterValue(chainParameters.chainParameter, 'getMaintenanceTimeInterval') ?? 0n),
-							transactionFeeSun: chainParameters == null ? undefined : chainParameterValue(chainParameters.chainParameter, 'getTransactionFee'),
-							createAccountFeeSun: chainParameters == null ? undefined : chainParameterValue(chainParameters.chainParameter, 'getCreateAccountFee'),
+							nodeBlockHeight: heightFromNodeInfoBlock(nodeInfo.block),
+							solidityBlockHeight: heightFromNodeInfoBlock(nodeInfo.solidityBlock),
+							currentPeerCount: nodeInfo.currentConnectCount,
+							maintenanceIntervalMs: Number(chainParameterValue(chainParameters.chainParameter, 'getMaintenanceTimeInterval') ?? 0n),
+							transactionFeeSun: chainParameterValue(chainParameters.chainParameter, 'getTransactionFee'),
+							createAccountFeeSun: chainParameterValue(chainParameters.chainParameter, 'getCreateAccountFee'),
 						}
 					},
 				}
@@ -431,7 +408,7 @@ export default {
 		defineResolver(Source.TronGrid_Rest, {
 			entityType: EntityType.TronBlock,
 			resolve: {
-				[TronBlockSelector.NetworkHeightHash]: {
+				NetworkHeightHash: {
 					appliesTo: tronNetworkReferenceApplicability,
 					resolve: async ({ $network, height }) => {
 						assertTronMainnet($network)
@@ -439,7 +416,6 @@ export default {
 						return blockFields(
 							$network,
 							await getBlockByNumber({
-								binding: tronGridBinding,
 								height: height,
 							})
 						)
@@ -461,7 +437,7 @@ export default {
 		defineResolver(Source.TronGrid_Rest, {
 			entityType: EntityType.TronTransaction,
 			resolve: {
-				[TronTransactionSelector.NetworkTransactionId]: {
+				NetworkTransactionId: {
 					appliesTo: tronNetworkReferenceApplicability,
 					resolve: async ({ $network, transactionId }) => {
 						assertTronMainnet($network)
@@ -470,7 +446,6 @@ export default {
 							getTransactionInfoById,
 						} = await import('$/sources/TronGrid/Rest/queries.ts')
 						const transaction = await getTransactionById({
-							binding: tronGridBinding,
 							transactionId: transactionId,
 						})
 						if (transaction.txID == null) throw new Error(`TronGrid_Rest: transaction not found for ${transactionId}`)
@@ -478,7 +453,6 @@ export default {
 							$network,
 							transaction,
 							await getTransactionInfoById({
-								binding: tronGridBinding,
 								transactionId: transactionId,
 							})
 						)
@@ -506,13 +480,12 @@ export default {
 		defineResolver(Source.TronGrid_Rest, {
 			entityType: EntityType.TronAccount,
 			resolve: {
-				[TronAccountSelector.NetworkAddress]: {
+				NetworkAddress: {
 					appliesTo: tronNetworkReferenceApplicability,
 					resolve: async ({ $network, address }) => {
 						assertTronMainnet($network)
 						const { getAccount } = await import('$/sources/TronGrid/Rest/queries.ts')
 						const account = await getAccount({
-							binding: tronGridBinding,
 							address: address,
 						})
 						return {
@@ -524,7 +497,7 @@ export default {
 											$network,
 											address,
 										},
-										timestampMs: Date.now(),
+										timestampMs: account.latest_opration_time ?? account.create_time ?? Date.now(),
 										source: Source.TronGrid_Rest,
 									},
 								},
@@ -541,7 +514,7 @@ export default {
 		defineResolver(Source.TronGrid_Rest, {
 			entityType: EntityType.TronAccount_Timestamp,
 			resolve: {
-				[TronAccount_TimestampSelector.AccountTimestampMsSource]: {
+				AccountTimestampMsSource: {
 					appliesTo: tronAccountTimestampApplicability,
 					resolve: async ({ $account }) => {
 						assertTronMainnet($account.$network)
@@ -554,11 +527,9 @@ export default {
 							accountResource,
 						] = await Promise.all([
 							getAccount({
-								binding: tronGridBinding,
 								address: $account.address,
 							}),
 							getAccountResource({
-								binding: tronGridBinding,
 								address: $account.address,
 							}),
 						])
@@ -593,13 +564,12 @@ export default {
 		defineResolver(Source.TronGrid_Rest, {
 			entityType: EntityType.TronTransactionReceipt,
 			resolve: {
-				[TronTransactionReceiptSelector.Transaction]: {
+				Transaction: {
 					appliesTo: tronTransactionReferenceApplicability,
 					resolve: async ({ $transaction }) => {
 						assertTronMainnet($transaction.$network)
 						const { getTransactionInfoById } = await import('$/sources/TronGrid/Rest/queries.ts')
 						return receiptFields(await getTransactionInfoById({
-							binding: tronGridBinding,
 							transactionId: $transaction.transactionId,
 						}))
 					},
@@ -616,12 +586,12 @@ export default {
 		defineResolver(Source.TronGrid_Rest, {
 			entityType: EntityType.TronWitness,
 			resolve: {
-				[TronWitnessSelector.NetworkAddress]: {
+				NetworkAddress: {
 					appliesTo: tronNetworkReferenceApplicability,
 					resolve: async ({ $network, address }) => {
 						assertTronMainnet($network)
 						const { listWitnesses } = await import('$/sources/TronGrid/Rest/queries.ts')
-						const witness = (await listWitnesses({ binding: tronGridBinding })).witnesses
+						const witness = (await listWitnesses()).witnesses
 							.find((tronAccount) => tronAccount.address === address)
 						if (witness == null) throw new Error(`TronGrid_Rest: witness not found for ${address}`)
 						return {
@@ -648,12 +618,12 @@ export default {
 		defineResolver(Source.TronGrid_Rest, {
 			entityType: EntityType.TronWitness_Timestamp,
 			resolve: {
-				[TronWitness_TimestampSelector.WitnessTimestampMsSource]: {
+				WitnessTimestampMsSource: {
 					appliesTo: tronWitnessTimestampApplicability,
 					resolve: async ({ $witness }) => {
 						assertTronMainnet($witness.$network)
 						const { listWitnesses } = await import('$/sources/TronGrid/Rest/queries.ts')
-						const witness = (await listWitnesses({ binding: tronGridBinding })).witnesses
+						const witness = (await listWitnesses()).witnesses
 							.find((tronAccount) => tronAccount.address === $witness.address)
 						if (witness == null) throw new Error(`TronGrid_Rest: witness not found for ${$witness.address}`)
 						return witnessFields(witness)
@@ -673,7 +643,7 @@ export default {
 		defineResolver(Source.TronGrid_Rest, {
 			entityType: EntityType.Network,
 			resolve: {
-				[NetworkSelector.Caip2]: {
+				Caip2: {
 					appliesTo: [tronNetworkApplicability[0]],
 					resolve: async (network) => {
 						assertTronMainnet(network)
@@ -688,7 +658,7 @@ export default {
 						]
 					},
 				},
-				[NetworkSelector.Slug]: {
+				Slug: {
 					appliesTo: [tronNetworkApplicability[1]],
 					resolve: async (network) => {
 						assertTronMainnet(network)
@@ -713,25 +683,25 @@ export default {
 		defineResolver(Source.TronGrid_Rest, {
 			entityType: EntityType.Network,
 			resolve: {
-				[NetworkSelector.Caip2]: {
+				Caip2: {
 					appliesTo: [tronNetworkApplicability[0]],
 					resolve: async (network) => {
 						assertTronMainnet(network)
 						const { listWitnesses } = await import('$/sources/TronGrid/Rest/queries.ts')
 						return witnessRows(
 							network,
-							(await listWitnesses({ binding: tronGridBinding })).witnesses
+							(await listWitnesses()).witnesses
 						)
 					},
 				},
-				[NetworkSelector.Slug]: {
+				Slug: {
 					appliesTo: [tronNetworkApplicability[1]],
 					resolve: async (network) => {
 						assertTronMainnet(network)
 						const { listWitnesses } = await import('$/sources/TronGrid/Rest/queries.ts')
 						return witnessRows(
 							network,
-							(await listWitnesses({ binding: tronGridBinding })).witnesses
+							(await listWitnesses()).witnesses
 						)
 					},
 				}
@@ -745,12 +715,12 @@ export default {
 		defineResolver(Source.TronGrid_Rest, {
 			entityType: EntityType.Network,
 			resolve: {
-				[NetworkSelector.Caip2]: {
+				Caip2: {
 					appliesTo: [tronNetworkApplicability[0]],
 					resolve: async (network, context) => {
 						assertTronMainnet(network)
 						const { getNowBlock } = await import('$/sources/TronGrid/Rest/queries.ts')
-						const block = await getNowBlock({ binding: tronGridBinding })
+						const block = await getNowBlock()
 						const headBlockHeight = BigInt(block.block_header?.raw_data?.number ?? 0)
 						return Array.from({
 							length: Math.min(
@@ -768,12 +738,12 @@ export default {
 						}))
 					},
 				},
-				[NetworkSelector.Slug]: {
+				Slug: {
 					appliesTo: [tronNetworkApplicability[1]],
 					resolve: async (network, context) => {
 						assertTronMainnet(network)
 						const { getNowBlock } = await import('$/sources/TronGrid/Rest/queries.ts')
-						const block = await getNowBlock({ binding: tronGridBinding })
+						const block = await getNowBlock()
 						const headBlockHeight = BigInt(block.block_header?.raw_data?.number ?? 0)
 						return Array.from({
 							length: Math.min(
@@ -802,7 +772,7 @@ export default {
 		defineResolver(Source.TronGrid_Rest, {
 			entityType: EntityType.TronBlock,
 			resolve: {
-				[TronBlockSelector.NetworkHeightHash]: {
+				NetworkHeightHash: {
 					appliesTo: tronNetworkReferenceApplicability,
 					resolve: async ({ $network, height }) => {
 						assertTronMainnet($network)
@@ -810,7 +780,6 @@ export default {
 						return blockFields(
 							$network,
 							await getBlockByNumber({
-								binding: tronGridBinding,
 								height: height,
 							})
 							).$$transactions
@@ -824,13 +793,12 @@ export default {
 		defineResolver(Source.TronGrid_Rest, {
 			entityType: EntityType.TronAccount,
 			resolve: {
-				[TronAccountSelector.NetworkAddress]: {
+				NetworkAddress: {
 					appliesTo: tronNetworkReferenceApplicability,
 					resolve: async ({ $network, address }, context) => {
 						assertTronMainnet($network)
 						const { getAccountTransactions } = await import('$/sources/TronGrid/Rest/queries.ts')
 						return (await getAccountTransactions({
-							binding: tronGridBinding,
 							address: address,
 							limit: resolverContextRowLimit(context),
 						})).data.flatMap((transaction) => (
@@ -843,15 +811,6 @@ export default {
 											$network,
 											transactionId: transaction.txID,
 										},
-										[EntityMetaKey.Fields]: Object.fromEntries(
-											Object.entries(transactionFields(
-												$network,
-												transaction
-											)).map(([fieldName, value]) => [
-												entityFieldAddressKey(EntityType.TronTransaction, [], fieldName),
-												value,
-											])
-										),
 									},
 								]
 						))

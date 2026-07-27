@@ -1,14 +1,11 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { entity, facet } from '$/schema/$schema.ts'
+import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { type } from 'arktype'
 
-export enum FilecoinDealSelector {
-	NetworkDealId = 'NetworkDealId',
-}
-export const FilecoinDeal = entity({
+export default entity({
 	entityType: EntityType.FilecoinDeal,
 	labels: {
 		singular: 'filecoin deal',

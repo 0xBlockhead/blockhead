@@ -1,15 +1,12 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { entity, facet } from '$/schema/$schema.ts'
+import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 import { type } from 'arktype'
 
-export enum LogosBlockchainNetwork_TimestampSelector {
-	NetworkTimestampMsSource = 'NetworkTimestampMsSource',
-}
-export const LogosBlockchainNetwork_Timestamp = entity({
+export default entity({
 	entityType: EntityType.LogosBlockchainNetwork_Timestamp,
 	labels: {
 		singular: 'Logos blockchain network timestamp',
@@ -39,7 +36,7 @@ export const LogosBlockchainNetwork_Timestamp = entity({
 	lib: {
 		label: 'LIB',
 		type: EntityFieldType.Primitive,
-		primitiveType: (ZeroExHex),
+		primitiveType: ZeroExHex,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	libSlot: {
@@ -51,7 +48,7 @@ export const LogosBlockchainNetwork_Timestamp = entity({
 	tip: {
 		label: 'Tip',
 		type: EntityFieldType.Primitive,
-		primitiveType: (ZeroExHex),
+		primitiveType: ZeroExHex,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	slot: {

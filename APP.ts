@@ -52,7 +52,6 @@ export enum WireProtocol {
 }
 
 export enum ApiFamily {
-	A2aProtocol = "A2aProtocol",
 	AcpProtocol = "AcpProtocol",
 	ArweaveGateway = "ArweaveGateway",
 	AtprotoSync = "AtprotoSync",
@@ -107,11 +106,11 @@ export enum ApiFamily {
 	SubstrateJsonRpc = "SubstrateJsonRpc",
 	SwarmGateway = "SwarmGateway",
 	TezosNodeRpc = "TezosNodeRpc",
+	TonCenterV3Api = "TonCenterV3Api",
 	TonLiteServerAdnl = "TonLiteServerAdnl",
 	UriScheme = "UriScheme",
 	WalletApi = "WalletApi",
 	WebTorrentApi = "WebTorrentApi",
-	X402Protocol = "X402Protocol",
 	XmtpClientApi = "XmtpClientApi",
 	XrpcLexicon = "XrpcLexicon",
 }
@@ -183,8 +182,6 @@ export enum SourceArtifactKind {
 }
 
 export enum Source {
-	A2aWellKnown_Http = "A2aWellKnown_Http",
-	A2aService_Http = "A2aService_Http",
 	AcpLocal_JsonRpc = "AcpLocal_JsonRpc",
 	AcpRegistry_Rest = "AcpRegistry_Rest",
 	Across_Rest = "Across_Rest",
@@ -293,7 +290,6 @@ export enum Source {
 	EnvioHyperRpc_JsonRpc = "EnvioHyperRpc_JsonRpc",
 	EnvioHyperSync_RawHttp = "EnvioHyperSync_RawHttp",
 	Farcaster_Rest = "Farcaster_Rest",
-	Fedi_Rest = "Fedi_Rest",
 	FedimintClient_Rpc = "FedimintClient_Rpc",
 	FedimintGatewayd_Rest = "FedimintGatewayd_Rest",
 	FilecoinFips_Github = "FilecoinFips_Github",
@@ -429,8 +425,10 @@ export enum Source {
 	Reth_JsonRpc = "Reth_JsonRpc",
 	Rss_Rest = "Rss_Rest",
 	Rss2Json_Rest = "Rss2Json_Rest",
+	SafeTransactionService_Rest = "SafeTransactionService_Rest",
 	SigstoreRekor_Rest = "SigstoreRekor_Rest",
 	Snapchain_Rest = "Snapchain_Rest",
+	SnapshotHub_Graphql = "SnapshotHub_Graphql",
 	SpaceAndTime_MakeInfinite = "SpaceAndTime_MakeInfinite",
 	Solana_JsonRpc = "Solana_JsonRpc",
 	SolanaMobileWalletAdapter_WalletApi = "SolanaMobileWalletAdapter_WalletApi",
@@ -452,6 +450,7 @@ export enum Source {
 	Sui_JsonRpc = "Sui_JsonRpc",
 	Superchain_Github = "Superchain_Github",
 	Swarm_Rest = "Swarm_Rest",
+	Tally_Graphql = "Tally_Graphql",
 	TezosDappetizer_Postgres = "TezosDappetizer_Postgres",
 	TezosNode_Rpc = "TezosNode_Rpc",
 	TheGraph_Graphql = "TheGraph_Graphql",
@@ -484,7 +483,6 @@ export enum Source {
 	WebTorrent_Tracker = "WebTorrent_Tracker",
 	Wormholescan_Rest = "Wormholescan_Rest",
 	X_Rest = "X_Rest",
-	X402_Http = "X402_Http",
 	Xaman_Api = "Xaman_Api",
 	Xmtp_BrowserSdk = "Xmtp_BrowserSdk",
 	Xmtp_NodeSdk = "Xmtp_NodeSdk",
@@ -507,7 +505,6 @@ export enum Source {
 
 export enum SourceProvider {
 	_Constants = "_Constants",
-	A2a = "A2a",
 	Acp = "Acp",
 	Across = "Across",
 	Algod = "Algod",
@@ -600,7 +597,6 @@ export enum SourceProvider {
 	EthForks = "EthForks",
 	Envio = "Envio",
 	Farcaster = "Farcaster",
-	Fedi = "Fedi",
 	FedimintClient = "FedimintClient",
 	FedimintGatewayd = "FedimintGatewayd",
 	FilecoinFips = "FilecoinFips",
@@ -710,8 +706,10 @@ export enum SourceProvider {
 	Reth = "Reth",
 	Rss = "Rss",
 	Rss2Json = "Rss2Json",
+	SafeTransactionService = "SafeTransactionService",
 	SigstoreRekor = "SigstoreRekor",
 	Snapchain = "Snapchain",
+	SnapshotHub = "SnapshotHub",
 	SpaceAndTime = "SpaceAndTime",
 	SolanaMobileWalletAdapter = "SolanaMobileWalletAdapter",
 	SolanaSimds = "SolanaSimds",
@@ -730,6 +728,7 @@ export enum SourceProvider {
 	Sui = "Sui",
 	Superchain = "Superchain",
 	Swarm = "Swarm",
+	Tally = "Tally",
 	TezosDappetizer = "TezosDappetizer",
 	TezosNode = "TezosNode",
 	TheGraph = "TheGraph",
@@ -759,7 +758,6 @@ export enum SourceProvider {
 	WebTorrent = "WebTorrent",
 	Wormholescan = "Wormholescan",
 	X = "X",
-	X402 = "X402",
 	Xaman = "Xaman",
 	Xmtp = "Xmtp",
 	Xrpl = "Xrpl",
@@ -861,7 +859,7 @@ export const sourceBindingCompatibility = [
 	{ wireProtocol: WireProtocol.Git, apiFamilies: [ApiFamily.GitObject], endpointKinds: [SourceEndpointKind.HttpUrl, SourceEndpointKind.LocalFilePath], operationGroups: true, artifactKinds: true },
 	{ wireProtocol: WireProtocol.Graphql, apiFamilies: [ApiFamily.GraphqlHttp], endpointKinds: [SourceEndpointKind.HttpUrl], operationGroups: [SourceOperationGroup.GenericRead], artifactKinds: [SourceArtifactKind.GenerationManifest, SourceArtifactKind.GraphqlSchema, SourceArtifactKind.GraphqlTypes, SourceArtifactKind.HandwrittenTypes] },
 	{ wireProtocol: WireProtocol.Grpc, apiFamilies: [ApiFamily.GrpcService], endpointKinds: [SourceEndpointKind.HttpUrl, SourceEndpointKind.TcpAddress], operationGroups: true, artifactKinds: true },
-	{ wireProtocol: WireProtocol.HttpRest, apiFamilies: [ApiFamily.A2aProtocol, ApiFamily.ArweaveGateway, ApiFamily.AvailExplorerApi, ApiFamily.BitTorrentClient, ApiFamily.BlockscoutRestV2, ApiFamily.CosmosLcdApi, ApiFamily.DydxIndexerRest, ApiFamily.EthereumBeaconRest, ApiFamily.EtherscanModuleAction, ApiFamily.FedimintGatewaydApi, ApiFamily.ForgejoRestApi, ApiFamily.GitObject, ApiFamily.GithubContentsApi, ApiFamily.GithubRestApi, ApiFamily.GitlabRestApi, ApiFamily.GoldRushFoundationalApi, ApiFamily.IpfsGateway, ApiFamily.KaspaRestApi, ApiFamily.NostrRelay, ApiFamily.RestJson, ApiFamily.RosettaApi, ApiFamily.SigstoreRekorApi, ApiFamily.SourcifyRestV2, ApiFamily.SwarmGateway, ApiFamily.TezosNodeRpc], endpointKinds: [SourceEndpointKind.HttpUrl], operationGroups: true, artifactKinds: true },
+	{ wireProtocol: WireProtocol.HttpRest, apiFamilies: [ApiFamily.ArweaveGateway, ApiFamily.AvailExplorerApi, ApiFamily.BitTorrentClient, ApiFamily.BlockscoutRestV2, ApiFamily.CosmosLcdApi, ApiFamily.DydxIndexerRest, ApiFamily.EthereumBeaconRest, ApiFamily.EtherscanModuleAction, ApiFamily.FedimintGatewaydApi, ApiFamily.ForgejoRestApi, ApiFamily.GitObject, ApiFamily.GithubContentsApi, ApiFamily.GithubRestApi, ApiFamily.GitlabRestApi, ApiFamily.GoldRushFoundationalApi, ApiFamily.IpfsGateway, ApiFamily.KaspaRestApi, ApiFamily.NostrRelay, ApiFamily.RestJson, ApiFamily.RosettaApi, ApiFamily.SigstoreRekorApi, ApiFamily.SourcifyRestV2, ApiFamily.SwarmGateway, ApiFamily.TezosNodeRpc, ApiFamily.TonCenterV3Api], endpointKinds: [SourceEndpointKind.HttpUrl], operationGroups: true, artifactKinds: true },
 	{ wireProtocol: WireProtocol.HttpRest, apiFamilies: [ApiFamily.OpenApiHttp], endpointKinds: [SourceEndpointKind.HttpUrl], operationGroups: [SourceOperationGroup.GenericRead], artifactKinds: [SourceArtifactKind.GenerationManifest, SourceArtifactKind.OpenApiSpec, SourceArtifactKind.OpenApiTypes] },
 	{ wireProtocol: WireProtocol.InProcess, apiFamilies: [ApiFamily.BitTorrentDht, ApiFamily.CatalogRows, ApiFamily.LocalStateStore, ApiFamily.WebTorrentApi, ApiFamily.XmtpClientApi], endpointKinds: [SourceEndpointKind.InProcess], operationGroups: true, artifactKinds: true },
 	{ wireProtocol: WireProtocol.InProcess, apiFamilies: [ApiFamily.CardanoLocalStateQuery, ApiFamily.LocalParser], endpointKinds: [SourceEndpointKind.LocalProcess], operationGroups: true, artifactKinds: true },
@@ -873,7 +871,7 @@ export const sourceBindingCompatibility = [
 	{ wireProtocol: WireProtocol.LocalFile, apiFamilies: [ApiFamily.GitObject, ApiFamily.LocalParser, ApiFamily.LocalStateStore], endpointKinds: [SourceEndpointKind.LocalFilePath], operationGroups: true, artifactKinds: true },
 	{ wireProtocol: WireProtocol.OciDistribution, apiFamilies: [ApiFamily.OciDistributionApi], endpointKinds: [SourceEndpointKind.HttpUrl], operationGroups: true, artifactKinds: true },
 	{ wireProtocol: WireProtocol.Prometheus, apiFamilies: [ApiFamily.PrometheusText], endpointKinds: [SourceEndpointKind.HttpUrl], operationGroups: true, artifactKinds: true },
-	{ wireProtocol: WireProtocol.RawHttp, apiFamilies: [ApiFamily.BitTorrentTracker, ApiFamily.CertifiedHttpGateway, ApiFamily.EnvioHyperSyncApi, ApiFamily.RestJson, ApiFamily.SqdPortalStream, ApiFamily.StaticWebsite, ApiFamily.X402Protocol], endpointKinds: [SourceEndpointKind.HttpUrl], operationGroups: true, artifactKinds: true },
+	{ wireProtocol: WireProtocol.RawHttp, apiFamilies: [ApiFamily.BitTorrentTracker, ApiFamily.CertifiedHttpGateway, ApiFamily.EnvioHyperSyncApi, ApiFamily.RestJson, ApiFamily.SqdPortalStream, ApiFamily.StaticWebsite], endpointKinds: [SourceEndpointKind.HttpUrl], operationGroups: true, artifactKinds: true },
 	{ wireProtocol: WireProtocol.Sql, apiFamilies: [ApiFamily.Postgres], endpointKinds: [SourceEndpointKind.PostgresDsn], operationGroups: true, artifactKinds: true },
 	{ wireProtocol: WireProtocol.Uri, apiFamilies: [ApiFamily.UriScheme], endpointKinds: [SourceEndpointKind.InProcess], operationGroups: true, artifactKinds: true },
 	{ wireProtocol: WireProtocol.WalletProvider, apiFamilies: [ApiFamily.WalletApi], endpointKinds: [SourceEndpointKind.BrowserWalletProvider, SourceEndpointKind.InProcess, SourceEndpointKind.LocalProcess], operationGroups: [SourceOperationGroup.WalletAccountRead, SourceOperationGroup.WalletSign], artifactKinds: [] },
@@ -945,7 +943,6 @@ type _SourceProviderDefinition = {
 	provider: string
 	label: string
 	env?: _SourceEnv
-	origins?: true
 }
 
 type _SourceDefinition<_Provider extends string> = {
@@ -1017,13 +1014,15 @@ export type _RawSnippet = string | {
 	raw: string
 }
 
-export type _SourceSelection = {
+export type _SourceSelection<
+	_FieldName extends string = string,
+> = {
 	name?: string
 	default: readonly Source[]
 	cases?: {
 		when: {
 			prop?: string
-			field?: string
+			field?: _FieldName
 			equals: string | number | boolean
 		}[]
 		sources: readonly Source[]
@@ -2086,15 +2085,6 @@ export type _Import = {
 
 type _Literal = string | number | boolean | null
 
-type _Enum = {
-	name: string
-	members: {
-		name: string
-		value: _Literal
-		text?: _Text
-	}[]
-}
-
 export type _Expression =
 	| string
 	| {
@@ -2172,6 +2162,34 @@ export type _Expression =
 			default: _Expression
 		}
 
+type _RouteParameterName<_Parameter extends string> = (
+	_Parameter extends `...${infer _Name}=${string}` ?
+		_Name
+	: _Parameter extends `...${infer _Name}` ?
+		_Name
+	: _Parameter extends `${infer _Name}=${string}` ?
+		_Name
+	:
+		_Parameter
+)
+
+type _RouteParameterNames<_Route extends string> = (
+	_Route extends `${string}[${infer _Parameter}]${infer _Rest}` ?
+		_RouteParameterName<_Parameter> | _RouteParameterNames<_Rest>
+	:
+		never
+)
+
+export const defineRowHref = <const _Route extends string>(
+	route: _Route,
+	params: {
+		[_Parameter in _RouteParameterNames<_Route>]: _Expression
+	}
+) => ({
+	route,
+	params,
+})
+
 const routeTemplate = (parts: (string | _Expression)[]): _Expression => ({
 	kind: "template",
 	parts,
@@ -2188,49 +2206,12 @@ const routeField = (name: string): Exclude<_Expression, string> => ({
 	name,
 })
 
-const routeFieldProperty = (field: string, property: string) => routeProperty(routeField(field), property)
-
-const routeCaip2String = (value: _Expression) => routeTemplate([
-	routeProperty(value, "namespace"),
-	":",
-	routeProperty(value, "reference"),
-])
-
 const routeCall = (from: string, name: string, args: _Expression[]): _Expression => ({
 	kind: "call",
 	from,
 	name,
 	args,
 })
-
-const routeCaip2ParamValueFromString = (param: string) => routeCall(
-	"$/lib/caip2.ts",
-	"caip2SelectorValueFromString",
-	[
-		{
-			kind: "param",
-			name: param,
-		},
-	]
-)
-
-const routeNetworkReferenceFromNetworkField = routeProperty(routeProperty(routeField("$network"), "caip2"), "reference")
-
-const routeCaip2FromNetworkField = routeCaip2String(routeProperty(routeField("$network"), "caip2"))
-
-const routeNetworkCaip2FromEntityReferenceField = (field: string) => routeCaip2String(routeProperty(routeProperty(routeField(field), "$network"), "caip2"))
-const routeNetworkSlugFromCaip2 = (key: _Expression): _Expression => ({
-	kind: "catalogIndex",
-	from: "$/constants/Network.ts",
-	map: "networkByCaip2",
-	key: routeCaip2String(key),
-	property: "slug",
-})
-const routeNetworkSlugFromEntityReferenceField = (field: string) => routeNetworkSlugFromCaip2(routeProperty(routeField(field), "caip2"))
-const routeNetworkSlugFromEntityReferenceNetworkField = (field: string) => routeNetworkSlugFromCaip2(routeProperty(routeProperty(routeField(field), "$network"), "caip2"))
-const routeNetworkSlugFromBlockField = (field: string) => routeNetworkSlugFromEntityReferenceNetworkField(field)
-const routeNetworkSlugFromOutputField = (field: string) => routeNetworkSlugFromCaip2(routeProperty(routeProperty(routeProperty(routeField(field), "$transaction"), "$network"), "caip2"))
-const routeSolanaNetworkSlugFromTransactionField = (field: string) => routeNetworkSlugFromEntityReferenceNetworkField(field)
 
 const routeEvmCoinInstanceNetworkReferenceFromField = (field: string) => routeProperty(routeProperty(routeProperty(routeField(field), "$network"), "caip2"), "reference")
 const routeEvmCoinInstanceSlugFromField = (field: string): _Expression => ({
@@ -2355,7 +2336,7 @@ const routeMarketAssetFromParams = (kindParam: string, valueParam: string): _Exp
 export type _ViewQuery<
 	_FieldReference extends string | _ProjectionFieldReference = string | _ProjectionFieldReference,
 > = {
-	sources?: readonly string[] | _SourceSelection
+	sources?: readonly string[] | _SourceSelection<Extract<_FieldReference, string>>
 	openSources?: readonly string[]
 	fields?: _FieldReference[]
 	openFields?: _FieldReference[]
@@ -2447,7 +2428,7 @@ export type _ViewListSection<
 	}[]
 	placeholderText?: string
 	emptyText?: string
-	query?: _ViewQuery
+	query?: _ViewQuery<_EntityFieldReference>
 	conditions?: {
 		field: _EntityFieldReference
 		equals?: _Literal
@@ -2466,7 +2447,7 @@ type _ListViewQuery<
 	selection?: {
 		limit?: number
 	}
-	sources?: readonly string[] | _SourceSelection
+	sources?: readonly string[] | _SourceSelection<Extract<_EntityFieldReference, string>>
 }
 
 type _ListViewRow<
@@ -2478,13 +2459,9 @@ type _ListViewRow<
 	HeadingAfter?: _ViewItem<_EntityFieldReference>[]
 }
 
-type _ListViewRowHrefParam = _Expression | {
-	expression: _Expression
-	decode?: _ExpressionDecode
-}
-
 export type _ListView<
 	_EntityFieldReference extends _FieldReference = _FieldReference,
+	_EntitySelectorFieldReference extends string = Extract<_EntityFieldReference, string>,
 > = {
 	imports?: _Import[]
 	component?: string
@@ -2495,15 +2472,15 @@ export type _ListView<
 	emptyText?: string
 	filters?: {
 		prop: string
-		type: string
-		from: string
-		selectorPath: string
+		selectorPath:
+			| _EntitySelectorFieldReference
+			| `${_EntitySelectorFieldReference}.${string}`
 		compare?: _ListFilterComparison
 	}[]
 	rowHref?: {
 		route: string
 		params: {
-			[param: string]: _ListViewRowHrefParam
+			[param: string]: _Expression
 		}
 	}
 	row?: _ListViewRow<_EntityFieldReference>
@@ -2521,7 +2498,7 @@ type _EntityView<
 	latest?: {
 		field: _EntityFieldReference
 		label?: string
-		query?: _ViewQuery
+		query?: _ViewQuery<_EntityFieldReference>
 		fields?: string[]
 		sort?: _FieldReference
 		direction?: "asc" | "desc"
@@ -2581,7 +2558,7 @@ type _EntityView<
 					value: _Expression
 				}[]
 			}
-			selection?: _ViewQuery
+			selection?: _ViewQuery<_EntityFieldReference>
 			layout?: EntityLayout
 			emptyText?: string
 			items?: _ViewItem[]
@@ -2833,13 +2810,25 @@ type _EntityViewFieldReference<
 	>
 )
 
+type _EntitySelectorFieldReference<
+	_SelectorsAndFacets,
+> = _SelectorsAndFacets extends {
+	selectors: infer _Selectors extends Record<string, readonly string[]>
+} ?
+	_Selectors[keyof _Selectors][number]
+:
+	never
+
 type _EntitySelectorsAndFacetsValidation<
 	_Fields extends Record<string, _FacetFieldDefinition>,
 	_SelectorsAndFacets extends _EntitySelectorsAndFacets<_Fields>,
 > = {
 	views?: {
 		singular?: _EntityView<_EntityViewFieldReference<_Fields, _SelectorsAndFacets>>
-		plural: _ListView<_EntityViewFieldReference<_Fields, _SelectorsAndFacets>>
+		plural: _ListView<
+			_EntityViewFieldReference<_Fields, _SelectorsAndFacets>,
+			_EntitySelectorFieldReference<_SelectorsAndFacets>
+		>
 	}
 } & (_SelectorsAndFacets extends {
 	facets: infer _Facets extends Record<string, _EntityFacetDefinition>
@@ -3111,13 +3100,7 @@ type _SelectorRouteMapping = {
 			value: _Expression
 		}[]
 	}
-	probeCases: readonly [{
-		id: string
-		params: Readonly<Record<string, string>>
-	}, ...{
-		id: string
-		params: Readonly<Record<string, string>>
-	}[]]
+	probeCount?: number
 	boundaryLiveOptional?: true
 	page?: {
 		view?: Omit<_RouteView, 'entity' | 'selector'>
@@ -3142,13 +3125,6 @@ type _SelectorRouteVariant = {
 			value: _Expression
 		}[]
 	}
-	probeCases: readonly [{
-		id: string
-		params: Readonly<Record<string, string>>
-	}, ...{
-		id: string
-		params: Readonly<Record<string, string>>
-	}[]]
 	boundaryLiveOptional?: true
 	page?: _RoutePage
 }
@@ -3570,98 +3546,6 @@ type _RouteDefinitionsForSchema<_Schema> = Omit<_RouteDefinitions, 'children' | 
 	children: Readonly<Record<string, _RouteNodeForSchema<_Schema>>>
 }
 
-type _RouteSegmentParamName<_Segment extends string> = (
-	_Segment extends `${string}[${infer _Param}]${infer _Rest}` ?
-		| (
-			_Param extends `...${infer _RestParam}` ?
-				_RestParam extends `${infer _ParamName}=${string}` ?
-					_ParamName
-				:
-					_RestParam
-			:
-				_Param extends `${infer _ParamName}=${string}` ?
-					_ParamName
-				:
-					_Param
-		)
-		| _RouteSegmentParamName<_Rest>
-	:
-		never
-)
-
-type _RouteProbeNodeConstraint<
-	_Node,
-	_AncestorParamName extends string,
-> = {
-	selectorVariant?: _Node extends {
-		selectorVariant?: infer _SelectorVariant
-	} ? {
-		probeCases: _SelectorVariant extends {
-			probeCases: infer _ProbeCases
-		} ? _ProbeCases extends readonly [object, ...object[]] ? {
-			readonly [_Index in keyof _ProbeCases]: _ProbeCases[_Index] extends {
-				id: string
-				params: infer _Params extends Readonly<Record<string, string>>
-			} ? [
-				Exclude<keyof _Params, _AncestorParamName>,
-				Exclude<_AncestorParamName, keyof _Params>,
-			] extends [never, never] ?
-				_ProbeCases[_Index]
-			:
-				never
-			:
-				never
-		}
-		:
-			readonly [never]
-		:
-			readonly [never]
-	}
-	:
-		never
-	selectors?: _Node extends {
-		selectors?: infer _Selectors
-	} ? {
-		readonly [_EntityType in keyof NonNullable<_Selectors>]: {
-			readonly [_SelectorName in keyof NonNullable<_Selectors>[_EntityType]]: {
-				probeCases: NonNullable<_Selectors>[_EntityType][_SelectorName] extends {
-					probeCases: infer _ProbeCases
-				} ? _ProbeCases extends readonly [object, ...object[]] ? {
-					readonly [_Index in keyof _ProbeCases]: _ProbeCases[_Index] extends {
-						id: string
-						params: infer _Params extends Readonly<Record<string, string>>
-					} ? [
-						Exclude<keyof _Params, _AncestorParamName>,
-						Exclude<_AncestorParamName, keyof _Params>,
-					] extends [never, never] ?
-						_ProbeCases[_Index]
-					:
-						never
-					:
-						never
-				}
-				:
-					readonly [never]
-				:
-					readonly [never]
-			}
-		}
-	}
-	:
-		never
-	children?: _Node extends {
-		children?: infer _Children
-	} ? {
-		readonly [_Segment in keyof NonNullable<_Children>]: _RouteProbeNodeConstraint<
-			NonNullable<_Children>[_Segment],
-			| _AncestorParamName
-			| _RouteSegmentParamName<Extract<_Segment, string>>
-		>
-	}
-	:
-		never
-}
-
 type _SchemaRouteParamValueTypeName<_Schema> = Extract<
 	_Schema extends {
 		valueTypes: readonly (infer _ValueType)[]
@@ -3720,19 +3604,7 @@ const defineRoutes = <const _Schema extends {
 }>(_schema: _Schema) => <
 	const _Routes extends _RouteDefinitionsForSchema<_Schema>,
 >(
-	_routes: _Routes & (
-		NoInfer<_Routes> extends {
-			children: {
-				readonly [_Segment in keyof NoInfer<_Routes>['children']]: _RouteProbeNodeConstraint<
-					NoInfer<_Routes>['children'][_Segment],
-					_RouteSegmentParamName<Extract<_Segment, string>>
-				>
-			}
-		} ?
-			Record<never, never>
-		:
-			never
-	)
+	_routes: _Routes
 ) => _routes
 
 export type App = {
@@ -3856,9 +3728,25 @@ export const schema = {
 		],
 		valueTypes: [
 			{
-				id: "CardanoGovernanceProposalPayload",
-				displayExpression: "JSON.stringify(value, null, 2)",
-				type: { primitive: "unknown" },
+				id: "CardanoGovernanceTreasuryWithdrawal",
+				displayExpression: "`${value.recipientNetwork}:${value.recipientCredential} • ${value.lovelace.toString()} lovelace`",
+				type: {
+					object: [
+						{ name: "recipientNetwork", type: { primitive: "string" } },
+						{ name: "recipientCredential", type: { primitive: "string" } },
+						{ name: "lovelace", type: { primitive: "bigint" } },
+					],
+				},
+			},
+			{
+				id: "CardanoGovernanceCommitteeAddition",
+				displayExpression: "`${value.credential} until epoch ${value.expirationEpoch}`",
+				type: {
+					object: [
+						{ name: "credential", type: { primitive: "string" } },
+						{ name: "expirationEpoch", type: { primitive: "number" } },
+					],
+				},
 			},
 			{
 				id: "CardanoCommitteeMember",
@@ -4295,9 +4183,9 @@ export const schema = {
 				routeParam: {
 					matcher: "stringSegment",
 				},
-				imports: [
-					{
-						from: "$/constants/Market.ts",
+							imports: [
+								{
+									from: "$/constants/Market.ts",
 						names: ["MarketAssetKind"],
 					},
 				],
@@ -4718,7 +4606,7 @@ export const schema = {
 				"$$networks": { label: "networks", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.Network },
 				"$$networkStacks": { label: "network stacks", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.NetworkStack },
 				"$$evmNetworks": { label: "EVM networks", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.Network },
-				"$$networkUpgrades": { label: "network upgrades", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.EthereumNetworkUpgrade },
+				"$$networkUpgrades": { label: "network upgrades", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.EthereumNetworkUpgrade, defaultSources: [Source.Constants_Internal] },
 				"$$proposals": { label: "proposals", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.SpecificationProposal, defaultSources: [Source.Constants_Internal] },
 				"$$specificationRealms": { label: "specification realms", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.SpecificationRealm, defaultSources: [Source.Constants_Internal] },
 				"$$proposalKinds": { label: "proposal kinds", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.SpecificationProposalKind, defaultSources: [Source.Constants_Internal] },
@@ -4736,7 +4624,7 @@ export const schema = {
 				"$$marketTimeIntervalTimestamps": { label: "market time interval timestamps", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.Market_TimeInterval_Timestamp },
 				"$$actors": { label: "actors", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.EvmAccount },
 				"$$xmtpConversations": { label: "XMTP conversations", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.XmtpConversation },
-				"$$blockheadSources": { label: "blockhead sources", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BlockheadSource },
+				"$$blockheadSources": { label: "blockhead sources", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BlockheadSource, defaultSources: [Source.Local_Internal] },
 				"$$blockheadWallets": { label: "blockhead wallets", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BlockheadWallet },
 				"$$blockheadWalletConnections": { label: "blockhead wallet connections", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BlockheadWalletConnection },
 				"$$blockheadAccounts": { label: "blockhead accounts", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BlockheadAccount, defaultSources: [Source.Local_Internal] },
@@ -4757,9 +4645,9 @@ export const schema = {
 				"$$blockheadAlgorandParticipationKeys": { label: "blockhead algorand participation keys", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BlockheadAlgorandParticipationKey },
 				"$$bridgeTransactions": { label: "bridge transactions", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BlockheadBridgeTransaction },
 				"$$bridgeTransfers": { label: "bridge transfers", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BridgeTransfer },
-				"$$eip8004Services": { label: "eip8004 services", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.EvmNft },
-				"$$blockheadRoomPeers": { label: "blockhead room peers", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BlockheadRoomPeer },
-				"$$blockheadRooms": { label: "blockhead rooms", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BlockheadRoom },
+				"$$eip8004Services": { label: "eip8004 services", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.EvmNft, defaultSources: [Source.Eip8004Scan_Rest] },
+				"$$blockheadRoomPeers": { label: "blockhead room peers", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BlockheadRoomPeer, defaultSources: [Source.Local_Internal] },
+				"$$blockheadRooms": { label: "blockhead rooms", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BlockheadRoom, defaultSources: [Source.Local_Internal] },
 				"$$blockheadStateChannels": { label: "blockhead state channels", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BlockheadStateChannel },
 				"$$liquidityPools": { label: "liquidity pools", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.LiquidityPool },
 				"$$blockheadSharedAddresses": { label: "blockhead shared addresses", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BlockheadSharedAddress },
@@ -5923,7 +5811,7 @@ export const schema = {
 					type: EntityFieldType.EntitiesReference,
 					cardinality: EntityFieldCardinality.Many,
 					entityType: EntityType.NostrProfile,
-					defaultSources: [Source.NostrBand_Rest],
+					defaultSources: [Source.Constants_Internal, Source.NostrBand_Rest],
 				},
 				"$$observedNotes": {
 					label: "Notes",
@@ -5944,21 +5832,20 @@ export const schema = {
 					type: EntityFieldType.EntitiesReference,
 					cardinality: EntityFieldCardinality.Many,
 					entityType: EntityType.NostrRepost,
-					defaultSources: [Source.Constants_Internal, Source.NostrBand_Rest],
+					defaultSources: [Source.NostrBand_Rest],
 				},
 				"$$observedReactions": {
 					label: "Reactions",
 					type: EntityFieldType.EntitiesReference,
 					cardinality: EntityFieldCardinality.Many,
 					entityType: EntityType.NostrReaction,
-					defaultSources: [Source.NostrBand_Rest, Source.Primal_Rest],
 				},
 				"$$observedArticles": {
 					label: "Articles",
 					type: EntityFieldType.EntitiesReference,
 					cardinality: EntityFieldCardinality.Many,
 					entityType: EntityType.NostrArticle,
-					defaultSources: [Source.Constants_Internal, Source.NostrBand_Rest],
+					defaultSources: [Source.NostrBand_Rest],
 				},
 				"$$timestamps": { label: "Observations", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType._GlobalNostrNetwork_Timestamp },
 			})({
@@ -6537,7 +6424,7 @@ export const schema = {
 				views: {
 					singular: {
 						query: {
-							sources: [Source.A2aWellKnown_Http, Source.Eip8004Scan_Rest],
+							sources: [Source.Eip8004Scan_Rest],
 							fields: ["agentCardUrl"],
 							openFields: ["$$snapshots", "$$documents"],
 						},
@@ -6589,7 +6476,7 @@ export const schema = {
 				views: {
 					singular: {
 						query: {
-							sources: [Source.A2aWellKnown_Http],
+							sources: [],
 							fields: ["$card", "contentHashAlgorithm", "contentHash"],
 							openFields: ["fetchedAt", "snapshotKind", "name", "description", "version", "protocolVersion", "providerName", "providerUrl", "preferredTransport", "defaultInputModes", "defaultOutputModes", "capabilities", "extensions", "securitySchemes", "security", "signatures", "$$interfaces", "$$services", "$$skills"],
 						},
@@ -6632,7 +6519,7 @@ export const schema = {
 				views: {
 					singular: {
 						query: {
-							sources: [Source.A2aWellKnown_Http],
+							sources: [],
 							fields: ["$cardSnapshot", "protocolBinding", "url"],
 							openFields: ["protocolVersion", "transportKind", "mediaType", "serviceParameters"],
 						},
@@ -6665,7 +6552,7 @@ export const schema = {
 				views: {
 					singular: {
 						query: {
-							sources: [Source.A2aWellKnown_Http],
+							sources: [],
 							fields: ["$card", "protocolBinding", "endpointUrl"],
 							openFields: ["transportKind", "authKind", "$$tasks", "$$timestamps"],
 						},
@@ -6704,7 +6591,7 @@ export const schema = {
 				views: {
 					singular: {
 						query: {
-							sources: [Source.A2aService_Http, Source.A2aWellKnown_Http],
+							sources: [],
 							fields: ["$service", "timestampMs", "source"],
 							openFields: ["health", "protocolVersion", "reachable", "latencyMs", "statusCode", "error"],
 						},
@@ -6738,7 +6625,7 @@ export const schema = {
 				views: {
 					singular: {
 						query: {
-							sources: [Source.A2aWellKnown_Http],
+							sources: [],
 							fields: ["$cardSnapshot", "skillId"],
 							openFields: ["name", "description", "tags", "examples", "inputModes", "outputModes"],
 						},
@@ -6771,7 +6658,7 @@ export const schema = {
 				views: {
 					singular: {
 						query: {
-							sources: [Source.A2aService_Http],
+							sources: [],
 							fields: ["$task", "artifactId"],
 							openFields: ["name", "description", "createdAt", "$aiArtifact", "$$parts"],
 						},
@@ -6804,7 +6691,7 @@ export const schema = {
 				views: {
 					singular: {
 						query: {
-							sources: [Source.A2aService_Http],
+							sources: [],
 							fields: ["$task", "messageId"],
 							openFields: ["role", "contextId", "createdAt", "$$parts"],
 						},
@@ -6841,7 +6728,7 @@ export const schema = {
 				views: {
 					singular: {
 						query: {
-							sources: [Source.A2aService_Http],
+							sources: [],
 							fields: ["$message", "partIndex"],
 							openFields: ["$artifact", "partKind", "text", "uri", "mimeType", "payload", "$aiArtifact"],
 						},
@@ -6875,7 +6762,7 @@ export const schema = {
 				views: {
 					singular: {
 						query: {
-							sources: [Source.A2aService_Http],
+							sources: [],
 							fields: ["$task", "configId"],
 							openFields: ["url", "authKind", "authentication", "createdAt", "deletedAt", "status"],
 						},
@@ -6915,7 +6802,7 @@ export const schema = {
 				views: {
 					singular: {
 						query: {
-							sources: [Source.A2aService_Http],
+							sources: [],
 							fields: ["taskId"],
 							openFields: ["$service", "providerTaskId", "contextId", "createdAt", "updatedAt", "cancelledAt", "listed", "$$events", "$$messages", "$$artifacts", "$$pushNotificationConfigs", "$$timestamps"],
 						},
@@ -6969,7 +6856,7 @@ export const schema = {
 				views: {
 					singular: {
 						query: {
-							sources: [Source.A2aService_Http],
+							sources: [],
 							fields: ["$task", "timestampMs", "source"],
 							openFields: ["state", "statusMessage", "error", "rawStatus"],
 						},
@@ -7003,7 +6890,7 @@ export const schema = {
 				views: {
 					singular: {
 						query: {
-							sources: [Source.A2aService_Http],
+							sources: [],
 							fields: ["$task", "sequence"],
 							openFields: ["eventKind", "timestampMs", "state", "final", "$artifact", "payload"],
 						},
@@ -8149,7 +8036,7 @@ export const schema = {
 				views: {
 					singular: {
 						query: {
-							sources: [Source.A2aWellKnown_Http, Source.Eip8004Scan_Rest, Source.Ipfs_Rest],
+							sources: [Source.Eip8004Scan_Rest, Source.Ipfs_Rest],
 							fields: ["subjectKind", "subjectSelector", "identityKind", "objectKind", "objectSelector", "source", "timestampMs"],
 							openFields: ["confidence", "verificationMethod", "$document", "evidenceUri", "evidenceHashAlgorithm", "evidenceHash", "signature"],
 						},
@@ -8290,7 +8177,7 @@ export const schema = {
 				views: {
 					singular: {
 						query: {
-							sources: [Source.A2aWellKnown_Http, Source.Eip8004Scan_Rest, Source.Ipfs_Rest],
+							sources: [Source.Eip8004Scan_Rest, Source.Ipfs_Rest],
 							fields: ["$artifact", "attestationKind"],
 							openFields: ["logEntryId", "signatureHashAlgorithm", "signatureHash", "certificateIdentity", "certificateIssuer", "logIndex", "integratedTime"],
 						},
@@ -8407,7 +8294,7 @@ export const schema = {
 				views: {
 					singular: {
 						query: {
-							sources: [Source.A2aWellKnown_Http, Source.Eip8004Scan_Rest, Source.HuggingFaceHub_Rest, Source.Ipfs_Rest, Source.Mlflow_Rest],
+							sources: [Source.Eip8004Scan_Rest, Source.HuggingFaceHub_Rest, Source.Ipfs_Rest, Source.Mlflow_Rest],
 							fields: ["documentKind"],
 							openFields: ["contentHashAlgorithm", "contentHash", "$artifact", "documentUrl", "mediaType", "schemaVersion", "conformsTo", "sourceFormat", "declaredSubjectKind", "declaredSubjectSelector", "$$claims"],
 						},
@@ -8449,7 +8336,7 @@ export const schema = {
 				views: {
 					singular: {
 						query: {
-							sources: [Source.A2aWellKnown_Http, Source.Eip8004Scan_Rest, Source.Ipfs_Rest],
+							sources: [Source.Eip8004Scan_Rest, Source.Ipfs_Rest],
 							fields: ["$document", "extractorId", "claimPath", "claimKind"],
 							openFields: ["value", "subjectKind", "subjectSelector", "metadataKey", "formatObjectId", "formatObjectKind", "checksumAlgorithm", "checksumValue", "relationshipKind", "normalizedSelector", "confidence"],
 						},
@@ -8635,6 +8522,7 @@ export const schema = {
 				},
 			}),
 
+
 			entity({
 				entityType: EntityType.AiModelProvider,
 				labels: {
@@ -8805,6 +8693,7 @@ export const schema = {
 				},
 			}),
 
+
 			entity({
 				entityType: EntityType.AiProviderCatalogEntry,
 				labels: {
@@ -8879,6 +8768,7 @@ export const schema = {
 				},
 			}),
 
+
 			entity({
 				entityType: EntityType.AiRelationshipClaim,
 				labels: {
@@ -8907,7 +8797,7 @@ export const schema = {
 				views: {
 					singular: {
 						query: {
-							sources: [Source.A2aWellKnown_Http, Source.Eip8004Scan_Rest, Source.Ipfs_Rest],
+							sources: [Source.Eip8004Scan_Rest, Source.Ipfs_Rest],
 							fields: ["subjectKind", "subjectSelector", "relationshipKind", "objectKind", "objectSelector", "source", "timestampMs"],
 							openFields: ["confidence", "$document", "$documentClaim", "evidenceUri", "evidenceHashAlgorithm", "evidenceHash", "signature"],
 						},
@@ -9527,7 +9417,7 @@ export const schema = {
 				"$$timestamps": { label: "timestamps", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.AptosAccount_Timestamp, defaultSources: [Source.AptosFullnode_Rest] },
 				"$$balances": { label: "balances", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.AptosCoinBalance_Timestamp, defaultSources: [Source.AptosIndexer_Graphql] },
 				"$$resources": { label: "resources", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.AptosAccountResource, defaultSources: [Source.AptosFullnode_Rest] },
-				"$$transactions": { label: "transactions", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.AptosTransaction, defaultSources: [Source.AptosIndexer_Graphql, Source.AptosFullnode_Rest] },
+				"$$transactions": { label: "transactions", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.AptosTransaction, defaultSources: [Source.AptosIndexer_Graphql] },
 			})({
 				selectors: {
 					"NetworkAddress": ["$network", "address"],
@@ -17748,6 +17638,9 @@ export const schema = {
 					},
 					plural: { component: "BlockheadRoomsView",
 						title: "Rooms",
+						query: {
+							sources: [Source.Local_Internal],
+						},
 					},
 				},
 			}),
@@ -17793,6 +17686,9 @@ export const schema = {
 					},
 					plural: { component: "BlockheadRoomPeersView",
 						title: "Contacts",
+						query: {
+							sources: [Source.Local_Internal],
+						},
 					},
 				},
 			}),
@@ -18362,6 +18258,9 @@ export const schema = {
 					},
 					plural: { component: "BlockheadSourcesView",
 						title: "Sources",
+						query: {
+							sources: [Source.Local_Internal],
+						},
 					},
 				},
 			}),
@@ -21311,7 +21210,6 @@ export const schema = {
 					type: EntityFieldType.EntitiesReference,
 					entityType: EntityType.CardanoDRep_Timestamp,
 					cardinality: EntityFieldCardinality.Many,
-					defaultSources: [Source.Blockfrost_Rest],
 				},
 				"$$votes": {
 					label: 'votes',
@@ -21506,12 +21404,89 @@ export const schema = {
 					cardinality: EntityFieldCardinality.ZeroOrOne,
 					defaultSources: [Source.CardanoKoios_Rest],
 				},
-				"proposalPayload": {
-					label: 'proposal payload',
-					type: EntityFieldType.Primitive,
-					valueType: "CardanoGovernanceProposalPayload",
+				"$previousAction": {
+					label: 'previous action',
+					type: EntityFieldType.EntityReference,
+					entityType: EntityType.CardanoGovernanceProposal,
 					cardinality: EntityFieldCardinality.ZeroOrOne,
-					defaultSources: [Source.CardanoKoios_Rest],
+					defaultSources: [Source.Blockfrost_Rest, Source.CardanoKoios_Rest],
+				},
+				"policyHash": {
+					label: 'policy hash',
+					type: EntityFieldType.Primitive,
+					valueType: "string",
+					cardinality: EntityFieldCardinality.ZeroOrOne,
+					defaultSources: [Source.Blockfrost_Rest, Source.CardanoKoios_Rest],
+				},
+				"hardForkMajor": {
+					label: 'hard fork major version',
+					type: EntityFieldType.Primitive,
+					valueType: "NonNegativeInteger",
+					cardinality: EntityFieldCardinality.ZeroOrOne,
+					defaultSources: [Source.Blockfrost_Rest, Source.CardanoKoios_Rest],
+				},
+				"hardForkMinor": {
+					label: 'hard fork minor version',
+					type: EntityFieldType.Primitive,
+					valueType: "NonNegativeInteger",
+					cardinality: EntityFieldCardinality.ZeroOrOne,
+					defaultSources: [Source.Blockfrost_Rest, Source.CardanoKoios_Rest],
+				},
+				"treasuryWithdrawals": {
+					label: 'treasury withdrawals',
+					type: EntityFieldType.Primitive,
+					valueType: "CardanoGovernanceTreasuryWithdrawal",
+					cardinality: EntityFieldCardinality.Many,
+					defaultSources: [Source.Blockfrost_Rest, Source.CardanoKoios_Rest],
+				},
+				"committeeRemovedCredentials": {
+					label: 'committee removals',
+					type: EntityFieldType.Primitive,
+					valueType: "string",
+					cardinality: EntityFieldCardinality.Many,
+					defaultSources: [Source.Blockfrost_Rest, Source.CardanoKoios_Rest],
+				},
+				"committeeAdditions": {
+					label: 'committee additions',
+					type: EntityFieldType.Primitive,
+					valueType: "CardanoGovernanceCommitteeAddition",
+					cardinality: EntityFieldCardinality.Many,
+					defaultSources: [Source.Blockfrost_Rest, Source.CardanoKoios_Rest],
+				},
+				"committeeQuorumNumerator": {
+					label: 'committee quorum numerator',
+					type: EntityFieldType.Primitive,
+					valueType: "NonNegativeInteger",
+					cardinality: EntityFieldCardinality.ZeroOrOne,
+					defaultSources: [Source.Blockfrost_Rest, Source.CardanoKoios_Rest],
+				},
+				"committeeQuorumDenominator": {
+					label: 'committee quorum denominator',
+					type: EntityFieldType.Primitive,
+					valueType: "NonNegativeInteger",
+					cardinality: EntityFieldCardinality.ZeroOrOne,
+					defaultSources: [Source.Blockfrost_Rest, Source.CardanoKoios_Rest],
+				},
+				"constitutionAnchorUrl": {
+					label: 'constitution anchor URL',
+					type: EntityFieldType.Primitive,
+					valueType: "string",
+					cardinality: EntityFieldCardinality.ZeroOrOne,
+					defaultSources: [Source.Blockfrost_Rest, Source.CardanoKoios_Rest],
+				},
+				"constitutionAnchorHash": {
+					label: 'constitution anchor hash',
+					type: EntityFieldType.Primitive,
+					valueType: "string",
+					cardinality: EntityFieldCardinality.ZeroOrOne,
+					defaultSources: [Source.Blockfrost_Rest, Source.CardanoKoios_Rest],
+				},
+				"constitutionScript": {
+					label: 'constitution script',
+					type: EntityFieldType.Primitive,
+					valueType: "string",
+					cardinality: EntityFieldCardinality.ZeroOrOne,
+					defaultSources: [Source.Blockfrost_Rest, Source.CardanoKoios_Rest],
 				},
 				"$$timestamps": {
 					label: 'timestamps',
@@ -21539,14 +21514,13 @@ export const schema = {
 					singular: {
 						query: {
 							fields: ["$network", "proposalTxHash", "proposalIndex"],
-							openFields: ["governanceActionId", "proposalKind", "$transaction", "depositLovelace", "returnAddress", "anchorUrl", "anchorHash", "proposalPayload", "$$timestamps", "$$votes"],
+							openFields: ["governanceActionId", "proposalKind", "$transaction", "depositLovelace", "returnAddress", "anchorUrl", "anchorHash", "$previousAction", "policyHash", "hardForkMajor", "hardForkMinor", "treasuryWithdrawals", "committeeRemovedCredentials", "committeeAdditions", "committeeQuorumNumerator", "committeeQuorumDenominator", "constitutionAnchorUrl", "constitutionAnchorHash", "constitutionScript", "$$timestamps", "$$votes"],
 						},
 						summary: { title: ["proposalKind", "governanceActionId"], value: [{ field: "proposalTxHash", prefix: "Proposal " }, { field: "proposalIndex", prefix: "#" }] },
 						closed: ["proposalKind", "governanceActionId", "proposalTxHash", "proposalIndex"],
-						content: {
-							dl: [["$network", "$transaction", "proposalKind", "governanceActionId", { field: "depositLovelace", format: "number" }], ["returnAddress", "anchorUrl", "anchorHash"]],
-							body: { field: "proposalPayload", format: "code", emptyText: "No proposal payload available." },
-						},
+							content: {
+								dl: [["$network", "$transaction", "proposalKind", "governanceActionId", "$previousAction", { field: "depositLovelace", format: "number" }], ["returnAddress", "anchorUrl", "anchorHash", "policyHash"], ["hardForkMajor", "hardForkMinor", "treasuryWithdrawals"], ["committeeRemovedCredentials", "committeeAdditions", "committeeQuorumNumerator", "committeeQuorumDenominator"], ["constitutionAnchorUrl", "constitutionAnchorHash", "constitutionScript"]],
+							},
 						lists: [
 							{ field: "$$timestamps", component: "CardanoGovernanceProposal_TimestampsView", emptyText: "No proposal lifecycle observations." },
 							{ field: "$$votes", component: "CardanoGovernanceVotesView", emptyText: "No votes." },
@@ -22511,7 +22485,7 @@ export const schema = {
 					defaultSources: [Source.Blockfrost_Rest],
 				},
 				"name": { label: 'name', type: EntityFieldType.Primitive, valueType: "string", cardinality: EntityFieldCardinality.ZeroOrOne, defaultSources: [Source.Blockfrost_Rest] },
-				"ticker": { label: 'ticker', type: EntityFieldType.Primitive, valueType: "string", cardinality: EntityFieldCardinality.ZeroOrOne, defaultSources: [Source.CardanoKoios_Rest, Source.Blockfrost_Rest] },
+				"ticker": { label: 'ticker', type: EntityFieldType.Primitive, valueType: "string", cardinality: EntityFieldCardinality.ZeroOrOne, defaultSources: [Source.Blockfrost_Rest] },
 				"description": { label: 'description', type: EntityFieldType.Primitive, valueType: "string", cardinality: EntityFieldCardinality.ZeroOrOne, defaultSources: [Source.Blockfrost_Rest] },
 				"homepage": { label: 'homepage', type: EntityFieldType.Primitive, valueType: "string", cardinality: EntityFieldCardinality.ZeroOrOne, defaultSources: [Source.Blockfrost_Rest] },
 				"$$timestamps": {
@@ -24073,231 +24047,24 @@ export const schema = {
 										label: "Base markets",
 										field: "$$marketsWithCoinAsBase",
 										List: "MarketsView",
+										selection: {
+											limit: 16,
+										},
 									},
 									{
 										id: "markets-with-coin-as-quote",
 										label: "Quote markets",
 										field: "$$marketsWithCoinAsQuote",
 										List: "MarketsView",
+										selection: {
+											limit: 16,
+										},
 									},
 								],
 							},
 						],
 					},
 					plural: { component: "CoinsView",
-						imports: [
-							{
-								from: "$/constants/Coin.ts",
-								names: ["CoinId"],
-							},
-							{
-								from: "$/components/CollapsibleTabs.svelte",
-								default: "CollapsibleTabs",
-							},
-							{
-								from: "$/components/Heading.svelte",
-								default: "Heading",
-							},
-							{
-								from: "$/components/Tooltip.svelte",
-								default: "Tooltip",
-							},
-							{
-								from: "$/views/EvmCoinInstancesView.svelte",
-								default: "EvmCoinInstancesView",
-							},
-							{
-								from: "$/views/MarketPricesView.svelte",
-								default: "MarketPricesView",
-							},
-							{
-								from: "$/views/Market_TimeInterval_TimestampsView.svelte",
-								default: "Market_TimeInterval_TimestampsView",
-							},
-							{
-								from: "$/views/MarketsView.svelte",
-								default: "MarketsView",
-							},
-						],
-						content: dedent `
-																									<CollapsibleTabs
-																										id={\`\${id}:hub-spot-quotes\`}
-																										sectionIdPrefix={id}
-																										sections={[
-																											{ id: 'prices-spot', label: 'Spot quote index' },
-																										]}
-																										class="coins-view-collapsible-quotes"
-																										data-card
-																									>
-																										{#snippet Summary()}
-																											<header
-																												data-row-item="flexible"
-																												data-row="wrap gap-4"
-																											>
-																												<Heading>Spot quotes</Heading>
-																											</header>
-																										{/snippet}
-
-																										{#snippet SectionPricesSpot({ id, label })}
-																											<p data-text="muted">
-																												Point-in-time spot and index readings. Venue order books live under markets.
-																											</p>
-																											<MarketPricesView
-																												CollapsibleProps={{ canToggle: false }}
-																												href={resolve('/markets')}
-																												selection={select(
-																													EntityType._Global,
-																													{ scope: '$$marketPrices' }
-																												).$$marketPrices}
-																		{id}
-																		open={true}
-																		title={label}
-																		data-column-item='flexible'
-																		data-card
-																		data-scroll-container
-																											/>
-																										{/snippet}
-																									</CollapsibleTabs>
-
-																									<CollapsibleTabs
-																										id={\`\${id}:hub-ohlc-ranges\`}
-																										sectionIdPrefix={id}
-																										sections={[
-																											{ id: 'ohlc-candles-preview', label: 'Candle index' },
-																										]}
-																										class="coins-view-collapsible-ohlc"
-																										data-card
-																									>
-																										{#snippet Summary()}
-																											<header
-																												data-row-item="flexible"
-																												data-row="wrap gap-4"
-																											>
-																												<Heading>OHLC ranges</Heading>
-																											</header>
-																										{/snippet}
-
-																										{#snippet SectionOhlcCandlesPreview({ id, label })}
-																											<div data-row="wrap align-center gap-2">
-																												<span>OHLC candles</span>
-																												<Tooltip contentProps={{ side: 'top' }}>
-																													{#snippet Content()}
-																														<p>
-																															Each row is one <code>Market_TimeInterval_Timestamp</code> candle.
-																														</p>
-																													{/snippet}
-																													<abbr
-																														class="entity-heading-tip"
-																														aria-label="OHLC schema"
-																													>i</abbr>
-																												</Tooltip>
-																											</div>
-																											<Market_TimeInterval_TimestampsView
-																												CollapsibleProps={{ canToggle: false }}
-																												selection={select(
-																													EntityType._Global,
-																													{ scope: '$$marketTimeIntervalTimestamps' }
-																												).$$marketTimeIntervalTimestamps}
-																		{id}
-																		open
-																		title={label}
-																		data-column-item='flexible'
-																		data-card
-																		data-scroll-container
-																											/>
-																										{/snippet}
-																									</CollapsibleTabs>
-
-																									<CollapsibleTabs
-																										id={\`\${id}:hub-markets\`}
-																										sectionIdPrefix={id}
-																										sections={[
-																											{ id: 'markets-index', label: 'Market index' },
-																										]}
-																										class="coins-view-collapsible-markets"
-																										data-card
-																									>
-																										{#snippet Summary()}
-																											<header
-																												data-row-item="flexible"
-																												data-row="wrap gap-4"
-																											>
-																												<Heading>Markets</Heading>
-																											</header>
-																										{/snippet}
-
-																										{#snippet SectionMarketsIndex({ id, label })}
-																											<div data-row="wrap align-center gap-2">
-																												<a href={resolve('/markets')}>All markets</a>
-																												<Tooltip contentProps={{ side: 'top' }}>
-																													{#snippet Content()}
-																														<p>
-																															<code>Market</code> rows connect base asset, quote asset, venue, and market kind.
-																														</p>
-																													{/snippet}
-																													<abbr
-																														class="entity-heading-tip"
-																														aria-label="Market graph"
-																													>i</abbr>
-																												</Tooltip>
-																											</div>
-																											<MarketsView
-																												CollapsibleProps={{ canToggle: false }}
-																												href={resolve('/markets')}
-																												selection={select(
-																													EntityType._Global,
-																													{ scope: '$$markets' }
-																												).$$markets}
-																		{id}
-																		open={true}
-																		title={label}
-																		data-column-item='flexible'
-																		data-card
-																		data-scroll-container
-																											/>
-																										{/snippet}
-																									</CollapsibleTabs>
-
-																									<CollapsibleTabs
-																										id={\`\${id}:hub-deployments\`}
-																										sectionIdPrefix={id}
-																										sections={[
-																											{ id: 'deployments-eth', label: 'Sample deployments' },
-																										]}
-																										class="coins-view-collapsible-deployments"
-																										data-card
-																									>
-																										{#snippet Summary()}
-																											<header
-																												data-row-item="flexible"
-																												data-row="wrap gap-4"
-																											>
-																												<Heading>Deployments</Heading>
-																											</header>
-																										{/snippet}
-
-																										{#snippet SectionDeploymentsEth({ id, label })}
-																											<p data-text="muted">
-																												Per-chain deployments are listed on each coin detail page. Preview for catalog
-																												<a href={resolve(\`/coin/\${CoinId.ETH}\`)}>ETH</a>:
-																											</p>
-																											<EvmCoinInstancesView
-																												CollapsibleProps={{ canToggle: false }}
-																												href={resolve(\`/coin/\${CoinId.ETH}\`)}
-																												selection={select(
-																													EntityType.Coin,
-																													{ coinId: CoinId.ETH }
-																												).$$coinInstances}
-																		{id}
-																		open={true}
-																		title={label}
-																		data-column-item='flexible'
-																		data-card
-																		data-scroll-container
-																											/>
-																										{/snippet}
-																									</CollapsibleTabs>
-																								`,
 					},
 				},
 			}),
@@ -28454,7 +28221,12 @@ export const schema = {
 							},
 						],
 					},
-					plural: { component: "EthereumNetworkUpgradesView",
+					plural: {
+						component: "EthereumNetworkUpgradesView",
+						query: {
+							sources: [Source.Constants_Internal],
+							limit: 512,
+						},
 					},
 				},
 			}),
@@ -29673,17 +29445,7 @@ export const schema = {
 							],
 						},
 						summary: {
-							Title: dedent `
-																									<ResourceBoundary resource={evmErrorTimestamp}>
-																										{#snippet Pending()}
-																											{(prefetched.signatures ?? []).map((signature) => String(signature ?? "")).filter(Boolean).join(", ") || title || "EVM error observation"}
-																										{/snippet}
-
-																										{#snippet children(entity)}
-																											{entity.signatures.values.map((signature) => String(signature ?? "")).filter(Boolean).join(", ") || title || titleFallback}
-																										{/snippet}
-																									</ResourceBoundary>
-																								`,
+							title: ["signatures"],
 							value: [
 								{
 									field: "timestampMs",
@@ -31446,17 +31208,7 @@ export const schema = {
 							],
 						},
 						summary: {
-							Title: dedent `
-																									<ResourceBoundary resource={evmSelectorTimestamp}>
-																										{#snippet Pending()}
-																											{(prefetched.signatures ?? []).map((signature) => String(signature ?? "")).filter(Boolean).join(", ") || title || "EVM selector observation"}
-																										{/snippet}
-
-																										{#snippet children(entity)}
-																											{entity.signatures.values.map((signature) => String(signature ?? "")).filter(Boolean).join(", ") || title || titleFallback}
-																										{/snippet}
-																									</ResourceBoundary>
-																								`,
+							title: ["signatures"],
 							value: [
 								{
 									field: "timestampMs",
@@ -31998,17 +31750,7 @@ export const schema = {
 							],
 						},
 						summary: {
-							Title: dedent `
-																									<ResourceBoundary resource={evmTopicTimestamp}>
-																										{#snippet Pending()}
-																											{(prefetched.signatures ?? []).map((signature) => String(signature ?? "")).filter(Boolean).join(", ") || title || "EVM topic observation"}
-																										{/snippet}
-
-																										{#snippet children(entity)}
-																											{entity.signatures.values.map((signature) => String(signature ?? "")).filter(Boolean).join(", ") || title || titleFallback}
-																										{/snippet}
-																									</ResourceBoundary>
-																								`,
+							title: ["signatures"],
 							value: [
 								{
 									field: "timestampMs",
@@ -32389,7 +32131,7 @@ export const schema = {
 				views: {
 					singular: {
 						query: {
-							sources: [Source.Blockscout_Rest, Source.EnvioHyperRpc_JsonRpc, Source.GetBlockRpc_JsonRpc, Source.GoldRushFoundational_Rest, Source.Voltaire_JsonRpc],
+							sources: [Source.Blockscout_Rest, Source.Voltaire_JsonRpc],
 							fields: [
 								"$network",
 								"txHash",
@@ -33188,7 +32930,7 @@ export const schema = {
 				views: {
 					singular: {
 						query: {
-							sources: [Source.Farcaster_Rest, Source.Neynar_Rest, Source.Snapchain_Rest],
+							sources: [Source.Farcaster_Rest],
 							fields: ["name", "description", "$icon", "url"],
 							openFields: ["$lead", "$moderator", "$$casts", "$$timestamps"],
 						},
@@ -33811,7 +33553,7 @@ export const schema = {
 				"$miner": { label: "Miner", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.FilecoinMiner, defaultSources: [Source.Lotus_JsonRpc, Source.Filfox_Rest] },
 				"ticketVrFProof": { label: "Ticket VRF proof", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.Lotus_JsonRpc] },
 				"winCount": { label: "Win count", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.Lotus_JsonRpc] },
-				"$$messages": { label: "Messages", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.FilecoinMessage, defaultSources: [Source.Lotus_JsonRpc, Source.Filfox_Rest] },
+				"$$messages": { label: "Messages", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.FilecoinMessage, defaultSources: [Source.Filfox_Rest] },
 			})({
 				selectors: {
 					"NetworkCid": ["$network", "cid"],
@@ -41122,7 +40864,6 @@ export const schema = {
 					singular: {
 						summary: {
 							title: ["$network"],
-							value: ["$$timestamps"],
 						},
 						content: {
 							dl: [
@@ -42720,11 +42461,11 @@ export const schema = {
 				"status": { label: "Status", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.LightningMempoolSpace_Rest, Source.LightningLnd_Rest] },
 				"capacitySats": { label: "Capacity sats", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint", defaultSources: [Source.LightningMempoolSpace_Rest, Source.LightningLnd_Rest] },
 				"feeRatePpm": { label: "Fee rate ppm", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.LightningMempoolSpace_Rest] },
-				"updatedAtMs": { label: "Updated", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.LightningMempoolSpace_Rest, Source.LightningLnd_Rest] },
-				"closingTransactionId": { label: "Closing transaction ID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.LightningMempoolSpace_Rest, Source.LightningLnd_Rest] },
-				"closingFeeSats": { label: "Closing fee sats", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint", defaultSources: [Source.LightningMempoolSpace_Rest, Source.LightningLnd_Rest] },
-				"closingReason": { label: "Closing reason", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.LightningMempoolSpace_Rest, Source.LightningLnd_Rest] },
-				"closedAtMs": { label: "Closed", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.LightningMempoolSpace_Rest, Source.LightningLnd_Rest] },
+				"updatedAtMs": { label: "Updated", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.LightningMempoolSpace_Rest] },
+				"closingTransactionId": { label: "Closing transaction ID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.LightningMempoolSpace_Rest] },
+				"closingFeeSats": { label: "Closing fee sats", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint", defaultSources: [Source.LightningMempoolSpace_Rest] },
+				"closingReason": { label: "Closing reason", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.LightningMempoolSpace_Rest] },
+				"closedAtMs": { label: "Closed", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.LightningMempoolSpace_Rest] },
 			})({
 				selectors: {
 					"ChannelTimestampMsSource": ["$channel", "timestampMs", "source"],
@@ -42800,12 +42541,12 @@ export const schema = {
 					},
 					plural: { component: "LightningNetworksView",
 						title: "Lightning networks",
-						rowHref: {
-							route: "/(explore)/(networks)/network/[network]",
-							params: {
+						rowHref: defineRowHref(
+							"/(explore)/(networks)/network/[network]",
+							{
 								network: routeProperty(routeField("$network"), "slug"),
-							},
-						},
+							}
+						),
 					},
 				},
 			}),
@@ -42913,10 +42654,10 @@ export const schema = {
 				"source": { label: "Source", description: "The source that produced this observation.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
 				"alias": { label: "Alias", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.LightningMempoolSpace_Rest, Source.LightningLnd_Rest] },
 				"color": { label: "Color", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.LightningMempoolSpace_Rest] },
-				"capacitySats": { label: "Capacity sats", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint", defaultSources: [Source.LightningMempoolSpace_Rest, Source.LightningLnd_Rest] },
+				"capacitySats": { label: "Capacity sats", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint", defaultSources: [Source.LightningMempoolSpace_Rest] },
 				"channelCount": { label: "Channels", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.LightningMempoolSpace_Rest, Source.LightningLnd_Rest] },
 				"firstSeenMs": { label: "First seen", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.LightningMempoolSpace_Rest] },
-				"updatedAtMs": { label: "Updated", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.LightningMempoolSpace_Rest, Source.LightningLnd_Rest] },
+				"updatedAtMs": { label: "Updated", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.LightningMempoolSpace_Rest] },
 				"countryCode": { label: "Country", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.LightningMempoolSpace_Rest] },
 				"city": { label: "City", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.LightningMempoolSpace_Rest] },
 				"networkAddresses": { label: "Network addresses", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.Many, valueType: "string", defaultSources: [Source.LightningMempoolSpace_Rest] },
@@ -43716,12 +43457,6 @@ export const schema = {
 					defaultSources: [
 						Source.Constants_Internal,
 						Source.Coingecko_Rest,
-						Source.Coingecko_OpenApi,
-						Source.CoinMarketCap_Rest,
-						Source.Coinpaprika_OpenApi,
-						Source.Defillama_OpenApi,
-						Source.Blockscout_Rest,
-						Source.Defillama_Rest,
 					],
 				},
 				"$$marketTimeIntervalTimestamps": {
@@ -43793,10 +43528,6 @@ export const schema = {
 								],
 							},
 							{
-								from: "$/schema/$schema.ts",
-								names: ["EntityMetaKey"],
-							},
-							{
 								from: "$/sources/Source.ts",
 								names: ["Source"],
 							},
@@ -43848,7 +43579,6 @@ export const schema = {
 			<dt>Venue</dt>
 			<dd>
 				<MarketVenueView
-					href={resolve(\`/market-venue/\${selection.entitySelector.$marketVenue.marketVenueId}\`)}
 					selection={select(EntityType.MarketVenue, selection.entitySelector.$marketVenue)}
 					layout={EntityLayout.Value}
 					showTypeAnnotation={false}
@@ -43918,11 +43648,6 @@ export const schema = {
 						},
 					},
 					plural: { component: "MarketsView",
-						query: {
-							selection: {
-								limit: 8192,
-							},
-						},
 						TypeAnnotationTooltip: dedent `
 																									<p>
 																										A market pairs a base asset with a quote so feeds can publish prices, volume, and related stats.
@@ -43939,14 +43664,10 @@ export const schema = {
 						filters: [
 							{
 								prop: "filterMarketVenueId",
-								type: "MarketVenueId",
-								from: "$/constants/MarketVenue.ts",
 								selectorPath: "$marketVenue.marketVenueId",
 							},
 							{
 								prop: "filterMarketKind",
-								type: "MarketKind",
-								from: "$/constants/Market.ts",
 								selectorPath: "marketKind",
 							},
 						],
@@ -44187,8 +43908,6 @@ export const schema = {
 						filters: [
 							{
 								prop: "timeInterval",
-								type: "MarketTimeInterval",
-								from: "$/constants/Market.ts",
 								selectorPath: "timeInterval",
 								compare: _ListFilterComparison.TimeInterval,
 							},
@@ -44386,17 +44105,17 @@ export const schema = {
 																										Provider feed identity lives on timestamped quote prints under <code>$$quotes</code>. Interval candles live on the market OHLC index.
 																									</p>
 																								`,
-						rowHref: {
-							route: "/(assets)/venue/[marketVenue=marketVenueId]/market/[baseKind]/[base]/[quoteKind]/[quote]/[marketKind]",
-							params: {
+						rowHref: defineRowHref(
+							"/(assets)/venue/[marketVenue=marketVenueId]/market/[baseKind]/[base]/[quoteKind]/[quote]/[marketKind]",
+							{
 								marketVenue: routeProperty(routeMarketField("$market", "$marketVenue"), "marketVenueId"),
 								baseKind: routeMarketAssetRouteLabel(routeMarketField("$market", "$base")),
 								base: routeMarketAssetLabel(routeMarketField("$market", "$base")),
 								quoteKind: routeMarketAssetRouteLabel(routeMarketField("$market", "$quote")),
 								quote: routeMarketAssetLabel(routeMarketField("$market", "$quote")),
 								marketKind: routeMarketField("$market", "marketKind"),
-							},
-						},
+							}
+						),
 					},
 				},
 			}),
@@ -45054,7 +44773,7 @@ export const schema = {
 																										<ResourceBoundary resource={media}>
 																											{#snippet Pending()}
 																												{@const url = prefetched.url ?? selection.entitySelector.url}
-																												{#if url !== undefined && url !== null}
+																												{#if url != null}
 																													<img
 																														src={String(url)}
 																														alt=""
@@ -45069,7 +44788,7 @@ export const schema = {
 																											{#snippet children(entity)}
 																												{@const url = entity.url ?? selection.entitySelector.url ?? prefetched.url}
 																												{@const type = String(entity.type ?? '')}
-																												{#if url !== undefined && url !== null && type === 'Image'}
+																												{#if url != null && type === 'Image'}
 																													<img
 																														src={String(url)}
 																														alt=""
@@ -45079,7 +44798,7 @@ export const schema = {
 																														decoding="async"
 																														referrerpolicy="no-referrer"
 																													/>
-																												{:else if url !== undefined && url !== null && type === 'Video'}
+																												{:else if url != null && type === 'Video'}
 																													<video
 																														src={String(url)}
 																														width={20}
@@ -45087,7 +44806,7 @@ export const schema = {
 																														preload="metadata"
 																														muted
 																													></video>
-																												{:else if url !== undefined && url !== null && type === 'Audio'}
+																												{:else if url != null && type === 'Audio'}
 																													<audio
 																														src={String(url)}
 																														preload="metadata"
@@ -45102,7 +44821,7 @@ export const schema = {
 																										<ResourceBoundary resource={media}>
 																											{#snippet Pending()}
 																												{@const url = prefetched.url ?? selection.entitySelector.url}
-																												{#if url !== undefined && url !== null}
+																												{#if url != null}
 																													<img
 																														src={String(url)}
 																														alt=""
@@ -45115,7 +44834,7 @@ export const schema = {
 																											{#snippet children(entity)}
 																												{@const url = entity.url ?? selection.entitySelector.url ?? prefetched.url}
 																												{@const type = String(entity.type ?? '')}
-																												{#if url !== undefined && url !== null && type === 'Image'}
+																												{#if url != null && type === 'Image'}
 																													<img
 																														src={String(url)}
 																														alt=""
@@ -45123,14 +44842,14 @@ export const schema = {
 																														decoding="async"
 																														referrerpolicy="no-referrer"
 																													/>
-																												{:else if url !== undefined && url !== null && type === 'Video'}
+																												{:else if url != null && type === 'Video'}
 																													<!-- svelte-ignore a11y_media_has_caption -->
 																													<video
 																														src={String(url)}
 																														controls
 																														preload="metadata"
 																													></video>
-																												{:else if url !== undefined && url !== null && type === 'Audio'}
+																												{:else if url != null && type === 'Audio'}
 																													<audio
 																														src={String(url)}
 																														controls
@@ -45669,7 +45388,7 @@ export const schema = {
 				"$network": { label: "Network", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.Network },
 				"height": { label: "Height", description: "The block height.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "bigint" },
 				"hash": { label: "Hash", description: "The hash that identifies this object in its protocol.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
-				"$parent": { label: "Parent", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.MoneroBlock, defaultSources: [Source.MoneroDaemonRpc_JsonRpc, Source.ThreeXpl_Rest] },
+				"$parent": { label: "Parent", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.MoneroBlock, defaultSources: [Source.MoneroDaemonRpc_JsonRpc] },
 				"timestampMs": { label: "Timestamp", description: "The observation time in Unix milliseconds.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.MoneroDaemonRpc_JsonRpc, Source.ThreeXpl_Rest] },
 				"difficulty": { label: "Difficulty", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint", defaultSources: [Source.MoneroDaemonRpc_JsonRpc] },
 				"weightBytes": { label: "Weight bytes", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.MoneroDaemonRpc_JsonRpc] },
@@ -46507,7 +46226,7 @@ export const schema = {
 				"$network": { label: "Network", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.Network },
 				"height": { label: "Height", description: "The block height.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "bigint" },
 				"hash": { label: "Hash", description: "The hash that identifies this object in its protocol.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
-				"$parent": { label: "Parent", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.NearBlock, defaultSources: [Source.NearRpc_JsonRpc, Source.NearBlocks_Rest, Source.ThreeXpl_Rest] },
+				"$parent": { label: "Parent", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.NearBlock, defaultSources: [Source.NearRpc_JsonRpc, Source.NearBlocks_Rest] },
 				"epochId": { label: "Epoch ID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.NearRpc_JsonRpc] },
 				"timestampMs": { label: "Timestamp", description: "The observation time in Unix milliseconds.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.NearRpc_JsonRpc, Source.NearBlocks_Rest, Source.ThreeXpl_Rest] },
 				"$$chunks": { label: "Chunks", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.NearChunk, defaultSources: [Source.NearRpc_JsonRpc] },
@@ -47466,7 +47185,7 @@ export const schema = {
 									label: "Topology",
 									className: "network-view-collapsible-network-relationships",
 									sections: [
-										{ id: "evm-network-topology-upgrades", field: ["Evm", "$$upgrades"], List: "EthereumNetworkUpgradesView", label: "Upgrades", selection: { sources: [Source.Constants_Internal], limit: 512 } },
+										{ id: "evm-network-topology-upgrades", field: ["Evm", "$$upgrades"], List: "EthereumNetworkUpgradesView", label: "Upgrades" },
 										{ id: "evm-network-topology-parent-layer", field: ["Evm", "$parent"], List: "NetworkView", label: "Parent", emptyText: "Parent network is not listed for this network.", selection: { sources: [Source.Chainlist_Rest, Source.EthereumLists_Rest, Source.L2Beat_Rest] } },
 										{ id: "evm-network-topology-rollup", field: ["Evm", "$rollup"], List: "EvmRollupView", label: "Rollup", emptyText: "Rollup is not listed for this network.", selection: { sources: [Source.L2Beat_Rest] } },
 										{ id: "evm-network-topology-sibling-shards", field: ["Evm", "$$siblingShardNetworks"], List: "NetworksView", label: "Shards", emptyText: "No sibling shard networks listed for this network yet.", selection: { sources: [Source.Chainlist_Rest, Source.EthereumLists_Rest], limit: 16 } },
@@ -47483,20 +47202,12 @@ export const schema = {
 									className: "network-view-collapsible-execution",
 									sections: [
 										{ id: "evm-execution-upgrades", field: ["Evm", "$$executionUpgrades"], List: "EthereumExecutionUpgradesView", label: "Upgrades", selection: { sources: [Source.Constants_Internal], limit: 512 } },
-										{ id: "evm-execution-blocks", field: ["Evm", "$$blocks"], List: "EvmBlocksView", label: "Blocks", selection: { sources: [Source.Voltaire_JsonRpc], limit: 16 } },
+										{ id: "evm-execution-blocks", field: ["Evm", "$$blocks"], List: "EvmBlocksView", label: "Blocks", selection: { sources: [Source.Voltaire_JsonRpc], limit: 4 } },
 										{ id: "evm-execution-transactions", field: ["Evm", "$$transactions"], List: "EvmTransactionsView", label: "Transactions", selection: { sources: [Source.Blockscout_Rest], limit: 16 } },
 										{ id: "evm-execution-mempool", field: ["Evm", "$$txpoolTimestamps"], List: "EvmNetwork_Txpool_TimestampsView", label: "Mempool", selection: { sources: [Source.Voltaire_JsonRpc], limit: 16 } },
 										{ id: "evm-execution-gas-blocks", field: ["Evm", "$$gasFeeBlocks"], List: "EvmNetwork_GasFee_BlocksView", label: "Fee market", selection: { sources: [Source.Voltaire_JsonRpc], limit: 16 } },
 										{ id: "evm-execution-gas-estimates", field: ["Evm", "$$gasEstimateTimestamps"], List: "EvmNetwork_GasEstimate_TimestampsView", label: "Gas estimates", selection: { sources: [Source.Blockscout_Rest, Source.Etherscan_Rest], limit: 16 } },
 										{ id: "evm-execution-endpoints", field: ["Evm", "$$rpcUrls"], List: "UrlsView", label: "Endpoints", selection: { sources: [Source.Constants_Internal, Source.Chainlist_Rest, Source.EthereumLists_Rest, Source.Lifi_Rest] } },
-									],
-								},
-								{
-									id: "evm-data-availability",
-									label: "Data availability",
-									className: "network-view-collapsible-data-availability",
-									sections: [
-										{ id: "evm-data-availability-blobs", field: ["Evm", "$$blobs"], List: "EvmBlobsView", label: "Blobs", selection: { sources: [Source.Voltaire_JsonRpc], limit: 16 } },
 									],
 								},
 								{
@@ -47520,19 +47231,9 @@ export const schema = {
 									sections: [
 										{ id: "evm-assets-native-coin", field: ["Evm", "$nativeCoin"], label: "Native coin", List: "CoinView", layout: EntityLayout.Summary, selection: { sources: [Source.Constants_Internal], fields: ["name", "symbol"] } },
 										{ id: "evm-assets-native-instance", field: ["Evm", "$nativeCoinInstance"], label: "Native coin instance", List: "EvmCoinInstanceView", layout: EntityLayout.Summary, selection: { sources: [Source.Constants_Internal], fields: ["symbol", "name", "$network"] } },
-										{ id: "evm-assets-native-assets", field: "$$nativeAssets", label: "Native assets", List: "AssetInstancesView", selection: { sources: [Source.Constants_Internal], limit: 16 } },
 										{ id: "evm-assets-bridges", field: ["Evm", "$$bridges"], List: "EvmNetworkBridgesView", label: "Bridges", selection: { sources: [Source.Chainlist_Rest, Source.EthereumLists_Rest, Source.Lifi_Rest] } },
 										{ id: "evm-assets-erc20-transfers", field: ["Evm", "$$erc20TokenTransfers"], List: "EvmTokenTransfersView", label: "ERC-20 transfers", selection: { sources: [Source.Blockscout_Rest], limit: 16 } },
 										{ id: "evm-assets-nft-transfers", field: ["Evm", "$$nftTokenTransfers"], List: "EvmTokenTransfersView", label: "NFT transfers", selection: { sources: [Source.Blockscout_Rest], limit: 16 } },
-									],
-								},
-								{
-									id: "evm-resources",
-									label: "Resources",
-									className: "network-view-collapsible-resources",
-									sections: [
-										{ id: "evm-resources-faucets", field: "$$faucetUrls", List: "UrlsView", label: "Faucets", selection: { sources: [Source.Constants_Internal, Source.Chainlist_Rest] } },
-										{ id: "evm-resources-block-explorers", field: "$$blockExplorerUrls", List: "UrlsView", label: "Block explorers", selection: { sources: [Source.Constants_Internal, Source.Chainlist_Rest, Source.EthereumLists_Rest, Source.Lifi_Rest] } },
 									],
 								},
 							],
@@ -47616,14 +47317,6 @@ export const schema = {
 									],
 								},
 								{
-									id: "polkadot-assets",
-									label: "Assets",
-									className: "network-view-collapsible-assets",
-									sections: [
-										{ id: "polkadot-assets-native-assets", field: "$$nativeAssets", List: "AssetInstancesView", label: "Native assets", selection: { sources: [Source.Constants_Internal] } },
-									],
-								},
-								{
 									id: "polkadot-resources",
 									label: "Resources",
 									className: "network-view-collapsible-resources",
@@ -47692,7 +47385,6 @@ export const schema = {
 									label: "Assets",
 									className: "network-view-collapsible-assets",
 									sections: [
-										{ id: "solana-assets-native-assets", field: "$$nativeAssets", List: "AssetInstancesView", label: "Native assets", selection: { sources: [Source.Constants_Internal] } },
 										{ id: "solana-assets-token-accounts", field: ["Solana", "$$tokenAccounts"], List: "SolanaTokenAccountsView", label: "Token accounts", selection: { sources: [Source.Solana_JsonRpc], limit: 16 } },
 										{ id: "solana-assets-token-mints", field: ["Solana", "$$tokenMints"], List: "SolanaTokenMintsView", label: "Token mints", selection: { sources: [Source.Solana_JsonRpc], limit: 16 } },
 									],
@@ -47722,7 +47414,7 @@ export const schema = {
 						includes: "Utxo",
 					})({
 						"$$blocks": { label: "Blocks", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.UtxoBlock, defaultSources: [Source.MempoolSpace_Rest, Source.Blockchair_Rest] },
-						"$$transactions": { label: "Transactions", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.UtxoTransaction, defaultSources: [Source.MempoolSpace_Rest, Source.Blockchair_Rest, Source.Zcashd_JsonRpc] }
+						"$$transactions": { label: "Transactions", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.UtxoTransaction, defaultSources: [Source.MempoolSpace_Rest, Source.Blockchair_Rest] }
 					})({
 						singularView: {
 							carousels: [
@@ -47740,16 +47432,8 @@ export const schema = {
 									label: "Transactions",
 									className: "network-view-collapsible-transactions",
 									sections: [
-										{ id: "utxo-execution-transactions", field: ["Utxo", "$$transactions"], List: "UtxoTransactionsView", label: "Transactions", selection: { sources: [Source.MempoolSpace_Rest, Source.Blockchair_Rest, Source.Zcashd_JsonRpc], limit: 16 } },
+										{ id: "utxo-execution-transactions", field: ["Utxo", "$$transactions"], List: "UtxoTransactionsView", label: "Transactions", selection: { sources: [Source.MempoolSpace_Rest, Source.Blockchair_Rest], limit: 16 } },
 										{ id: "utxo-execution-mempool", field: ["Utxo", "$$transactions"], List: "UtxoTransactionsView", label: "Mempool", selection: { sources: [Source.MempoolSpace_Rest], limit: 16 } },
-									],
-								},
-								{
-									id: "utxo-assets",
-									label: "Assets",
-									className: "network-view-collapsible-assets",
-									sections: [
-										{ id: "utxo-assets-native-assets", field: "$$nativeAssets", List: "AssetInstancesView", label: "Native assets", selection: { sources: [Source.Constants_Internal] } },
 									],
 								},
 							],
@@ -48304,7 +47988,7 @@ export const schema = {
 							],
 							expression: `
 								(() => {
-									const base = { ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }
+									const base = { ...selection.entitySelector, ...prefetched }
 									const caip2Key = (
 										base.caip2 == null ?
 											undefined
@@ -48391,6 +48075,25 @@ export const schema = {
 								],
 							],
 						},
+						carousels: [
+							{
+								id: "network-assets",
+								label: "Assets",
+								className: "network-view-collapsible-assets",
+								sections: [
+									{ id: "network-assets-native-assets", field: "$$nativeAssets", List: "AssetInstancesView", label: "Native assets", selection: { sources: [Source.Constants_Internal], limit: 16 } },
+								],
+							},
+							{
+								id: "network-resources",
+								label: "Resources",
+								className: "network-view-collapsible-resources",
+								sections: [
+									{ id: "network-resources-faucets", field: "$$faucetUrls", List: "UrlsView", label: "Faucets", selection: { sources: [Source.Constants_Internal, Source.Chainlist_Rest] } },
+									{ id: "network-resources-block-explorers", field: "$$blockExplorerUrls", List: "UrlsView", label: "Block explorers", selection: { sources: [Source.Constants_Internal, Source.Chainlist_Rest, Source.EthereumLists_Rest, Source.Lifi_Rest] } },
+								],
+							},
+						],
 					},
 					plural: { component: "NetworksView",
 					},
@@ -48994,8 +48697,8 @@ export const schema = {
 					valueType: "string",
 					defaultSources: [Source.Constants_Internal, Source.NostrBand_Rest],
 				},
-				"sensitive": { label: "Sensitive", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "boolean", defaultSources: [Source.NostrBand_Rest, Source.Primal_Rest] },
-				"contentWarning": { label: "Content warning", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.NostrBand_Rest, Source.Primal_Rest] },
+				"sensitive": { label: "Sensitive", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "boolean", defaultSources: [Source.Constants_Internal, Source.NostrBand_Rest, Source.Primal_Rest] },
+				"contentWarning": { label: "Content warning", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.Constants_Internal, Source.NostrBand_Rest, Source.Primal_Rest] },
 				"createdAt": {
 					label: "Created",
 					description: "The event creation time normalized to Unix milliseconds.",
@@ -49022,28 +48725,28 @@ export const schema = {
 					type: EntityFieldType.Primitive,
 					cardinality: EntityFieldCardinality.ZeroOrOne,
 					valueType: "string",
-					defaultSources: [Source.NostrBand_Rest],
+					defaultSources: [Source.Constants_Internal, Source.NostrBand_Rest],
 				},
 				"rootEventId": {
 					label: "Root event ID",
 					type: EntityFieldType.Primitive,
 					cardinality: EntityFieldCardinality.ZeroOrOne,
 					valueType: "string",
-					defaultSources: [Source.NostrBand_Rest],
+					defaultSources: [Source.Constants_Internal, Source.NostrBand_Rest],
 				},
 				"$replyToNote": {
 					label: "Reply to note",
 					type: EntityFieldType.EntityReference,
 					cardinality: EntityFieldCardinality.ZeroOrOne,
 					entityType: EntityType.NostrNote,
-					defaultSources: [Source.NostrBand_Rest, Source.Primal_Rest],
+					defaultSources: [Source.Constants_Internal, Source.NostrBand_Rest, Source.Primal_Rest],
 				},
 				"$rootNote": {
 					label: "Root note",
 					type: EntityFieldType.EntityReference,
 					cardinality: EntityFieldCardinality.ZeroOrOne,
 					entityType: EntityType.NostrNote,
-					defaultSources: [Source.NostrBand_Rest, Source.Primal_Rest],
+					defaultSources: [Source.Constants_Internal, Source.NostrBand_Rest, Source.Primal_Rest],
 				},
 				"$$replies": {
 					label: "Replies",
@@ -49192,14 +48895,14 @@ export const schema = {
 					type: EntityFieldType.EntitiesReference,
 					cardinality: EntityFieldCardinality.Many,
 					entityType: EntityType.NostrArticle,
-					defaultSources: [Source.Constants_Internal, Source.NostrBand_Rest],
+					defaultSources: [Source.NostrBand_Rest],
 				},
 				"$$reposts": {
 					label: "Reposts",
 					type: EntityFieldType.EntitiesReference,
 					cardinality: EntityFieldCardinality.Many,
 					entityType: EntityType.NostrRepost,
-					defaultSources: [Source.Constants_Internal, Source.NostrBand_Rest],
+					defaultSources: [Source.NostrBand_Rest],
 				},
 			})({
 				selectors: {
@@ -53525,9 +53228,9 @@ export const schema = {
 				"source": { label: "Source", description: "The source that produced this observation.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
 				"timestampMs": { label: "Timestamp", description: "The observation time in Unix milliseconds.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.Solana_JsonRpc, Source.Helius_Rest] },
 				"feeLamports": { label: "Fee", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint", defaultSources: [Source.Solana_JsonRpc, Source.Helius_Rest] },
-				"computeUnitsConsumed": { label: "Compute units consumed", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint", defaultSources: [Source.Solana_JsonRpc, Source.Helius_Rest] },
+				"computeUnitsConsumed": { label: "Compute units consumed", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint", defaultSources: [Source.Solana_JsonRpc] },
 				"status": { label: "Status", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.Solana_JsonRpc, Source.Helius_Rest] },
-				"confirmationStatus": { label: "Confirmation status", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.Solana_JsonRpc, Source.Helius_Rest] },
+				"confirmationStatus": { label: "Confirmation status", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.Solana_JsonRpc] },
 				"err": { label: "Error", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "unknown", defaultSources: [Source.Solana_JsonRpc, Source.Helius_Rest] },
 			})({
 				selectors: {
@@ -54115,8 +53818,7 @@ export const schema = {
 																											{#snippet children(entity)}
 																												{@const proposalIdentifier = \`\${String(entity.categoryLabel ?? proposalCategoryById[String(selection.entitySelector.category)].label ?? selection.entitySelector.category ?? '')}-\${String(selection.entitySelector.number ?? '')}\`}
 																												{@const documentTitle = String(entity.documentTitle ?? '').trim()}
-																												{@const documentBodyHeading = String(selection.entitySelector.category) === 'Ensip' ? (String(entity.documentBody ?? '').match(/#\\s*(ENSIP-\\d+:\\s*.+)/)?.[1] ?? '').trim() : ''}
-																												{@const heading = documentTitle !== '' ? documentTitle : documentBodyHeading}
+																												{@const heading = documentTitle !== '' ? documentTitle : String(selection.entitySelector.category) === 'Ensip' ? (String(entity.documentBody ?? '').match(/#\\s*(ENSIP-\\d+:\\s*.+)/)?.[1] ?? '').trim() : ''}
 																												{#if heading === ''}
 																													{proposalIdentifier}
 																												{:else if heading.toLowerCase().startsWith(\`\${proposalIdentifier.toLowerCase()}:\`)}
@@ -54285,14 +53987,10 @@ export const schema = {
 						filters: [
 							{
 								prop: "filterRealm",
-								type: "SpecificationRealm",
-								from: "$/constants/SpecificationProposal.ts",
 								selectorPath: "realm",
 							},
 							{
 								prop: "filterCategory",
-								type: "ProposalCategory",
-								from: "$/constants/SpecificationProposal.ts",
 								selectorPath: "category",
 							},
 						],
@@ -57105,7 +56803,6 @@ export const schema = {
 					singular: {
 						summary: {
 							title: ["$network"],
-							value: ["$$timestamps"],
 						},
 						content: {
 							dl: [
@@ -59874,7 +59571,6 @@ export const schema = {
 					singular: {
 						summary: {
 							title: ["$network"],
-							value: ["$$timestamps"],
 						},
 						content: {
 							dl: [
@@ -62924,7 +62620,7 @@ export const schema = {
 				"$network": { label: "Network", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.Network },
 				"address": { label: "Address", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
 				"name": { label: "Name", description: "The human-readable name of the subject.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.TronScan_Rest] },
-				"$contract": { label: "Contract", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.TronContract, defaultSources: [Source.TronGrid_Rest, Source.TronScan_Rest] },
+				"$contract": { label: "Contract", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.TronContract, defaultSources: [Source.TronScan_Rest] },
 				"$$timestamps": { label: "Observations", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.TronAccount_Timestamp, defaultSources: [Source.TronGrid_Rest, Source.TronFullNode_Rest, Source.TronSolidityNode_Rest, Source.TronScan_Rest] },
 				"$$tokenBalanceTimestamps": { label: "Token balance observations", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.TronAccountTokenBalance_Timestamp, defaultSources: [Source.TronScan_Rest] },
 				"$$transactions": { label: "Transactions", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.TronTransaction, defaultSources: [Source.TronGrid_Rest, Source.TronScan_Rest] },
@@ -63049,7 +62745,7 @@ export const schema = {
 				"$network": { label: "Network", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.Network },
 				"height": { label: "Height", description: "The block height.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "bigint" },
 				"hash": { label: "Hash", description: "The hash that identifies this object in its protocol.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
-				"$parent": { label: "Parent", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.TronBlock, defaultSources: [Source.TronGrid_Rest, Source.TronFullNode_Rest, Source.TronSolidityNode_Rest, Source.TronScan_Rest, Source.ThreeXpl_Rest] },
+				"$parent": { label: "Parent", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.TronBlock, defaultSources: [Source.TronGrid_Rest, Source.TronFullNode_Rest, Source.TronSolidityNode_Rest, Source.TronScan_Rest] },
 				"parentHash": { label: "Parent hash", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.TronGrid_Rest, Source.TronFullNode_Rest, Source.TronSolidityNode_Rest] },
 				"timestampMs": { label: "Timestamp", description: "The observation time in Unix milliseconds.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.TronGrid_Rest, Source.TronFullNode_Rest, Source.TronSolidityNode_Rest, Source.TronScan_Rest, Source.ThreeXpl_Rest] },
 				"$witness": { label: "Witness", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.TronWitness, defaultSources: [Source.TronGrid_Rest] },
@@ -63076,7 +62772,7 @@ export const schema = {
 			})({
 				"$network": { label: "Network", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.Network },
 				"address": { label: "Address", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
-				"$account": { label: "Account", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.TronAccount, defaultSources: [Source.TronGrid_Rest, Source.TronScan_Rest] },
+				"$account": { label: "Account", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.TronAccount, defaultSources: [Source.TronScan_Rest] },
 				"name": { label: "Name", description: "The human-readable name of the subject.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.TronScan_Rest] },
 				"$creator": { label: "Creator", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.TronAccount, defaultSources: [Source.TronScan_Rest] },
 				"$creationTransaction": { label: "Creation transaction", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.TronTransaction, defaultSources: [Source.TronScan_Rest] },
@@ -63248,7 +62944,7 @@ export const schema = {
 			})({
 				"$network": { label: "Network", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.Network },
 				"transactionId": { label: "Transaction ID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
-				"$block": { label: "Block", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.TronBlock, defaultSources: [Source.TronGrid_Rest, Source.TronFullNode_Rest, Source.TronSolidityNode_Rest, Source.TronScan_Rest, Source.ThreeXpl_Rest] },
+				"$block": { label: "Block", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.TronBlock, defaultSources: [Source.TronGrid_Rest, Source.TronFullNode_Rest, Source.TronScan_Rest, Source.ThreeXpl_Rest] },
 				"blockHeight": { label: "Block height", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint", defaultSources: [Source.TronGrid_Rest, Source.TronFullNode_Rest, Source.TronSolidityNode_Rest, Source.TronScan_Rest, Source.ThreeXpl_Rest] },
 				"timestampMs": { label: "Timestamp", description: "The observation time in Unix milliseconds.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.TronGrid_Rest, Source.TronFullNode_Rest, Source.TronSolidityNode_Rest, Source.TronScan_Rest, Source.ThreeXpl_Rest] },
 				"expirationTimestampMs": { label: "Expiration timestamp", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.TronGrid_Rest, Source.TronFullNode_Rest, Source.TronSolidityNode_Rest] },
@@ -67517,6 +67213,7 @@ export const routes = defineRoutes(schema)({
 				evidence: "maps/schema-entity-existence-ledger.md#aimodel_timestamp",
 			},
 		},
+
 		[EntityType.AiModelProvider]: {
 			"Domain": {
 				kind: "Research",
@@ -67560,6 +67257,7 @@ export const routes = defineRoutes(schema)({
 				evidence: "maps/schema-entity-existence-ledger.md#aiproviderapioperation_timestamp",
 			},
 		},
+
 		[EntityType.AiProviderCatalogEntry]: {
 			"ProviderCatalogKindProviderEntryId": {
 				kind: "Research",
@@ -67574,6 +67272,7 @@ export const routes = defineRoutes(schema)({
 				evidence: "maps/schema-entity-existence-ledger.md#aiprovidercatalogentry_timestamp",
 			},
 		},
+
 		[EntityType.AiRelationshipClaim]: {
 			"SubjectKindSubjectSelectorRelationshipKindObjectKindObjectSelectorSourceTimestampMs": {
 				kind: "Research",
@@ -72879,18 +72578,6 @@ export const routes = defineRoutes(schema)({
 															selectors: {
 																[EntityType.EvmActorCoinAllowance]: {
 																	"EvmAccountEvmContractSpenderInteropAddress": {
-											probeCases: [
-												{
-																							id: "default",
-																										params: {
-																											chainId: "/~/accounts/allowance/[chainId]/[owner]/[coin]/[spender]:EvmActorCoinAllowance.EvmAccountEvmContractSpenderInteropAddress.1.chainId",
-																					owner: "/~/accounts/allowance/[chainId]/[owner]/[coin]/[spender]:EvmActorCoinAllowance.EvmAccountEvmContractSpenderInteropAddress.1.owner",
-																					coin: "/~/accounts/allowance/[chainId]/[owner]/[coin]/[spender]:EvmActorCoinAllowance.EvmAccountEvmContractSpenderInteropAddress.1.coin",
-																					spender: "/~/accounts/allowance/[chainId]/[owner]/[coin]/[spender]:EvmActorCoinAllowance.EvmAccountEvmContractSpenderInteropAddress.1.spender",
-																				},
-																			},
-																		],
-
 																		derivations: {
 																			"interopAddress": { kind: "template", parts: ["eip155:", { kind: "param", name: "chainId" }, ":", { kind: "param", name: "owner" }] },
 																			$actor: { kind: "selector", entity: EntityType
@@ -72999,7 +72686,7 @@ export const routes = defineRoutes(schema)({
 								},
 								{
 									field: [EntityType._Global, "$$blockheadAccounts", "$account", "Utxo", "$account", "$$timestamps"],
-									query: { sources: [Source.Blockchair_Rest, Source.MempoolSpace_Rest] },
+									query: { sources: [Source.MempoolSpace_Rest] },
 									derivations: { "scope": { kind: "literal", value: "$$blockheadAccounts" } },
 									page: { text: { title: "UTXO balances" } },
 								},
@@ -73031,16 +72718,6 @@ export const routes = defineRoutes(schema)({
 													selectors: {
 														[EntityType.EvmNetworkActorCoinBalance]: {
 															"EvmAccountErc20CoinInstance": {
-									probeCases: [
-										{
-											id: "default",
-																		params: {
-																			chainId: "/~/accounts/balance/[chainId]/[owner]/[coin]:EvmNetworkActorCoinBalance.EvmAccountErc20CoinInstance.1.chainId",
-																			owner: "/~/accounts/balance/[chainId]/[owner]/[coin]:EvmNetworkActorCoinBalance.EvmAccountErc20CoinInstance.1.owner",
-																			coin: "/~/accounts/balance/[chainId]/[owner]/[coin]:EvmNetworkActorCoinBalance.EvmAccountErc20CoinInstance.1.coin",
-																		},
-																	},
-																],
 
 																derivations: {
 																	$actor: { kind: "selector", entity: EntityType
@@ -73096,14 +72773,6 @@ export const routes = defineRoutes(schema)({
 									selectors: {
 										[EntityType.BlockheadWalletConnection]: {
 											"ConnectionKey": {
-												probeCases: [
-													{
-														id: "default",
-														params: {
-															connectionKey: "/~/accounts/connections/[connectionKey]:BlockheadWalletConnection.ConnectionKey.1.connectionKey",
-														},
-													},
-												],
 
 												params: {
 													"connectionKey": [
@@ -73204,17 +72873,6 @@ export const routes = defineRoutes(schema)({
 															selectors: {
 																[EntityType.BlockheadBridgeTransaction]: {
 																	"AccountSourceTxCreatedAt": {
-																		probeCases: [
-																			{
-																				id: "default",
-																				params: {
-																					chainId: "/~/accounts/transaction/[chainId]/[address]/[sourceTxHash]/[createdAt]:BlockheadBridgeTransaction.AccountSourceTxCreatedAt.1.chainId",
-																					address: "/~/accounts/transaction/[chainId]/[address]/[sourceTxHash]/[createdAt]:BlockheadBridgeTransaction.AccountSourceTxCreatedAt.1.address",
-																					sourceTxHash: "/~/accounts/transaction/[chainId]/[address]/[sourceTxHash]/[createdAt]:BlockheadBridgeTransaction.AccountSourceTxCreatedAt.1.sourceTxHash",
-																					createdAt: "/~/accounts/transaction/[chainId]/[address]/[sourceTxHash]/[createdAt]:BlockheadBridgeTransaction.AccountSourceTxCreatedAt.1.createdAt",
-																				},
-																			},
-																		],
 
 																		params: {
 																			"createdAt": [
@@ -73297,14 +72955,6 @@ export const routes = defineRoutes(schema)({
 												selectors: {
 													[EntityType.BlockheadAgentConversation]: {
 											"Id": {
-												probeCases: [
-													{
-														id: "default",
-														params: {
-															conversationId: "/~/agents/conversation/[conversationId]:BlockheadAgentConversation.Id.1.conversationId",
-														},
-													},
-												],
 
 												params: {
 													"conversationId": [
@@ -73322,15 +72972,6 @@ export const routes = defineRoutes(schema)({
 													selectors: {
 														[EntityType.BlockheadAgentConversationTurn]: {
 															"ConversationTurnId": {
-																probeCases: [
-																	{
-																		id: "default",
-																		params: {
-																			conversationId: "/~/agents/conversation/[conversationId]/turn/[turnId]:BlockheadAgentConversationTurn.ConversationTurnId.1.conversationId",
-																			turnId: "/~/agents/conversation/[conversationId]/turn/[turnId]:BlockheadAgentConversationTurn.ConversationTurnId.1.turnId",
-																		},
-																	},
-																],
 
 																params: {
 																	"turnId": [
@@ -73388,14 +73029,6 @@ export const routes = defineRoutes(schema)({
 							selectors: {
 								[EntityType.BlockheadPanelTree]: {
 									"Id": {
-										probeCases: [
-											{
-												id: "default",
-												params: {
-													dashboardId: "/~/dashboard/[dashboardId]:BlockheadPanelTree.Id.1.dashboardId",
-												},
-											},
-										],
 
 										params: {
 											"dashboardId": [
@@ -73416,41 +73049,38 @@ export const routes = defineRoutes(schema)({
 								{ from: "$/components/CollapsibleTabs.svelte", default: "CollapsibleTabs" },
 								{ from: "$/components/Heading.svelte", default: "HeadingComponent" },
 								{ from: "$/views/BlockheadSourcesView.svelte", default: "BlockheadSourcesView" },
-								{ from: "$/sources/Source.ts", names: ["Source"] },
 							],
 							Content: dedent `
-													<CollapsibleTabs
-														id='manage:hub'
-														sectionIdPrefix='manage'
-														sections={[
-																	{ id: 'sources', label: 'Sources' },
-														]}
-														data-card
-													>
-														{#snippet Summary({ open: _open })}
-															<header
-																data-row-item='flexible'
-																data-row='wrap gap-4'
-															>
-																<HeadingComponent>Manage</HeadingComponent>
-															</header>
-														{/snippet}
+								<CollapsibleTabs
+									id='manage:hub'
+									sectionIdPrefix='manage'
+									sections={[
+										{ id: 'sources', label: 'Sources' },
+									]}
+									data-card
+								>
+									{#snippet Summary({ open: _open })}
+										<header
+											data-row-item='flexible'
+											data-row='wrap gap-4'
+										>
+											<HeadingComponent>Manage</HeadingComponent>
+										</header>
+									{/snippet}
 
-														{#snippet SectionSources()}
-															<BlockheadSourcesView
-																href={resolve('/~/manage/sources')}
-																selection={select(EntityType._Global, { scope: '$$blockheadSources' }).$$blockheadSources({
-																	sources: [Source.Local_Internal],
-																})}
-																		id='sources'
-																		open={true}
-																		data-column-item='flexible'
-																		data-card
-																		data-scroll-container
-															/>
-														{/snippet}
-													</CollapsibleTabs>
-										`,
+									{#snippet SectionSources()}
+										<BlockheadSourcesView
+											href={resolve('/~/manage/sources')}
+											selection={select(EntityType._Global, { scope: '$$blockheadSources' }).$$blockheadSources}
+											id='sources'
+											open={true}
+											data-column-item='flexible'
+											data-card
+											data-scroll-container
+										/>
+									{/snippet}
+								</CollapsibleTabs>
+							`,
 						},
 						text: { title: "Manage" }
 					},
@@ -73462,9 +73092,6 @@ export const routes = defineRoutes(schema)({
 										EntityType._Global,
 										"$$blockheadSources"
 									],
-									query: {
-										sources: [Source.Local_Internal],
-									},
 									derivations: {
 										"scope": { kind: "literal", value: "$$blockheadSources" }
 									},
@@ -73481,14 +73108,6 @@ export const routes = defineRoutes(schema)({
 									selectors: {
 										[EntityType.BlockheadSource]: {
 											"Id": {
-												probeCases: [
-													{
-														id: "default",
-														params: {
-															sourceId: "/~/manage/source/[sourceId]:BlockheadSource.Id.1.sourceId",
-														},
-													},
-												],
 
 												params: {
 													"sourceId": [
@@ -73512,56 +73131,51 @@ export const routes = defineRoutes(schema)({
 								{ from: "$/components/Heading.svelte", default: "HeadingComponent" },
 								{ from: "$/views/BlockheadRoomPeersView.svelte", default: "BlockheadRoomPeersView" },
 								{ from: "$/views/BlockheadRoomsView.svelte", default: "BlockheadRoomsView" },
-								{ from: "$/sources/Source.ts", names: ["Source"] },
 							],
 							Content: dedent `
-													<CollapsibleTabs
-														id='multiplayer:hub'
-														sectionIdPrefix='multiplayer'
-														sections={[
-															{ id: 'rooms', label: 'Rooms' },
-															{ id: 'contacts', label: 'Contacts' },
-														]}
-														data-card
-													>
-														{#snippet Summary({ open: _open })}
-															<header
-																data-row-item='flexible'
-																data-row='wrap gap-4'
-															>
-																<HeadingComponent>Multiplayer</HeadingComponent>
-															</header>
-														{/snippet}
+								<CollapsibleTabs
+									id='multiplayer:hub'
+									sectionIdPrefix='multiplayer'
+									sections={[
+										{ id: 'rooms', label: 'Rooms' },
+										{ id: 'contacts', label: 'Contacts' },
+									]}
+									data-card
+								>
+									{#snippet Summary({ open: _open })}
+										<header
+											data-row-item='flexible'
+											data-row='wrap gap-4'
+										>
+											<HeadingComponent>Multiplayer</HeadingComponent>
+										</header>
+									{/snippet}
 
-														{#snippet SectionRooms()}
-															<BlockheadRoomsView
-																href={resolve('/~/multiplayer/rooms')}
-																selection={select(EntityType._Global, { scope: '$$blockheadRooms' }).$$blockheadRooms({
-																	sources: [Source.Local_Internal],
-																})}
-																		id='rooms'
-																		open={true}
-																		data-column-item='flexible'
-																		data-card
-																		data-scroll-container
-															/>
-														{/snippet}
+									{#snippet SectionRooms()}
+										<BlockheadRoomsView
+											href={resolve('/~/multiplayer/rooms')}
+											selection={select(EntityType._Global, { scope: '$$blockheadRooms' }).$$blockheadRooms}
+											id='rooms'
+											open={true}
+											data-column-item='flexible'
+											data-card
+											data-scroll-container
+										/>
+									{/snippet}
 
-														{#snippet SectionContacts()}
-															<BlockheadRoomPeersView
-																href={resolve('/~/multiplayer/contacts')}
-																selection={select(EntityType._Global, { scope: '$$blockheadRoomPeers' }).$$blockheadRoomPeers({
-																	sources: [Source.Local_Internal],
-																})}
-																		id='contacts'
-																		open={true}
-																		data-column-item='flexible'
-																		data-card
-																		data-scroll-container
-															/>
-														{/snippet}
-													</CollapsibleTabs>
-										`,
+									{#snippet SectionContacts()}
+										<BlockheadRoomPeersView
+											href={resolve('/~/multiplayer/contacts')}
+											selection={select(EntityType._Global, { scope: '$$blockheadRoomPeers' }).$$blockheadRoomPeers}
+											id='contacts'
+											open={true}
+											data-column-item='flexible'
+											data-card
+											data-scroll-container
+										/>
+									{/snippet}
+								</CollapsibleTabs>
+							`,
 						},
 						text: { title: "Multiplayer" }
 					},
@@ -73573,9 +73187,6 @@ export const routes = defineRoutes(schema)({
 										EntityType._Global,
 										"$$blockheadRooms"
 									],
-									query: {
-										sources: [Source.Local_Internal],
-									},
 									derivations: {
 										"scope": { kind: "literal", value: "$$blockheadRooms" }
 									},
@@ -73592,14 +73203,6 @@ export const routes = defineRoutes(schema)({
 									selectors: {
 										[EntityType.BlockheadRoom]: {
 											"Id": {
-												probeCases: [
-													{
-														id: "default",
-														params: {
-															roomId: "/~/multiplayer/room/[roomId]:BlockheadRoom.Id.1.roomId",
-														},
-													},
-												],
 
 												params: {
 													"roomId": [
@@ -73620,9 +73223,6 @@ export const routes = defineRoutes(schema)({
 										EntityType._Global,
 										"$$blockheadRoomPeers"
 									],
-									query: {
-										sources: [Source.Local_Internal],
-									},
 									derivations: {
 										"scope": { kind: "literal", value: "$$blockheadRoomPeers" }
 									},
@@ -73639,14 +73239,6 @@ export const routes = defineRoutes(schema)({
 									selectors: {
 										[EntityType.BlockheadRoomPeer]: {
 											"Id": {
-												probeCases: [
-													{
-														id: "default",
-														params: {
-															contactId: "/~/multiplayer/contact/[contactId]:BlockheadRoomPeer.Id.1.contactId",
-														},
-													},
-												],
 
 												params: {
 													"contactId": [
@@ -73688,14 +73280,6 @@ export const routes = defineRoutes(schema)({
 							selectors: {
 								[EntityType.BlockheadSession]: {
 									"Id": {
-										probeCases: [
-											{
-												id: "default",
-												params: {
-													sessionId: "/~/session/[sessionId]:BlockheadSession.Id.1.sessionId",
-												},
-											},
-										],
 
 										params: {
 											"sessionId": [
@@ -73733,21 +73317,6 @@ export const routes = defineRoutes(schema)({
 																					selectors: {
 																						[EntityType.BridgeRoute]: {
 																							"Quote": {
-																								probeCases: [
-																									{
-																										id: "default",
-																										params: {
-																											fromChainId: "/bridge/route/[fromChainId]/[toChainId]/[fromToken]/[toToken]/[fromAmount]/[fromAddress]/[slippage]/[toAddress]:BridgeRoute.Quote.1.fromChainId",
-																											toChainId: "/bridge/route/[fromChainId]/[toChainId]/[fromToken]/[toToken]/[fromAmount]/[fromAddress]/[slippage]/[toAddress]:BridgeRoute.Quote.1.toChainId",
-																											fromToken: "/bridge/route/[fromChainId]/[toChainId]/[fromToken]/[toToken]/[fromAmount]/[fromAddress]/[slippage]/[toAddress]:BridgeRoute.Quote.1.fromToken",
-																											toToken: "/bridge/route/[fromChainId]/[toChainId]/[fromToken]/[toToken]/[fromAmount]/[fromAddress]/[slippage]/[toAddress]:BridgeRoute.Quote.1.toToken",
-																											fromAmount: "/bridge/route/[fromChainId]/[toChainId]/[fromToken]/[toToken]/[fromAmount]/[fromAddress]/[slippage]/[toAddress]:BridgeRoute.Quote.1.fromAmount",
-																											fromAddress: "/bridge/route/[fromChainId]/[toChainId]/[fromToken]/[toToken]/[fromAmount]/[fromAddress]/[slippage]/[toAddress]:BridgeRoute.Quote.1.fromAddress",
-																											slippage: "/bridge/route/[fromChainId]/[toChainId]/[fromToken]/[toToken]/[fromAmount]/[fromAddress]/[slippage]/[toAddress]:BridgeRoute.Quote.1.slippage",
-																											toAddress: "/bridge/route/[fromChainId]/[toChainId]/[fromToken]/[toToken]/[fromAmount]/[fromAddress]/[slippage]/[toAddress]:BridgeRoute.Quote.1.toAddress",
-																										},
-																									},
-																								],
 
 																								params: {
 																									"fromChainId": [
@@ -73787,22 +73356,6 @@ export const routes = defineRoutes(schema)({
 																									selectors: {
 																										[EntityType.BridgeRouteStep]: {
 																											"RouteIndexInRoute": {
-																												probeCases: [
-																													{
-																														id: "default",
-																														params: {
-																															fromChainId: "/bridge/route/[fromChainId]/[toChainId]/[fromToken]/[toToken]/[fromAmount]/[fromAddress]/[slippage]/[toAddress]/step/[stepIndex]:BridgeRouteStep.RouteIndexInRoute.1.fromChainId",
-																															toChainId: "/bridge/route/[fromChainId]/[toChainId]/[fromToken]/[toToken]/[fromAmount]/[fromAddress]/[slippage]/[toAddress]/step/[stepIndex]:BridgeRouteStep.RouteIndexInRoute.1.toChainId",
-																															fromToken: "/bridge/route/[fromChainId]/[toChainId]/[fromToken]/[toToken]/[fromAmount]/[fromAddress]/[slippage]/[toAddress]/step/[stepIndex]:BridgeRouteStep.RouteIndexInRoute.1.fromToken",
-																															toToken: "/bridge/route/[fromChainId]/[toChainId]/[fromToken]/[toToken]/[fromAmount]/[fromAddress]/[slippage]/[toAddress]/step/[stepIndex]:BridgeRouteStep.RouteIndexInRoute.1.toToken",
-																															fromAmount: "/bridge/route/[fromChainId]/[toChainId]/[fromToken]/[toToken]/[fromAmount]/[fromAddress]/[slippage]/[toAddress]/step/[stepIndex]:BridgeRouteStep.RouteIndexInRoute.1.fromAmount",
-																															fromAddress: "/bridge/route/[fromChainId]/[toChainId]/[fromToken]/[toToken]/[fromAmount]/[fromAddress]/[slippage]/[toAddress]/step/[stepIndex]:BridgeRouteStep.RouteIndexInRoute.1.fromAddress",
-																															slippage: "/bridge/route/[fromChainId]/[toChainId]/[fromToken]/[toToken]/[fromAmount]/[fromAddress]/[slippage]/[toAddress]/step/[stepIndex]:BridgeRouteStep.RouteIndexInRoute.1.slippage",
-																															toAddress: "/bridge/route/[fromChainId]/[toChainId]/[fromToken]/[toToken]/[fromAmount]/[fromAddress]/[slippage]/[toAddress]/step/[stepIndex]:BridgeRouteStep.RouteIndexInRoute.1.toAddress",
-																															stepIndex: "/bridge/route/[fromChainId]/[toChainId]/[fromToken]/[toToken]/[fromAmount]/[fromAddress]/[slippage]/[toAddress]/step/[stepIndex]:BridgeRouteStep.RouteIndexInRoute.1.stepIndex",
-																														},
-																													},
-																												],
 
 																												params: {
 																													"stepIndex": [
@@ -73972,10 +73525,9 @@ export const routes = defineRoutes(schema)({
 			children: {
 				"list-view-transitions": {
 					page: {
-						view: {
-							imports: [
-								{ from: "$/components/RefinableList.svelte", typeNames: ["Sort"] },
-								{ from: "$/components/RefinableList.svelte", default: "RefinableList" },
+							view: {
+								imports: [
+									{ from: "$/components/RefinableList.svelte", default: "RefinableList", typeNames: ["Sort"] },
 							],
 							script: dedent `
 											type Row = { id: string, label: string }
@@ -74030,10 +73582,9 @@ export const routes = defineRoutes(schema)({
 				},
 				"list-view-transitions-novt": {
 					page: {
-						view: {
-							imports: [
-								{ from: "$/components/RefinableList.svelte", typeNames: ["Sort"] },
-								{ from: "$/components/RefinableList.svelte", default: "RefinableList" },
+							view: {
+								imports: [
+									{ from: "$/components/RefinableList.svelte", default: "RefinableList", typeNames: ["Sort"] },
 							],
 							script: dedent `
 											type Row = { id: string, label: string }
@@ -74098,82 +73649,75 @@ export const routes = defineRoutes(schema)({
 						{ from: "$/views/EthereumNetworkUpgradesView.svelte", default: "EthereumNetworkUpgradesView" },
 						{ from: "$/views/NetworksView.svelte", default: "NetworksView" },
 						{ from: "$/views/SpecificationRealmsView.svelte", default: "SpecificationRealmsView" },
-						{ from: "$/sources/Source.ts", names: ["Source"] },
-						{ from: "$app/paths", names: ["resolve"] },
 					],
 					Content: dedent `
-											<CollapsibleTabs
-												id='explore:hub'
-												sectionIdPrefix='explore'
-												sections={[
-													{ id: 'networks', label: 'Networks' },
-													{ id: 'upgrades', label: 'Upgrades' },
-													{ id: 'ipfs', label: 'IPFS' },
-													{ id: 'swarm', label: 'Swarm' },
-													{ id: 'proposals', label: 'Proposals' },
-												]}
-												data-card
-											>
-												{#snippet Summary({ open: _open })}
-													<header
-														data-row-item='flexible'
-														data-row='wrap gap-4'
-													>
-														<HeadingComponent>Explore</HeadingComponent>
-													</header>
-												{/snippet}
+						<CollapsibleTabs
+							id='explore:hub'
+							sectionIdPrefix='explore'
+							sections={[
+								{ id: 'networks', label: 'Networks' },
+								{ id: 'upgrades', label: 'Upgrades' },
+								{ id: 'ipfs', label: 'IPFS' },
+								{ id: 'swarm', label: 'Swarm' },
+								{ id: 'proposals', label: 'Proposals' },
+							]}
+							data-card
+						>
+							{#snippet Summary({ open: _open })}
+								<header
+									data-row-item='flexible'
+									data-row='wrap gap-4'
+								>
+									<HeadingComponent>Explore</HeadingComponent>
+								</header>
+							{/snippet}
 
-												{#snippet SectionNetworks()}
-															<NetworksView
-																						href={resolve('/networks')}
-														selection={select(EntityType._Global, { scope: '$$networks' }).$$networks}
-																id='networks'
-																open={true}
-																data-column-item='flexible'
-																data-card
-																data-scroll-container
-															/>
-												{/snippet}
+							{#snippet SectionNetworks()}
+								<NetworksView
+									href={resolve('/networks')}
+									selection={select(EntityType._Global, { scope: '$$networks' }).$$networks}
+									id='networks'
+									open={true}
+									data-column-item='flexible'
+									data-card
+									data-scroll-container
+								/>
+							{/snippet}
 
-												{#snippet SectionUpgrades()}
-															<EthereumNetworkUpgradesView
-														selection={select(EntityType._Global, { scope: '$$networkUpgrades' }).$$networkUpgrades({
-															sources: [Source.Constants_Internal],
-																limit: 512,
-																})}
-																id='upgrades'
-																open={true}
-																data-column-item='flexible'
-																data-card
-																data-scroll-container
-															/>
-												{/snippet}
+							{#snippet SectionUpgrades()}
+								<EthereumNetworkUpgradesView
+									selection={select(EntityType._Global, { scope: '$$networkUpgrades' }).$$networkUpgrades}
+									id='upgrades'
+									open={true}
+									data-column-item='flexible'
+									data-card
+									data-scroll-container
+								/>
+							{/snippet}
 
-												{#snippet SectionIpfs()}
-													<h2><a href={resolve('/ipfs')}>IPFS</a></h2>
-													<p data-text='muted'>Open resolver-backed IPFS and IPNS resource pages from raw CIDs, protocol URIs, or public gateway URLs.</p>
-												{/snippet}
+							{#snippet SectionIpfs()}
+								<h2><a href={resolve('/ipfs')}>IPFS</a></h2>
+								<p data-text='muted'>Open resolver-backed IPFS and IPNS resource pages from raw CIDs, protocol URIs, or public gateway URLs.</p>
+							{/snippet}
 
-												{#snippet SectionSwarm()}
-													<h2><a href={resolve('/swarm')}>Swarm</a></h2>
-													<p data-text='muted'>Open resolver-backed Swarm BZZ resource pages from raw references, bzz:// URIs, or public gateway URLs.</p>
-												{/snippet}
+							{#snippet SectionSwarm()}
+								<h2><a href={resolve('/swarm')}>Swarm</a></h2>
+								<p data-text='muted'>Open resolver-backed Swarm BZZ resource pages from raw references, bzz:// URIs, or public gateway URLs.</p>
+							{/snippet}
 
-												{#snippet SectionProposals()}
-															<SpecificationRealmsView
-														selection={select(EntityType._Global, { scope: '$$specificationRealms' }).$$specificationRealms({
-															sources: [Source.Constants_Internal],
-														})}
-																id='proposal-realms'
-																open={true}
-																title='Proposals'
-																data-column-item='flexible'
-																data-card
-																data-scroll-container
-															/>
-												{/snippet}
-											</CollapsibleTabs>
-								`,
+							{#snippet SectionProposals()}
+								<SpecificationRealmsView
+									selection={select(EntityType._Global, { scope: '$$specificationRealms' }).$$specificationRealms}
+									id='proposal-realms'
+									open={true}
+									title='Proposals'
+									data-column-item='flexible'
+									data-card
+									data-scroll-container
+								/>
+							{/snippet}
+						</CollapsibleTabs>
+					`,
 				},
 				text: { title: "Explore" }
 			}
@@ -74185,42 +73729,38 @@ export const routes = defineRoutes(schema)({
 						{ from: "$/components/CollapsibleTabs.svelte", default: "CollapsibleTabs" },
 						{ from: "$/components/Heading.svelte", default: "HeadingComponent" },
 						{ from: "$/views/EvmNftsView.svelte", default: "EvmNftsView" },
-						{ from: "$/sources/Source.ts", names: ["Source"] },
 					],
 					Content: dedent `
-											<CollapsibleTabs
-												id='services:hub'
-												sectionIdPrefix='services'
-												sections={[
-													{ id: 'agents', label: 'ERC-8004 Registrations' },
-												]}
-												data-card
-											>
-												{#snippet Summary({ open: _open })}
-													<header
-														data-row-item='flexible'
-														data-row='wrap gap-4'
-													>
-														<HeadingComponent>Services</HeadingComponent>
-													</header>
-												{/snippet}
+						<CollapsibleTabs
+							id='services:hub'
+							sectionIdPrefix='services'
+							sections={[
+								{ id: 'agents', label: 'ERC-8004 Registrations' },
+							]}
+							data-card
+						>
+							{#snippet Summary({ open: _open })}
+								<header
+									data-row-item='flexible'
+									data-row='wrap gap-4'
+								>
+									<HeadingComponent>Services</HeadingComponent>
+								</header>
+							{/snippet}
 
-												{#snippet SectionAgents()}
-													<EvmNftsView
-														href={resolve('/services/agents')}
-														selection={select(EntityType._Global, { scope: '$$eip8004Services' }).$$eip8004Services({
-															sources: [Source.Eip8004Scan_Rest],
-															limit: 100,
-														})}
-																		id='agents'
-																		open={true}
-																		title='ERC-8004 Registrations'
-																		data-column-item='flexible'
-																		data-card
-																		data-scroll-container
-													/>
-												{/snippet}
-											</CollapsibleTabs>
+							{#snippet SectionAgents()}
+								<EvmNftsView
+									href={resolve('/services/agents')}
+									selection={select(EntityType._Global, { scope: '$$eip8004Services' }).$$eip8004Services}
+									id='agents'
+									open={true}
+									title='ERC-8004 Registrations'
+									data-column-item='flexible'
+									data-card
+									data-scroll-container
+								/>
+							{/snippet}
+						</CollapsibleTabs>
 								`,
 				},
 				text: { title: "Services" }
@@ -74233,10 +73773,6 @@ export const routes = defineRoutes(schema)({
 								EntityType._Global,
 								"$$eip8004Services"
 							],
-							query: {
-								sources: [Source.Eip8004Scan_Rest],
-								limit: 100,
-							},
 							derivations: {
 								"scope": { kind: "literal", value: "$$eip8004Services" }
 							},
@@ -74263,16 +73799,6 @@ export const routes = defineRoutes(schema)({
 											selectors: {
 												[EntityType.EvmNft]: {
 													"EvmContractTokenId": {
-														probeCases: [
-															{
-																id: "default",
-																params: {
-																	chainId: "/services/agent/[chainId]/[contractAddress]/[tokenId]:EvmNft.EvmContractTokenId.1.chainId",
-																	contractAddress: "/services/agent/[chainId]/[contractAddress]/[tokenId]:EvmNft.EvmContractTokenId.1.contractAddress",
-																	tokenId: "/services/agent/[chainId]/[contractAddress]/[tokenId]:EvmNft.EvmContractTokenId.1.tokenId",
-																},
-															},
-														],
 
 														params: {
 															"tokenId": [
@@ -74416,10 +73942,6 @@ export const routes = defineRoutes(schema)({
 						EntityType._Global,
 						"$$networkUpgrades"
 					],
-					query: {
-						sources: [Source.Constants_Internal],
-						limit: 512,
-					},
 					derivations: {
 						"scope": { kind: "literal", value: "$$networkUpgrades" }
 					},
@@ -74436,14 +73958,6 @@ export const routes = defineRoutes(schema)({
 					selectors: {
 						[EntityType.BlockheadStateChannel]: {
 							"Id": {
-								probeCases: [
-									{
-										id: "default",
-										params: {
-											channelId: "/channel/[channelId]:BlockheadStateChannel.Id.1.channelId",
-										},
-									},
-								],
 
 								params: {
 									"channelId": [
@@ -74526,14 +74040,6 @@ export const routes = defineRoutes(schema)({
 							selectors: {
 								[EntityType.EvmAccount]: {
 									"Address": {
-										probeCases: [
-											{
-												id: "default",
-												params: {
-													address: "/account/[address]:EvmAccount.Address.1.address",
-												},
-											},
-										],
 
 										params: {
 											"address": [
@@ -74554,14 +74060,6 @@ export const routes = defineRoutes(schema)({
 							selectors: {
 								[EntityType.Url]: {
 									"Url": {
-										probeCases: [
-											{
-												id: "default",
-												params: {
-													url: "/url/[url]:Url.Url.1.url",
-												},
-											},
-										],
 
 										params: {
 											"url": [
@@ -74582,16 +74080,6 @@ export const routes = defineRoutes(schema)({
 													selectors: {
 														[EntityType.UrlPreview_Timestamp]: {
 															"UrlTimestampMsSource": {
-																probeCases: [
-																	{
-																		id: "default",
-																		params: {
-																			url: "/url/[url]/observations/[timestampMs]/[source]:UrlPreview_Timestamp.UrlTimestampMsSource.1.url",
-																			timestampMs: "/url/[url]/observations/[timestampMs]/[source]:UrlPreview_Timestamp.UrlTimestampMsSource.1.timestampMs",
-																			source: "/url/[url]/observations/[timestampMs]/[source]:UrlPreview_Timestamp.UrlTimestampMsSource.1.source",
-																		},
-																	},
-																],
 
 																params: {
 																	"timestampMs": [
@@ -74629,14 +74117,6 @@ export const routes = defineRoutes(schema)({
 							selectors: {
 								[EntityType.Media]: {
 									"Url": {
-										probeCases: [
-											{
-												id: "default",
-												params: {
-													url: "/media/[url]:Media.Url.1.url",
-												},
-											},
-										],
 
 										params: {
 											"url": [
@@ -74657,13 +74137,6 @@ export const routes = defineRoutes(schema)({
 							selectors: {
 								[EntityType.EvmProtocol]: {
 									"Scope": {
-										probeCases: [
-											{
-												id: "default",
-												params: {
-												},
-											},
-										],
 
 										derivations: {
 											"scope": { kind: "literal", value: "EvmProtocol" }
@@ -74707,14 +74180,6 @@ export const routes = defineRoutes(schema)({
 											selectors: {
 												[EntityType.EvmTopic]: {
 													"Hex": {
-														probeCases: [
-															{
-																id: "default",
-																params: {
-																	hex: "/evm/topic/[hex]:EvmTopic.Hex.1.hex",
-																},
-															},
-														],
 
 														params: {
 															"hex": [
@@ -74735,16 +74200,6 @@ export const routes = defineRoutes(schema)({
 																	selectors: {
 																		[EntityType.EvmTopic_Timestamp]: {
 																			"TopicTimestampMsSource": {
-																				probeCases: [
-																					{
-																						id: "default",
-																						params: {
-																							hex: "/evm/topic/[hex]/observations/[timestampMs]/[source]:EvmTopic_Timestamp.TopicTimestampMsSource.1.hex",
-																							timestampMs: "/evm/topic/[hex]/observations/[timestampMs]/[source]:EvmTopic_Timestamp.TopicTimestampMsSource.1.timestampMs",
-																							source: "/evm/topic/[hex]/observations/[timestampMs]/[source]:EvmTopic_Timestamp.TopicTimestampMsSource.1.source",
-																						},
-																					},
-																				],
 
 																				params: {
 																					"timestampMs": [
@@ -74810,14 +74265,6 @@ export const routes = defineRoutes(schema)({
 											selectors: {
 												[EntityType.EvmSelector]: {
 													"Hex": {
-														probeCases: [
-															{
-																id: "default",
-																params: {
-																	hex: "/evm/selector/[hex]:EvmSelector.Hex.1.hex",
-																},
-															},
-														],
 
 														params: {
 															"hex": [
@@ -74838,16 +74285,6 @@ export const routes = defineRoutes(schema)({
 																	selectors: {
 																		[EntityType.EvmSelector_Timestamp]: {
 																			"SelectorTimestampMsSource": {
-																				probeCases: [
-																					{
-																						id: "default",
-																						params: {
-																							hex: "/evm/selector/[hex]/observations/[timestampMs]/[source]:EvmSelector_Timestamp.SelectorTimestampMsSource.1.hex",
-																							timestampMs: "/evm/selector/[hex]/observations/[timestampMs]/[source]:EvmSelector_Timestamp.SelectorTimestampMsSource.1.timestampMs",
-																							source: "/evm/selector/[hex]/observations/[timestampMs]/[source]:EvmSelector_Timestamp.SelectorTimestampMsSource.1.source",
-																						},
-																					},
-																				],
 
 																				params: {
 																					"timestampMs": [
@@ -74898,18 +74335,16 @@ export const routes = defineRoutes(schema)({
 												{ from: "$/sources/Source.ts", names: ["Source"] },
 												{ from: "$/lib/signature-paths.ts", names: ["normalizeEvmSelectorHex", "normalizeEvmTopicHex"] },
 												{ from: "$app/navigation", names: ["afterNavigate"] },
-												{ from: "$app/paths", names: ["resolve"] },
 												{ from: "$app/state", names: ["page"] },
 												{ from: "svelte", names: ["untrack"] },
 												{ from: "$/components/Collapsible.svelte", default: "Collapsible" },
-												{ from: "$/components/EntityView.svelte", default: "EntityView" },
+													{ from: "$/components/EntityView.svelte", default: "EntityView", names: ["EntityLayout"] },
 												{ from: "$/components/Heading.svelte", default: "Heading" },
 												{ from: "$/components/Icon.svelte", default: "Icon" },
 												{ from: "$/components/ResourceBoundary.svelte", default: "ResourceBoundary" },
 												{ from: "$/components/Select.svelte", default: "Select" },
 												{ from: "$/components/TruncatedValue.svelte", default: "TruncatedValue" },
-												{ from: "$/views/EvmAccountView.svelte", default: "EvmAccountView" },
-												{ from: "$/components/EntityView.svelte", names: ["EntityLayout"] },
+													{ from: "$/views/EvmAccountView.svelte", default: "EvmAccountView" },
 											],
 											script: dedent `
 															const hexFromParam = (value: string | null) => {
@@ -74959,7 +74394,7 @@ export const routes = defineRoutes(schema)({
 																globalThis.history.replaceState(
 																	globalThis.history.state,
 																	'',
-																							resolve('/evm/calldata-decoder') + (hex ? \`?data=\${encodeURIComponent(hex)}\` : ''),
+																	resolve('/evm/calldata-decoder') + (hex ? \`?data=\${encodeURIComponent(hex)}\` : ''),
 																)
 															})
 
@@ -75143,7 +74578,14 @@ export const routes = defineRoutes(schema)({
 																						<EntityView
 																							entityType={EntityType.EvmSelector}
 																							entitySelector={{ hex: normalizedSelector }}
-																											href={resolve(\`/evm/selector/\${normalizedSelector}\`)}
+																							href={
+																								resolve(
+																									'/(explore)/(protocols)/evm/(evmProtocol)/(selectors)/selector/[hex=zeroExHex]',
+																									{
+																										hex: String(normalizedSelector),
+																									}
+																								)
+																							}
 																						>
 																							{#snippet Icon()}
 																								<Icon
@@ -75160,7 +74602,16 @@ export const routes = defineRoutes(schema)({
 																								>
 																									{#snippet children()}
 																										<Heading>
-																													<a href={resolve(\`/evm/selector/\${normalizedSelector}\`)}>
+																											<a
+																												href={
+																													resolve(
+																														'/(explore)/(protocols)/evm/(evmProtocol)/(selectors)/selector/[hex=zeroExHex]',
+																														{
+																															hex: String(normalizedSelector),
+																														}
+																													)
+																												}
+																											>
 																												{functionSignatures[selectedSignatureIndex] ?? normalizedSelector}
 																											</a>
 																										</Heading>
@@ -75240,7 +74691,14 @@ export const routes = defineRoutes(schema)({
 																						<EntityView
 																							entityType={EntityType.EvmTopic}
 																							entitySelector={{ hex: normalizedTopic }}
-																											href={resolve(\`/evm/topic/\${normalizedTopic}\`)}
+																							href={
+																								resolve(
+																									'/(explore)/(protocols)/evm/(evmProtocol)/(topics)/topic/[hex=evmTopicHash]',
+																									{
+																										hex: String(normalizedTopic),
+																									}
+																								)
+																							}
 																						>
 																							{#snippet Icon()}
 																								<Icon
@@ -75257,7 +74715,16 @@ export const routes = defineRoutes(schema)({
 																								>
 																									{#snippet children()}
 																										<Heading>
-																													<a href={resolve(\`/evm/topic/\${normalizedTopic}\`)}>
+																											<a
+																												href={
+																													resolve(
+																														'/(explore)/(protocols)/evm/(evmProtocol)/(topics)/topic/[hex=evmTopicHash]',
+																														{
+																															hex: String(normalizedTopic),
+																														}
+																													)
+																												}
+																											>
 																												{eventSignatures[selectedEventSignatureIndex] ?? normalizedTopic}
 																											</a>
 																										</Heading>
@@ -75403,14 +74870,6 @@ export const routes = defineRoutes(schema)({
 											selectors: {
 												[EntityType.EvmCalldata]: {
 													"Hex": {
-														probeCases: [
-															{
-																id: "default",
-																params: {
-																	hex: "/evm/calldata/[hex]:EvmCalldata.Hex.1.hex",
-																},
-															},
-														],
 
 														params: {
 															"hex": [
@@ -75460,14 +74919,6 @@ export const routes = defineRoutes(schema)({
 											selectors: {
 												[EntityType.EvmError]: {
 													"Hex": {
-														probeCases: [
-															{
-																id: "default",
-																params: {
-																	hex: "/evm/error/[hex]:EvmError.Hex.1.hex",
-																},
-															},
-														],
 
 														params: {
 															"hex": [
@@ -75488,16 +74939,6 @@ export const routes = defineRoutes(schema)({
 																	selectors: {
 																		[EntityType.EvmError_Timestamp]: {
 																			"ErrorTimestampMsSource": {
-																				probeCases: [
-																					{
-																						id: "default",
-																						params: {
-																							hex: "/evm/error/[hex]/observations/[timestampMs]/[source]:EvmError_Timestamp.ErrorTimestampMsSource.1.hex",
-																							timestampMs: "/evm/error/[hex]/observations/[timestampMs]/[source]:EvmError_Timestamp.ErrorTimestampMsSource.1.timestampMs",
-																							source: "/evm/error/[hex]/observations/[timestampMs]/[source]:EvmError_Timestamp.ErrorTimestampMsSource.1.source",
-																						},
-																					},
-																				],
 
 																				params: {
 																					"timestampMs": [
@@ -75541,13 +74982,6 @@ export const routes = defineRoutes(schema)({
 							selectors: {
 								[EntityType._GlobalEnsNetwork]: {
 									"Scope": {
-										probeCases: [
-											{
-												id: "default",
-												params: {
-												},
-											},
-										],
 
 										derivations: {
 											"scope": { kind: "literal", value: "_GlobalEnsNetwork" }
@@ -75566,15 +75000,6 @@ export const routes = defineRoutes(schema)({
 													selectors: {
 														[EntityType._GlobalEnsNetwork_Timestamp]: {
 															"HubTimestampMsSource": {
-																probeCases: [
-																	{
-																		id: "default",
-																		params: {
-																			timestampMs: "/ens/observations/[timestampMs]/[source]:_GlobalEnsNetwork_Timestamp.HubTimestampMsSource.1.timestampMs",
-																			source: "/ens/observations/[timestampMs]/[source]:_GlobalEnsNetwork_Timestamp.HubTimestampMsSource.1.source",
-																		},
-																	},
-																],
 
 																params: {
 																	"timestampMs": [
@@ -75608,14 +75033,6 @@ export const routes = defineRoutes(schema)({
 											selectors: {
 												[EntityType.EnsName]: {
 													"NormalizedName": {
-														probeCases: [
-															{
-																id: "default",
-																params: {
-																	ensName: "/ens/name/[ensName]:EnsName.NormalizedName.1.ensName",
-																},
-															},
-														],
 
 														params: {
 															"ensName": [
@@ -75636,16 +75053,6 @@ export const routes = defineRoutes(schema)({
 																	selectors: {
 																		[EntityType.EnsName_Timestamp]: {
 																			"NameTimestampMsSource": {
-																				probeCases: [
-																					{
-																						id: "default",
-																						params: {
-																							ensName: "/ens/name/[ensName]/observations/[timestampMs]/[source]:EnsName_Timestamp.NameTimestampMsSource.1.ensName",
-																							timestampMs: "/ens/name/[ensName]/observations/[timestampMs]/[source]:EnsName_Timestamp.NameTimestampMsSource.1.timestampMs",
-																							source: "/ens/name/[ensName]/observations/[timestampMs]/[source]:EnsName_Timestamp.NameTimestampMsSource.1.source",
-																						},
-																					},
-																				],
 
 																				params: {
 																					"timestampMs": [
@@ -75699,15 +75106,6 @@ export const routes = defineRoutes(schema)({
 															selectors: {
 																[EntityType.EnsRecord]: {
 																	"NameRecordKey": {
-																		probeCases: [
-																			{
-																				id: "default",
-																				params: {
-																					ensName: "/ens/name/[ensName]/record/[recordId]:EnsRecord.NameRecordKey.1.ensName",
-																					recordId: "/ens/name/[ensName]/record/[recordId]:EnsRecord.NameRecordKey.1.recordId",
-																				},
-																			},
-																		],
 
 																		params: {
 																			"recordId": [
@@ -75735,17 +75133,6 @@ export const routes = defineRoutes(schema)({
 																					selectors: {
 																						[EntityType.EnsRecord_Timestamp]: {
 																							"RecordTimestampMsSource": {
-																								probeCases: [
-																									{
-																										id: "default",
-																										params: {
-																											ensName: "/ens/name/[ensName]/record/[recordId]/observations/[timestampMs]/[source]:EnsRecord_Timestamp.RecordTimestampMsSource.1.ensName",
-																											recordId: "/ens/name/[ensName]/record/[recordId]/observations/[timestampMs]/[source]:EnsRecord_Timestamp.RecordTimestampMsSource.1.recordId",
-																											timestampMs: "/ens/name/[ensName]/record/[recordId]/observations/[timestampMs]/[source]:EnsRecord_Timestamp.RecordTimestampMsSource.1.timestampMs",
-																											source: "/ens/name/[ensName]/record/[recordId]/observations/[timestampMs]/[source]:EnsRecord_Timestamp.RecordTimestampMsSource.1.source",
-																										},
-																									},
-																								],
 
 																								params: {
 																									"timestampMs": [
@@ -75818,13 +75205,6 @@ export const routes = defineRoutes(schema)({
 							selectors: {
 								[EntityType.IpfsProtocol]: {
 									"Scope": {
-										probeCases: [
-											{
-												id: "default",
-												params: {
-												},
-											},
-										],
 
 										derivations: {
 											"scope": { kind: "literal", value: "IpfsProtocol" }
@@ -75838,13 +75218,6 @@ export const routes = defineRoutes(schema)({
 									selectors: {
 										[EntityType._GlobalIpfsAccess]: {
 											"Scope": {
-												probeCases: [
-													{
-														id: "default",
-														params: {
-														},
-													},
-												],
 
 												derivations: {
 													"scope": { kind: "literal", value: "_GlobalIpfsAccess" }
@@ -75863,15 +75236,6 @@ export const routes = defineRoutes(schema)({
 									selectors: {
 										[EntityType.IpfsResource]: {
 											"ResourceAddress": {
-												probeCases: [
-													{
-												id: "base",
-												params: {
-													namespace: "/[namespace]/[target]:IpfsResource.ResourceAddress.1.namespace",
-													target: "/[namespace]/[target]:IpfsResource.ResourceAddress.1.target",
-												},
-													},
-												],
 
 												params: {
 													"namespace": [
@@ -75897,16 +75261,6 @@ export const routes = defineRoutes(schema)({
 												"contentPath": ["string"],
 											},
 											selectorVariant: {
-												probeCases: [
-													{
-														id: "path",
-													params: {
-														namespace: "/[namespace]/[target]:IpfsResource.ResourceAddress.1.namespace",
-														target: "/[namespace]/[target]:IpfsResource.ResourceAddress.1.target",
-														contentPath: "/[namespace]/[target]/path/[...contentPath]:IpfsResource.ResourceAddress.path.1.contentPath",
-														},
-													},
-												],
 												params: {
 													contentPath: ["contentPath"],
 												},
@@ -75982,14 +75336,6 @@ export const routes = defineRoutes(schema)({
 							selectors: {
 								[EntityType.NetworkStack]: {
 									"NetworkStackId": {
-										probeCases: [
-											{
-												id: "default",
-												params: {
-													networkStackId: "/network-stack/[networkStackId]:NetworkStack.NetworkStackId.1.networkStackId",
-												},
-											},
-										],
 
 										params: {
 											"networkStackId": [
@@ -76043,113 +75389,14 @@ export const routes = defineRoutes(schema)({
 									selectors: {
 										[EntityType.Network]: {
 											"Caip2": {
-												probeCases: [
-													{
-														id: "default",
-														params: {
-															network: "/network/[network]:Network.Caip2.1.network",
-														},
-													},
-											],
 
 											params: {
 												"network": ["caip2"],
 											},
 											page: {},
-										},
-											"Slug": {
-												probeCases: [
-													{
-														id: "default",
-														params: {
-															network: "/network/[network]:Network.Slug.1.network",
-														},
-													},
-													{
-														id: "variant-2",
-														params: {
-															network: "/network/[network]:Network.Slug.2.network",
-														},
-													},
-													{
-														id: "variant-3",
-														params: {
-															network: "/network/[network]:Network.Slug.3.network",
-														},
-													},
-													{
-														id: "variant-4",
-														params: {
-															network: "/network/[network]:Network.Slug.4.network",
-														},
-													},
-													{
-														id: "variant-5",
-														params: {
-															network: "/network/[network]:Network.Slug.5.network",
-														},
-													},
-													{
-														id: "variant-6",
-														params: {
-															network: "/network/[network]:Network.Slug.6.network",
-														},
-													},
-													{
-														id: "variant-7",
-														params: {
-															network: "/network/[network]:Network.Slug.7.network",
-														},
-													},
-													{
-														id: "variant-8",
-														params: {
-															network: "/network/[network]:Network.Slug.8.network",
-														},
-													},
-													{
-														id: "variant-9",
-														params: {
-															network: "/network/[network]:Network.Slug.9.network",
-														},
-													},
-													{
-														id: "variant-10",
-														params: {
-															network: "/network/[network]:Network.Slug.10.network",
-														},
-													},
-													{
-														id: "variant-11",
-														params: {
-															network: "/network/[network]:Network.Slug.11.network",
-														},
-													},
-													{
-														id: "variant-12",
-														params: {
-															network: "/network/[network]:Network.Slug.12.network",
-														},
-													},
-													{
-														id: "variant-13",
-														params: {
-															network: "/network/[network]:Network.Slug.13.network",
-														},
-													},
-													{
-														id: "variant-14",
-														params: {
-															network: "/network/[network]:Network.Slug.14.network",
-														},
-													},
-													{
-														id: "variant-15",
-														params: {
-															network: "/network/[network]:Network.Slug.15.network",
-														},
-													},
-											],
+						},
+							"Slug": {
+								probeCount: 15,
 
 											params: {
 												"network": ["slug"],
@@ -76171,15 +75418,6 @@ export const routes = defineRoutes(schema)({
 															selectors: {
 																[EntityType.PolkadotAccount]: {
 																	"NetworkAccountId": {
-																		probeCases: [
-																			{
-																				id: "default",
-																				params: {
-																					network: "/network/[network]/account/[accountId]:PolkadotAccount.NetworkAccountId.1.network",
-																					accountId: "/network/[network]/account/[accountId]:PolkadotAccount.NetworkAccountId.1.accountId",
-																				},
-																			},
-																		],
 
 																		when: {
 																			path: ["namespace"],
@@ -76201,15 +75439,6 @@ export const routes = defineRoutes(schema)({
 																},
 																[EntityType.CosmosAccount]: {
 																	"NetworkAddress": {
-																		probeCases: [
-																			{
-																				id: "default",
-																				params: {
-																					network: "/network/[network]/account/[accountId]:CosmosAccount.NetworkAddress.1.network",
-																					accountId: "/network/[network]/account/[accountId]:CosmosAccount.NetworkAddress.1.accountId",
-																				},
-																			},
-																		],
 
 																		when: {
 																			path: ["namespace"],
@@ -76229,15 +75458,6 @@ export const routes = defineRoutes(schema)({
 																},
 																[EntityType.HederaAccount]: {
 																	"NetworkAccountId": {
-																		probeCases: [
-																			{
-																				id: "default",
-																				params: {
-																					network: "/network/[network]/account/[accountId]:HederaAccount.NetworkAccountId.1.network",
-																					accountId: "/network/[network]/account/[accountId]:HederaAccount.NetworkAccountId.1.accountId",
-																				},
-																			},
-																		],
 																		when: {
 																			path: ["namespace"],
 																			is: "Hedera",
@@ -76254,15 +75474,6 @@ export const routes = defineRoutes(schema)({
 																},
 																[EntityType.CardanoAddress]: {
 																	"NetworkAddress": {
-																		probeCases: [
-																			{
-																				id: "default",
-																				params: {
-																					network: "/network/[network]/account/[accountId]:CardanoAddress.NetworkAddress.1.network",
-																					accountId: "/network/[network]/account/[accountId]:CardanoAddress.NetworkAddress.1.accountId",
-																				},
-																			},
-																		],
 																		projection: {
 																			entityType: EntityType.Network,
 																			facetPath: ["Cardano"],
@@ -76275,15 +75486,6 @@ export const routes = defineRoutes(schema)({
 																},
 																[EntityType.EvmNetworkAccount]: {
 																	"EvmNetworkEvmAccount": {
-																		probeCases: [
-																			{
-																				id: "default",
-																				params: {
-																					network: "/network/[network]/account/[accountId]:EvmNetworkAccount.EvmNetworkEvmAccount.1.network",
-																					accountId: "/network/[network]/account/[accountId]:EvmNetworkAccount.EvmNetworkEvmAccount.1.accountId",
-																				},
-																			},
-																		],
 
 																		when: {
 																			path: ["namespace"],
@@ -76304,15 +75506,6 @@ export const routes = defineRoutes(schema)({
 																},
 																[EntityType.SolanaAccount]: {
 																	"NetworkPubkey": {
-																		probeCases: [
-																			{
-																				id: "default",
-																				params: {
-																					network: "/network/[network]/account/[accountId]:SolanaAccount.NetworkPubkey.1.network",
-																					accountId: "/network/[network]/account/[accountId]:SolanaAccount.NetworkPubkey.1.accountId",
-																				},
-																			},
-																		],
 
 																		when: {
 																			path: ["namespace"],
@@ -76334,15 +75527,6 @@ export const routes = defineRoutes(schema)({
 																},
 																[EntityType.TonAccount]: {
 																	"NetworkAddress": {
-																		probeCases: [
-																			{
-																				id: "default",
-																				params: {
-																					network: "/network/[network]/account/[accountId]:TonAccount.NetworkAddress.1.network",
-																					accountId: "/network/[network]/account/[accountId]:TonAccount.NetworkAddress.1.accountId",
-																				},
-																			},
-																		],
 
 																		when: {
 																			path: ["namespace"],
@@ -76363,15 +75547,6 @@ export const routes = defineRoutes(schema)({
 																},
 																[EntityType.XrplAccount]: {
 																	"NetworkAccount": {
-																		probeCases: [
-																			{
-																				id: "default",
-																				params: {
-																					network: "/network/[network]/account/[accountId]:XrplAccount.NetworkAccount.1.network",
-																					accountId: "/network/[network]/account/[accountId]:XrplAccount.NetworkAccount.1.accountId",
-																				},
-																			},
-																		],
 																		when: {
 																			path: ["namespace"],
 																			is: "Xrpl",
@@ -76396,17 +75571,6 @@ export const routes = defineRoutes(schema)({
 																					selectors: {
 																						[EntityType.PolkadotAccount_Timestamp]: {
 																							"AccountTimestampMsSource": {
-																								probeCases: [
-																									{
-																										id: "default",
-																										params: {
-																											network: "/network/[network]/account/[accountId]/observation/[timestampMs]/[source]:PolkadotAccount_Timestamp.AccountTimestampMsSource.1.network",
-																											accountId: "/network/[network]/account/[accountId]/observation/[timestampMs]/[source]:PolkadotAccount_Timestamp.AccountTimestampMsSource.1.accountId",
-																											timestampMs: "/network/[network]/account/[accountId]/observation/[timestampMs]/[source]:PolkadotAccount_Timestamp.AccountTimestampMsSource.1.timestampMs",
-																											source: "/network/[network]/account/[accountId]/observation/[timestampMs]/[source]:PolkadotAccount_Timestamp.AccountTimestampMsSource.1.source",
-																										},
-																									},
-																								],
 
 																								projection: {
 																									entityType: EntityType.Network,
@@ -76445,7 +75609,6 @@ export const routes = defineRoutes(schema)({
 															selectors: {
 																[EntityType.Network_Activity_Day]: {
 																	"NetworkDayStartTimestampMsSource": {
-																		probeCases: [{ id: "default", params: { network: "/network/[network]/activity/day/[dayStartTimestampMs]:Network_Activity_Day.NetworkDayStartTimestampMsSource.1.network", dayStartTimestampMs: "/network/[network]/activity/day/[dayStartTimestampMs]:Network_Activity_Day.NetworkDayStartTimestampMsSource.1.dayStartTimestampMs" } }],
 																		projection: { entityType: EntityType.Network, facetPath: ["Evm"] },
 																		params: { dayStartTimestampMs: ["dayStartTimestampMs"] },
 																		derivations: { source: { kind: "literal", value: Source.SpaceAndTime_MakeInfinite } },
@@ -76464,7 +75627,6 @@ export const routes = defineRoutes(schema)({
 													selectors: {
 														[EntityType.FilecoinActor]: {
 															"NetworkAddress": {
-																probeCases: [{ id: "default", params: { network: "/network/[network]/actor/[address]:FilecoinActor.NetworkAddress.1.network", address: "/network/[network]/actor/[address]:FilecoinActor.NetworkAddress.1.address" } }],
 																when: { path: ["namespace"], is: "Filecoin" },
 																projection: { entityType: EntityType.Network, facetPath: ["Filecoin"] },
 																params: { "address": ["address"] },
@@ -76483,7 +75645,6 @@ export const routes = defineRoutes(schema)({
 																					selectors: {
 																						[EntityType.FilecoinActor_Timestamp]: {
 																							"ActorHeightTipsetKeySource": {
-																								probeCases: [{ id: "default", params: { network: "/network/[network]/actor/[address]/observations/[height]/[tipsetKey]/[source]:FilecoinActor_Timestamp.ActorHeightTipsetKeySource.1.network", address: "/network/[network]/actor/[address]/observations/[height]/[tipsetKey]/[source]:FilecoinActor_Timestamp.ActorHeightTipsetKeySource.1.address", height: "/network/[network]/actor/[address]/observations/[height]/[tipsetKey]/[source]:FilecoinActor_Timestamp.ActorHeightTipsetKeySource.1.height", tipsetKey: "/network/[network]/actor/[address]/observations/[height]/[tipsetKey]/[source]:FilecoinActor_Timestamp.ActorHeightTipsetKeySource.1.tipsetKey", source: "/network/[network]/actor/[address]/observations/[height]/[tipsetKey]/[source]:FilecoinActor_Timestamp.ActorHeightTipsetKeySource.1.source" } }],
 																								projection: { entityType: EntityType.Network, facetPath: ["Filecoin"] },
 																								params: { "height": ["height"], "tipsetKey": ["tipsetKey"], "source": ["source"] },
 																								page: {},
@@ -76507,7 +75668,6 @@ export const routes = defineRoutes(schema)({
 													selectors: {
 														[EntityType.FilecoinMiner]: {
 															"NetworkMinerAddress": {
-																probeCases: [{ id: "default", params: { network: "/network/[network]/miner/[minerAddress]:FilecoinMiner.NetworkMinerAddress.1.network", minerAddress: "/network/[network]/miner/[minerAddress]:FilecoinMiner.NetworkMinerAddress.1.minerAddress" } }],
 																when: { path: ["namespace"], is: "Filecoin" },
 																projection: { entityType: EntityType.Network, facetPath: ["Filecoin"] },
 																params: { "minerAddress": ["minerAddress"] },
@@ -76526,7 +75686,6 @@ export const routes = defineRoutes(schema)({
 																					selectors: {
 																						[EntityType.FilecoinMiner_Timestamp]: {
 																							"MinerHeightTipsetKeySource": {
-																								probeCases: [{ id: "default", params: { network: "/network/[network]/miner/[minerAddress]/observations/[height]/[tipsetKey]/[source]:FilecoinMiner_Timestamp.MinerHeightTipsetKeySource.1.network", minerAddress: "/network/[network]/miner/[minerAddress]/observations/[height]/[tipsetKey]/[source]:FilecoinMiner_Timestamp.MinerHeightTipsetKeySource.1.minerAddress", height: "/network/[network]/miner/[minerAddress]/observations/[height]/[tipsetKey]/[source]:FilecoinMiner_Timestamp.MinerHeightTipsetKeySource.1.height", tipsetKey: "/network/[network]/miner/[minerAddress]/observations/[height]/[tipsetKey]/[source]:FilecoinMiner_Timestamp.MinerHeightTipsetKeySource.1.tipsetKey", source: "/network/[network]/miner/[minerAddress]/observations/[height]/[tipsetKey]/[source]:FilecoinMiner_Timestamp.MinerHeightTipsetKeySource.1.source" } }],
 																								projection: { entityType: EntityType.Network, facetPath: ["Filecoin"] },
 																								params: { "height": ["height"], "tipsetKey": ["tipsetKey"], "source": ["source"] },
 																								page: {},
@@ -76550,7 +75709,6 @@ export const routes = defineRoutes(schema)({
 													selectors: {
 														[EntityType.XrplAmendment]: {
 															"NetworkAmendmentId": {
-																probeCases: [{ id: "default", params: { network: "/network/[network]/amendment/[amendmentId]:XrplAmendment.NetworkAmendmentId.1.network", amendmentId: "/network/[network]/amendment/[amendmentId]:XrplAmendment.NetworkAmendmentId.1.amendmentId" } }],
 																when: { path: ["namespace"], is: "Xrpl" },
 																projection: { entityType: EntityType.Network, facetPath: ["Xrpl"] },
 																params: { "amendmentId": ["amendmentId"] },
@@ -76567,7 +75725,6 @@ export const routes = defineRoutes(schema)({
 													selectors: {
 														[EntityType.XrplAmm]: {
 															"NetworkAmmAccount": {
-																probeCases: [{ id: "default", params: { network: "/network/[network]/amm/[ammAccount]:XrplAmm.NetworkAmmAccount.1.network", ammAccount: "/network/[network]/amm/[ammAccount]:XrplAmm.NetworkAmmAccount.1.ammAccount" } }],
 																when: { path: ["namespace"], is: "Xrpl" },
 																projection: { entityType: EntityType.Network, facetPath: ["Xrpl"] },
 																params: { "ammAccount": ["ammAccount"] },
@@ -76584,7 +75741,6 @@ export const routes = defineRoutes(schema)({
 													selectors: {
 														[EntityType.XrplLedger]: {
 															"NetworkLedgerIndex": {
-																probeCases: [{ id: "default", params: { network: "/network/[network]/ledger/[ledgerIndex]:XrplLedger.NetworkLedgerIndex.1.network", ledgerIndex: "/network/[network]/ledger/[ledgerIndex]:XrplLedger.NetworkLedgerIndex.1.ledgerIndex" } }],
 																when: { path: ["namespace"], is: "Xrpl" },
 																projection: { entityType: EntityType.Network, facetPath: ["Xrpl"] },
 																params: { "ledgerIndex": ["ledgerIndex"] },
@@ -76601,7 +75757,6 @@ export const routes = defineRoutes(schema)({
 													selectors: {
 														[EntityType.XrplTransaction]: {
 															"NetworkHash": {
-																probeCases: [{ id: "default", params: { network: "/network/[network]/transaction/[hash]:XrplTransaction.NetworkHash.1.network", hash: "/network/[network]/transaction/[hash]:XrplTransaction.NetworkHash.1.hash" } }],
 																when: { path: ["namespace"], is: "Xrpl" },
 																projection: { entityType: EntityType.Network, facetPath: ["Xrpl"] },
 																params: { "hash": ["hash"] },
@@ -76622,7 +75777,6 @@ export const routes = defineRoutes(schema)({
 																	selectors: {
 																		[EntityType.XrplTrustline]: {
 																			"NetworkAccountCurrencyIssuer": {
-																				probeCases: [{ id: "default", params: { network: "/network/[network]/trustline/[account]/[currency]/[issuer]:XrplTrustline.NetworkAccountCurrencyIssuer.1.network", account: "/network/[network]/trustline/[account]/[currency]/[issuer]:XrplTrustline.NetworkAccountCurrencyIssuer.1.account", currency: "/network/[network]/trustline/[account]/[currency]/[issuer]:XrplTrustline.NetworkAccountCurrencyIssuer.1.currency", issuer: "/network/[network]/trustline/[account]/[currency]/[issuer]:XrplTrustline.NetworkAccountCurrencyIssuer.1.issuer" } }],
 																				when: { path: ["namespace"], is: "Xrpl" },
 																				projection: { entityType: EntityType.Network, facetPath: ["Xrpl"] },
 																				params: {
@@ -76733,16 +75887,6 @@ export const routes = defineRoutes(schema)({
 															selectors: {
 																[EntityType.EvmNetwork_Timestamp]: {
 																	"NetworkTimestampMsSource": {
-																		probeCases: [
-																			{
-																				id: "default",
-																				params: {
-																					network: "/network/[network]/observations/[timestampMs]/[source]:EvmNetwork_Timestamp.NetworkTimestampMsSource.1.network",
-																					timestampMs: "/network/[network]/observations/[timestampMs]/[source]:EvmNetwork_Timestamp.NetworkTimestampMsSource.1.timestampMs",
-																					source: "/network/[network]/observations/[timestampMs]/[source]:EvmNetwork_Timestamp.NetworkTimestampMsSource.1.source",
-																				},
-																			},
-																		],
 
 																		projection: {
 																			entityType: EntityType.Network,
@@ -76786,16 +75930,6 @@ export const routes = defineRoutes(schema)({
 															selectors: {
 																[EntityType.EvmNetwork_Txpool_Timestamp]: {
 																	"NetworkTimestampMsSource": {
-																		probeCases: [
-																			{
-																				id: "default",
-																				params: {
-																					network: "/network/[network]/mempool/[timestampMs]/[source]:EvmNetwork_Txpool_Timestamp.NetworkTimestampMsSource.1.network",
-																					timestampMs: "/network/[network]/mempool/[timestampMs]/[source]:EvmNetwork_Txpool_Timestamp.NetworkTimestampMsSource.1.timestampMs",
-																					source: "/network/[network]/mempool/[timestampMs]/[source]:EvmNetwork_Txpool_Timestamp.NetworkTimestampMsSource.1.source",
-																				},
-																			},
-																		],
 
 																		projection: {
 																			entityType: EntityType.Network,
@@ -76839,15 +75973,6 @@ export const routes = defineRoutes(schema)({
 															selectors: {
 																[EntityType.EvmNetwork_GasFee_Block]: {
 																	"EvmNetworkBlockNumber": {
-																		probeCases: [
-																			{
-																				id: "default",
-																				params: {
-																					network: "/network/[network]/fee-market/block/[blockNumber]:EvmNetwork_GasFee_Block.EvmNetworkBlockNumber.1.network",
-																					blockNumber: "/network/[network]/fee-market/block/[blockNumber]:EvmNetwork_GasFee_Block.EvmNetworkBlockNumber.1.blockNumber",
-																				},
-																			},
-																		],
 
 																		projection: {
 																			entityType: EntityType.Network,
@@ -76888,16 +76013,6 @@ export const routes = defineRoutes(schema)({
 															selectors: {
 																[EntityType.EvmNetwork_GasEstimate_Timestamp]: {
 																	"NetworkTimestampMsSource": {
-																		probeCases: [
-																			{
-																				id: "default",
-																				params: {
-																					network: "/network/[network]/gas-estimates/[timestampMs]/[source]:EvmNetwork_GasEstimate_Timestamp.NetworkTimestampMsSource.1.network",
-																					timestampMs: "/network/[network]/gas-estimates/[timestampMs]/[source]:EvmNetwork_GasEstimate_Timestamp.NetworkTimestampMsSource.1.timestampMs",
-																					source: "/network/[network]/gas-estimates/[timestampMs]/[source]:EvmNetwork_GasEstimate_Timestamp.NetworkTimestampMsSource.1.source",
-																				},
-																			},
-																		],
 
 																		projection: {
 																			entityType: EntityType.Network,
@@ -77063,16 +76178,6 @@ export const routes = defineRoutes(schema)({
 															selectors: {
 																[EntityType.EvmNetworkBridge]: {
 																	"FromToUrl": {
-																		probeCases: [
-																			{
-																				id: "default",
-																				params: {
-																					network: "/network/[network]/bridges/[toCaip2]/[url]:EvmNetworkBridge.FromToUrl.1.network",
-																					toCaip2: "/network/[network]/bridges/[toCaip2]/[url]:EvmNetworkBridge.FromToUrl.1.toCaip2",
-																					url: "/network/[network]/bridges/[toCaip2]/[url]:EvmNetworkBridge.FromToUrl.1.url",
-																				},
-																			},
-																		],
 
 																		projection: {
 																			entityType: EntityType.Network,
@@ -77133,16 +76238,6 @@ export const routes = defineRoutes(schema)({
 															selectors: {
 																[EntityType.AssetInstance]: {
 																	"NetworkKindAssetKey": {
-																		probeCases: [
-																			{
-																				id: "default",
-																				params: {
-																					network: "/network/[network]/asset/[kind]/[assetKey]:AssetInstance.NetworkKindAssetKey.1.network",
-																					kind: "/network/[network]/asset/[kind]/[assetKey]:AssetInstance.NetworkKindAssetKey.1.kind",
-																					assetKey: "/network/[network]/asset/[kind]/[assetKey]:AssetInstance.NetworkKindAssetKey.1.assetKey",
-																				},
-																			},
-																		],
 
 																		projection: {
 																			entityType: EntityType.Network,
@@ -77243,15 +76338,6 @@ export const routes = defineRoutes(schema)({
 													selectors: {
 														[EntityType.EvmRollup]: {
 															"EvmNetworkProjectId": {
-																probeCases: [
-																	{
-																		id: "default",
-																		params: {
-																			network: "/network/[network]/rollup/[projectId]:EvmRollup.EvmNetworkProjectId.1.network",
-																			projectId: "/network/[network]/rollup/[projectId]:EvmRollup.EvmNetworkProjectId.1.projectId",
-																		},
-																	},
-																],
 
 																projection: {
 																	entityType: EntityType.Network,
@@ -77276,17 +76362,6 @@ export const routes = defineRoutes(schema)({
 																			selectors: {
 																				[EntityType.EvmRollup_Timestamp]: {
 																					"RollupTimestampMsSource": {
-																						probeCases: [
-																							{
-																								id: "default",
-																								params: {
-																									network: "/network/[network]/rollup/[projectId]/timestamp/[timestampMs]/[source]:EvmRollup_Timestamp.RollupTimestampMsSource.1.network",
-																									projectId: "/network/[network]/rollup/[projectId]/timestamp/[timestampMs]/[source]:EvmRollup_Timestamp.RollupTimestampMsSource.1.projectId",
-																									timestampMs: "/network/[network]/rollup/[projectId]/timestamp/[timestampMs]/[source]:EvmRollup_Timestamp.RollupTimestampMsSource.1.timestampMs",
-																									source: "/network/[network]/rollup/[projectId]/timestamp/[timestampMs]/[source]:EvmRollup_Timestamp.RollupTimestampMsSource.1.source",
-																								},
-																							},
-																						],
 
 																						projection: {
 																							entityType: EntityType.Network,
@@ -77327,15 +76402,6 @@ export const routes = defineRoutes(schema)({
 															selectors: {
 																[EntityType.EvmBlock]: {
 																	"EvmNetworkBlockNumber": {
-																		probeCases: [
-																			{
-																				id: "default",
-																				params: {
-																					network: "/network/[network]/block/[blockNumber]:EvmBlock.EvmNetworkBlockNumber.1.network",
-																					blockNumber: "/network/[network]/block/[blockNumber]:EvmBlock.EvmNetworkBlockNumber.1.blockNumber",
-																				},
-																			},
-																		],
 
 																		when: {
 																			path: ["namespace"],
@@ -77356,15 +76422,6 @@ export const routes = defineRoutes(schema)({
 																},
 																[EntityType.SolanaBlock]: {
 																	"Slot": {
-																		probeCases: [
-																			{
-																				id: "default",
-																				params: {
-																					network: "/network/[network]/block/[blockNumber]:SolanaBlock.Slot.1.network",
-																					blockNumber: "/network/[network]/block/[blockNumber]:SolanaBlock.Slot.1.blockNumber",
-																				},
-																			},
-																		],
 
 																		when: {
 																			path: ["namespace"],
@@ -77385,15 +76442,6 @@ export const routes = defineRoutes(schema)({
 																},
 																[EntityType.UtxoBlock]: {
 																	"NetworkHeight": {
-																		probeCases: [
-																			{
-																				id: "default",
-																				params: {
-																					network: "/network/[network]/block/[blockNumber]:UtxoBlock.NetworkHeight.1.network",
-																					blockNumber: "/network/[network]/block/[blockNumber]:UtxoBlock.NetworkHeight.1.blockNumber",
-																				},
-																			},
-																		],
 
 																		when: {
 																			path: ["namespace"],
@@ -77424,15 +76472,6 @@ export const routes = defineRoutes(schema)({
 																},
 																[EntityType.PolkadotBlock]: {
 																	"NetworkBlockNumber": {
-																		probeCases: [
-																			{
-																				id: "default",
-																				params: {
-																					network: "/network/[network]/block/[blockNumber]:PolkadotBlock.NetworkBlockNumber.1.network",
-																					blockNumber: "/network/[network]/block/[blockNumber]:PolkadotBlock.NetworkBlockNumber.1.blockNumber",
-																				},
-																			},
-																		],
 
 																		when: {
 																			path: ["namespace"],
@@ -77471,16 +76510,6 @@ export const routes = defineRoutes(schema)({
 																	selectors: {
 																		[EntityType.PolkadotBlock]: {
 																			"NetworkBlockNumberHash": {
-																				probeCases: [
-																					{
-																						id: "default",
-																						params: {
-																							network: "/network/[network]/block/[blockNumber]/[hash]:PolkadotBlock.NetworkBlockNumberHash.1.network",
-																							blockNumber: "/network/[network]/block/[blockNumber]/[hash]:PolkadotBlock.NetworkBlockNumberHash.1.blockNumber",
-																							hash: "/network/[network]/block/[blockNumber]/[hash]:PolkadotBlock.NetworkBlockNumberHash.1.hash",
-																						},
-																					},
-																				],
 
 																				when: {
 																					path: ["namespace"],
@@ -77505,16 +76534,6 @@ export const routes = defineRoutes(schema)({
 																		},
 																		[EntityType.UtxoBlock]: {
 																			"NetworkHeightHash": {
-																				probeCases: [
-																					{
-																						id: "default",
-																						params: {
-																							network: "/network/[network]/block/[blockNumber]/[hash]:UtxoBlock.NetworkHeightHash.1.network",
-																							blockNumber: "/network/[network]/block/[blockNumber]/[hash]:UtxoBlock.NetworkHeightHash.1.blockNumber",
-																							hash: "/network/[network]/block/[blockNumber]/[hash]:UtxoBlock.NetworkHeightHash.1.hash",
-																						},
-																					},
-																				],
 
 																				when: {
 																					path: ["namespace"],
@@ -77552,17 +76571,6 @@ export const routes = defineRoutes(schema)({
 																					selectors: {
 																						[EntityType.PolkadotExtrinsic]: {
 																							"BlockIndexInBlock": {
-																								probeCases: [
-																									{
-																										id: "default",
-																										params: {
-																											network: "/network/[network]/block/[blockNumber]/[hash]/extrinsic/[extrinsicIndex]:PolkadotExtrinsic.BlockIndexInBlock.1.network",
-																											blockNumber: "/network/[network]/block/[blockNumber]/[hash]/extrinsic/[extrinsicIndex]:PolkadotExtrinsic.BlockIndexInBlock.1.blockNumber",
-																											hash: "/network/[network]/block/[blockNumber]/[hash]/extrinsic/[extrinsicIndex]:PolkadotExtrinsic.BlockIndexInBlock.1.hash",
-																											extrinsicIndex: "/network/[network]/block/[blockNumber]/[hash]/extrinsic/[extrinsicIndex]:PolkadotExtrinsic.BlockIndexInBlock.1.extrinsicIndex",
-																										},
-																									},
-																								],
 
 																								projection: {
 																									entityType: EntityType.Network,
@@ -77588,17 +76596,6 @@ export const routes = defineRoutes(schema)({
 																					selectors: {
 																						[EntityType.PolkadotEvent]: {
 																							"BlockIndexInBlock": {
-																								probeCases: [
-																									{
-																										id: "default",
-																										params: {
-																											network: "/network/[network]/block/[blockNumber]/[hash]/event/[eventIndex]:PolkadotEvent.BlockIndexInBlock.1.network",
-																											blockNumber: "/network/[network]/block/[blockNumber]/[hash]/event/[eventIndex]:PolkadotEvent.BlockIndexInBlock.1.blockNumber",
-																											hash: "/network/[network]/block/[blockNumber]/[hash]/event/[eventIndex]:PolkadotEvent.BlockIndexInBlock.1.hash",
-																											eventIndex: "/network/[network]/block/[blockNumber]/[hash]/event/[eventIndex]:PolkadotEvent.BlockIndexInBlock.1.eventIndex",
-																										},
-																									},
-																								],
 
 																								projection: {
 																									entityType: EntityType.Network,
@@ -77639,15 +76636,6 @@ export const routes = defineRoutes(schema)({
 															selectors: {
 																[EntityType.EvmTransaction]: {
 																	"EvmNetworkTxHash": {
-																		probeCases: [
-																			{
-																				id: "default",
-																				params: {
-																					network: "/network/[network]/tx/[transactionId]:EvmTransaction.EvmNetworkTxHash.1.network",
-																					transactionId: "/network/[network]/tx/[transactionId]:EvmTransaction.EvmNetworkTxHash.1.transactionId",
-																				},
-																			},
-																		],
 
 																		when: {
 																			path: ["namespace"],
@@ -77668,15 +76656,6 @@ export const routes = defineRoutes(schema)({
 																},
 																[EntityType.SolanaTransaction]: {
 																	"NetworkSignature": {
-																		probeCases: [
-																			{
-																				id: "default",
-																				params: {
-																					network: "/network/[network]/tx/[transactionId]:SolanaTransaction.NetworkSignature.1.network",
-																					transactionId: "/network/[network]/tx/[transactionId]:SolanaTransaction.NetworkSignature.1.transactionId",
-																				},
-																			},
-																		],
 
 																		when: {
 																			path: ["namespace"],
@@ -77697,15 +76676,6 @@ export const routes = defineRoutes(schema)({
 																},
 																[EntityType.CardanoTransaction]: {
 																	"NetworkHash": {
-																		probeCases: [
-																			{
-																				id: "default",
-																				params: {
-																					network: "/network/[network]/tx/[transactionId]:CardanoTransaction.NetworkHash.1.network",
-																					transactionId: "/network/[network]/tx/[transactionId]:CardanoTransaction.NetworkHash.1.transactionId",
-																				},
-																			},
-																		],
 																		projection: {
 																			entityType: EntityType.Network,
 																			facetPath: ["Cardano"],
@@ -77718,15 +76688,6 @@ export const routes = defineRoutes(schema)({
 																},
 																[EntityType.UtxoTransaction]: {
 																	"NetworkTxId": {
-																		probeCases: [
-																			{
-																				id: "default",
-																				params: {
-																					network: "/network/[network]/tx/[transactionId]:UtxoTransaction.NetworkTxId.1.network",
-																					transactionId: "/network/[network]/tx/[transactionId]:UtxoTransaction.NetworkTxId.1.transactionId",
-																				},
-																			},
-																		],
 
 																		when: {
 																			path: ["namespace"],
@@ -77760,16 +76721,6 @@ export const routes = defineRoutes(schema)({
 																			selectors: {
 																				[EntityType.EvmLog]: {
 																					"TransactionIndexInTransaction": {
-																						probeCases: [
-																							{
-																								id: "default",
-																								params: {
-																									network: "/network/[network]/tx/[transactionId]/log/[indexInTransaction]:EvmLog.TransactionIndexInTransaction.1.network",
-																									transactionId: "/network/[network]/tx/[transactionId]/log/[indexInTransaction]:EvmLog.TransactionIndexInTransaction.1.transactionId",
-																									indexInTransaction: "/network/[network]/tx/[transactionId]/log/[indexInTransaction]:EvmLog.TransactionIndexInTransaction.1.indexInTransaction",
-																								},
-																							},
-																						],
 
 																						projection: {
 																							entityType: EntityType.Network,
@@ -77792,17 +76743,6 @@ export const routes = defineRoutes(schema)({
 																							selectors: {
 																								[EntityType.EvmTokenTransfer]: {
 																									"LogIndexInLog": {
-																										probeCases: [
-																											{
-																												id: "default",
-																												params: {
-																													network: "/network/[network]/tx/[transactionId]/log/[indexInTransaction]/token-transfer/[transferIndex]:EvmTokenTransfer.LogIndexInLog.1.network",
-																													transactionId: "/network/[network]/tx/[transactionId]/log/[indexInTransaction]/token-transfer/[transferIndex]:EvmTokenTransfer.LogIndexInLog.1.transactionId",
-																													indexInTransaction: "/network/[network]/tx/[transactionId]/log/[indexInTransaction]/token-transfer/[transferIndex]:EvmTokenTransfer.LogIndexInLog.1.indexInTransaction",
-																													transferIndex: "/network/[network]/tx/[transactionId]/log/[indexInTransaction]/token-transfer/[transferIndex]:EvmTokenTransfer.LogIndexInLog.1.transferIndex",
-																												},
-																											},
-																										],
 
 																										projection: {
 																											entityType: EntityType.Network,
@@ -77831,16 +76771,6 @@ export const routes = defineRoutes(schema)({
 																			selectors: {
 																				[EntityType.EvmInternalTransfer]: {
 																					"TransactionIndexInTransaction": {
-																						probeCases: [
-																							{
-																								id: "default",
-																								params: {
-																									network: "/network/[network]/tx/[transactionId]/internal-transfer/[indexInTransaction]:EvmInternalTransfer.TransactionIndexInTransaction.1.network",
-																									transactionId: "/network/[network]/tx/[transactionId]/internal-transfer/[indexInTransaction]:EvmInternalTransfer.TransactionIndexInTransaction.1.transactionId",
-																									indexInTransaction: "/network/[network]/tx/[transactionId]/internal-transfer/[indexInTransaction]:EvmInternalTransfer.TransactionIndexInTransaction.1.indexInTransaction",
-																								},
-																							},
-																						],
 
 																						projection: {
 																							entityType: EntityType.Network,
@@ -77867,17 +76797,6 @@ export const routes = defineRoutes(schema)({
 																					selectors: {
 																						[EntityType.SolanaInstruction]: {
 																							"SolanaTransactionIndexInTransaction": {
-																								probeCases: [
-																									{
-																										id: "default",
-																										params: {
-																											network: "/network/[network]/tx/[transactionId]/instruction/[instructionKind]/[indexInTransaction]:SolanaInstruction.SolanaTransactionIndexInTransaction.1.network",
-																											transactionId: "/network/[network]/tx/[transactionId]/instruction/[instructionKind]/[indexInTransaction]:SolanaInstruction.SolanaTransactionIndexInTransaction.1.transactionId",
-																											instructionKind: "/network/[network]/tx/[transactionId]/instruction/[instructionKind]/[indexInTransaction]:SolanaInstruction.SolanaTransactionIndexInTransaction.1.instructionKind",
-																											indexInTransaction: "/network/[network]/tx/[transactionId]/instruction/[instructionKind]/[indexInTransaction]:SolanaInstruction.SolanaTransactionIndexInTransaction.1.indexInTransaction",
-																										},
-																									},
-																								],
 
 																								projection: {
 																									entityType: EntityType.Network,
@@ -77907,18 +76826,6 @@ export const routes = defineRoutes(schema)({
 																									selectors: {
 																										[EntityType.SolanaInstruction]: {
 																											"SolanaTransactionIndexInInstruction": {
-																												probeCases: [
-																													{
-																														id: "default",
-																														params: {
-																															network: "/network/[network]/tx/[transactionId]/instruction/[instructionKind]/[indexInTransaction]/inner/[indexInInstruction]:SolanaInstruction.SolanaTransactionIndexInInstruction.1.network",
-																															transactionId: "/network/[network]/tx/[transactionId]/instruction/[instructionKind]/[indexInTransaction]/inner/[indexInInstruction]:SolanaInstruction.SolanaTransactionIndexInInstruction.1.transactionId",
-																															instructionKind: "/network/[network]/tx/[transactionId]/instruction/[instructionKind]/[indexInTransaction]/inner/[indexInInstruction]:SolanaInstruction.SolanaTransactionIndexInInstruction.1.instructionKind",
-																															indexInTransaction: "/network/[network]/tx/[transactionId]/instruction/[instructionKind]/[indexInTransaction]/inner/[indexInInstruction]:SolanaInstruction.SolanaTransactionIndexInInstruction.1.indexInTransaction",
-																															indexInInstruction: "/network/[network]/tx/[transactionId]/instruction/[instructionKind]/[indexInTransaction]/inner/[indexInInstruction]:SolanaInstruction.SolanaTransactionIndexInInstruction.1.indexInInstruction",
-																														},
-																													},
-																												],
 
 																												projection: {
 																													entityType: EntityType.Network,
@@ -78007,16 +76914,6 @@ export const routes = defineRoutes(schema)({
 																			selectors: {
 																				[EntityType.CardanoTxInput]: {
 																					"TransactionInputIndex": {
-																						probeCases: [
-																							{
-																								id: "default",
-																								params: {
-																									network: "/network/[network]/tx/[transactionId]/input/[inputIndex]:CardanoTxInput.TransactionInputIndex.1.network",
-																									transactionId: "/network/[network]/tx/[transactionId]/input/[inputIndex]:CardanoTxInput.TransactionInputIndex.1.transactionId",
-																									inputIndex: "/network/[network]/tx/[transactionId]/input/[inputIndex]:CardanoTxInput.TransactionInputIndex.1.inputIndex",
-																								},
-																							},
-																						],
 																						projection: {
 																							entityType: EntityType.Network,
 																							facetPath: ["Cardano"],
@@ -78029,16 +76926,6 @@ export const routes = defineRoutes(schema)({
 																				},
 																				[EntityType.UtxoInput]: {
 																					"TransactionIndexInTransaction": {
-																						probeCases: [
-																							{
-																								id: "default",
-																								params: {
-																									network: "/network/[network]/tx/[transactionId]/input/[inputIndex]:UtxoInput.TransactionIndexInTransaction.1.network",
-																									transactionId: "/network/[network]/tx/[transactionId]/input/[inputIndex]:UtxoInput.TransactionIndexInTransaction.1.transactionId",
-																									inputIndex: "/network/[network]/tx/[transactionId]/input/[inputIndex]:UtxoInput.TransactionIndexInTransaction.1.inputIndex",
-																								},
-																							},
-																						],
 
 																						when: {
 																							path: ["namespace"],
@@ -78074,16 +76961,6 @@ export const routes = defineRoutes(schema)({
 																			selectors: {
 																				[EntityType.CardanoTxOutput]: {
 																					"TransactionOutputIndex": {
-																						probeCases: [
-																							{
-																								id: "default",
-																								params: {
-																									network: "/network/[network]/tx/[transactionId]/output/[outputIndex]:CardanoTxOutput.TransactionOutputIndex.1.network",
-																									transactionId: "/network/[network]/tx/[transactionId]/output/[outputIndex]:CardanoTxOutput.TransactionOutputIndex.1.transactionId",
-																									outputIndex: "/network/[network]/tx/[transactionId]/output/[outputIndex]:CardanoTxOutput.TransactionOutputIndex.1.outputIndex",
-																								},
-																							},
-																						],
 																						projection: {
 																							entityType: EntityType.Network,
 																							facetPath: ["Cardano"],
@@ -78096,16 +76973,6 @@ export const routes = defineRoutes(schema)({
 																				},
 																				[EntityType.UtxoOutput]: {
 																					"TransactionIndexInTransaction": {
-																						probeCases: [
-																							{
-																								id: "default",
-																								params: {
-																									network: "/network/[network]/tx/[transactionId]/output/[outputIndex]:UtxoOutput.TransactionIndexInTransaction.1.network",
-																									transactionId: "/network/[network]/tx/[transactionId]/output/[outputIndex]:UtxoOutput.TransactionIndexInTransaction.1.transactionId",
-																									outputIndex: "/network/[network]/tx/[transactionId]/output/[outputIndex]:UtxoOutput.TransactionIndexInTransaction.1.outputIndex",
-																								},
-																							},
-																						],
 
 																						when: {
 																							path: ["namespace"],
@@ -78159,18 +77026,6 @@ export const routes = defineRoutes(schema)({
 																							selectors: {
 																								[EntityType.ZcashShieldedAction]: {
 																									"TransactionPoolActionKindIndexInTransaction": {
-																										probeCases: [
-																											{
-																												id: "default",
-																												params: {
-																													network: "/network/[network]/tx/[transactionId]/shielded-action/[pool]/[actionKind]/[actionIndex]:ZcashShieldedAction.TransactionPoolActionKindIndexInTransaction.1.network",
-																													transactionId: "/network/[network]/tx/[transactionId]/shielded-action/[pool]/[actionKind]/[actionIndex]:ZcashShieldedAction.TransactionPoolActionKindIndexInTransaction.1.transactionId",
-																													pool: "/network/[network]/tx/[transactionId]/shielded-action/[pool]/[actionKind]/[actionIndex]:ZcashShieldedAction.TransactionPoolActionKindIndexInTransaction.1.pool",
-																													actionKind: "/network/[network]/tx/[transactionId]/shielded-action/[pool]/[actionKind]/[actionIndex]:ZcashShieldedAction.TransactionPoolActionKindIndexInTransaction.1.actionKind",
-																													actionIndex: "/network/[network]/tx/[transactionId]/shielded-action/[pool]/[actionKind]/[actionIndex]:ZcashShieldedAction.TransactionPoolActionKindIndexInTransaction.1.actionIndex",
-																												},
-																											},
-																										],
 
 																										projection: {
 																											entityType: EntityType.Network,
@@ -78219,15 +77074,6 @@ export const routes = defineRoutes(schema)({
 															selectors: {
 																[EntityType.EvmContract]: {
 																	"EvmNetworkAddress": {
-																		probeCases: [
-																			{
-																				id: "default",
-																				params: {
-																					network: "/network/[network]/contract/[address]:EvmContract.EvmNetworkAddress.1.network",
-																					address: "/network/[network]/contract/[address]:EvmContract.EvmNetworkAddress.1.address",
-																				},
-																			},
-																		],
 
 																		projection: {
 																			entityType: EntityType.Network,
@@ -78248,15 +77094,6 @@ export const routes = defineRoutes(schema)({
 																	selectors: {
 																		[EntityType.EvmContractVerification]: {
 																			"EvmContract": {
-																				probeCases: [
-																					{
-																						id: "default",
-																						params: {
-																							network: "/network/[network]/contract/[address]/verification:EvmContractVerification.EvmContract.1.network",
-																							address: "/network/[network]/contract/[address]/verification:EvmContractVerification.EvmContract.1.address",
-																						},
-																					},
-																				],
 
 																				projection: {
 																					entityType: EntityType.Network,
@@ -78290,16 +77127,6 @@ export const routes = defineRoutes(schema)({
 																	selectors: {
 																		[EntityType.EvmBlob]: {
 																			"TransactionIndexInTransaction": {
-																				probeCases: [
-																					{
-																						id: "default",
-																						params: {
-																							network: "/network/[network]/blob/[transactionId]/[indexInTransaction]:EvmBlob.TransactionIndexInTransaction.1.network",
-																							transactionId: "/network/[network]/blob/[transactionId]/[indexInTransaction]:EvmBlob.TransactionIndexInTransaction.1.transactionId",
-																							indexInTransaction: "/network/[network]/blob/[transactionId]/[indexInTransaction]:EvmBlob.TransactionIndexInTransaction.1.indexInTransaction",
-																						},
-																					},
-																				],
 
 																				projection: {
 																					entityType: EntityType.Network,
@@ -78340,15 +77167,6 @@ export const routes = defineRoutes(schema)({
 															selectors: {
 																[EntityType.EthereumNetworkUpgrade]: {
 																	"EvmNetworkSlug": {
-																		probeCases: [
-																			{
-																				id: "default",
-																				params: {
-																					network: "/network/[network]/upgrade/[upgradeSlug]:EthereumNetworkUpgrade.EvmNetworkSlug.1.network",
-																					upgradeSlug: "/network/[network]/upgrade/[upgradeSlug]:EthereumNetworkUpgrade.EvmNetworkSlug.1.upgradeSlug",
-																				},
-																			},
-																		],
 
 																		projection: {
 																			entityType: EntityType.Network,
@@ -78373,15 +77191,6 @@ export const routes = defineRoutes(schema)({
 															selectors: {
 																[EntityType.EthereumExecutionUpgrade]: {
 																	"EvmNetworkSlug": {
-																		probeCases: [
-																			{
-																				id: "default",
-																				params: {
-																					network: "/network/[network]/execution/[upgradeSlug]:EthereumExecutionUpgrade.EvmNetworkSlug.1.network",
-																					upgradeSlug: "/network/[network]/execution/[upgradeSlug]:EthereumExecutionUpgrade.EvmNetworkSlug.1.upgradeSlug",
-																				},
-																			},
-																		],
 
 																		projection: {
 																			entityType: EntityType.Network,
@@ -78406,15 +77215,6 @@ export const routes = defineRoutes(schema)({
 															selectors: {
 																[EntityType.EthereumConsensusUpgrade]: {
 																	"EvmNetworkSlug": {
-																		probeCases: [
-																			{
-																				id: "default",
-																				params: {
-																					network: "/network/[network]/consensus/[upgradeSlug]:EthereumConsensusUpgrade.EvmNetworkSlug.1.network",
-																					upgradeSlug: "/network/[network]/consensus/[upgradeSlug]:EthereumConsensusUpgrade.EvmNetworkSlug.1.upgradeSlug",
-																				},
-																			},
-																		],
 
 																		projection: {
 																			entityType: EntityType.Network,
@@ -78454,15 +77254,6 @@ export const routes = defineRoutes(schema)({
 													selectors: {
 														[EntityType.EthereumBeaconFinality_Timestamp]: {
 															"EvmNetworkTimestampMs": {
-																probeCases: [
-																	{
-																		id: "default",
-																		params: {
-																			network: "/network/[network]/finality/[timestampMs]:EthereumBeaconFinality_Timestamp.EvmNetworkTimestampMs.1.network",
-																			timestampMs: "/network/[network]/finality/[timestampMs]:EthereumBeaconFinality_Timestamp.EvmNetworkTimestampMs.1.timestampMs",
-																		},
-																	},
-																],
 
 																projection: {
 																	entityType: EntityType.Network,
@@ -78531,15 +77322,6 @@ export const routes = defineRoutes(schema)({
 															selectors: {
 																[EntityType.MevRelay]: {
 																	"EvmNetworkHost": {
-																		probeCases: [
-																			{
-																				id: "default",
-																				params: {
-																					network: "/network/[network]/mev/relay/[host]:MevRelay.EvmNetworkHost.1.network",
-																					host: "/network/[network]/mev/relay/[host]:MevRelay.EvmNetworkHost.1.host",
-																				},
-																			},
-																		],
 
 																		projection: {
 																			entityType: EntityType.Network,
@@ -78564,17 +77346,6 @@ export const routes = defineRoutes(schema)({
 																					selectors: {
 																						[EntityType.MevRelay_Timestamp]: {
 																							"RelayTimestampMsSource": {
-																								probeCases: [
-																									{
-																										id: "default",
-																										params: {
-																											network: "/network/[network]/mev/relay/[host]/timestamp/[timestampMs]/[source]:MevRelay_Timestamp.RelayTimestampMsSource.1.network",
-																											host: "/network/[network]/mev/relay/[host]/timestamp/[timestampMs]/[source]:MevRelay_Timestamp.RelayTimestampMsSource.1.host",
-																											timestampMs: "/network/[network]/mev/relay/[host]/timestamp/[timestampMs]/[source]:MevRelay_Timestamp.RelayTimestampMsSource.1.timestampMs",
-																											source: "/network/[network]/mev/relay/[host]/timestamp/[timestampMs]/[source]:MevRelay_Timestamp.RelayTimestampMsSource.1.source",
-																										},
-																									},
-																								],
 
 																								projection: {
 																									entityType: EntityType.Network,
@@ -78608,15 +77379,6 @@ export const routes = defineRoutes(schema)({
 															selectors: {
 																[EntityType.MevBuilder]: {
 																	"EvmNetworkBuilderPubkey": {
-																		probeCases: [
-																			{
-																				id: "default",
-																				params: {
-																					network: "/network/[network]/mev/builder/[builderPubkey]:MevBuilder.EvmNetworkBuilderPubkey.1.network",
-																					builderPubkey: "/network/[network]/mev/builder/[builderPubkey]:MevBuilder.EvmNetworkBuilderPubkey.1.builderPubkey",
-																				},
-																			},
-																		],
 
 																		projection: {
 																			entityType: EntityType.Network,
@@ -78641,17 +77403,6 @@ export const routes = defineRoutes(schema)({
 																					selectors: {
 																						[EntityType.MevBuilder_Timestamp]: {
 																							"BuilderTimestampMsSource": {
-																								probeCases: [
-																									{
-																										id: "default",
-																										params: {
-																											network: "/network/[network]/mev/builder/[builderPubkey]/timestamp/[timestampMs]/[source]:MevBuilder_Timestamp.BuilderTimestampMsSource.1.network",
-																											builderPubkey: "/network/[network]/mev/builder/[builderPubkey]/timestamp/[timestampMs]/[source]:MevBuilder_Timestamp.BuilderTimestampMsSource.1.builderPubkey",
-																											timestampMs: "/network/[network]/mev/builder/[builderPubkey]/timestamp/[timestampMs]/[source]:MevBuilder_Timestamp.BuilderTimestampMsSource.1.timestampMs",
-																											source: "/network/[network]/mev/builder/[builderPubkey]/timestamp/[timestampMs]/[source]:MevBuilder_Timestamp.BuilderTimestampMsSource.1.source",
-																										},
-																									},
-																								],
 
 																								projection: {
 																									entityType: EntityType.Network,
@@ -78689,17 +77440,6 @@ export const routes = defineRoutes(schema)({
 																			selectors: {
 																				[EntityType.MevRelay_ProposerPayloadDelivered]: {
 																					"EvmNetworkRelayHostSlotBlockHash": {
-																						probeCases: [
-																							{
-																								id: "default",
-																								params: {
-																									network: "/network/[network]/mev/payload/[relayHost]/[slot]/[blockHash]:MevRelay_ProposerPayloadDelivered.EvmNetworkRelayHostSlotBlockHash.1.network",
-																									relayHost: "/network/[network]/mev/payload/[relayHost]/[slot]/[blockHash]:MevRelay_ProposerPayloadDelivered.EvmNetworkRelayHostSlotBlockHash.1.relayHost",
-																									slot: "/network/[network]/mev/payload/[relayHost]/[slot]/[blockHash]:MevRelay_ProposerPayloadDelivered.EvmNetworkRelayHostSlotBlockHash.1.slot",
-																									blockHash: "/network/[network]/mev/payload/[relayHost]/[slot]/[blockHash]:MevRelay_ProposerPayloadDelivered.EvmNetworkRelayHostSlotBlockHash.1.blockHash",
-																								},
-																							},
-																						],
 
 																						projection: {
 																							entityType: EntityType.Network,
@@ -78736,15 +77476,6 @@ export const routes = defineRoutes(schema)({
 													selectors: {
 														[EntityType.BeaconEpoch]: {
 															"EvmNetworkEpoch": {
-																probeCases: [
-																	{
-																		id: "default",
-																		params: {
-																			network: "/network/[network]/epoch/[epoch]:BeaconEpoch.EvmNetworkEpoch.1.network",
-																			epoch: "/network/[network]/epoch/[epoch]:BeaconEpoch.EvmNetworkEpoch.1.epoch",
-																		},
-																	},
-																],
 
 																projection: {
 																	entityType: EntityType.Network,
@@ -78769,15 +77500,6 @@ export const routes = defineRoutes(schema)({
 													selectors: {
 														[EntityType.BeaconSlot]: {
 															"EvmNetworkSlot": {
-																probeCases: [
-																	{
-																		id: "default",
-																		params: {
-																			network: "/network/[network]/slot/[slot]:BeaconSlot.EvmNetworkSlot.1.network",
-																			slot: "/network/[network]/slot/[slot]:BeaconSlot.EvmNetworkSlot.1.slot",
-																		},
-																	},
-																],
 
 																projection: {
 																	entityType: EntityType.Network,
@@ -78800,16 +77522,6 @@ export const routes = defineRoutes(schema)({
 																	selectors: {
 																		[EntityType.BeaconCommittee]: {
 																			"EvmNetworkSlotIndexInSlot": {
-																				probeCases: [
-																					{
-																						id: "default",
-																						params: {
-																							network: "/network/[network]/slot/[slot]/committee/[index]:BeaconCommittee.EvmNetworkSlotIndexInSlot.1.network",
-																							slot: "/network/[network]/slot/[slot]/committee/[index]:BeaconCommittee.EvmNetworkSlotIndexInSlot.1.slot",
-																							index: "/network/[network]/slot/[slot]/committee/[index]:BeaconCommittee.EvmNetworkSlotIndexInSlot.1.index",
-																						},
-																					},
-																				],
 
 																				projection: {
 																					entityType: EntityType.Network,
@@ -78837,16 +77549,6 @@ export const routes = defineRoutes(schema)({
 																	selectors: {
 																		[EntityType.BeaconAttestation]: {
 																			"EvmNetworkSlotIndexInSlot": {
-																				probeCases: [
-																					{
-																						id: "default",
-																						params: {
-																							network: "/network/[network]/slot/[slot]/attestation/[index]:BeaconAttestation.EvmNetworkSlotIndexInSlot.1.network",
-																							slot: "/network/[network]/slot/[slot]/attestation/[index]:BeaconAttestation.EvmNetworkSlotIndexInSlot.1.slot",
-																							index: "/network/[network]/slot/[slot]/attestation/[index]:BeaconAttestation.EvmNetworkSlotIndexInSlot.1.index",
-																						},
-																					},
-																				],
 
 																				projection: {
 																					entityType: EntityType.Network,
@@ -78874,16 +77576,6 @@ export const routes = defineRoutes(schema)({
 																	selectors: {
 																		[EntityType.BeaconWithdrawal]: {
 																			"EvmNetworkSlotIndexInSlot": {
-																				probeCases: [
-																					{
-																						id: "default",
-																						params: {
-																							network: "/network/[network]/slot/[slot]/withdrawal/[index]:BeaconWithdrawal.EvmNetworkSlotIndexInSlot.1.network",
-																							slot: "/network/[network]/slot/[slot]/withdrawal/[index]:BeaconWithdrawal.EvmNetworkSlotIndexInSlot.1.slot",
-																							index: "/network/[network]/slot/[slot]/withdrawal/[index]:BeaconWithdrawal.EvmNetworkSlotIndexInSlot.1.index",
-																						},
-																					},
-																				],
 
 																				projection: {
 																					entityType: EntityType.Network,
@@ -78913,17 +77605,6 @@ export const routes = defineRoutes(schema)({
 																			selectors: {
 																				[EntityType.BeaconSlashing]: {
 																					"EvmNetworkSlotKindIndexInSlot": {
-																						probeCases: [
-																							{
-																								id: "default",
-																								params: {
-																									network: "/network/[network]/slot/[slot]/slashing/[kind]/[index]:BeaconSlashing.EvmNetworkSlotKindIndexInSlot.1.network",
-																									slot: "/network/[network]/slot/[slot]/slashing/[kind]/[index]:BeaconSlashing.EvmNetworkSlotKindIndexInSlot.1.slot",
-																									kind: "/network/[network]/slot/[slot]/slashing/[kind]/[index]:BeaconSlashing.EvmNetworkSlotKindIndexInSlot.1.kind",
-																									index: "/network/[network]/slot/[slot]/slashing/[kind]/[index]:BeaconSlashing.EvmNetworkSlotKindIndexInSlot.1.index",
-																								},
-																							},
-																						],
 
 																						projection: {
 																							entityType: EntityType.Network,
@@ -78961,15 +77642,6 @@ export const routes = defineRoutes(schema)({
 													selectors: {
 														[EntityType.BeaconSyncCommittee]: {
 															"EvmNetworkPeriod": {
-																probeCases: [
-																	{
-																		id: "default",
-																		params: {
-																			network: "/network/[network]/sync-committee/[period]:BeaconSyncCommittee.EvmNetworkPeriod.1.network",
-																			period: "/network/[network]/sync-committee/[period]:BeaconSyncCommittee.EvmNetworkPeriod.1.period",
-																		},
-																	},
-																],
 
 																projection: {
 																	entityType: EntityType.Network,
@@ -78994,15 +77666,6 @@ export const routes = defineRoutes(schema)({
 													selectors: {
 														[EntityType.BeaconValidator]: {
 															"NetworkIndexInNetwork": {
-																probeCases: [
-																	{
-																		id: "default",
-																		params: {
-																			network: "/network/[network]/validator/[validatorId]:BeaconValidator.NetworkIndexInNetwork.1.network",
-																			validatorId: "/network/[network]/validator/[validatorId]:BeaconValidator.NetworkIndexInNetwork.1.validatorId",
-																		},
-																	},
-																],
 
 																projection: {
 																	entityType: EntityType.Network,
@@ -79019,15 +77682,6 @@ export const routes = defineRoutes(schema)({
 														},
 														[EntityType.SolanaValidator]: {
 															"NetworkVotePubkey": {
-																probeCases: [
-																	{
-																		id: "default",
-																		params: {
-																			network: "/network/[network]/validator/[validatorId]:SolanaValidator.NetworkVotePubkey.1.network",
-																			validatorId: "/network/[network]/validator/[validatorId]:SolanaValidator.NetworkVotePubkey.1.validatorId",
-																		},
-																	},
-																],
 
 																projection: {
 																	entityType: EntityType.Network,
@@ -79052,17 +77706,6 @@ export const routes = defineRoutes(schema)({
 																			selectors: {
 																				[EntityType.BeaconValidator_Timestamp]: {
 																					"ValidatorSlotSource": {
-																						probeCases: [
-																							{
-																								id: "default",
-																								params: {
-																									network: "/network/[network]/validator/[validatorId]/observations/[slot]/[source]:BeaconValidator_Timestamp.ValidatorSlotSource.1.network",
-																									validatorId: "/network/[network]/validator/[validatorId]/observations/[slot]/[source]:BeaconValidator_Timestamp.ValidatorSlotSource.1.validatorId",
-																									slot: "/network/[network]/validator/[validatorId]/observations/[slot]/[source]:BeaconValidator_Timestamp.ValidatorSlotSource.1.slot",
-																									source: "/network/[network]/validator/[validatorId]/observations/[slot]/[source]:BeaconValidator_Timestamp.ValidatorSlotSource.1.source",
-																								},
-																							},
-																						],
 
 																						projection: {
 																							entityType: EntityType.Network,
@@ -79168,15 +77811,6 @@ export const routes = defineRoutes(schema)({
 															selectors: {
 																[EntityType.Erc4337SmartAccount]: {
 																	"EvmNetworkAddress": {
-																		probeCases: [
-																			{
-																				id: "default",
-																				params: {
-																					network: "/network/[network]/erc-4337/smart-account/[address]:Erc4337SmartAccount.EvmNetworkAddress.1.network",
-																					address: "/network/[network]/erc-4337/smart-account/[address]:Erc4337SmartAccount.EvmNetworkAddress.1.address",
-																				},
-																			},
-																		],
 
 																		projection: {
 																			entityType: EntityType.Network,
@@ -79213,17 +77847,6 @@ export const routes = defineRoutes(schema)({
 																					selectors: {
 																						[EntityType.Erc4337SmartAccount_Timestamp]: {
 																							"AccountTimestampMsSource": {
-																								probeCases: [
-																									{
-																										id: "default",
-																										params: {
-																											network: "/network/[network]/erc-4337/smart-account/[address]/observations/[timestampMs]/[source]:Erc4337SmartAccount_Timestamp.AccountTimestampMsSource.1.network",
-																											address: "/network/[network]/erc-4337/smart-account/[address]/observations/[timestampMs]/[source]:Erc4337SmartAccount_Timestamp.AccountTimestampMsSource.1.address",
-																											timestampMs: "/network/[network]/erc-4337/smart-account/[address]/observations/[timestampMs]/[source]:Erc4337SmartAccount_Timestamp.AccountTimestampMsSource.1.timestampMs",
-																											source: "/network/[network]/erc-4337/smart-account/[address]/observations/[timestampMs]/[source]:Erc4337SmartAccount_Timestamp.AccountTimestampMsSource.1.source",
-																										},
-																									},
-																								],
 
 																								projection: {
 																									entityType: EntityType.Network,
@@ -79257,15 +77880,6 @@ export const routes = defineRoutes(schema)({
 															selectors: {
 																[EntityType.Erc4337Bundler]: {
 																	"EvmNetworkAddress": {
-																		probeCases: [
-																			{
-																				id: "default",
-																				params: {
-																					network: "/network/[network]/erc-4337/bundler/[address]:Erc4337Bundler.EvmNetworkAddress.1.network",
-																					address: "/network/[network]/erc-4337/bundler/[address]:Erc4337Bundler.EvmNetworkAddress.1.address",
-																				},
-																			},
-																		],
 
 																		projection: {
 																			entityType: EntityType.Network,
@@ -79302,17 +77916,6 @@ export const routes = defineRoutes(schema)({
 																					selectors: {
 																						[EntityType.Erc4337Bundler_Timestamp]: {
 																							"BundlerTimestampMsSource": {
-																								probeCases: [
-																									{
-																										id: "default",
-																										params: {
-																											network: "/network/[network]/erc-4337/bundler/[address]/observations/[timestampMs]/[source]:Erc4337Bundler_Timestamp.BundlerTimestampMsSource.1.network",
-																											address: "/network/[network]/erc-4337/bundler/[address]/observations/[timestampMs]/[source]:Erc4337Bundler_Timestamp.BundlerTimestampMsSource.1.address",
-																											timestampMs: "/network/[network]/erc-4337/bundler/[address]/observations/[timestampMs]/[source]:Erc4337Bundler_Timestamp.BundlerTimestampMsSource.1.timestampMs",
-																											source: "/network/[network]/erc-4337/bundler/[address]/observations/[timestampMs]/[source]:Erc4337Bundler_Timestamp.BundlerTimestampMsSource.1.source",
-																										},
-																									},
-																								],
 
 																								projection: {
 																									entityType: EntityType.Network,
@@ -79346,15 +77949,6 @@ export const routes = defineRoutes(schema)({
 															selectors: {
 																[EntityType.Erc4337Paymaster]: {
 																	"EvmNetworkAddress": {
-																		probeCases: [
-																			{
-																				id: "default",
-																				params: {
-																					network: "/network/[network]/erc-4337/paymaster/[address]:Erc4337Paymaster.EvmNetworkAddress.1.network",
-																					address: "/network/[network]/erc-4337/paymaster/[address]:Erc4337Paymaster.EvmNetworkAddress.1.address",
-																				},
-																			},
-																		],
 
 																		projection: {
 																			entityType: EntityType.Network,
@@ -79391,17 +77985,6 @@ export const routes = defineRoutes(schema)({
 																					selectors: {
 																						[EntityType.Erc4337Paymaster_Timestamp]: {
 																							"PaymasterTimestampMsSource": {
-																								probeCases: [
-																									{
-																										id: "default",
-																										params: {
-																											network: "/network/[network]/erc-4337/paymaster/[address]/observations/[timestampMs]/[source]:Erc4337Paymaster_Timestamp.PaymasterTimestampMsSource.1.network",
-																											address: "/network/[network]/erc-4337/paymaster/[address]/observations/[timestampMs]/[source]:Erc4337Paymaster_Timestamp.PaymasterTimestampMsSource.1.address",
-																											timestampMs: "/network/[network]/erc-4337/paymaster/[address]/observations/[timestampMs]/[source]:Erc4337Paymaster_Timestamp.PaymasterTimestampMsSource.1.timestampMs",
-																											source: "/network/[network]/erc-4337/paymaster/[address]/observations/[timestampMs]/[source]:Erc4337Paymaster_Timestamp.PaymasterTimestampMsSource.1.source",
-																										},
-																									},
-																								],
 
 																								projection: {
 																									entityType: EntityType.Network,
@@ -79435,15 +78018,6 @@ export const routes = defineRoutes(schema)({
 															selectors: {
 																[EntityType.Erc4337AccountFactory]: {
 																	"EvmNetworkAddress": {
-																		probeCases: [
-																			{
-																				id: "default",
-																				params: {
-																					network: "/network/[network]/erc-4337/account-factory/[address]:Erc4337AccountFactory.EvmNetworkAddress.1.network",
-																					address: "/network/[network]/erc-4337/account-factory/[address]:Erc4337AccountFactory.EvmNetworkAddress.1.address",
-																				},
-																			},
-																		],
 
 																		projection: {
 																			entityType: EntityType.Network,
@@ -79480,17 +78054,6 @@ export const routes = defineRoutes(schema)({
 																					selectors: {
 																						[EntityType.Erc4337AccountFactory_Timestamp]: {
 																							"FactoryTimestampMsSource": {
-																								probeCases: [
-																									{
-																										id: "default",
-																										params: {
-																											network: "/network/[network]/erc-4337/account-factory/[address]/observations/[timestampMs]/[source]:Erc4337AccountFactory_Timestamp.FactoryTimestampMsSource.1.network",
-																											address: "/network/[network]/erc-4337/account-factory/[address]/observations/[timestampMs]/[source]:Erc4337AccountFactory_Timestamp.FactoryTimestampMsSource.1.address",
-																											timestampMs: "/network/[network]/erc-4337/account-factory/[address]/observations/[timestampMs]/[source]:Erc4337AccountFactory_Timestamp.FactoryTimestampMsSource.1.timestampMs",
-																											source: "/network/[network]/erc-4337/account-factory/[address]/observations/[timestampMs]/[source]:Erc4337AccountFactory_Timestamp.FactoryTimestampMsSource.1.source",
-																										},
-																									},
-																								],
 
 																								projection: {
 																									entityType: EntityType.Network,
@@ -79526,15 +78089,6 @@ export const routes = defineRoutes(schema)({
 													selectors: {
 														[EntityType.EvmUserOperation]: {
 															"EvmNetworkHash": {
-																probeCases: [
-																	{
-																		id: "default",
-																		params: {
-																			network: "/network/[network]/user-operation/[userOperationHash]:EvmUserOperation.EvmNetworkHash.1.network",
-																			userOperationHash: "/network/[network]/user-operation/[userOperationHash]:EvmUserOperation.EvmNetworkHash.1.userOperationHash",
-																		},
-																	},
-																],
 
 																projection: {
 																	entityType: EntityType.Network,
@@ -79615,15 +78169,6 @@ export const routes = defineRoutes(schema)({
 													selectors: {
 														[EntityType.SolanaProgram]: {
 															"NetworkProgramId": {
-																probeCases: [
-																	{
-																		id: "default",
-																		params: {
-																			network: "/network/[network]/program/[programId]:SolanaProgram.NetworkProgramId.1.network",
-																			programId: "/network/[network]/program/[programId]:SolanaProgram.NetworkProgramId.1.programId",
-																		},
-																	},
-																],
 
 																projection: {
 																	entityType: EntityType.Network,
@@ -79648,15 +78193,6 @@ export const routes = defineRoutes(schema)({
 													selectors: {
 														[EntityType.SolanaTokenAccount]: {
 															"NetworkTokenAccountPubkey": {
-																probeCases: [
-																	{
-																		id: "default",
-																		params: {
-																			network: "/network/[network]/token-account/[tokenAccountPubkey]:SolanaTokenAccount.NetworkTokenAccountPubkey.1.network",
-																			tokenAccountPubkey: "/network/[network]/token-account/[tokenAccountPubkey]:SolanaTokenAccount.NetworkTokenAccountPubkey.1.tokenAccountPubkey",
-																		},
-																	},
-																],
 
 																projection: {
 																	entityType: EntityType.Network,
@@ -79681,15 +78217,6 @@ export const routes = defineRoutes(schema)({
 													selectors: {
 														[EntityType.SolanaTokenMint]: {
 															"NetworkMintAddress": {
-																probeCases: [
-																	{
-																		id: "default",
-																		params: {
-																			network: "/network/[network]/token-mint/[mintAddress]:SolanaTokenMint.NetworkMintAddress.1.network",
-																			mintAddress: "/network/[network]/token-mint/[mintAddress]:SolanaTokenMint.NetworkMintAddress.1.mintAddress",
-																		},
-																	},
-																],
 
 																projection: {
 																	entityType: EntityType.Network,
@@ -79726,15 +78253,6 @@ export const routes = defineRoutes(schema)({
 													selectors: {
 														[EntityType.LightningChannel]: {
 															"NetworkChannelId": {
-																probeCases: [
-																	{
-																		id: "default",
-																		params: {
-																			network: "/network/[network]/channels/[channelId]:LightningChannel.NetworkChannelId.1.network",
-																			channelId: "/network/[network]/channels/[channelId]:LightningChannel.NetworkChannelId.1.channelId",
-																		},
-																	},
-																],
 
 																projection: {
 																	entityType: EntityType.Network,
@@ -79771,15 +78289,6 @@ export const routes = defineRoutes(schema)({
 													selectors: {
 														[EntityType.BlockheadLightningInvoice]: {
 															"NetworkPaymentHash": {
-																probeCases: [
-																	{
-																		id: "default",
-																		params: {
-																			network: "/network/[network]/invoices/[paymentHash]:BlockheadLightningInvoice.NetworkPaymentHash.1.network",
-																			paymentHash: "/network/[network]/invoices/[paymentHash]:BlockheadLightningInvoice.NetworkPaymentHash.1.paymentHash",
-																		},
-																	},
-																],
 
 																projection: {
 																	entityType: EntityType.Network,
@@ -79816,15 +78325,6 @@ export const routes = defineRoutes(schema)({
 													selectors: {
 														[EntityType.LightningNode]: {
 															"NetworkPublicKey": {
-																probeCases: [
-																	{
-																		id: "default",
-																		params: {
-																			network: "/network/[network]/nodes/[pubkey]:LightningNode.NetworkPublicKey.1.network",
-																			pubkey: "/network/[network]/nodes/[pubkey]:LightningNode.NetworkPublicKey.1.pubkey",
-																		},
-																	},
-																],
 
 																projection: {
 																	entityType: EntityType.Network,
@@ -79861,15 +78361,6 @@ export const routes = defineRoutes(schema)({
 													selectors: {
 														[EntityType.BlockheadLightningPayment]: {
 															"NetworkPaymentHash": {
-																probeCases: [
-																	{
-																		id: "default",
-																		params: {
-																			network: "/network/[network]/payments/[paymentHash]:BlockheadLightningPayment.NetworkPaymentHash.1.network",
-																			paymentHash: "/network/[network]/payments/[paymentHash]:BlockheadLightningPayment.NetworkPaymentHash.1.paymentHash",
-																		},
-																	},
-																],
 
 																projection: {
 																	entityType: EntityType.Network,
@@ -79922,14 +78413,6 @@ export const routes = defineRoutes(schema)({
 																			selectors: {
 																				[EntityType.CardanoCommittee_Epoch]: {
 																					"NetworkEpochSource": {
-																						probeCases: [{
-																							id: "default",
-																							params: {
-																								network: "/network/[network]/governance/committee/epoch/[epoch]/[source]:CardanoCommittee_Epoch.NetworkEpochSource.1.network",
-																								epoch: "/network/[network]/governance/committee/epoch/[epoch]/[source]:CardanoCommittee_Epoch.NetworkEpochSource.1.epoch",
-																								source: "/network/[network]/governance/committee/epoch/[epoch]/[source]:CardanoCommittee_Epoch.NetworkEpochSource.1.source",
-																							},
-																						}],
 																						projection: { entityType: EntityType.Network, facetPath: ["Cardano"] },
 																						params: {
 																							"epoch": ["epoch"],
@@ -79954,16 +78437,6 @@ export const routes = defineRoutes(schema)({
 																	selectors: {
 																		[EntityType.CardanoGovernanceProposal]: {
 																			"NetworkProposalTxHashProposalIndex": {
-																				probeCases: [
-																					{
-																						id: "default",
-																						params: {
-																							network: "/network/[network]/governance/proposal/[proposalTxHash]/[proposalIndex]:CardanoGovernanceProposal.NetworkProposalTxHashProposalIndex.1.network",
-																							proposalTxHash: "/network/[network]/governance/proposal/[proposalTxHash]/[proposalIndex]:CardanoGovernanceProposal.NetworkProposalTxHashProposalIndex.1.proposalTxHash",
-																							proposalIndex: "/network/[network]/governance/proposal/[proposalTxHash]/[proposalIndex]:CardanoGovernanceProposal.NetworkProposalTxHashProposalIndex.1.proposalIndex",
-																						}
-																					}
-																				],
 																				projection: {
 																					entityType: EntityType.Network,
 																					facetPath: ["Cardano"]
@@ -79989,13 +78462,6 @@ export const routes = defineRoutes(schema)({
 													selectors: {
 														[EntityType.CardanoDRep]: {
 															"NetworkDrepCredential": {
-																probeCases: [{
-																	id: "default",
-																	params: {
-																		network: "/network/[network]/drep/[drepCredential]:CardanoDRep.NetworkDrepCredential.1.network",
-																		drepCredential: "/network/[network]/drep/[drepCredential]:CardanoDRep.NetworkDrepCredential.1.drepCredential",
-																	}
-																}],
 																projection: { entityType: EntityType.Network, facetPath: ["Cardano"] },
 																params: { "drepCredential": ["drepCredential"] },
 																page: {}
@@ -80011,13 +78477,6 @@ export const routes = defineRoutes(schema)({
 													selectors: {
 														[EntityType.CardanoStakePool]: {
 															"NetworkPoolId": {
-																probeCases: [{
-																	id: "default",
-																	params: {
-																		network: "/network/[network]/stake-pool/[poolId]:CardanoStakePool.NetworkPoolId.1.network",
-																		poolId: "/network/[network]/stake-pool/[poolId]:CardanoStakePool.NetworkPoolId.1.poolId",
-																	}
-																}],
 																projection: { entityType: EntityType.Network, facetPath: ["Cardano"] },
 																params: { "poolId": ["poolId"] },
 																page: {}
@@ -80035,16 +78494,6 @@ export const routes = defineRoutes(schema)({
 															selectors: {
 																[EntityType.Network_Timestamp]: {
 																	"NetworkTimestampMsSource": {
-																		probeCases: [
-																			{
-																				id: "default",
-																				params: {
-																					network: "/network/[network]/observation/[timestampMs]/[source]:Network_Timestamp.NetworkTimestampMsSource.1.network",
-																					timestampMs: "/network/[network]/observation/[timestampMs]/[source]:Network_Timestamp.NetworkTimestampMsSource.1.timestampMs",
-																					source: "/network/[network]/observation/[timestampMs]/[source]:Network_Timestamp.NetworkTimestampMsSource.1.source",
-																				},
-																			},
-																		],
 
 																		params: {
 																			"timestampMs": [
@@ -80070,15 +78519,6 @@ export const routes = defineRoutes(schema)({
 													selectors: {
 														[EntityType.PolkadotPallet]: {
 															"NetworkPalletName": {
-																probeCases: [
-																	{
-																		id: "default",
-																		params: {
-																			network: "/network/[network]/pallet/[palletName]:PolkadotPallet.NetworkPalletName.1.network",
-																			palletName: "/network/[network]/pallet/[palletName]:PolkadotPallet.NetworkPalletName.1.palletName",
-																		},
-																	},
-																],
 
 																projection: {
 																	entityType: EntityType.Network,
@@ -80102,24 +78542,9 @@ export const routes = defineRoutes(schema)({
 											children: {
 												"[pool]": {
 													selectors: {
-														[EntityType.ZcashShieldedPool]: {
-															"NetworkPool": {
-																probeCases: [
-																	{
-																		id: "default",
-																		params: {
-																			network: "/network/[network]/shielded-pool/[pool]:ZcashShieldedPool.NetworkPool.1.network",
-																			pool: "/network/[network]/shielded-pool/[pool]:ZcashShieldedPool.NetworkPool.1.pool",
-																		},
-																	},
-																	{
-																		id: "variant-2",
-																		params: {
-																			network: "/network/[network]/shielded-pool/[pool]:ZcashShieldedPool.NetworkPool.2.network",
-																			pool: "/network/[network]/shielded-pool/[pool]:ZcashShieldedPool.NetworkPool.2.pool",
-																		},
-																	},
-																],
+									[EntityType.ZcashShieldedPool]: {
+										"NetworkPool": {
+											probeCount: 2,
 
 																projection: {
 																	entityType: EntityType.Network,
@@ -80145,15 +78570,6 @@ export const routes = defineRoutes(schema)({
 													selectors: {
 														[EntityType.UtxoAddress]: {
 															"NetworkAddress": {
-																probeCases: [
-																	{
-																		id: "default",
-																		params: {
-																			network: "/network/[network]/address/[address]:UtxoAddress.NetworkAddress.1.network",
-																			address: "/network/[network]/address/[address]:UtxoAddress.NetworkAddress.1.address",
-																		},
-																	},
-																],
 
 																projection: {
 																	entityType: EntityType.Network,
@@ -80187,17 +78603,6 @@ export const routes = defineRoutes(schema)({
 																			selectors: {
 																				[EntityType.UtxoAddress_Timestamp]: {
 																					"AddressTimestampMsSource": {
-																						probeCases: [
-																							{
-																								id: "default",
-																								params: {
-																									network: "/network/[network]/address/[address]/observations/[timestampMs]/[source]:UtxoAddress_Timestamp.AddressTimestampMsSource.1.network",
-																									address: "/network/[network]/address/[address]/observations/[timestampMs]/[source]:UtxoAddress_Timestamp.AddressTimestampMsSource.1.address",
-																									timestampMs: "/network/[network]/address/[address]/observations/[timestampMs]/[source]:UtxoAddress_Timestamp.AddressTimestampMsSource.1.timestampMs",
-																									source: "/network/[network]/address/[address]/observations/[timestampMs]/[source]:UtxoAddress_Timestamp.AddressTimestampMsSource.1.source",
-																								},
-																							},
-																						],
 
 																						projection: {
 																							entityType: EntityType.Network,
@@ -80236,13 +78641,6 @@ export const routes = defineRoutes(schema)({
 					selectors: {
 						[EntityType.SwarmProtocol]: {
 							"Scope": {
-								probeCases: [
-									{
-										id: "default",
-										params: {
-										},
-									},
-								],
 
 								derivations: {
 									"scope": { kind: "literal", value: "SwarmProtocol" }
@@ -80256,13 +78654,6 @@ export const routes = defineRoutes(schema)({
 							selectors: {
 								[EntityType._GlobalSwarmAccess]: {
 									"Scope": {
-										probeCases: [
-											{
-												id: "default",
-												params: {
-												},
-											},
-										],
 
 										derivations: {
 											"scope": { kind: "literal", value: "_GlobalSwarmAccess" }
@@ -80281,15 +78672,6 @@ export const routes = defineRoutes(schema)({
 													selectors: {
 														[EntityType._GlobalSwarmAccess_Timestamp]: {
 															"HubTimestampMsSource": {
-																probeCases: [
-																	{
-																		id: "default",
-																		params: {
-																			timestampMs: "/swarm/access/observations/[timestampMs]/[source]:_GlobalSwarmAccess_Timestamp.HubTimestampMsSource.1.timestampMs",
-																			source: "/swarm/access/observations/[timestampMs]/[source]:_GlobalSwarmAccess_Timestamp.HubTimestampMsSource.1.source",
-																		},
-																	},
-																],
 
 																params: {
 																	"timestampMs": [
@@ -80324,14 +78706,6 @@ export const routes = defineRoutes(schema)({
 							selectors: {
 								[EntityType.SwarmResource]: {
 									"ResourceAddress": {
-										probeCases: [
-											{
-											id: "base",
-											params: {
-												reference: "/swarm/[reference]:SwarmResource.ResourceAddress.1.reference",
-												},
-											},
-										],
 
 										derivations: {
 																			"reference": routeCall("$/lib/swarm.ts", "swarmResourceReferenceFromRouteParam", [{ kind: "param", name: "reference" }]),
@@ -80350,15 +78724,6 @@ export const routes = defineRoutes(schema)({
 											"contentPath": ["string"],
 										},
 										selectorVariant: {
-											probeCases: [
-												{
-													id: "path",
-													params: {
-														reference: "/swarm/[reference]/path/[...contentPath]:SwarmResource.ResourceAddress.path.1.reference",
-														contentPath: "/swarm/[reference]/path/[...contentPath]:SwarmResource.ResourceAddress.path.1.contentPath",
-													},
-												},
-											],
 											derivations: {
 																		contentPath: routeCall("$/lib/swarm.ts", "swarmResourceContentPathFromRouteParam", [{ kind: "param", name: "contentPath" }]),
 											},
@@ -80415,14 +78780,6 @@ export const routes = defineRoutes(schema)({
 							selectors: {
 								[EntityType.SpecificationRealm]: {
 									"Realm": {
-										probeCases: [
-											{
-												id: "default",
-												params: {
-													specificationRealmSlug: "/proposals/[specificationRealmSlug]:SpecificationRealm.Realm.1.specificationRealmSlug",
-												},
-											},
-										],
 
 										derivations: {
 											"realm": {
@@ -80459,15 +78816,6 @@ export const routes = defineRoutes(schema)({
 									selectors: {
 										[EntityType.SpecificationProposalKind]: {
 											"RealmCategory": {
-												probeCases: [
-													{
-														id: "default",
-														params: {
-															specificationRealmSlug: "/proposals/[specificationRealmSlug]/[proposalKindSlug]:SpecificationProposalKind.RealmCategory.1.specificationRealmSlug",
-															proposalKindSlug: "/proposals/[specificationRealmSlug]/[proposalKindSlug]:SpecificationProposalKind.RealmCategory.1.proposalKindSlug",
-														},
-													},
-												],
 
 												derivations: {
 													"realm": {
@@ -80528,16 +78876,6 @@ export const routes = defineRoutes(schema)({
 											selectors: {
 												[EntityType.SpecificationProposal]: {
 													"RealmCategoryNumber": {
-														probeCases: [
-															{
-																id: "default",
-																params: {
-																	specificationRealmSlug: "/proposals/[specificationRealmSlug]/[proposalKindSlug]/[proposalRef]:SpecificationProposal.RealmCategoryNumber.1.specificationRealmSlug",
-																	proposalKindSlug: "/proposals/[specificationRealmSlug]/[proposalKindSlug]/[proposalRef]:SpecificationProposal.RealmCategoryNumber.1.proposalKindSlug",
-																	proposalRef: "/proposals/[specificationRealmSlug]/[proposalKindSlug]/[proposalRef]:SpecificationProposal.RealmCategoryNumber.1.proposalRef",
-																},
-															},
-														],
 
 														derivations: {
 															"realm": {
@@ -80660,7 +78998,7 @@ export const routes = defineRoutes(schema)({
 							],
 							query: {
 								sources: [Source.Constants_Internal, Source.Coinpaprika_OpenApi],
-								limit: 120,
+								limit: 8,
 							},
 							derivations: {
 								"scope": { kind: "literal", value: "$$coins" }
@@ -80771,15 +79109,6 @@ export const routes = defineRoutes(schema)({
 									selectors: {
 										[EntityType.LiquidityPool]: {
 											"EvmNetworkId": {
-												probeCases: [
-													{
-														id: "default",
-														params: {
-															chainId: "/pool/[chainId]/[poolId]:LiquidityPool.EvmNetworkId.1.chainId",
-															poolId: "/pool/[chainId]/[poolId]:LiquidityPool.EvmNetworkId.1.poolId",
-														},
-													},
-												],
 
 												params: {
 													"poolId": [
@@ -80819,17 +79148,6 @@ export const routes = defineRoutes(schema)({
 															selectors: {
 																[EntityType.LiquidityPool_Timestamp]: {
 																	"LiquidityPoolTimestampMsFeedKey": {
-																		probeCases: [
-																			{
-																				id: "default",
-																				params: {
-																					chainId: "/pool/[chainId]/[poolId]/observations/[timestampMs]/[feedKey]:LiquidityPool_Timestamp.LiquidityPoolTimestampMsFeedKey.1.chainId",
-																					poolId: "/pool/[chainId]/[poolId]/observations/[timestampMs]/[feedKey]:LiquidityPool_Timestamp.LiquidityPoolTimestampMsFeedKey.1.poolId",
-																					timestampMs: "/pool/[chainId]/[poolId]/observations/[timestampMs]/[feedKey]:LiquidityPool_Timestamp.LiquidityPoolTimestampMsFeedKey.1.timestampMs",
-																					feedKey: "/pool/[chainId]/[poolId]/observations/[timestampMs]/[feedKey]:LiquidityPool_Timestamp.LiquidityPoolTimestampMsFeedKey.1.feedKey",
-																				},
-																			},
-																		],
 
 																		params: {
 																			"timestampMs": [
@@ -80883,16 +79201,6 @@ export const routes = defineRoutes(schema)({
 													selectors: {
 														[EntityType.LiquidityPool_Block]: {
 															"LiquidityPoolBlockNumber": {
-																probeCases: [
-																	{
-																		id: "default",
-																		params: {
-																			chainId: "/pool/[chainId]/[poolId]/block/[blockNumber]:LiquidityPool_Block.LiquidityPoolBlockNumber.1.chainId",
-																			poolId: "/pool/[chainId]/[poolId]/block/[blockNumber]:LiquidityPool_Block.LiquidityPoolBlockNumber.1.poolId",
-																			blockNumber: "/pool/[chainId]/[poolId]/block/[blockNumber]:LiquidityPool_Block.LiquidityPoolBlockNumber.1.blockNumber",
-																		},
-																	},
-																],
 
 																params: {
 																	"blockNumber": [
@@ -80948,14 +79256,6 @@ export const routes = defineRoutes(schema)({
 							selectors: {
 								[EntityType.Coin]: {
 									"CoinId": {
-										probeCases: [
-											{
-												id: "default",
-												params: {
-													coinId: "/coin/[coinId]:Coin.CoinId.1.coinId",
-												},
-											},
-										],
 
 										params: {
 											"coinId": [
@@ -80976,16 +79276,6 @@ export const routes = defineRoutes(schema)({
 													selectors: {
 														[EntityType.Coin_Timestamp]: {
 															"CoinTimestampMsSource": {
-																probeCases: [
-																	{
-																		id: "default",
-																		params: {
-																			coinId: "/coin/[coinId]/observations/[timestampMs]/[source]:Coin_Timestamp.CoinTimestampMsSource.1.coinId",
-																			timestampMs: "/coin/[coinId]/observations/[timestampMs]/[source]:Coin_Timestamp.CoinTimestampMsSource.1.timestampMs",
-																			source: "/coin/[coinId]/observations/[timestampMs]/[source]:Coin_Timestamp.CoinTimestampMsSource.1.source",
-																		},
-																	},
-																],
 
 																params: {
 																	"timestampMs": [
@@ -81047,14 +79337,6 @@ export const routes = defineRoutes(schema)({
 									selectors: {
 										[EntityType.Currency]: {
 											"Iso4217": {
-												probeCases: [
-													{
-														id: "default",
-														params: {
-															iso4217: "/currency/[iso4217]:Currency.Iso4217.1.iso4217",
-														},
-													},
-												],
 
 												params: {
 													"iso4217": [
@@ -81073,15 +79355,6 @@ export const routes = defineRoutes(schema)({
 													selectors: {
 														[EntityType.Currency_Timestamp]: {
 															"CurrencyTimestampMs": {
-																probeCases: [
-																	{
-																		id: "default",
-																		params: {
-																			iso4217: "/currency/[iso4217]/observations/[timestampMs]:Currency_Timestamp.CurrencyTimestampMs.1.iso4217",
-																			timestampMs: "/currency/[iso4217]/observations/[timestampMs]:Currency_Timestamp.CurrencyTimestampMs.1.timestampMs",
-																		},
-																	},
-																],
 
 																params: {
 																	"timestampMs": [
@@ -81126,15 +79399,6 @@ export const routes = defineRoutes(schema)({
 									selectors: {
 										[EntityType.EvmCoinInstance]: {
 											"NetworkType": {
-												probeCases: [
-													{
-														id: "default",
-														params: {
-															chainId: "/coin-instance/[chainId]/[coinInstanceSlug]:EvmCoinInstance.NetworkType.1.chainId",
-															coinInstanceSlug: "/coin-instance/[chainId]/[coinInstanceSlug]:EvmCoinInstance.NetworkType.1.coinInstanceSlug",
-														},
-													},
-												],
 
 												projection: {
 													entityType: EntityType.EvmCoinInstance,
@@ -81171,15 +79435,6 @@ export const routes = defineRoutes(schema)({
 												page: {}
 											},
 											"NetworkTypeContract": {
-												probeCases: [
-													{
-														id: "default",
-														params: {
-															chainId: "/coin-instance/[chainId]/[coinInstanceSlug]:EvmCoinInstance.NetworkTypeContract.1.chainId",
-															coinInstanceSlug: "/coin-instance/[chainId]/[coinInstanceSlug]:EvmCoinInstance.NetworkTypeContract.1.coinInstanceSlug",
-														},
-													},
-												],
 
 												projection: {
 													entityType: EntityType.EvmCoinInstance,
@@ -81244,18 +79499,6 @@ export const routes = defineRoutes(schema)({
 															selectors: {
 																[EntityType.CoinBridgeCapability]: {
 																	"EvmCoinInstanceEvmCoinInstanceToolKey": {
-																		probeCases: [
-																			{
-																				id: "default",
-																				params: {
-																					fromChainId: "/bridge-capability/[fromChainId]/[fromCoinInstanceSlug]/[toChainId]/[toCoinInstanceSlug]/[toolKey]:CoinBridgeCapability.EvmCoinInstanceEvmCoinInstanceToolKey.1.fromChainId",
-																					fromCoinInstanceSlug: "/bridge-capability/[fromChainId]/[fromCoinInstanceSlug]/[toChainId]/[toCoinInstanceSlug]/[toolKey]:CoinBridgeCapability.EvmCoinInstanceEvmCoinInstanceToolKey.1.fromCoinInstanceSlug",
-																					toChainId: "/bridge-capability/[fromChainId]/[fromCoinInstanceSlug]/[toChainId]/[toCoinInstanceSlug]/[toolKey]:CoinBridgeCapability.EvmCoinInstanceEvmCoinInstanceToolKey.1.toChainId",
-																					toCoinInstanceSlug: "/bridge-capability/[fromChainId]/[fromCoinInstanceSlug]/[toChainId]/[toCoinInstanceSlug]/[toolKey]:CoinBridgeCapability.EvmCoinInstanceEvmCoinInstanceToolKey.1.toCoinInstanceSlug",
-																					toolKey: "/bridge-capability/[fromChainId]/[fromCoinInstanceSlug]/[toChainId]/[toCoinInstanceSlug]/[toolKey]:CoinBridgeCapability.EvmCoinInstanceEvmCoinInstanceToolKey.1.toolKey",
-																				},
-																			},
-																		],
 
 																		params: {
 																			"toolKey": [
@@ -81311,15 +79554,6 @@ export const routes = defineRoutes(schema)({
 											selectors: {
 												[EntityType.MarketAsset]: {
 													"KindAssetKey": {
-														probeCases: [
-															{
-																id: "default",
-																params: {
-																	kind: "/market-asset/[kind]/[assetKey]:MarketAsset.KindAssetKey.1.kind",
-																	assetKey: "/market-asset/[kind]/[assetKey]:MarketAsset.KindAssetKey.1.assetKey",
-																},
-															},
-														],
 
 														params: {
 															"kind": ["kind"],
@@ -81344,14 +79578,6 @@ export const routes = defineRoutes(schema)({
 									selectors: {
 										[EntityType.MarketVenue]: {
 											"MarketVenueId": {
-												probeCases: [
-													{
-														id: "default",
-														params: {
-															marketVenueId: "/market-venue/[marketVenueId]:MarketVenue.MarketVenueId.1.marketVenueId",
-														},
-													},
-												],
 
 												params: {
 													"marketVenueId": [
@@ -81400,19 +79626,6 @@ export const routes = defineRoutes(schema)({
 																			selectors: {
 																				[EntityType.Market]: {
 																					"BaseQuoteMarketVenueKind": {
-																						probeCases: [
-																							{
-																								id: "default",
-																								params: {
-																									marketVenue: "/venue/[marketVenue]/market/[baseKind]/[base]/[quoteKind]/[quote]/[marketKind]:Market.BaseQuoteMarketVenueKind.1.marketVenue",
-																									baseKind: "/venue/[marketVenue]/market/[baseKind]/[base]/[quoteKind]/[quote]/[marketKind]:Market.BaseQuoteMarketVenueKind.1.baseKind",
-																									base: "/venue/[marketVenue]/market/[baseKind]/[base]/[quoteKind]/[quote]/[marketKind]:Market.BaseQuoteMarketVenueKind.1.base",
-																									quoteKind: "/venue/[marketVenue]/market/[baseKind]/[base]/[quoteKind]/[quote]/[marketKind]:Market.BaseQuoteMarketVenueKind.1.quoteKind",
-																									quote: "/venue/[marketVenue]/market/[baseKind]/[base]/[quoteKind]/[quote]/[marketKind]:Market.BaseQuoteMarketVenueKind.1.quote",
-																									marketKind: "/venue/[marketVenue]/market/[baseKind]/[base]/[quoteKind]/[quote]/[marketKind]:Market.BaseQuoteMarketVenueKind.1.marketKind",
-																								},
-																							},
-																						],
 
 																						params: {
 																							"marketKind": [
@@ -81456,21 +79669,6 @@ export const routes = defineRoutes(schema)({
 																									selectors: {
 																										[EntityType.Market_Derivative_Timestamp]: {
 																											"MarketTimestampMsFeedKey": {
-																												probeCases: [
-																													{
-																														id: "default",
-																														params: {
-																															marketVenue: "/venue/[marketVenue]/market/[baseKind]/[base]/[quoteKind]/[quote]/[marketKind]/derivatives/[timestampMs]/[feedKey]:Market_Derivative_Timestamp.MarketTimestampMsFeedKey.1.marketVenue",
-																															baseKind: "/venue/[marketVenue]/market/[baseKind]/[base]/[quoteKind]/[quote]/[marketKind]/derivatives/[timestampMs]/[feedKey]:Market_Derivative_Timestamp.MarketTimestampMsFeedKey.1.baseKind",
-																															base: "/venue/[marketVenue]/market/[baseKind]/[base]/[quoteKind]/[quote]/[marketKind]/derivatives/[timestampMs]/[feedKey]:Market_Derivative_Timestamp.MarketTimestampMsFeedKey.1.base",
-																															quoteKind: "/venue/[marketVenue]/market/[baseKind]/[base]/[quoteKind]/[quote]/[marketKind]/derivatives/[timestampMs]/[feedKey]:Market_Derivative_Timestamp.MarketTimestampMsFeedKey.1.quoteKind",
-																															quote: "/venue/[marketVenue]/market/[baseKind]/[base]/[quoteKind]/[quote]/[marketKind]/derivatives/[timestampMs]/[feedKey]:Market_Derivative_Timestamp.MarketTimestampMsFeedKey.1.quote",
-																															marketKind: "/venue/[marketVenue]/market/[baseKind]/[base]/[quoteKind]/[quote]/[marketKind]/derivatives/[timestampMs]/[feedKey]:Market_Derivative_Timestamp.MarketTimestampMsFeedKey.1.marketKind",
-																															timestampMs: "/venue/[marketVenue]/market/[baseKind]/[base]/[quoteKind]/[quote]/[marketKind]/derivatives/[timestampMs]/[feedKey]:Market_Derivative_Timestamp.MarketTimestampMsFeedKey.1.timestampMs",
-																															feedKey: "/venue/[marketVenue]/market/[baseKind]/[base]/[quoteKind]/[quote]/[marketKind]/derivatives/[timestampMs]/[feedKey]:Market_Derivative_Timestamp.MarketTimestampMsFeedKey.1.feedKey",
-																														},
-																													},
-																												],
 
 																												params: {
 																													"timestampMs": [
@@ -81494,19 +79692,6 @@ export const routes = defineRoutes(schema)({
 																					selectors: {
 																						[EntityType.MarketPrice]: {
 																							"Market": {
-																								probeCases: [
-																									{
-																										id: "default",
-																										params: {
-																											marketVenue: "/venue/[marketVenue]/market/[baseKind]/[base]/[quoteKind]/[quote]/[marketKind]/price:MarketPrice.Market.1.marketVenue",
-																											baseKind: "/venue/[marketVenue]/market/[baseKind]/[base]/[quoteKind]/[quote]/[marketKind]/price:MarketPrice.Market.1.baseKind",
-																											base: "/venue/[marketVenue]/market/[baseKind]/[base]/[quoteKind]/[quote]/[marketKind]/price:MarketPrice.Market.1.base",
-																											quoteKind: "/venue/[marketVenue]/market/[baseKind]/[base]/[quoteKind]/[quote]/[marketKind]/price:MarketPrice.Market.1.quoteKind",
-																											quote: "/venue/[marketVenue]/market/[baseKind]/[base]/[quoteKind]/[quote]/[marketKind]/price:MarketPrice.Market.1.quote",
-																											marketKind: "/venue/[marketVenue]/market/[baseKind]/[base]/[quoteKind]/[quote]/[marketKind]/price:MarketPrice.Market.1.marketKind",
-																										},
-																									},
-																								],
 
 																								page: {}
 																							}
@@ -81521,21 +79706,6 @@ export const routes = defineRoutes(schema)({
 																											selectors: {
 																												[EntityType.Market_Timestamp]: {
 																													"MarketTimestampMsFeedKey": {
-																														probeCases: [
-																															{
-																																id: "default",
-																																params: {
-																																	marketVenue: "/venue/[marketVenue]/market/[baseKind]/[base]/[quoteKind]/[quote]/[marketKind]/price/quotes/[timestampMs]/[feedKey]:Market_Timestamp.MarketTimestampMsFeedKey.1.marketVenue",
-																																	baseKind: "/venue/[marketVenue]/market/[baseKind]/[base]/[quoteKind]/[quote]/[marketKind]/price/quotes/[timestampMs]/[feedKey]:Market_Timestamp.MarketTimestampMsFeedKey.1.baseKind",
-																																	base: "/venue/[marketVenue]/market/[baseKind]/[base]/[quoteKind]/[quote]/[marketKind]/price/quotes/[timestampMs]/[feedKey]:Market_Timestamp.MarketTimestampMsFeedKey.1.base",
-																																	quoteKind: "/venue/[marketVenue]/market/[baseKind]/[base]/[quoteKind]/[quote]/[marketKind]/price/quotes/[timestampMs]/[feedKey]:Market_Timestamp.MarketTimestampMsFeedKey.1.quoteKind",
-																																	quote: "/venue/[marketVenue]/market/[baseKind]/[base]/[quoteKind]/[quote]/[marketKind]/price/quotes/[timestampMs]/[feedKey]:Market_Timestamp.MarketTimestampMsFeedKey.1.quote",
-																																	marketKind: "/venue/[marketVenue]/market/[baseKind]/[base]/[quoteKind]/[quote]/[marketKind]/price/quotes/[timestampMs]/[feedKey]:Market_Timestamp.MarketTimestampMsFeedKey.1.marketKind",
-																																	timestampMs: "/venue/[marketVenue]/market/[baseKind]/[base]/[quoteKind]/[quote]/[marketKind]/price/quotes/[timestampMs]/[feedKey]:Market_Timestamp.MarketTimestampMsFeedKey.1.timestampMs",
-																																	feedKey: "/venue/[marketVenue]/market/[baseKind]/[base]/[quoteKind]/[quote]/[marketKind]/price/quotes/[timestampMs]/[feedKey]:Market_Timestamp.MarketTimestampMsFeedKey.1.feedKey",
-																																},
-																															},
-																														],
 
 																														params: {
 																															"timestampMs": [
@@ -81573,22 +79743,6 @@ export const routes = defineRoutes(schema)({
 																											selectors: {
 																												[EntityType.Market_TimeInterval_Timestamp]: {
 																													"MarketTimeIntervalTimestampMs": {
-																														probeCases: [
-																															{
-																																id: "default",
-																																params: {
-																																	marketVenue: "/venue/[marketVenue]/market/[baseKind]/[base]/[quoteKind]/[quote]/[marketKind]/candles/[timeIntervalUnit]/[timeIntervalValue]/[timestampMs]:Market_TimeInterval_Timestamp.MarketTimeIntervalTimestampMs.1.marketVenue",
-																																	baseKind: "/venue/[marketVenue]/market/[baseKind]/[base]/[quoteKind]/[quote]/[marketKind]/candles/[timeIntervalUnit]/[timeIntervalValue]/[timestampMs]:Market_TimeInterval_Timestamp.MarketTimeIntervalTimestampMs.1.baseKind",
-																																	base: "/venue/[marketVenue]/market/[baseKind]/[base]/[quoteKind]/[quote]/[marketKind]/candles/[timeIntervalUnit]/[timeIntervalValue]/[timestampMs]:Market_TimeInterval_Timestamp.MarketTimeIntervalTimestampMs.1.base",
-																																	quoteKind: "/venue/[marketVenue]/market/[baseKind]/[base]/[quoteKind]/[quote]/[marketKind]/candles/[timeIntervalUnit]/[timeIntervalValue]/[timestampMs]:Market_TimeInterval_Timestamp.MarketTimeIntervalTimestampMs.1.quoteKind",
-																																	quote: "/venue/[marketVenue]/market/[baseKind]/[base]/[quoteKind]/[quote]/[marketKind]/candles/[timeIntervalUnit]/[timeIntervalValue]/[timestampMs]:Market_TimeInterval_Timestamp.MarketTimeIntervalTimestampMs.1.quote",
-																																	marketKind: "/venue/[marketVenue]/market/[baseKind]/[base]/[quoteKind]/[quote]/[marketKind]/candles/[timeIntervalUnit]/[timeIntervalValue]/[timestampMs]:Market_TimeInterval_Timestamp.MarketTimeIntervalTimestampMs.1.marketKind",
-																																	timeIntervalUnit: "/venue/[marketVenue]/market/[baseKind]/[base]/[quoteKind]/[quote]/[marketKind]/candles/[timeIntervalUnit]/[timeIntervalValue]/[timestampMs]:Market_TimeInterval_Timestamp.MarketTimeIntervalTimestampMs.1.timeIntervalUnit",
-																																	timeIntervalValue: "/venue/[marketVenue]/market/[baseKind]/[base]/[quoteKind]/[quote]/[marketKind]/candles/[timeIntervalUnit]/[timeIntervalValue]/[timestampMs]:Market_TimeInterval_Timestamp.MarketTimeIntervalTimestampMs.1.timeIntervalValue",
-																																	timestampMs: "/venue/[marketVenue]/market/[baseKind]/[base]/[quoteKind]/[quote]/[marketKind]/candles/[timeIntervalUnit]/[timeIntervalValue]/[timestampMs]:Market_TimeInterval_Timestamp.MarketTimeIntervalTimestampMs.1.timestampMs",
-																																},
-																															},
-																														],
 
 																														params: {
 																															"timestampMs": [
@@ -81654,13 +79808,6 @@ export const routes = defineRoutes(schema)({
 							selectors: {
 								[EntityType.RssNetwork]: {
 									"Scope": {
-										probeCases: [
-											{
-												id: "default",
-												params: {
-												},
-											},
-										],
 
 										derivations: {
 											"scope": { kind: "literal", value: "RssNetwork" }
@@ -81693,14 +79840,6 @@ export const routes = defineRoutes(schema)({
 											selectors: {
 												[EntityType.RssFeed]: {
 													"FeedUrl": {
-														probeCases: [
-															{
-																id: "default",
-																params: {
-																	feedUrl: "/rss/feed/[feedUrl]:RssFeed.FeedUrl.1.feedUrl",
-																},
-															},
-														],
 
 														params: {
 															"feedUrl": ["feedUrl"]
@@ -81718,16 +79857,6 @@ export const routes = defineRoutes(schema)({
 																	selectors: {
 																		[EntityType.RssItem]: {
 																			"FeedIdentity": {
-																				probeCases: [
-																					{
-																						id: "default",
-																						params: {
-																							feedUrl: "/rss/feed/[feedUrl]/item/[itemIdentityKind]/[itemIdentity]:RssItem.FeedIdentity.1.feedUrl",
-																							itemIdentityKind: "/rss/feed/[feedUrl]/item/[itemIdentityKind]/[itemIdentity]:RssItem.FeedIdentity.1.itemIdentityKind",
-																							itemIdentity: "/rss/feed/[feedUrl]/item/[itemIdentityKind]/[itemIdentity]:RssItem.FeedIdentity.1.itemIdentity",
-																						},
-																					},
-																				],
 
 																				params: {
 																					"itemIdentityKind": ["itemIdentityKind"],
@@ -81746,18 +79875,6 @@ export const routes = defineRoutes(schema)({
 																							selectors: {
 																								[EntityType.RssItem_Timestamp]: {
 																									"ItemTimestampMsSource": {
-																										probeCases: [
-																											{
-																												id: "default",
-																												params: {
-																													feedUrl: "/rss/feed/[feedUrl]/item/[itemIdentityKind]/[itemIdentity]/observations/[timestampMs]/[source]:RssItem_Timestamp.ItemTimestampMsSource.1.feedUrl",
-																													itemIdentityKind: "/rss/feed/[feedUrl]/item/[itemIdentityKind]/[itemIdentity]/observations/[timestampMs]/[source]:RssItem_Timestamp.ItemTimestampMsSource.1.itemIdentityKind",
-																													itemIdentity: "/rss/feed/[feedUrl]/item/[itemIdentityKind]/[itemIdentity]/observations/[timestampMs]/[source]:RssItem_Timestamp.ItemTimestampMsSource.1.itemIdentity",
-																													timestampMs: "/rss/feed/[feedUrl]/item/[itemIdentityKind]/[itemIdentity]/observations/[timestampMs]/[source]:RssItem_Timestamp.ItemTimestampMsSource.1.timestampMs",
-																													source: "/rss/feed/[feedUrl]/item/[itemIdentityKind]/[itemIdentity]/observations/[timestampMs]/[source]:RssItem_Timestamp.ItemTimestampMsSource.1.source",
-																												},
-																											},
-																										],
 
 																										params: {
 																											"timestampMs": ["timestampMs"],
@@ -81800,16 +79917,6 @@ export const routes = defineRoutes(schema)({
 																	selectors: {
 																		[EntityType.RssFeed_Timestamp]: {
 																			"FeedTimestampMsSource": {
-																				probeCases: [
-																					{
-																						id: "default",
-																						params: {
-																							feedUrl: "/rss/feed/[feedUrl]/observations/[timestampMs]/[source]:RssFeed_Timestamp.FeedTimestampMsSource.1.feedUrl",
-																							timestampMs: "/rss/feed/[feedUrl]/observations/[timestampMs]/[source]:RssFeed_Timestamp.FeedTimestampMsSource.1.timestampMs",
-																							source: "/rss/feed/[feedUrl]/observations/[timestampMs]/[source]:RssFeed_Timestamp.FeedTimestampMsSource.1.source",
-																						},
-																					},
-																				],
 
 																				params: {
 																					"timestampMs": ["timestampMs"],
@@ -81838,13 +79945,6 @@ export const routes = defineRoutes(schema)({
 							selectors: {
 								[EntityType.FarcasterNetwork]: {
 									"Scope": {
-										probeCases: [
-											{
-												id: "default",
-												params: {
-												},
-											},
-										],
 
 										derivations: {
 											"scope": { kind: "literal", value: "FarcasterNetwork" }
@@ -81877,14 +79977,6 @@ export const routes = defineRoutes(schema)({
 											selectors: {
 												[EntityType.BlockheadFarcasterAccountConnection]: {
 													"ConnectionId": {
-														probeCases: [
-															{
-																id: "default",
-																params: {
-																	connectionId: "/farcaster/account/[connectionId]:BlockheadFarcasterAccountConnection.ConnectionId.1.connectionId",
-																},
-															},
-														],
 
 														params: {
 															"connectionId": [
@@ -81944,14 +80036,6 @@ export const routes = defineRoutes(schema)({
 											selectors: {
 												[EntityType.FarcasterUser]: {
 													"Fid": {
-														probeCases: [
-															{
-																id: "default",
-																params: {
-																	userId: "/farcaster/user/[userId]:FarcasterUser.Fid.1.userId",
-																},
-															},
-														],
 
 														params: {
 															"userId": [
@@ -81991,16 +80075,6 @@ export const routes = defineRoutes(schema)({
 																	selectors: {
 																		[EntityType.FarcasterVerifiedAddress]: {
 																			"FidProtocolAddress": {
-																				probeCases: [
-																					{
-																						id: "default",
-																						params: {
-																							userId: "/farcaster/user/[userId]/verified-address/[protocol]/[address]:FarcasterVerifiedAddress.FidProtocolAddress.1.userId",
-																							protocol: "/farcaster/user/[userId]/verified-address/[protocol]/[address]:FarcasterVerifiedAddress.FidProtocolAddress.1.protocol",
-																							address: "/farcaster/user/[userId]/verified-address/[protocol]/[address]:FarcasterVerifiedAddress.FidProtocolAddress.1.address",
-																						},
-																					},
-																				],
 
 																				params: {
 																					"userId": [
@@ -82031,15 +80105,6 @@ export const routes = defineRoutes(schema)({
 															selectors: {
 																[EntityType.FarcasterUser_Timestamp]: {
 																	"FarcasterUserTimestampMs": {
-																		probeCases: [
-																			{
-																				id: "default",
-																				params: {
-																					userId: "/farcaster/user/[userId]/observations/[timestampMs]:FarcasterUser_Timestamp.FarcasterUserTimestampMs.1.userId",
-																					timestampMs: "/farcaster/user/[userId]/observations/[timestampMs]:FarcasterUser_Timestamp.FarcasterUserTimestampMs.1.timestampMs",
-																				},
-																			},
-																		],
 
 																		params: {
 																			"timestampMs": [
@@ -82071,14 +80136,6 @@ export const routes = defineRoutes(schema)({
 											selectors: {
 												[EntityType.FarcasterChannel]: {
 													"Id": {
-														probeCases: [
-															{
-																id: "default",
-																params: {
-																	channelId: "/farcaster/channel/[channelId]:FarcasterChannel.Id.1.channelId",
-																},
-															},
-														],
 
 														params: {
 															"channelId": [
@@ -82116,15 +80173,6 @@ export const routes = defineRoutes(schema)({
 															selectors: {
 																[EntityType.FarcasterChannel_Timestamp]: {
 																	"FarcasterChannelTimestampMs": {
-																		probeCases: [
-																			{
-																				id: "default",
-																				params: {
-																					channelId: "/farcaster/channel/[channelId]/observations/[timestampMs]:FarcasterChannel_Timestamp.FarcasterChannelTimestampMs.1.channelId",
-																					timestampMs: "/farcaster/channel/[channelId]/observations/[timestampMs]:FarcasterChannel_Timestamp.FarcasterChannelTimestampMs.1.timestampMs",
-																				},
-																			},
-																		],
 
 																		params: {
 																			"timestampMs": [
@@ -82156,15 +80204,6 @@ export const routes = defineRoutes(schema)({
 													selectors: {
 														[EntityType.FarcasterCast]: {
 															"FidHash": {
-																probeCases: [
-																	{
-																		id: "default",
-																		params: {
-																			fid: "/farcaster/cast/[fid]/[hash]:FarcasterCast.FidHash.1.fid",
-																			hash: "/farcaster/cast/[fid]/[hash]:FarcasterCast.FidHash.1.hash",
-																		},
-																	},
-																],
 
 																params: {
 																	"fid": [
@@ -82186,16 +80225,6 @@ export const routes = defineRoutes(schema)({
 																	selectors: {
 																		[EntityType.FarcasterCastEmbed]: {
 																			"CastIndexInCast": {
-																				probeCases: [
-																					{
-																						id: "default",
-																						params: {
-																							fid: "/farcaster/cast/[fid]/[hash]/embed/[indexInCast]:FarcasterCastEmbed.CastIndexInCast.1.fid",
-																							hash: "/farcaster/cast/[fid]/[hash]/embed/[indexInCast]:FarcasterCastEmbed.CastIndexInCast.1.hash",
-																							indexInCast: "/farcaster/cast/[fid]/[hash]/embed/[indexInCast]:FarcasterCastEmbed.CastIndexInCast.1.indexInCast",
-																						},
-																					},
-																				],
 
 																				params: {
 																					"indexInCast": [
@@ -82229,16 +80258,6 @@ export const routes = defineRoutes(schema)({
 																	selectors: {
 																		[EntityType.FarcasterCast_Timestamp]: {
 																			"FarcasterCastTimestampMs": {
-																				probeCases: [
-																					{
-																						id: "default",
-																						params: {
-																							fid: "/farcaster/cast/[fid]/[hash]/observations/[timestampMs]:FarcasterCast_Timestamp.FarcasterCastTimestampMs.1.fid",
-																							hash: "/farcaster/cast/[fid]/[hash]/observations/[timestampMs]:FarcasterCast_Timestamp.FarcasterCastTimestampMs.1.hash",
-																							timestampMs: "/farcaster/cast/[fid]/[hash]/observations/[timestampMs]:FarcasterCast_Timestamp.FarcasterCastTimestampMs.1.timestampMs",
-																						},
-																					},
-																				],
 
 																				params: {
 																					"timestampMs": [
@@ -82277,15 +80296,6 @@ export const routes = defineRoutes(schema)({
 													selectors: {
 														[EntityType.FarcasterCast]: {
 															"UsernameHashPrefix": {
-																probeCases: [
-																	{
-																		id: "default",
-																		params: {
-																			fname: "/farcaster/c/[fname]/[hash]:FarcasterCast.UsernameHashPrefix.1.fname",
-																			hash: "/farcaster/c/[fname]/[hash]:FarcasterCast.UsernameHashPrefix.1.hash",
-																		},
-																	},
-																],
 
 																params: {
 																	"fname": [
@@ -82332,7 +80342,7 @@ export const routes = defineRoutes(schema)({
 														"$$entries"
 													],
 													query: {
-														sources: [Source.Neynar_Rest, Source.Farcaster_Rest, Source.Snapchain_Rest],
+														sources: [Source.Neynar_Rest],
 													},
 													derivations: {
 														"variant": { kind: "literal", value: "trending" }
@@ -82342,13 +80352,6 @@ export const routes = defineRoutes(schema)({
 											selectors: {
 												[EntityType.FarcasterFeed]: {
 													"Variant": {
-														probeCases: [
-															{
-																id: "default",
-																params: {
-																},
-															},
-														],
 
 														derivations: {
 															"variant": { kind: "literal", value: "trending" }
@@ -82382,14 +80385,6 @@ export const routes = defineRoutes(schema)({
 													selectors: {
 														[EntityType.FarcasterFeed]: {
 															"ByUser": {
-																probeCases: [
-																	{
-																		id: "default",
-																		params: {
-																			userId: "/farcaster/feed/user/[userId]:FarcasterFeed.ByUser.1.userId",
-																		},
-																	},
-																],
 
 																params: {
 																	"userId": [
@@ -82430,14 +80425,6 @@ export const routes = defineRoutes(schema)({
 													selectors: {
 														[EntityType.FarcasterFeed]: {
 															"ByChannel": {
-																probeCases: [
-																	{
-																		id: "default",
-																		params: {
-																			channelId: "/farcaster/feed/channel/[channelId]:FarcasterFeed.ByChannel.1.channelId",
-																		},
-																	},
-																],
 
 																params: {
 																	"channelId": [
@@ -82478,14 +80465,6 @@ export const routes = defineRoutes(schema)({
 													selectors: {
 														[EntityType.FarcasterFeed]: {
 															"Following": {
-																probeCases: [
-																	{
-																		id: "default",
-																		params: {
-																			userId: "/farcaster/feed/following/[userId]:FarcasterFeed.Following.1.userId",
-																		},
-																	},
-																],
 
 																params: {
 																	"userId": [
@@ -82517,13 +80496,6 @@ export const routes = defineRoutes(schema)({
 							selectors: {
 								[EntityType.LensNetwork]: {
 									"Scope": {
-										probeCases: [
-											{
-												id: "default",
-												params: {
-												},
-											},
-										],
 
 										derivations: {
 											"scope": { kind: "literal", value: "LensNetwork" }
@@ -82583,14 +80555,6 @@ export const routes = defineRoutes(schema)({
 											selectors: {
 												[EntityType.LensAccount]: {
 													"Address": {
-														probeCases: [
-															{
-																id: "default",
-																params: {
-																	address: "/lens/account/[address]:LensAccount.Address.1.address",
-																},
-															},
-														],
 
 														params: {
 															"address": [
@@ -82625,15 +80589,6 @@ export const routes = defineRoutes(schema)({
 															selectors: {
 																[EntityType.LensAccount_Timestamp]: {
 																	"LensAccountTimestampMs": {
-																		probeCases: [
-																			{
-																				id: "default",
-																				params: {
-																					address: "/lens/account/[address]/observations/[timestampMs]:LensAccount_Timestamp.LensAccountTimestampMs.1.address",
-																					timestampMs: "/lens/account/[address]/observations/[timestampMs]:LensAccount_Timestamp.LensAccountTimestampMs.1.timestampMs",
-																				},
-																			},
-																		],
 
 																		params: {
 																			"timestampMs": [
@@ -82665,14 +80620,6 @@ export const routes = defineRoutes(schema)({
 											selectors: {
 												[EntityType.LensPost]: {
 													"Id": {
-														probeCases: [
-															{
-																id: "default",
-																params: {
-																	postId: "/lens/post/[postId]:LensPost.Id.1.postId",
-																},
-															},
-														],
 
 														params: {
 															"postId": [
@@ -82706,15 +80653,6 @@ export const routes = defineRoutes(schema)({
 															selectors: {
 																[EntityType.LensPost_Timestamp]: {
 																	"LensPostTimestampMs": {
-																		probeCases: [
-																			{
-																				id: "default",
-																				params: {
-																					postId: "/lens/post/[postId]/observations/[timestampMs]:LensPost_Timestamp.LensPostTimestampMs.1.postId",
-																					timestampMs: "/lens/post/[postId]/observations/[timestampMs]:LensPost_Timestamp.LensPostTimestampMs.1.timestampMs",
-																				},
-																			},
-																		],
 
 																		params: {
 																			"timestampMs": [
@@ -82750,13 +80688,6 @@ export const routes = defineRoutes(schema)({
 							selectors: {
 								[EntityType.XNetwork]: {
 									"Scope": {
-										probeCases: [
-											{
-												id: "default",
-												params: {
-												},
-											},
-										],
 
 										derivations: {
 											"scope": { kind: "literal", value: "XNetwork" }
@@ -82806,14 +80737,6 @@ export const routes = defineRoutes(schema)({
 											selectors: {
 												[EntityType.XUser]: {
 													"Id": {
-														probeCases: [
-															{
-																id: "default",
-																params: {
-																	userId: "/x/user/[userId]:XUser.Id.1.userId",
-																},
-															},
-														],
 
 														params: {
 															"userId": [
@@ -82833,16 +80756,6 @@ export const routes = defineRoutes(schema)({
 															selectors: {
 																[EntityType.XUser_Timestamp]: {
 																	"XUserTimestampMsSource": {
-																		probeCases: [
-																			{
-																				id: "default",
-																				params: {
-																					userId: "/x/user/[userId]/observations/[timestampMs]/[source]:XUser_Timestamp.XUserTimestampMsSource.1.userId",
-																					timestampMs: "/x/user/[userId]/observations/[timestampMs]/[source]:XUser_Timestamp.XUserTimestampMsSource.1.timestampMs",
-																					source: "/x/user/[userId]/observations/[timestampMs]/[source]:XUser_Timestamp.XUserTimestampMsSource.1.source",
-																				},
-																			},
-																		],
 
 																		params: {
 																			"timestampMs": [
@@ -82879,14 +80792,6 @@ export const routes = defineRoutes(schema)({
 											selectors: {
 												[EntityType.XPost]: {
 													"Id": {
-														probeCases: [
-															{
-																id: "default",
-																params: {
-																	postId: "/x/post/[postId]:XPost.Id.1.postId",
-																},
-															},
-														],
 
 														params: {
 															"postId": [
@@ -82906,16 +80811,6 @@ export const routes = defineRoutes(schema)({
 															selectors: {
 																[EntityType.XPost_Timestamp]: {
 																	"XPostTimestampMsSource": {
-																		probeCases: [
-																			{
-																				id: "default",
-																				params: {
-																					postId: "/x/post/[postId]/observations/[timestampMs]/[source]:XPost_Timestamp.XPostTimestampMsSource.1.postId",
-																					timestampMs: "/x/post/[postId]/observations/[timestampMs]/[source]:XPost_Timestamp.XPostTimestampMsSource.1.timestampMs",
-																					source: "/x/post/[postId]/observations/[timestampMs]/[source]:XPost_Timestamp.XPostTimestampMsSource.1.source",
-																				},
-																			},
-																		],
 
 																		params: {
 																			"timestampMs": [
@@ -82956,13 +80851,6 @@ export const routes = defineRoutes(schema)({
 							selectors: {
 								[EntityType.XmtpNetwork]: {
 									"Scope": {
-										probeCases: [
-											{
-												id: "default",
-												params: {
-												},
-											},
-										],
 
 										derivations: {
 											"scope": { kind: "literal", value: "XmtpNetwork" }
@@ -83012,14 +80900,6 @@ export const routes = defineRoutes(schema)({
 											selectors: {
 												[EntityType.XmtpConversation]: {
 													"Id": {
-														probeCases: [
-															{
-																id: "default",
-																params: {
-																	conversationId: "/xmtp/conversation/[conversationId]:XmtpConversation.Id.1.conversationId",
-																},
-															},
-														],
 
 														params: {
 															"conversationId": [
@@ -83044,13 +80924,6 @@ export const routes = defineRoutes(schema)({
 							selectors: {
 								[EntityType._GlobalActivityPubNetwork]: {
 									"Scope": {
-										probeCases: [
-											{
-												id: "default",
-												params: {
-												},
-											},
-										],
 
 										derivations: {
 											"scope": { kind: "literal", value: "_GlobalActivityPubNetwork" }
@@ -83106,14 +80979,6 @@ export const routes = defineRoutes(schema)({
 											selectors: {
 												[EntityType.ActivityPubInstance]: {
 													"InstanceOrigin": {
-														probeCases: [
-															{
-																id: "default",
-																params: {
-																	instanceOrigin: "/activitypub/instance/[instanceOrigin]:ActivityPubInstance.InstanceOrigin.1.instanceOrigin",
-																},
-															},
-														],
 														params: {
 															"instanceOrigin": [
 																"instanceOrigin"
@@ -83132,16 +80997,6 @@ export const routes = defineRoutes(schema)({
 																	selectors: {
 																		[EntityType.ActivityPubInstance_Timestamp]: {
 																			"InstanceTimestampMsSource": {
-																				probeCases: [
-																					{
-																						id: "default",
-																						params: {
-																							instanceOrigin: "/activitypub/instance/[instanceOrigin]/observations/[timestampMs]/[source]:ActivityPubInstance_Timestamp.InstanceTimestampMsSource.1.instanceOrigin",
-																							timestampMs: "/activitypub/instance/[instanceOrigin]/observations/[timestampMs]/[source]:ActivityPubInstance_Timestamp.InstanceTimestampMsSource.1.timestampMs",
-																							source: "/activitypub/instance/[instanceOrigin]/observations/[timestampMs]/[source]:ActivityPubInstance_Timestamp.InstanceTimestampMsSource.1.source",
-																						},
-																					},
-																				],
 																				params: {
 																					"timestampMs": [
 																						"timestampMs"
@@ -83179,15 +81034,6 @@ export const routes = defineRoutes(schema)({
 													selectors: {
 														[EntityType.ActivityPubActor]: {
 															"LocalAccountId": {
-																probeCases: [
-																	{
-																		id: "default",
-																		params: {
-																			instanceOrigin: "/activitypub/actor/[instanceOrigin]/[localAccountId]:ActivityPubActor.LocalAccountId.1.instanceOrigin",
-																			localAccountId: "/activitypub/actor/[instanceOrigin]/[localAccountId]:ActivityPubActor.LocalAccountId.1.localAccountId",
-																		},
-																	},
-																],
 
 																params: {
 																	"instanceOrigin": [
@@ -83232,17 +81078,6 @@ export const routes = defineRoutes(schema)({
 																			selectors: {
 																				[EntityType.ActivityPubActor_Timestamp]: {
 																					"ActivityPubActorTimestampMsSource": {
-																				probeCases: [
-																					{
-																						id: "default",
-																						params: {
-																							instanceOrigin: "/activitypub/actor/[instanceOrigin]/[localAccountId]/observations/[timestampMs]/[source]:ActivityPubActor_Timestamp.ActivityPubActorTimestampMsSource.1.instanceOrigin",
-																							localAccountId: "/activitypub/actor/[instanceOrigin]/[localAccountId]/observations/[timestampMs]/[source]:ActivityPubActor_Timestamp.ActivityPubActorTimestampMsSource.1.localAccountId",
-																							timestampMs: "/activitypub/actor/[instanceOrigin]/[localAccountId]/observations/[timestampMs]/[source]:ActivityPubActor_Timestamp.ActivityPubActorTimestampMsSource.1.timestampMs",
-																							source: "/activitypub/actor/[instanceOrigin]/[localAccountId]/observations/[timestampMs]/[source]:ActivityPubActor_Timestamp.ActivityPubActorTimestampMsSource.1.source",
-																						},
-																					},
-																				],
 
 																				params: {
 																					"timestampMs": [
@@ -83285,15 +81120,6 @@ export const routes = defineRoutes(schema)({
 													selectors: {
 														[EntityType.ActivityPubNote]: {
 															"InstanceOriginLocalStatusId": {
-																probeCases: [
-																	{
-																		id: "default",
-																		params: {
-																			instanceOrigin: "/activitypub/note/[instanceOrigin]/[localStatusId]:ActivityPubNote.InstanceOriginLocalStatusId.1.instanceOrigin",
-																			localStatusId: "/activitypub/note/[instanceOrigin]/[localStatusId]:ActivityPubNote.InstanceOriginLocalStatusId.1.localStatusId",
-																		},
-																	},
-																],
 
 																params: {
 																	"instanceOrigin": [
@@ -83338,17 +81164,6 @@ export const routes = defineRoutes(schema)({
 																			selectors: {
 																				[EntityType.ActivityPubNote_Timestamp]: {
 																					"ActivityPubNoteTimestampMsSource": {
-																				probeCases: [
-																					{
-																						id: "default",
-																						params: {
-																							instanceOrigin: "/activitypub/note/[instanceOrigin]/[localStatusId]/observations/[timestampMs]/[source]:ActivityPubNote_Timestamp.ActivityPubNoteTimestampMsSource.1.instanceOrigin",
-																							localStatusId: "/activitypub/note/[instanceOrigin]/[localStatusId]/observations/[timestampMs]/[source]:ActivityPubNote_Timestamp.ActivityPubNoteTimestampMsSource.1.localStatusId",
-																							timestampMs: "/activitypub/note/[instanceOrigin]/[localStatusId]/observations/[timestampMs]/[source]:ActivityPubNote_Timestamp.ActivityPubNoteTimestampMsSource.1.timestampMs",
-																							source: "/activitypub/note/[instanceOrigin]/[localStatusId]/observations/[timestampMs]/[source]:ActivityPubNote_Timestamp.ActivityPubNoteTimestampMsSource.1.source",
-																						},
-																					},
-																				],
 
 																				params: {
 																					"timestampMs": [
@@ -83393,13 +81208,6 @@ export const routes = defineRoutes(schema)({
 							selectors: {
 								[EntityType._GlobalAtprotoNetwork]: {
 									"Scope": {
-										probeCases: [
-											{
-												id: "default",
-												params: {
-												},
-											},
-										],
 
 										derivations: {
 											"scope": {
@@ -83458,14 +81266,6 @@ export const routes = defineRoutes(schema)({
 											selectors: {
 												[EntityType.AtprotoActor]: {
 													"Did": {
-														probeCases: [
-															{
-																id: "default",
-																params: {
-																	did: "/atproto/actor/[did]:AtprotoActor.Did.1.did",
-																},
-															},
-														],
 
 														params: {
 															"did": [
@@ -83520,16 +81320,6 @@ export const routes = defineRoutes(schema)({
 															selectors: {
 														[EntityType.AtprotoActor_Timestamp]: {
 															"AtprotoActorTimestampMsSource": {
-																		probeCases: [
-																			{
-																				id: "default",
-																				params: {
-																	did: "/atproto/actor/[did]/observations/[timestampMs]/[source]:AtprotoActor_Timestamp.AtprotoActorTimestampMsSource.1.did",
-																	timestampMs: "/atproto/actor/[did]/observations/[timestampMs]/[source]:AtprotoActor_Timestamp.AtprotoActorTimestampMsSource.1.timestampMs",
-																	source: "/atproto/actor/[did]/observations/[timestampMs]/[source]:AtprotoActor_Timestamp.AtprotoActorTimestampMsSource.1.source",
-																				},
-																			},
-																		],
 
 																		params: {
 																			"timestampMs": [
@@ -83567,14 +81357,6 @@ export const routes = defineRoutes(schema)({
 													selectors: {
 														[EntityType.AtprotoActor]: {
 															"Handle": {
-																probeCases: [
-																	{
-																		id: "default",
-																		params: {
-																			handle: "/atproto/actor/handle/[handle]:AtprotoActor.Handle.1.handle",
-																		},
-																	},
-																],
 
 																	params: {
 																		"handle": [
@@ -83600,14 +81382,6 @@ export const routes = defineRoutes(schema)({
 											selectors: {
 												[EntityType.AtprotoPost]: {
 													"Uri": {
-														probeCases: [
-															{
-																id: "default",
-																params: {
-																	uri: "/atproto/post/[...uri]:AtprotoPost.Uri.1.uri",
-																},
-															},
-														],
 
 														params: {
 															"uri": [
@@ -83660,15 +81434,6 @@ export const routes = defineRoutes(schema)({
 															selectors: {
 																[EntityType.AtprotoPost_Timestamp]: {
 																	"AtprotoPostTimestampMs": {
-																		probeCases: [
-																			{
-																				id: "default",
-																				params: {
-																					uri: "/atproto/post/[...uri]/observations/[timestampMs]:AtprotoPost_Timestamp.AtprotoPostTimestampMs.1.uri",
-																					timestampMs: "/atproto/post/[...uri]/observations/[timestampMs]:AtprotoPost_Timestamp.AtprotoPostTimestampMs.1.timestampMs",
-																				},
-																			},
-																		],
 
 																		params: {
 																			"timestampMs": [
@@ -83706,13 +81471,6 @@ export const routes = defineRoutes(schema)({
 							selectors: {
 								[EntityType._GlobalNostrNetwork]: {
 									"Scope": {
-										probeCases: [
-											{
-												id: "default",
-												params: {
-												},
-											},
-										],
 
 										derivations: {
 											"scope": {
@@ -83747,7 +81505,6 @@ export const routes = defineRoutes(schema)({
 										view: {
 											imports: [
 												{ from: "$app/navigation", names: ["goto"] },
-												{ from: "$app/paths", names: ["resolve"] },
 											],
 											script: `
 												let query = $state('')
@@ -83762,7 +81519,12 @@ export const routes = defineRoutes(schema)({
 															event.preventDefault()
 															const normalizedQuery = query.trim().replace(/\\s+/g, ' ')
 															if (normalizedQuery !== '')
-											void goto(resolve(\`/nostr/search/\${encodeURIComponent(normalizedQuery)}\`))
+																void goto(resolve(
+																	'/(social)/(nostr)/nostr/(globalNostrNetwork)/search/[query=stringSegment]',
+																	{
+																		query: normalizedQuery,
+																	}
+																))
 														}}
 													>
 														<label data-column="gap-2">
@@ -83788,14 +81550,6 @@ export const routes = defineRoutes(schema)({
 											selectors: {
 												[EntityType.NostrSearchQuery]: {
 													"Query": {
-														probeCases: [
-															{
-																id: "default",
-																params: {
-																	query: "alice",
-																},
-															},
-														],
 														params: {
 															"query": ["query"],
 														},
@@ -83897,14 +81651,6 @@ export const routes = defineRoutes(schema)({
 											selectors: {
 												[EntityType.NostrProfile]: {
 													"CanonicalPubkey": {
-														probeCases: [
-															{
-																id: "default",
-																params: {
-																	pubkey: "/nostr/profile/[pubkey]:NostrProfile.CanonicalPubkey.1.pubkey",
-																},
-															},
-														],
 
 														params: {
 															"pubkey": [
@@ -83968,14 +81714,6 @@ export const routes = defineRoutes(schema)({
 											selectors: {
 												[EntityType.NostrNote]: {
 													"CanonicalEventId": {
-														probeCases: [
-															{
-																id: "default",
-																params: {
-																	eventId: "/nostr/note/[eventId]:NostrNote.CanonicalEventId.1.eventId",
-																},
-															},
-														],
 
 														params: {
 															"eventId": [
@@ -84027,15 +81765,6 @@ export const routes = defineRoutes(schema)({
 													selectors: {
 														[EntityType.NostrArticle]: {
 															"CanonicalCoordinate": {
-																probeCases: [
-																	{
-																		id: "default",
-																		params: {
-																			pubkey: "/nostr/article/[pubkey]/[identifier]:NostrArticle.CanonicalCoordinate.1.pubkey",
-																			identifier: "/nostr/article/[pubkey]/[identifier]:NostrArticle.CanonicalCoordinate.1.identifier",
-																		},
-																	},
-																],
 
 																params: {
 																	"pubkey": [
@@ -84063,12 +81792,6 @@ export const routes = defineRoutes(schema)({
 											selectors: {
 												[EntityType.NostrArticleEvent]: {
 													"CanonicalEventId": {
-														probeCases: [
-															{
-																id: "default",
-																params: { eventId: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" },
-															},
-														],
 														params: {
 															"eventId": ["eventId"],
 														},
@@ -84085,12 +81808,6 @@ export const routes = defineRoutes(schema)({
 											selectors: {
 												[EntityType.NostrProfileMetadataEvent]: {
 													"CanonicalEventId": {
-														probeCases: [
-															{
-																id: "default",
-																params: { eventId: "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb" },
-															},
-														],
 														params: {
 															"eventId": ["eventId"],
 														},
@@ -84107,14 +81824,6 @@ export const routes = defineRoutes(schema)({
 											selectors: {
 												[EntityType.NostrRepost]: {
 													"CanonicalEventId": {
-														probeCases: [
-															{
-																id: "default",
-																params: {
-																	eventId: "/nostr/repost/[eventId]:NostrRepost.CanonicalEventId.1.eventId",
-																},
-															},
-														],
 
 														params: {
 															"eventId": [
@@ -84135,14 +81844,6 @@ export const routes = defineRoutes(schema)({
 											selectors: {
 												[EntityType.NostrReaction]: {
 													"CanonicalEventId": {
-														probeCases: [
-															{
-																id: "default",
-																params: {
-																	eventId: "/nostr/reaction/[eventId]:NostrReaction.CanonicalEventId.1.eventId",
-																},
-															},
-														],
 
 														params: {
 															"eventId": [
@@ -84163,14 +81864,6 @@ export const routes = defineRoutes(schema)({
 											selectors: {
 												[EntityType.NostrRelay]: {
 													"RelayUrl": {
-														probeCases: [
-															{
-																id: "default",
-																params: {
-																	relayKey: "/nostr/relay/[relayKey]:NostrRelay.RelayUrl.1.relayKey",
-																},
-															},
-														],
 
 														params: {
 															"relayKey": [
@@ -84190,16 +81883,6 @@ export const routes = defineRoutes(schema)({
 																	selectors: {
 																		[EntityType.NostrRelay_Timestamp]: {
 																			"RelayTimestampMsSource": {
-																				probeCases: [
-																					{
-																						id: "default",
-																						params: {
-																							relayKey: "/nostr/relay/[relayKey]/observations/[timestampMs]/[source]:NostrRelay_Timestamp.RelayTimestampMsSource.1.relayKey",
-																							timestampMs: "/nostr/relay/[relayKey]/observations/[timestampMs]/[source]:NostrRelay_Timestamp.RelayTimestampMsSource.1.timestampMs",
-																							source: "/nostr/relay/[relayKey]/observations/[timestampMs]/[source]:NostrRelay_Timestamp.RelayTimestampMsSource.1.source",
-																						},
-																					},
-																				],
 
 																				params: {
 																					"timestampMs": ["timestampMs"],
@@ -84229,13 +81912,6 @@ export const routes = defineRoutes(schema)({
 							selectors: {
 								[EntityType._GlobalRedditNetwork]: {
 									"Scope": {
-										probeCases: [
-											{
-												id: "default",
-												params: {
-												},
-											},
-										],
 
 										derivations: {
 											"scope": {
@@ -84302,14 +81978,6 @@ export const routes = defineRoutes(schema)({
 											selectors: {
 												[EntityType.RedditSubreddit]: {
 													"Name": {
-														probeCases: [
-															{
-																id: "default",
-																params: {
-																	name: "/reddit/r/[name]:RedditSubreddit.Name.1.name",
-																},
-															},
-														],
 
 														params: {
 															"name": [
@@ -84368,16 +82036,6 @@ export const routes = defineRoutes(schema)({
 																	selectors: {
 																		[EntityType.RedditSubreddit_Timestamp]: {
 																			"SubredditTimestampMsSource": {
-																				probeCases: [
-																					{
-																						id: "default",
-																						params: {
-																							name: "/reddit/r/[name]/observations/[timestampMs]/[source]:RedditSubreddit_Timestamp.SubredditTimestampMsSource.1.name",
-																							timestampMs: "/reddit/r/[name]/observations/[timestampMs]/[source]:RedditSubreddit_Timestamp.SubredditTimestampMsSource.1.timestampMs",
-																							source: "/reddit/r/[name]/observations/[timestampMs]/[source]:RedditSubreddit_Timestamp.SubredditTimestampMsSource.1.source",
-																						},
-																					},
-																				],
 
 																				params: {
 																					"timestampMs": [
@@ -84416,14 +82074,6 @@ export const routes = defineRoutes(schema)({
 											selectors: {
 												[EntityType.RedditLink]: {
 													"Fullname": {
-														probeCases: [
-															{
-																id: "default",
-																params: {
-																	fullname: "/reddit/link/[fullname]:RedditLink.Fullname.1.fullname",
-																},
-															},
-														],
 
 														params: {
 															"fullname": [
@@ -84482,16 +82132,6 @@ export const routes = defineRoutes(schema)({
 																	selectors: {
 																		[EntityType.RedditLink_Timestamp]: {
 																			"LinkTimestampMsSource": {
-																				probeCases: [
-																					{
-																						id: "default",
-																						params: {
-																							fullname: "/reddit/link/[fullname]/observations/[timestampMs]/[source]:RedditLink_Timestamp.LinkTimestampMsSource.1.fullname",
-																							timestampMs: "/reddit/link/[fullname]/observations/[timestampMs]/[source]:RedditLink_Timestamp.LinkTimestampMsSource.1.timestampMs",
-																							source: "/reddit/link/[fullname]/observations/[timestampMs]/[source]:RedditLink_Timestamp.LinkTimestampMsSource.1.source",
-																						},
-																					},
-																				],
 
 																				params: {
 																					"timestampMs": [
@@ -84529,14 +82169,6 @@ export const routes = defineRoutes(schema)({
 											selectors: {
 												[EntityType.RedditComment]: {
 													"Fullname": {
-														probeCases: [
-															{
-																id: "default",
-																params: {
-																	fullname: "/reddit/comment/[fullname]:RedditComment.Fullname.1.fullname",
-																},
-															},
-														],
 
 														params: {
 															"fullname": [
@@ -84596,16 +82228,6 @@ export const routes = defineRoutes(schema)({
 																	selectors: {
 																		[EntityType.RedditComment_Timestamp]: {
 																			"CommentTimestampMsSource": {
-																				probeCases: [
-																					{
-																						id: "default",
-																						params: {
-																							fullname: "/reddit/comment/[fullname]/observations/[timestampMs]/[source]:RedditComment_Timestamp.CommentTimestampMsSource.1.fullname",
-																							timestampMs: "/reddit/comment/[fullname]/observations/[timestampMs]/[source]:RedditComment_Timestamp.CommentTimestampMsSource.1.timestampMs",
-																							source: "/reddit/comment/[fullname]/observations/[timestampMs]/[source]:RedditComment_Timestamp.CommentTimestampMsSource.1.source",
-																						},
-																					},
-																				],
 
 																				params: {
 																					"timestampMs": [
@@ -84647,13 +82269,6 @@ export const routes = defineRoutes(schema)({
 							selectors: {
 								[EntityType._GlobalYoutubeNetwork]: {
 									"Scope": {
-										probeCases: [
-											{
-												id: "default",
-												params: {
-												},
-											},
-										],
 
 										derivations: {
 											"scope": {
@@ -84670,13 +82285,6 @@ export const routes = defineRoutes(schema)({
 									selectors: {
 										[EntityType.YoutubeNetwork]: {
 											"Scope": {
-												probeCases: [
-													{
-														id: "default",
-														params: {
-														},
-													},
-												],
 
 												derivations: {
 													"scope": { kind: "literal", value: "YoutubeNetwork" }
@@ -84747,14 +82355,6 @@ export const routes = defineRoutes(schema)({
 											selectors: {
 												[EntityType.YoutubeChannel]: {
 													"ChannelId": {
-														probeCases: [
-															{
-																id: "default",
-																params: {
-																	channelId: "/youtube/channel/[channelId]:YoutubeChannel.ChannelId.1.channelId",
-																},
-															},
-														],
 
 														params: {
 															"channelId": [
@@ -84773,16 +82373,6 @@ export const routes = defineRoutes(schema)({
 									selectors: {
 										[EntityType.YoutubeChannel_Timestamp]: {
 											"YoutubeChannelTimestampMsSource": {
-												probeCases: [
-													{
-														id: "default",
-														params: {
-															channelId: "/youtube/channel/[channelId]/observations/[timestampMs]-[source]:YoutubeChannel_Timestamp.YoutubeChannelTimestampMsSource.1.channelId",
-															timestampMs: "/youtube/channel/[channelId]/observations/[timestampMs]-[source]:YoutubeChannel_Timestamp.YoutubeChannelTimestampMsSource.1.timestampMs",
-															source: Source.Youtube_Rest,
-														},
-													},
-												],
 
 												params: {
 													"timestampMs": [
@@ -84876,14 +82466,6 @@ export const routes = defineRoutes(schema)({
 											selectors: {
 												[EntityType.YoutubeVideo]: {
 													"VideoId": {
-														probeCases: [
-															{
-																id: "default",
-																params: {
-																	videoId: "/youtube/video/[videoId]:YoutubeVideo.VideoId.1.videoId",
-																},
-															},
-														],
 
 														params: {
 															"videoId": [
@@ -84902,16 +82484,6 @@ export const routes = defineRoutes(schema)({
 									selectors: {
 										[EntityType.YoutubeVideo_Timestamp]: {
 											"YoutubeVideoTimestampMsSource": {
-												probeCases: [
-													{
-														id: "default",
-														params: {
-															videoId: "/youtube/video/[videoId]/observations/[timestampMs]-[source]:YoutubeVideo_Timestamp.YoutubeVideoTimestampMsSource.1.videoId",
-															timestampMs: "/youtube/video/[videoId]/observations/[timestampMs]-[source]:YoutubeVideo_Timestamp.YoutubeVideoTimestampMsSource.1.timestampMs",
-															source: Source.Youtube_Rest,
-														},
-													},
-												],
 
 												params: {
 													"timestampMs": [
@@ -84979,14 +82551,6 @@ export const routes = defineRoutes(schema)({
 											selectors: {
 												[EntityType.YoutubePlaylist]: {
 													"PlaylistId": {
-														probeCases: [
-															{
-																id: "default",
-																params: {
-																	playlistId: "/youtube/playlist/[playlistId]:YoutubePlaylist.PlaylistId.1.playlistId",
-																},
-															},
-														],
 
 														params: {
 															"playlistId": [
@@ -85004,16 +82568,6 @@ export const routes = defineRoutes(schema)({
 									selectors: {
 										[EntityType.YoutubePlaylist_Timestamp]: {
 											"YoutubePlaylistTimestampMsSource": {
-												probeCases: [
-													{
-														id: "default",
-														params: {
-															playlistId: "/youtube/playlist/[playlistId]/observations/[timestampMs]-[source]:YoutubePlaylist_Timestamp.YoutubePlaylistTimestampMsSource.1.playlistId",
-															timestampMs: "/youtube/playlist/[playlistId]/observations/[timestampMs]-[source]:YoutubePlaylist_Timestamp.YoutubePlaylistTimestampMsSource.1.timestampMs",
-															source: Source.Youtube_Rest,
-														},
-													},
-												],
 
 												params: {
 													"timestampMs": [
@@ -85083,15 +82637,6 @@ export const routes = defineRoutes(schema)({
 													selectors: {
 														[EntityType.YoutubeComment]: {
 															"VideoIdCommentId": {
-																probeCases: [
-																	{
-																		id: "default",
-																		params: {
-																			videoId: "/youtube/comment/[videoId]/[commentId]:YoutubeComment.VideoIdCommentId.1.videoId",
-																			commentId: "/youtube/comment/[videoId]/[commentId]:YoutubeComment.VideoIdCommentId.1.commentId",
-																		},
-																	},
-																],
 
 																params: {
 																	"videoId": [
@@ -85112,17 +82657,6 @@ export const routes = defineRoutes(schema)({
 											selectors: {
 												[EntityType.YoutubeComment_Timestamp]: {
 													"YoutubeCommentTimestampMsSource": {
-														probeCases: [
-															{
-																id: "default",
-																params: {
-																	videoId: "/youtube/comment/[videoId]/[commentId]/observations/[timestampMs]-[source]:YoutubeComment_Timestamp.YoutubeCommentTimestampMsSource.1.videoId",
-																	commentId: "/youtube/comment/[videoId]/[commentId]/observations/[timestampMs]-[source]:YoutubeComment_Timestamp.YoutubeCommentTimestampMsSource.1.commentId",
-																	timestampMs: "/youtube/comment/[videoId]/[commentId]/observations/[timestampMs]-[source]:YoutubeComment_Timestamp.YoutubeCommentTimestampMsSource.1.timestampMs",
-																	source: Source.Youtube_Rest,
-																},
-															},
-														],
 
 														params: {
 															"timestampMs": [
@@ -85178,7 +82712,6 @@ export const app = {
 				href: "/~/dashboards",
 				icon: "📊",
 				defaultIsOpen: true,
-				children: [],
 			},
 			{
 				id: "local-accounts",
@@ -85219,7 +82752,6 @@ export const app = {
 				href: "/~/sessions",
 				icon: "🧪",
 				defaultIsOpen: true,
-				children: [],
 			},
 			{
 				id: "explore",
@@ -85255,7 +82787,6 @@ export const app = {
 						href: "/contracts",
 						icon: "📜",
 						defaultIsOpen: true,
-						children: [],
 					},
 					{
 						id: "explore-ens",
@@ -85314,14 +82845,12 @@ export const app = {
 						href: "/upgrades",
 						icon: "🔀",
 						defaultIsOpen: true,
-						children: [],
 					},
 					{
 						id: "explore-evm",
 						title: "EVM",
 						href: "/evm",
 						icon: "🛠️",
-						defaultIsOpen: false,
 						children: [
 							{
 								id: "explore-evm-calldata",
@@ -85340,21 +82869,18 @@ export const app = {
 								title: "Selectors",
 								href: "/evm/selectors",
 								icon: "🎯",
-								children: [],
 							},
 							{
 								id: "explore-evm-topics",
 								title: "Topics",
 								href: "/evm/topics",
 								icon: "📑",
-								children: [],
 							},
 							{
 								id: "explore-evm-errors",
 								title: "Errors",
 								href: "/evm/errors",
 								icon: "⚠️",
-								children: [],
 							},
 								],
 							},
@@ -85451,14 +82977,12 @@ export const app = {
 								title: "Actors",
 								href: "/activitypub/actors",
 								icon: "👤",
-								children: [],
 							},
 							{
 								id: "social-activitypub-notes",
 								title: "Notes",
 								href: "/activitypub/notes",
 								icon: "📝",
-								children: [],
 							},
 						],
 					},
@@ -85473,14 +82997,12 @@ export const app = {
 								title: "Actors",
 								href: "/atproto/actors",
 								icon: "👤",
-								children: [],
 							},
 							{
 								id: "social-atproto-posts",
 								title: "Posts",
 								href: "/atproto/posts",
 								icon: "📝",
-								children: [],
 							},
 						],
 					},
@@ -85489,14 +83011,12 @@ export const app = {
 						title: "Farcaster",
 						href: "/farcaster",
 						icon: "🏛️",
-						defaultIsOpen: false,
 						children: [
 							{
 								id: "social-farcaster-accounts",
 								title: "Accounts",
 								href: "/farcaster/accounts",
 								icon: "👤",
-								children: [],
 							},
 							{
 								id: "social-farcaster-feed",
@@ -85509,7 +83029,6 @@ export const app = {
 										title: "Trending",
 										href: "/farcaster/feed/trending",
 										icon: "🔥",
-										children: [],
 									},
 								],
 							},
@@ -85538,14 +83057,12 @@ export const app = {
 								title: "Profiles",
 								href: "/lens/observations/accounts",
 								icon: "👤",
-								children: [],
 							},
 							{
 								id: "social-lens-posts",
 								title: "Publications",
 								href: "/lens/observations/posts",
 								icon: "📝",
-								children: [],
 							},
 						],
 					},
@@ -85560,35 +83077,30 @@ export const app = {
 								title: "Relays",
 								href: "/nostr/relays",
 								icon: "📡",
-								children: [],
 							},
 							{
 								id: "social-nostr-profiles",
 								title: "Profiles",
 								href: "/nostr/profiles",
 								icon: "👤",
-								children: [],
 							},
 							{
 								id: "social-nostr-notes",
 								title: "Notes",
 								href: "/nostr/notes",
 								icon: "📝",
-								children: [],
 							},
 							{
 								id: "social-nostr-reposts",
 								title: "Reposts",
 								href: "/nostr/reposts",
 								icon: "🔁",
-								children: [],
 							},
 							{
 								id: "social-nostr-articles",
 								title: "Articles",
 								href: "/nostr/articles",
 								icon: "📄",
-								children: [],
 							},
 						],
 					},
@@ -85603,14 +83115,12 @@ export const app = {
 								title: "Subreddits",
 								href: "/reddit/subreddits",
 								icon: "📋",
-								children: [],
 							},
 							{
 								id: "social-reddit-links",
 								title: "Submissions",
 								href: "/reddit/links",
 								icon: "📝",
-								children: [],
 							},
 						],
 					},
@@ -85625,7 +83135,6 @@ export const app = {
 								title: "Feeds",
 								href: "/rss/feeds",
 								icon: "📡",
-								children: [],
 							},
 						],
 					},
@@ -85640,14 +83149,12 @@ export const app = {
 								title: "Users",
 								href: "/x/users",
 								icon: "👥",
-								children: [],
 							},
 							{
 								id: "social-x-posts",
 								title: "Posts",
 								href: "/x/posts",
 								icon: "📝",
-								children: [],
 							},
 						],
 					},
@@ -85662,21 +83169,18 @@ export const app = {
 								title: "Channels",
 								href: "/youtube/channels",
 								icon: "📺",
-								children: [],
 							},
 							{
 								id: "social-youtube-videos",
 								title: "Videos",
 								href: "/youtube/videos",
 								icon: "🎬",
-								children: [],
 							},
 							{
 								id: "social-youtube-playlists",
 								title: "Playlists",
 								href: "/youtube/playlists",
 								icon: "📋",
-								children: [],
 							},
 						],
 					},
@@ -85685,21 +83189,18 @@ export const app = {
 						title: "XMTP",
 						href: "/xmtp",
 						icon: "💬",
-						defaultIsOpen: false,
 						children: [
 							{
 								id: "social-xmtp-accounts",
 								title: "Accounts",
 								href: "/xmtp/accounts",
 								icon: "👤",
-								children: [],
 							},
 							{
 								id: "social-xmtp-conversations",
 								title: "Conversations",
 								href: "/xmtp/conversations",
 								icon: "💬",
-								children: [],
 							},
 																	],
 																},
@@ -85719,14 +83220,12 @@ export const app = {
 						title: "Rooms",
 						href: "/~/multiplayer/rooms",
 						icon: "🏘️",
-						children: [],
 					},
 					{
 						id: "local-multiplayer-contacts",
 						title: "Contacts",
 						href: "/~/multiplayer/contacts",
 						icon: "📇",
-						children: [],
 					},
 				],
 			},
@@ -85751,14 +83250,8 @@ export const app = {
 	routes,
 	sources: defineSources([
 			{
-				provider: "A2a",
-				label: "Agent2Agent",
-				origins: true,
-			},
-			{
 				provider: "Acp",
 				label: "Agent Client Protocol",
-				origins: true,
 			},
 			{
 				provider: "Across",
@@ -85795,7 +83288,6 @@ export const app = {
 			{
 				provider: "Anthropic",
 				label: "Anthropic",
-				origins: true,
 			},
 			{
 				provider: "AptosAip62",
@@ -85824,7 +83316,6 @@ export const app = {
 			{
 				provider: "AtprotoSync",
 				label: "AT Protocol sync",
-				origins: true,
 			},
 			{
 				provider: "Avail",
@@ -85877,7 +83368,6 @@ export const app = {
 			{
 				provider: "BetterCallDev",
 				label: "Better Call Dev",
-				origins: true,
 			},
 			{
 				provider: "BigDipper",
@@ -85894,7 +83384,6 @@ export const app = {
 			{
 				provider: "BitcoinBips",
 				label: "Bitcoin BIPs",
-				origins: true,
 			},
 			{
 				provider: "BitcoinCashBcmr",
@@ -85903,7 +83392,6 @@ export const app = {
 			{
 				provider: "BitcoinCashChips",
 				label: "Bitcoin Cash CHIPs",
-				origins: true,
 			},
 			{
 				provider: "BitcoinCashNode",
@@ -85996,7 +83484,6 @@ export const app = {
 			{
 				provider: "CircleCctp",
 				label: "Circle CCTP",
-				origins: true,
 			},
 			{
 				provider: "CodexNetworkPresets",
@@ -86049,7 +83536,6 @@ export const app = {
 			{
 				provider: "Covalent",
 				label: "Covalent",
-				origins: true,
 			},
 			{
 				provider: "_Constants",
@@ -86058,12 +83544,10 @@ export const app = {
 			{
 				provider: "CosmosAdrs",
 				label: "Cosmos ADRs",
-				origins: true,
 			},
 			{
 				provider: "CosmosChainRegistry",
 				label: "Cosmos Chain Registry name",
-				origins: true,
 			},
 			{
 				provider: "CosmosSdk",
@@ -86100,7 +83584,6 @@ export const app = {
 			{
 				provider: "DogecoinDips",
 				label: "Dogecoin DIPs",
-				origins: true,
 			},
 			{
 				provider: "Dune",
@@ -86117,32 +83600,26 @@ export const app = {
 			{
 				provider: "Dydx",
 				label: "dYdX",
-				origins: true,
 			},
 			{
 				provider: "Eas",
 				label: "Ethereum Attestation Service",
-				origins: true,
 			},
 			{
 				provider: "EasScan",
 				label: "EAS Scan",
-				origins: true,
 			},
 			{
 				provider: "EigenExplorer",
 				label: "EigenExplorer",
-				origins: true,
 			},
 			{
 				provider: "EigenLayer",
 				label: "EigenLayer",
-				origins: true,
 			},
 			{
 				provider: "EigenLayerSubgraph",
 				label: "EigenLayer subgraph",
-				origins: true,
 			},
 			{
 				provider: "Eip8004Scan",
@@ -86193,10 +83670,6 @@ export const app = {
 				label: "Farcaster",
 			},
 			{
-				provider: "Fedi",
-				label: "Fedi",
-			},
-			{
 				provider: "FedimintClient",
 				label: "Fedimint client",
 			},
@@ -86207,7 +83680,6 @@ export const app = {
 			{
 				provider: "FilecoinFips",
 				label: "Filecoin FIPs",
-				origins: true,
 			},
 			{
 				provider: "Filfox",
@@ -86264,7 +83736,6 @@ export const app = {
 			{
 				provider: "Helius",
 				label: "Helius",
-				origins: true,
 			},
 			{
 				provider: "HuggingFace",
@@ -86277,7 +83748,6 @@ export const app = {
 			{
 				provider: "HyperliquidDocs",
 				label: "Hyperliquid docs",
-				origins: true,
 			},
 			{
 				provider: "InternetComputer",
@@ -86294,7 +83764,6 @@ export const app = {
 			{
 				provider: "Juno",
 				label: "Juno",
-				origins: true,
 			},
 			{
 				provider: "Kabila",
@@ -86355,12 +83824,10 @@ export const app = {
 			{
 				provider: "Lifi",
 				label: "LI.FI",
-				origins: true,
 			},
 			{
 				provider: "LightningLnd",
 				label: "LND",
-				origins: true,
 			},
 			{
 				provider: "LightningMempoolSpace",
@@ -86373,7 +83840,6 @@ export const app = {
 			{
 				provider: "LitecoinLips",
 				label: "Litecoin LIPs",
-				origins: true,
 			},
 			{
 				provider: "LitecoinWalletRpc",
@@ -86386,7 +83852,6 @@ export const app = {
 			{
 				provider: "LogosBlockchainNode",
 				label: "Logos blockchain node",
-				origins: true,
 			},
 			{
 				provider: "LogosDocs",
@@ -86415,12 +83880,10 @@ export const app = {
 			{
 				provider: "Mcp",
 				label: "MCP",
-				origins: true,
 			},
 			{
 				provider: "MempoolSpace",
 				label: "mempool.space",
-				origins: true,
 			},
 			{
 				provider: "MetadataVision",
@@ -86469,7 +83932,6 @@ export const app = {
 			{
 				provider: "NearNeps",
 				label: "NEAR NEPs",
-				origins: true,
 			},
 			{
 				provider: "NearRpc",
@@ -86510,7 +83972,6 @@ export const app = {
 			{
 				provider: "NostrRelay",
 				label: "Nostr relay",
-				origins: true,
 			},
 			{
 				provider: "OciRegistry",
@@ -86531,7 +83992,6 @@ export const app = {
 			{
 				provider: "OpenAI",
 				label: "OpenAI",
-				origins: true,
 			},
 			{
 				provider: "Openchain",
@@ -86552,7 +84012,6 @@ export const app = {
 			{
 				provider: "Pathfinder",
 				label: "Pathfinder",
-				origins: true,
 			},
 			{
 				provider: "Payjoin",
@@ -86565,7 +84024,6 @@ export const app = {
 			{
 				provider: "Piped",
 				label: "Piped",
-				origins: true,
 			},
 			{
 				provider: "PlugWallet",
@@ -86574,7 +84032,6 @@ export const app = {
 			{
 				provider: "Polkadot",
 				label: "Polkadot",
-				origins: true,
 			},
 			{
 				provider: "PolkadotInjectedWeb3",
@@ -86583,7 +84040,6 @@ export const app = {
 			{
 				provider: "PolkadotRfcs",
 				label: "Polkadot RFCs",
-				origins: true,
 			},
 			{
 				provider: "Pontem",
@@ -86600,7 +84056,6 @@ export const app = {
 			{
 				provider: "Pyth",
 				label: "Pyth",
-				origins: true,
 			},
 			{
 				provider: "qBittorrentWebUi",
@@ -86609,17 +84064,14 @@ export const app = {
 			{
 				provider: "QuilibriumDocs",
 				label: "Quilibrium docs",
-				origins: true,
 			},
 			{
 				provider: "QuilibriumNode",
 				label: "Quilibrium node",
-				origins: true,
 			},
 			{
 				provider: "QuilibriumNodeMetrics",
 				label: "Quilibrium node metrics",
-				origins: true,
 			},
 			{
 				provider: "QuilibriumNodeRpc",
@@ -86674,12 +84126,20 @@ export const app = {
 				label: "RSS2JSON",
 			},
 			{
+				provider: "SafeTransactionService",
+				label: "Safe Transaction Service",
+			},
+			{
 				provider: "SigstoreRekor",
 				label: "Sigstore Rekor",
 			},
 			{
 				provider: "Snapchain",
 				label: "Snapchain",
+			},
+			{
+				provider: "SnapshotHub",
+				label: "Snapshot Hub",
 			},
 			{
 				provider: "SpaceAndTime",
@@ -86692,7 +84152,6 @@ export const app = {
 			{
 				provider: "SolanaSimds",
 				label: "Solana SIMDs",
-				origins: true,
 			},
 			{
 				provider: "Sourcify",
@@ -86709,12 +84168,10 @@ export const app = {
 			{
 				provider: "Starknet",
 				label: "Starknet",
-				origins: true,
 			},
 			{
 				provider: "Starkscan",
 				label: "Starkscan",
-				origins: true,
 			},
 			{
 				provider: "StellarExpert",
@@ -86768,14 +84225,16 @@ export const app = {
 				label: "Swarm",
 			},
 			{
+				provider: "Tally",
+				label: "Tally",
+			},
+			{
 				provider: "TezosDappetizer",
 				label: "Tezos Dappetizer",
-				origins: true,
 			},
 			{
 				provider: "TezosNode",
 				label: "Tezos node RPC",
-				origins: true,
 			},
 			{
 				provider: "TheGraph",
@@ -86858,7 +84317,6 @@ export const app = {
 			{
 				provider: "Tzkt",
 				label: "TzKT",
-				origins: true,
 			},
 			{
 				provider: "Voltaire",
@@ -86867,7 +84325,6 @@ export const app = {
 			{
 				provider: "Voyager",
 				label: "Voyager",
-				origins: true,
 			},
 			{
 				provider: "WakuNode",
@@ -86900,10 +84357,6 @@ export const app = {
 						},
 					],
 				},
-			},
-			{
-				provider: "X402",
-				label: "x402",
 			},
 			{
 				provider: "Xaman",
@@ -86940,7 +84393,6 @@ export const app = {
 			{
 				provider: "ZcashClientBackend",
 				label: "zcash_client_backend",
-				origins: true,
 			},
 			{
 				provider: "Zcashd",
@@ -86949,17 +84401,14 @@ export const app = {
 			{
 				provider: "ZcashLightwalletd",
 				label: "Zcash lightwalletd",
-				origins: true,
 			},
 			{
 				provider: "ZcashZips",
 				label: "Zcash ZIPs",
-				origins: true,
 			},
 			{
 				provider: "Zebra",
 				label: "Zebra",
-				origins: true,
 			},
 			{
 				provider: "ZeroExSwap",
@@ -86970,80 +84419,6 @@ export const app = {
 				label: "0G",
 			},
 		])([
-			{
-				source: Source.A2aWellKnown_Http,
-				provider: "A2a",
-				label: "A2A well-known agent card",
-				binding: {
-					target: {
-						kind: SourceTargetKind.Global,
-						key: "a2a-well-known",
-					},
-					endpoints: [
-						{
-							endpointKind: SourceEndpointKind.HttpUrl,
-							locator: "https://{origin}/.well-known/agent.json",
-							origin: "https://{origin}",
-							corsEnabled: false,
-						},
-					],
-					wireProtocol: WireProtocol.HttpRest,
-					apiFamily: ApiFamily.A2aProtocol,
-					operationGroups: [
-						SourceOperationGroup.AgentCapabilityCatalog,
-					],
-					delivery: SourceDelivery.RemoteQuery,
-					credentials: [
-						{
-							scope: SourceCredentialScope.None,
-						},
-					],
-					artifacts: [
-						{
-							kind: SourceArtifactKind.HandwrittenTypes,
-							path: "src/sources/A2a/Http/types.ts",
-							generated: false,
-						},
-					],
-				},
-			},
-			{
-				source: Source.A2aService_Http,
-				provider: "A2a",
-				label: "A2A service HTTP",
-				binding: {
-					target: {
-						kind: SourceTargetKind.Global,
-						key: "a2a-service",
-					},
-					endpoints: [
-						{
-							endpointKind: SourceEndpointKind.HttpUrl,
-							locator: "https://{origin}/{agent-path}",
-							origin: "https://{origin}",
-							corsEnabled: false,
-						},
-					],
-					wireProtocol: WireProtocol.HttpRest,
-					apiFamily: ApiFamily.A2aProtocol,
-					operationGroups: [
-						SourceOperationGroup.AgentRuntimeInvocation,
-					],
-					delivery: SourceDelivery.RemoteQuery,
-					credentials: [
-						{
-							scope: SourceCredentialScope.UserDelegated,
-						},
-					],
-					artifacts: [
-						{
-							kind: SourceArtifactKind.HandwrittenTypes,
-							path: "src/sources/A2a/Http/types.ts",
-							generated: false,
-						},
-					],
-				},
-			},
 			{
 				source: Source.AcpLocal_JsonRpc,
 				provider: "Acp",
@@ -87309,13 +84684,17 @@ export const app = {
 					operationGroups: [
 						SourceOperationGroup.GenericRead,
 					],
-					delivery: SourceDelivery.ServerOnly,
+					delivery: SourceDelivery.HttpProxy,
 					credentials: [
 						{
 							scope: SourceCredentialScope.RuntimeSecret,
-							keys: [
-								"AMBOSS_API_KEY",
-							],
+							envKey: "AMBOSS_API_KEY",
+							injection: {
+								header: {
+									name: "authorization",
+									prefix: "Bearer ",
+								},
+							},
 						},
 					],
 					artifacts: [
@@ -90022,46 +87401,29 @@ export const app = {
 				source: Source.Coingecko_OpenApi,
 				provider: "Coingecko",
 				label: "Coingecko OpenAPI",
-				binding: {
+				bindings: ([
+					["coingecko-demo", "https://api.coingecko.com/api/v3", "https://api.coingecko.com", "PUBLIC_COINGECKO_DEMO_API_KEY"],
+					["coingecko-pro", "https://pro-api.coingecko.com/api/v3", "https://pro-api.coingecko.com", "PUBLIC_COINGECKO_PRO_API_KEY"],
+				] as const).map(([key, locator, origin, envKey]) => ({
 					target: {
 						kind: SourceTargetKind.Global,
-						key: "coingecko-demo",
+						key,
 					},
-					endpoints: [
-						{
-							endpointKind: SourceEndpointKind.HttpUrl,
-							locator: "https://api.coingecko.com/api/v3",
-							origin: "https://api.coingecko.com",
-							corsEnabled: false,
-						},
-					],
+					endpoints: [{
+						endpointKind: SourceEndpointKind.HttpUrl,
+						locator,
+						origin,
+						corsEnabled: false,
+					}],
 					wireProtocol: WireProtocol.HttpRest,
 					apiFamily: ApiFamily.OpenApiHttp,
-					operationGroups: [
-						SourceOperationGroup.GenericRead,
-					],
+					operationGroups: [SourceOperationGroup.GenericRead],
 					delivery: SourceDelivery.HttpProxy,
-					credentials: [
-						{
-							scope: SourceCredentialScope.PublicConfig,
-							env: {
-								keys: [
-									{
-										name: "PUBLIC_COINGECKO_DEMO_API_KEY",
-										type: "string",
-									},
-									{
-										name: "PUBLIC_COINGECKO_PRO_API_KEY",
-										type: "string",
-									},
-								],
-							},
-							keys: [
-								"PUBLIC_COINGECKO_DEMO_API_KEY",
-								"PUBLIC_COINGECKO_PRO_API_KEY",
-							],
-						},
-					],
+					credentials: [{
+						scope: SourceCredentialScope.PublicConfig,
+						env: { keys: [{ name: envKey, type: "string" }] },
+						keys: [envKey],
+					}],
 					artifacts: [
 						{
 							kind: SourceArtifactKind.OpenApiSpec,
@@ -90079,52 +87441,35 @@ export const app = {
 							generated: true,
 						},
 					],
-				},
+				})),
 			},
 			{
 				source: Source.Coingecko_Rest,
 				provider: "Coingecko",
 				label: "Coingecko REST",
-				binding: {
+				bindings: ([
+					["coingecko-demo", "https://api.coingecko.com/api/v3", "https://api.coingecko.com", "PUBLIC_COINGECKO_DEMO_API_KEY"],
+					["coingecko-pro", "https://pro-api.coingecko.com/api/v3", "https://pro-api.coingecko.com", "PUBLIC_COINGECKO_PRO_API_KEY"],
+				] as const).map(([key, locator, origin, envKey]) => ({
 					target: {
 						kind: SourceTargetKind.Global,
-						key: "coingecko-rest-v3",
+						key,
 					},
-					endpoints: [
-						{
-							endpointKind: SourceEndpointKind.HttpUrl,
-							locator: "https://api.coingecko.com/api/v3",
-							origin: "https://api.coingecko.com",
-							corsEnabled: false,
-						},
-					],
+					endpoints: [{
+						endpointKind: SourceEndpointKind.HttpUrl,
+						locator,
+						origin,
+						corsEnabled: false,
+					}],
 					wireProtocol: WireProtocol.HttpRest,
 					apiFamily: ApiFamily.RestJson,
-					operationGroups: [
-						SourceOperationGroup.GenericRead,
-					],
+					operationGroups: [SourceOperationGroup.GenericRead],
 					delivery: SourceDelivery.HttpProxy,
-					credentials: [
-						{
-							scope: SourceCredentialScope.PublicConfig,
-							env: {
-								keys: [
-									{
-										name: "PUBLIC_COINGECKO_DEMO_API_KEY",
-										type: "string",
-									},
-									{
-										name: "PUBLIC_COINGECKO_PRO_API_KEY",
-										type: "string",
-									},
-								],
-							},
-							keys: [
-								"PUBLIC_COINGECKO_DEMO_API_KEY",
-								"PUBLIC_COINGECKO_PRO_API_KEY",
-							],
-						},
-					],
+					credentials: [{
+						scope: SourceCredentialScope.PublicConfig,
+						env: { keys: [{ name: envKey, type: "string" }] },
+						keys: [envKey],
+					}],
 					artifacts: [
 						{
 							kind: SourceArtifactKind.HandwrittenTypes,
@@ -90132,7 +87477,7 @@ export const app = {
 							generated: false,
 						},
 					],
-				},
+				})),
 			},
 			{
 				source: Source.CoinMarketCap_Rest,
@@ -91232,13 +88577,13 @@ export const app = {
 								endpointKind: SourceEndpointKind.HttpUrl,
 								locator: "https://api.github.com",
 								origin: "https://api.github.com",
-								corsEnabled: false,
+								corsEnabled: true,
 							},
 							{
 								endpointKind: SourceEndpointKind.HttpUrl,
 								locator: "https://raw.githubusercontent.com",
 								origin: "https://raw.githubusercontent.com",
-								corsEnabled: false,
+								corsEnabled: true,
 							},
 						],
 						wireProtocol: WireProtocol.HttpRest,
@@ -91263,13 +88608,13 @@ export const app = {
 								endpointKind: SourceEndpointKind.HttpUrl,
 								locator: "https://api.github.com",
 								origin: "https://api.github.com",
-								corsEnabled: false,
+								corsEnabled: true,
 							},
 							{
 								endpointKind: SourceEndpointKind.HttpUrl,
 								locator: "https://raw.githubusercontent.com",
 								origin: "https://raw.githubusercontent.com",
-								corsEnabled: false,
+								corsEnabled: true,
 							},
 						],
 						wireProtocol: WireProtocol.HttpRest,
@@ -91306,7 +88651,7 @@ export const app = {
 							endpointKind: SourceEndpointKind.HttpUrl,
 							locator: "https://api.github.com",
 							origin: "https://api.github.com",
-							corsEnabled: false,
+							corsEnabled: true,
 						},
 					],
 					wireProtocol: WireProtocol.HttpRest,
@@ -91333,37 +88678,83 @@ export const app = {
 				source: Source.EthereumSpecs_Github,
 				provider: "EthereumSpecs",
 				label: "Ethereum specs GitHub",
-				binding: {
-					target: {
-						kind: SourceTargetKind.GitRepository,
-						key: "ethereum/*",
+				bindings: [
+					{
+						target: {
+							kind: SourceTargetKind.GitRepository,
+							key: "ethereum/consensus-specs@master:configs",
+						},
+						endpoints: [
+							{
+								endpointKind: SourceEndpointKind.HttpUrl,
+								locator: "https://raw.githubusercontent.com/ethereum/consensus-specs/master/configs/",
+								origin: "https://raw.githubusercontent.com",
+								corsEnabled: true,
+							},
+						],
+						wireProtocol: WireProtocol.HttpRest,
+						apiFamily: ApiFamily.GithubContentsApi,
+						operationGroups: [
+							SourceOperationGroup.GithubRepositoryContents,
+						],
+						delivery: SourceDelivery.BrowserDirect,
+						credentials: [
+							{
+								scope: SourceCredentialScope.None,
+							},
+						],
 					},
-					endpoints: [
-						{
-							endpointKind: SourceEndpointKind.HttpUrl,
-							locator: "https://api.github.com",
-							origin: "https://api.github.com",
-							corsEnabled: true,
+					{
+						target: {
+							kind: SourceTargetKind.GitRepository,
+							key: "ethereum/go-ethereum@master:params/config.go",
 						},
-						{
-							endpointKind: SourceEndpointKind.HttpUrl,
-							locator: "https://raw.githubusercontent.com",
-							origin: "https://raw.githubusercontent.com",
-							corsEnabled: true,
+						endpoints: [
+							{
+								endpointKind: SourceEndpointKind.HttpUrl,
+								locator: "https://raw.githubusercontent.com/ethereum/go-ethereum/master/params/config.go",
+								origin: "https://raw.githubusercontent.com",
+								corsEnabled: true,
+							},
+						],
+						wireProtocol: WireProtocol.HttpRest,
+						apiFamily: ApiFamily.GithubContentsApi,
+						operationGroups: [
+							SourceOperationGroup.GithubRepositoryContents,
+						],
+						delivery: SourceDelivery.BrowserDirect,
+						credentials: [
+							{
+								scope: SourceCredentialScope.None,
+							},
+						],
+					},
+					{
+						target: {
+							kind: SourceTargetKind.GitRepository,
+							key: "ethereum/execution-specs@8dbde99b65d519ea4c96084d784f85957e9314d0:network-upgrades/mainnet-upgrades",
 						},
-					],
-					wireProtocol: WireProtocol.HttpRest,
-					apiFamily: ApiFamily.GithubContentsApi,
-					operationGroups: [
-						SourceOperationGroup.GithubRepositoryContents,
-					],
-					delivery: SourceDelivery.BrowserDirect,
-					credentials: [
-						{
-							scope: SourceCredentialScope.None,
-						},
-					],
-				},
+						endpoints: [
+							{
+								endpointKind: SourceEndpointKind.HttpUrl,
+								locator: "https://raw.githubusercontent.com/ethereum/execution-specs/8dbde99b65d519ea4c96084d784f85957e9314d0/network-upgrades/mainnet-upgrades/",
+								origin: "https://raw.githubusercontent.com",
+								corsEnabled: true,
+							},
+						],
+						wireProtocol: WireProtocol.HttpRest,
+						apiFamily: ApiFamily.GithubContentsApi,
+						operationGroups: [
+							SourceOperationGroup.GithubRepositoryContents,
+						],
+						delivery: SourceDelivery.BrowserDirect,
+						credentials: [
+							{
+								scope: SourceCredentialScope.None,
+							},
+						],
+					},
+				],
 			},
 			{
 				source: Source.Etherscan_Rest,
@@ -91584,35 +88975,6 @@ export const app = {
 							kind: SourceArtifactKind.HandwrittenTypes,
 							path: "src/sources/Farcaster/Rest/types.ts",
 							generated: false,
-						},
-					],
-				},
-			},
-			{
-				source: Source.Fedi_Rest,
-				provider: "Fedi",
-				label: "Fedi REST",
-				binding: {
-					target: {
-						kind: SourceTargetKind.LocalDevice,
-						key: "fedi-rest-service",
-					},
-					endpoints: [
-						{
-							endpointKind: SourceEndpointKind.HttpUrl,
-							locator: "env:FEDI_REST_URL",
-							corsEnabled: false,
-						},
-					],
-					wireProtocol: WireProtocol.HttpRest,
-					apiFamily: ApiFamily.RestJson,
-					operationGroups: [
-						SourceOperationGroup.GenericRead,
-					],
-					delivery: SourceDelivery.ServerOnly,
-					credentials: [
-						{
-							scope: SourceCredentialScope.LocalSecret,
 						},
 					],
 				},
@@ -92486,8 +89848,8 @@ export const app = {
 				label: "Hyperliquid REST",
 				binding: {
 					target: {
-						kind: SourceTargetKind.Caip2Network,
-						key: "eip155:999",
+						kind: SourceTargetKind.NetworkSlug,
+						key: "hyperliquid",
 					},
 					endpoints: [
 						{
@@ -93291,7 +90653,7 @@ export const app = {
 								keys: [
 									{
 										name: "PUBLIC_LENS_API_KEY",
-										type: "string",
+										type: "string > 0?",
 									},
 								],
 							},
@@ -94927,74 +92289,86 @@ export const app = {
 				source: Source.NostrRelay_Nip11_Http,
 				provider: "NostrRelay",
 				label: "Nostr relay NIP-11 HTTP",
-				binding: {
-					target: {
-						kind: SourceTargetKind.Feed,
-						key: "nostr-relay-nip11",
-					},
-					endpoints: [
-						{
-							endpointKind: SourceEndpointKind.HttpUrl,
-							locator: "https://{relay-host}",
-							origin: "https://{relay-host}",
-							corsEnabled: false,
+				bindings: [
+					...[
+						["wss://relay.damus.io", "https://relay.damus.io"],
+						["wss://nos.lol", "https://nos.lol"],
+						["wss://relay.primal.net", "https://relay.primal.net"],
+					].map(([relayUrl, endpoint]) => ({
+						target: {
+							kind: SourceTargetKind.Feed,
+							key: relayUrl,
 						},
-					],
-					wireProtocol: WireProtocol.HttpRest,
-					apiFamily: ApiFamily.NostrRelay,
-					operationGroups: [
-						SourceOperationGroup.NostrRelayRead,
-					],
-					delivery: SourceDelivery.RemoteQuery,
-					credentials: [
-						{
-							scope: SourceCredentialScope.None,
-						},
-					],
-					artifacts: [
-						{
-							kind: SourceArtifactKind.HandwrittenTypes,
-							path: "src/sources/NostrRelay/Http/types.ts",
-							generated: false,
-						},
-					],
-				},
+						endpoints: [
+							{
+								endpointKind: SourceEndpointKind.HttpUrl,
+								locator: endpoint,
+								origin: endpoint,
+								corsEnabled: false,
+							},
+						],
+						wireProtocol: WireProtocol.HttpRest,
+						apiFamily: ApiFamily.NostrRelay,
+						operationGroups: [
+							SourceOperationGroup.NostrRelayRead,
+						],
+						delivery: SourceDelivery.HttpProxy,
+						credentials: [
+							{
+								scope: SourceCredentialScope.None,
+							},
+						],
+						artifacts: [
+							{
+								kind: SourceArtifactKind.HandwrittenTypes,
+								path: "src/sources/NostrRelay/Http/types.ts",
+								generated: false,
+							},
+						],
+					})),
+				],
 			},
 			{
 				source: Source.NostrRelay_WebSocket,
 				provider: "NostrRelay",
 				label: "Nostr relay WebSocket",
-				binding: {
-					target: {
-						kind: SourceTargetKind.Feed,
-						key: "nostr-relay-websocket",
-					},
-					endpoints: [
-						{
-							endpointKind: SourceEndpointKind.WebSocketUrl,
-							locator: "wss://{relay-host}",
+				bindings: [
+					...[
+						"wss://relay.damus.io",
+						"wss://nos.lol",
+						"wss://relay.primal.net",
+					].map((relayUrl) => ({
+						target: {
+							kind: SourceTargetKind.Feed,
+							key: relayUrl,
 						},
-					],
-					wireProtocol: WireProtocol.WebSocketMessages,
-					apiFamily: ApiFamily.NostrRelay,
-					operationGroups: [
-						SourceOperationGroup.NostrRelayRead,
-						SourceOperationGroup.GenericSubscribe,
-					],
-					delivery: SourceDelivery.RemoteLive,
-					credentials: [
-						{
-							scope: SourceCredentialScope.None,
-						},
-					],
-					artifacts: [
-						{
-							kind: SourceArtifactKind.HandwrittenTypes,
-							path: "src/sources/NostrRelay/WebSocket/types.ts",
-							generated: false,
-						},
-					],
-				},
+						endpoints: [
+							{
+								endpointKind: SourceEndpointKind.WebSocketUrl,
+								locator: relayUrl,
+							},
+						],
+						wireProtocol: WireProtocol.WebSocketMessages,
+						apiFamily: ApiFamily.NostrRelay,
+						operationGroups: [
+							SourceOperationGroup.NostrRelayRead,
+							SourceOperationGroup.GenericSubscribe,
+						],
+						delivery: SourceDelivery.RemoteLive,
+						credentials: [
+							{
+								scope: SourceCredentialScope.None,
+							},
+						],
+						artifacts: [
+							{
+								kind: SourceArtifactKind.HandwrittenTypes,
+								path: "src/sources/NostrRelay/WebSocket/types.ts",
+								generated: false,
+							},
+						],
+					})),
+				],
 			},
 			{
 				source: Source.OciRegistry_Distribution,
@@ -96423,6 +93797,56 @@ export const app = {
 				},
 			},
 			{
+				source: Source.SafeTransactionService_Rest,
+				provider: "SafeTransactionService",
+				label: "Safe Transaction Service REST",
+				bindings: [
+					...([
+						["1", "eth"],
+						["100", "gno"],
+						["8453", "base"],
+					] as const).map(([chainId, chainPrefix]) => ({
+						target: {
+							kind: SourceTargetKind.Eip155Chain,
+							key: chainId,
+						},
+						endpoints: [
+							{
+								endpointKind: SourceEndpointKind.HttpUrl,
+								locator: `https://api.safe.global/tx-service/${chainPrefix}`,
+								origin: "https://api.safe.global",
+								corsEnabled: false,
+							},
+						],
+						wireProtocol: WireProtocol.HttpRest,
+						apiFamily: ApiFamily.RestJson,
+						operationGroups: [
+							SourceOperationGroup.GenericRead,
+						],
+						delivery: SourceDelivery.HttpProxy,
+						credentials: [
+							{
+								scope: SourceCredentialScope.RuntimeSecret,
+								envKey: "SAFE_TRANSACTION_SERVICE_API_KEY",
+								injection: {
+									header: {
+										name: "authorization",
+										prefix: "Bearer ",
+									},
+								},
+							},
+						],
+						artifacts: [
+							{
+								kind: SourceArtifactKind.HandwrittenTypes,
+								path: "src/sources/SafeTransactionService/Rest/types.ts",
+								generated: false,
+							},
+						],
+					})),
+				],
+			},
+			{
 				source: Source.SigstoreRekor_Rest,
 				provider: "SigstoreRekor",
 				label: "Sigstore Rekor REST",
@@ -96449,6 +93873,43 @@ export const app = {
 					credentials: [
 						{
 							scope: SourceCredentialScope.None,
+						},
+					],
+				},
+			},
+			{
+				source: Source.SnapshotHub_Graphql,
+				provider: "SnapshotHub",
+				label: "Snapshot Hub GraphQL",
+				binding: {
+					target: {
+						kind: SourceTargetKind.Global,
+						key: "snapshot-hub",
+					},
+					endpoints: [
+						{
+							endpointKind: SourceEndpointKind.HttpUrl,
+							locator: "https://hub.snapshot.org/graphql",
+							origin: "https://hub.snapshot.org",
+							corsEnabled: true,
+						},
+					],
+					wireProtocol: WireProtocol.Graphql,
+					apiFamily: ApiFamily.GraphqlHttp,
+					operationGroups: [
+						SourceOperationGroup.GenericRead,
+					],
+					delivery: SourceDelivery.BrowserDirect,
+					credentials: [
+						{
+							scope: SourceCredentialScope.None,
+						},
+					],
+					artifacts: [
+						{
+							kind: SourceArtifactKind.HandwrittenTypes,
+							path: "src/sources/SnapshotHub/Graphql/types.ts",
+							generated: false,
 						},
 					],
 				},
@@ -97239,6 +94700,49 @@ export const app = {
 				},
 			},
 			{
+				source: Source.Tally_Graphql,
+				provider: "Tally",
+				label: "Tally GraphQL",
+				binding: {
+					target: {
+						kind: SourceTargetKind.Global,
+						key: "tally-api",
+					},
+					endpoints: [
+						{
+							endpointKind: SourceEndpointKind.HttpUrl,
+							locator: "https://api.tally.xyz/query",
+							origin: "https://api.tally.xyz",
+							corsEnabled: false,
+						},
+					],
+					wireProtocol: WireProtocol.Graphql,
+					apiFamily: ApiFamily.GraphqlHttp,
+					operationGroups: [
+						SourceOperationGroup.GenericRead,
+					],
+					delivery: SourceDelivery.HttpProxy,
+					credentials: [
+						{
+							scope: SourceCredentialScope.RuntimeSecret,
+							envKey: "TALLY_API_KEY",
+							injection: {
+								header: {
+									name: "Api-Key",
+								},
+							},
+						},
+					],
+					artifacts: [
+						{
+							kind: SourceArtifactKind.HandwrittenTypes,
+							path: "src/sources/Tally/Graphql/types.ts",
+							generated: false,
+						},
+					],
+				},
+			},
+			{
 				source: Source.TezosDappetizer_Postgres,
 				provider: "TezosDappetizer",
 				label: "Tezos Dappetizer Postgres",
@@ -97486,26 +94990,33 @@ export const app = {
 				label: "TON Center v3 REST",
 				binding: {
 					target: {
-						kind: SourceTargetKind.Global,
-						key: "toncenter-v3",
+						kind: SourceTargetKind.Caip2Network,
+						key: "ton:-239",
 					},
 					endpoints: [
 						{
 							endpointKind: SourceEndpointKind.HttpUrl,
-							locator: "https://{toncenter-v3-api-host}",
-							origin: "https://{toncenter-v3-api-host}",
+							locator: "https://toncenter.com/api/v3/",
+							origin: "https://toncenter.com",
 							corsEnabled: false,
 						},
 					],
 					wireProtocol: WireProtocol.HttpRest,
-					apiFamily: ApiFamily.RestJson,
+					apiFamily: ApiFamily.TonCenterV3Api,
 					operationGroups: [
 						SourceOperationGroup.GenericRead,
 					],
-					delivery: SourceDelivery.RemoteQuery,
+					delivery: SourceDelivery.HttpProxy,
 					credentials: [
 						{
 							scope: SourceCredentialScope.None,
+						},
+					],
+					artifacts: [
+						{
+							kind: SourceArtifactKind.HandwrittenTypes,
+							path: "src/sources/TonCenter/V3/Rest/types.ts",
+							generated: false,
 						},
 					],
 				},
@@ -101304,37 +98815,6 @@ export const app = {
 				},
 			},
 			{
-				source: Source.X402_Http,
-				provider: "X402",
-				label: "x402 HTTP",
-				binding: {
-					target: {
-						kind: SourceTargetKind.Global,
-						key: "x402-http",
-					},
-					endpoints: [
-						{
-							endpointKind: SourceEndpointKind.HttpUrl,
-							locator: "https://{origin}/{resource-path}",
-							origin: "https://{origin}",
-							corsEnabled: false,
-						},
-					],
-					wireProtocol: WireProtocol.RawHttp,
-					apiFamily: ApiFamily.X402Protocol,
-					operationGroups: [
-						SourceOperationGroup.PaymentNegotiation,
-						SourceOperationGroup.GenericRead,
-					],
-					delivery: SourceDelivery.RemoteQuery,
-					credentials: [
-						{
-							scope: SourceCredentialScope.UserDelegated,
-						},
-					],
-				},
-			},
-			{
 				source: Source.Xaman_Api,
 				provider: "Xaman",
 				label: "Xaman API",
@@ -102001,10 +99481,6 @@ export const app = {
 			{
 				source: Source.Allium_Rest,
 				path: "src/resolvers/Allium-Rest.ts",
-			},
-			{
-				source: Source.A2aWellKnown_Http,
-				path: "src/resolvers/A2aWellKnown-Http.ts",
 			},
 			{
 				source: Source.AcpRegistry_Rest,

@@ -2,15 +2,8 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
-	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -22,35 +15,13 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.CardanoNetwork_Timestamp>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.CardanoNetwork_Timestamp>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.CardanoNetwork_Timestamp> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const cardanoNetworkTimestamp = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {},
-	} : {
-		sources: selection.sources,
-	}))
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const titleFallback = 'Cardano network timestamp'
-	const viewDomId = $derived('cardano-network-timestamp-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -63,24 +34,14 @@
 
 <EntityView
 	entityType={EntityType.CardanoNetwork_Timestamp}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails}
-			{title || titleFallback}
-		{:else}
-			<ResourceBoundary resource={cardanoNetworkTimestamp}>
-				{#snippet children(entity)}
-					{title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		Cardano network timestamp
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -90,23 +51,6 @@
 				<dd>
 					<NetworkView
 						selection={select(EntityType.Network, selection.entitySelector.$network)}
-						href={
-							(
-								selection.entitySelector.$network != null && 'caip2' in selection.entitySelector.$network
-								&& selection.entitySelector.$network.caip2 != null ?
-									resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-								network: String(caip2StringFromValue(selection.entitySelector.$network.caip2) ?? ''),
-							})
-							:
-									selection.entitySelector.$network != null && 'slug' in selection.entitySelector.$network
-									&& selection.entitySelector.$network.slug != null ?
-										resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-									network: String(selection.entitySelector.$network.slug ?? ''),
-								})
-								:
-									undefined
-							)
-						}
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -116,55 +60,20 @@
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									timestampMs: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const timestampMs = resolvedEntity.timestampMs}
-							{#if timestampMs !== undefined && timestampMs !== null}
-								<Timestamp timestamp={Number(timestampMs)} />
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									source: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const source = resolvedEntity.source}
-							{#if source !== undefined && source !== null}
-								{String((source) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{pendingEntity.source}
 				</dd>
 			</div>
 
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							latestSlot: true,
 						},
@@ -172,13 +81,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const latestSlot = resolvedEntity.latestSlot}
-					{#if latestSlot !== undefined && latestSlot !== null}
+					{@const latestSlot = entity.latestSlot}
+					{#if latestSlot != null}
 						<div>
 							<dt>Latest slot</dt>
 							<dd>
-								{String((latestSlot) ?? '')}
+								{String(latestSlot)}
 							</dd>
 						</div>
 					{/if}
@@ -188,7 +96,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							latestBlockNo: true,
 						},
@@ -196,13 +103,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const latestBlockNo = resolvedEntity.latestBlockNo}
-					{#if latestBlockNo !== undefined && latestBlockNo !== null}
+					{@const latestBlockNo = entity.latestBlockNo}
+					{#if latestBlockNo != null}
 						<div>
 							<dt>Latest block number</dt>
 							<dd>
-								{String((latestBlockNo) ?? '')}
+								{String(latestBlockNo)}
 							</dd>
 						</div>
 					{/if}
@@ -212,7 +118,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							latestBlockHash: true,
 						},
@@ -220,13 +125,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const latestBlockHash = resolvedEntity.latestBlockHash}
-					{#if latestBlockHash !== undefined && latestBlockHash !== null}
+					{@const latestBlockHash = entity.latestBlockHash}
+					{#if latestBlockHash != null}
 						<div>
 							<dt>Latest block hash</dt>
 							<dd>
-								<TruncatedValue value={String((latestBlockHash) ?? '')} />
+								<TruncatedValue value={latestBlockHash} />
 							</dd>
 						</div>
 					{/if}
@@ -236,7 +140,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							latestBlockTimeMs: true,
 						},
@@ -244,13 +147,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const latestBlockTimeMs = resolvedEntity.latestBlockTimeMs}
-					{#if latestBlockTimeMs !== undefined && latestBlockTimeMs !== null}
+					{@const latestBlockTimeMs = entity.latestBlockTimeMs}
+					{#if latestBlockTimeMs != null}
 						<div>
 							<dt>Latest block time</dt>
 							<dd>
-								{String((latestBlockTimeMs) ?? '')}
+								{String(latestBlockTimeMs)}
 							</dd>
 						</div>
 					{/if}
@@ -260,7 +162,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							latestBlockTransactionCount: true,
 						},
@@ -268,13 +169,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const latestBlockTransactionCount = resolvedEntity.latestBlockTransactionCount}
-					{#if latestBlockTransactionCount !== undefined && latestBlockTransactionCount !== null}
+					{@const latestBlockTransactionCount = entity.latestBlockTransactionCount}
+					{#if latestBlockTransactionCount != null}
 						<div>
 							<dt>Latest block transactions</dt>
 							<dd>
-								{String((latestBlockTransactionCount) ?? '')}
+								{String(latestBlockTransactionCount)}
 							</dd>
 						</div>
 					{/if}
@@ -284,7 +184,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							epoch: true,
 						},
@@ -292,13 +191,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const epoch = resolvedEntity.epoch}
-					{#if epoch !== undefined && epoch !== null}
+					{@const epoch = entity.epoch}
+					{#if epoch != null}
 						<div>
 							<dt>Epoch</dt>
 							<dd>
-								{String((epoch) ?? '')}
+								{String(epoch)}
 							</dd>
 						</div>
 					{/if}
@@ -308,7 +206,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							epochBlockCount: true,
 						},
@@ -316,13 +213,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const epochBlockCount = resolvedEntity.epochBlockCount}
-					{#if epochBlockCount !== undefined && epochBlockCount !== null}
+					{@const epochBlockCount = entity.epochBlockCount}
+					{#if epochBlockCount != null}
 						<div>
 							<dt>Epoch blocks</dt>
 							<dd>
-								{String((epochBlockCount) ?? '')}
+								{String(epochBlockCount)}
 							</dd>
 						</div>
 					{/if}
@@ -332,7 +228,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							epochTransactionCount: true,
 						},
@@ -340,13 +235,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const epochTransactionCount = resolvedEntity.epochTransactionCount}
-					{#if epochTransactionCount !== undefined && epochTransactionCount !== null}
+					{@const epochTransactionCount = entity.epochTransactionCount}
+					{#if epochTransactionCount != null}
 						<div>
 							<dt>Epoch transactions</dt>
 							<dd>
-								{String((epochTransactionCount) ?? '')}
+								{String(epochTransactionCount)}
 							</dd>
 						</div>
 					{/if}
@@ -356,7 +250,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							circulatingSupplyLovelace: true,
 						},
@@ -364,13 +257,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const circulatingSupplyLovelace = resolvedEntity.circulatingSupplyLovelace}
-					{#if circulatingSupplyLovelace !== undefined && circulatingSupplyLovelace !== null}
+					{@const circulatingSupplyLovelace = entity.circulatingSupplyLovelace}
+					{#if circulatingSupplyLovelace != null}
 						<div>
 							<dt>Circulating supply</dt>
 							<dd>
-								{String((circulatingSupplyLovelace) ?? '')}
+								{String(circulatingSupplyLovelace)}
 							</dd>
 						</div>
 					{/if}
@@ -380,7 +272,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							totalSupplyLovelace: true,
 						},
@@ -388,13 +279,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const totalSupplyLovelace = resolvedEntity.totalSupplyLovelace}
-					{#if totalSupplyLovelace !== undefined && totalSupplyLovelace !== null}
+					{@const totalSupplyLovelace = entity.totalSupplyLovelace}
+					{#if totalSupplyLovelace != null}
 						<div>
 							<dt>Total supply</dt>
 							<dd>
-								{String((totalSupplyLovelace) ?? '')}
+								{String(totalSupplyLovelace)}
 							</dd>
 						</div>
 					{/if}
@@ -404,7 +294,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							liveStakeLovelace: true,
 						},
@@ -412,13 +301,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const liveStakeLovelace = resolvedEntity.liveStakeLovelace}
-					{#if liveStakeLovelace !== undefined && liveStakeLovelace !== null}
+					{@const liveStakeLovelace = entity.liveStakeLovelace}
+					{#if liveStakeLovelace != null}
 						<div>
 							<dt>Live stake</dt>
 							<dd>
-								{String((liveStakeLovelace) ?? '')}
+								{String(liveStakeLovelace)}
 							</dd>
 						</div>
 					{/if}
@@ -428,7 +316,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							activeStakeLovelace: true,
 						},
@@ -436,13 +323,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const activeStakeLovelace = resolvedEntity.activeStakeLovelace}
-					{#if activeStakeLovelace !== undefined && activeStakeLovelace !== null}
+					{@const activeStakeLovelace = entity.activeStakeLovelace}
+					{#if activeStakeLovelace != null}
 						<div>
 							<dt>Active stake</dt>
 							<dd>
-								{String((activeStakeLovelace) ?? '')}
+								{String(activeStakeLovelace)}
 							</dd>
 						</div>
 					{/if}
@@ -452,7 +338,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							backendHealthy: true,
 						},
@@ -460,9 +345,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const backendHealthy = resolvedEntity.backendHealthy}
-					{#if backendHealthy !== undefined && backendHealthy !== null}
+					{@const backendHealthy = entity.backendHealthy}
+					{#if backendHealthy != null}
 						<div>
 							<dt>Backend healthy</dt>
 							<dd>

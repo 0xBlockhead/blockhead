@@ -2,67 +2,29 @@
 
 <script lang="ts">
 	// Types/constants
-	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
-	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
-	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
+	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
-
-
 	// State
 	let {
 		selection,
-		countResource,
-		title = 'Filecoin messages',
-		typeAnnotationParagraphs = [],
-		placeholderText = undefined,
-		emptyText = undefined,
 		open = $bindable(true),
-		collapsible = true,
-		showTypeAnnotation = true,
-		id = 'FilecoinMessages-list',
 		...EntitiesListProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyEntitiesSelection<EntityType.FilecoinMessage>
-			countResource?: SvelteKitResource<number>
-			title?: string
-			typeAnnotationParagraphs?: string[]
-			placeholderText?: string
-			emptyText?: string
-			open?: boolean
-			collapsible?: boolean
-			showTypeAnnotation?: boolean
-			id?: string
-		},
-		EntitiesListForwardProps
-	> = $props()
+	}: EntityListViewProps<EntityType.FilecoinMessage> = $props()
 
 
 	// Components
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView from '$/components/EntityView.svelte'
 </script>
 
-
-{#snippet TypeAnnotationParagraphs()}
-	{#each typeAnnotationParagraphs as paragraph (paragraph)}
-		<p>{paragraph}</p>
-	{/each}
-{/snippet}
 
 <EntitiesList
 	{...EntitiesListProps}
 	entityType={EntityType.FilecoinMessage}
-	{id}
-	{title}
 	bind:open
-	{collapsible}
-	{showTypeAnnotation}
-	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
 	resource={
 		selection({
 			sources: selection.sources ?? [
@@ -76,38 +38,23 @@
 			},
 		})
 	}
-	{countResource}
-	getResourceItems={(filecoinMessages) => [...new Map(filecoinMessages.values.map((filecoinMessage) => [filecoinMessage[EntityMetaKey.SelectorKey], filecoinMessage])).values()]}
-	getKey={(filecoinMessage) => filecoinMessage[EntityMetaKey.SelectorKey]}
-	{placeholderText}
 >
-	{#snippet Empty()}
-		{#if emptyText != null}
-			<p data-text="muted">{emptyText}</p>
-		{:else}
-			<p data-text="muted">No Filecoin messages yet.</p>
-		{/if}
-	{/snippet}
-
 	{#snippet Item({ item: filecoinMessage })}
-		{@const filecoinMessageFields = { ...filecoinMessage[EntityMetaKey.Selector], ...filecoinMessage }}
+		{@const filecoinMessageSelector = filecoinMessage[EntityMetaKey.Selector]}
 		<EntityView
 			entityType={EntityType.FilecoinMessage}
-			entitySelector={filecoinMessage[EntityMetaKey.Selector]}
-			layout={EntityLayout.Summary}
-			open={false}
-			showTypeAnnotation={false}
+			entitySelector={filecoinMessageSelector}
 		>
 			{#snippet Title()}
-				{[String((filecoinMessageFields.cid) ?? '')].filter(Boolean).join(' ') || 'filecoin message'}
+				{filecoinMessageSelector.cid || 'filecoin message'}
 			{/snippet}
 
 			{#snippet Value()}
-				{[[String((filecoinMessageFields.$from.address) ?? '')].filter(Boolean).join(' ') || 'filecoin actor', [String((filecoinMessageFields.$to.address) ?? '')].filter(Boolean).join(' ') || 'filecoin actor'].filter(Boolean).join(' ')}
+				{[filecoinMessage.$from == null ? '' : filecoinMessage.$from.address || 'filecoin actor', filecoinMessage.$to == null ? '' : filecoinMessage.$to.address || 'filecoin actor'].filter(Boolean).join(' ')}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{[String((filecoinMessageFields.valueAttoFil) ?? '')].filter(Boolean).join(' ')}</span>
+				<span data-text="annotation">{String(filecoinMessage.valueAttoFil ?? '')}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

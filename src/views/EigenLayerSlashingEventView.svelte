@@ -2,16 +2,11 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
-	import { caip2StringFromValue } from '$/lib/caip2.ts'
 	import { ZeroExHex } from '$/schema/ZeroExHex.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -23,40 +18,26 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.EigenLayerSlashingEvent>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.EigenLayerSlashingEvent>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.EigenLayerSlashingEvent> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const eigenLayerSlashingEvent = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {
-			slashedShares: true,
-		},
-	} : {
-		sources: selection.sources,
+	const viewSelection = $derived(selection({
+		sources: selection.sources ?? [
+			Source.EigenExplorer_Rest,
+			Source.EigenLayerContracts_Evm,
+			Source.EigenLayerSubgraph_Graphql,
+			Source.Etherscan_Rest,
+			Source.Voltaire_JsonRpc,
+		],
+	}))
+	const eigenLayerSlashingEvent = $derived(viewSelection({
 		fields: {
 			slashedShares: true,
 		},
 	}))
 	const titleFallback = 'eigen layer slashing event'
-	const viewDomId = $derived('eigen-layer-slashing-event-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -73,54 +54,44 @@
 
 <EntityView
 	entityType={EntityType.EigenLayerSlashingEvent}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={eigenLayerSlashingEvent}>
-			{#snippet children(entity)}
-				<ResourceBoundary
-					resource={selection.$operator}
-				>
-					{#snippet children(eigenLayerOperator)}
-						{#if eigenLayerOperator != null && eigenLayerOperator[EntityMetaKey.Selector] != null}
-							<EigenLayerOperatorView
-								selection={select(EntityType.EigenLayerOperator, eigenLayerOperator[EntityMetaKey.Selector])}
-								prefetched={eigenLayerOperator}
-								href=""
-								layout={EntityLayout.Title}
-								open={false}
-							/>
-						{/if}
-					{/snippet}
-				</ResourceBoundary>
+		<ResourceBoundary
+			resource={selection.$operator}
+		>
+			{#snippet children(eigenLayerOperator)}
+				{#if eigenLayerOperator != null}
+					<EigenLayerOperatorView
+						selection={select(EntityType.EigenLayerOperator, eigenLayerOperator[EntityMetaKey.Selector])}
+						prefetched={eigenLayerOperator}
+						href=""
+						layout={EntityLayout.Title}
+						open={false}
+					/>
+				{/if}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={eigenLayerSlashingEvent}>
-			{#snippet children(entity)}
-				<ResourceBoundary
-					resource={selection.$avs}
-				>
-					{#snippet children(eigenLayerAvs)}
-						{#if eigenLayerAvs != null && eigenLayerAvs[EntityMetaKey.Selector] != null}
-							<EigenLayerAvsView
-								selection={select(EntityType.EigenLayerAvs, eigenLayerAvs[EntityMetaKey.Selector])}
-								prefetched={eigenLayerAvs}
-								href=""
-								layout={EntityLayout.Value}
-								open={false}
-							/>
-						{/if}
-					{/snippet}
-				</ResourceBoundary>
+		<ResourceBoundary
+			resource={selection.$avs}
+		>
+			{#snippet children(eigenLayerAvs)}
+				{#if eigenLayerAvs != null}
+					<EigenLayerAvsView
+						selection={select(EntityType.EigenLayerAvs, eigenLayerAvs[EntityMetaKey.Selector])}
+						prefetched={eigenLayerAvs}
+						href=""
+						layout={EntityLayout.Value}
+						open={false}
+					/>
+				{/if}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -128,9 +99,8 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={eigenLayerSlashingEvent}>
 			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const slashedShares0 = resolvedEntity.slashedShares}
-				{#if slashedShares0 !== undefined && slashedShares0 !== null}
+				{@const slashedShares0 = entity.slashedShares}
+				{#if slashedShares0 != null}
 					<span data-text="muted">
 						<NumberValue
 							value={slashedShares0}
@@ -147,7 +117,7 @@
 				resource={selection.$operator}
 			>
 				{#snippet children(eigenLayerOperator)}
-					{#if eigenLayerOperator != null && eigenLayerOperator[EntityMetaKey.Selector] != null}
+					{#if eigenLayerOperator != null}
 						<div>
 							<dt>operator</dt>
 							<dd>
@@ -167,7 +137,7 @@
 				resource={selection.$avs}
 			>
 				{#snippet children(eigenLayerAvs)}
-					{#if eigenLayerAvs != null && eigenLayerAvs[EntityMetaKey.Selector] != null}
+					{#if eigenLayerAvs != null}
 						<div>
 							<dt>AVS</dt>
 							<dd>
@@ -187,7 +157,7 @@
 				resource={selection.$strategy}
 			>
 				{#snippet children(eigenLayerStrategy)}
-					{#if eigenLayerStrategy != null && eigenLayerStrategy[EntityMetaKey.Selector] != null}
+					{#if eigenLayerStrategy != null}
 						<div>
 							<dt>strategy</dt>
 							<dd>
@@ -205,8 +175,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							slashId: true,
 						},
@@ -214,13 +183,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const slashId = resolvedEntity.slashId}
-					{#if slashId !== undefined && slashId !== null}
+					{@const slashId = entity.slashId}
+					{#if slashId != null}
 						<div>
 							<dt>slash ID</dt>
 							<dd>
-								{String((slashId) ?? '')}
+								{slashId}
 							</dd>
 						</div>
 					{/if}
@@ -230,19 +198,11 @@
 
 		<dl data-column-item="center">
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							slashedShares: true,
-						},
-					})
-				}
+				resource={eigenLayerSlashingEvent}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const slashedShares = resolvedEntity.slashedShares}
-					{#if slashedShares !== undefined && slashedShares !== null}
+					{@const slashedShares = entity.slashedShares}
+					{#if slashedShares != null}
 						<div>
 							<dt>slashed shares</dt>
 							<dd>
@@ -257,8 +217,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							slashedAmount: true,
 						},
@@ -266,9 +225,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const slashedAmount = resolvedEntity.slashedAmount}
-					{#if slashedAmount !== undefined && slashedAmount !== null}
+					{@const slashedAmount = entity.slashedAmount}
+					{#if slashedAmount != null}
 						<div>
 							<dt>slashed amount</dt>
 							<dd>
@@ -283,8 +241,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							reason: true,
 						},
@@ -292,13 +249,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const reason = resolvedEntity.reason}
-					{#if reason !== undefined && reason !== null}
+					{@const reason = entity.reason}
+					{#if reason != null}
 						<div>
 							<dt>reason</dt>
 							<dd>
-								{String((reason) ?? '')}
+								{reason}
 							</dd>
 						</div>
 					{/if}
@@ -312,31 +268,12 @@
 						resource={selection.$network}
 					>
 						{#snippet children(network)}
-							{#if network != null && network[EntityMetaKey.Selector] != null}
-								<NetworkView
-									selection={select(EntityType.Network, network[EntityMetaKey.Selector])}
-									prefetched={network}
-									href={
-										(
-											network[EntityMetaKey.Selector] != null && 'caip2' in network[EntityMetaKey.Selector]
-											&& network[EntityMetaKey.Selector].caip2 != null ?
-												resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-											network: String(caip2StringFromValue(network[EntityMetaKey.Selector].caip2) ?? ''),
-										})
-										:
-												network[EntityMetaKey.Selector] != null && 'slug' in network[EntityMetaKey.Selector]
-												&& network[EntityMetaKey.Selector].slug != null ?
-													resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-												network: String(network[EntityMetaKey.Selector].slug ?? ''),
-											})
-											:
-												undefined
-										)
-									}
-									layout={EntityLayout.Value}
-									open={false}
-								/>
-							{/if}
+							<NetworkView
+								selection={select(EntityType.Network, network[EntityMetaKey.Selector])}
+								prefetched={network}
+								layout={EntityLayout.Value}
+								open={false}
+							/>
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -346,8 +283,7 @@
 		<dl data-column-item="center">
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							transactionHash: true,
 						},
@@ -355,13 +291,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const transactionHash = resolvedEntity.transactionHash}
-					{#if transactionHash !== undefined && transactionHash !== null}
+					{@const transactionHash = entity.transactionHash}
+					{#if transactionHash != null}
 						<div>
 							<dt>transaction hash</dt>
 							<dd>
-								<TruncatedValue value={String((transactionHash) ?? '')} />
+								<TruncatedValue value={String(transactionHash)} />
 							</dd>
 						</div>
 					{/if}
@@ -370,8 +305,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							logIndex: true,
 						},
@@ -379,9 +313,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const logIndex = resolvedEntity.logIndex}
-					{#if logIndex !== undefined && logIndex !== null}
+					{@const logIndex = entity.logIndex}
+					{#if logIndex != null}
 						<div>
 							<dt>log index</dt>
 							<dd>
@@ -396,8 +329,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							blockNumber: true,
 						},
@@ -405,9 +337,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const blockNumber = resolvedEntity.blockNumber}
-					{#if blockNumber !== undefined && blockNumber !== null}
+					{@const blockNumber = entity.blockNumber}
+					{#if blockNumber != null}
 						<div>
 							<dt>Block number</dt>
 							<dd>
@@ -422,8 +353,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							timestampMs: true,
 						},
@@ -431,9 +361,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const timestampMs = resolvedEntity.timestampMs}
-					{#if timestampMs !== undefined && timestampMs !== null}
+					{@const timestampMs = entity.timestampMs}
+					{#if timestampMs != null}
 						<div>
 							<dt>Timestamp</dt>
 							<dd>
@@ -446,8 +375,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							source: true,
 						},
@@ -455,13 +383,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const source = resolvedEntity.source}
-					{#if source !== undefined && source !== null}
+					{@const source = entity.source}
+					{#if source != null}
 						<div>
 							<dt>Source</dt>
 							<dd>
-								{String((source) ?? '')}
+								{source}
 							</dd>
 						</div>
 					{/if}

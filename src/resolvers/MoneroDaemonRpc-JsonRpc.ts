@@ -3,6 +3,7 @@ import {
 	defineResolver,
 } from '$/resolvers/defineResolver.ts'
 import { networkBySlug } from '$/constants/Network.ts'
+import { TransportType } from '$/constants/TransportType.ts'
 import {
 	EntityMetaKey,
 	entityFieldAddressKey,
@@ -17,15 +18,7 @@ import type {
 	MoneroRpcTransactionInput,
 	MoneroRpcTransactionOutput,
 } from '$/sources/MoneroDaemonRpc/JsonRpc/types.ts'
-import { MoneroNetworkSelector } from '$/schema/MoneroNetwork.ts'
-import { MoneroNetwork_TimestampSelector } from '$/schema/MoneroNetwork_Timestamp.ts'
-import { NetworkSelector } from '$/schema/Network.ts'
-import { MoneroBlockSelector } from '$/schema/MoneroBlock.ts'
-import { MoneroTransactionSelector } from '$/schema/MoneroTransaction.ts'
-import { MoneroKeyImageSelector } from '$/schema/MoneroKeyImage.ts'
-import { MoneroRingSelector } from '$/schema/MoneroRing.ts'
-import { MoneroRingMemberSelector } from '$/schema/MoneroRingMember.ts'
-import { MoneroStealthOutputSelector } from '$/schema/MoneroStealthOutput.ts'
+import { moneroMainnetRpcEndpointUrls } from '$/sources/MoneroDaemonRpc/JsonRpc/queries.ts'
 
 type NetworkId = EntitySelector<typeof schema, EntityType.Network>
 
@@ -44,13 +37,11 @@ const assertMoneroMainnet = (network: NetworkId) => {
 		throw new Error('MoneroDaemonRpc_JsonRpc: unsupported network')
 }
 
-const moneroMainnetRpcUrl = async (): Promise<string> => (
-	(await moneroMainnetRpcEndpointRows())[0].url
-)
-
-const moneroMainnetRpcEndpointRows = async () => (
-	(await import('$/sources/MoneroDaemonRpc/JsonRpc/queries.ts')).moneroMainnetRpcEndpoints
-)
+const moneroMainnetRpcEndpointRows = moneroMainnetRpcEndpointUrls.map((url) => ({
+	url,
+	transportType: TransportType.Http,
+	providerName: 'Monero daemon',
+}))
 
 const moneroTransactionOutputFields = (
 	transaction: MoneroRpcTransaction,
@@ -168,7 +159,6 @@ const getMoneroTransaction = async ({ $network, txHash }: {
 	assertMoneroMainnet($network)
 	const { getTransactions } = await import('$/sources/MoneroDaemonRpc/JsonRpc/queries.ts')
 	const transaction = (await getTransactions({
-		rpcUrl: await moneroMainnetRpcUrl(),
 		txHashes: [txHash],
 	})).txs.at(0)
 	if (transaction == null)
@@ -265,14 +255,14 @@ export default {
 		defineResolver(Source.MoneroDaemonRpc_JsonRpc, {
 			entityType: EntityType.MoneroNetwork,
 			resolve: {
-				[MoneroNetworkSelector.Network]: {
+				Network: {
 					resolve: async ({ $network }) => {
 						assertMoneroMainnet($network)
 						return {
 							$network: {
 								[EntityMetaKey.Selector]: $network,
 							},
-							rpcEndpoints: [...await moneroMainnetRpcEndpointRows()],
+							rpcEndpoints: [...moneroMainnetRpcEndpointRows],
 						}
 					},
 				}
@@ -285,12 +275,12 @@ export default {
 		defineResolver(Source.MoneroDaemonRpc_JsonRpc, {
 			entityType: EntityType.Network,
 			resolve: {
-				[NetworkSelector.Slug]: {
+				Slug: {
 					resolve: async (network) => {
 						assertMoneroMainnet(network)
 						return {
 							Monero: {
-								rpcEndpoints: [...await moneroMainnetRpcEndpointRows()],
+								rpcEndpoints: [...moneroMainnetRpcEndpointRows],
 							},
 						}
 					},
@@ -305,12 +295,11 @@ export default {
 		defineResolver(Source.MoneroDaemonRpc_JsonRpc, {
 			entityType: EntityType.MoneroBlock,
 				resolve: {
-					[MoneroBlockSelector.NetworkHeight]: {
+					NetworkHeight: {
 						resolve: async ({ $network, height }) => {
 							assertMoneroMainnet($network)
 							const { getBlock } = await import('$/sources/MoneroDaemonRpc/JsonRpc/queries.ts')
 							const block = await getBlock({
-								rpcUrl: await moneroMainnetRpcUrl(),
 								height: height,
 							})
 							return {
@@ -348,12 +337,11 @@ export default {
 							}
 						},
 					},
-					[MoneroBlockSelector.NetworkHeightHash]: {
+					NetworkHeightHash: {
 						resolve: async ({ $network, height }) => {
 							assertMoneroMainnet($network)
 							const { getBlock } = await import('$/sources/MoneroDaemonRpc/JsonRpc/queries.ts')
 						const block = await getBlock({
-							rpcUrl: await moneroMainnetRpcUrl(),
 							height: height,
 						})
 						return {
@@ -404,7 +392,7 @@ export default {
 		defineResolver(Source.MoneroDaemonRpc_JsonRpc, {
 			entityType: EntityType.MoneroTransaction,
 			resolve: {
-				[MoneroTransactionSelector.NetworkTxHash]: {
+				NetworkTxHash: {
 					resolve: async (entitySelector) => (
 						moneroTransactionFields(
 							entitySelector.$network,
@@ -425,7 +413,7 @@ export default {
 		defineResolver(Source.MoneroDaemonRpc_JsonRpc, {
 			entityType: EntityType.MoneroKeyImage,
 			resolve: {
-				[MoneroKeyImageSelector.MoneroTransactionInputIndexKeyImage]: {
+				MoneroTransactionInputIndexKeyImage: {
 					resolve: async ({ $transaction, inputIndex, keyImage }) => {
 						const transaction = await getMoneroTransaction($transaction)
 						const input = transaction.decoded_json?.vin[inputIndex]
@@ -446,7 +434,7 @@ export default {
 		defineResolver(Source.MoneroDaemonRpc_JsonRpc, {
 			entityType: EntityType.MoneroRing,
 			resolve: {
-				[MoneroRingSelector.MoneroKeyImage]: {
+				MoneroKeyImage: {
 					resolve: async ({ $keyImage }) => {
 						const transaction = await getMoneroTransaction($keyImage.$transaction)
 						const input = transaction.decoded_json?.vin[$keyImage.inputIndex]
@@ -476,7 +464,7 @@ export default {
 		defineResolver(Source.MoneroDaemonRpc_JsonRpc, {
 			entityType: EntityType.MoneroRingMember,
 			resolve: {
-				[MoneroRingMemberSelector.MoneroRingMemberIndex]: {
+				MoneroRingMemberIndex: {
 					resolve: async ({ $ring, memberIndex }) => {
 						const transaction = await getMoneroTransaction($ring.$keyImage.$transaction)
 						const input = transaction.decoded_json?.vin[$ring.$keyImage.inputIndex]
@@ -496,7 +484,7 @@ export default {
 		defineResolver(Source.MoneroDaemonRpc_JsonRpc, {
 			entityType: EntityType.MoneroStealthOutput,
 			resolve: {
-				[MoneroStealthOutputSelector.MoneroTransactionOutputIndex]: {
+				MoneroTransactionOutputIndex: {
 					resolve: async ({ $transaction, outputIndex }) => {
 						const transaction = await getMoneroTransaction($transaction)
 						const output = transaction.decoded_json?.vout[outputIndex]
@@ -518,13 +506,11 @@ export default {
 		defineResolver(Source.MoneroDaemonRpc_JsonRpc, {
 			entityType: EntityType.MoneroNetwork,
 			resolve: {
-				[MoneroNetworkSelector.Network]: {
+				Network: {
 					resolve: async ({ $network }) => {
 						assertMoneroMainnet($network)
 						const { getInfo } = await import('$/sources/MoneroDaemonRpc/JsonRpc/queries.ts')
-						const info = await getInfo({
-							rpcUrl: await moneroMainnetRpcUrl(),
-						})
+						const info = await getInfo()
 						return [
 							{
 								[EntityMetaKey.Selector]: {
@@ -550,13 +536,11 @@ export default {
 		defineResolver(Source.MoneroDaemonRpc_JsonRpc, {
 			entityType: EntityType.Network,
 			resolve: {
-				[NetworkSelector.Slug]: {
+				Slug: {
 					resolve: async (network) => {
 						assertMoneroMainnet(network)
 						const { getInfo } = await import('$/sources/MoneroDaemonRpc/JsonRpc/queries.ts')
-						const info = await getInfo({
-							rpcUrl: await moneroMainnetRpcUrl(),
-						})
+						const info = await getInfo()
 						return [
 							{
 								[EntityMetaKey.Selector]: {
@@ -584,13 +568,11 @@ export default {
 		defineResolver(Source.MoneroDaemonRpc_JsonRpc, {
 			entityType: EntityType.MoneroNetwork_Timestamp,
 			resolve: {
-				[MoneroNetwork_TimestampSelector.NetworkTimestampMsSource]: {
+				NetworkTimestampMsSource: {
 					resolve: async ({ $network }) => {
 						assertMoneroMainnet($network)
 						const { getInfo } = await import('$/sources/MoneroDaemonRpc/JsonRpc/queries.ts')
-						return moneroNetworkTimestampFields(await getInfo({
-							rpcUrl: await moneroMainnetRpcUrl(),
-						}))
+						return moneroNetworkTimestampFields(await getInfo())
 					},
 				}
 			},
@@ -599,13 +581,11 @@ export default {
 		defineResolver(Source.MoneroDaemonRpc_JsonRpc, {
 			entityType: EntityType.MoneroNetwork,
 			resolve: {
-				[MoneroNetworkSelector.Network]: {
+				Network: {
 					resolve: async ({ $network }, context) => {
 						assertMoneroMainnet($network)
 						const { getInfo } = await import('$/sources/MoneroDaemonRpc/JsonRpc/queries.ts')
-						const info = await getInfo({
-							rpcUrl: await moneroMainnetRpcUrl(),
-						})
+						const info = await getInfo()
 						const headBlockHeight = BigInt(info.height - 1)
 						return Array.from({
 							length: Math.min(
@@ -631,13 +611,11 @@ export default {
 		defineResolver(Source.MoneroDaemonRpc_JsonRpc, {
 			entityType: EntityType.Network,
 			resolve: {
-				[NetworkSelector.Slug]: {
+				Slug: {
 					resolve: async (network, context) => {
 						assertMoneroMainnet(network)
 						const { getInfo } = await import('$/sources/MoneroDaemonRpc/JsonRpc/queries.ts')
-						const info = await getInfo({
-							rpcUrl: await moneroMainnetRpcUrl(),
-						})
+						const info = await getInfo()
 						const headBlockHeight = BigInt(info.height - 1)
 						return Array.from({
 							length: Math.min(
@@ -662,7 +640,7 @@ export default {
 		defineResolver(Source.MoneroDaemonRpc_JsonRpc, {
 			entityType: EntityType.MoneroRing,
 			resolve: {
-				[MoneroRingSelector.MoneroKeyImage]: {
+				MoneroKeyImage: {
 					resolve: async ({ $keyImage }) => {
 						const transaction = await getMoneroTransaction($keyImage.$transaction)
 						const input = transaction.decoded_json?.vin[$keyImage.inputIndex]

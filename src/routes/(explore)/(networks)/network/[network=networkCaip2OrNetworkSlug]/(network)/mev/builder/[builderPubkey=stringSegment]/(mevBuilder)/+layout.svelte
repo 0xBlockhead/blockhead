@@ -29,22 +29,26 @@
 {#key [params.network, params.builderPubkey].join(':')}
 	<ParentPageCollapsible
 		href={
-			resolve('/network/[network=networkCaip2OrNetworkSlug]/mev/builder/[builderPubkey=stringSegment]', {
-				network: params.network,
-				builderPubkey: params.builderPubkey,
-			})
+			resolve(
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/mev/builder/[builderPubkey=stringSegment]',
+				{
+					network: String(params.network),
+					builderPubkey: String(params.builderPubkey),
+				}
+			)
 		}
 	>
 		{#snippet Summary()}
-			{@const DetailView = MevBuilderView}
-
-			<DetailView
+			<MevBuilderView
 				selection={select(EntityType.MevBuilder, data.selector)}
 				href={
-					resolve('/network/[network=networkCaip2OrNetworkSlug]/mev/builder/[builderPubkey=stringSegment]', {
-						network: params.network,
-						builderPubkey: params.builderPubkey,
-					})
+					resolve(
+						'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/mev/builder/[builderPubkey=stringSegment]',
+						{
+							network: String(params.network),
+							builderPubkey: String(params.builderPubkey),
+						}
+					)
 				}
 				layout={EntityLayout.SummaryInline}
 			/>

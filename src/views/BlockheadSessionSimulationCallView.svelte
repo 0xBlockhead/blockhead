@@ -2,14 +2,11 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
 	import { EvmAddress, ZeroExHex } from '$/schema/ZeroExHex.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -21,42 +18,24 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.BlockheadSessionSimulationCall>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.BlockheadSessionSimulationCall>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.BlockheadSessionSimulationCall> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const blockheadSessionSimulationCall = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {
-			callType: true,
-			depth: true,
-		},
-	} : {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const viewSelection = $derived(selection({
+		sources: selection.sources ?? [
+			Source.Local_Internal,
+		],
+	}))
+	const blockheadSessionSimulationCall = $derived(viewSelection({
 		fields: {
 			callType: true,
 			depth: true,
 		},
 	}))
-	const titleFallback = $derived([String((pendingEntity.callPath) ?? '')].filter(Boolean).join(' ') || 'blockhead session simulation call')
-	const viewDomId = $derived('blockhead-session-simulation-call-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const titleFallback = $derived((pendingEntity.callPath ?? '') || 'blockhead session simulation call')
 
 
 	// Components
@@ -69,65 +48,34 @@
 
 <EntityView
 	entityType={EntityType.BlockheadSessionSimulationCall}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'callType') && Object.hasOwn(prefetched, 'depth')}
-			{[String((pendingEntity.callPath) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-		{:else}
-			<ResourceBoundary resource={blockheadSessionSimulationCall}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.callPath) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		{(pendingEntity.callPath ?? '') || 'blockhead session simulation call'}
 	{/snippet}
 
 	{#snippet Value()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'callType') && Object.hasOwn(prefetched, 'depth')}
-			{[String((pendingEntity.callType) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.callPath) ?? '')].filter(Boolean).join(' ') || titleFallback}
-		{:else}
-			<ResourceBoundary resource={blockheadSessionSimulationCall}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.callType) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.callPath) ?? '')].filter(Boolean).join(' ') || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={blockheadSessionSimulationCall}>
+			{#snippet children(entity)}
+				{(entity.callType ?? '') || pendingEntity.callPath || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'callType') && Object.hasOwn(prefetched, 'depth')}
-			{@const depth0 = pendingEntity.depth}
-			{#if depth0 !== undefined && depth0 !== null}
+		<ResourceBoundary resource={blockheadSessionSimulationCall}>
+			{#snippet children(entity)}
 				<span data-text="muted">
 					<NumberValue
-						value={depth0}
+						value={entity.depth}
 					/>
 				</span>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={blockheadSessionSimulationCall}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const depth0 = resolvedEntity.depth}
-					{#if depth0 !== undefined && depth0 !== null}
-						<span data-text="muted">
-							<NumberValue
-								value={depth0}
-							/>
-						</span>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -139,14 +87,12 @@
 						resource={selection.$simulation}
 					>
 						{#snippet children(blockheadSessionSimulation)}
-							{#if blockheadSessionSimulation != null && blockheadSessionSimulation[EntityMetaKey.Selector] != null}
-								<BlockheadSessionSimulationView
-									selection={select(EntityType.BlockheadSessionSimulation, blockheadSessionSimulation[EntityMetaKey.Selector])}
-									prefetched={blockheadSessionSimulation}
-									layout={EntityLayout.Value}
-									open={false}
-								/>
-							{/if}
+							<BlockheadSessionSimulationView
+								selection={select(EntityType.BlockheadSessionSimulation, blockheadSessionSimulation[EntityMetaKey.Selector])}
+								prefetched={blockheadSessionSimulation}
+								layout={EntityLayout.Value}
+								open={false}
+							/>
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -155,31 +101,13 @@
 			<div>
 				<dt>call path</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									callPath: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const callPath = resolvedEntity.callPath}
-							{#if callPath !== undefined && callPath !== null}
-								{String((callPath) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{pendingEntity.callPath}
 				</dd>
 			</div>
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							parentCallPath: true,
 						},
@@ -187,13 +115,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const parentCallPath = resolvedEntity.parentCallPath}
-					{#if parentCallPath !== undefined && parentCallPath !== null}
+					{@const parentCallPath = entity.parentCallPath}
+					{#if parentCallPath != null}
 						<div>
 							<dt>parent call path</dt>
 							<dd>
-								{String((parentCallPath) ?? '')}
+								{parentCallPath}
 							</dd>
 						</div>
 					{/if}
@@ -204,23 +131,12 @@
 				<dt>depth</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									depth: true,
-								},
-							})
-						}
+						resource={blockheadSessionSimulationCall}
 					>
 						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const depth = resolvedEntity.depth}
-							{#if depth !== undefined && depth !== null}
-								<NumberValue
-									value={depth}
-								/>
-							{/if}
+							<NumberValue
+								value={entity.depth}
+							/>
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -231,8 +147,7 @@
 				<dd>
 					<ResourceBoundary
 						resource={
-							selection({
-								sources: selection.sources,
+							viewSelection({
 								fields: {
 									callIndex: true,
 								},
@@ -240,13 +155,9 @@
 						}
 					>
 						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const callIndex = resolvedEntity.callIndex}
-							{#if callIndex !== undefined && callIndex !== null}
-								<NumberValue
-									value={callIndex}
-								/>
-							{/if}
+							<NumberValue
+								value={entity.callIndex}
+							/>
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -255,23 +166,15 @@
 
 		<dl data-column-item="center">
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							callType: true,
-						},
-					})
-				}
+				resource={blockheadSessionSimulationCall}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const callType = resolvedEntity.callType}
-					{#if callType !== undefined && callType !== null}
+					{@const callType = entity.callType}
+					{#if callType != null}
 						<div>
 							<dt>call type</dt>
 							<dd>
-								{String((callType) ?? '')}
+								{callType}
 							</dd>
 						</div>
 					{/if}
@@ -280,8 +183,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							fromAddress: true,
 						},
@@ -289,13 +191,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const fromAddress = resolvedEntity.fromAddress}
-					{#if fromAddress !== undefined && fromAddress !== null}
+					{@const fromAddress = entity.fromAddress}
+					{#if fromAddress != null}
 						<div>
 							<dt>from address</dt>
 							<dd>
-								<TruncatedValue value={String((fromAddress) ?? '')} />
+								<TruncatedValue value={String(fromAddress)} />
 							</dd>
 						</div>
 					{/if}
@@ -304,8 +205,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							toAddress: true,
 						},
@@ -313,13 +213,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const toAddress = resolvedEntity.toAddress}
-					{#if toAddress !== undefined && toAddress !== null}
+					{@const toAddress = entity.toAddress}
+					{#if toAddress != null}
 						<div>
 							<dt>to address</dt>
 							<dd>
-								<TruncatedValue value={String((toAddress) ?? '')} />
+								<TruncatedValue value={String(toAddress)} />
 							</dd>
 						</div>
 					{/if}
@@ -328,8 +227,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							value: true,
 						},
@@ -337,9 +235,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const value = resolvedEntity.value}
-					{#if value !== undefined && value !== null}
+					{@const value = entity.value}
+					{#if value != null}
 						<div>
 							<dt>Value</dt>
 							<dd>
@@ -354,8 +251,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							gasUsed: true,
 						},
@@ -363,9 +259,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const gasUsed = resolvedEntity.gasUsed}
-					{#if gasUsed !== undefined && gasUsed !== null}
+					{@const gasUsed = entity.gasUsed}
+					{#if gasUsed != null}
 						<div>
 							<dt>gas used</dt>
 							<dd>
@@ -380,8 +275,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							reverted: true,
 						},
@@ -389,9 +283,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const reverted = resolvedEntity.reverted}
-					{#if reverted !== undefined && reverted !== null}
+					{@const reverted = entity.reverted}
+					{#if reverted != null}
 						<div>
 							<dt>reverted</dt>
 							<dd>
@@ -404,8 +297,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							error: true,
 						},
@@ -413,13 +305,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const error = resolvedEntity.error}
-					{#if error !== undefined && error !== null}
+					{@const error = entity.error}
+					{#if error != null}
 						<div>
 							<dt>error</dt>
 							<dd>
-								{String((error) ?? '')}
+								{error}
 							</dd>
 						</div>
 					{/if}
@@ -430,8 +321,7 @@
 		<dl data-column-item="center">
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							inputSelector: true,
 						},
@@ -439,13 +329,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const inputSelector = resolvedEntity.inputSelector}
-					{#if inputSelector !== undefined && inputSelector !== null}
+					{@const inputSelector = entity.inputSelector}
+					{#if inputSelector != null}
 						<div>
 							<dt>input selector</dt>
 							<dd>
-								{String((inputSelector) ?? '')}
+								{String(inputSelector)}
 							</dd>
 						</div>
 					{/if}
@@ -454,8 +343,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							inputDataHash: true,
 						},
@@ -463,13 +351,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const inputDataHash = resolvedEntity.inputDataHash}
-					{#if inputDataHash !== undefined && inputDataHash !== null}
+					{@const inputDataHash = entity.inputDataHash}
+					{#if inputDataHash != null}
 						<div>
 							<dt>input data hash</dt>
 							<dd>
-								<TruncatedValue value={String((inputDataHash) ?? '')} />
+								<TruncatedValue value={String(inputDataHash)} />
 							</dd>
 						</div>
 					{/if}
@@ -478,8 +365,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							outputDataHash: true,
 						},
@@ -487,13 +373,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const outputDataHash = resolvedEntity.outputDataHash}
-					{#if outputDataHash !== undefined && outputDataHash !== null}
+					{@const outputDataHash = entity.outputDataHash}
+					{#if outputDataHash != null}
 						<div>
 							<dt>output data hash</dt>
 							<dd>
-								<TruncatedValue value={String((outputDataHash) ?? '')} />
+								<TruncatedValue value={String(outputDataHash)} />
 							</dd>
 						</div>
 					{/if}

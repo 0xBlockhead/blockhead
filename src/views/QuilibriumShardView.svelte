@@ -2,15 +2,10 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
-	import { caip2StringFromValue } from '$/lib/caip2.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -22,40 +17,23 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.QuilibriumShard>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.QuilibriumShard>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.QuilibriumShard> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const quilibriumShard = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {
-			shardKind: true,
-		},
-	} : {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const viewSelection = $derived(selection({
+		sources: selection.sources ?? [
+			Source.QuilibriumNode_Grpc,
+		],
+	}))
+	const quilibriumShard = $derived(viewSelection({
 		fields: {
 			shardKind: true,
 		},
 	}))
-	const titleFallback = $derived([String((pendingEntity.shardKey) ?? '')].filter(Boolean).join(' ') || 'quilibrium shard')
-	const viewDomId = $derived('quilibrium-shard-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const titleFallback = $derived((pendingEntity.shardKey ?? '') || 'quilibrium shard')
 
 
 	// Components
@@ -69,44 +47,32 @@
 
 <EntityView
 	entityType={EntityType.QuilibriumShard}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={quilibriumShard}>
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.shardKey) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{(pendingEntity.shardKey ?? '') || 'quilibrium shard'}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={quilibriumShard}>
-			{#snippet children(entity)}
-				<NetworkView
-					selection={select(EntityType.Network, selection.entitySelector.$network)}
-					href=""
-					layout={EntityLayout.Value}
-					open={false}
-				/>
-			{/snippet}
-		</ResourceBoundary>
+		<NetworkView
+			selection={select(EntityType.Network, selection.entitySelector.$network)}
+			href=""
+			layout={EntityLayout.Value}
+			open={false}
+		/>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={quilibriumShard}>
 			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const shardKind0 = resolvedEntity.shardKind}
-				{#if shardKind0 !== undefined && shardKind0 !== null}
+				{@const shardKind0 = entity.shardKind}
+				{#if shardKind0 != null}
 					<span data-text="muted">
-						{String((shardKind0) ?? '')}
+						{shardKind0}
 					</span>
 				{/if}
 			{/snippet}
@@ -120,23 +86,6 @@
 				<dd>
 					<NetworkView
 						selection={select(EntityType.Network, selection.entitySelector.$network)}
-						href={
-							(
-								selection.entitySelector.$network != null && 'caip2' in selection.entitySelector.$network
-								&& selection.entitySelector.$network.caip2 != null ?
-									resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-								network: String(caip2StringFromValue(selection.entitySelector.$network.caip2) ?? ''),
-							})
-							:
-									selection.entitySelector.$network != null && 'slug' in selection.entitySelector.$network
-									&& selection.entitySelector.$network.slug != null ?
-										resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-									network: String(selection.entitySelector.$network.slug ?? ''),
-								})
-								:
-									undefined
-							)
-						}
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -146,45 +95,20 @@
 			<div>
 				<dt>shard key</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									shardKey: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const shardKey = resolvedEntity.shardKey}
-							{#if shardKey !== undefined && shardKey !== null}
-								{String((shardKey) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{pendingEntity.shardKey}
 				</dd>
 			</div>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							shardKind: true,
-						},
-					})
-				}
+				resource={quilibriumShard}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const shardKind = resolvedEntity.shardKind}
-					{#if shardKind !== undefined && shardKind !== null}
+					{@const shardKind = entity.shardKind}
+					{#if shardKind != null}
 						<div>
 							<dt>shard kind</dt>
 							<dd>
-								{String((shardKind) ?? '')}
+								{shardKind}
 							</dd>
 						</div>
 					{/if}
@@ -195,7 +119,7 @@
 				resource={selection.$applicationAccount}
 			>
 				{#snippet children(quilibriumAccount)}
-					{#if quilibriumAccount != null && quilibriumAccount[EntityMetaKey.Selector] != null}
+					{#if quilibriumAccount != null}
 						<div>
 							<dt>application account</dt>
 							<dd>
@@ -220,12 +144,12 @@
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
-				<QuilibriumFramesView
-					selection={quilibriumShardQuilibriumFramesViewFramesResource}
-					countResource={quilibriumShardQuilibriumFramesViewFramesResource.count}
-					title='frames'
-					id='QuilibriumFramesView-frames'
-				/>
+					<QuilibriumFramesView
+						selection={quilibriumShardQuilibriumFramesViewFramesResource}
+						countResource={quilibriumShardQuilibriumFramesViewFramesResource.count}
+						title='frames'
+						id='frames'
+					/>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>

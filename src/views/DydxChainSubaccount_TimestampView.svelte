@@ -2,13 +2,9 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -20,35 +16,19 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.DydxChainSubaccount_Timestamp>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.DydxChainSubaccount_Timestamp>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.DydxChainSubaccount_Timestamp> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const dydxChainSubaccountTimestamp = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {},
-	} : {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const viewSelection = $derived(selection({
+		sources: selection.sources ?? [
+			Source.DydxIndexer_Rest,
+			Source.DydxValidator_Rest,
+		],
 	}))
-	const titleFallback = $derived([String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || 'dydx chain subaccount timestamp')
-	const viewDomId = $derived('dydx-chain-subaccount-timestamp-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const titleFallback = $derived(String(pendingEntity.timestampMs ?? '') || 'dydx chain subaccount timestamp')
 
 
 	// Components
@@ -62,37 +42,23 @@
 
 <EntityView
 	entityType={EntityType.DydxChainSubaccount_Timestamp}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={dydxChainSubaccountTimestamp}>
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const timestampMs0 = resolvedEntity.timestampMs}
-				{#if timestampMs0 !== undefined && timestampMs0 !== null}
-					<Timestamp timestamp={Number(timestampMs0)} />
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={dydxChainSubaccountTimestamp}>
-			{#snippet children(entity)}
-				<DydxChainSubaccountView
-					selection={select(EntityType.DydxChainSubaccount, selection.entitySelector.$subaccount)}
-					href=""
-					layout={EntityLayout.Value}
-					open={false}
-				/>
-			{/snippet}
-		</ResourceBoundary>
+		<DydxChainSubaccountView
+			selection={select(EntityType.DydxChainSubaccount, selection.entitySelector.$subaccount)}
+			href=""
+			layout={EntityLayout.Value}
+			open={false}
+		/>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -111,55 +77,20 @@
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									timestampMs: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const timestampMs = resolvedEntity.timestampMs}
-							{#if timestampMs !== undefined && timestampMs !== null}
-								<Timestamp timestamp={Number(timestampMs)} />
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									source: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const source = resolvedEntity.source}
-							{#if source !== undefined && source !== null}
-								{String((source) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{pendingEntity.source}
 				</dd>
 			</div>
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							blockHeight: true,
 						},
@@ -167,13 +98,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const blockHeight = resolvedEntity.blockHeight}
-					{#if blockHeight !== undefined && blockHeight !== null}
+					{@const blockHeight = entity.blockHeight}
+					{#if blockHeight != null}
 						<div>
 							<dt>block height</dt>
 							<dd>
-								{String((blockHeight) ?? '')}
+								{String(blockHeight)}
 							</dd>
 						</div>
 					{/if}
@@ -184,8 +114,7 @@
 		<dl data-column-item="center">
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							equity: true,
 						},
@@ -193,13 +122,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const equity = resolvedEntity.equity}
-					{#if equity !== undefined && equity !== null}
+					{@const equity = entity.equity}
+					{#if equity != null}
 						<div>
 							<dt>equity</dt>
 							<dd>
-								{String((equity) ?? '')}
+								{String(equity)}
 							</dd>
 						</div>
 					{/if}
@@ -208,8 +136,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							freeCollateral: true,
 						},
@@ -217,13 +144,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const freeCollateral = resolvedEntity.freeCollateral}
-					{#if freeCollateral !== undefined && freeCollateral !== null}
+					{@const freeCollateral = entity.freeCollateral}
+					{#if freeCollateral != null}
 						<div>
 							<dt>free collateral</dt>
 							<dd>
-								{String((freeCollateral) ?? '')}
+								{String(freeCollateral)}
 							</dd>
 						</div>
 					{/if}
@@ -232,8 +158,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							marginUsage: true,
 						},
@@ -241,9 +166,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const marginUsage = resolvedEntity.marginUsage}
-					{#if marginUsage !== undefined && marginUsage !== null}
+					{@const marginUsage = entity.marginUsage}
+					{#if marginUsage != null}
 						<div>
 							<dt>margin usage</dt>
 							<dd>
@@ -258,8 +182,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							openPositionCount: true,
 						},
@@ -267,9 +190,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const openPositionCount = resolvedEntity.openPositionCount}
-					{#if openPositionCount !== undefined && openPositionCount !== null}
+					{@const openPositionCount = entity.openPositionCount}
+					{#if openPositionCount != null}
 						<div>
 							<dt>open position count</dt>
 							<dd>
@@ -284,8 +206,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							openOrderCount: true,
 						},
@@ -293,9 +214,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const openOrderCount = resolvedEntity.openOrderCount}
-					{#if openOrderCount !== undefined && openOrderCount !== null}
+					{@const openOrderCount = entity.openOrderCount}
+					{#if openOrderCount != null}
 						<div>
 							<dt>open order count</dt>
 							<dd>

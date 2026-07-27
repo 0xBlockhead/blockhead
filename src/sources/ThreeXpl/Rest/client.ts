@@ -7,12 +7,10 @@
  * @see https://3xpl.com/specifications/api.3xpl.com-openapi.json
  */
 
-import { getJson } from '$/lib/http.ts'
-import {
-	productionBaseUrl,
-	sandboxBaseUrl,
-	threeXplOrigins,
-} from '$/sources/ThreeXpl/Rest/constants.ts'
+import { throwHttpError } from '$/lib/http.ts'
+import { sourceFetch } from '$/sources/_runtime/http.ts'
+import { Source } from '$/sources/Source.ts'
+import bindings from '$/sources/ThreeXpl/bindings.ts'
 import type {
 	ThreeXplClientOptions,
 	ThreeXplSearchParamScalar,
@@ -20,10 +18,7 @@ import type {
 	ThreeXplServer,
 } from '$/sources/ThreeXpl/Rest/types.ts'
 
-const baseUrlByServer = {
-	sandbox: sandboxBaseUrl,
-	production: productionBaseUrl,
-} as const satisfies Record<ThreeXplServer, string>
+const binding = bindings[Source.ThreeXpl_Rest]
 
 export const threeXplUrl = ({
 	pathSegments = [],
@@ -36,11 +31,13 @@ export const threeXplUrl = ({
 	repeatedSearchParams?: Record<string, readonly ThreeXplSearchParamScalar[] | undefined>
 	server?: ThreeXplServer
 }): string => {
+	const endpoint = binding.endpoints[server === 'production' ? 1 : 0]
+
 	const url = new URL(
 		pathSegments
 			.map((pathSegment) => encodeURIComponent(pathSegment))
 			.join('/'),
-		baseUrlByServer[server]
+		`${endpoint.locator}/`
 	)
 	for (const [key, value] of Object.entries(searchParams ?? {})) {
 		if (value == null) continue
@@ -64,23 +61,27 @@ export const threeXplGetJson = async <T>({
 	searchParams?: Record<string, ThreeXplSearchParamValue>
 	repeatedSearchParams?: Record<string, readonly ThreeXplSearchParamScalar[] | undefined>
 	options?: ThreeXplClientOptions
-}): Promise<T> => (
-	getJson<T>(
+}): Promise<T> => {
+	const response = await sourceFetch(
+		binding,
 		threeXplUrl({
 			pathSegments,
 			searchParams,
 			repeatedSearchParams,
 			server: options?.server,
 		}),
-		{
-			origins: threeXplOrigins,
-			...(options?.token != null && options.token !== '' && {
-				init: {
-					headers: {
-						'Xpl-Token': options.token,
-					},
+		(options?.token != null && options.token !== '' ?
+			{
+				headers: {
+					'Xpl-Token': options.token,
 				},
-			}),
-		}
+			}
+		:
+			undefined
+		)
 	)
-)
+	if (!response.ok)
+		await throwHttpError('3xpl API', response)
+
+	return response.json<T>()
+}

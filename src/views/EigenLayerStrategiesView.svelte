@@ -2,69 +2,33 @@
 
 <script lang="ts">
 	// Types/constants
-	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
-	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
-	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
+	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-
-
+	import { EvmAddress } from '$/schema/ZeroExHex.ts'
 
 
 	// State
 	let {
 		selection,
-		countResource,
-		title = 'Eigen layer strategies',
-		typeAnnotationParagraphs = [],
-		placeholderText = undefined,
-		emptyText = undefined,
 		open = $bindable(true),
-		collapsible = true,
-		showTypeAnnotation = true,
 		id = 'EigenLayerStrategies-list',
 		...EntitiesListProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyEntitiesSelection<EntityType.EigenLayerStrategy>
-			countResource?: SvelteKitResource<number>
-			title?: string
-			typeAnnotationParagraphs?: string[]
-			placeholderText?: string
-			emptyText?: string
-			open?: boolean
-			collapsible?: boolean
-			showTypeAnnotation?: boolean
-			id?: string
-		},
-		EntitiesListForwardProps
-	> = $props()
+	}: EntityListViewProps<EntityType.EigenLayerStrategy> = $props()
 
 
 	// Components
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView from '$/components/EntityView.svelte'
 </script>
 
-
-{#snippet TypeAnnotationParagraphs()}
-	{#each typeAnnotationParagraphs as paragraph (paragraph)}
-		<p>{paragraph}</p>
-	{/each}
-{/snippet}
 
 <EntitiesList
 	{...EntitiesListProps}
 	entityType={EntityType.EigenLayerStrategy}
 	{id}
-	{title}
 	bind:open
-	{collapsible}
-	{showTypeAnnotation}
-	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
 	resource={
 		selection({
-			sources: selection.sources,
 			fields: {
 				strategyAddress: true,
 				underlyingToken: true,
@@ -72,38 +36,23 @@
 			},
 		})
 	}
-	{countResource}
-	getResourceItems={(eigenLayerStrategies) => [...new Map(eigenLayerStrategies.values.map((eigenLayerStrategy) => [eigenLayerStrategy[EntityMetaKey.SelectorKey], eigenLayerStrategy])).values()]}
-	getKey={(eigenLayerStrategy) => eigenLayerStrategy[EntityMetaKey.SelectorKey]}
-	{placeholderText}
 >
-	{#snippet Empty()}
-		{#if emptyText != null}
-			<p data-text="muted">{emptyText}</p>
-		{:else}
-			<p data-text="muted">No Eigen layer strategies yet.</p>
-		{/if}
-	{/snippet}
-
 	{#snippet Item({ item: eigenLayerStrategy })}
-		{@const eigenLayerStrategyFields = { ...eigenLayerStrategy[EntityMetaKey.Selector], ...eigenLayerStrategy }}
+		{@const eigenLayerStrategySelector = eigenLayerStrategy[EntityMetaKey.Selector]}
 		<EntityView
 			entityType={EntityType.EigenLayerStrategy}
-			entitySelector={eigenLayerStrategy[EntityMetaKey.Selector]}
-			layout={EntityLayout.Summary}
-			open={false}
-			showTypeAnnotation={false}
+			entitySelector={eigenLayerStrategySelector}
 		>
 			{#snippet Title()}
-				{[String((eigenLayerStrategyFields.strategyAddress) ?? '')].filter(Boolean).join(' ') || 'eigen layer strategy'}
+				{String(eigenLayerStrategySelector.strategyAddress) || 'eigen layer strategy'}
 			{/snippet}
 
 			{#snippet Value()}
-				{[String((eigenLayerStrategyFields.underlyingToken) ?? '')].filter(Boolean).join(' ')}
+				{String(eigenLayerStrategy.underlyingToken ?? '')}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{[[String((eigenLayerStrategyFields.$network.name) ?? '')].filter(Boolean).join(' ') || [eigenLayerStrategyFields.$network.caip2 == null ? '' : String(`${(eigenLayerStrategyFields.$network.caip2).namespace}:${(eigenLayerStrategyFields.$network.caip2).reference}`)].filter(Boolean).join(' ') || 'Network'].filter(Boolean).join(' ')}</span>
+				<span data-text="annotation">{eigenLayerStrategy.$network.name || (eigenLayerStrategySelector.$network.caip2 == null ? '' : `${eigenLayerStrategySelector.$network.caip2.namespace}:${eigenLayerStrategySelector.$network.caip2.reference}`) || 'Network'}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

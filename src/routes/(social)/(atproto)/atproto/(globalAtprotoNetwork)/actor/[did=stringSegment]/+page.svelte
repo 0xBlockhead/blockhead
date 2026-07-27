@@ -8,23 +8,18 @@
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		data,
-		params,
 	}: PageProps = $props()
 
 	const pageSelection = $derived(select(EntityType.AtprotoActor, data.selector, {
 		sources: [
 			Source.Atproto_Xrpc,
 		],
-		fields: {
-			handle: true,
-		},
 	}))
 
 
@@ -35,17 +30,12 @@
 
 
 <svelte:head>
-	<title>{(data.title ?? (pageSelection.entity == null ? [String((data.selector.did) ?? '')].filter(Boolean).join(' ') || 'AT Protocol account' : [String((({ ...data.selector, ...pageSelection.entity }).did) ?? '')].filter(Boolean).join(' ') || 'AT Protocol account'))} • AT Protocol account • Blockhead</title>
+	<title>{(data.title ?? (pageSelection.entitySelector.did || 'AT Protocol account'))} • AT Protocol account • Blockhead</title>
 </svelte:head>
 
 
 <Page>
 	<AtprotoActorView
-		href={
-			resolve('/atproto/actor/[did=stringSegment]', {
-				did: params.did,
-			})
-		}
 		selection={pageSelection}
 	/>
 </Page>

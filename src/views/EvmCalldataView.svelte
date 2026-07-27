@@ -2,14 +2,9 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
 	import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 
 
@@ -22,28 +17,10 @@
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.EvmCalldata>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.EvmCalldata>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.EvmCalldata> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const evmCalldata = $derived(selection({
-		sources: selection.sources,
-	}))
-	const titleFallback = $derived([String((pendingEntity.hex) ?? '')].filter(Boolean).join(' ') || 'EVM calldata')
-	const viewDomId = $derived('evm-calldata-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const titleFallback = $derived(String(pendingEntity.hex ?? '') || 'EVM calldata')
 
 
 	// Components
@@ -54,18 +31,14 @@
 
 <EntityView
 	entityType={EntityType.EvmCalldata}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
 	href={
-		href ?? (
-			selection.entitySelector != null && 'hex' in selection.entitySelector
-			&& selection.entitySelector.hex != null ?
-				resolve('/evm/calldata/[hex=zeroExHex]', {
-			hex: String(selection.entitySelector.hex ?? ''),
-		})
-		:
-				undefined
+		href ?? resolve(
+			'/(explore)/(protocols)/evm/(evmProtocol)/(calldata)/calldata/[hex=zeroExHex]',
+			{
+				hex: String(selection.entitySelector.hex),
+			}
 		)
 	}
 	{layout}
@@ -73,15 +46,7 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={evmCalldata}>
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const hex0 = resolvedEntity.hex}
-				{#if hex0 !== undefined && hex0 !== null}
-					<TruncatedValue value={String((hex0) ?? '')} />
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		<TruncatedValue value={String(pendingEntity.hex)} />
 	{/snippet}
 
 	{#snippet Value()}
@@ -95,24 +60,7 @@
 			<div>
 				<dt>Call/input data</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									hex: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const hex = resolvedEntity.hex}
-							{#if hex !== undefined && hex !== null}
-								<TruncatedValue value={String((hex) ?? '')} />
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					<TruncatedValue value={String(pendingEntity.hex)} />
 				</dd>
 			</div>
 		</dl>

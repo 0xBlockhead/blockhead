@@ -4,19 +4,11 @@ import {
 	EntityMetaKey,
 } from '$/schema/$schema.ts'
 import { EntityFieldCardinality } from '$/schema/EntityField.ts'
-import { AptosAccountSelector } from '$/schema/AptosAccount.ts'
-import {
-	AptosCoinBalance_Timestamp,
-	AptosCoinBalance_TimestampSelector,
-} from '$/schema/AptosCoinBalance_Timestamp.ts'
-import { AptosTableItemSelector } from '$/schema/AptosTableItem.ts'
-import { AptosTableItem_TimestampSelector } from '$/schema/AptosTableItem_Timestamp.ts'
-import { AptosTransactionSelector } from '$/schema/AptosTransaction.ts'
+import AptosCoinBalance_Timestamp from '$/schema/AptosCoinBalance_Timestamp.ts'
 import { Source } from '$/sources/Source.ts'
-import { sourceProviderDefinitions } from '$/sources/$sourceProviders.ts'
+import bindings from '$/sources/AptosIndexer/bindings.ts'
 import {
 	SourceDelivery,
-	SourceTargetKind,
 } from '$/sources/SourceBinding.ts'
 
 const sourceFetch = vi.fn()
@@ -36,14 +28,7 @@ const {
 	aptosTransactionResolver,
 } = await import('$/resolvers/AptosIndexer-Graphql.ts')
 
-const aptosIndexerBindings = sourceProviderDefinitions
-	.flatMap((provider) => provider.bindings)
-	.filter((binding) => (
-		binding.source === Source.AptosIndexer_Graphql
-		&& binding.target.kind === SourceTargetKind.Caip2Network
-		&& binding.target.key === 'aptos:1'
-	))
-const aptosIndexerBinding = aptosIndexerBindings[0]
+const aptosIndexerBinding = bindings[Source.AptosIndexer_Graphql]
 
 const aptosNetwork = {
 	$network: {
@@ -159,7 +144,7 @@ describe('Aptos Indexer typed operations', () => {
 		await queries.getTableItem('0xhandle', '0xkeyhash', 42n)
 
 		expect(sourceFetch).toHaveBeenCalledTimes(6)
-		expect(aptosIndexerBindings).toHaveLength(1)
+		expect(Object.keys(bindings)).toEqual([Source.AptosIndexer_Graphql])
 		expect(aptosIndexerBinding.delivery).toBe(SourceDelivery.HttpProxy)
 		expect(sourceFetch.mock.calls.every((call) => call[0] === aptosIndexerBinding)).toBe(true)
 		expect(sourceFetch.mock.calls.every((call) => call[1] === 'https://api.mainnet.aptoslabs.com/v1/graphql')).toBe(true)
@@ -230,7 +215,7 @@ describe('Aptos Indexer resolver materialization', () => {
 			version: '42',
 		})
 
-		await expect(aptosAccountTransactionsResolver.resolve[AptosAccountSelector.NetworkAddress].resolve(
+		await expect(aptosAccountTransactionsResolver.resolve['NetworkAddress'].resolve(
 			aptosAccount,
 			resolverContext
 		)).resolves.toEqual([{
@@ -244,7 +229,7 @@ describe('Aptos Indexer resolver materialization', () => {
 			25,
 			5
 		)
-		await expect(aptosTransactionResolver.resolve[AptosTransactionSelector.NetworkVersion].resolve(
+		await expect(aptosTransactionResolver.resolve['NetworkVersion'].resolve(
 			{
 				$network: aptosNetwork,
 				version: 42n,
@@ -258,7 +243,7 @@ describe('Aptos Indexer resolver materialization', () => {
 
 	it('accepts canonical Aptos identities and rejects unsupported networks before transport', async () => {
 		const resolveAccountTransactions = aptosAccountTransactionsResolver.resolve[
-			AptosAccountSelector.NetworkAddress
+			'NetworkAddress'
 		]
 		expect([
 			aptosAccountTransactionsResolver,
@@ -322,7 +307,7 @@ describe('Aptos Indexer resolver materialization', () => {
 			balance,
 			secondaryBalance,
 		])
-		const balanceSelectors = await aptosAccountBalancesResolver.resolve[AptosAccountSelector.NetworkAddress].resolve(
+		const balanceSelectors = await aptosAccountBalancesResolver.resolve['NetworkAddress'].resolve(
 			aptosAccount,
 			resolverContext
 		)
@@ -353,7 +338,7 @@ describe('Aptos Indexer resolver materialization', () => {
 		vi.spyOn(queries, 'getCurrentFungibleAssetBalance').mockImplementation(async (storageId) => (
 			storageId === secondaryBalance.storage_id ? secondaryBalance : balance
 		))
-		await expect(aptosCoinBalanceResolver.resolve[AptosCoinBalance_TimestampSelector.AccountStorageIdLedgerVersionSource].resolve(
+		await expect(aptosCoinBalanceResolver.resolve['AccountStorageIdLedgerVersionSource'].resolve(
 			balanceSelectors[0][EntityMetaKey.Selector]
 		)).resolves.toEqual({
 			assetType: balance.asset_type,
@@ -363,13 +348,13 @@ describe('Aptos Indexer resolver materialization', () => {
 			coinType: balance.asset_type_v1,
 			timestampMs: 1_784_016_000_000,
 		})
-		await expect(aptosCoinBalanceResolver.resolve[AptosCoinBalance_TimestampSelector.AccountStorageIdLedgerVersionSource].resolve(
+		await expect(aptosCoinBalanceResolver.resolve['AccountStorageIdLedgerVersionSource'].resolve(
 			balanceSelectors[1][EntityMetaKey.Selector]
 		)).resolves.toMatchObject({
 			isPrimary: false,
 			amount: 7n,
 		})
-		await expect(aptosCoinBalanceResolver.resolve[AptosCoinBalance_TimestampSelector.AccountStorageIdLedgerVersionSource].resolve(
+		await expect(aptosCoinBalanceResolver.resolve['AccountStorageIdLedgerVersionSource'].resolve(
 			{
 				...balanceSelectors[0][EntityMetaKey.Selector],
 				ledgerVersion: 41n,
@@ -382,14 +367,14 @@ describe('Aptos Indexer resolver materialization', () => {
 			current: currentTableItem,
 			versioned: ledgerVersion === 42n ? versionedTableItem : undefined,
 		}))
-		await expect(aptosTableItemResolver.resolve[AptosTableItemSelector.NetworkTableHandleKeyHash].resolve(
+		await expect(aptosTableItemResolver.resolve['NetworkTableHandleKeyHash'].resolve(
 			tableItem
 		)).resolves.toEqual({
 			key: currentTableItem.decoded_key,
 		})
 		expect(aptosTableItemResolver.projections).not.toHaveProperty('$$timestamps')
 
-		await expect(aptosTableItemTimestampResolver.resolve[AptosTableItem_TimestampSelector.TableItemLedgerVersionSource].resolve(
+		await expect(aptosTableItemTimestampResolver.resolve['TableItemLedgerVersionSource'].resolve(
 			{
 				$tableItem: tableItem,
 				ledgerVersion: 42n,
@@ -398,7 +383,7 @@ describe('Aptos Indexer resolver materialization', () => {
 		)).resolves.toEqual({
 			value: versionedTableItem.decoded_value,
 		})
-		await expect(aptosTableItemTimestampResolver.resolve[AptosTableItem_TimestampSelector.TableItemLedgerVersionSource].resolve(
+		await expect(aptosTableItemTimestampResolver.resolve['TableItemLedgerVersionSource'].resolve(
 			{
 				$tableItem: tableItem,
 				ledgerVersion: 41n,

@@ -6,99 +6,33 @@ import {
 	vi,
 } from 'vitest'
 
-import {
-	getCurrentPrices,
-	getProtocol,
-	getProtocols,
-	getYieldPoolChart,
-	getYieldPools,
-} from '$/sources/Defillama/OpenApi/queries.ts'
-import {
-	getCurrentPricesJson,
-	getProtocolJson,
-	getProtocolsJson,
-	getYieldPoolChartJson,
-	getYieldPoolsJson,
-} from '$/sources/Defillama/OpenApi/client.ts'
+import bindings from '$/sources/Defillama/bindings.ts'
 import { Source } from '$/sources/Source.ts'
 
-vi.mock('$/sources/Defillama/OpenApi/client.ts', () => ({
-	getCurrentPricesJson: vi.fn(),
-	getProtocolJson: vi.fn(),
-	getProtocolsJson: vi.fn(),
-	getYieldPoolChartJson: vi.fn(),
-	getYieldPoolsJson: vi.fn(),
+const sourceGetJson = vi.hoisted(() => vi.fn())
+
+vi.mock('$/sources/_runtime/http.ts', async (importOriginal) => ({
+	...await importOriginal<typeof import('$/sources/_runtime/http.ts')>(),
+	sourceGetJson,
 }))
 
-describe('DefiLlama public protocol and yield observations', () => {
+import {
+	getChartJson,
+} from '$/sources/Defillama/OpenApi/client.ts'
+import {
+	getChainIconUrl,
+	getCurrentPrices,
+} from '$/sources/Defillama/OpenApi/queries.ts'
+
+const binding = bindings[Source.Defillama_OpenApi]
+
+describe('DefiLlama binding-owned OpenAPI queries', () => {
 	beforeEach(() => {
-		vi.clearAllMocks()
+		sourceGetJson.mockReset()
 	})
 
-	it('preserves protocol and chain TVL identities in USD units', async () => {
-		vi.mocked(getProtocolsJson).mockResolvedValue([{
-			id: '2269',
-			name: 'Aave',
-			symbol: 'AAVE',
-			category: 'Lending',
-			chains: [
-				'Ethereum',
-				'Polygon',
-			],
-			tvl: 5_200_000_000.125,
-			chainTvls: {
-				Ethereum: 3_200_000_000.125,
-				Polygon: 2_000_000_000,
-			},
-		}])
-		vi.mocked(getProtocolJson).mockResolvedValue({
-			id: 'parent#aave',
-			name: 'Aave',
-			symbol: 'AAVE',
-			category: 'Lending',
-			chains: ['Ethereum'],
-			currentChainTvls: {
-				Ethereum: 3_200_000_000.125,
-			},
-			chainTvls: {
-				Ethereum: {
-					tvl: [{
-						date: 1_725_000_000,
-						totalLiquidityUSD: 3_200_000_000.125,
-					}],
-				},
-			},
-		})
-
-		await expect(getProtocols()).resolves.toEqual([{
-			source: Source.Defillama_OpenApi,
-			id: '2269',
-			name: 'Aave',
-			symbol: 'AAVE',
-			category: 'Lending',
-			chains: [
-				'Ethereum',
-				'Polygon',
-			],
-			tvlUsd: 5_200_000_000.125,
-			chainTvlUsd: {
-				Ethereum: 3_200_000_000.125,
-				Polygon: 2_000_000_000,
-			},
-		}])
-		await expect(getProtocol('aave')).resolves.toMatchObject({
-			source: Source.Defillama_OpenApi,
-			id: 'parent#aave',
-			history: [{
-				chainLabel: 'Ethereum',
-				timestampMs: 1_725_000_000_000,
-				tvlUsd: 3_200_000_000.125,
-			}],
-		})
-	})
-
-	it('keys token price observations by the exact requested public identity', async () => {
-		vi.mocked(getCurrentPricesJson).mockResolvedValue({
+	it('keys token prices by the exact requested identity and preserves search semantics', async () => {
+		sourceGetJson.mockResolvedValue({
 			coins: {
 				'coingecko:ethereum': {
 					decimals: 18,
@@ -110,7 +44,14 @@ describe('DefiLlama public protocol and yield observations', () => {
 			},
 		})
 
-		await expect(getCurrentPrices(['coingecko:ethereum'])).resolves.toEqual({
+		await expect(
+			getCurrentPrices(
+				['coingecko:ethereum'],
+				{
+					searchWidth: '24h',
+				}
+			)
+		).resolves.toEqual({
 			coins: {
 				'coingecko:ethereum': {
 					decimals: 18,
@@ -121,118 +62,45 @@ describe('DefiLlama public protocol and yield observations', () => {
 				},
 			},
 		})
-		await expect(getCurrentPrices([
-			'coingecko:ethereum',
-			'coingecko:ethereum',
-		])).rejects.toThrow('requested coin identities')
+		expect(sourceGetJson).toHaveBeenCalledWith(
+			binding,
+			'https://coins.llama.fi/prices/current/coingecko%3Aethereum?searchWidth=24h'
+		)
 	})
 
-	it('preserves APY percentage units, reward identities, and observation time', async () => {
-		vi.mocked(getYieldPoolsJson).mockResolvedValue({
-			status: 'success',
-			data: [{
-				pool: 'pool-uuid',
-				project: 'aave-v3',
-				chain: 'Ethereum',
-				symbol: 'USDC',
-				tvlUsd: 1_500_000.25,
-				apyBase: 3.125,
-				apyReward: 0.25,
-				apy: 3.375,
-				rewardTokens: ['0x1111111111111111111111111111111111111111'],
-			}],
+	it('preserves chart period, span, search width, and coin ordering', async () => {
+		sourceGetJson.mockResolvedValue({
+			coins: {},
 		})
 
-		await expect(getYieldPools({ resolvedAtMs: 1_725_000_000_000 })).resolves.toEqual([{
-			source: Source.Defillama_OpenApi,
-			poolId: 'pool-uuid',
-			projectSlug: 'aave-v3',
-			chainLabel: 'Ethereum',
-			symbol: 'USDC',
-			tvlUsd: 1_500_000.25,
-			apyBasePercent: 3.125,
-			apyRewardPercent: 0.25,
-			apyTotalPercent: 3.375,
-			rewardTokens: ['0x1111111111111111111111111111111111111111'],
-			resolvedAtMs: 1_725_000_000_000,
-		}])
-	})
-
-	it('preserves ordered pool history timestamps and rejects foreign identities', async () => {
-		vi.mocked(getYieldPoolChartJson).mockResolvedValue({
-			status: 'success',
-			data: [
-				{
-					timestamp: '2024-01-01T00:00:00.000Z',
-					tvlUsd: 1_000,
-					apy: 5.2,
-				},
-				{
-					timestamp: '2024-01-02T00:00:00.000Z',
-					tvlUsd: 1_100,
-					apy: 5.3,
-				},
-			],
-		})
-		vi.mocked(getProtocolJson).mockResolvedValue({ id: 'parent#compound' })
-
-		await expect(getYieldPoolChart('pool-uuid')).resolves.toEqual([
+		await getChartJson(
 			{
-				source: Source.Defillama_OpenApi,
-				poolId: 'pool-uuid',
-				timestampMs: 1_704_067_200_000,
-				tvlUsd: 1_000,
-				apyTotalPercent: 5.2,
-			},
-			{
-				source: Source.Defillama_OpenApi,
-				poolId: 'pool-uuid',
-				timestampMs: 1_704_153_600_000,
-				tvlUsd: 1_100,
-				apyTotalPercent: 5.3,
-			},
-		])
-		await expect(getProtocol('aave')).rejects.toThrow('does not match requested slug')
-	})
-
-	it.each([
-		[
-			'negative TVL',
-			{
-				status: 'success',
-				data: [{
-					pool: 'pool',
-					project: 'project',
-					chain: 'Ethereum',
-					symbol: 'ETH',
-					tvlUsd: -1,
-				}],
-			},
-		],
-		[
-			'duplicate pool identity',
-			{
-				status: 'success',
-				data: [
-					{
-						pool: 'pool',
-						project: 'project',
-						chain: 'Ethereum',
-						symbol: 'ETH',
-						tvlUsd: 1,
-					},
-					{
-						pool: 'pool',
-						project: 'project',
-						chain: 'Ethereum',
-						symbol: 'ETH',
-						tvlUsd: 2,
-					},
+				coins: [
+					'coingecko:ethereum',
+					'coingecko:bitcoin',
 				],
-			},
-		],
-	])('rejects %s', async (_label, response) => {
-		vi.mocked(getYieldPoolsJson).mockResolvedValue(response)
-		await expect(getYieldPools()).rejects.toThrow('Defillama_OpenApi:')
+				period: '1d',
+				span: 30,
+				searchWidth: '4h',
+			}
+		)
+
+		expect(sourceGetJson).toHaveBeenCalledWith(
+			binding,
+			'https://coins.llama.fi/chart/coingecko%3Aethereum,coingecko%3Abitcoin?searchWidth=4h&period=1d&span=30'
+		)
+	})
+
+	it('derives icon URLs from the canonical binding and rejects duplicate price identities before transport', async () => {
+		expect(getChainIconUrl('polygon zkevm')).toBe(
+			'https://icons.llama.fi/polygon%20zkevm.png'
+		)
+		await expect(getCurrentPrices(
+			[
+				'coingecko:ethereum',
+				'coingecko:ethereum',
+			]
+		)).rejects.toThrow('requested coin identities')
+		expect(sourceGetJson).not.toHaveBeenCalled()
 	})
 })

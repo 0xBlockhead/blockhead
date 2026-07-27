@@ -5,7 +5,7 @@ import { error } from '@sveltejs/kit'
 import { match as matchAbsoluteUrl } from '$/params/absoluteUrl.ts'
 import { parseEntitySelector } from '$/schema/$schema.ts'
 import { schema } from '$/schema/index.ts'
-import { RssFeed as RssFeedSchema } from '$/schema/RssFeed.ts'
+import RssFeedSchema from '$/schema/RssFeed.ts'
 import { type as arktype } from 'arktype'
 
 export const load: LayoutLoad = ({ params }) => {

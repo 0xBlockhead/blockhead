@@ -1,9 +1,11 @@
-import { getJson } from '$/lib/http.ts'
-import type { SourceBinding } from '$/sources/SourceBinding.ts'
+import { fetchFailedMessage } from '$/lib/http.ts'
+import { Source } from '$/sources/Source.ts'
 import {
 	firstHttpUrlForBinding,
-	httpOriginsForBinding,
+	sourceFetch,
+	sourceGetJson,
 } from '$/sources/_runtime/http.ts'
+import bindings from '$/sources/CosmosSdk/bindings.ts'
 import type {
 	CosmosSdkAccountsResponse,
 	CosmosSdkAccountResponse,
@@ -57,66 +59,74 @@ const cosmosSdkDenomMetadataWire = arktype({
 	},
 })
 
-const base = (binding: SourceBinding) => firstHttpUrlForBinding(binding).replace(/\/$/, '')
+const binding = bindings[Source.CosmosSdk_Rest]
+const base = firstHttpUrlForBinding(binding).replace(/\/$/, '')
+
+export const endpointLocators = binding.endpoints.map(({ locator }) => locator)
+
+const getJsonAtBlockHeight = <_Json>(
+	url: string,
+	blockHeight: bigint
+): Promise<_Json> => sourceFetch(binding, url, {
+		headers: {
+			'x-cosmos-block-height': blockHeight.toString(),
+		},
+	})
+	.then(async (response) => {
+		if (!response.ok)
+			throw new Error(await fetchFailedMessage(url, response))
+
+		return response.json()
+	})
 
 export const getBlock = ({
-	binding,
 	height,
 }: {
-	binding: SourceBinding
 	height: bigint
 }) => (
-	getJson<CosmosSdkBlockResponse>(
-		`${base(binding)}/cosmos/base/tendermint/v1beta1/blocks/${height.toString()}`,
-		{ origins: httpOriginsForBinding(binding) }
+	sourceGetJson<CosmosSdkBlockResponse>(
+		binding,
+		`${base}/cosmos/base/tendermint/v1beta1/blocks/${height.toString()}`
 	)
 )
 
-export const getLatestBlock = ({
-	binding,
-}: {
-	binding: SourceBinding
-}) => (
-	getJson<CosmosSdkBlockResponse>(
-		`${base(binding)}/cosmos/base/tendermint/v1beta1/blocks/latest`,
-		{ origins: httpOriginsForBinding(binding) }
+export const getLatestBlock = () => (
+	sourceGetJson<CosmosSdkBlockResponse>(
+		binding,
+		`${base}/cosmos/base/tendermint/v1beta1/blocks/latest`
 	)
 )
 
-export const getNodeInfo = ({ binding }: { binding: SourceBinding }) => (
-	getJson<CosmosSdkNodeInfoResponse>(
-		`${base(binding)}/cosmos/base/tendermint/v1beta1/node_info`,
-		{ origins: httpOriginsForBinding(binding) }
+export const getNodeInfo = () => (
+	sourceGetJson<CosmosSdkNodeInfoResponse>(
+		binding,
+		`${base}/cosmos/base/tendermint/v1beta1/node_info`
 	)
 )
 
-export const getSyncing = ({ binding }: { binding: SourceBinding }) => (
-	getJson<CosmosSdkSyncingResponse>(
-		`${base(binding)}/cosmos/base/tendermint/v1beta1/syncing`,
-		{ origins: httpOriginsForBinding(binding) }
+export const getSyncing = () => (
+	sourceGetJson<CosmosSdkSyncingResponse>(
+		binding,
+		`${base}/cosmos/base/tendermint/v1beta1/syncing`
 	)
 )
 
 export const getTx = ({
-	binding,
 	txHash,
 }: {
-	binding: SourceBinding
 	txHash: string
 }) => (
-	getJson<CosmosSdkTxResponse>(
-		`${base(binding)}/cosmos/tx/v1beta1/txs/${encodeURIComponent(txHash)}`,
-		{ origins: httpOriginsForBinding(binding) }
+	sourceGetJson<CosmosSdkTxResponse>(
+		binding,
+		`${base}/cosmos/tx/v1beta1/txs/${encodeURIComponent(txHash)}`
 	)
 )
 
 export const getTransactionsByEvent = ({
-	binding,
 	event,
 	page = 1,
 	limit = 24,
 }: {
-	binding: SourceBinding
 	event: string
 	page?: number
 	limit?: number
@@ -137,18 +147,16 @@ export const getTransactionsByEvent = ({
 		limit: String(limit),
 	})
 
-	return getJson<CosmosSdkTxsEventResponse>(
-		`${base(binding)}/cosmos/tx/v1beta1/txs?${parameters}`,
-		{ origins: httpOriginsForBinding(binding) }
+	return sourceGetJson<CosmosSdkTxsEventResponse>(
+		binding,
+		`${base}/cosmos/tx/v1beta1/txs?${parameters}`
 	)
 }
 
 export const getValidators = ({
-	binding,
 	limit = 24,
 	status,
 }: {
-	binding: SourceBinding
 	limit?: number
 	status?: string
 }) => {
@@ -158,50 +166,44 @@ export const getValidators = ({
 		...(status != null && { status }),
 	})
 
-	return getJson<CosmosSdkValidatorsResponse>(
-		`${base(binding)}/cosmos/staking/v1beta1/validators?${parameters}`,
-		{ origins: httpOriginsForBinding(binding) }
+	return sourceGetJson<CosmosSdkValidatorsResponse>(
+		binding,
+		`${base}/cosmos/staking/v1beta1/validators?${parameters}`
 	)
 }
 
-export const getStakingPool = ({ binding }: { binding: SourceBinding }) => (
-	getJson<CosmosSdkStakingPoolResponse>(
-		`${base(binding)}/cosmos/staking/v1beta1/pool`,
-		{ origins: httpOriginsForBinding(binding) }
+export const getStakingPool = () => (
+	sourceGetJson<CosmosSdkStakingPoolResponse>(
+		binding,
+		`${base}/cosmos/staking/v1beta1/pool`
 	)
 )
 
 export const getValidator = ({
-	binding,
 	operatorAddress,
 }: {
-	binding: SourceBinding
 	operatorAddress: string
 }) => (
-	getJson<CosmosSdkValidatorResponse>(
-		`${base(binding)}/cosmos/staking/v1beta1/validators/${operatorAddress}`,
-		{ origins: httpOriginsForBinding(binding) }
+	sourceGetJson<CosmosSdkValidatorResponse>(
+		binding,
+		`${base}/cosmos/staking/v1beta1/validators/${operatorAddress}`
 	)
 )
 
 export const getAccount = ({
-	binding,
 	address,
 }: {
-	binding: SourceBinding
 	address: string
 }) => (
-	getJson<CosmosSdkAccountResponse>(
-		`${base(binding)}/cosmos/auth/v1beta1/accounts/${encodeURIComponent(address)}`,
-		{ origins: httpOriginsForBinding(binding) }
+	sourceGetJson<CosmosSdkAccountResponse>(
+		binding,
+		`${base}/cosmos/auth/v1beta1/accounts/${encodeURIComponent(address)}`
 	)
 )
 
 export const getAccounts = ({
-	binding,
 	limit = 24,
 }: {
-	binding: SourceBinding
 	limit?: number
 }) => {
 	const parameters = new URLSearchParams({
@@ -209,31 +211,27 @@ export const getAccounts = ({
 		'pagination.count_total': 'true',
 	})
 
-	return getJson<CosmosSdkAccountsResponse>(
-		`${base(binding)}/cosmos/auth/v1beta1/accounts?${parameters}`,
-		{ origins: httpOriginsForBinding(binding) }
+	return sourceGetJson<CosmosSdkAccountsResponse>(
+		binding,
+		`${base}/cosmos/auth/v1beta1/accounts?${parameters}`
 	)
 }
 
 export const getProposal = ({
-	binding,
 	proposalId,
 }: {
-	binding: SourceBinding
 	proposalId: string
 }) => (
-	getJson<CosmosSdkProposalResponse>(
-		`${base(binding)}/cosmos/gov/v1/proposals/${encodeURIComponent(proposalId)}`,
-		{ origins: httpOriginsForBinding(binding) }
+	sourceGetJson<CosmosSdkProposalResponse>(
+		binding,
+		`${base}/cosmos/gov/v1/proposals/${encodeURIComponent(proposalId)}`
 	)
 )
 
 export const getProposals = ({
-	binding,
 	limit = 12,
 	paginationKey,
 }: {
-	binding: SourceBinding
 	limit?: number
 	paginationKey?: string
 }) => {
@@ -243,19 +241,17 @@ export const getProposals = ({
 		...(paginationKey != null && { 'pagination.key': paginationKey }),
 	})
 
-	return getJson<CosmosSdkProposalsResponse>(
-		`${base(binding)}/cosmos/gov/v1/proposals?${parameters}`,
-		{ origins: httpOriginsForBinding(binding) }
+	return sourceGetJson<CosmosSdkProposalsResponse>(
+		binding,
+		`${base}/cosmos/gov/v1/proposals?${parameters}`
 	)
 }
 
 export const getProposalVotes = ({
-	binding,
 	proposalId,
 	limit = 24,
 	paginationKey,
 }: {
-	binding: SourceBinding
 	proposalId: string
 	limit?: number
 	paginationKey?: string
@@ -266,34 +262,30 @@ export const getProposalVotes = ({
 		...(paginationKey != null && { 'pagination.key': paginationKey }),
 	})
 
-	return getJson<CosmosSdkVotesResponse>(
-		`${base(binding)}/cosmos/gov/v1/proposals/${encodeURIComponent(proposalId)}/votes?${parameters}`,
-		{ origins: httpOriginsForBinding(binding) }
+	return sourceGetJson<CosmosSdkVotesResponse>(
+		binding,
+		`${base}/cosmos/gov/v1/proposals/${encodeURIComponent(proposalId)}/votes?${parameters}`
 	)
 }
 
 export const getProposalVote = ({
-	binding,
 	proposalId,
 	voter,
 }: {
-	binding: SourceBinding
 	proposalId: string
 	voter: string
 }) => (
-	getJson<CosmosSdkVoteResponse>(
-		`${base(binding)}/cosmos/gov/v1/proposals/${encodeURIComponent(proposalId)}/votes/${encodeURIComponent(voter)}`,
-		{ origins: httpOriginsForBinding(binding) }
+	sourceGetJson<CosmosSdkVoteResponse>(
+		binding,
+		`${base}/cosmos/gov/v1/proposals/${encodeURIComponent(proposalId)}/votes/${encodeURIComponent(voter)}`
 	)
 )
 
 export const getProposalDeposits = ({
-	binding,
 	proposalId,
 	limit = 24,
 	paginationKey,
 }: {
-	binding: SourceBinding
 	proposalId: string
 	limit?: number
 	paginationKey?: string
@@ -304,46 +296,40 @@ export const getProposalDeposits = ({
 		...(paginationKey != null && { 'pagination.key': paginationKey }),
 	})
 
-	return getJson<CosmosSdkDepositsResponse>(
-		`${base(binding)}/cosmos/gov/v1/proposals/${encodeURIComponent(proposalId)}/deposits?${parameters}`,
-		{ origins: httpOriginsForBinding(binding) }
+	return sourceGetJson<CosmosSdkDepositsResponse>(
+		binding,
+		`${base}/cosmos/gov/v1/proposals/${encodeURIComponent(proposalId)}/deposits?${parameters}`
 	)
 }
 
 export const getProposalDeposit = ({
-	binding,
 	proposalId,
 	depositor,
 }: {
-	binding: SourceBinding
 	proposalId: string
 	depositor: string
 }) => (
-	getJson<CosmosSdkDepositResponse>(
-		`${base(binding)}/cosmos/gov/v1/proposals/${encodeURIComponent(proposalId)}/deposits/${encodeURIComponent(depositor)}`,
-		{ origins: httpOriginsForBinding(binding) }
+	sourceGetJson<CosmosSdkDepositResponse>(
+		binding,
+		`${base}/cosmos/gov/v1/proposals/${encodeURIComponent(proposalId)}/deposits/${encodeURIComponent(depositor)}`
 	)
 )
 
 export const getProposalTally = ({
-	binding,
 	proposalId,
 }: {
-	binding: SourceBinding
 	proposalId: string
 }) => (
-	getJson<CosmosSdkTallyResponse>(
-		`${base(binding)}/cosmos/gov/v1/proposals/${encodeURIComponent(proposalId)}/tally`,
-		{ origins: httpOriginsForBinding(binding) }
+	sourceGetJson<CosmosSdkTallyResponse>(
+		binding,
+		`${base}/cosmos/gov/v1/proposals/${encodeURIComponent(proposalId)}/tally`
 	)
 )
 
 export const getDenomMetadata = async ({
-	binding,
 	denom,
 	blockHeight,
 }: {
-	binding: SourceBinding
 	denom: string
 	blockHeight?: bigint
 }) => {
@@ -352,18 +338,17 @@ export const getDenomMetadata = async ({
 	if (blockHeight != null && blockHeight < 1n)
 		throw new Error('CosmosSdk_Rest: denom metadata block height must be positive')
 
-	const response = cosmosSdkDenomMetadataWire.assert(await getJson<JsonValue>(
-		`${base(binding)}/cosmos/bank/v1beta1/denoms_metadata/${encodeURIComponent(denom)}`,
-		{
-			origins: httpOriginsForBinding(binding),
-			...(blockHeight != null && {
-				init: {
-					headers: {
-						'x-cosmos-block-height': blockHeight.toString(),
-					},
-				},
-			}),
-		}
+	const response = cosmosSdkDenomMetadataWire.assert(await (
+		blockHeight == null ?
+			sourceGetJson<JsonValue>(
+				binding,
+				`${base}/cosmos/bank/v1beta1/denoms_metadata/${encodeURIComponent(denom)}`
+			)
+		:
+			getJsonAtBlockHeight<JsonValue>(
+				`${base}/cosmos/bank/v1beta1/denoms_metadata/${encodeURIComponent(denom)}`,
+				blockHeight
+			)
 	))
 	if (new Set(response.metadata.denom_units.map(({ denom: unit }) => unit)).size !== response.metadata.denom_units.length)
 		throw new Error('CosmosSdk_Rest: denom metadata contains duplicate units')
@@ -378,27 +363,23 @@ export const getDenomMetadata = async ({
 }
 
 export const getModuleAccount = ({
-	binding,
 	moduleName,
 }: {
-	binding: SourceBinding
 	moduleName: string
 }) => (
-	getJson<CosmosSdkModuleAccountResponse>(
-		`${base(binding)}/cosmos/auth/v1beta1/module_accounts/${moduleName}`,
-		{ origins: httpOriginsForBinding(binding) }
+	sourceGetJson<CosmosSdkModuleAccountResponse>(
+		binding,
+		`${base}/cosmos/auth/v1beta1/module_accounts/${moduleName}`
 	)
 )
 
 export const getBalances = async ({
-	binding,
 	network,
 	address,
 	blockHeight,
 	limit = 100,
 	continuationToken,
 }: {
-	binding: SourceBinding
 	network: string
 	address: string
 	blockHeight: bigint
@@ -414,7 +395,7 @@ export const getBalances = async ({
 	if (blockHeight < 1n)
 		throw new Error('CosmosSdk_Rest: balance block height must be positive')
 
-	const normalizedRestBaseUrl = base(binding)
+	const normalizedRestBaseUrl = base
 	const continuation = continuationToken == null ?
 		undefined
 	:
@@ -455,16 +436,9 @@ export const getBalances = async ({
 		...(paginationKey != null && { 'pagination.key': paginationKey }),
 	})
 
-	const response = cosmosSdkBalancesWire.assert(await getJson<JsonValue>(
+	const response = cosmosSdkBalancesWire.assert(await getJsonAtBlockHeight<JsonValue>(
 		`${normalizedRestBaseUrl}/cosmos/bank/v1beta1/balances/${encodeURIComponent(address)}?${parameters}`,
-		{
-			origins: httpOriginsForBinding(binding),
-			init: {
-				headers: {
-					'x-cosmos-block-height': blockHeight.toString(),
-				},
-			},
-		}
+		blockHeight
 	))
 	if (response.balances.length > limit)
 		throw new Error('CosmosSdk_Rest: balance page exceeds its requested limit')
@@ -496,12 +470,10 @@ export const getBalances = async ({
 }
 
 export const getDelegations = ({
-	binding,
 	delegatorAddress,
 	limit = 100,
 	paginationKey,
 }: {
-	binding: SourceBinding
 	delegatorAddress: string
 	limit?: number
 	paginationKey?: string
@@ -515,34 +487,30 @@ export const getDelegations = ({
 		...(paginationKey != null && { 'pagination.key': paginationKey }),
 	})
 
-	return getJson<CosmosSdkDelegationsResponse>(
-		`${base(binding)}/cosmos/staking/v1beta1/delegations/${encodeURIComponent(delegatorAddress)}?${parameters}`,
-		{ origins: httpOriginsForBinding(binding) }
+	return sourceGetJson<CosmosSdkDelegationsResponse>(
+		binding,
+		`${base}/cosmos/staking/v1beta1/delegations/${encodeURIComponent(delegatorAddress)}?${parameters}`
 	)
 }
 
 export const getDelegationRewards = ({
-	binding,
 	delegatorAddress,
 }: {
-	binding: SourceBinding
 	delegatorAddress: string
 }) => (
-	getJson<CosmosSdkDelegationRewardsResponse>(
-		`${base(binding)}/cosmos/distribution/v1beta1/delegators/${encodeURIComponent(delegatorAddress)}/rewards`,
-		{ origins: httpOriginsForBinding(binding) }
+	sourceGetJson<CosmosSdkDelegationRewardsResponse>(
+		binding,
+		`${base}/cosmos/distribution/v1beta1/delegators/${encodeURIComponent(delegatorAddress)}/rewards`
 	)
 )
 
 export const getContractInfo = ({
-	binding,
 	address,
 }: {
-	binding: SourceBinding
 	address: string
 }) => (
-	getJson<CosmosSdkContractInfoResponse>(
-		`${base(binding)}/cosmwasm/wasm/v1/contract/${address}`,
-		{ origins: httpOriginsForBinding(binding) }
+	sourceGetJson<CosmosSdkContractInfoResponse>(
+		binding,
+		`${base}/cosmwasm/wasm/v1/contract/${address}`
 	)
 )

@@ -1,18 +1,11 @@
-import { type as arktype, type Type } from 'arktype'
-
-import { Source } from '$/sources/Source.ts'
 import {
-	ApiFamily,
-	SourceCredentialScope,
-	SourceDelivery,
-	SourceEndpointKind,
-	SourceOperationGroup,
-	type SourceBinding,
-	SourceTargetKind,
-	WireProtocol,
-} from '$/sources/SourceBinding.ts'
-import { SourceProvider } from '$/sources/SourceProvider.ts'
-import { getJson } from '$/sources/_shared/wire/HttpRest/client.ts'
+	type as arktype,
+	type Type,
+} from 'arktype'
+
+import { sourceGetJson } from '$/sources/_runtime/http.ts'
+import { httpUrl } from '$/sources/_shared/wire/HttpRest/client.ts'
+import bindings from '$/sources/TonCenter/bindings.ts'
 import {
 	tonCenterV3Hash,
 	tonCenterV3NonnegativeInt64,
@@ -25,12 +18,12 @@ import type {
 	TonCenterV3Block,
 	TonCenterV3BlocksWire,
 	TonCenterV3BlockWire,
-	TonCenterV3Message,
-	TonCenterV3MessagesWire,
-	TonCenterV3MessageWire,
 	TonCenterV3JettonMaster,
 	TonCenterV3JettonMastersWire,
 	TonCenterV3JettonMasterWire,
+	TonCenterV3Message,
+	TonCenterV3MessagesWire,
+	TonCenterV3MessageWire,
 	TonCenterV3NftCollection,
 	TonCenterV3NftCollectionsWire,
 	TonCenterV3NftCollectionWire,
@@ -46,6 +39,9 @@ import type {
 	TonCenterV3TransactionsWire,
 	TonCenterV3TransactionWire,
 } from '$/sources/TonCenter/V3/Rest/types.ts'
+import { Source } from '$/sources/Source.ts'
+
+const binding = bindings[Source.TonCenter_V3_Rest]
 
 const decimalString = /^(?:0|[1-9]\d*)$/
 const signedInt32Maximum = (2 ** 31) - 1
@@ -204,26 +200,10 @@ const tonCenterV3NftItems = arktype({
 	nft_items: tonCenterV3NftItem.array(),
 }) satisfies Type<TonCenterV3NftItemsWire>
 
-const assertTonCenterV3Binding = (binding: SourceBinding) => {
-	if (
-		binding.provider !== SourceProvider.TonCenter
-		|| binding.source !== Source.TonCenter_V3_Rest
-		|| binding.target.kind !== SourceTargetKind.Caip2Network
-		|| binding.target.key !== 'ton:-239'
-		|| binding.wireProtocol !== WireProtocol.HttpRest
-		|| binding.apiFamily !== ApiFamily.RestJson
-		|| !binding.operationGroups.includes(SourceOperationGroup.GenericRead)
-		|| binding.delivery !== SourceDelivery.HttpProxy
-		|| binding.proxyId == null
-		|| binding.credentials.length !== 1
-		|| binding.credentials[0]?.scope !== SourceCredentialScope.None
-		|| binding.endpoints.length !== 1
-		|| binding.endpoints[0]?.endpointKind !== SourceEndpointKind.HttpUrl
-		|| binding.endpoints[0].locator !== 'https://toncenter.com/api/v3/'
-		|| binding.endpoints[0].origin !== 'https://toncenter.com'
-		|| binding.endpoints[0].corsEnabled !== false
-	)
-		throw new Error('TonCenter_V3_Rest: expected canonical TON mainnet v3 binding')
+const getTonCenterV3RestJson = <_Json>(
+	path: string
+) => {
+	return sourceGetJson<_Json>(binding, httpUrl(binding, path))
 }
 
 const pageParameters = ({
@@ -252,7 +232,6 @@ const pageParameters = ({
 }
 
 const page = <_Row>(
-	binding: SourceBinding,
 	rows: _Row[],
 	limit: number,
 	offset: number
@@ -365,17 +344,14 @@ const nftCollection = (wire: TonCenterV3NftCollectionWire): TonCenterV3NftCollec
 })
 
 export const getTonCenterV3Blocks = async (
-	binding: SourceBinding,
 	options: {
 		limit: number
 		offset: number
 		order: TonCenterV3Order
 	}
 ) => {
-	assertTonCenterV3Binding(binding)
 	const parameters = pageParameters(options)
-	const wire = tonCenterV3Blocks.assert(await getJson<unknown>(
-		binding,
+	const wire = tonCenterV3Blocks.assert(await getTonCenterV3RestJson<unknown>(
 		`blocks?${parameters.toString()}`
 	))
 	const identities = new Set<string>()
@@ -420,21 +396,18 @@ export const getTonCenterV3Blocks = async (
 		}
 	})
 
-	return page(binding, rows, options.limit, options.offset)
+	return page(rows, options.limit, options.offset)
 }
 
 export const getTonCenterV3Messages = async (
-	binding: SourceBinding,
 	options: {
 		limit: number
 		offset: number
 		order: TonCenterV3Order
 	}
 ) => {
-	assertTonCenterV3Binding(binding)
 	const parameters = pageParameters(options)
-	const wire = tonCenterV3Messages.assert(await getJson<unknown>(
-		binding,
+	const wire = tonCenterV3Messages.assert(await getTonCenterV3RestJson<unknown>(
 		`messages?${parameters.toString()}`
 	))
 	const identities = new Set<string>()
@@ -449,21 +422,18 @@ export const getTonCenterV3Messages = async (
 		return normalizedMessage
 	})
 
-	return page(binding, rows, options.limit, options.offset)
+	return page(rows, options.limit, options.offset)
 }
 
 export const getTonCenterV3CompletedTraces = async (
-	binding: SourceBinding,
 	options: {
 		limit: number
 		offset: number
 		order: TonCenterV3Order
 	}
 ) => {
-	assertTonCenterV3Binding(binding)
 	const parameters = pageParameters(options)
-	const wire = tonCenterV3Traces.assert(await getJson<unknown>(
-		binding,
+	const wire = tonCenterV3Traces.assert(await getTonCenterV3RestJson<unknown>(
 		`traces?${parameters.toString()}`
 	))
 	const identities = new Set<string>()
@@ -511,21 +481,18 @@ export const getTonCenterV3CompletedTraces = async (
 		}
 	})
 
-	return page(binding, rows, options.limit, options.offset)
+	return page(rows, options.limit, options.offset)
 }
 
 export const getTonCenterV3Transactions = async (
-	binding: SourceBinding,
 	options: {
 		limit: number
 		offset: number
 		order: TonCenterV3Order
 	}
 ) => {
-	assertTonCenterV3Binding(binding)
 	const parameters = pageParameters(options)
-	const wire = tonCenterV3Transactions.assert(await getJson<unknown>(
-		binding,
+	const wire = tonCenterV3Transactions.assert(await getTonCenterV3RestJson<unknown>(
 		`transactions?${parameters.toString()}`
 	))
 	const accountLogicalTimeIdentities = new Map<string, string>()
@@ -619,20 +586,17 @@ export const getTonCenterV3Transactions = async (
 		}
 	})
 
-	return page(binding, rows, options.limit, options.offset)
+	return page(rows, options.limit, options.offset)
 }
 
 export const getTonCenterV3JettonMasters = async (
-	binding: SourceBinding,
 	options: {
 		limit: number
 		offset: number
 	}
 ) => {
-	assertTonCenterV3Binding(binding)
 	const parameters = pageParameters(options)
-	const wire = tonCenterV3JettonMasters.assert(await getJson<unknown>(
-		binding,
+	const wire = tonCenterV3JettonMasters.assert(await getTonCenterV3RestJson<unknown>(
 		`jetton/masters?${parameters.toString()}`
 	))
 	const identities = new Set<string>()
@@ -683,20 +647,17 @@ export const getTonCenterV3JettonMasters = async (
 		}
 	})
 
-	return page(binding, rows, options.limit, options.offset)
+	return page(rows, options.limit, options.offset)
 }
 
 export const getTonCenterV3NftCollections = async (
-	binding: SourceBinding,
 	options: {
 		limit: number
 		offset: number
 	}
 ) => {
-	assertTonCenterV3Binding(binding)
 	const parameters = pageParameters(options)
-	const wire = tonCenterV3NftCollections.assert(await getJson<unknown>(
-		binding,
+	const wire = tonCenterV3NftCollections.assert(await getTonCenterV3RestJson<unknown>(
 		`nft/collections?${parameters.toString()}`
 	))
 	const identities = new Set<string>()
@@ -708,20 +669,17 @@ export const getTonCenterV3NftCollections = async (
 		return normalizedCollection
 	})
 
-	return page(binding, rows, options.limit, options.offset)
+	return page(rows, options.limit, options.offset)
 }
 
 export const getTonCenterV3NftItems = async (
-	binding: SourceBinding,
 	options: {
 		limit: number
 		offset: number
 	}
 ) => {
-	assertTonCenterV3Binding(binding)
 	const parameters = pageParameters(options)
-	const wire = tonCenterV3NftItems.assert(await getJson<unknown>(
-		binding,
+	const wire = tonCenterV3NftItems.assert(await getTonCenterV3RestJson<unknown>(
 		`nft/items?${parameters.toString()}`
 	))
 	const identities = new Set<string>()
@@ -807,5 +765,5 @@ export const getTonCenterV3NftItems = async (
 		}
 	})
 
-	return page(binding, rows, options.limit, options.offset)
+	return page(rows, options.limit, options.offset)
 }

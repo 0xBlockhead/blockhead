@@ -2,15 +2,8 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
-	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -22,35 +15,13 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.XrplAmendment_Timestamp>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.XrplAmendment_Timestamp>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.XrplAmendment_Timestamp> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const xrplAmendmentTimestamp = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {},
-	} : {
-		sources: selection.sources,
-	}))
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const titleFallback = 'XRPL amendment timestamp'
-	const viewDomId = $derived('xrpl-amendment-timestamp-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -62,24 +33,14 @@
 
 <EntityView
 	entityType={EntityType.XrplAmendment_Timestamp}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails}
-			{title || titleFallback}
-		{:else}
-			<ResourceBoundary resource={xrplAmendmentTimestamp}>
-				{#snippet children(entity)}
-					{title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		XRPL amendment timestamp
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -89,30 +50,6 @@
 				<dd>
 					<XrplAmendmentView
 						selection={select(EntityType.XrplAmendment, selection.entitySelector.$amendment)}
-						href={
-							(
-								selection.entitySelector.$amendment != null && 'amendmentId' in selection.entitySelector.$amendment
-								&& selection.entitySelector.$amendment.amendmentId != null
-								&& selection.entitySelector.$amendment != null && '$network' in selection.entitySelector.$amendment ?
-									selection.entitySelector.$amendment.$network != null && 'caip2' in selection.entitySelector.$amendment.$network
-									&& selection.entitySelector.$amendment.$network.caip2 != null ?
-										resolve('/network/[network=networkCaip2OrNetworkSlug]/amendment/[amendmentId=stringSegment]', {
-									amendmentId: String(selection.entitySelector.$amendment.amendmentId ?? ''),
-									network: String(caip2StringFromValue(selection.entitySelector.$amendment.$network.caip2) ?? ''),
-								})
-								:
-										selection.entitySelector.$amendment.$network != null && 'slug' in selection.entitySelector.$amendment.$network
-										&& selection.entitySelector.$amendment.$network.slug != null ?
-											resolve('/network/[network=networkCaip2OrNetworkSlug]/amendment/[amendmentId=stringSegment]', {
-										amendmentId: String(selection.entitySelector.$amendment.amendmentId ?? ''),
-										network: String(selection.entitySelector.$amendment.$network.slug ?? ''),
-									})
-									:
-										undefined
-							:
-									undefined
-							)
-						}
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -122,55 +59,20 @@
 			<div>
 				<dt>ledger index</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									ledgerIndex: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const ledgerIndex = resolvedEntity.ledgerIndex}
-							{#if ledgerIndex !== undefined && ledgerIndex !== null}
-								{String((ledgerIndex) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{String(pendingEntity.ledgerIndex)}
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									source: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const source = resolvedEntity.source}
-							{#if source !== undefined && source !== null}
-								{String((source) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{pendingEntity.source}
 				</dd>
 			</div>
 
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							timestampMs: true,
 						},
@@ -178,9 +80,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const timestampMs = resolvedEntity.timestampMs}
-					{#if timestampMs !== undefined && timestampMs !== null}
+					{@const timestampMs = entity.timestampMs}
+					{#if timestampMs != null}
 						<div>
 							<dt>Timestamp</dt>
 							<dd>
@@ -194,7 +95,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							enabled: true,
 						},
@@ -202,9 +102,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const enabled = resolvedEntity.enabled}
-					{#if enabled !== undefined && enabled !== null}
+					{@const enabled = entity.enabled}
+					{#if enabled != null}
 						<div>
 							<dt>enabled</dt>
 							<dd>
@@ -218,7 +117,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							supported: true,
 						},
@@ -226,9 +124,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const supported = resolvedEntity.supported}
-					{#if supported !== undefined && supported !== null}
+					{@const supported = entity.supported}
+					{#if supported != null}
 						<div>
 							<dt>supported</dt>
 							<dd>
@@ -242,7 +139,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							status: true,
 						},
@@ -250,13 +146,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const status = resolvedEntity.status}
-					{#if status !== undefined && status !== null}
+					{@const status = entity.status}
+					{#if status != null}
 						<div>
 							<dt>status</dt>
 							<dd>
-								{String((status) ?? '')}
+								{status}
 							</dd>
 						</div>
 					{/if}
@@ -266,7 +161,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							enabledAtLedger: true,
 						},
@@ -274,13 +168,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const enabledAtLedger = resolvedEntity.enabledAtLedger}
-					{#if enabledAtLedger !== undefined && enabledAtLedger !== null}
+					{@const enabledAtLedger = entity.enabledAtLedger}
+					{#if enabledAtLedger != null}
 						<div>
 							<dt>enabled AT ledger</dt>
 							<dd>
-								{String((enabledAtLedger) ?? '')}
+								{String(enabledAtLedger)}
 							</dd>
 						</div>
 					{/if}

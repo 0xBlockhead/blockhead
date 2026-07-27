@@ -7,11 +7,18 @@ import {
 	EntityMetaKey,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import { NetworkSelector } from '$/schema/Network.ts'
-import { XrplAccountSelector } from '$/schema/XrplAccount.ts'
-import { XrplAccount_TimestampSelector } from '$/schema/XrplAccount_Timestamp.ts'
-import { sourceProviderDefinitions } from '$/sources/$sourceProviders.ts'
+import bindings from '$/sources/Xrpl/bindings.ts'
 import { Source } from '$/sources/Source.ts'
+import {
+	ApiFamily,
+	SourceArtifactKind,
+	SourceCredentialScope,
+	SourceDelivery,
+	SourceEndpointKind,
+	SourceOperationGroup,
+	SourceTargetKind,
+	WireProtocol,
+} from '$/sources/SourceBinding.ts'
 import {
 	getAccountInfo,
 	getAccountLines,
@@ -140,12 +147,7 @@ const accountTransactions = {
 	validated: true,
 } satisfies XrplAccountTransactionsResult
 
-const binding = sourceProviderDefinitions
-	.flatMap((provider) => provider.bindings)
-	.find((candidate) => candidate.source === Source.Xrpl_Rippled)
-
-if (binding == null)
-	throw new Error('Xrpl_Rippled spec missing source binding')
+const binding = bindings[Source.Xrpl_Rippled]
 
 const context = {
 	filters: [],
@@ -168,13 +170,44 @@ describe('XRPL rippled queries', () => {
 		sourceFetch.mockReset()
 	})
 
+	it('selects the exact canonical XRPL mainnet binding', () => {
+		expect(binding).toEqual({
+			source: Source.Xrpl_Rippled,
+			target: {
+				kind: SourceTargetKind.Caip2Network,
+				key: 'xrpl:0',
+			},
+			endpoints: [{
+				endpointKind: SourceEndpointKind.HttpUrl,
+				locator: 'https://s1.ripple.com:51234',
+				origin: 'https://s1.ripple.com:51234',
+				corsEnabled: false,
+			}],
+			wireProtocol: WireProtocol.JsonRpc2,
+			apiFamily: ApiFamily.JsonRpcApi,
+			operationGroups: [
+				SourceOperationGroup.GenericRead,
+			],
+			delivery: SourceDelivery.HttpProxy,
+			credentials: [{
+				scope: SourceCredentialScope.None,
+			}],
+			proxyId: '["Xrpl_Rippled","Caip2Network","xrpl:0","HttpProxy","JsonRpcApi"]',
+			artifacts: [{
+				kind: SourceArtifactKind.HandwrittenTypes,
+				path: 'src/sources/Xrpl/JsonRpc/types.ts',
+				generated: false,
+			}],
+		})
+	})
+
 	it('executes only the typed server information and validated-ledger operations', async () => {
 		sourceFetch
 			.mockResolvedValueOnce(jsonRpcResponse(serverInfo))
 			.mockResolvedValueOnce(jsonRpcResponse(validatedLedger))
 
-		await expect(getServerInfo(binding)).resolves.toEqual(serverInfo)
-		await expect(getValidatedLedger(binding)).resolves.toEqual(validatedLedger)
+		await expect(getServerInfo()).resolves.toEqual(serverInfo)
+		await expect(getValidatedLedger()).resolves.toEqual(validatedLedger)
 		expect(sourceFetch.mock.calls.map((call) => JSON.parse(call[2].body))).toMatchObject([
 			{
 				method: 'server_info',
@@ -191,7 +224,7 @@ describe('XRPL rippled queries', () => {
 			info: {},
 		}))
 
-		await expect(getServerInfo(binding)).resolves.toEqual({
+		await expect(getServerInfo()).resolves.toEqual({
 			info: {},
 		})
 	})
@@ -202,9 +235,9 @@ describe('XRPL rippled queries', () => {
 			.mockResolvedValueOnce(jsonRpcResponse(features))
 			.mockResolvedValueOnce(jsonRpcResponse(ledgerTransactions))
 
-		await expect(getValidatedLedgerData(binding, 3)).resolves.toEqual(ledgerData)
-		await expect(getFeatures(binding)).resolves.toEqual(features)
-		await expect(getValidatedLedgerTransactions(binding)).resolves.toEqual(ledgerTransactions)
+		await expect(getValidatedLedgerData(3)).resolves.toEqual(ledgerData)
+		await expect(getFeatures()).resolves.toEqual(features)
+		await expect(getValidatedLedgerTransactions()).resolves.toEqual(ledgerTransactions)
 		expect(sourceFetch.mock.calls.map((call) => JSON.parse(call[2].body))).toMatchObject([
 			{
 				method: 'ledger_data',
@@ -227,10 +260,10 @@ describe('XRPL rippled queries', () => {
 			.mockResolvedValueOnce(jsonRpcResponse(accountLines))
 			.mockResolvedValueOnce(jsonRpcResponse(accountTransactions))
 
-		await expect(getAccountInfo(binding, account.account)).resolves.toEqual(accountInfo)
-		await expect(getAccountObjects(binding, account.account, 3, 'objects-marker')).resolves.toEqual(accountObjects)
-		await expect(getAccountLines(binding, account.account, 3, 'lines-marker')).resolves.toEqual(accountLines)
-		await expect(getAccountTransactions(binding, account.account, 3, {
+		await expect(getAccountInfo(account.account)).resolves.toEqual(accountInfo)
+		await expect(getAccountObjects(account.account, 3, 'objects-marker')).resolves.toEqual(accountObjects)
+		await expect(getAccountLines(account.account, 3, 'lines-marker')).resolves.toEqual(accountLines)
+		await expect(getAccountTransactions(account.account, 3, {
 			ledger: 93_412_781,
 			seq: 2,
 		})).resolves.toEqual(accountTransactions)
@@ -280,10 +313,10 @@ describe('XRPL rippled queries', () => {
 
 	it('rejects provider limits outside rippled bounds before transport', () => {
 		for (const query of [
-			() => getValidatedLedgerData(binding, 0),
-			() => getAccountObjects(binding, account.account, 401),
-			() => getAccountLines(binding, account.account, 0),
-			() => getAccountTransactions(binding, account.account, 401),
+			() => getValidatedLedgerData(0),
+			() => getAccountObjects(account.account, 401),
+			() => getAccountLines(account.account, 0),
+			() => getAccountTransactions(account.account, 401),
 		])
 			expect(query).toThrow('invalid')
 
@@ -326,7 +359,7 @@ describe('XRPL rippled account resolver', () => {
 			.mockResolvedValueOnce(jsonRpcResponse(accountLines))
 
 		const timestampsResolver = resolverFor('$$timestamps')
-		const timestamps = await timestampsResolver.resolve[XrplAccountSelector.NetworkAccount].resolve(account, context)
+		const timestamps = await timestampsResolver.resolve['NetworkAccount'].resolve(account, context)
 		expect(timestampsResolver.projections.$$timestamps(timestamps)).toEqual([{
 			[EntityMetaKey.Selector]: {
 				$account: account,
@@ -342,7 +375,7 @@ describe('XRPL rippled account resolver', () => {
 		}])
 
 		const objectsResolver = resolverFor('$$ledgerEntries')
-		const objectsPage = await objectsResolver.resolve[XrplAccountSelector.NetworkAccount].resolve(account, context)
+		const objectsPage = await objectsResolver.resolve['NetworkAccount'].resolve(account, context)
 		expect(objectsResolver.projections.$$ledgerEntries.select(objectsPage, account, context)).toEqual([
 			expect.objectContaining({
 				[EntityMetaKey.Selector]: {
@@ -361,7 +394,7 @@ describe('XRPL rippled account resolver', () => {
 		})
 
 		const transactionsResolver = resolverFor('$$transactions')
-		const transactionsPage = await transactionsResolver.resolve[XrplAccountSelector.NetworkAccount].resolve(account, context)
+		const transactionsPage = await transactionsResolver.resolve['NetworkAccount'].resolve(account, context)
 		const transactions = transactionsResolver.projections.$$transactions.select(transactionsPage, account, context)
 		expect(transactions).toHaveLength(1)
 		expect(transactions[0]).toMatchObject({
@@ -391,7 +424,7 @@ describe('XRPL rippled account resolver', () => {
 		])
 
 		const trustlinesResolver = resolverFor('$$trustlines')
-		const trustlinesPage = await trustlinesResolver.resolve[XrplAccountSelector.NetworkAccount].resolve(account, context)
+		const trustlinesPage = await trustlinesResolver.resolve['NetworkAccount'].resolve(account, context)
 		const trustlines = trustlinesResolver.projections.$$trustlines.select(trustlinesPage, account, context)
 		expect(trustlines).toHaveLength(1)
 		expect(trustlines[0]).toMatchObject({
@@ -412,7 +445,7 @@ describe('XRPL rippled account resolver', () => {
 		] as const) {
 			sourceFetch.mockResolvedValueOnce(jsonRpcResponse(response))
 			const resolver = resolverFor(fieldName)
-			const page = await resolver.resolve[XrplAccountSelector.NetworkAccount].resolve(account, context)
+			const page = await resolver.resolve['NetworkAccount'].resolve(account, context)
 			const projection = resolver.projections[fieldName]
 			expect(projection.select(page, account, context)).toEqual([])
 			expect(projection.continuation(page, account, context).terminal).toBe(true)
@@ -428,7 +461,7 @@ describe('XRPL rippled account resolver', () => {
 			},
 		}))
 		const resolver = resolverFor('$$transactions')
-		const page = await resolver.resolve[XrplAccountSelector.NetworkAccount].resolve(account, context)
+		const page = await resolver.resolve['NetworkAccount'].resolve(account, context)
 		const continuation = resolver.projections.$$transactions.continuation(page, account, context)
 		expect(continuation).toEqual({
 			operation: 'account-transactions',
@@ -441,7 +474,7 @@ describe('XRPL rippled account resolver', () => {
 			...accountTransactions,
 			marker: undefined,
 		}))
-		await resolver.resolve[XrplAccountSelector.NetworkAccount].resolve(account, {
+		await resolver.resolve['NetworkAccount'].resolve(account, {
 			...context,
 			providerContinuationToken: continuation.token,
 		})
@@ -457,7 +490,7 @@ describe('XRPL rippled account resolver', () => {
 				seq: 2,
 			},
 		}))
-		const repeatedPage = await resolver.resolve[XrplAccountSelector.NetworkAccount].resolve(account, {
+		const repeatedPage = await resolver.resolve['NetworkAccount'].resolve(account, {
 			...context,
 			providerContinuationToken: continuation.token,
 		})
@@ -470,7 +503,7 @@ describe('XRPL rippled account resolver', () => {
 			}
 		)).toThrow('continuation did not advance')
 
-		await expect(resolver.resolve[XrplAccountSelector.NetworkAccount].resolve(account, {
+		await expect(resolver.resolve['NetworkAccount'].resolve(account, {
 			...context,
 			providerContinuationToken: 'null',
 		})).rejects.toThrow('invalid continuation marker')
@@ -485,7 +518,7 @@ describe('XRPL rippled account resolver', () => {
 				...accountLines.lines,
 			],
 		}))
-		await expect(resolver.resolve[XrplAccountSelector.NetworkAccount].resolve(
+		await expect(resolver.resolve['NetworkAccount'].resolve(
 			account,
 			context
 		)).rejects.toThrow('duplicate identities')
@@ -497,7 +530,7 @@ describe('XRPL rippled account resolver', () => {
 				balance: '25 XRP',
 			}],
 		}))
-		const page = await resolver.resolve[XrplAccountSelector.NetworkAccount].resolve(account, context)
+		const page = await resolver.resolve['NetworkAccount'].resolve(account, context)
 		expect(() => resolver.projections.$$trustlines.select(page, account, context)).toThrow(
 			'malformed amount'
 		)
@@ -510,7 +543,7 @@ describe('XRPL rippled account resolver', () => {
 			throw new Error('Xrpl_Rippled spec missing XrplAccount_Timestamp resolver')
 
 		await expect(resolver.resolve[
-			XrplAccount_TimestampSelector.AccountLedgerIndexSource
+			'AccountLedgerIndexSource'
 		].resolve({
 			$account: account,
 			ledgerIndex: 93_412_781n,
@@ -535,7 +568,7 @@ describe('XRPL rippled account resolver', () => {
 			},
 		]) {
 			sourceFetch.mockResolvedValueOnce(jsonRpcResponse(response))
-			await expect(resolver.resolve[XrplAccountSelector.NetworkAccount].resolve(
+			await expect(resolver.resolve['NetworkAccount'].resolve(
 				account,
 				context
 			)).rejects.toThrow()
@@ -563,7 +596,7 @@ describe('XRPL rippled network resolver', () => {
 		sourceFetch.mockResolvedValueOnce(jsonRpcResponse(validatedLedger))
 		const resolver = resolverFor('$$ledgers')
 
-		await expect(resolver.resolve[NetworkSelector.Caip2].resolve({
+		await expect(resolver.resolve['Caip2'].resolve({
 			caip2: networkBySlug.xrpl.caip2,
 		}, context)).resolves.toEqual([
 			{
@@ -609,7 +642,7 @@ describe('XRPL rippled network resolver', () => {
 		const network = {
 			caip2: networkBySlug.xrpl.caip2,
 		}
-		const accounts = await accountsResolver.resolve[NetworkSelector.Caip2].resolve(network, context)
+		const accounts = await accountsResolver.resolve['Caip2'].resolve(network, context)
 		expect(accountsResolver.projections.Xrpl.$$accounts.select(accounts, network, context)).toEqual([{
 			[EntityMetaKey.Selector]: {
 				$network: { caip2: networkBySlug.xrpl.caip2 },
@@ -618,7 +651,7 @@ describe('XRPL rippled network resolver', () => {
 		}])
 
 		const amendmentsResolver = resolverFor('$$amendments')
-		const amendments = await amendmentsResolver.resolve[NetworkSelector.Caip2].resolve(network, context)
+		const amendments = await amendmentsResolver.resolve['Caip2'].resolve(network, context)
 		expect(amendmentsResolver.projections.Xrpl.$$amendments(amendments)).toEqual([{
 			[EntityMetaKey.Selector]: {
 				$network: { caip2: networkBySlug.xrpl.caip2 },
@@ -628,7 +661,7 @@ describe('XRPL rippled network resolver', () => {
 		}])
 
 		const ammsResolver = resolverFor('$$amms')
-		const amms = await ammsResolver.resolve[NetworkSelector.Caip2].resolve(network, context)
+		const amms = await ammsResolver.resolve['Caip2'].resolve(network, context)
 		expect(ammsResolver.projections.Xrpl.$$amms.select(amms, network, context)).toEqual([{
 			[EntityMetaKey.Selector]: {
 				$network: { caip2: networkBySlug.xrpl.caip2 },
@@ -641,7 +674,7 @@ describe('XRPL rippled network resolver', () => {
 		}])
 
 		const ledgerEntriesResolver = resolverFor('$$ledgerEntries')
-		const ledgerEntries = await ledgerEntriesResolver.resolve[NetworkSelector.Caip2].resolve(network, context)
+		const ledgerEntries = await ledgerEntriesResolver.resolve['Caip2'].resolve(network, context)
 		expect(ledgerEntriesResolver.projections.Xrpl.$$ledgerEntries.select(
 			ledgerEntries,
 			network,
@@ -667,7 +700,7 @@ describe('XRPL rippled network resolver', () => {
 		]))
 
 		const transactionsResolver = resolverFor('$$transactions')
-		const transactions = await transactionsResolver.resolve[NetworkSelector.Caip2].resolve({
+		const transactions = await transactionsResolver.resolve['Caip2'].resolve({
 			caip2: networkBySlug.xrpl.caip2,
 		}, context)
 		expect(transactionsResolver.projections.Xrpl.$$transactions(transactions)).toEqual([{
@@ -694,7 +727,7 @@ describe('XRPL rippled network resolver', () => {
 			...ledgerData,
 			marker,
 		}))
-		const page = await resolver.resolve[NetworkSelector.Caip2].resolve(network, context)
+		const page = await resolver.resolve['Caip2'].resolve(network, context)
 		const continuation = resolver.projections.Xrpl.$$accounts.continuation(page, network, context)
 		expect(continuation).toEqual({
 			operation: 'validated-ledger-data',
@@ -707,7 +740,7 @@ describe('XRPL rippled network resolver', () => {
 			...emptyLedgerData,
 			marker,
 		}))
-		const repeatedPage = await resolver.resolve[NetworkSelector.Caip2].resolve(network, {
+		const repeatedPage = await resolver.resolve['Caip2'].resolve(network, {
 			...context,
 			providerContinuationToken: continuation.token,
 		})
@@ -728,7 +761,7 @@ describe('XRPL rippled network resolver', () => {
 			...emptyLedgerData,
 			ledger_index: 93_412_782,
 		}))
-		await expect(resolver.resolve[NetworkSelector.Caip2].resolve(network, {
+		await expect(resolver.resolve['Caip2'].resolve(network, {
 			...context,
 			providerContinuationToken: continuation.token,
 		})).rejects.toThrow('changed ledgers')
@@ -745,7 +778,7 @@ describe('XRPL rippled network resolver', () => {
 			const network = {
 				caip2: networkBySlug.xrpl.caip2,
 			}
-			const page = await resolver.resolve[NetworkSelector.Caip2].resolve(network, context)
+			const page = await resolver.resolve['Caip2'].resolve(network, context)
 			const projection = resolver.projections.Xrpl[fieldName]
 			expect(projection.select(page, network, context)).toEqual([])
 			expect(projection.continuation(page, network, context).terminal).toBe(true)
@@ -753,7 +786,7 @@ describe('XRPL rippled network resolver', () => {
 	})
 
 	it('rejects unsupported networks before transport', async () => {
-		await expect(resolverFor('$$ledgers').resolve[NetworkSelector.Caip2].resolve({
+		await expect(resolverFor('$$ledgers').resolve['Caip2'].resolve({
 			caip2: networkBySlug.ethereum.caip2,
 		}, context)).rejects.toThrow('unsupported network')
 		expect(sourceFetch).not.toHaveBeenCalled()
@@ -765,7 +798,7 @@ describe('XRPL rippled network resolver', () => {
 			validated: false,
 		}))
 
-		await expect(resolverFor('$$ledgers').resolve[NetworkSelector.Caip2].resolve({
+		await expect(resolverFor('$$ledgers').resolve['Caip2'].resolve({
 			caip2: networkBySlug.xrpl.caip2,
 		}, context)).rejects.toThrow('ledger is not validated')
 	})
@@ -775,7 +808,7 @@ describe('XRPL rippled network resolver', () => {
 			...validatedLedger,
 			ledger_index: -1,
 		}))
-		await expect(resolverFor('$$ledgers').resolve[NetworkSelector.Caip2].resolve({
+		await expect(resolverFor('$$ledgers').resolve['Caip2'].resolve({
 			caip2: networkBySlug.xrpl.caip2,
 		}, context)).rejects.toThrow('malformed validated ledger index')
 
@@ -783,7 +816,7 @@ describe('XRPL rippled network resolver', () => {
 			...validatedLedger,
 			ledger_index: Number.MAX_SAFE_INTEGER + 1,
 		}))
-		await expect(resolverFor('$$ledgers').resolve[NetworkSelector.Caip2].resolve({
+		await expect(resolverFor('$$ledgers').resolve['Caip2'].resolve({
 			caip2: networkBySlug.xrpl.caip2,
 		}, context)).rejects.toThrow('malformed validated ledger index')
 
@@ -791,7 +824,7 @@ describe('XRPL rippled network resolver', () => {
 			...validatedLedger,
 			ledger_hash: '',
 		}))
-		await expect(resolverFor('$$ledgers').resolve[NetworkSelector.Caip2].resolve({
+		await expect(resolverFor('$$ledgers').resolve['Caip2'].resolve({
 			caip2: networkBySlug.xrpl.caip2,
 		}, context)).rejects.toThrow('malformed validated ledger hash')
 	})

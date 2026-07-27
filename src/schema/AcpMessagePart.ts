@@ -1,15 +1,12 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { entity, facet } from '$/schema/$schema.ts'
+import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { UrlString } from '$/schema/UrlString.ts'
 import { type } from 'arktype'
 
-export enum AcpMessagePartSelector {
-	MessagePartIndex = 'MessagePartIndex',
-}
-export const AcpMessagePart = entity({
+export default entity({
 	entityType: EntityType.AcpMessagePart,
 	labels: {
 		singular: 'acp message part',
@@ -43,7 +40,7 @@ export const AcpMessagePart = entity({
 	uri: {
 		label: 'URI',
 		type: EntityFieldType.Primitive,
-		primitiveType: (UrlString),
+		primitiveType: UrlString,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	mimeType: {

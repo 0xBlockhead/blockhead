@@ -2,14 +2,10 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
@@ -26,36 +22,15 @@
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.SolanaBlock>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.SolanaBlock>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.SolanaBlock> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const solanaBlock = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {
-			blockHeight: true,
-		},
-	} : {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const solanaBlock = $derived(selection({
 		fields: {
 			blockHeight: true,
 		},
 	}))
-	const titleFallback = $derived((String((pendingEntity.slot) ?? '') ? 'Slot #' + String((pendingEntity.slot) ?? '') : '') || 'solana block')
-	const viewDomId = $derived('solana-block-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const titleFallback = $derived((String(pendingEntity.slot ?? '') ? 'Slot #' + String(pendingEntity.slot ?? '') : '') || 'solana block')
 
 
 	// Components
@@ -70,32 +45,21 @@
 
 <EntityView
 	entityType={EntityType.SolanaBlock}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
 	idDragPlainText={String(pendingEntity.slot ?? '')}
 	href={
-		href ?? (
-			selection.entitySelector != null && 'slot' in selection.entitySelector
-			&& selection.entitySelector.slot != null
-			&& selection.entitySelector != null && '$network' in selection.entitySelector ?
-				selection.entitySelector.$network != null && 'caip2' in selection.entitySelector.$network
-				&& selection.entitySelector.$network.caip2 != null ?
-					resolve('/network/[network=networkCaip2OrNetworkSlug]/block/[blockNumber=nonNegativeBigInt]', {
-				blockNumber: String(selection.entitySelector.slot ?? ''),
-				network: String(caip2StringFromValue(selection.entitySelector.$network.caip2) ?? ''),
-			})
-			:
-					selection.entitySelector.$network != null && 'slug' in selection.entitySelector.$network
-					&& selection.entitySelector.$network.slug != null ?
-						resolve('/network/[network=networkCaip2OrNetworkSlug]/block/[blockNumber=nonNegativeBigInt]', {
-					blockNumber: String(selection.entitySelector.slot ?? ''),
-					network: String(selection.entitySelector.$network.slug ?? ''),
-				})
-				:
-					undefined
-		:
-				undefined
+		href ?? resolve(
+			'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(blocks)/block/[blockNumber=nonNegativeBigInt]',
+			{
+				network: (
+					'caip2' in selection.entitySelector.$network ?
+						String(caip2StringFromValue(selection.entitySelector.$network.caip2))
+					:
+						String(selection.entitySelector.$network.slug)
+				),
+				blockNumber: String(selection.entitySelector.slot),
+			}
 		)
 	}
 	{layout}
@@ -103,47 +67,31 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{@const serialValue = pendingEntity.slot}
-		{#if serialValue !== undefined && serialValue !== null}
-			<span data-row="inline align-center gap-2 wrap">
-				<span>Slot </span>
-				<span data-badge="small">
-					#{String((serialValue) ?? '')}
-				</span>
+		<span data-row="inline align-center gap-2 wrap">
+			<span>Slot </span>
+			<span data-badge="small">
+				#{String(pendingEntity.slot)}
 			</span>
-		{/if}
+		</span>
 	{/snippet}
 
 	{#snippet Value()}
-		{@const serialValue = pendingEntity.slot}
-		{#if serialValue !== undefined && serialValue !== null}
-			<span data-badge="small">
-				#{String((serialValue) ?? '')}
-			</span>
-		{/if}
+		<span data-badge="small">
+			#{String(pendingEntity.slot)}
+		</span>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'blockHeight')}
-			{@const blockHeight0 = pendingEntity.blockHeight}
-			{#if blockHeight0 !== undefined && blockHeight0 !== null}
-				<span data-text="muted">
-					{String((blockHeight0) ?? '')}
-				</span>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={solanaBlock}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const blockHeight0 = resolvedEntity.blockHeight}
-					{#if blockHeight0 !== undefined && blockHeight0 !== null}
-						<span data-text="muted">
-							{String((blockHeight0) ?? '')}
-						</span>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={solanaBlock}>
+			{#snippet children(entity)}
+				{@const blockHeight0 = entity.blockHeight}
+				{#if blockHeight0 != null}
+					<span data-text="muted">
+						{String(blockHeight0)}
+					</span>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -151,45 +99,20 @@
 			<div>
 				<dt>Slot</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									slot: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const slot = resolvedEntity.slot}
-							{#if slot !== undefined && slot !== null}
-								{String((slot) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{String(pendingEntity.slot)}
 				</dd>
 			</div>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							blockHeight: true,
-						},
-					})
-				}
+				resource={solanaBlock}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const blockHeight = resolvedEntity.blockHeight}
-					{#if blockHeight !== undefined && blockHeight !== null}
+					{@const blockHeight = entity.blockHeight}
+					{#if blockHeight != null}
 						<div>
 							<dt>Block height</dt>
 							<dd>
-								{String((blockHeight) ?? '')}
+								{String(blockHeight)}
 							</dd>
 						</div>
 					{/if}
@@ -199,7 +122,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							blockHash: true,
 						},
@@ -207,13 +129,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const blockHash = resolvedEntity.blockHash}
-					{#if blockHash !== undefined && blockHash !== null}
+					{@const blockHash = entity.blockHash}
+					{#if blockHash != null}
 						<div>
 							<dt>Block hash</dt>
 							<dd>
-								<TruncatedValue value={String((blockHash) ?? '')} />
+								<TruncatedValue value={blockHash} />
 							</dd>
 						</div>
 					{/if}
@@ -223,7 +144,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							previousBlockHash: true,
 						},
@@ -231,13 +151,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const previousBlockHash = resolvedEntity.previousBlockHash}
-					{#if previousBlockHash !== undefined && previousBlockHash !== null}
+					{@const previousBlockHash = entity.previousBlockHash}
+					{#if previousBlockHash != null}
 						<div>
 							<dt>Previous block hash</dt>
 							<dd>
-								<TruncatedValue value={String((previousBlockHash) ?? '')} />
+								<TruncatedValue value={previousBlockHash} />
 							</dd>
 						</div>
 					{/if}
@@ -249,7 +168,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							parentSlot: true,
 						},
@@ -257,13 +175,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const parentSlot = resolvedEntity.parentSlot}
-					{#if parentSlot !== undefined && parentSlot !== null}
+					{@const parentSlot = entity.parentSlot}
+					{#if parentSlot != null}
 						<div>
 							<dt>Parent slot</dt>
 							<dd>
-								{String((parentSlot) ?? '')}
+								{String(parentSlot)}
 							</dd>
 						</div>
 					{/if}
@@ -273,7 +190,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							timestampMs: true,
 						},
@@ -281,9 +197,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const timestampMs = resolvedEntity.timestampMs}
-					{#if timestampMs !== undefined && timestampMs !== null}
+					{@const timestampMs = entity.timestampMs}
+					{#if timestampMs != null}
 						<div>
 							<dt>Timestamp</dt>
 							<dd>
@@ -297,7 +212,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							transactionCount: true,
 						},
@@ -305,13 +219,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const transactionCount = resolvedEntity.transactionCount}
-					{#if transactionCount !== undefined && transactionCount !== null}
+					{@const transactionCount = entity.transactionCount}
+					{#if transactionCount != null}
 						<div>
 							<dt>Transaction count</dt>
 							<dd>
-								{String((transactionCount) ?? '')}
+								{String(transactionCount)}
 							</dd>
 						</div>
 					{/if}
@@ -322,37 +235,13 @@
 				resource={selection.$parent}
 			>
 				{#snippet children(solanaBlock)}
-					{#if solanaBlock != null && solanaBlock[EntityMetaKey.Selector] != null}
+					{#if solanaBlock != null}
 						<div>
 							<dt>Parent</dt>
 							<dd>
 								<SolanaBlockView
 									selection={select(EntityType.SolanaBlock, solanaBlock[EntityMetaKey.Selector])}
 									prefetched={solanaBlock}
-									href={
-										(
-											solanaBlock[EntityMetaKey.Selector] != null && 'slot' in solanaBlock[EntityMetaKey.Selector]
-											&& solanaBlock[EntityMetaKey.Selector].slot != null
-											&& solanaBlock[EntityMetaKey.Selector] != null && '$network' in solanaBlock[EntityMetaKey.Selector] ?
-												solanaBlock[EntityMetaKey.Selector].$network != null && 'caip2' in solanaBlock[EntityMetaKey.Selector].$network
-												&& solanaBlock[EntityMetaKey.Selector].$network.caip2 != null ?
-													resolve('/network/[network=networkCaip2OrNetworkSlug]/block/[blockNumber=nonNegativeBigInt]', {
-												blockNumber: String(solanaBlock[EntityMetaKey.Selector].slot ?? ''),
-												network: String(caip2StringFromValue(solanaBlock[EntityMetaKey.Selector].$network.caip2) ?? ''),
-											})
-											:
-													solanaBlock[EntityMetaKey.Selector].$network != null && 'slug' in solanaBlock[EntityMetaKey.Selector].$network
-													&& solanaBlock[EntityMetaKey.Selector].$network.slug != null ?
-														resolve('/network/[network=networkCaip2OrNetworkSlug]/block/[blockNumber=nonNegativeBigInt]', {
-													blockNumber: String(solanaBlock[EntityMetaKey.Selector].slot ?? ''),
-													network: String(solanaBlock[EntityMetaKey.Selector].$network.slug ?? ''),
-												})
-												:
-													undefined
-										:
-												undefined
-										)
-									}
 									layout={EntityLayout.Value}
 									open={false}
 								/>
@@ -367,23 +256,6 @@
 				<dd>
 					<NetworkView
 						selection={select(EntityType.Network, selection.entitySelector.$network)}
-						href={
-							(
-								selection.entitySelector.$network != null && 'caip2' in selection.entitySelector.$network
-								&& selection.entitySelector.$network.caip2 != null ?
-									resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-								network: String(caip2StringFromValue(selection.entitySelector.$network.caip2) ?? ''),
-							})
-							:
-									selection.entitySelector.$network != null && 'slug' in selection.entitySelector.$network
-									&& selection.entitySelector.$network.slug != null ?
-										resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-									network: String(selection.entitySelector.$network.slug ?? ''),
-								})
-								:
-									undefined
-							)
-						}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

@@ -1,26 +1,15 @@
-import { Source } from '$/sources/Source.ts'
-import {
-	SourceTargetKind,
-	type SourceBinding,
-} from '$/sources/SourceBinding.ts'
 import { graphql } from '$/sources/_shared/wire/Graphql/client.ts'
+import bindings from '$/sources/Sui/bindings.ts'
+import { Source } from '$/sources/Source.ts'
 import type {
 	SuiGraphqlAddressBalances,
 	SuiGraphqlAddressTransactions,
 } from '$/sources/Sui/Graphql/types.ts'
 import type { JsonValue } from '$/typescript/JsonValue.ts'
 
-const assertBinding = (binding: SourceBinding) => {
-	if (
-		binding.source !== Source.Sui_Graphql
-		|| binding.target.kind !== SourceTargetKind.NetworkSlug
-		|| binding.target.key !== 'sui'
-	)
-		throw new Error('Sui GraphQL expected the canonical Sui network binding')
-}
+const binding = bindings[Source.Sui_Graphql]
 
 export const query = <_Data = JsonValue>(
-	binding: SourceBinding,
 	document: string,
 	variables?: JsonValue
 ) => (
@@ -124,7 +113,6 @@ const pagination = (
 }
 
 export const getAddressBalances = async (
-	binding: SourceBinding,
 	{
 		address,
 		limit,
@@ -135,7 +123,6 @@ export const getAddressBalances = async (
 		after?: string
 	}
 ) => {
-	assertBinding(binding)
 	assertPageRequest({
 		address,
 		limit,
@@ -152,7 +139,6 @@ export const getAddressBalances = async (
 
 	const canonicalAddress = normalizeSuiAddress(address)
 	const result = await query<SuiGraphqlAddressBalances>(
-		binding,
 		addressBalancesQuery,
 		{
 			address: canonicalAddress,
@@ -201,7 +187,6 @@ export const getAddressBalances = async (
 }
 
 export const getAddressTransactions = async (
-	binding: SourceBinding,
 	{
 		address,
 		limit,
@@ -212,7 +197,6 @@ export const getAddressTransactions = async (
 		after?: string
 	}
 ) => {
-	assertBinding(binding)
 	assertPageRequest({
 		address,
 		limit,
@@ -229,7 +213,6 @@ export const getAddressTransactions = async (
 
 	const canonicalAddress = normalizeSuiAddress(address)
 	const result = await query<SuiGraphqlAddressTransactions>(
-		binding,
 		addressTransactionsQuery,
 		{
 			address: canonicalAddress,

@@ -1,22 +1,17 @@
 import { fetchFailedMessage } from '$/lib/http.ts'
-import { sourceProviderDefinitions } from '$/sources/$sourceProviders.ts'
-import { sourceFetch } from '$/sources/_runtime/http.ts'
-import { Source } from '$/sources/Source.ts'
 import {
-	redditPublicOrigin,
-	redditUserAgent,
-} from '$/sources/RedditPublic/Rest/constants.ts'
+	firstHttpUrlForBinding,
+	sourceFetch,
+} from '$/sources/_runtime/http.ts'
+import { redditUserAgent } from '$/sources/RedditPublic/Rest/constants.ts'
+import bindings from '$/sources/RedditPublic/bindings.ts'
+import { Source } from '$/sources/Source.ts'
 
-const redditPublicBinding = sourceProviderDefinitions
-	.flatMap((provider) => provider.bindings)
-	.find((binding) => binding.source === Source.Reddit_PublicJson)
-
-if (redditPublicBinding == null)
-	throw new Error('Reddit_PublicJson: missing source binding')
+const binding = bindings[Source.Reddit_PublicJson]
 
 const redditPublicGet = async (path: string) => {
-	const url = `${redditPublicOrigin}${path.startsWith('/') ? path : `/${path}`}`
-	const response = await sourceFetch(redditPublicBinding, url, {
+	const url = `${firstHttpUrlForBinding(binding)}${path.startsWith('/') ? path : `/${path}`}`
+	const response = await sourceFetch(binding, url, {
 		headers: {
 			'User-Agent': redditUserAgent,
 		},

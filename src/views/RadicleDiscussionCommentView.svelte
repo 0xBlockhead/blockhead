@@ -2,13 +2,9 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
 
 
 	// Context
@@ -20,35 +16,13 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.RadicleDiscussionComment>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.RadicleDiscussionComment>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.RadicleDiscussionComment> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const radicleDiscussionComment = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {},
-	} : {
-		sources: selection.sources,
-	}))
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const titleFallback = 'radicle discussion comment'
-	const viewDomId = $derived('radicle-discussion-comment-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -59,24 +33,14 @@
 
 <EntityView
 	entityType={EntityType.RadicleDiscussionComment}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails}
-			{title || titleFallback}
-		{:else}
-			<ResourceBoundary resource={radicleDiscussionComment}>
-				{#snippet children(entity)}
-					{title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		radicle discussion comment
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -84,31 +48,13 @@
 			<div>
 				<dt>comment ID</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									commentId: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const commentId = resolvedEntity.commentId}
-							{#if commentId !== undefined && commentId !== null}
-								{String((commentId) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{pendingEntity.commentId}
 				</dd>
 			</div>
 
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							authorDid: true,
 						},
@@ -116,13 +62,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const authorDid = resolvedEntity.authorDid}
-					{#if authorDid !== undefined && authorDid !== null}
+					{@const authorDid = entity.authorDid}
+					{#if authorDid != null}
 						<div>
 							<dt>author DID</dt>
 							<dd>
-								{String((authorDid) ?? '')}
+								{authorDid}
 							</dd>
 						</div>
 					{/if}
@@ -132,7 +77,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							body: true,
 						},
@@ -140,13 +84,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const body = resolvedEntity.body}
-					{#if body !== undefined && body !== null}
+					{@const body = entity.body}
+					{#if body != null}
 						<div>
 							<dt>body</dt>
 							<dd>
-								{String((body) ?? '')}
+								{body}
 							</dd>
 						</div>
 					{/if}
@@ -156,7 +99,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							bodyObjectId: true,
 						},
@@ -164,13 +106,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const bodyObjectId = resolvedEntity.bodyObjectId}
-					{#if bodyObjectId !== undefined && bodyObjectId !== null}
+					{@const bodyObjectId = entity.bodyObjectId}
+					{#if bodyObjectId != null}
 						<div>
 							<dt>body object ID</dt>
 							<dd>
-								{String((bodyObjectId) ?? '')}
+								{bodyObjectId}
 							</dd>
 						</div>
 					{/if}
@@ -180,7 +121,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							createdAt: true,
 						},
@@ -188,13 +128,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const createdAt = resolvedEntity.createdAt}
-					{#if createdAt !== undefined && createdAt !== null}
+					{@const createdAt = entity.createdAt}
+					{#if createdAt != null}
 						<div>
 							<dt>Created</dt>
 							<dd>
-								{String((createdAt) ?? '')}
+								{String(createdAt)}
 							</dd>
 						</div>
 					{/if}
@@ -204,7 +143,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							updatedAt: true,
 						},
@@ -212,13 +150,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const updatedAt = resolvedEntity.updatedAt}
-					{#if updatedAt !== undefined && updatedAt !== null}
+					{@const updatedAt = entity.updatedAt}
+					{#if updatedAt != null}
 						<div>
 							<dt>Updated</dt>
 							<dd>
-								{String((updatedAt) ?? '')}
+								{String(updatedAt)}
 							</dd>
 						</div>
 					{/if}
@@ -228,7 +165,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							replyToCommentId: true,
 						},
@@ -236,13 +172,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const replyToCommentId = resolvedEntity.replyToCommentId}
-					{#if replyToCommentId !== undefined && replyToCommentId !== null}
+					{@const replyToCommentId = entity.replyToCommentId}
+					{#if replyToCommentId != null}
 						<div>
 							<dt>reply to comment ID</dt>
 							<dd>
-								{String((replyToCommentId) ?? '')}
+								{replyToCommentId}
 							</dd>
 						</div>
 					{/if}
@@ -253,7 +188,7 @@
 				resource={selection.$payloadObject}
 			>
 				{#snippet children(gitObject)}
-					{#if gitObject != null && gitObject[EntityMetaKey.Selector] != null}
+					{#if gitObject != null}
 						<div>
 							<dt>payload object</dt>
 							<dd>

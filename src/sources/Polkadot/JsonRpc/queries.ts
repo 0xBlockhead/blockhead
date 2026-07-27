@@ -1,4 +1,6 @@
-import type { SourceBinding } from '$/sources/SourceBinding.ts'
+import { TransportType } from '$/constants/TransportType.ts'
+import bindings from '$/sources/Polkadot/bindings.ts'
+import { Source } from '$/sources/Source.ts'
 import {
 	getBlock as getSubstrateBlock,
 	getBlockHash as getSubstrateBlockHash,
@@ -6,78 +8,68 @@ import {
 	getHeader as getSubstrateHeader,
 	getRuntimeVersion as getSubstrateRuntimeVersion,
 	getSystemHealth as getSubstrateSystemHealth,
-} from '$/sources/Substrate/JsonRpc/queries.ts'
+} from '$/sources/_shared/interfaces/SubstrateJsonRpc/queries.ts'
 
-const polkadotJsonRpc = (binding: SourceBinding) => ({
+const binding = bindings[Source.Polkadot_JsonRpc]
+
+const polkadotJsonRpc = () => ({
 	binding,
 	label: 'Polkadot',
-} as const)
+})
+
+export const getRpcEndpoints = () => binding.endpoints.map((endpoint) => ({
+	url: endpoint.locator,
+	transportType: TransportType.Http,
+	providerName: 'Parity',
+}))
 
 export const getBlockHash = ({
-	binding,
 	blockNumber,
 }: {
-	binding: SourceBinding
 	blockNumber: bigint
 }) => (
 	getSubstrateBlockHash({
-		...polkadotJsonRpc(binding),
+		...polkadotJsonRpc(),
 		blockNumber,
 	})
 )
 
-export const getFinalizedHead = ({
-	binding,
-}: {
-	binding: SourceBinding
-}) => (
+export const getFinalizedHead = () => (
 	getSubstrateFinalizedHead({
-		...polkadotJsonRpc(binding),
+		...polkadotJsonRpc(),
 	})
 )
 
 export const getBlock = ({
-	binding,
 	blockHash,
 }: {
-	binding: SourceBinding
 	blockHash: string
 }) => (
 	getSubstrateBlock({
-		...polkadotJsonRpc(binding),
+		...polkadotJsonRpc(),
 		blockHash,
 	})
 )
 
 export const getHeader = ({
-	binding,
 	blockHash,
 }: {
-	binding: SourceBinding
 	blockHash?: string
 }) => (
 	getSubstrateHeader({
-		...polkadotJsonRpc(binding),
+		...polkadotJsonRpc(),
 		blockHash,
 	})
 )
 
-export const getRuntimeVersion = ({
-	binding,
-}: {
-	binding: SourceBinding
-}) => (
+export const getRuntimeVersion = () => (
 	getSubstrateRuntimeVersion({
-		...polkadotJsonRpc(binding),
+		...polkadotJsonRpc(),
 	})
 )
 
-export const getSystemHealth = ({
-	binding,
-}: {
-	binding: SourceBinding
-}) => (
+export const getSystemHealth = () => (
 	getSubstrateSystemHealth({
-		...polkadotJsonRpc(binding),
+		...polkadotJsonRpc(),
 	})
 )

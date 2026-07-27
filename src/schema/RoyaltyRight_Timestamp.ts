@@ -1,15 +1,12 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { entity, facet } from '$/schema/$schema.ts'
+import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { EvmAddress } from '$/schema/ZeroExHex.ts'
 import { type } from 'arktype'
 
-export enum RoyaltyRight_TimestampSelector {
-	TargetKeyRightKeyTimestampMsSource = 'TargetKeyRightKeyTimestampMsSource',
-}
-export const RoyaltyRight_Timestamp = entity({
+export default entity({
 	entityType: EntityType.RoyaltyRight_Timestamp,
 	labels: {
 		singular: 'royalty right timestamp',
@@ -106,7 +103,7 @@ export const RoyaltyRight_Timestamp = entity({
 		label: 'contract address',
 		description: 'The contract address on its network.',
 		type: EntityFieldType.Primitive,
-		primitiveType: (EvmAddress),
+		primitiveType: EvmAddress,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 })({

@@ -1,15 +1,15 @@
-import { corsFetch, throwHttpError } from '$/lib/http.ts'
+import { throwHttpError } from '$/lib/http.ts'
 import { requiredPublicEnvString } from '$/sources/$sources.ts'
 import type { SourcePublicEnv } from '$/sources/$sources.ts'
+import bindings from '$/sources/Helius/bindings.ts'
+import {
+	firstHttpUrlForBinding,
+	sourceFetch,
+} from '$/sources/_runtime/http.ts'
 import type { HeliusEnhancedTransaction } from '$/sources/Helius/Rest/types.ts'
+import { Source } from '$/sources/Source.ts'
 
-const origin = 'https://api-mainnet.helius-rpc.com'
-const heliusOrigins = [
-	{
-		origin,
-		corsEnabled: true,
-	},
-] as const
+const binding = bindings[Source.Helius_Rest]
 
 /** Deprecated by Helius for new parser work, but still the documented parsed transaction endpoint. */
 export const getEnhancedTransactions = async ({
@@ -19,9 +19,10 @@ export const getEnhancedTransactions = async ({
 	signatures: readonly string[]
 	publicEnv: SourcePublicEnv
 }) => {
-	const response = await corsFetch(`${origin}/v0/transactions/?api-key=${encodeURIComponent(requiredPublicEnvString(publicEnv, 'PUBLIC_HELIUS_API_KEY'))}`, {
-		origins: heliusOrigins,
-		init: {
+	const response = await sourceFetch(
+		binding,
+		`${firstHttpUrlForBinding(binding).replace(/\/$/, '')}/v0/transactions/?api-key=${encodeURIComponent(requiredPublicEnvString(publicEnv, 'PUBLIC_HELIUS_API_KEY'))}`,
+		{
 			method: 'POST',
 			headers: {
 				'content-type': 'application/json',
@@ -29,8 +30,8 @@ export const getEnhancedTransactions = async ({
 			body: JSON.stringify({
 				transactions: [...signatures],
 			}),
-		},
-	})
+		}
+	)
 	if (!response.ok) await throwHttpError('Helius enhanced transactions', response)
 	return response.json<HeliusEnhancedTransaction[]>()
 }

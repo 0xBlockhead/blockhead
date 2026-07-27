@@ -2,15 +2,9 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
-	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -22,35 +16,12 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.TonNftItem>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.TonNftItem>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.TonNftItem> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const tonNftItem = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {},
-	} : {
-		sources: selection.sources,
-	}))
 	const titleFallback = 'TON NFT item'
-	const viewDomId = $derived('ton-nft-item-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -64,24 +35,14 @@
 
 <EntityView
 	entityType={EntityType.TonNftItem}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails}
-			{title || titleFallback}
-		{:else}
-			<ResourceBoundary resource={tonNftItem}>
-				{#snippet children(entity)}
-					{title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		TON NFT item
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -93,31 +54,12 @@
 						resource={selection.$network}
 					>
 						{#snippet children(network)}
-							{#if network != null && network[EntityMetaKey.Selector] != null}
-								<NetworkView
-									selection={select(EntityType.Network, network[EntityMetaKey.Selector])}
-									prefetched={network}
-									href={
-										(
-											network[EntityMetaKey.Selector] != null && 'caip2' in network[EntityMetaKey.Selector]
-											&& network[EntityMetaKey.Selector].caip2 != null ?
-												resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-											network: String(caip2StringFromValue(network[EntityMetaKey.Selector].caip2) ?? ''),
-										})
-										:
-												network[EntityMetaKey.Selector] != null && 'slug' in network[EntityMetaKey.Selector]
-												&& network[EntityMetaKey.Selector].slug != null ?
-													resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-												network: String(network[EntityMetaKey.Selector].slug ?? ''),
-											})
-											:
-												undefined
-										)
-									}
-									layout={EntityLayout.Value}
-									open={false}
-								/>
-							{/if}
+							<NetworkView
+								selection={select(EntityType.Network, network[EntityMetaKey.Selector])}
+								prefetched={network}
+								layout={EntityLayout.Value}
+								open={false}
+							/>
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -129,7 +71,6 @@
 					<ResourceBoundary
 						resource={
 							selection({
-								sources: selection.sources,
 								fields: {
 									itemAddress: true,
 								},
@@ -137,11 +78,7 @@
 						}
 					>
 						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const itemAddress = resolvedEntity.itemAddress}
-							{#if itemAddress !== undefined && itemAddress !== null}
-								<TruncatedValue value={String((itemAddress) ?? '')} />
-							{/if}
+							<TruncatedValue value={entity.itemAddress} />
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -151,7 +88,7 @@
 				resource={selection.$collection}
 			>
 				{#snippet children(tonNftCollection)}
-					{#if tonNftCollection != null && tonNftCollection[EntityMetaKey.Selector] != null}
+					{#if tonNftCollection != null}
 						<div>
 							<dt>collection</dt>
 							<dd>
@@ -170,7 +107,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							itemIndex: true,
 						},
@@ -178,13 +114,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const itemIndex = resolvedEntity.itemIndex}
-					{#if itemIndex !== undefined && itemIndex !== null}
+					{@const itemIndex = entity.itemIndex}
+					{#if itemIndex != null}
 						<div>
 							<dt>item index</dt>
 							<dd>
-								{String((itemIndex) ?? '')}
+								{String(itemIndex)}
 							</dd>
 						</div>
 					{/if}
@@ -195,37 +130,13 @@
 				resource={selection.$account}
 			>
 				{#snippet children(tonAccount)}
-					{#if tonAccount != null && tonAccount[EntityMetaKey.Selector] != null}
+					{#if tonAccount != null}
 						<div>
 							<dt>account</dt>
 							<dd>
 								<TonAccountView
 									selection={select(EntityType.TonAccount, tonAccount[EntityMetaKey.Selector])}
 									prefetched={tonAccount}
-									href={
-										(
-											tonAccount[EntityMetaKey.Selector] != null && 'address' in tonAccount[EntityMetaKey.Selector]
-											&& tonAccount[EntityMetaKey.Selector].address != null
-											&& tonAccount[EntityMetaKey.Selector] != null && '$network' in tonAccount[EntityMetaKey.Selector] ?
-												tonAccount[EntityMetaKey.Selector].$network != null && 'caip2' in tonAccount[EntityMetaKey.Selector].$network
-												&& tonAccount[EntityMetaKey.Selector].$network.caip2 != null ?
-													resolve('/network/[network=networkCaip2OrNetworkSlug]/account/[accountId=polkadotAccountIdOrStringSegmentOrEvmAddressOrSolanaPubkey]', {
-												accountId: String(tonAccount[EntityMetaKey.Selector].address ?? ''),
-												network: String(caip2StringFromValue(tonAccount[EntityMetaKey.Selector].$network.caip2) ?? ''),
-											})
-											:
-													tonAccount[EntityMetaKey.Selector].$network != null && 'slug' in tonAccount[EntityMetaKey.Selector].$network
-													&& tonAccount[EntityMetaKey.Selector].$network.slug != null ?
-														resolve('/network/[network=networkCaip2OrNetworkSlug]/account/[accountId=polkadotAccountIdOrStringSegmentOrEvmAddressOrSolanaPubkey]', {
-													accountId: String(tonAccount[EntityMetaKey.Selector].address ?? ''),
-													network: String(tonAccount[EntityMetaKey.Selector].$network.slug ?? ''),
-												})
-												:
-													undefined
-										:
-												undefined
-										)
-									}
 									layout={EntityLayout.Value}
 									open={false}
 								/>

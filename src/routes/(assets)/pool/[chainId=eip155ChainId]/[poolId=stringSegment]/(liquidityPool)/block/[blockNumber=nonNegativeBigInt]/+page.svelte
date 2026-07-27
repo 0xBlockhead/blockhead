@@ -8,7 +8,6 @@
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
@@ -53,41 +52,12 @@
 
 
 <svelte:head>
-	<title>{(pageSelection.entity == null ? [String(({
-		$liquidityPool: {
-			$network: {
-				caip2: {
-					namespace: 'eip155',
-					reference: params.chainId,
-				},
-			},
-			id: params.poolId,
-		},
-		blockNumber: BigInt(params.blockNumber),
-	}.blockNumber) ?? '')].filter(Boolean).join(' ') || 'liquidity pool block' : [String((({ ...{
-		$liquidityPool: {
-			$network: {
-				caip2: {
-					namespace: 'eip155',
-					reference: params.chainId,
-				},
-			},
-			id: params.poolId,
-		},
-		blockNumber: BigInt(params.blockNumber),
-	}, ...pageSelection.entity }).blockNumber) ?? '')].filter(Boolean).join(' ') || 'liquidity pool block')} • liquidity pool block • Blockhead</title>
+	<title>{(String(pageSelection.entitySelector.blockNumber) || 'liquidity pool block')} • liquidity pool block • Blockhead</title>
 </svelte:head>
 
 
 <Page>
 	<LiquidityPool_BlockView
-		href={
-			resolve('/pool/[chainId=eip155ChainId]/[poolId=stringSegment]/block/[blockNumber=nonNegativeBigInt]', {
-				chainId: params.chainId,
-				poolId: params.poolId,
-				blockNumber: params.blockNumber,
-			})
-		}
 		selection={pageSelection}
 	/>
 </Page>

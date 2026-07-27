@@ -1,9 +1,5 @@
-import { Source } from '$/sources/Source.ts'
-import {
-	SourceTargetKind,
-	type SourceBinding,
-} from '$/sources/SourceBinding.ts'
 import { getJson } from '$/sources/_shared/wire/HttpRest/client.ts'
+import bindings from '$/sources/KaspaExplorer/bindings.ts'
 import type {
 	KaspaExplorerBalance,
 	KaspaExplorerTransaction,
@@ -11,6 +7,9 @@ import type {
 	KaspaExplorerUtxo,
 	KaspaExplorerUtxoCount,
 } from '$/sources/KaspaExplorer/Rest/types.ts'
+import { Source } from '$/sources/Source.ts'
+
+const binding = bindings[Source.KaspaExplorer_Rest]
 
 const kaspaAddressCharset = 'qpzry9x8gf2tvdw0s3jn54khce6mua7l'
 
@@ -32,15 +31,6 @@ const kaspaAddressPolymod = (
 				checksum ^= generator
 	}
 	return checksum ^ 1n
-}
-
-const assertBinding = (binding: SourceBinding) => {
-	if (
-		binding.source !== Source.KaspaExplorer_Rest
-		|| binding.target.kind !== SourceTargetKind.Global
-		|| binding.target.key !== 'kaspa-explorer-api'
-	)
-		throw new Error('KaspaExplorer_Rest: expected the canonical Explorer binding')
 }
 
 const assertAddress = (address: string) => {
@@ -79,20 +69,16 @@ const assertUnsignedDecimal = (
 }
 
 export const query = <_Json>(
-	binding: SourceBinding,
 	path: string
 ) => (
 	getJson<_Json>(binding, path)
 )
 
 export const getAddressBalance = async (
-	binding: SourceBinding,
 	address: string
 ) => {
-	assertBinding(binding)
 	assertAddress(address)
 	const balance = await query<KaspaExplorerBalance>(
-		binding,
 		`/addresses/${encodeURIComponent(address)}/balance`
 	)
 	if (balance.address !== address)
@@ -102,13 +88,10 @@ export const getAddressBalance = async (
 }
 
 export const getAddressUtxos = async (
-	binding: SourceBinding,
 	address: string
 ) => {
-	assertBinding(binding)
 	assertAddress(address)
 	const utxos = await query<KaspaExplorerUtxo[]>(
-		binding,
 		`/addresses/${encodeURIComponent(address)}/utxos`
 	)
 	const outpoints = new Set<string>()
@@ -131,13 +114,10 @@ export const getAddressUtxos = async (
 }
 
 export const getAddressUtxoCount = async (
-	binding: SourceBinding,
 	address: string
 ) => {
-	assertBinding(binding)
 	assertAddress(address)
 	const count = await query<KaspaExplorerUtxoCount>(
-		binding,
 		`/addresses/${encodeURIComponent(address)}/utxos/count`
 	)
 	assertSafeUnsigned(count.count, 'UTXO count')
@@ -145,12 +125,11 @@ export const getAddressUtxoCount = async (
 }
 
 export const getCompleteAddressUtxos = async (
-	binding: SourceBinding,
 	address: string
 ) => {
 	const [utxos, { count }] = await Promise.all([
-		getAddressUtxos(binding, address),
-		getAddressUtxoCount(binding, address),
+		getAddressUtxos(address),
+		getAddressUtxoCount(address),
 	])
 	if (utxos.length !== count)
 		throw new Error('KaspaExplorer_Rest: address UTXO response is incomplete')
@@ -158,13 +137,10 @@ export const getCompleteAddressUtxos = async (
 }
 
 export const getAddressTransactionCount = async (
-	binding: SourceBinding,
 	address: string
 ) => {
-	assertBinding(binding)
 	assertAddress(address)
 	const count = await query<KaspaExplorerTransactionCount>(
-		binding,
 		`/addresses/${encodeURIComponent(address)}/transactions-count`
 	)
 	assertSafeUnsigned(count.total, 'transaction count')
@@ -172,7 +148,6 @@ export const getAddressTransactionCount = async (
 }
 
 export const getAddressTransactionsPage = async (
-	binding: SourceBinding,
 	{
 		address,
 		limit,
@@ -185,7 +160,6 @@ export const getAddressTransactionsPage = async (
 		after?: number
 	}
 ) => {
-	assertBinding(binding)
 	assertAddress(address)
 	if (!Number.isSafeInteger(limit) || limit < 1 || limit > 500)
 		throw new Error('KaspaExplorer_Rest: transaction page limit must be an integer from 1 through 500')
@@ -204,7 +178,6 @@ export const getAddressTransactionsPage = async (
 	if (after != null)
 		parameters.set('after', after.toString())
 	const transactions = await query<KaspaExplorerTransaction[]>(
-		binding,
 		`/addresses/${encodeURIComponent(address)}/full-transactions-page?${parameters.toString()}`
 	)
 	if (transactions.length > limit)

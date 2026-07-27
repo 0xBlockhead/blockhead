@@ -6,17 +6,10 @@ import {
 	vi,
 } from 'vitest'
 
+import bindings from '$/sources/EigenExplorer/bindings.ts'
 import { Source } from '$/sources/Source.ts'
-import { SourceProvider } from '$/sources/SourceProvider.ts'
 import {
-	ApiFamily,
-	SourceCredentialScope,
-	SourceDelivery,
-	SourceEndpointKind,
-	SourceOperationGroup,
 	SourceTargetKind,
-	WireProtocol,
-	type SourceBinding,
 } from '$/sources/SourceBinding.ts'
 import { sourceFetch } from '$/sources/_runtime/http.ts'
 import {
@@ -31,30 +24,7 @@ vi.mock('$/sources/_runtime/http.ts', () => ({
 	sourceFetch: vi.fn(),
 }))
 
-const binding = {
-	provider: SourceProvider.EigenExplorer,
-	source: Source.EigenExplorer_Rest,
-	target: {
-		kind: SourceTargetKind.Global,
-		key: 'eigen-explorer-api',
-	},
-	endpoints: [{
-		endpointKind: SourceEndpointKind.HttpUrl,
-		locator: 'https://api.eigenexplorer.test',
-		origin: 'https://api.eigenexplorer.test',
-		corsEnabled: false,
-	}],
-	wireProtocol: WireProtocol.HttpRest,
-	apiFamily: ApiFamily.OpenApiHttp,
-	operationGroups: [
-		SourceOperationGroup.GenericRead,
-	],
-	delivery: SourceDelivery.HttpProxy,
-	credentials: [{
-		scope: SourceCredentialScope.RuntimeSecret,
-		key: 'EIGEN_EXPLORER_API_TOKEN',
-	}],
-} as const satisfies SourceBinding
+const binding = bindings[Source.EigenExplorer_Rest]
 
 const stakerAddress = '0x1111111111111111111111111111111111111111'
 const operatorAddress = '0x2222222222222222222222222222222222222222'

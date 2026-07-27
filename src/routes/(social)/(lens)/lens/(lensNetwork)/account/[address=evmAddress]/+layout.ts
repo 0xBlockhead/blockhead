@@ -5,7 +5,7 @@ import { error } from '@sveltejs/kit'
 import { match as matchEvmAddress } from '$/params/evmAddress.ts'
 import { parseEntitySelector } from '$/schema/$schema.ts'
 import { schema } from '$/schema/index.ts'
-import { LensAccount as LensAccountSchema } from '$/schema/LensAccount.ts'
+import LensAccountSchema from '$/schema/LensAccount.ts'
 import { type as arktype } from 'arktype'
 
 export const load: LayoutLoad = ({ params }) => {

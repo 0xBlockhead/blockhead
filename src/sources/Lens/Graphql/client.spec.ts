@@ -1,29 +1,14 @@
 import { afterEach, beforeEach, expect, it, vi } from 'vitest'
 
-import { sourceProviderDefinitions } from '$/sources/$sourceProviders.ts'
 import { indexSourceProviders } from '$/sources/$sources.ts'
+import bindings from '$/sources/Lens/bindings.ts'
+import lensProvider from '$/sources/Lens/index.ts'
 import { Source } from '$/sources/Source.ts'
-import {
-	ApiFamily,
-	SourceDelivery,
-	SourceEndpointKind,
-} from '$/sources/SourceBinding.ts'
+import { SourceDelivery } from '$/sources/SourceBinding.ts'
 
 const { queryLatestPosts } = await import('$/sources/Lens/Graphql/queries.ts')
 
-const binding = sourceProviderDefinitions
-	.flatMap((provider) => provider.bindings)
-	.find((candidate) => (
-		candidate.source === Source.Lens_Graphql
-		&& candidate.apiFamily === ApiFamily.GraphqlHttp
-		&& candidate.endpoints.some((endpoint) => (
-			endpoint.endpointKind === SourceEndpointKind.HttpUrl
-			&& endpoint.locator === 'https://api.lens.xyz/graphql'
-		))
-	))
-
-if (binding == null)
-	throw new Error('Lens GraphQL binding is not registered')
+const binding = bindings[Source.Lens_Graphql]
 
 const fetchMock = vi.fn<typeof fetch>()
 
@@ -82,9 +67,9 @@ it('includes configured app identity without exposing an empty header', async ()
 	expect(fetchMock.mock.calls[0][1]?.headers).toHaveProperty('x-lens-app', 'lens-app')
 })
 
-it('keeps the source disabled until its public app credential is configured', () => {
-	expect(indexSourceProviders(sourceProviderDefinitions, {}).enabledSources.has(Source.Lens_Graphql)).toBe(false)
-	expect(indexSourceProviders(sourceProviderDefinitions, {
+it('keeps the source enabled when its optional public app identity is absent', () => {
+	expect(indexSourceProviders([lensProvider], {}).enabledSources.has(Source.Lens_Graphql)).toBe(true)
+	expect(indexSourceProviders([lensProvider], {
 		PUBLIC_LENS_API_KEY: 'configured',
 	}).enabledSources.has(Source.Lens_Graphql)).toBe(true)
 })

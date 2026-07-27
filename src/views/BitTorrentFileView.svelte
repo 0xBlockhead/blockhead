@@ -2,13 +2,8 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
 
 
 	// Context
@@ -20,42 +15,19 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.BitTorrentFile>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.BitTorrentFile>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.BitTorrentFile> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const bitTorrentFile = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {
-			path: true,
-			length: true,
-		},
-	} : {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const bitTorrentFile = $derived(selection({
 		fields: {
 			path: true,
 			length: true,
 		},
 	}))
-	const titleFallback = $derived([String((pendingEntity.path) ?? '')].filter(Boolean).join(' ') || 'bit torrent file')
-	const viewDomId = $derived('bit-torrent-file-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const titleFallback = $derived((pendingEntity.path ?? '') || 'bit torrent file')
 
 
 	// Components
@@ -68,48 +40,28 @@
 
 <EntityView
 	entityType={EntityType.BitTorrentFile}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'path') && Object.hasOwn(prefetched, 'length')}
-			{[String((pendingEntity.path) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-		{:else}
-			<ResourceBoundary resource={bitTorrentFile}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.path) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={bitTorrentFile}>
+			{#snippet children(entity)}
+				{entity.path || title || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Value()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'path') && Object.hasOwn(prefetched, 'length')}
-			{@const length0 = pendingEntity.length}
-			{#if length0 !== undefined && length0 !== null}
+		<ResourceBoundary resource={bitTorrentFile}>
+			{#snippet children(entity)}
 				<NumberValue
-					value={length0}
+					value={entity.length}
 				/>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={bitTorrentFile}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const length0 = resolvedEntity.length}
-					{#if length0 !== undefined && length0 !== null}
-						<NumberValue
-							value={length0}
-						/>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -128,26 +80,9 @@
 			<div>
 				<dt>file index</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									fileIndex: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const fileIndex = resolvedEntity.fileIndex}
-							{#if fileIndex !== undefined && fileIndex !== null}
-								<NumberValue
-									value={fileIndex}
-								/>
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					<NumberValue
+						value={pendingEntity.fileIndex}
+					/>
 				</dd>
 			</div>
 
@@ -155,21 +90,10 @@
 				<dt>path</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									path: true,
-								},
-							})
-						}
+						resource={bitTorrentFile}
 					>
 						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const path = resolvedEntity.path}
-							{#if path !== undefined && path !== null}
-								{String((path) ?? '')}
-							{/if}
+							{entity.path}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -179,23 +103,12 @@
 				<dt>length</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									length: true,
-								},
-							})
-						}
+						resource={bitTorrentFile}
 					>
 						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const length = resolvedEntity.length}
-							{#if length !== undefined && length !== null}
-								<NumberValue
-									value={length}
-								/>
-							{/if}
+							<NumberValue
+								value={entity.length}
+							/>
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -204,7 +117,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							piecesRoot: true,
 						},
@@ -212,13 +124,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const piecesRoot = resolvedEntity.piecesRoot}
-					{#if piecesRoot !== undefined && piecesRoot !== null}
+					{@const piecesRoot = entity.piecesRoot}
+					{#if piecesRoot != null}
 						<div>
 							<dt>pieces root</dt>
 							<dd>
-								{String((piecesRoot) ?? '')}
+								{piecesRoot}
 							</dd>
 						</div>
 					{/if}
@@ -228,7 +139,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							fileHash: true,
 						},
@@ -236,13 +146,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const fileHash = resolvedEntity.fileHash}
-					{#if fileHash !== undefined && fileHash !== null}
+					{@const fileHash = entity.fileHash}
+					{#if fileHash != null}
 						<div>
 							<dt>file hash</dt>
 							<dd>
-								<TruncatedValue value={String((fileHash) ?? '')} />
+								<TruncatedValue value={fileHash} />
 							</dd>
 						</div>
 					{/if}

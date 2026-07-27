@@ -1,6 +1,11 @@
 import { beforeEach, expect, it, vi } from 'vitest'
 
-import { SourceDelivery } from '$/sources/SourceBinding.ts'
+import {
+	SourceDelivery,
+	SourceEndpointKind,
+	SourceOperationGroup,
+	SourceTargetKind,
+} from '$/sources/SourceBinding.ts'
 
 const sourceGetJson = vi.hoisted(() => vi.fn())
 
@@ -46,7 +51,15 @@ it('uses the registered HTTP proxy binding for all seven XRPC operations', async
 	expect(sourceGetJson).toHaveBeenCalledTimes(7)
 	for (const [binding] of sourceGetJson.mock.calls) {
 		expect(binding.source).toBe('Atproto_Xrpc')
+		expect(binding.target).toEqual({
+			kind: SourceTargetKind.Global,
+			key: 'bsky-public-appview',
+		})
+		expect(binding.operationGroups).toContain(SourceOperationGroup.GenericRead)
 		expect(binding.delivery).toBe(SourceDelivery.HttpProxy)
+		expect(binding.proxyId).toBeTypeOf('string')
+		expect(binding.endpoints).toHaveLength(1)
+		expect(binding.endpoints[0].endpointKind).toBe(SourceEndpointKind.HttpUrl)
 		expect(binding.endpoints[0].corsEnabled).toBe(false)
 	}
 })

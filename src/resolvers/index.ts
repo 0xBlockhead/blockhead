@@ -9,7 +9,6 @@ const resolverLoaderEntries = [
 	[Source.Atproto_Xrpc, () => import('./Atproto-Xrpc.ts')],
 	[Source.Atproto_BskySocial_Xrpc, () => import('./Atproto-BskySocial-Xrpc.ts')],
 	[Source.Allium_Rest, () => import('./Allium-Rest.ts')],
-	[Source.A2aWellKnown_Http, () => import('./A2aWellKnown-Http.ts')],
 	[Source.AcpRegistry_Rest, () => import('./AcpRegistry-Rest.ts')],
 	[Source.AptosFullnode_Rest, () => import('./AptosFullnode-Rest.ts')],
 	[Source.AptosIndexer_Graphql, () => import('./AptosIndexer-Graphql.ts')],
@@ -144,7 +143,7 @@ export const loadResolverEntries = async (
 	entries
 		.filter(([source]) => enabledSources.has(source))
 		.map(async ([source, load]) => {
-			const resolverModule = (await load()).default as SourceResolverModule<typeof schema, Source>
+			const resolverModule = (await load()).default
 			if (resolverModule.source !== source)
 				throw new Error(`Resolver module source mismatch: expected ${source}, received ${resolverModule.source}`)
 

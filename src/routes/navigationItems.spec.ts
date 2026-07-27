@@ -16,10 +16,10 @@ import {
 
 import {
 	e2eRouteFixtureMetadataByNodeId,
-	e2eRouteParamMatcherByName,
+	matchE2eRouteParam,
 } from '../../tests/e2e/_generatedRouteFixtureMetadata.ts'
 import type { NavigationItem } from '$/routes/NavigationItem.ts'
-import { navigationItems } from '$/routes/navigationItems.svelte.ts'
+import navigationItems from '$/routes/navigationItems.svelte.ts'
 
 const navigationItemList = (navigationItems: readonly NavigationItem[]): NavigationItem[] => navigationItems.flatMap((navigationItem) => [
 	navigationItem,
@@ -36,17 +36,17 @@ const generatedPageSourceByPublicPath = new Map(globSync('src/routes/**/+page.sv
 
 const matchesGeneratedDynamicPage = (href: string) => Object.values(e2eRouteFixtureMetadataByNodeId).some((routeMetadata) => {
 	const hrefSegments = href.split('/').filter(Boolean)
-	const routeSegments = routeMetadata.publicPath.split('/').filter(Boolean)
+	const routeSegments = routeMetadata.routeId
+		.split('/')
+		.filter((segment) => segment !== '' && !/^\(.+\)$/.test(segment))
 
 	return (
 		hrefSegments.length === routeSegments.length
 		&& routeSegments.every((routeSegment, index) => {
-			const parameterName = /^\[([^\]]+)\]$/.exec(routeSegment)?.[1]
+			const routeParam = /^\[\[?(?:\.\.\.)?([^=\]]+)=([^\]]+)\]\]?$/.exec(routeSegment)
 
-			return parameterName ?
-				routeMetadata.parameterMatchers[parameterName]?.some((matcherName) => (
-					e2eRouteParamMatcherByName[matcherName](decodeURIComponent(hrefSegments[index]))
-				)) === true
+			return routeParam ?
+				matchE2eRouteParam(routeParam[2], decodeURIComponent(hrefSegments[index]))
 				:
 				routeSegment === hrefSegments[index]
 		})

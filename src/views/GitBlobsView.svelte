@@ -2,103 +2,50 @@
 
 <script lang="ts">
 	// Types/constants
-	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
-	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
-	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
+	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-
-
+	import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 
 
 	// State
 	let {
 		selection,
-		countResource,
-		title = 'Git blobs',
-		typeAnnotationParagraphs = [],
-		placeholderText = undefined,
-		emptyText = undefined,
 		open = $bindable(true),
-		collapsible = true,
-		showTypeAnnotation = true,
-		id = 'GitBlobs-list',
 		...EntitiesListProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyEntitiesSelection<EntityType.GitBlob>
-			countResource?: SvelteKitResource<number>
-			title?: string
-			typeAnnotationParagraphs?: string[]
-			placeholderText?: string
-			emptyText?: string
-			open?: boolean
-			collapsible?: boolean
-			showTypeAnnotation?: boolean
-			id?: string
-		},
-		EntitiesListForwardProps
-	> = $props()
+	}: EntityListViewProps<EntityType.GitBlob> = $props()
 
 
 	// Components
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView from '$/components/EntityView.svelte'
 </script>
 
-
-{#snippet TypeAnnotationParagraphs()}
-	{#each typeAnnotationParagraphs as paragraph (paragraph)}
-		<p>{paragraph}</p>
-	{/each}
-{/snippet}
 
 <EntitiesList
 	{...EntitiesListProps}
 	entityType={EntityType.GitBlob}
-	{id}
-	{title}
 	bind:open
-	{collapsible}
-	{showTypeAnnotation}
-	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
 	resource={
 		selection({
-			sources: selection.sources,
 			fields: {
 				objectId: true,
 				mime: true,
 			},
 		})
 	}
-	{countResource}
-	getResourceItems={(gitBlobs) => [...new Map(gitBlobs.values.map((gitBlob) => [gitBlob[EntityMetaKey.SelectorKey], gitBlob])).values()]}
-	getKey={(gitBlob) => gitBlob[EntityMetaKey.SelectorKey]}
-	{placeholderText}
 >
-	{#snippet Empty()}
-		{#if emptyText != null}
-			<p data-text="muted">{emptyText}</p>
-		{:else}
-			<p data-text="muted">No Git blobs yet.</p>
-		{/if}
-	{/snippet}
-
 	{#snippet Item({ item: gitBlob })}
-		{@const gitBlobFields = { ...gitBlob[EntityMetaKey.Selector], ...gitBlob }}
+		{@const gitBlobSelector = gitBlob[EntityMetaKey.Selector]}
 		<EntityView
 			entityType={EntityType.GitBlob}
-			entitySelector={gitBlob[EntityMetaKey.Selector]}
-			layout={EntityLayout.Summary}
-			open={false}
-			showTypeAnnotation={false}
+			entitySelector={gitBlobSelector}
 		>
 			{#snippet Title()}
-				{[String((gitBlobFields.objectId) ?? '')].filter(Boolean).join(' ') || 'Git blob'}
+				{String(gitBlobSelector.objectId) || 'Git blob'}
 			{/snippet}
 
 			{#snippet Value()}
-				{[String((gitBlobFields.mime) ?? '')].filter(Boolean).join(' ')}
+				{(gitBlob.mime ?? '')}
 			{/snippet}
 		</EntityView>
 	{/snippet}

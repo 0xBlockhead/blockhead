@@ -1,16 +1,13 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { entity, facet } from '$/schema/$schema.ts'
+import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { UrlString } from '$/schema/UrlString.ts'
 import { EvmAddress, ZeroExHex } from '$/schema/ZeroExHex.ts'
 import { type } from 'arktype'
 
-export enum Eip8004Validation_TimestampSelector {
-	RequestHashAlgorithmRequestHashTimestampMsSource = 'RequestHashAlgorithmRequestHashTimestampMsSource',
-}
-export const Eip8004Validation_Timestamp = entity({
+export default entity({
 	entityType: EntityType.Eip8004Validation_Timestamp,
 	labels: {
 		singular: 'EIP-8004 validation timestamp',
@@ -26,7 +23,7 @@ export const Eip8004Validation_Timestamp = entity({
 	requestHash: {
 		label: 'Request hash',
 		type: EntityFieldType.Primitive,
-		primitiveType: (ZeroExHex),
+		primitiveType: ZeroExHex,
 		cardinality: EntityFieldCardinality.One,
 	},
 	timestampMs: {
@@ -52,13 +49,13 @@ export const Eip8004Validation_Timestamp = entity({
 	validatorAddress: {
 		label: 'Validator address',
 		type: EntityFieldType.Primitive,
-		primitiveType: (EvmAddress),
+		primitiveType: EvmAddress,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	requestUri: {
 		label: 'Request URI',
 		type: EntityFieldType.Primitive,
-		primitiveType: (UrlString),
+		primitiveType: UrlString,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	response: {
@@ -70,7 +67,7 @@ export const Eip8004Validation_Timestamp = entity({
 	responseUri: {
 		label: 'Response URI',
 		type: EntityFieldType.Primitive,
-		primitiveType: (UrlString),
+		primitiveType: UrlString,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	responseHashAlgorithm: {
@@ -82,7 +79,7 @@ export const Eip8004Validation_Timestamp = entity({
 	responseHash: {
 		label: 'Response hash',
 		type: EntityFieldType.Primitive,
-		primitiveType: (ZeroExHex),
+		primitiveType: ZeroExHex,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	tag: {
@@ -107,7 +104,7 @@ export const Eip8004Validation_Timestamp = entity({
 	transactionHash: {
 		label: 'Transaction hash',
 		type: EntityFieldType.Primitive,
-		primitiveType: (ZeroExHex),
+		primitiveType: ZeroExHex,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 })({

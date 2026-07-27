@@ -4,6 +4,10 @@ import {
 	it,
 	vi,
 } from 'vitest'
+import bindings from '$/sources/Farcaster/bindings.ts'
+import { Source } from '$/sources/Source.ts'
+
+const farcasterBinding = bindings[Source.Farcaster_Rest]
 
 const farcasterGet = vi.hoisted(() => vi.fn())
 
@@ -17,7 +21,6 @@ const {
 } = await import(
 	'$/sources/Farcaster/Rest/queries.ts'
 )
-
 describe('Farcaster public thread direct replies', () => {
 	it('keeps only casts whose exact parent is the focal cast', async () => {
 		farcasterGet.mockResolvedValueOnce({

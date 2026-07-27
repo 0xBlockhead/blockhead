@@ -7,7 +7,6 @@
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
@@ -35,35 +34,12 @@
 
 
 <svelte:head>
-	<title>{(data.title ?? (pageSelection.entity == null ? (String(({
-		$network: data.selector,
-		slot: Number(params.slot),
-		indexInSlot: Number(params.index),
-	}.indexInSlot) ?? '') ? 'Committee #' + String(({
-		$network: data.selector,
-		slot: Number(params.slot),
-		indexInSlot: Number(params.index),
-	}.indexInSlot) ?? '') : '') || 'beacon committee' : (String((({ ...{
-		$network: data.selector,
-		slot: Number(params.slot),
-		indexInSlot: Number(params.index),
-	}, ...pageSelection.entity }).indexInSlot) ?? '') ? 'Committee #' + String((({ ...{
-		$network: data.selector,
-		slot: Number(params.slot),
-		indexInSlot: Number(params.index),
-	}, ...pageSelection.entity }).indexInSlot) ?? '') : '') || 'beacon committee'))} • beacon committee • Blockhead</title>
+	<title>{(data.title ?? ((String(pageSelection.entitySelector.indexInSlot ?? '') ? 'Committee #' + String(pageSelection.entitySelector.indexInSlot ?? '') : '') || 'beacon committee'))} • beacon committee • Blockhead</title>
 </svelte:head>
 
 
 <Page>
 	<BeaconCommitteeView
-		href={
-			resolve('/network/[network=networkCaip2OrNetworkSlug]/slot/[slot=nonNegativeInteger]/committee/[index=nonNegativeInteger]', {
-				network: params.network,
-				slot: params.slot,
-				index: params.index,
-			})
-		}
 		selection={pageSelection}
 	/>
 </Page>

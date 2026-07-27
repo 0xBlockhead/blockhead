@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
-import { getCoins } from '$/resolvers/Coinpaprika/OpenApi/queries.ts'
+import { getCoins } from '$/sources/Coinpaprika/OpenApi/queries.ts'
 
 describe('Coinpaprika coin queries', () => {
 	afterEach(() => {

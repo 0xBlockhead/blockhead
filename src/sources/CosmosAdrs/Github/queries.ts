@@ -3,25 +3,32 @@ import {
 	getGithubContents,
 	getGithubRawText,
 } from '$/sources/_shared/hosts/Github/Http/client.ts'
-import { githubHttpEndpoints } from '$/sources/_shared/hosts/Github/Http/constants.ts'
+import bindings from '$/sources/CosmosAdrs/bindings.ts'
+import { Source } from '$/sources/Source.ts'
+
+const binding = bindings[Source.CosmosAdrs_Github]
 
 const cosmosAdrsGithubRepo = {
 	owner: 'cosmos',
 	repo: 'cosmos-sdk',
 	path: 'docs/architecture',
 	ref: 'main',
-} as const
+}
 
 export const getContents = (): Promise<CosmosAdrsGithubContents> => (
 	getGithubContents({
-		endpoints: githubHttpEndpoints,
+		binding,
 		target: cosmosAdrsGithubRepo,
 	})
 )
 
-export const getMarkdownText = ({ number }: { number: number }) => (
+export const getMarkdownText = ({
+	number,
+}: {
+	number: number
+}) => (
 	getGithubRawText({
-		endpoints: githubHttpEndpoints,
+		binding,
 		target: {
 			...cosmosAdrsGithubRepo,
 			path: `${cosmosAdrsGithubRepo.path}/adr-${number.toString().padStart(3, '0')}.md`,

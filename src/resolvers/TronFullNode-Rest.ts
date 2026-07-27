@@ -7,38 +7,18 @@ import {
 	entityFieldAddressKey,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import { sourceProviderDefinitions } from '$/sources/$sourceProviders.ts'
 import { Source } from '$/sources/Source.ts'
-import { SourceTargetKind } from '$/sources/SourceBinding.ts'
 import type {
 	TronNodeBlock,
 	TronNodeContractValue,
 	TronNodeTransaction,
 	TronNodeTransactionInfo,
 } from '$/sources/TronGrid/Rest/types.ts'
-import { TronBlockSelector } from '$/schema/TronBlock.ts'
-import { TronTransactionSelector } from '$/schema/TronTransaction.ts'
-import { TronAccountSelector } from '$/schema/TronAccount.ts'
-import { TronAccount_TimestampSelector } from '$/schema/TronAccount_Timestamp.ts'
-import { TronTransactionReceiptSelector } from '$/schema/TronTransactionReceipt.ts'
 
 type NetworkId = { caip2: {
 	namespace: string
 	reference: string
 } } | { slug: string }
-
-const tronFullNodeBindings = sourceProviderDefinitions
-	.flatMap((provider) => provider.bindings)
-	.filter((binding) => (
-		binding.source === Source.TronFullNode_Rest
-		&& binding.target.kind === SourceTargetKind.LocalDevice
-		&& binding.target.key === 'tron-full-node'
-	))
-
-if (tronFullNodeBindings.length !== 1)
-	throw new Error('TronFullNode_Rest: canonical local FullNode source binding is missing or ambiguous')
-
-const tronFullNodeBinding = tronFullNodeBindings[0]
 
 const assertTronMainnet = (network: NetworkId) => {
 	if (!('slug' in network) || network.slug !== networkBySlug.tron.slug)
@@ -197,14 +177,13 @@ export default {
 		defineResolver(Source.TronFullNode_Rest, {
 			entityType: EntityType.TronBlock,
 			resolve: {
-				[TronBlockSelector.NetworkHeightHash]: {
+				NetworkHeightHash: {
 					resolve: async ({ $network, height }) => {
 						assertTronMainnet($network)
 						const { getBlockByNumber } = await import('$/sources/TronFullNode/Rest/queries.ts')
 						return blockFields(
 							$network,
 							await getBlockByNumber({
-								binding: tronFullNodeBinding,
 								height: height,
 							})
 						)
@@ -229,7 +208,7 @@ export default {
 		defineResolver(Source.TronFullNode_Rest, {
 			entityType: EntityType.TronTransaction,
 			resolve: {
-				[TronTransactionSelector.NetworkTransactionId]: {
+				NetworkTransactionId: {
 					resolve: async ({ $network, transactionId }) => {
 						assertTronMainnet($network)
 						const {
@@ -237,7 +216,6 @@ export default {
 							getTransactionInfoById,
 						} = await import('$/sources/TronFullNode/Rest/queries.ts')
 						const transaction = await getTransactionById({
-							binding: tronFullNodeBinding,
 							transactionId: transactionId,
 						})
 						if (transaction.txID == null) throw new Error(`TronFullNode_Rest: transaction not found for ${transactionId}`)
@@ -245,7 +223,6 @@ export default {
 							$network,
 							transaction,
 							await getTransactionInfoById({
-								binding: tronFullNodeBinding,
 								transactionId: transactionId,
 							})
 						)
@@ -273,12 +250,11 @@ export default {
 		defineResolver(Source.TronFullNode_Rest, {
 			entityType: EntityType.TronAccount,
 			resolve: {
-				[TronAccountSelector.NetworkAddress]: {
+				NetworkAddress: {
 					resolve: async ({ $network, address }) => {
 						assertTronMainnet($network)
 						const { getAccount } = await import('$/sources/TronFullNode/Rest/queries.ts')
 						const account = await getAccount({
-							binding: tronFullNodeBinding,
 							address: address,
 						})
 						return {
@@ -294,7 +270,7 @@ export default {
 		defineResolver(Source.TronFullNode_Rest, {
 			entityType: EntityType.TronAccount,
 			resolve: {
-				[TronAccountSelector.NetworkAddress]: {
+				NetworkAddress: {
 					resolve: async (entitySelector) => [
 						{
 							[EntityMetaKey.Selector]: {
@@ -313,12 +289,11 @@ export default {
 		defineResolver(Source.TronFullNode_Rest, {
 			entityType: EntityType.TronAccount_Timestamp,
 			resolve: {
-				[TronAccount_TimestampSelector.AccountTimestampMsSource]: {
+				AccountTimestampMsSource: {
 					resolve: async ({ $account }) => {
 						assertTronMainnet($account.$network)
 						const { getAccount } = await import('$/sources/TronFullNode/Rest/queries.ts')
 						const account = await getAccount({
-							binding: tronFullNodeBinding,
 							address: $account.address,
 						})
 						return {
@@ -340,12 +315,11 @@ export default {
 		defineResolver(Source.TronFullNode_Rest, {
 			entityType: EntityType.TronTransactionReceipt,
 			resolve: {
-				[TronTransactionReceiptSelector.Transaction]: {
+				Transaction: {
 					resolve: async ({ $transaction }) => {
 						assertTronMainnet($transaction.$network)
 						const { getTransactionInfoById } = await import('$/sources/TronFullNode/Rest/queries.ts')
 						return receiptFields(await getTransactionInfoById({
-							binding: tronFullNodeBinding,
 							transactionId: $transaction.transactionId,
 						}))
 					},

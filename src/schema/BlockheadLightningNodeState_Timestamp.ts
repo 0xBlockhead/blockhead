@@ -1,14 +1,11 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { entity, facet } from '$/schema/$schema.ts'
+import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { type } from 'arktype'
 
-export enum BlockheadLightningNodeState_TimestampSelector {
-	LocalNodeStateTimestampMsSource = 'LocalNodeStateTimestampMsSource',
-}
-export const BlockheadLightningNodeState_Timestamp = entity({
+export default entity({
 	entityType: EntityType.BlockheadLightningNodeState_Timestamp,
 	labels: {
 		singular: 'blockhead Lightning node state timestamp',

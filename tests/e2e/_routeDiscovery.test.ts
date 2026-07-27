@@ -2,8 +2,16 @@ import assert from 'node:assert/strict'
 import test from 'node:test'
 
 import { swarmDocsLandingReference } from '../../src/sources/Swarm/Rest/constants.ts'
-import { e2eRouteFixtureMetadataByNodeId } from './_generatedRouteFixtureMetadata.ts'
-import { discoverPathnamesFromRoutes } from './_routeDiscovery.ts'
+import {
+	e2eRouteFixtureMetadataByNodeId,
+	type E2eRouteFixtureMapping,
+} from './_generatedRouteFixtureMetadata.ts'
+import {
+	discoverPathnamesFromRoutes,
+	pathnameFromRouteFixture,
+	routeProbeCaseParams,
+	routeProbeCasesForMapping,
+} from './_routeDiscovery.ts'
 import { e2eRouteProbeAtomValueById } from './_routeParamFixtures.ts'
 
 
@@ -11,7 +19,7 @@ test('route probe atom values exactly cover every generated atom', () => {
 	assert.deepEqual(
 		[...new Set(Object.values(e2eRouteFixtureMetadataByNodeId).flatMap((metadata) => (
 			metadata.mappings.flatMap((mapping) => (
-				mapping.probeCases.flatMap((probeCase) => Object.values(probeCase.params))
+				routeProbeCasesForMapping(mapping).flatMap(({ atoms }) => atoms)
 			))
 		)))].sort(),
 		Object.keys(e2eRouteProbeAtomValueById).sort()
@@ -60,13 +68,16 @@ test('keeps Polkadot and Lightning route atoms on their canonical networks', () 
 			candidate.mappings.some((mapping) => mapping.id === mappingId)
 		))
 		assert.ok(metadata)
-		const mapping = metadata.mappings.find((candidate) => candidate.id === mappingId)
+		const mapping: E2eRouteFixtureMapping | undefined = metadata.mappings.find((candidate) => candidate.id === mappingId)
 		assert.ok(mapping)
-		const probeCase = mapping.probeCases[0]
+		const probeCase = routeProbeCasesForMapping(mapping)[0]
 		assert.ok(probeCase)
-		assert.equal(metadata.resolve(Object.fromEntries(Object.entries(probeCase.params).map(([param, atom]) => [
-			param,
-			e2eRouteProbeAtomValueById[atom],
-		]))), expectedPathname)
+		assert.equal(
+			pathnameFromRouteFixture(metadata, Object.fromEntries(Object.entries(routeProbeCaseParams(probeCase)).map(([param, atom]) => [
+				param,
+				e2eRouteProbeAtomValueById[atom],
+			]))),
+			expectedPathname
+		)
 	}
 })

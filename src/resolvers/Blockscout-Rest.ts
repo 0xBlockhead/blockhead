@@ -14,6 +14,11 @@ import {
 import { schema } from '$/schema/index.ts'
 import type { Entity, EntityReferenceValue, EntitySelector, EntitySelectorForSelectorName } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import {
+	blockscoutAccountAbstractionClient,
+	blockscoutEtherscanClient,
+	blockscoutRestClient,
+} from '$/sources/Blockscout/Rest/client.ts'
 import { Source } from '$/sources/Source.ts'
 import {
 	EvmInternalCallType,
@@ -23,7 +28,7 @@ import {
 	EvmTransactionKind,
 } from '$/constants/Evm.ts'
 import { MarketAssetKind, MarketKind } from '$/constants/Market.ts'
-import { CoinInstanceType, EvmCoinInstanceSelector } from '$/schema/EvmCoinInstance.ts'
+import { CoinInstanceType } from '$/schema/EvmCoinInstance.ts'
 import { seededCoinSpotUsdMarketByCoinId, type CatalogCoinCurrencyMarket } from '$/constants/MarketCatalog.ts'
 import type {
 	BlockscoutInternalTransaction,
@@ -31,30 +36,10 @@ import type {
 	BlockscoutStats,
 	BlockscoutTokenTransfer,
 } from '$/sources/Blockscout/Rest/types.ts'
-import type { RpcBlockHeader, RpcLog } from '$/sources/Evm/JsonRpc/types.ts'
-import { NetworkSelector } from '$/schema/Network.ts'
-import { EvmBlockSelector } from '$/schema/EvmBlock.ts'
-import { EvmTransactionSelector } from '$/schema/EvmTransaction.ts'
-import { EvmLogSelector } from '$/schema/EvmLog.ts'
-import { EvmTokenTransferSelector } from '$/schema/EvmTokenTransfer.ts'
-import { EvmInternalTransferSelector } from '$/schema/EvmInternalTransfer.ts'
-import { Erc4337SmartAccountSelector } from '$/schema/Erc4337SmartAccount.ts'
-import { Erc4337SmartAccount_TimestampSelector } from '$/schema/Erc4337SmartAccount_Timestamp.ts'
-import { Erc4337BundlerSelector } from '$/schema/Erc4337Bundler.ts'
-import { Erc4337PaymasterSelector } from '$/schema/Erc4337Paymaster.ts'
-import { Erc4337AccountFactorySelector } from '$/schema/Erc4337AccountFactory.ts'
-import { EvmUserOperationSelector } from '$/schema/EvmUserOperation.ts'
-import { EvmNetworkAccountSelector } from '$/schema/EvmNetworkAccount.ts'
-import { EvmNetworkAccount_TimestampSelector } from '$/schema/EvmNetworkAccount_Timestamp.ts'
-import { Market_TimestampSelector } from '$/schema/Market_Timestamp.ts'
-import { EvmNetwork_GasEstimate_TimestampSelector } from '$/schema/EvmNetwork_GasEstimate_Timestamp.ts'
-import { Coin_TimestampSelector } from '$/schema/Coin_Timestamp.ts'
-import { CoinSelector } from '$/schema/Coin.ts'
-import { MarketPriceSelector } from '$/schema/MarketPrice.ts'
-import { EvmContractSelector } from '$/schema/EvmContract.ts'
+import type { RpcBlockHeader, RpcLog } from '$/sources/_shared/interfaces/EvmExecutionJsonRpc/types.ts'
 
-type EvmNetworkId = EntitySelectorForSelectorName<typeof schema, EntityType.Network, NetworkSelector.Caip2>
-type NetworkCaip2Id = EntitySelectorForSelectorName<typeof schema, EntityType.Network, NetworkSelector.Caip2>
+type EvmNetworkId = EntitySelectorForSelectorName<typeof schema, EntityType.Network, 'Caip2'>
+type NetworkCaip2Id = EntitySelectorForSelectorName<typeof schema, EntityType.Network, 'Caip2'>
 
 const evmNetworkIdFromChainId = (chainId: number): EvmNetworkId => ({
 	caip2: {
@@ -666,11 +651,11 @@ const evmTokenTransferEntitiesFromBlockscoutWires = ({
 
 const evmTokenTransferEntitiesFromBlockscoutAddressWires = ({
 	$network,
-	explorerOrigin,
+	client,
 	wires,
 }: {
 	$network: EvmNetworkId
-	explorerOrigin: string
+	client: ReturnType<typeof blockscoutRestClient>
 	wires: readonly BlockscoutTokenTransfer[]
 }) => {
 	const wiresByTxHash = new Map<string, BlockscoutTokenTransfer[]>()
@@ -691,10 +676,12 @@ const evmTokenTransferEntitiesFromBlockscoutAddressWires = ({
 					evmTokenTransferEntitiesFromBlockscoutWires({
 						$network,
 						txHash: normalizedTxHash,
-						receiptLogs: await (await import('$/sources/Blockscout/Rest/queries.ts')).getTransactionLogs({
-							explorerOrigin,
-							txHash: normalizedTxHash,
-						}),
+						receiptLogs: await client.query(
+							(await import('$/sources/Blockscout/Rest/queries.ts')).getTransactionLogs,
+							{
+								txHash: normalizedTxHash,
+							}
+						),
 						wires: txWires,
 					})
 			})
@@ -831,13 +818,8 @@ const gasEstimateObservationFromBlockscoutStats = (
 const blockscoutStatsForChain = async (
 	chainId: number
 ): Promise<BlockscoutStats | null> => {
-	const {
-		blockscoutExplorerRestV2OriginByChainId,
-	} = await import('$/sources/Blockscout/Rest/constants.ts')
 	const { getStats } = await import('$/sources/Blockscout/Rest/queries.ts')
-	const origin = blockscoutExplorerRestV2OriginByChainId[chainId]
-	if (origin == null) return null
-	return getStats({ explorerOrigin: origin })
+	return blockscoutRestClient(chainId).query(getStats, {})
 }
 
 const blockscoutStatsForNativeCoinId = async (
@@ -864,16 +846,6 @@ const blockscoutCountFromDecimalString = (
 		throw new Error(`Blockscout_Rest: invalid ${label}: ${String(raw)}`)
 
 	return count
-}
-
-const requireBlockscoutV2ExplorerOrigin = async (chainId: number) => {
-	const {
-		blockscoutExplorerRestV2OriginByChainId,
-	} = await import('$/sources/Blockscout/Rest/constants.ts')
-	const origin = blockscoutExplorerRestV2OriginByChainId[chainId]
-	if (origin == null)
-		throw new Error(`Blockscout_Rest: no Blockscout v2 explorer for chain ${chainId}`)
-	return origin
 }
 
 const erc4337ContractField = (
@@ -937,18 +909,12 @@ export default {
 		defineResolver(Source.Blockscout_Rest, {
 			entityType: EntityType.EvmBlock,
 			resolve: {
-				[EvmBlockSelector.EvmNetworkBlockNumber]: {
+				EvmNetworkBlockNumber: {
 					resolve: async ({ $network, blockNumber }) => {
-						const {
-							blockscoutExplorerRestV2OriginByChainId,
-						} = await import('$/sources/Blockscout/Rest/constants.ts')
 						const { getBlockByNumber } = await import('$/sources/Blockscout/Rest/queries.ts')
 						const chainId = chainIdFromEvmNetworkId($network)
-						const origin = blockscoutExplorerRestV2OriginByChainId[chainId]
-						if (origin == null)
-							throw new Error(`Blockscout_Rest: no Blockscout v2 explorer for chain ${chainId}`)
-						const header = await getBlockByNumber({
-							explorerOrigin: origin,
+						const client = blockscoutRestClient(chainId)
+						const header = await client.query(getBlockByNumber, {
 							blockNumber: blockNumber,
 						})
 						if (header == null)
@@ -1111,22 +1077,16 @@ export default {
 		defineResolver(Source.Blockscout_Rest, {
 			entityType: EntityType.EvmTransaction,
 			resolve: {
-				[EvmTransactionSelector.EvmNetworkTxHash]: {
+				EvmNetworkTxHash: {
 					resolve: async ({ $network, txHash: txHashSelector }) => {
-						const {
-							blockscoutExplorerRestV2OriginByChainId,
-						} = await import('$/sources/Blockscout/Rest/constants.ts')
 						const {
 							blockscoutTransactionWireAsRpcReceipt,
 							blockscoutTransactionWireAsRpcTransaction,
 							getTransactionLogs,
 							getTransactionWireByHash,
 						} = await import('$/sources/Blockscout/Rest/queries.ts')
-						const origin = blockscoutExplorerRestV2OriginByChainId[chainIdFromEvmNetworkId($network)]
-						if (origin == null)
-							throw new Error(`Blockscout_Rest: no Blockscout v2 explorer for chain ${chainIdFromEvmNetworkId($network)}`)
-						const blockscoutTransaction = await getTransactionWireByHash({
-							explorerOrigin: origin,
+						const client = blockscoutRestClient(chainIdFromEvmNetworkId($network))
+						const blockscoutTransaction = await client.query(getTransactionWireByHash, {
 							txHash: txHashSelector,
 						})
 						if (blockscoutTransaction == null)
@@ -1297,8 +1257,7 @@ export default {
 								}
 							),
 						}
-						const receiptLogs = await getTransactionLogs({
-							explorerOrigin: origin,
+						const receiptLogs = await client.query(getTransactionLogs, {
 							txHash: txHash,
 						})
 						const receipt = blockscoutTransactionWireAsRpcReceipt(
@@ -1445,17 +1404,11 @@ export default {
 		defineResolver(Source.Blockscout_Rest, {
 			entityType: EntityType.EvmLog,
 			resolve: {
-				[EvmLogSelector.TransactionIndexInTransaction]: {
+				TransactionIndexInTransaction: {
 					resolve: async (entitySelector) => {
-						const {
-							blockscoutExplorerRestV2OriginByChainId,
-						} = await import('$/sources/Blockscout/Rest/constants.ts')
 						const { getTransactionLogs } = await import('$/sources/Blockscout/Rest/queries.ts')
-						const origin = blockscoutExplorerRestV2OriginByChainId[chainIdFromEvmNetworkId(entitySelector.$transaction.$network)]
-						if (origin == null)
-							throw new Error(`Blockscout_Rest: no Blockscout v2 explorer for chain ${chainIdFromEvmNetworkId(entitySelector.$transaction.$network)}`)
-						const logs = await getTransactionLogs({
-							explorerOrigin: origin,
+						const client = blockscoutRestClient(chainIdFromEvmNetworkId(entitySelector.$transaction.$network))
+						const logs = await client.query(getTransactionLogs, {
 							txHash: entitySelector.$transaction.txHash,
 						})
 						const log = findReceiptLogWireForEvmLogId(logs, entitySelector.indexInTransaction)
@@ -1482,7 +1435,7 @@ export default {
 		defineResolver(Source.Blockscout_Rest, {
 			entityType: EntityType.EvmLog,
 			resolve: {
-				[EvmLogSelector.TransactionIndexInTransaction]: {
+				TransactionIndexInTransaction: {
 					resolve: async ({
 						$transaction,
 						indexInTransaction,
@@ -1494,18 +1447,16 @@ export default {
 							getTransactionLogs,
 							getTransactionTokenTransfers,
 						} = await import('$/sources/Blockscout/Rest/queries.ts')
-						const explorerOrigin = await requireBlockscoutV2ExplorerOrigin(
+						const client = blockscoutRestClient(
 							chainIdFromEvmNetworkId($transaction.$network)
 						)
 						return evmTokenTransferEntitiesFromBlockscoutWires({
 							$network: $transaction.$network,
 							txHash: $transaction.txHash,
-							receiptLogs: await getTransactionLogs({
-								explorerOrigin,
+							receiptLogs: await client.query(getTransactionLogs, {
 								txHash: $transaction.txHash,
 							}),
-							wires: await getTransactionTokenTransfers({
-								explorerOrigin,
+							wires: await client.query(getTransactionTokenTransfers, {
 								txHash: $transaction.txHash,
 								limit: Math.min(
 									resolverContextRowLimit(context),
@@ -1533,26 +1484,21 @@ export default {
 		defineResolver(Source.Blockscout_Rest, {
 			entityType: EntityType.EvmTokenTransfer,
 			resolve: {
-				[EvmTokenTransferSelector.LogIndexInLog]: {
+				LogIndexInLog: {
 					resolve: async (entitySelector) => {
 						const {
-							blockscoutExplorerRestV2OriginByChainId,
 							blockscoutV2ItemsCountMax,
 						} = await import('$/sources/Blockscout/Rest/constants.ts')
 						const {
 							getTransactionLogs,
 							getTransactionTokenTransfers,
 						} = await import('$/sources/Blockscout/Rest/queries.ts')
-						const origin = blockscoutExplorerRestV2OriginByChainId[chainIdFromEvmNetworkId(entitySelector.$log.$transaction.$network)]
-						if (origin == null)
-							throw new Error(`Blockscout_Rest: no Blockscout v2 explorer for chain ${chainIdFromEvmNetworkId(entitySelector.$log.$transaction.$network)}`)
-						const wires = await getTransactionTokenTransfers({
-							explorerOrigin: origin,
+						const client = blockscoutRestClient(chainIdFromEvmNetworkId(entitySelector.$log.$transaction.$network))
+						const wires = await client.query(getTransactionTokenTransfers, {
 							txHash: entitySelector.$log.$transaction.txHash,
 							limit: blockscoutV2ItemsCountMax,
 						})
-						const receiptLogs = await getTransactionLogs({
-							explorerOrigin: origin,
+						const receiptLogs = await client.query(getTransactionLogs, {
 							txHash: entitySelector.$log.$transaction.txHash,
 						})
 						const wire = findBlockscoutTokenTransferForEntitySelector(wires, receiptLogs, entitySelector)
@@ -1591,14 +1537,13 @@ export default {
 		defineResolver(Source.Blockscout_Rest, {
 			entityType: EntityType.EvmCoinInstance,
 			resolve: {
-				[EvmCoinInstanceSelector.NetworkTypeContract]: {
+				NetworkTypeContract: {
 					resolve: async ({ $contract, $network, type }) => {
 						if (type !== CoinInstanceType.Erc20Token)
 							throw new Error('Blockscout_Rest: EvmCoinInstance requires ERC-20 token contract selector')
-						const origin = await requireBlockscoutV2ExplorerOrigin(chainIdFromEvmNetworkId($network))
+						const client = blockscoutRestClient(chainIdFromEvmNetworkId($network))
 						const { getAddressDetails } = await import('$/sources/Blockscout/Rest/queries.ts')
-						const detail = await getAddressDetails({
-							explorerOrigin: origin,
+						const detail = await client.query(getAddressDetails, {
 							address: $contract.address,
 						})
 						const token = detail.token
@@ -1639,18 +1584,14 @@ export default {
 		defineResolver(Source.Blockscout_Rest, {
 			entityType: EntityType.EvmInternalTransfer,
 			resolve: {
-				[EvmInternalTransferSelector.TransactionIndexInTransaction]: {
+				TransactionIndexInTransaction: {
 					resolve: async (entitySelector) => {
 						const {
-							blockscoutExplorerRestV2OriginByChainId,
 							blockscoutV2ItemsCountMax,
 						} = await import('$/sources/Blockscout/Rest/constants.ts')
 						const { getTransactionInternalTransactions } = await import('$/sources/Blockscout/Rest/queries.ts')
-						const origin = blockscoutExplorerRestV2OriginByChainId[chainIdFromEvmNetworkId(entitySelector.$transaction.$network)]
-						if (origin == null)
-							throw new Error(`Blockscout_Rest: no Blockscout v2 explorer for chain ${chainIdFromEvmNetworkId(entitySelector.$transaction.$network)}`)
-						const wires = await getTransactionInternalTransactions({
-							explorerOrigin: origin,
+						const client = blockscoutRestClient(chainIdFromEvmNetworkId(entitySelector.$transaction.$network))
+						const wires = await client.query(getTransactionInternalTransactions, {
 							txHash: entitySelector.$transaction.txHash,
 							limit: blockscoutV2ItemsCountMax,
 						})
@@ -1682,7 +1623,7 @@ export default {
 		defineResolver(Source.Blockscout_Rest, {
 			entityType: EntityType.Erc4337SmartAccount,
 			resolve: {
-				[Erc4337SmartAccountSelector.EvmNetworkAddress]: {
+				EvmNetworkAddress: {
 					resolve: async (entitySelector) => erc4337ContractField(entitySelector),
 				},
 			},
@@ -1693,17 +1634,13 @@ export default {
 		defineResolver(Source.Blockscout_Rest, {
 			entityType: EntityType.Erc4337SmartAccount,
 			resolve: {
-				[Erc4337SmartAccountSelector.EvmNetworkAddress]: {
+				EvmNetworkAddress: {
 					resolve: async (entitySelector) => {
-						const {
-							blockscoutExplorerRestV2OriginByChainId,
-						} = await import('$/sources/Blockscout/Rest/constants.ts')
 						const { getErc4337SmartAccountDetail } = await import('$/sources/Blockscout/Rest/queries.ts')
-						const origin = blockscoutExplorerRestV2OriginByChainId[chainIdFromEvmNetworkId(entitySelector.$network)]
-						if (origin == null)
-							throw new Error(`Blockscout_Rest: no Blockscout v2 explorer for chain ${chainIdFromEvmNetworkId(entitySelector.$network)}`)
-						const wire = await getErc4337SmartAccountDetail({
-							explorerOrigin: origin,
+						const client = blockscoutAccountAbstractionClient(
+							chainIdFromEvmNetworkId(entitySelector.$network)
+						)
+						const wire = await client.query(getErc4337SmartAccountDetail, {
 							address: entitySelector.address,
 						})
 						const factoryAddress = (
@@ -1745,25 +1682,20 @@ export default {
 		defineResolver(Source.Blockscout_Rest, {
 			entityType: EntityType.Erc4337SmartAccount_Timestamp,
 			resolve: {
-				[Erc4337SmartAccount_TimestampSelector.AccountTimestampMsSource]: {
+				AccountTimestampMsSource: {
 					resolve: async ({ $account, timestampMs, source }) => {
 						if (source !== Source.Blockscout_Rest)
 							throw new Error(`Blockscout_Rest: unsupported source ${source}`)
-
-						const {
-							blockscoutExplorerRestV2OriginByChainId,
-						} = await import('$/sources/Blockscout/Rest/constants.ts')
 						const { getErc4337SmartAccountDetail } = await import('$/sources/Blockscout/Rest/queries.ts')
-						const origin = blockscoutExplorerRestV2OriginByChainId[chainIdFromEvmNetworkId($account.$network)]
-						if (origin == null)
-							throw new Error(`Blockscout_Rest: no Blockscout v2 explorer for chain ${chainIdFromEvmNetworkId($account.$network)}`)
+						const client = blockscoutAccountAbstractionClient(
+							chainIdFromEvmNetworkId($account.$network)
+						)
 
 						return {
 							$account,
 							timestampMs,
 							source,
-							userOperationsCount: (await getErc4337SmartAccountDetail({
-								explorerOrigin: origin,
+							userOperationsCount: (await client.query(getErc4337SmartAccountDetail, {
 								address: $account.address,
 							})).total_ops,
 						}
@@ -1782,7 +1714,7 @@ export default {
 		defineResolver(Source.Blockscout_Rest, {
 			entityType: EntityType.Erc4337Paymaster,
 			resolve: {
-				[Erc4337PaymasterSelector.EvmNetworkAddress]: {
+				EvmNetworkAddress: {
 					resolve: async (entitySelector) => erc4337ContractField(entitySelector),
 				}
 			},
@@ -1793,7 +1725,7 @@ export default {
 		defineResolver(Source.Blockscout_Rest, {
 			entityType: EntityType.Erc4337AccountFactory,
 			resolve: {
-				[Erc4337AccountFactorySelector.EvmNetworkAddress]: {
+				EvmNetworkAddress: {
 					resolve: async (entitySelector) => erc4337ContractField(entitySelector),
 				},
 			},
@@ -1804,19 +1736,15 @@ export default {
 		defineResolver(Source.Blockscout_Rest, {
 			entityType: EntityType.EvmUserOperation,
 			resolve: {
-				[EvmUserOperationSelector.EvmNetworkHash]: {
+				EvmNetworkHash: {
 					resolve: async ({ $network, hash }) => {
-						const {
-							blockscoutExplorerRestV2OriginByChainId,
-						} = await import('$/sources/Blockscout/Rest/constants.ts')
 						const {
 							getUserOperationDetail,
 						} = await import('$/sources/Blockscout/Rest/queries.ts')
-						const origin = blockscoutExplorerRestV2OriginByChainId[chainIdFromEvmNetworkId($network)]
-						if (origin == null)
-							throw new Error(`Blockscout_Rest: no Blockscout v2 explorer for chain ${chainIdFromEvmNetworkId($network)}`)
-						const wire = await getUserOperationDetail({
-							explorerOrigin: origin,
+						const client = blockscoutAccountAbstractionClient(
+							chainIdFromEvmNetworkId($network)
+						)
+						const wire = await client.query(getUserOperationDetail, {
 							hash: hash,
 						})
 						const bundledTransactionHash = (
@@ -2029,7 +1957,7 @@ export default {
 		defineResolver(Source.Blockscout_Rest, {
 			entityType: EntityType.Market_Timestamp,
 			resolve: {
-				[Market_TimestampSelector.MarketTimestampMsFeedKey]: {
+				MarketTimestampMsFeedKey: {
 					resolve: async ({ $market, feedKey, timestampMs: timestampMsSelector }) => {
 						if ($market.marketKind !== MarketKind.Spot)
 							throw new Error('Blockscout_Rest: Market_Timestamp is spot-only')
@@ -2071,7 +1999,7 @@ export default {
 		defineResolver(Source.Blockscout_Rest, {
 				entityType: EntityType.EvmNetwork_GasEstimate_Timestamp,
 				resolve: {
-					[EvmNetwork_GasEstimate_TimestampSelector.NetworkTimestampMsSource]: {
+					NetworkTimestampMsSource: {
 						resolve: async ({ $network, timestampMs, source }) => {
 							if (source !== Source.Blockscout_Rest)
 								throw new Error('Blockscout_Rest: EvmNetwork_GasEstimate_Timestamp selector source mismatch')
@@ -2105,7 +2033,7 @@ export default {
 		defineResolver(Source.Blockscout_Rest, {
 			entityType: EntityType.Coin_Timestamp,
 			resolve: {
-				[Coin_TimestampSelector.CoinTimestampMsSource]: {
+				CoinTimestampMsSource: {
 					resolve: async ({ $coin, timestampMs: timestampMsSelector }) => {
 						const stats = await blockscoutStatsForNativeCoinId($coin.coinId)
 						if (stats == null)
@@ -2151,7 +2079,7 @@ export default {
 		defineResolver(Source.Blockscout_Rest, {
 			entityType: EntityType.Network,
 			resolve: {
-				[NetworkSelector.Caip2]: {
+				Caip2: {
 					resolve: async (entitySelector) => {
 						const stats = await blockscoutStatsForChain(chainIdFromEvmNetworkId(entitySelector))
 						if (stats == null)
@@ -2175,7 +2103,7 @@ export default {
 		defineResolver(Source.Blockscout_Rest, {
 			entityType: EntityType.Network,
 			resolve: {
-				[NetworkSelector.Caip2]: {
+				Caip2: {
 					resolve: async (entitySelector) => {
 							const stats = await blockscoutStatsForChain(chainIdFromEvmNetworkId(entitySelector))
 							if (stats == null)
@@ -2199,17 +2127,18 @@ export default {
 		defineResolver(Source.Blockscout_Rest, {
 			entityType: EntityType.EvmNetworkAccount,
 			resolve: {
-				[EvmNetworkAccountSelector.EvmNetworkEvmAccount]: {
+				EvmNetworkEvmAccount: {
 					resolve: async ({ $actor, $network }) => {
 						const { getAddressCounters } = await import('$/sources/Blockscout/Rest/queries.ts')
-						const origin = await requireBlockscoutV2ExplorerOrigin(chainIdFromEvmNetworkId($network))
+						const client = blockscoutRestClient(
+							chainIdFromEvmNetworkId($network)
+						)
 						const address = hexLowerOfByteSize($actor.address, 20)
 						if (address == null)
 							throw new Error('Blockscout_Rest: EvmNetworkAccount wallet address not normalized')
 
 						return blockscoutCountFromDecimalString(
-							(await getAddressCounters({
-								explorerOrigin: origin,
+							(await client.query(getAddressCounters, {
 								address,
 							})).transactions_count,
 							'transactions_count'
@@ -2226,17 +2155,16 @@ export default {
 		defineResolver(Source.Blockscout_Rest, {
 			entityType: EntityType.EvmNetworkAccount,
 			resolve: {
-				[EvmNetworkAccountSelector.EvmNetworkEvmAccount]: {
+				EvmNetworkEvmAccount: {
 					resolve: async ({ $actor, $network }) => {
 						const { getAddressCounters } = await import('$/sources/Blockscout/Rest/queries.ts')
-						const origin = await requireBlockscoutV2ExplorerOrigin(chainIdFromEvmNetworkId($network))
+						const client = blockscoutRestClient(chainIdFromEvmNetworkId($network))
 						const address = hexLowerOfByteSize($actor.address, 20)
 						if (address == null)
 							throw new Error('Blockscout_Rest: EvmNetworkAccount wallet address not normalized')
 
 						return blockscoutCountFromDecimalString(
-							(await getAddressCounters({
-								explorerOrigin: origin,
+							(await client.query(getAddressCounters, {
 								address,
 							})).token_transfers_count,
 							'token_transfers_count'
@@ -2253,12 +2181,11 @@ export default {
 		defineResolver(Source.Blockscout_Rest, {
 			entityType: EntityType.EvmBlock,
 			resolve: {
-				[EvmBlockSelector.EvmNetworkBlockNumber]: {
+				EvmNetworkBlockNumber: {
 					resolve: async ({ $network, blockNumber }) => {
 						const { getBlockByNumber } = await import('$/sources/Blockscout/Rest/queries.ts')
-						const origin = await requireBlockscoutV2ExplorerOrigin(chainIdFromEvmNetworkId($network))
-						const header = await getBlockByNumber({
-							explorerOrigin: origin,
+						const client = blockscoutRestClient(chainIdFromEvmNetworkId($network))
+						const header = await client.query(getBlockByNumber, {
 							blockNumber: blockNumber,
 						})
 						if (header == null)
@@ -2278,10 +2205,9 @@ export default {
 		defineResolver(Source.Blockscout_Rest, {
 			entityType: EntityType.Network,
 			resolve: {
-				[NetworkSelector.Caip2]: {
+				Caip2: {
 					resolve: async (entitySelector, context) => {
 						const {
-							blockscoutExplorerRestV2OriginByChainId,
 							blockscoutV2ItemsCountMax,
 						} = await import('$/sources/Blockscout/Rest/constants.ts')
 						const limit = Math.min(
@@ -2289,11 +2215,8 @@ export default {
 							blockscoutV2ItemsCountMax
 						)
 						const { getBlocks } = await import('$/sources/Blockscout/Rest/queries.ts')
-						const origin = blockscoutExplorerRestV2OriginByChainId[chainIdFromEvmNetworkId(entitySelector)]
-						if (origin == null)
-							throw new Error(`Blockscout_Rest: no Blockscout v2 explorer for chain ${chainIdFromEvmNetworkId(entitySelector)}`)
-						const wires = await getBlocks({
-							explorerOrigin: origin,
+						const client = blockscoutRestClient(chainIdFromEvmNetworkId(entitySelector))
+						const wires = await client.query(getBlocks, {
 							limit,
 						})
 						return (
@@ -2329,10 +2252,9 @@ export default {
 		defineResolver(Source.Blockscout_Rest, {
 			entityType: EntityType.Network,
 			resolve: {
-				[NetworkSelector.Caip2]: {
+				Caip2: {
 					resolve: async (entitySelector, context) => {
 							const {
-								blockscoutExplorerRestV2OriginByChainId,
 								blockscoutV2ItemsCountMax,
 							} = await import('$/sources/Blockscout/Rest/constants.ts')
 							const limit = Math.min(
@@ -2340,11 +2262,8 @@ export default {
 								blockscoutV2ItemsCountMax
 						)
 							const { getTransactions } = await import('$/sources/Blockscout/Rest/queries.ts')
-							const origin = blockscoutExplorerRestV2OriginByChainId[chainIdFromEvmNetworkId(entitySelector)]
-							if (origin == null)
-								throw new Error(`Blockscout_Rest: no Blockscout v2 explorer for chain ${chainIdFromEvmNetworkId(entitySelector)}`)
-							const wires = await getTransactions({
-								explorerOrigin: origin,
+							const client = blockscoutRestClient(chainIdFromEvmNetworkId(entitySelector))
+							const wires = await client.query(getTransactions, {
 								limit,
 							})
 							return (
@@ -2380,10 +2299,9 @@ export default {
 		defineResolver(Source.Blockscout_Rest, {
 			entityType: EntityType.EvmNetworkAccount,
 			resolve: {
-				[EvmNetworkAccountSelector.EvmNetworkEvmAccount]: {
+				EvmNetworkEvmAccount: {
 					resolve: async ({ $actor, $network }, context) => {
 							const {
-								blockscoutExplorerRestV2OriginByChainId,
 								blockscoutV2ItemsCountMax,
 							} = await import('$/sources/Blockscout/Rest/constants.ts')
 							const limit = Math.min(
@@ -2391,14 +2309,11 @@ export default {
 								blockscoutV2ItemsCountMax
 						)
 							const { getAddressTransactions } = await import('$/sources/Blockscout/Rest/queries.ts')
-							const origin = blockscoutExplorerRestV2OriginByChainId[chainIdFromEvmNetworkId($network)]
-							if (origin == null)
-								throw new Error(`Blockscout_Rest: no Blockscout v2 explorer for chain ${chainIdFromEvmNetworkId($network)}`)
+							const client = blockscoutRestClient(chainIdFromEvmNetworkId($network))
 							const address = hexLowerOfByteSize($actor.address, 20)
 							if (address == null)
 								throw new Error('Blockscout_Rest: EvmNetworkAccount wallet address not normalized')
-							const wires = await getAddressTransactions({
-								explorerOrigin: origin,
+							const wires = await client.query(getAddressTransactions, {
 								address,
 								limit,
 							})
@@ -2433,10 +2348,9 @@ export default {
 		defineResolver(Source.Blockscout_Rest, {
 			entityType: EntityType.EvmNetworkAccount,
 			resolve: {
-				[EvmNetworkAccountSelector.EvmNetworkEvmAccount]: {
+				EvmNetworkEvmAccount: {
 					resolve: async ({ $actor, $network }, context) => {
 							const {
-								blockscoutExplorerRestV2OriginByChainId,
 								blockscoutV2ItemsCountMax,
 							} = await import('$/sources/Blockscout/Rest/constants.ts')
 							const {
@@ -2446,21 +2360,18 @@ export default {
 								resolverContextRowLimit(context),
 								blockscoutV2ItemsCountMax
 						)
-							const origin = blockscoutExplorerRestV2OriginByChainId[chainIdFromEvmNetworkId($network)]
-							if (origin == null)
-								throw new Error(`Blockscout_Rest: no Blockscout v2 explorer for chain ${chainIdFromEvmNetworkId($network)}`)
+							const client = blockscoutRestClient(chainIdFromEvmNetworkId($network))
 							const address = hexLowerOfByteSize($actor.address, 20)
 							if (address == null)
 								throw new Error('Blockscout_Rest: EvmNetworkAccount wallet address not normalized')
-							const wires = await getAddressTokenTransfers({
-								explorerOrigin: origin,
+							const wires = await client.query(getAddressTokenTransfers, {
 								address,
 								limit,
 							})
 							return (
 								await evmTokenTransferEntitiesFromBlockscoutAddressWires({
 									$network: $network,
-									explorerOrigin: origin,
+									client,
 									wires,
 								})
 							)
@@ -2474,10 +2385,9 @@ export default {
 		defineResolver(Source.Blockscout_Rest, {
 			entityType: EntityType.EvmNetworkAccount,
 			resolve: {
-				[EvmNetworkAccountSelector.EvmNetworkEvmAccount]: {
+				EvmNetworkEvmAccount: {
 					resolve: async ({ $actor, $network }, context) => {
 						const {
-							blockscoutExplorerRestV2OriginByChainId,
 							blockscoutV2ItemsCountMax,
 						} = await import('$/sources/Blockscout/Rest/constants.ts')
 						const {
@@ -2487,14 +2397,11 @@ export default {
 							resolverContextRowLimit(context),
 							blockscoutV2ItemsCountMax
 						)
-						const origin = blockscoutExplorerRestV2OriginByChainId[chainIdFromEvmNetworkId($network)]
-						if (origin == null)
-							throw new Error(`Blockscout_Rest: no Blockscout v2 explorer for chain ${chainIdFromEvmNetworkId($network)}`)
+						const client = blockscoutRestClient(chainIdFromEvmNetworkId($network))
 						const address = hexLowerOfByteSize($actor.address, 20)
 						if (address == null)
 							throw new Error('Blockscout_Rest: EvmNetworkAccount wallet address not normalized')
-						const wires = await getAddressInternalTransactions({
-							explorerOrigin: origin,
+						const wires = await client.query(getAddressInternalTransactions, {
 							address,
 							limit,
 						})
@@ -2512,10 +2419,9 @@ export default {
 		defineResolver(Source.Blockscout_Rest, {
 			entityType: EntityType.Network,
 			resolve: {
-				[NetworkSelector.Caip2]: {
+				Caip2: {
 					resolve: async (entitySelector, context) => {
 						const {
-							blockscoutExplorerRestV2OriginByChainId,
 							blockscoutV2ItemsCountMax,
 						} = await import('$/sources/Blockscout/Rest/constants.ts')
 						const {
@@ -2523,16 +2429,13 @@ export default {
 							getTokenTransfers,
 						} = await import('$/sources/Blockscout/Rest/queries.ts')
 						const chainId = chainIdFromEvmNetworkId(entitySelector)
-						const origin = blockscoutExplorerRestV2OriginByChainId[chainId]
-						if (origin == null)
-							throw new Error(`Blockscout_Rest: no Blockscout v2 explorer for chain ${chainId}`)
+						const client = blockscoutRestClient(chainId)
 						const limit = Math.min(
 							resolverContextRowLimit(context),
 							blockscoutV2ItemsCountMax
 						)
 						const wiresByTxHash = Object.groupBy(
-							await getTokenTransfers({
-								explorerOrigin: origin,
+							await client.query(getTokenTransfers, {
 								limit: blockscoutV2ItemsCountMax,
 							}),
 							(wire) => wire.transaction_hash ?? ''
@@ -2545,8 +2448,7 @@ export default {
 										[]
 									:
 										[(
-											getTransactionLogs({
-												explorerOrigin: origin,
+											client.query(getTransactionLogs, {
 												txHash,
 											})
 												.then((receiptLogs) => evmTokenTransferEntitiesFromBlockscoutWires({
@@ -2584,10 +2486,9 @@ export default {
 		defineResolver(Source.Blockscout_Rest, {
 			entityType: EntityType.Network,
 			resolve: {
-				[NetworkSelector.Caip2]: {
+				Caip2: {
 					resolve: async (entitySelector, context) => {
 						const {
-							blockscoutExplorerRestV2OriginByChainId,
 							blockscoutV2ItemsCountMax,
 						} = await import('$/sources/Blockscout/Rest/constants.ts')
 						const limit = Math.min(
@@ -2598,11 +2499,8 @@ export default {
 							normalizeAddressFromContractListWire,
 							getSmartContracts,
 						} = await import('$/sources/Blockscout/Rest/queries.ts')
-						const origin = blockscoutExplorerRestV2OriginByChainId[chainIdFromEvmNetworkId(entitySelector)]
-						if (origin == null)
-							throw new Error(`Blockscout_Rest: no Blockscout v2 explorer for chain ${chainIdFromEvmNetworkId(entitySelector)}`)
-						const smartContracts = await getSmartContracts({
-							explorerOrigin: origin,
+						const client = blockscoutRestClient(chainIdFromEvmNetworkId(entitySelector))
+						const smartContracts = await client.query(getSmartContracts, {
 							limit,
 						})
 						const entities = (
@@ -2633,11 +2531,10 @@ export default {
 		defineResolver(Source.Blockscout_Rest, {
 			entityType: EntityType.Network,
 			resolve: {
-				[NetworkSelector.Caip2]: {
+				Caip2: {
 					resolve: async (entitySelector, context) => {
 						const {
 							blockscoutErc4337OperationSupportByChainId,
-							blockscoutExplorerRestV2OriginByChainId,
 							blockscoutV2ItemsCountMax,
 						} = await import('$/sources/Blockscout/Rest/constants.ts')
 						const chainId = chainIdFromEvmNetworkId(entitySelector)
@@ -2649,11 +2546,8 @@ export default {
 							blockscoutV2ItemsCountMax
 						)
 						const { getErc4337SmartAccountList } = await import('$/sources/Blockscout/Rest/queries.ts')
-						const origin = blockscoutExplorerRestV2OriginByChainId[chainId]
-						if (origin == null)
-							throw new Error(`Blockscout_Rest: no Blockscout v2 explorer for chain ${chainId}`)
-						const wires = await getErc4337SmartAccountList({
-							explorerOrigin: origin,
+						const client = blockscoutAccountAbstractionClient(chainId)
+						const wires = await client.query(getErc4337SmartAccountList, {
 							limit,
 						})
 						return erc4337RegistryEntitiesFromBlockscoutWires<EntityType.Erc4337SmartAccount>({
@@ -2672,11 +2566,10 @@ export default {
 		defineResolver(Source.Blockscout_Rest, {
 			entityType: EntityType.Network,
 			resolve: {
-				[NetworkSelector.Caip2]: {
+				Caip2: {
 					resolve: async (entitySelector, context) => {
 						const {
 							blockscoutErc4337RegistryListSupportByChainId,
-							blockscoutExplorerRestV2OriginByChainId,
 							blockscoutV2ItemsCountMax,
 						} = await import('$/sources/Blockscout/Rest/constants.ts')
 						const chainId = chainIdFromEvmNetworkId(entitySelector)
@@ -2688,13 +2581,10 @@ export default {
 							blockscoutV2ItemsCountMax
 						)
 						const { getErc4337BundlerList } = await import('$/sources/Blockscout/Rest/queries.ts')
-						const origin = blockscoutExplorerRestV2OriginByChainId[chainId]
-						if (origin == null)
-							throw new Error(`Blockscout_Rest: no Blockscout v2 explorer for chain ${chainId}`)
+						const client = blockscoutAccountAbstractionClient(chainId)
 						let wires: BlockscoutErc4337RegistryEntry[]
 						try {
-							wires = await getErc4337BundlerList({
-								explorerOrigin: origin,
+							wires = await client.query(getErc4337BundlerList, {
 								limit,
 							})
 						} catch {
@@ -2716,11 +2606,10 @@ export default {
 		defineResolver(Source.Blockscout_Rest, {
 			entityType: EntityType.Network,
 			resolve: {
-				[NetworkSelector.Caip2]: {
+				Caip2: {
 					resolve: async (entitySelector, context) => {
 						const {
 							blockscoutErc4337RegistryListSupportByChainId,
-							blockscoutExplorerRestV2OriginByChainId,
 							blockscoutV2ItemsCountMax,
 						} = await import('$/sources/Blockscout/Rest/constants.ts')
 						const chainId = chainIdFromEvmNetworkId(entitySelector)
@@ -2732,13 +2621,10 @@ export default {
 							blockscoutV2ItemsCountMax
 						)
 						const { getErc4337PaymasterList } = await import('$/sources/Blockscout/Rest/queries.ts')
-						const origin = blockscoutExplorerRestV2OriginByChainId[chainId]
-						if (origin == null)
-							throw new Error(`Blockscout_Rest: no Blockscout v2 explorer for chain ${chainId}`)
+						const client = blockscoutAccountAbstractionClient(chainId)
 						let wires: BlockscoutErc4337RegistryEntry[]
 						try {
-							wires = await getErc4337PaymasterList({
-								explorerOrigin: origin,
+							wires = await client.query(getErc4337PaymasterList, {
 								limit,
 							})
 						} catch {
@@ -2760,11 +2646,10 @@ export default {
 		defineResolver(Source.Blockscout_Rest, {
 			entityType: EntityType.Network,
 			resolve: {
-				[NetworkSelector.Caip2]: {
+				Caip2: {
 					resolve: async (entitySelector, context) => {
 						const {
 							blockscoutErc4337RegistryListSupportByChainId,
-							blockscoutExplorerRestV2OriginByChainId,
 							blockscoutV2ItemsCountMax,
 						} = await import('$/sources/Blockscout/Rest/constants.ts')
 						const chainId = chainIdFromEvmNetworkId(entitySelector)
@@ -2776,13 +2661,10 @@ export default {
 							blockscoutV2ItemsCountMax
 						)
 						const { getErc4337AccountFactoryList } = await import('$/sources/Blockscout/Rest/queries.ts')
-						const origin = blockscoutExplorerRestV2OriginByChainId[chainId]
-						if (origin == null)
-							throw new Error(`Blockscout_Rest: no Blockscout v2 explorer for chain ${chainId}`)
+						const client = blockscoutAccountAbstractionClient(chainId)
 						let wires: BlockscoutErc4337RegistryEntry[]
 						try {
-							wires = await getErc4337AccountFactoryList({
-								explorerOrigin: origin,
+							wires = await client.query(getErc4337AccountFactoryList, {
 								limit,
 							})
 						} catch {
@@ -2804,11 +2686,10 @@ export default {
 		defineResolver(Source.Blockscout_Rest, {
 			entityType: EntityType.Network,
 			resolve: {
-				[NetworkSelector.Caip2]: {
+				Caip2: {
 					resolve: async (entitySelector, context) => {
 						const {
 							blockscoutErc4337OperationSupportByChainId,
-							blockscoutExplorerRestV2OriginByChainId,
 							blockscoutV2ItemsCountMax,
 						} = await import('$/sources/Blockscout/Rest/constants.ts')
 						const chainId = chainIdFromEvmNetworkId(entitySelector)
@@ -2820,11 +2701,8 @@ export default {
 							blockscoutV2ItemsCountMax
 						)
 						const { getUserOperationsPage } = await import('$/sources/Blockscout/Rest/queries.ts')
-						const origin = blockscoutExplorerRestV2OriginByChainId[chainId]
-						if (origin == null)
-							throw new Error(`Blockscout_Rest: no Blockscout v2 explorer for chain ${chainId}`)
-						const wires = await getUserOperationsPage({
-							explorerOrigin: origin,
+						const client = blockscoutAccountAbstractionClient(chainId)
+						const wires = await client.query(getUserOperationsPage, {
 							limit,
 						})
 						const entities = (
@@ -2871,7 +2749,7 @@ export default {
 		defineResolver(Source.Blockscout_Rest, {
 			entityType: EntityType.Network,
 			resolve: {
-				[NetworkSelector.Caip2]: {
+				Caip2: {
 						resolve: async (entitySelector) => {
 							const stats = await blockscoutStatsForChain(chainIdFromEvmNetworkId(entitySelector))
 							if (stats == null) return []
@@ -2910,7 +2788,7 @@ export default {
 		defineResolver(Source.Blockscout_Rest, {
 			entityType: EntityType.Coin,
 			resolve: {
-				[CoinSelector.CoinId]: {
+				CoinId: {
 					resolve: async ({ coinId }) => {
 						const stats = await blockscoutStatsForNativeCoinId(coinId)
 						if (stats == null)
@@ -2942,7 +2820,7 @@ export default {
 		defineResolver(Source.Blockscout_Rest, {
 			entityType: EntityType.MarketPrice,
 			resolve: {
-				[MarketPriceSelector.Market]: {
+				Market: {
 					resolve: async ({ $market }) => {
 						if ($market.marketKind !== MarketKind.Spot)
 							return []
@@ -2987,10 +2865,9 @@ export default {
 		defineResolver(Source.Blockscout_Rest, {
 			entityType: EntityType.EvmTransaction,
 			resolve: {
-				[EvmTransactionSelector.EvmNetworkTxHash]: {
+				EvmNetworkTxHash: {
 					resolve: async ({ $network, txHash }, context) => {
 						const {
-							blockscoutExplorerRestV2OriginByChainId,
 							blockscoutV2ItemsCountMax,
 						} = await import('$/sources/Blockscout/Rest/constants.ts')
 						const {
@@ -3001,19 +2878,17 @@ export default {
 							resolverContextRowLimit(context),
 							blockscoutV2ItemsCountMax
 						)
-						const origin = blockscoutExplorerRestV2OriginByChainId[chainIdFromEvmNetworkId($network)]
-						if (origin == null)
-							throw new Error(`Blockscout_Rest: no Blockscout v2 explorer for chain ${chainIdFromEvmNetworkId($network)}`)
-						const wires = await getTransactionTokenTransfers({
-							explorerOrigin: origin,
+						const client = blockscoutRestClient(
+							chainIdFromEvmNetworkId($network)
+						)
+						const wires = await client.query(getTransactionTokenTransfers, {
 							txHash: txHash,
 							limit,
 						})
 						return evmTokenTransferEntitiesFromBlockscoutWires({
 							$network,
 							txHash,
-							receiptLogs: await getTransactionLogs({
-								explorerOrigin: origin,
+							receiptLogs: await client.query(getTransactionLogs, {
 								txHash,
 							}),
 							wires,
@@ -3028,10 +2903,9 @@ export default {
 		defineResolver(Source.Blockscout_Rest, {
 			entityType: EntityType.EvmTransaction,
 			resolve: {
-				[EvmTransactionSelector.EvmNetworkTxHash]: {
+				EvmNetworkTxHash: {
 					resolve: async ({ $network, txHash }, context) => {
 						const {
-							blockscoutExplorerRestV2OriginByChainId,
 							blockscoutV2ItemsCountMax,
 						} = await import('$/sources/Blockscout/Rest/constants.ts')
 						const { getTransactionInternalTransactions } = await import('$/sources/Blockscout/Rest/queries.ts')
@@ -3039,11 +2913,10 @@ export default {
 							resolverContextRowLimit(context),
 							blockscoutV2ItemsCountMax
 						)
-						const origin = blockscoutExplorerRestV2OriginByChainId[chainIdFromEvmNetworkId($network)]
-						if (origin == null)
-							throw new Error(`Blockscout_Rest: no Blockscout v2 explorer for chain ${chainIdFromEvmNetworkId($network)}`)
-						const wires = await getTransactionInternalTransactions({
-							explorerOrigin: origin,
+						const client = blockscoutRestClient(
+							chainIdFromEvmNetworkId($network)
+						)
+						const wires = await client.query(getTransactionInternalTransactions, {
 							txHash: txHash,
 							limit,
 						})
@@ -3064,10 +2937,9 @@ export default {
 		defineResolver(Source.Blockscout_Rest, {
 			entityType: EntityType.EvmTransaction,
 			resolve: {
-				[EvmTransactionSelector.EvmNetworkTxHash]: {
+				EvmNetworkTxHash: {
 					resolve: async ({ $network, txHash }, context) => {
 						const {
-							blockscoutExplorerRestV2OriginByChainId,
 							blockscoutV2ItemsCountMax,
 							blockscoutErc4337OperationSupportByChainId,
 						} = await import('$/sources/Blockscout/Rest/constants.ts')
@@ -3078,11 +2950,10 @@ export default {
 							blockscoutV2ItemsCountMax
 						)
 						const { getUserOperationsByTransaction } = await import('$/sources/Blockscout/Rest/queries.ts')
-						const origin = blockscoutExplorerRestV2OriginByChainId[chainIdFromEvmNetworkId($network)]
-						if (origin == null)
-							throw new Error(`Blockscout_Rest: no Blockscout v2 explorer for chain ${chainIdFromEvmNetworkId($network)}`)
-						const wires = await getUserOperationsByTransaction({
-							explorerOrigin: origin,
+						const client = blockscoutAccountAbstractionClient(
+							chainIdFromEvmNetworkId($network)
+						)
+						const wires = await client.query(getUserOperationsByTransaction, {
 							txHash: txHash,
 							limit,
 						})
@@ -3127,10 +2998,9 @@ export default {
 		defineResolver(Source.Blockscout_Rest, {
 			entityType: EntityType.EvmBlock,
 			resolve: {
-				[EvmBlockSelector.EvmNetworkBlockNumber]: {
+				EvmNetworkBlockNumber: {
 					resolve: async ({ $network, blockNumber }, context) => {
 							const {
-								blockscoutExplorerRestV2OriginByChainId,
 								blockscoutV2ItemsCountMax,
 							} = await import('$/sources/Blockscout/Rest/constants.ts')
 							const limit = Math.min(
@@ -3138,11 +3008,8 @@ export default {
 								blockscoutV2ItemsCountMax
 						)
 							const { getBlockTransactions } = await import('$/sources/Blockscout/Rest/queries.ts')
-							const origin = blockscoutExplorerRestV2OriginByChainId[chainIdFromEvmNetworkId($network)]
-							if (origin == null)
-								throw new Error(`Blockscout_Rest: no Blockscout v2 explorer for chain ${chainIdFromEvmNetworkId($network)}`)
-							const wires = await getBlockTransactions({
-								explorerOrigin: origin,
+							const client = blockscoutRestClient(chainIdFromEvmNetworkId($network))
+							const wires = await client.query(getBlockTransactions, {
 								blockNumber: blockNumber,
 								limit,
 							})
@@ -3175,15 +3042,14 @@ export default {
 		defineResolver(Source.Blockscout_Rest, {
 			entityType: EntityType.EvmContract,
 			resolve: {
-				[EvmContractSelector.EvmNetworkAddress]: {
+				EvmNetworkAddress: {
 					resolve: async ({ $network, address: addressSelector }) => {
 						const { getAddressDetails } = await import('$/sources/Blockscout/Rest/queries.ts')
-						const origin = await requireBlockscoutV2ExplorerOrigin(chainIdFromEvmNetworkId($network))
+						const client = blockscoutRestClient(chainIdFromEvmNetworkId($network))
 						const address = hexLowerOfByteSize(addressSelector, 20)
 						if (address == null)
 							throw new Error('Blockscout_Rest: address not normalized')
-						const details = await getAddressDetails({
-							explorerOrigin: origin,
+						const details = await client.query(getAddressDetails, {
 							address,
 						})
 						const creator = details.creator_address_hash
@@ -3205,15 +3071,14 @@ export default {
 		defineResolver(Source.Blockscout_Rest, {
 			entityType: EntityType.EvmContract,
 			resolve: {
-				[EvmContractSelector.EvmNetworkAddress]: {
+				EvmNetworkAddress: {
 					resolve: async ({ $network, address: addressSelector }) => {
 						const { getAddressDetails } = await import('$/sources/Blockscout/Rest/queries.ts')
-						const origin = await requireBlockscoutV2ExplorerOrigin(chainIdFromEvmNetworkId($network))
+						const client = blockscoutRestClient(chainIdFromEvmNetworkId($network))
 						const address = hexLowerOfByteSize(addressSelector, 20)
 						if (address == null)
 							throw new Error('Blockscout_Rest: address not normalized')
-						const details = await getAddressDetails({
-							explorerOrigin: origin,
+						const details = await client.query(getAddressDetails, {
 							address,
 						})
 						const txHash = details.creation_transaction_hash
@@ -3236,15 +3101,14 @@ export default {
 		defineResolver(Source.Blockscout_Rest, {
 			entityType: EntityType.EvmContract,
 			resolve: {
-				[EvmContractSelector.EvmNetworkAddress]: {
+				EvmNetworkAddress: {
 					resolve: async ({ $network, address: addressSelector }) => {
 						const { getAddressDetails } = await import('$/sources/Blockscout/Rest/queries.ts')
-						const origin = await requireBlockscoutV2ExplorerOrigin(chainIdFromEvmNetworkId($network))
+						const client = blockscoutRestClient(chainIdFromEvmNetworkId($network))
 						const address = hexLowerOfByteSize(addressSelector, 20)
 						if (address == null)
 							throw new Error('Blockscout_Rest: address not normalized')
-						const details = await getAddressDetails({
-							explorerOrigin: origin,
+						const details = await client.query(getAddressDetails, {
 							address,
 						})
 						const implementationAddress = details.implementations?.[0]?.address_hash
@@ -3259,8 +3123,9 @@ export default {
 								}
 						}
 						const { getContractSourceCodeRow } = await import('$/sources/Blockscout/Rest/queries.ts')
-						const sourceRow = await getContractSourceCodeRow({
-							explorerOrigin: origin,
+						const sourceRow = await blockscoutEtherscanClient(
+								chainIdFromEvmNetworkId($network)
+							).query(getContractSourceCodeRow, {
 							address,
 						})
 						const legacyImplementation = sourceRow?.Implementation
@@ -3283,15 +3148,16 @@ export default {
 		defineResolver(Source.Blockscout_Rest, {
 			entityType: EntityType.EvmContract,
 			resolve: {
-				[EvmContractSelector.EvmNetworkAddress]: {
+				EvmNetworkAddress: {
 					resolve: async ({ $network, address: addressSelector }) => {
 						const { getContractAbiJsonString } = await import('$/sources/Blockscout/Rest/queries.ts')
-						const origin = await requireBlockscoutV2ExplorerOrigin(chainIdFromEvmNetworkId($network))
+						const client = blockscoutEtherscanClient(
+							chainIdFromEvmNetworkId($network)
+						)
 						const address = hexLowerOfByteSize(addressSelector, 20)
 						if (address == null)
 							throw new Error('Blockscout_Rest: address not normalized')
-						const abi = await getContractAbiJsonString({
-							explorerOrigin: origin,
+						const abi = await client.query(getContractAbiJsonString, {
 							address,
 						})
 						return abi == null ? undefined : evmAbiFromJsonString(abi)
@@ -3305,15 +3171,14 @@ export default {
 		defineResolver(Source.Blockscout_Rest, {
 			entityType: EntityType.EvmContract,
 			resolve: {
-				[EvmContractSelector.EvmNetworkAddress]: {
+				EvmNetworkAddress: {
 					resolve: async ({ $network, address: addressSelector }) => {
 						const { getCode } = await import('$/sources/Blockscout/Rest/queries.ts')
-						const origin = await requireBlockscoutV2ExplorerOrigin(chainIdFromEvmNetworkId($network))
+						const client = blockscoutRestClient(chainIdFromEvmNetworkId($network))
 						const address = hexLowerOfByteSize(addressSelector, 20)
 						if (address == null)
 							throw new Error('Blockscout_Rest: address not normalized')
-						const codeHex = await getCode({
-							explorerOrigin: origin,
+						const codeHex = await client.query(getCode, {
 							address,
 						})
 						if (codeHex == null) return undefined
@@ -3328,15 +3193,14 @@ export default {
 		defineResolver(Source.Blockscout_Rest, {
 			entityType: EntityType.EvmContract,
 			resolve: {
-				[EvmContractSelector.EvmNetworkAddress]: {
+				EvmNetworkAddress: {
 					resolve: async ({ $network, address: addressSelector }) => {
 						const { getCode } = await import('$/sources/Blockscout/Rest/queries.ts')
-						const origin = await requireBlockscoutV2ExplorerOrigin(chainIdFromEvmNetworkId($network))
+						const client = blockscoutRestClient(chainIdFromEvmNetworkId($network))
 						const address = hexLowerOfByteSize(addressSelector, 20)
 						if (address == null)
 							throw new Error('Blockscout_Rest: address not normalized')
-						const codeHex = await getCode({
-							explorerOrigin: origin,
+						const codeHex = await client.query(getCode, {
 							address,
 						})
 						if (codeHex == null) return undefined
@@ -3351,15 +3215,10 @@ export default {
 		defineResolver(Source.Blockscout_Rest, {
 			entityType: EntityType.EvmContract,
 			resolve: {
-				[EvmContractSelector.EvmNetworkAddress]: {
+				EvmNetworkAddress: {
 					resolve: async ({ $network, address: addressSelector }, context) => {
-						const {
-							blockscoutExplorerRestV2OriginByChainId,
-						} = await import('$/sources/Blockscout/Rest/constants.ts')
 						const { getStorageAt } = await import('$/sources/Blockscout/Rest/queries.ts')
-						const origin = blockscoutExplorerRestV2OriginByChainId[chainIdFromEvmNetworkId($network)]
-						if (origin == null)
-							throw new Error(`Blockscout_Rest: no Blockscout v2 explorer for chain ${chainIdFromEvmNetworkId($network)}`)
+						const client = blockscoutRestClient(chainIdFromEvmNetworkId($network))
 						const address = hexLowerOfByteSize(addressSelector, 20)
 						if (address == null)
 							throw new Error('Blockscout_Rest: EvmContract address not normalized')
@@ -3368,8 +3227,7 @@ export default {
 							address,
 							depth,
 							getStorageAt: (slotQuantityHex) => (
-								getStorageAt({
-									explorerOrigin: origin,
+								client.query(getStorageAt, {
 									address,
 									slotQuantityHex,
 								}).then((valueHex) => {

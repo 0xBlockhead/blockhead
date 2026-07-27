@@ -1,5 +1,7 @@
 import assert from 'node:assert/strict'
 import {
+	cpSync,
+	mkdirSync,
 	mkdtempSync,
 	readFileSync,
 	rmSync,
@@ -27,13 +29,27 @@ test('checks route applicability paths and operators against the schema at compi
 	assert.ok(defineRoutesStatement)
 
 	try {
+		mkdirSync(path.join(typeTestRoot, 'scripts/app/inputs'), {
+			recursive: true,
+		})
+		mkdirSync(path.join(typeTestRoot, 'src/constants'), {
+			recursive: true,
+		})
+		cpSync(
+			path.join(root, 'scripts/app/inputs/source-target.ts'),
+			path.join(typeTestRoot, 'scripts/app/inputs/source-target.ts')
+		)
+		cpSync(
+			path.join(root, 'src/constants/Network.ts'),
+			path.join(typeTestRoot, 'src/constants/Network.ts')
+		)
 		const typeTestPath = path.join(typeTestRoot, 'route-mapping-conditions.types.ts')
 		writeFileSync(typeTestPath, `${appSource.slice(0, defineRoutesStatement.end)}\n${readFileSync(path.join(root, 'scripts/app/route-mapping-conditions.types.ts'), 'utf8')}`)
 		const result = spawnSync(
 			process.execPath,
 			[
 				'--max-old-space-size=1024',
-				path.join(root, 'node_modules/typescript/bin/tsc'),
+				process.env.TSC_PATH ?? path.join(root, 'node_modules/@typescript/native/bin/tsc'),
 				'--noEmit',
 				'--ignoreConfig',
 				'--allowImportingTsExtensions',

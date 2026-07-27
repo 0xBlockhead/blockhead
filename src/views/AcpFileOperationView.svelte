@@ -2,14 +2,10 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
 	import { ZeroExHex } from '$/schema/ZeroExHex.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -21,42 +17,24 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.AcpFileOperation>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.AcpFileOperation>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.AcpFileOperation> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const acpFileOperation = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {
-			operationKind: true,
-			path: true,
-		},
-	} : {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const viewSelection = $derived(selection({
+		sources: selection.sources ?? [
+			Source.AcpLocal_JsonRpc,
+		],
+	}))
+	const acpFileOperation = $derived(viewSelection({
 		fields: {
 			operationKind: true,
 			path: true,
 		},
 	}))
-	const titleFallback = $derived([String((pendingEntity.operationId) ?? '')].filter(Boolean).join(' ') || 'ACP file operation')
-	const viewDomId = $derived('acp-file-operation-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const titleFallback = $derived((pendingEntity.operationId ?? '') || 'ACP file operation')
 
 
 	// Components
@@ -70,61 +48,35 @@
 
 <EntityView
 	entityType={EntityType.AcpFileOperation}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'operationKind') && Object.hasOwn(prefetched, 'path')}
-			{[String((pendingEntity.operationId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-		{:else}
-			<ResourceBoundary resource={acpFileOperation}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.operationId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		{(pendingEntity.operationId ?? '') || 'ACP file operation'}
 	{/snippet}
 
 	{#snippet Value()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'operationKind') && Object.hasOwn(prefetched, 'path')}
-			{[String((pendingEntity.operationKind) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.operationId) ?? '')].filter(Boolean).join(' ') || titleFallback}
-		{:else}
-			<ResourceBoundary resource={acpFileOperation}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.operationKind) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.operationId) ?? '')].filter(Boolean).join(' ') || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={acpFileOperation}>
+			{#snippet children(entity)}
+				{entity.operationKind || pendingEntity.operationId || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'operationKind') && Object.hasOwn(prefetched, 'path')}
-			{@const path0 = pendingEntity.path}
-			{#if path0 !== undefined && path0 !== null}
-				<span data-text="muted">
-					{String((path0) ?? '')}
-				</span>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={acpFileOperation}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const path0 = resolvedEntity.path}
-					{#if path0 !== undefined && path0 !== null}
-						<span data-text="muted">
-							{String((path0) ?? '')}
-						</span>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={acpFileOperation}>
+			{#snippet children(entity)}
+				{@const path0 = entity.path}
+				{#if path0 != null}
+					<span data-text="muted">
+						{path0}
+					</span>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -143,24 +95,7 @@
 			<div>
 				<dt>operation ID</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									operationId: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const operationId = resolvedEntity.operationId}
-							{#if operationId !== undefined && operationId !== null}
-								{String((operationId) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{pendingEntity.operationId}
 				</dd>
 			</div>
 
@@ -168,44 +103,25 @@
 				<dt>operation kind</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									operationKind: true,
-								},
-							})
-						}
+						resource={acpFileOperation}
 					>
 						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const operationKind = resolvedEntity.operationKind}
-							{#if operationKind !== undefined && operationKind !== null}
-								{String((operationKind) ?? '')}
-							{/if}
+							{entity.operationKind}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
 			</div>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							path: true,
-						},
-					})
-				}
+				resource={acpFileOperation}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const path = resolvedEntity.path}
-					{#if path !== undefined && path !== null}
+					{@const path = entity.path}
+					{#if path != null}
 						<div>
 							<dt>path</dt>
 							<dd>
-								{String((path) ?? '')}
+								{path}
 							</dd>
 						</div>
 					{/if}
@@ -216,8 +132,7 @@
 		<dl data-column-item="center">
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							startLine: true,
 						},
@@ -225,9 +140,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const startLine = resolvedEntity.startLine}
-					{#if startLine !== undefined && startLine !== null}
+					{@const startLine = entity.startLine}
+					{#if startLine != null}
 						<div>
 							<dt>start line</dt>
 							<dd>
@@ -242,8 +156,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							endLine: true,
 						},
@@ -251,9 +164,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const endLine = resolvedEntity.endLine}
-					{#if endLine !== undefined && endLine !== null}
+					{@const endLine = entity.endLine}
+					{#if endLine != null}
 						<div>
 							<dt>end line</dt>
 							<dd>
@@ -268,8 +180,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							contentHashAlgorithm: true,
 						},
@@ -277,13 +188,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const contentHashAlgorithm = resolvedEntity.contentHashAlgorithm}
-					{#if contentHashAlgorithm !== undefined && contentHashAlgorithm !== null}
+					{@const contentHashAlgorithm = entity.contentHashAlgorithm}
+					{#if contentHashAlgorithm != null}
 						<div>
 							<dt>content hash algorithm</dt>
 							<dd>
-								<TruncatedValue value={String((contentHashAlgorithm) ?? '')} />
+								<TruncatedValue value={contentHashAlgorithm} />
 							</dd>
 						</div>
 					{/if}
@@ -292,8 +202,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							contentHash: true,
 						},
@@ -301,13 +210,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const contentHash = resolvedEntity.contentHash}
-					{#if contentHash !== undefined && contentHash !== null}
+					{@const contentHash = entity.contentHash}
+					{#if contentHash != null}
 						<div>
 							<dt>content hash</dt>
 							<dd>
-								<TruncatedValue value={String((contentHash) ?? '')} />
+								<TruncatedValue value={String(contentHash)} />
 							</dd>
 						</div>
 					{/if}
@@ -318,8 +226,7 @@
 		<dl data-column-item="center">
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							timestampMs: true,
 						},
@@ -327,9 +234,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const timestampMs = resolvedEntity.timestampMs}
-					{#if timestampMs !== undefined && timestampMs !== null}
+					{@const timestampMs = entity.timestampMs}
+					{#if timestampMs != null}
 						<div>
 							<dt>Timestamp</dt>
 							<dd>
@@ -342,8 +248,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							status: true,
 						},
@@ -351,13 +256,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const status = resolvedEntity.status}
-					{#if status !== undefined && status !== null}
+					{@const status = entity.status}
+					{#if status != null}
 						<div>
 							<dt>status</dt>
 							<dd>
-								{String((status) ?? '')}
+								{status}
 							</dd>
 						</div>
 					{/if}
@@ -366,8 +270,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							error: true,
 						},
@@ -375,13 +278,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const error = resolvedEntity.error}
-					{#if error !== undefined && error !== null}
+					{@const error = entity.error}
+					{#if error != null}
 						<div>
 							<dt>error</dt>
 							<dd>
-								{String((error) ?? '')}
+								{error}
 							</dd>
 						</div>
 					{/if}

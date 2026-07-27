@@ -11,17 +11,23 @@ import {
 	indexSchema,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import { CosmosAccountSelector } from '$/schema/CosmosAccount.ts'
-import { CosmosGovernanceProposalSelector } from '$/schema/CosmosGovernanceProposal.ts'
-import { NetworkSelector } from '$/schema/Network.ts'
 import { TransportType } from '$/constants/TransportType.ts'
 import { schema } from '$/schema/index.ts'
 import { Source } from '$/sources/Source.ts'
 
 const getJson = vi.hoisted(() => vi.fn())
 
-vi.mock('$/lib/http.ts', () => ({
+vi.mock('$/lib/http.ts', async (importOriginal) => ({
+	...await importOriginal<typeof import('$/lib/http.ts')>(),
 	getJson,
+	corsFetch: async (
+		url: string,
+		options: {
+			init?: RequestInit
+		}
+	) => new Response(JSON.stringify((await getJson(url, {
+		init: options.init,
+	})) ?? null)),
 }))
 
 const { default: cosmosSdk } = await import('$/resolvers/CosmosSdk-Rest.ts')
@@ -43,7 +49,7 @@ describe('Cosmos SDK endpoint resolver', () => {
 		const networkSelector = {
 			slug: 'cosmos',
 		}
-		const restEndpoints = await cosmosSdk.resolvers[0].resolve[NetworkSelector.Slug].resolve({
+		const restEndpoints = await cosmosSdk.resolvers[0].resolve['Slug'].resolve({
 			slug: 'cosmos',
 		}, context)
 
@@ -128,7 +134,7 @@ describe('Cosmos SDK account list resolver', () => {
 			},
 		})
 
-		await expect(cosmosSdk.resolvers[16].resolve[NetworkSelector.Slug].resolve({
+		await expect(cosmosSdk.resolvers[16].resolve['Slug'].resolve({
 			slug: 'cosmos',
 		}, context)).resolves.toEqual([
 			{
@@ -170,7 +176,7 @@ describe('Cosmos SDK account list resolver', () => {
 			},
 		})
 
-		await expect(cosmosSdk.resolvers[17].resolve[NetworkSelector.Caip2].resolve({
+		await expect(cosmosSdk.resolvers[17].resolve['Caip2'].resolve({
 			caip2: {
 				namespace: 'cosmos',
 				reference: 'cosmoshub-4',
@@ -207,7 +213,7 @@ describe('Cosmos SDK account detail resolver', () => {
 		})
 
 		const snapshot = await cosmosSdk.resolvers[4].resolve[
-			CosmosAccountSelector.NetworkAddress
+			'NetworkAddress'
 		].resolve({
 			$network: {
 				slug: 'cosmos',
@@ -269,7 +275,7 @@ describe('Cosmos SDK account detail resolver', () => {
 
 	it('rejects an unsupported network before transport', async () => {
 		await expect(cosmosSdk.resolvers[4].resolve[
-			CosmosAccountSelector.NetworkAddress
+			'NetworkAddress'
 		].resolve({
 			$network: {
 				slug: 'ethereum',
@@ -283,7 +289,7 @@ describe('Cosmos SDK account detail resolver', () => {
 		getJson.mockResolvedValueOnce({})
 
 		await expect(cosmosSdk.resolvers[4].resolve[
-			CosmosAccountSelector.NetworkAddress
+			'NetworkAddress'
 		].resolve({
 			$network: {
 				slug: 'cosmos',
@@ -300,7 +306,7 @@ describe('Cosmos SDK account detail resolver', () => {
 		})
 
 		await expect(cosmosSdk.resolvers[4].resolve[
-			CosmosAccountSelector.NetworkAddress
+			'NetworkAddress'
 		].resolve({
 			$network: {
 				slug: 'cosmos',
@@ -364,7 +370,7 @@ describe('Cosmos SDK governance proposal resolver', () => {
 				},
 			})
 
-		await expect(cosmosSdk.resolvers[20].resolve[NetworkSelector.Slug].resolve({
+		await expect(cosmosSdk.resolvers[20].resolve['Slug'].resolve({
 			slug: 'cosmos',
 		}, context)).resolves.toEqual([{
 			[EntityMetaKey.Selector]: {
@@ -375,7 +381,7 @@ describe('Cosmos SDK governance proposal resolver', () => {
 			},
 		}])
 		await expect(cosmosSdk.resolvers[9].resolve[
-			CosmosGovernanceProposalSelector.NetworkProposalId
+			'NetworkProposalId'
 		].resolve({
 			$network: {
 				slug: 'cosmos',
@@ -386,7 +392,7 @@ describe('Cosmos SDK governance proposal resolver', () => {
 			summary: '',
 		})
 		await expect(cosmosSdk.resolvers[9].resolve[
-			CosmosGovernanceProposalSelector.NetworkProposalId
+			'NetworkProposalId'
 		].resolve({
 			$network: {
 				slug: 'cosmos',
@@ -397,7 +403,7 @@ describe('Cosmos SDK governance proposal resolver', () => {
 			summary: 'Canonical summary',
 		})
 		await expect(cosmosSdk.resolvers[9].resolve[
-			CosmosGovernanceProposalSelector.NetworkProposalId
+			'NetworkProposalId'
 		].resolve({
 			$network: {
 				slug: 'cosmos',
@@ -508,7 +514,7 @@ describe('Cosmos SDK account transaction resolver', () => {
 		})
 
 		const page = await cosmosSdk.resolvers[23].resolve[
-			CosmosAccountSelector.NetworkAddress
+			'NetworkAddress'
 		].resolve(cosmosAccount, {
 			...context,
 			pagination: {
@@ -592,7 +598,7 @@ describe('Cosmos SDK account transaction resolver', () => {
 		})
 
 		const continuedPage = await cosmosSdk.resolvers[23].resolve[
-			CosmosAccountSelector.NetworkAddress
+			'NetworkAddress'
 		].resolve(cosmosAccount, {
 			...context,
 			pagination: {
@@ -624,7 +630,7 @@ describe('Cosmos SDK account transaction resolver', () => {
 		})
 
 		const page = await cosmosSdk.resolvers[23].resolve[
-			CosmosAccountSelector.NetworkAddress
+			'NetworkAddress'
 		].resolve(cosmosAccount, context)
 
 		expect(cosmosSdk.resolvers[23].projections.$$transactions.select(
@@ -678,7 +684,7 @@ describe('Cosmos SDK account transaction resolver', () => {
 		})
 
 		await expect(cosmosSdk.resolvers[23].resolve[
-			CosmosAccountSelector.NetworkAddress
+			'NetworkAddress'
 		].resolve(cosmosAccount, context)).rejects.toThrow(error)
 	})
 })

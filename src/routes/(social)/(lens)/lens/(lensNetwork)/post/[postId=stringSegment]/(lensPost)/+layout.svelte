@@ -30,22 +30,28 @@
 {#key params.postId}
 	<ParentPageCollapsible
 		href={
-			resolve('/lens/post/[postId=stringSegment]', {
-				postId: params.postId,
-			})
+			resolve(
+				'/(social)/(lens)/lens/(lensNetwork)/post/[postId=stringSegment]',
+				{
+					postId: String(params.postId),
+				}
+			)
 		}
 	>
 		{#snippet Summary()}
-			{@const DetailView = LensPostView}
-
-			<DetailView
-				selection={select(EntityType.LensPost, data.selector, { sources: [
-		Source.Lens_Graphql,
-	] })}
+			<LensPostView
+				selection={
+					select(EntityType.LensPost, data.selector, { sources: [
+						Source.Lens_Graphql,
+					] })
+				}
 				href={
-					resolve('/lens/post/[postId=stringSegment]', {
-						postId: params.postId,
-					})
+					resolve(
+						'/(social)/(lens)/lens/(lensNetwork)/post/[postId=stringSegment]',
+						{
+							postId: String(params.postId),
+						}
+					)
 				}
 				layout={EntityLayout.SummaryInline}
 			/>

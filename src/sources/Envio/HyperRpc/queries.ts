@@ -1,12 +1,14 @@
-import type { SourceBinding } from '$/sources/SourceBinding.ts'
+import bindings from '$/sources/Envio/bindings.ts'
+import { Source } from '$/sources/Source.ts'
 import { jsonRpc2 as request } from '$/sources/_shared/wire/JsonRpc2/client.ts'
 import type {
 	EnvioHyperRpcTransaction,
 	EnvioHyperRpcTransactionReceipt,
 } from '$/sources/Envio/HyperRpc/types.ts'
 
+const binding = bindings[Source.EnvioHyperRpc_JsonRpc]
+
 export const getEvmTransactionByHash = (
-	binding: SourceBinding,
 	txHash: string
 ): Promise<EnvioHyperRpcTransaction | null> => (
 	request<EnvioHyperRpcTransaction | null>(
@@ -17,7 +19,6 @@ export const getEvmTransactionByHash = (
 )
 
 export const getEvmTransactionReceipt = (
-	binding: SourceBinding,
 	txHash: string
 ): Promise<EnvioHyperRpcTransactionReceipt | null> => (
 	request<EnvioHyperRpcTransactionReceipt | null>(

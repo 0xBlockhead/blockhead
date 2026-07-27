@@ -1,14 +1,11 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { entity, facet } from '$/schema/$schema.ts'
+import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { type } from 'arktype'
 
-export enum _GlobalEvmAbiCatalog_TimestampSelector {
-	HubTimestampMsSource = 'HubTimestampMsSource',
-}
-export const _GlobalEvmAbiCatalog_Timestamp = entity({
+export default entity({
 	entityType: EntityType._GlobalEvmAbiCatalog_Timestamp,
 	labels: {
 		singular: 'global EVM ABI catalog timestamp',

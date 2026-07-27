@@ -1,14 +1,11 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { entity, facet } from '$/schema/$schema.ts'
+import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { type } from 'arktype'
 
-export enum SuiObjectVersionSelector {
-	NetworkObjectIdVersionDigest = 'NetworkObjectIdVersionDigest',
-}
-export const SuiObjectVersion = entity({
+export default entity({
 	entityType: EntityType.SuiObjectVersion,
 	labels: {
 		singular: 'sui object version',

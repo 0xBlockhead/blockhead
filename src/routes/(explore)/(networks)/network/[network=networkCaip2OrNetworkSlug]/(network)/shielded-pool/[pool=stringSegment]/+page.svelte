@@ -9,14 +9,12 @@
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		data,
-		params,
 	}: PageProps = $props()
 
 	const pageSelection = $derived(select(EntityType.ZcashShieldedPool, data.selector, {
@@ -37,18 +35,12 @@
 
 
 <svelte:head>
-	<title>{(data.title ?? (pageSelection.entity == null ? [String((data.selector.pool) ?? '')].filter(Boolean).join(' ') || 'Zcash shielded pool' : [String((({ ...data.selector, ...pageSelection.entity }).pool) ?? '')].filter(Boolean).join(' ') || 'Zcash shielded pool'))} • Zcash shielded pool • Blockhead</title>
+	<title>{(data.title ?? (pageSelection.entitySelector.pool || 'Zcash shielded pool'))} • Zcash shielded pool • Blockhead</title>
 </svelte:head>
 
 
 <Page>
 	<ZcashShieldedPoolView
-		href={
-			resolve('/network/[network=networkCaip2OrNetworkSlug]/shielded-pool/[pool=stringSegment]', {
-				network: params.network,
-				pool: params.pool,
-			})
-		}
 		selection={pageSelection}
 	/>
 </Page>

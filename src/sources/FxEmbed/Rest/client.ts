@@ -1,16 +1,11 @@
-import { sourceProviderDefinitions } from '$/sources/$sourceProviders.ts'
-import { sourceGetJson } from '$/sources/_runtime/http.ts'
-import { Source } from '$/sources/Source.ts'
 import {
-	fxEmbedApiV2Base,
-} from '$/sources/FxEmbed/Rest/constants.ts'
+	firstHttpUrlForBinding,
+	sourceGetJson,
+} from '$/sources/_runtime/http.ts'
+import bindings from '$/sources/FxEmbed/bindings.ts'
+import { Source } from '$/sources/Source.ts'
 
-const fxEmbedRestBinding = sourceProviderDefinitions
-	.flatMap((provider) => provider.bindings)
-	.find((binding) => binding.source === Source.X_FxEmbed_Rest)
-
-if (fxEmbedRestBinding == null)
-	throw new Error('X_FxEmbed_Rest: missing source binding')
+const binding = bindings[Source.X_FxEmbed_Rest]
 
 const toQuery = (params: Record<string, string | number | undefined>) => {
 	const searchParams = new URLSearchParams()
@@ -30,8 +25,11 @@ export const fxEmbedGet = async <T>(
 		code?: number
 		message?: string
 	}>(
-		fxEmbedRestBinding,
-		`${fxEmbedApiV2Base}${path}${toQuery(params ?? {})}`
+		binding,
+		new URL(
+			`/2${path}${toQuery(params ?? {})}`,
+			firstHttpUrlForBinding(binding)
+		).toString()
 	)
 	if (response.code != null && response.code !== 200)
 		throw new Error(`X_FxEmbed_Rest: ${response.message ?? `request failed with code ${response.code}`}`)

@@ -5,7 +5,7 @@ import { error } from '@sveltejs/kit'
 import { match as matchStringSegment } from '$/params/stringSegment.ts'
 import { parseEntitySelector } from '$/schema/$schema.ts'
 import { schema } from '$/schema/index.ts'
-import { NostrProfile as NostrProfileSchema } from '$/schema/NostrProfile.ts'
+import NostrProfileSchema from '$/schema/NostrProfile.ts'
 import { type as arktype } from 'arktype'
 
 export const load: LayoutLoad = ({ params }) => {

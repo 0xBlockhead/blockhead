@@ -5,7 +5,7 @@ import { error } from '@sveltejs/kit'
 import { networkByCaip2, networkBySlug } from '$/constants/Network.ts'
 import { match as matchNonNegativeInteger } from '$/params/nonNegativeInteger.ts'
 import { parseEntitySelector } from '$/schema/$schema.ts'
-import { BeaconEpoch as BeaconEpochSchema } from '$/schema/BeaconEpoch.ts'
+import BeaconEpochSchema from '$/schema/BeaconEpoch.ts'
 import { schema } from '$/schema/index.ts'
 import { type as arktype } from 'arktype'
 

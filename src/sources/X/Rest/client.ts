@@ -1,27 +1,22 @@
 import { fetchFailedMessage } from '$/lib/http.ts'
-import { sourceProviderDefinitions } from '$/sources/$sourceProviders.ts'
 import { requiredPublicEnvString } from '$/sources/$sources.ts'
-import { sourceFetch } from '$/sources/_runtime/http.ts'
-import { Source } from '$/sources/Source.ts'
 import {
-	xApiV2Base,
-} from '$/sources/X/Rest/constants.ts'
+	firstHttpUrlForBinding,
+	sourceFetch,
+} from '$/sources/_runtime/http.ts'
 import type { SourcePublicEnv } from '$/sources/$sources.ts'
+import bindings from '$/sources/X/bindings.ts'
+import { Source } from '$/sources/Source.ts'
 
-const xRestBinding = sourceProviderDefinitions
-	.flatMap((provider) => provider.bindings)
-	.find((binding) => binding.source === Source.X_Rest)
-
-if (xRestBinding == null)
-	throw new Error('X_Rest: missing source binding')
+const binding = bindings[Source.X_Rest]
 
 export const xApiV2Get = async <T>(
 	publicEnv: SourcePublicEnv,
 	path: `/${string}`
 ): Promise<T> => {
-	const url = `${xApiV2Base}${path}`
+	const url = `${firstHttpUrlForBinding(binding)}/2${path}`
 	const response = await sourceFetch(
-		xRestBinding,
+		binding,
 		url,
 		{
 			headers: {

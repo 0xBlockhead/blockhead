@@ -2,14 +2,10 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
 	import { EvmAddress } from '$/schema/ZeroExHex.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -21,40 +17,23 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.Erc4626Vault_Timestamp>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.Erc4626Vault_Timestamp>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.Erc4626Vault_Timestamp> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const erc4626VaultTimestamp = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {
-			apyTotal: true,
-		},
-	} : {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const viewSelection = $derived(selection({
+		sources: selection.sources ?? [
+			Source.Defillama_OpenApi,
+		],
+	}))
+	const erc4626VaultTimestamp = $derived(viewSelection({
 		fields: {
 			apyTotal: true,
 		},
 	}))
-	const titleFallback = $derived([String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || 'erc4626 vault timestamp')
-	const viewDomId = $derived('erc4626vault-timestamp-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const titleFallback = $derived(String(pendingEntity.timestampMs ?? '') || 'erc4626 vault timestamp')
 
 
 	// Components
@@ -67,54 +46,27 @@
 
 <EntityView
 	entityType={EntityType.Erc4626Vault_Timestamp}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'apyTotal')}
-			{@const timestampMs0 = pendingEntity.timestampMs}
-			{#if timestampMs0 !== undefined && timestampMs0 !== null}
-				<Timestamp timestamp={Number(timestampMs0)} />
-			{/if}
-		{:else}
-			<ResourceBoundary resource={erc4626VaultTimestamp}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const timestampMs0 = resolvedEntity.timestampMs}
-					{#if timestampMs0 !== undefined && timestampMs0 !== null}
-						<Timestamp timestamp={Number(timestampMs0)} />
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
 	{/snippet}
 
 	{#snippet Value()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'apyTotal')}
-			{@const apyTotal0 = pendingEntity.apyTotal}
-			{#if apyTotal0 !== undefined && apyTotal0 !== null}
-				<NumberValue
-					value={apyTotal0}
-				/>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={erc4626VaultTimestamp}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const apyTotal0 = resolvedEntity.apyTotal}
-					{#if apyTotal0 !== undefined && apyTotal0 !== null}
-						<NumberValue
-							value={apyTotal0}
-						/>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={erc4626VaultTimestamp}>
+			{#snippet children(entity)}
+				{@const apyTotal0 = entity.apyTotal}
+				{#if apyTotal0 != null}
+					<NumberValue
+						value={apyTotal0}
+					/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -133,48 +85,14 @@
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									timestampMs: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const timestampMs = resolvedEntity.timestampMs}
-							{#if timestampMs !== undefined && timestampMs !== null}
-								<Timestamp timestamp={Number(timestampMs)} />
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									source: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const source = resolvedEntity.source}
-							{#if source !== undefined && source !== null}
-								{String((source) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{pendingEntity.source}
 				</dd>
 			</div>
 		</dl>
@@ -182,8 +100,7 @@
 		<dl data-column-item="center">
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							apyBase: true,
 						},
@@ -191,9 +108,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const apyBase = resolvedEntity.apyBase}
-					{#if apyBase !== undefined && apyBase !== null}
+					{@const apyBase = entity.apyBase}
+					{#if apyBase != null}
 						<div>
 							<dt>APY base</dt>
 							<dd>
@@ -208,8 +124,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							apyReward: true,
 						},
@@ -217,9 +132,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const apyReward = resolvedEntity.apyReward}
-					{#if apyReward !== undefined && apyReward !== null}
+					{@const apyReward = entity.apyReward}
+					{#if apyReward != null}
 						<div>
 							<dt>APY reward</dt>
 							<dd>
@@ -233,19 +147,11 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							apyTotal: true,
-						},
-					})
-				}
+				resource={erc4626VaultTimestamp}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const apyTotal = resolvedEntity.apyTotal}
-					{#if apyTotal !== undefined && apyTotal !== null}
+					{@const apyTotal = entity.apyTotal}
+					{#if apyTotal != null}
 						<div>
 							<dt>APY total</dt>
 							<dd>
@@ -260,8 +166,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							tvlUsd: true,
 						},
@@ -269,9 +174,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const tvlUsd = resolvedEntity.tvlUsd}
-					{#if tvlUsd !== undefined && tvlUsd !== null}
+					{@const tvlUsd = entity.tvlUsd}
+					{#if tvlUsd != null}
 						<div>
 							<dt>TVL USD</dt>
 							<dd>
@@ -291,8 +195,7 @@
 				<dd>
 					<ResourceBoundary
 						resource={
-							selection({
-								sources: selection.sources,
+							viewSelection({
 								fields: {
 									rewardTokens: true,
 								},
@@ -300,11 +203,7 @@
 						}
 					>
 						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const rewardTokens = resolvedEntity.rewardTokens}
-							{#if rewardTokens !== undefined && rewardTokens !== null}
-								{rewardTokens.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')}
-							{/if}
+							{entity.rewardTokens.values.join(', ')}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -312,8 +211,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							poolId: true,
 						},
@@ -321,13 +219,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const poolId = resolvedEntity.poolId}
-					{#if poolId !== undefined && poolId !== null}
+					{@const poolId = entity.poolId}
+					{#if poolId != null}
 						<div>
 							<dt>Pool ID</dt>
 							<dd>
-								{String((poolId) ?? '')}
+								{poolId}
 							</dd>
 						</div>
 					{/if}
@@ -336,8 +233,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							projectSlug: true,
 						},
@@ -345,13 +241,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const projectSlug = resolvedEntity.projectSlug}
-					{#if projectSlug !== undefined && projectSlug !== null}
+					{@const projectSlug = entity.projectSlug}
+					{#if projectSlug != null}
 						<div>
 							<dt>Project slug</dt>
 							<dd>
-								{String((projectSlug) ?? '')}
+								{projectSlug}
 							</dd>
 						</div>
 					{/if}
@@ -360,8 +255,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							chainLabel: true,
 						},
@@ -369,13 +263,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const chainLabel = resolvedEntity.chainLabel}
-					{#if chainLabel !== undefined && chainLabel !== null}
+					{@const chainLabel = entity.chainLabel}
+					{#if chainLabel != null}
 						<div>
 							<dt>Chain label</dt>
 							<dd>
-								{String((chainLabel) ?? '')}
+								{chainLabel}
 							</dd>
 						</div>
 					{/if}

@@ -2,6 +2,7 @@ import {
 	EntityFieldCardinality,
 	EntityFieldType,
 	EntityType,
+	Source,
 	entity,
 } from '../../APP.ts'
 
@@ -21,6 +22,57 @@ entity({
 })({
 	selectors: {
 		Id: ['id'],
+	},
+	views: {
+		plural: {
+			// @ts-expect-error Filter paths must start at a declared selector field.
+			filters: [
+				{
+					prop: 'id',
+					selectorPath: 'id',
+				},
+				{
+					prop: 'missing',
+					selectorPath: 'missing',
+				},
+			],
+		},
+	},
+})
+
+entity({
+	entityType: EntityType.Network,
+	labels: {
+		singular: 'source selection fixture',
+		plural: 'source selection fixtures',
+	},
+})({
+	id: {
+		label: 'ID',
+		type: EntityFieldType.Primitive,
+		cardinality: EntityFieldCardinality.One,
+		valueType: 'string',
+	},
+})({
+	selectors: {
+		Id: ['id'],
+	},
+	views: {
+		plural: {
+			query: {
+				// @ts-expect-error Source-selection fields must name fields declared by the view entity.
+				sources: {
+					default: [Source.Constants_Internal],
+					cases: [{
+						when: [{
+							field: 'missing',
+							equals: 'value',
+						}],
+						sources: [Source.Constants_Internal],
+					}],
+				},
+			},
+		},
 	},
 })
 

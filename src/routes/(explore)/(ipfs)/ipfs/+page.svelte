@@ -9,7 +9,6 @@
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
@@ -39,13 +38,12 @@
 
 
 <svelte:head>
-	<title>{(data.title ?? (pageSelection.entity == null ? 'IPFS protocol' : [String((({ ...data.selector, ...pageSelection.entity }).protocolName) ?? '')].filter(Boolean).join(' ') || 'IPFS protocol'))} • IPFS protocol • Blockhead</title>
+	<title>{(data.title ?? (pageSelection.entity == null ? 'IPFS protocol' : pageSelection.entity.protocolName || 'IPFS protocol'))} • IPFS protocol • Blockhead</title>
 </svelte:head>
 
 
 <Page>
 	<IpfsProtocolView
-		href={resolve('/ipfs')}
 		selection={pageSelection}
 	/>
 </Page>

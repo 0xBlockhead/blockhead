@@ -3,58 +3,25 @@
 <script lang="ts">
 	// Types/constants
 	import { resolve } from '$app/paths'
-	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
-	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
-	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
+	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { marketAssetRouteLabelByKind } from '$/constants/Market.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
-
-
 	// State
 	let {
 		selection,
-		countResource,
-		title = 'Market prices',
-		typeAnnotationParagraphs = [],
-		placeholderText = undefined,
-		emptyText = undefined,
 		open = $bindable(true),
-		collapsible = true,
-		showTypeAnnotation = true,
-		id = 'MarketPrices-list',
 		...EntitiesListProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyEntitiesSelection<EntityType.MarketPrice>
-			countResource?: SvelteKitResource<number>
-			title?: string
-			typeAnnotationParagraphs?: string[]
-			placeholderText?: string
-			emptyText?: string
-			open?: boolean
-			collapsible?: boolean
-			showTypeAnnotation?: boolean
-			id?: string
-		},
-		EntitiesListForwardProps
-	> = $props()
+	}: EntityListViewProps<EntityType.MarketPrice> = $props()
 
 
 	// Components
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView from '$/components/EntityView.svelte'
 </script>
 
-
-{#snippet TypeAnnotationParagraphs()}
-	{#each typeAnnotationParagraphs as paragraph (paragraph)}
-		<p>{paragraph}</p>
-	{/each}
-{/snippet}
 
 {#snippet ModelTypeAnnotationTooltip()}
 	<p>
@@ -69,12 +36,8 @@
 <EntitiesList
 	{...EntitiesListProps}
 	entityType={EntityType.MarketPrice}
-	{id}
-	{title}
 	bind:open
-	{collapsible}
-	{showTypeAnnotation}
-	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : ModelTypeAnnotationTooltip}
+	TypeAnnotationTooltip={ModelTypeAnnotationTooltip}
 	resource={
 		selection({
 			sources: selection.sources ?? [
@@ -86,45 +49,32 @@
 			limit: 400,
 		})
 	}
-	{countResource}
-	getResourceItems={(marketPrices) => [...new Map(marketPrices.values.map((marketPrice) => [marketPrice[EntityMetaKey.SelectorKey], marketPrice])).values()]}
-	getKey={(marketPrice) => marketPrice[EntityMetaKey.SelectorKey]}
-	{placeholderText}
 >
-	{#snippet Empty()}
-		{#if emptyText != null}
-			<p data-text="muted">{emptyText}</p>
-		{:else}
-			<p data-text="muted">No Market prices yet.</p>
-		{/if}
-	{/snippet}
-
 	{#snippet Item({ item: marketPrice })}
-		{@const marketPriceFields = { ...marketPrice[EntityMetaKey.Selector], ...marketPrice }}
-		{@const marketPriceHrefFields = { ...marketPrice, ...marketPrice[EntityMetaKey.Selector] }}
+		{@const marketPriceSelector = marketPrice[EntityMetaKey.Selector]}
 		<EntityView
 			entityType={EntityType.MarketPrice}
-			entitySelector={marketPrice[EntityMetaKey.Selector]}
+			entitySelector={marketPriceSelector}
 			href={
-				resolve('/venue/[marketVenue=marketVenueId]/market/[baseKind]/[base]/[quoteKind]/[quote]/[marketKind]', {
-					marketVenue: String(marketPriceHrefFields.$market.$marketVenue.marketVenueId ?? ''),
-					baseKind: String(marketAssetRouteLabelByKind[String(marketPriceHrefFields.$market.$base.kind)] ?? ''),
-					base: String(marketPriceHrefFields.$market.$base.assetKey ?? ''),
-					quoteKind: String(marketAssetRouteLabelByKind[String(marketPriceHrefFields.$market.$quote.kind)] ?? ''),
-					quote: String(marketPriceHrefFields.$market.$quote.assetKey ?? ''),
-					marketKind: String(marketPriceHrefFields.$market.marketKind ?? ''),
-				})
+				resolve(
+					'/(assets)/venue/[marketVenue=marketVenueId]/market/[baseKind]/[base]/[quoteKind]/[quote]/[marketKind]',
+					{
+						marketVenue: String(marketPriceSelector.$market.$marketVenue.marketVenueId),
+						baseKind: String(marketAssetRouteLabelByKind[String(marketPriceSelector.$market.$base.kind)]),
+						base: String(marketPriceSelector.$market.$base.assetKey),
+						quoteKind: String(marketAssetRouteLabelByKind[String(marketPriceSelector.$market.$quote.kind)]),
+						quote: String(marketPriceSelector.$market.$quote.assetKey),
+						marketKind: String(marketPriceSelector.$market.marketKind),
+					}
+				)
 			}
-			layout={EntityLayout.Summary}
-			open={false}
-			showTypeAnnotation={false}
 		>
 			{#snippet Title()}
-				{['Market'].filter(Boolean).join(' ') || 'Market price'}
+				Market
 			{/snippet}
 
 			{#snippet Value()}
-				{['Market'].filter(Boolean).join(' ')}
+				Market
 			{/snippet}
 		</EntityView>
 	{/snippet}

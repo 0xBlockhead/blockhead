@@ -2,14 +2,10 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -21,43 +17,25 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.BlockheadWorkspace>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.BlockheadWorkspace>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.BlockheadWorkspace> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const blockheadWorkspace = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {
-			updatedAt: true,
-			name: true,
-		},
-	} : {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const viewSelection = $derived(selection({
+		sources: selection.sources ?? [
+			Source.Local_Internal,
+		],
+	}))
+	const blockheadWorkspace = $derived(viewSelection({
 		fields: {
 			createdAt: true,
 			updatedAt: true,
 			name: true,
 		},
 	}))
-	const titleFallback = $derived([String((pendingEntity.name) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.id) ?? '')].filter(Boolean).join(' ') || 'workspace')
-	const viewDomId = $derived('blockhead-workspace-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const titleFallback = $derived((pendingEntity.name ?? '') || (pendingEntity.id ?? '') || 'workspace')
 
 
 	// Components
@@ -70,44 +48,26 @@
 
 <EntityView
 	entityType={EntityType.BlockheadWorkspace}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'name') && Object.hasOwn(prefetched, 'updatedAt')}
-			{[String((pendingEntity.name) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-		{:else}
-			<ResourceBoundary resource={blockheadWorkspace}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.name) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={blockheadWorkspace}>
+			{#snippet children(entity)}
+				{(entity.name ?? '') || title || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Value()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'name') && Object.hasOwn(prefetched, 'updatedAt')}
-			{@const updatedAt0 = pendingEntity.updatedAt}
-			{#if updatedAt0 !== undefined && updatedAt0 !== null}
-				<Timestamp timestamp={Number(updatedAt0)} />
-			{/if}
-		{:else}
-			<ResourceBoundary resource={blockheadWorkspace}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const updatedAt0 = resolvedEntity.updatedAt}
-					{#if updatedAt0 !== undefined && updatedAt0 !== null}
-						<Timestamp timestamp={Number(updatedAt0)} />
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={blockheadWorkspace}>
+			{#snippet children(entity)}
+				<Timestamp timestamp={Number(entity.updatedAt)} />
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -115,45 +75,20 @@
 			<div>
 				<dt>ID</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									id: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const id = resolvedEntity.id}
-							{#if id !== undefined && id !== null}
-								{String((id) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{pendingEntity.id}
 				</dd>
 			</div>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							name: true,
-						},
-					})
-				}
+				resource={blockheadWorkspace}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const name = resolvedEntity.name}
-					{#if name !== undefined && name !== null}
+					{@const name = entity.name}
+					{#if name != null}
 						<div>
 							<dt>Name</dt>
 							<dd>
-								{String((name) ?? '')}
+								{name}
 							</dd>
 						</div>
 					{/if}
@@ -164,24 +99,13 @@
 				resource={selection.$activePanelTree}
 			>
 				{#snippet children(blockheadPanelTree)}
-					{#if blockheadPanelTree != null && blockheadPanelTree[EntityMetaKey.Selector] != null}
+					{#if blockheadPanelTree != null}
 						<div>
 							<dt>active panel tree</dt>
 							<dd>
 								<BlockheadPanelTreeView
 									selection={select(EntityType.BlockheadPanelTree, blockheadPanelTree[EntityMetaKey.Selector])}
 									prefetched={blockheadPanelTree}
-									href={
-										(
-											blockheadPanelTree[EntityMetaKey.Selector] != null && 'id' in blockheadPanelTree[EntityMetaKey.Selector]
-											&& blockheadPanelTree[EntityMetaKey.Selector].id != null ?
-												resolve('/~/dashboard/[dashboardId=stringSegment]', {
-											dashboardId: String(blockheadPanelTree[EntityMetaKey.Selector].id ?? ''),
-										})
-										:
-												undefined
-										)
-									}
 									layout={EntityLayout.Value}
 									open={false}
 								/>
@@ -197,21 +121,10 @@
 				<dt>Created</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									createdAt: true,
-								},
-							})
-						}
+						resource={blockheadWorkspace}
 					>
 						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const createdAt = resolvedEntity.createdAt}
-							{#if createdAt !== undefined && createdAt !== null}
-								<Timestamp timestamp={Number(createdAt)} />
-							{/if}
+							<Timestamp timestamp={Number(entity.createdAt)} />
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -221,21 +134,10 @@
 				<dt>Updated</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									updatedAt: true,
-								},
-							})
-						}
+						resource={blockheadWorkspace}
 					>
 						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const updatedAt = resolvedEntity.updatedAt}
-							{#if updatedAt !== undefined && updatedAt !== null}
-								<Timestamp timestamp={Number(updatedAt)} />
-							{/if}
+							<Timestamp timestamp={Number(entity.updatedAt)} />
 						{/snippet}
 					</ResourceBoundary>
 				</dd>

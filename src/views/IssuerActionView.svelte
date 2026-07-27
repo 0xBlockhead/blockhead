@@ -2,15 +2,9 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
-	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -22,35 +16,13 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.IssuerAction>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.IssuerAction>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.IssuerAction> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const issuerAction = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {},
-	} : {
-		sources: selection.sources,
-	}))
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const titleFallback = 'issuer action'
-	const viewDomId = $derived('issuer-action-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -63,24 +35,14 @@
 
 <EntityView
 	entityType={EntityType.IssuerAction}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails}
-			{title || titleFallback}
-		{:else}
-			<ResourceBoundary resource={issuerAction}>
-				{#snippet children(entity)}
-					{title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		issuer action
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -88,24 +50,7 @@
 			<div>
 				<dt>issuer action ID</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									issuerActionId: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const issuerActionId = resolvedEntity.issuerActionId}
-							{#if issuerActionId !== undefined && issuerActionId !== null}
-								<TruncatedValue value={String((issuerActionId) ?? '')} />
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					<TruncatedValue value={pendingEntity.issuerActionId} />
 				</dd>
 			</div>
 
@@ -115,7 +60,6 @@
 					<ResourceBoundary
 						resource={
 							selection({
-								sources: selection.sources,
 								fields: {
 									actionKind: true,
 								},
@@ -123,11 +67,7 @@
 						}
 					>
 						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const actionKind = resolvedEntity.actionKind}
-							{#if actionKind !== undefined && actionKind !== null}
-								{String((actionKind) ?? '')}
-							{/if}
+							{entity.actionKind}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -140,42 +80,12 @@
 						resource={selection.$assetInstance}
 					>
 						{#snippet children(assetInstance)}
-							{#if assetInstance != null && assetInstance[EntityMetaKey.Selector] != null}
-								<AssetInstanceView
-									selection={select(EntityType.AssetInstance, assetInstance[EntityMetaKey.Selector])}
-									prefetched={assetInstance}
-									href={
-										(
-											assetInstance[EntityMetaKey.Selector] != null && 'kind' in assetInstance[EntityMetaKey.Selector]
-											&& assetInstance[EntityMetaKey.Selector].kind != null
-											&& assetInstance[EntityMetaKey.Selector] != null && 'assetKey' in assetInstance[EntityMetaKey.Selector]
-											&& assetInstance[EntityMetaKey.Selector].assetKey != null
-											&& assetInstance[EntityMetaKey.Selector] != null && '$network' in assetInstance[EntityMetaKey.Selector] ?
-												assetInstance[EntityMetaKey.Selector].$network != null && 'caip2' in assetInstance[EntityMetaKey.Selector].$network
-												&& assetInstance[EntityMetaKey.Selector].$network.caip2 != null ?
-													resolve('/network/[network=networkCaip2OrNetworkSlug]/asset/[kind=stringSegment]/[assetKey=stringSegment]', {
-												kind: String(assetInstance[EntityMetaKey.Selector].kind ?? ''),
-												assetKey: String(assetInstance[EntityMetaKey.Selector].assetKey ?? ''),
-												network: String(caip2StringFromValue(assetInstance[EntityMetaKey.Selector].$network.caip2) ?? ''),
-											})
-											:
-													assetInstance[EntityMetaKey.Selector].$network != null && 'slug' in assetInstance[EntityMetaKey.Selector].$network
-													&& assetInstance[EntityMetaKey.Selector].$network.slug != null ?
-														resolve('/network/[network=networkCaip2OrNetworkSlug]/asset/[kind=stringSegment]/[assetKey=stringSegment]', {
-													kind: String(assetInstance[EntityMetaKey.Selector].kind ?? ''),
-													assetKey: String(assetInstance[EntityMetaKey.Selector].assetKey ?? ''),
-													network: String(assetInstance[EntityMetaKey.Selector].$network.slug ?? ''),
-												})
-												:
-													undefined
-										:
-												undefined
-										)
-									}
-									layout={EntityLayout.Value}
-									open={false}
-								/>
-							{/if}
+							<AssetInstanceView
+								selection={select(EntityType.AssetInstance, assetInstance[EntityMetaKey.Selector])}
+								prefetched={assetInstance}
+								layout={EntityLayout.Value}
+								open={false}
+							/>
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -186,7 +96,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							amount: true,
 						},
@@ -194,13 +103,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const amount = resolvedEntity.amount}
-					{#if amount !== undefined && amount !== null}
+					{@const amount = entity.amount}
+					{#if amount != null}
 						<div>
 							<dt>amount</dt>
 							<dd>
-								{String((amount) ?? '')}
+								{String(amount)}
 							</dd>
 						</div>
 					{/if}
@@ -211,7 +119,7 @@
 				resource={selection.$issuerPower}
 			>
 				{#snippet children(issuerPower)}
-					{#if issuerPower != null && issuerPower[EntityMetaKey.Selector] != null}
+					{#if issuerPower != null}
 						<div>
 							<dt>issuer power</dt>
 							<dd>

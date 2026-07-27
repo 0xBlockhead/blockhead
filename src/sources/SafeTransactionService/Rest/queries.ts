@@ -1,30 +1,14 @@
-import { getJson } from '$/lib/http.ts'
+import type { SourceBinding } from '$/sources/SourceBinding.ts'
+import {
+	firstHttpUrlForBinding,
+	sourceGetJson,
+} from '$/sources/_runtime/http.ts'
 import type {
 	SafeMultisigConfirmation,
 	SafeMultisigTransaction,
 	SafePage,
 	SafeStatus,
-	SafeTransactionServiceNetwork,
 } from '$/sources/SafeTransactionService/Rest/types.ts'
-
-const safeOrigin = 'https://api.safe.global'
-const safeOrigins = [
-	{
-		origin: safeOrigin,
-		corsEnabled: false,
-	},
-] as const
-
-const chainPrefixByChainId = {
-	'1': 'eth',
-	'100': 'gno',
-	'8453': 'base',
-} as const
-
-const assertNetwork = (network: SafeTransactionServiceNetwork) => {
-	if (chainPrefixByChainId[network.chainId] !== network.chainPrefix)
-		throw new Error('SafeTransactionService_Rest: chain ID and service prefix disagree')
-}
 
 const assertAddress = (
 	address: string,
@@ -60,27 +44,15 @@ const assertPageNumber = (
 }
 
 const request = <_Result>({
-	network,
-	apiKey,
+	binding,
 	path,
 }: {
-	network: SafeTransactionServiceNetwork
-	apiKey: string
+	binding: SourceBinding
 	path: string
 }) => {
-	assertNetwork(network)
-	if (apiKey.trim() === '')
-		throw new Error('SafeTransactionService_Rest: API key is required')
-	return getJson<_Result>(
-		`${safeOrigin}/tx-service/${network.chainPrefix}${path}`,
-		{
-			origins: safeOrigins,
-			init: {
-				headers: {
-					Authorization: `Bearer ${apiKey}`,
-				},
-			},
-		}
+	return sourceGetJson<_Result>(
+		binding,
+		`${firstHttpUrlForBinding(binding).replace(/\/$/, '')}${path}`
 	)
 }
 
@@ -116,7 +88,7 @@ const assertTransaction = (
 		[transaction.baseGas, 'base gas'],
 		[transaction.gasPrice, 'gas price'],
 		[transaction.nonce, 'transaction nonce'],
-	] as const)
+	])
 		assertUnsignedDecimal(value, label)
 	assertPageNumber(transaction.confirmationsRequired, 'confirmation threshold', 1_000)
 	const confirmingOwners = new Set<string>()
@@ -140,32 +112,28 @@ export const isSafeNonceRejectionTransaction = (
 
 const assertContinuation = (
 	continuation: string | null,
-	network: SafeTransactionServiceNetwork,
+	binding: SourceBinding,
 	pathPrefix: string
 ) => {
 	if (continuation == null)
 		return
 	const url = new URL(continuation)
+	const endpointUrl = new URL(firstHttpUrlForBinding(binding))
 	if (
-		url.origin !== safeOrigin
-		|| !url.pathname.startsWith(`/tx-service/${network.chainPrefix}${pathPrefix}`)
+		url.origin !== endpointUrl.origin
+		|| !url.pathname.startsWith(`${endpointUrl.pathname.replace(/\/$/, '')}${pathPrefix}`)
 	)
 		throw new Error('SafeTransactionService_Rest: pagination continuation escaped its subject')
 }
 
-export const getSafeStatus = async ({
-	network,
-	apiKey,
+export const getSafeStatus = async (binding: SourceBinding, {
 	safeAddress,
 }: {
-	network: SafeTransactionServiceNetwork
-	apiKey: string
 	safeAddress: string
 }) => {
 	assertAddress(safeAddress, 'Safe address')
 	const status = await request<SafeStatus>({
-		network,
-		apiKey,
+		binding,
 		path: `/api/v1/safes/${encodeURIComponent(safeAddress)}/`,
 	})
 	if (status.address.toLowerCase() !== safeAddress.toLowerCase())
@@ -185,16 +153,12 @@ export const getSafeStatus = async ({
 	return status
 }
 
-export const getSafeMultisigTransactions = async ({
-	network,
-	apiKey,
+export const getSafeMultisigTransactions = async (binding: SourceBinding, {
 	safeAddress,
 	limit,
 	offset,
 	executed,
 }: {
-	network: SafeTransactionServiceNetwork
-	apiKey: string
 	safeAddress: string
 	limit: number
 	offset: number
@@ -214,15 +178,14 @@ export const getSafeMultisigTransactions = async ({
 	})
 	const pathPrefix = `/api/v2/safes/${encodeURIComponent(safeAddress)}/multisig-transactions/`
 	const page = await request<SafePage<SafeMultisigTransaction>>({
-		network,
-		apiKey,
+		binding,
 		path: `${pathPrefix}?${parameters.toString()}`,
 	})
 	assertPageNumber(page.count, 'result count', Number.MAX_SAFE_INTEGER)
 	if (page.results.length > limit)
 		throw new Error('SafeTransactionService_Rest: transaction page exceeds requested limit')
-	assertContinuation(page.next, network, pathPrefix)
-	assertContinuation(page.previous, network, pathPrefix)
+	assertContinuation(page.next, binding, pathPrefix)
+	assertContinuation(page.previous, binding, pathPrefix)
 	const hashes = new Set<string>()
 	for (const transaction of page.results) {
 		assertTransaction(transaction, safeAddress)
@@ -236,16 +199,12 @@ export const getSafeMultisigTransactions = async ({
 	return page
 }
 
-export const getSafeTransactionConfirmations = async ({
-	network,
-	apiKey,
+export const getSafeTransactionConfirmations = async (binding: SourceBinding, {
 	safeAddress,
 	safeTxHash,
 	limit,
 	offset,
 }: {
-	network: SafeTransactionServiceNetwork
-	apiKey: string
 	safeAddress: string
 	safeTxHash: string
 	limit: number
@@ -258,19 +217,15 @@ export const getSafeTransactionConfirmations = async ({
 		throw new Error('SafeTransactionService_Rest: page limit must be positive')
 	assertPageNumber(offset, 'page offset', Number.MAX_SAFE_INTEGER)
 	const [status, transaction, page] = await Promise.all([
-		getSafeStatus({
-			network,
-			apiKey,
+		getSafeStatus(binding, {
 			safeAddress,
 		}),
 		request<SafeMultisigTransaction>({
-			network,
-			apiKey,
+			binding,
 			path: `/api/v2/multisig-transactions/${encodeURIComponent(safeTxHash)}/`,
 		}),
 		request<SafePage<SafeMultisigConfirmation>>({
-			network,
-			apiKey,
+			binding,
 			path: `/api/v1/multisig-transactions/${encodeURIComponent(safeTxHash)}/confirmations/?limit=${limit}&offset=${offset}`,
 		}),
 	])
@@ -281,8 +236,8 @@ export const getSafeTransactionConfirmations = async ({
 	if (page.results.length > limit)
 		throw new Error('SafeTransactionService_Rest: confirmation page exceeds requested limit')
 	const confirmationPath = `/api/v1/multisig-transactions/${encodeURIComponent(safeTxHash)}/confirmations/`
-	assertContinuation(page.next, network, confirmationPath)
-	assertContinuation(page.previous, network, confirmationPath)
+	assertContinuation(page.next, binding, confirmationPath)
+	assertContinuation(page.previous, binding, confirmationPath)
 	const owners = new Set(status.owners.map((owner) => owner.toLowerCase()))
 	const confirmedOwners = new Set<string>()
 	for (const confirmation of page.results) {

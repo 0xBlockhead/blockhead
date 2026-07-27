@@ -8,14 +8,12 @@
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		data,
-		params,
 	}: PageProps = $props()
 
 	const pageSelection = $derived(select(EntityType.NostrNote, data.selector, {
@@ -43,17 +41,12 @@
 
 
 <svelte:head>
-	<title>{(data.title ?? (pageSelection.entity == null ? [String((data.selector.eventId) ?? '')].filter(Boolean).join(' ') || 'Nostr note' : [String((({ ...data.selector, ...pageSelection.entity }).content) ?? '')].filter(Boolean).join(' ') || [String((({ ...data.selector, ...pageSelection.entity }).eventId) ?? '')].filter(Boolean).join(' ') || 'Nostr note'))} • Nostr note • Blockhead</title>
+	<title>{(data.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.eventId ?? '') || 'Nostr note' : (pageSelection.entity.content ?? '') || pageSelection.entitySelector.eventId || 'Nostr note'))} • Nostr note • Blockhead</title>
 </svelte:head>
 
 
 <Page>
 	<NostrNoteView
-		href={
-			resolve('/nostr/note/[eventId=stringSegment]', {
-				eventId: params.eventId,
-			})
-		}
 		selection={pageSelection}
 	/>
 </Page>

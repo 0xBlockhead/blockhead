@@ -5,6 +5,7 @@ export type WalletCandidate = {
 	id: string
 	name: string
 	icon: string
+	connectionUri?: string
 	protocol: WalletProtocol
 	discoveryKind: WalletDiscoveryKind
 	transportKind: WalletTransportKind

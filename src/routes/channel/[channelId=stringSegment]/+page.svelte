@@ -8,7 +8,6 @@
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
@@ -41,21 +40,12 @@
 
 
 <svelte:head>
-	<title>{(pageSelection.entity == null ? [String(({
-		id: params.channelId,
-	}.id) ?? '')].filter(Boolean).join(' ') || 'blockhead state channel' : [String((({ ...{
-		id: params.channelId,
-	}, ...pageSelection.entity }).id) ?? '')].filter(Boolean).join(' ') || 'blockhead state channel')} • blockhead state channel • Blockhead</title>
+	<title>{(pageSelection.entitySelector.id || 'blockhead state channel')} • blockhead state channel • Blockhead</title>
 </svelte:head>
 
 
 <Page>
 	<BlockheadStateChannelView
-		href={
-			resolve('/channel/[channelId=stringSegment]', {
-				channelId: params.channelId,
-			})
-		}
 		selection={pageSelection}
 	/>
 </Page>

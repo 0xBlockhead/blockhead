@@ -1,14 +1,11 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { entity, facet } from '$/schema/$schema.ts'
+import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { type } from 'arktype'
 
-export enum AcpPermissionRequestSelector {
-	SessionRequestId = 'SessionRequestId',
-}
-export const AcpPermissionRequest = entity({
+export default entity({
 	entityType: EntityType.AcpPermissionRequest,
 	labels: {
 		singular: 'acp permission request',

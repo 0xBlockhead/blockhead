@@ -5,7 +5,10 @@ import {
 	EntityMetaKey,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import { _GlobalXNetworkSelector } from '$/schema/_GlobalXNetwork.ts'
+import bindings from '$/sources/FxEmbed/bindings.ts'
+import { Source } from '$/sources/Source.ts'
+
+const fxEmbedBinding = bindings[Source.X_FxEmbed_Rest]
 
 const fxEmbedQueries = vi.hoisted(() => ({
 	getStatus: vi.fn(),
@@ -69,13 +72,13 @@ describe('X FxEmbed global network', () => {
 		})
 
 		const users = await globalNetworkResolvers[0]
-			.resolve[_GlobalXNetworkSelector.Scope]
+			.resolve['Scope']
 			.resolve(
 				{ scope: EntityType._GlobalXNetwork },
 				resolverContext
 			)
 		const posts = await globalNetworkResolvers[1]
-			.resolve[_GlobalXNetworkSelector.Scope]
+			.resolve['Scope']
 			.resolve(
 				{ scope: EntityType._GlobalXNetwork },
 				resolverContext
@@ -135,7 +138,7 @@ describe('X FxEmbed global network', () => {
 	it('rejects unrelated scopes before calling the provider', async () => {
 		for (const resolver of globalNetworkResolvers)
 			await expect(
-				resolver.resolve[_GlobalXNetworkSelector.Scope].resolve(
+				resolver.resolve['Scope'].resolve(
 					{ scope: 'youtube' },
 					resolverContext
 				)
@@ -166,13 +169,13 @@ describe('X FxEmbed global network', () => {
 		})
 
 		expect(await globalNetworkResolvers[0]
-			.resolve[_GlobalXNetworkSelector.Scope]
+			.resolve['Scope']
 			.resolve(
 				{ scope: EntityType._GlobalXNetwork },
 				resolverContext
 			)).toEqual([])
 		expect(await globalNetworkResolvers[1]
-			.resolve[_GlobalXNetworkSelector.Scope]
+			.resolve['Scope']
 			.resolve(
 				{ scope: EntityType._GlobalXNetwork },
 				resolverContext

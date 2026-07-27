@@ -1,10 +1,15 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { sourceProviderDefinitions } from '$/sources/$sourceProviders.ts'
+import bindings from '$/sources/LightningMempoolSpace/bindings.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import { LightningNetwork_TimestampSelector } from '$/schema/LightningNetwork_Timestamp.ts'
 import { Source } from '$/sources/Source.ts'
-import { SourceTargetKind } from '$/sources/SourceBinding.ts'
+import {
+	ApiFamily,
+	SourceDelivery,
+	SourceTargetKind,
+	WireProtocol,
+	type SourceBinding,
+} from '$/sources/SourceBinding.ts'
 
 const sourceGetJson = vi.hoisted(() => vi.fn())
 
@@ -21,18 +26,7 @@ import {
 } from '$/sources/LightningMempoolSpace/Rest/queries.ts'
 import lightningMempoolSpaceResolvers from '$/resolvers/LightningMempoolSpace-Rest.ts'
 
-const bindings = sourceProviderDefinitions
-	.flatMap((provider) => provider.bindings)
-	.filter((binding) => (
-		binding.source === Source.LightningMempoolSpace_Rest
-		&& binding.target.kind === SourceTargetKind.NetworkSlug
-		&& binding.target.key === 'lightning'
-	))
-
-if (bindings.length !== 1)
-	throw new Error('LightningMempoolSpace_Rest spec missing exact Lightning source binding')
-
-const binding = bindings[0]
+const binding = bindings[Source.LightningMempoolSpace_Rest]
 const networkTimestampResolver = lightningMempoolSpaceResolvers.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.LightningNetwork_Timestamp
 	&& 'nodeCount' in resolver.projections
@@ -80,7 +74,7 @@ describe('mempool.space public Lightning graph queries', () => {
 			},
 		})
 		const resolve = networkTimestampResolver.resolve[
-			LightningNetwork_TimestampSelector.LightningNetworkTimestampMsSource
+			'LightningNetworkTimestampMsSource'
 		].resolve
 		const context = {
 			filters: [],
@@ -127,6 +121,7 @@ describe('mempool.space public Lightning graph queries', () => {
 		})
 
 		await expect(getLightningNode({
+			binding,
 			publicKey,
 		})).rejects.toThrow('mismatched identity')
 		expect(sourceGetJson).toHaveBeenCalledWith(
@@ -147,6 +142,7 @@ describe('mempool.space public Lightning graph queries', () => {
 		})))
 
 		await expect(getLightningNodeChannels({
+			binding,
 			publicKey,
 			status: 'active',
 			index: 20,
@@ -164,6 +160,7 @@ describe('mempool.space public Lightning graph queries', () => {
 			id: String(index + 1),
 		})))
 		await expect(getLightningNodeChannels({
+			binding,
 			publicKey,
 		})).rejects.toThrow('exceeds provider page size')
 
@@ -176,6 +173,7 @@ describe('mempool.space public Lightning graph queries', () => {
 			},
 		])
 		await expect(getLightningNodeChannels({
+			binding,
 			publicKey,
 		})).rejects.toThrow('duplicate channel')
 	})
@@ -185,6 +183,7 @@ describe('mempool.space public Lightning graph queries', () => {
 			id: '2',
 		})
 		await expect(getLightningChannel({
+			binding,
 			channelId: '1',
 		})).rejects.toThrow('mismatched identity')
 
@@ -193,6 +192,7 @@ describe('mempool.space public Lightning graph queries', () => {
 			capacity: Number.MAX_SAFE_INTEGER + 1,
 		})
 		await expect(getLightningChannel({
+			binding,
 			channelId: '1',
 		})).rejects.toThrow('invalid or lossy channel capacity')
 	})

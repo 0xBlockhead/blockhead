@@ -3,7 +3,7 @@ import { sourceFetch, firstHttpUrlForBinding } from '$/sources/_runtime/http.ts'
 import { throwHttpError } from '$/lib/http.ts'
 import type { GoogleAiJson } from '$/sources/GoogleAi/Rest/types.ts'
 
-const getJson = async ({
+const requestGoogleAiJson = async ({
 	binding,
 	path,
 	credential,
@@ -30,7 +30,7 @@ export const listModels = ({
 }: {
 	binding: SourceBinding
 	credential: string
-}) => getJson({
+}) => requestGoogleAiJson({
 	binding,
 	path: '/v1beta/models',
 	credential,
@@ -44,7 +44,7 @@ export const retrieveModel = ({
 	binding: SourceBinding
 	modelName: string
 	credential: string
-}) => getJson({
+}) => requestGoogleAiJson({
 	binding,
 	path: `/v1beta/${modelName}`,
 	credential,

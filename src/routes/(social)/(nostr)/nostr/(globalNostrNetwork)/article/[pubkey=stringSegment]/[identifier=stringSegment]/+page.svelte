@@ -8,7 +8,6 @@
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
@@ -39,26 +38,12 @@
 
 
 <svelte:head>
-	<title>{(pageSelection.entity == null ? [String(({
-		kind: 30023,
-		pubkey: params.pubkey,
-		identifier: params.identifier,
-	}.identifier) ?? '')].filter(Boolean).join(' ') || 'Nostr article' : [String((({ ...{
-		kind: 30023,
-		pubkey: params.pubkey,
-		identifier: params.identifier,
-	}, ...pageSelection.entity }).identifier) ?? '')].filter(Boolean).join(' ') || 'Nostr article')} • Nostr article • Blockhead</title>
+	<title>{(pageSelection.entity == null ? (pageSelection.entitySelector.identifier ?? '') || 'Nostr article' : pageSelection.entitySelector.identifier || 'Nostr article')} • Nostr article • Blockhead</title>
 </svelte:head>
 
 
 <Page>
 	<NostrArticleView
-		href={
-			resolve('/nostr/article/[pubkey=stringSegment]/[identifier=stringSegment]', {
-				pubkey: params.pubkey,
-				identifier: params.identifier,
-			})
-		}
 		selection={pageSelection}
 	/>
 </Page>

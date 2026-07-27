@@ -7,7 +7,6 @@
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
@@ -45,36 +44,12 @@
 
 
 <svelte:head>
-	<title>{(data.title ?? (pageSelection.entity == null ? 'MEV builder timestamp' : [(String((({ ...{
-		$builder: data.selector,
-		timestampMs: Number(params.timestampMs),
-		source: params.source,
-	}, ...pageSelection.entity }).deliveredPayloadCount) ?? '') ? String((({ ...{
-		$builder: data.selector,
-		timestampMs: Number(params.timestampMs),
-		source: params.source,
-	}, ...pageSelection.entity }).deliveredPayloadCount) ?? '') + ' payloads' : ''), (String((({ ...{
-		$builder: data.selector,
-		timestampMs: Number(params.timestampMs),
-		source: params.source,
-	}, ...pageSelection.entity }).deliveredValueWei) ?? '') ? String((({ ...{
-		$builder: data.selector,
-		timestampMs: Number(params.timestampMs),
-		source: params.source,
-	}, ...pageSelection.entity }).deliveredValueWei) ?? '') + ' wei' : '')].filter(Boolean).join(' ') || 'MEV builder timestamp'))} • MEV builder timestamp • Blockhead</title>
+	<title>{(data.title ?? (pageSelection.entity == null ? 'MEV builder timestamp' : ([(String(pageSelection.entity.deliveredPayloadCount ?? '') ? String(pageSelection.entity.deliveredPayloadCount ?? '') + ' payloads' : ''), (String(pageSelection.entity.deliveredValueWei ?? '') ? String(pageSelection.entity.deliveredValueWei ?? '') + ' wei' : '')].filter(Boolean).join(' ')) || 'MEV builder timestamp'))} • MEV builder timestamp • Blockhead</title>
 </svelte:head>
 
 
 <Page>
 	<MevBuilder_TimestampView
-		href={
-			resolve('/network/[network=networkCaip2OrNetworkSlug]/mev/builder/[builderPubkey=stringSegment]/timestamp/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
-				network: params.network,
-				builderPubkey: params.builderPubkey,
-				timestampMs: params.timestampMs,
-				source: params.source,
-			})
-		}
 		selection={pageSelection}
 	/>
 </Page>

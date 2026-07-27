@@ -1,14 +1,11 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { entity, facet } from '$/schema/$schema.ts'
+import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { type } from 'arktype'
 
-export enum BridgeRouteStepSelector {
-	RouteIndexInRoute = 'RouteIndexInRoute',
-}
-export const BridgeRouteStep = entity({
+export default entity({
 	entityType: EntityType.BridgeRouteStep,
 	labels: {
 		singular: 'bridge route step',
@@ -24,7 +21,7 @@ export const BridgeRouteStep = entity({
 	indexInRoute: {
 		label: 'Index in route',
 		type: EntityFieldType.Primitive,
-		primitiveType: (type('number.integer >= 0')),
+		primitiveType: type('number.integer >= 0'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	stepType: {

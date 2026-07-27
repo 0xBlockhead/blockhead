@@ -1,16 +1,3 @@
-import { rssNetworkSeedFeeds } from '$/constants/Social/Rss.ts'
-
-export const rssFeedOrigins = [
-	...new Set(
-		rssNetworkSeedFeeds.map((feed) => (
-			new URL(feed.feedUrl).origin
-		))
-	),
-].map((origin) => ({
-	origin,
-	corsEnabled: false,
-}))
-
 export const normalizeRssFeedUrl = (feedUrl: string) => (
 	new URL(feedUrl.trim()).href
 )

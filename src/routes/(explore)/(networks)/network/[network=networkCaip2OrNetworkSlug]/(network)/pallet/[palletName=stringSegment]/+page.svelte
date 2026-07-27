@@ -7,14 +7,12 @@
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		data,
-		params,
 	}: PageProps = $props()
 
 	const pageSelection = $derived(select(EntityType.PolkadotPallet, data.selector, {
@@ -31,18 +29,12 @@
 
 
 <svelte:head>
-	<title>{(data.title ?? (pageSelection.entity == null ? [String((data.selector.palletName) ?? '')].filter(Boolean).join(' ') || 'Polkadot pallet' : [String((({ ...data.selector, ...pageSelection.entity }).palletName) ?? '')].filter(Boolean).join(' ') || 'Polkadot pallet'))} • Polkadot pallet • Blockhead</title>
+	<title>{(data.title ?? (pageSelection.entitySelector.palletName || 'Polkadot pallet'))} • Polkadot pallet • Blockhead</title>
 </svelte:head>
 
 
 <Page>
 	<PolkadotPalletView
-		href={
-			resolve('/network/[network=networkCaip2OrNetworkSlug]/pallet/[palletName=stringSegment]', {
-				network: params.network,
-				palletName: params.palletName,
-			})
-		}
 		selection={pageSelection}
 	/>
 </Page>

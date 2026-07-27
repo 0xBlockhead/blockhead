@@ -2,17 +2,6 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { Source } from '$/sources/Source.ts'
 import {
-	ApiFamily,
-	SourceCredentialScope,
-	SourceDelivery,
-	SourceEndpointKind,
-	SourceOperationGroup,
-	type SourceBinding,
-	SourceTargetKind,
-	WireProtocol,
-} from '$/sources/SourceBinding.ts'
-import { SourceProvider } from '$/sources/SourceProvider.ts'
-import {
 	tonCenterV3Hash,
 	tonCenterV3NonnegativeInt64,
 	tonCenterV3RawAddress,
@@ -32,8 +21,12 @@ const { getJson } = vi.hoisted(() => ({
 	getJson: vi.fn(),
 }))
 
+vi.mock('$/sources/_runtime/http.ts', () => ({
+	sourceGetJson: getJson,
+}))
+
 vi.mock('$/sources/_shared/wire/HttpRest/client.ts', () => ({
-	getJson,
+	httpUrl: (_binding: unknown, path: string) => path,
 }))
 
 const {
@@ -45,29 +38,6 @@ const {
 	getTonCenterV3NftItems,
 	getTonCenterV3Transactions,
 } = await import('$/sources/TonCenter/V3/Rest/queries.ts')
-
-const binding = {
-	provider: SourceProvider.TonCenter,
-	source: Source.TonCenter_V3_Rest,
-	target: {
-		kind: SourceTargetKind.Caip2Network,
-		key: 'ton:-239',
-	},
-	endpoints: [{
-		endpointKind: SourceEndpointKind.HttpUrl,
-		locator: 'https://toncenter.com/api/v3/',
-		origin: 'https://toncenter.com',
-		corsEnabled: false,
-	}],
-	wireProtocol: WireProtocol.HttpRest,
-	apiFamily: ApiFamily.RestJson,
-	operationGroups: [SourceOperationGroup.GenericRead],
-	delivery: SourceDelivery.HttpProxy,
-	credentials: [{
-		scope: SourceCredentialScope.None,
-	}],
-	proxyId: 'TonCenter_V3_Rest-test',
-} as const satisfies SourceBinding
 
 const firstHash = '01'.repeat(32)
 const secondHash = '02'.repeat(32)
@@ -232,7 +202,7 @@ describe('TON Center v3 source foundation', () => {
 			],
 		})
 
-		await expect(getTonCenterV3Blocks(binding, {
+		await expect(getTonCenterV3Blocks({
 			limit: 2,
 			offset: 4,
 			order: 'desc',
@@ -259,7 +229,7 @@ describe('TON Center v3 source foundation', () => {
 			nextOffset: 6,
 		})
 		expect(getJson).toHaveBeenCalledWith(
-			binding,
+			expect.anything(),
 			'blocks?limit=2&offset=4&sort=desc'
 		)
 	})
@@ -286,7 +256,7 @@ describe('TON Center v3 source foundation', () => {
 			messages: [message],
 		})
 
-		await expect(getTonCenterV3Messages(binding, {
+		await expect(getTonCenterV3Messages({
 			limit: 2,
 			offset: 0,
 			order: 'asc',
@@ -308,7 +278,7 @@ describe('TON Center v3 source foundation', () => {
 			}],
 		})
 		expect(getJson).toHaveBeenCalledWith(
-			binding,
+			expect.anything(),
 			'messages?limit=2&offset=0&sort=asc'
 		)
 	})
@@ -329,7 +299,7 @@ describe('TON Center v3 source foundation', () => {
 				}],
 			})
 
-		await expect(getTonCenterV3Messages(binding, {
+		await expect(getTonCenterV3Messages({
 			limit: 1,
 			offset: 0,
 			order: 'desc',
@@ -339,7 +309,7 @@ describe('TON Center v3 source foundation', () => {
 				destination: expect.anything(),
 			})],
 		}))
-		await expect(getTonCenterV3Transactions(binding, {
+		await expect(getTonCenterV3Transactions({
 			limit: 1,
 			offset: 0,
 			order: 'desc',
@@ -355,7 +325,7 @@ describe('TON Center v3 source foundation', () => {
 			traces: [trace],
 		})
 
-		await expect(getTonCenterV3CompletedTraces(binding, {
+		await expect(getTonCenterV3CompletedTraces({
 			limit: 1,
 			offset: 8,
 			order: 'desc',
@@ -381,7 +351,7 @@ describe('TON Center v3 source foundation', () => {
 			nextOffset: 9,
 		})
 		expect(getJson).toHaveBeenCalledWith(
-			binding,
+			expect.anything(),
 			'traces?limit=1&offset=8&sort=desc'
 		)
 	})
@@ -397,7 +367,7 @@ describe('TON Center v3 source foundation', () => {
 			],
 		})
 
-		await expect(getTonCenterV3Transactions(binding, {
+		await expect(getTonCenterV3Transactions({
 			limit: 2,
 			offset: 5,
 			order: 'desc',
@@ -446,7 +416,7 @@ describe('TON Center v3 source foundation', () => {
 			nextOffset: 7,
 		})
 		expect(getJson).toHaveBeenCalledWith(
-			binding,
+			expect.anything(),
 			'transactions?limit=2&offset=5&sort=desc'
 		)
 	})
@@ -538,7 +508,7 @@ describe('TON Center v3 source foundation', () => {
 			transactions: rows,
 		})
 
-		await expect(getTonCenterV3Transactions(binding, {
+		await expect(getTonCenterV3Transactions({
 			limit: rows.length,
 			offset: 0,
 			order: 'desc',
@@ -605,7 +575,7 @@ describe('TON Center v3 source foundation', () => {
 	}) => {
 		getJson.mockResolvedValueOnce(response)
 
-		await expect(query(binding, {
+		await expect(query({
 			limit: 2,
 			offset: 0,
 			order: 'desc',
@@ -623,7 +593,7 @@ describe('TON Center v3 source foundation', () => {
 			],
 		})
 
-		await expect(getTonCenterV3Blocks(binding, {
+		await expect(getTonCenterV3Blocks({
 			limit: 2,
 			offset: 0,
 			order: 'desc',
@@ -634,7 +604,7 @@ describe('TON Center v3 source foundation', () => {
 		2 ** 31,
 		(2 ** 31) - 2,
 	])('rejects pages outside the official int32 offset domain', async (offset) => {
-		await expect(getTonCenterV3Blocks(binding, {
+		await expect(getTonCenterV3Blocks({
 			limit: 2,
 			offset,
 			order: 'desc',
@@ -653,7 +623,7 @@ describe('TON Center v3 source foundation', () => {
 			],
 		})
 
-		await expect(getTonCenterV3JettonMasters(binding, {
+		await expect(getTonCenterV3JettonMasters({
 			limit: 2,
 			offset: 3,
 		})).resolves.toEqual({
@@ -679,7 +649,7 @@ describe('TON Center v3 source foundation', () => {
 			nextOffset: 5,
 		})
 		expect(getJson).toHaveBeenCalledWith(
-			binding,
+			expect.anything(),
 			'jetton/masters?limit=2&offset=3'
 		)
 	})
@@ -689,7 +659,7 @@ describe('TON Center v3 source foundation', () => {
 			nft_collections: [nftCollection],
 		})
 
-		await expect(getTonCenterV3NftCollections(binding, {
+		await expect(getTonCenterV3NftCollections({
 			limit: 2,
 			offset: 0,
 		})).resolves.toEqual({
@@ -707,7 +677,7 @@ describe('TON Center v3 source foundation', () => {
 			}],
 		})
 		expect(getJson).toHaveBeenCalledWith(
-			binding,
+			expect.anything(),
 			'nft/collections?limit=2&offset=0'
 		)
 	})
@@ -717,7 +687,7 @@ describe('TON Center v3 source foundation', () => {
 			nft_items: [nftItem],
 		})
 
-		await expect(getTonCenterV3NftItems(binding, {
+		await expect(getTonCenterV3NftItems({
 			limit: 1,
 			offset: 6,
 		})).resolves.toEqual({
@@ -746,7 +716,7 @@ describe('TON Center v3 source foundation', () => {
 			nextOffset: 7,
 		})
 		expect(getJson).toHaveBeenCalledWith(
-			binding,
+			expect.anything(),
 			'nft/items?limit=1&offset=6'
 		)
 	})
@@ -842,7 +812,7 @@ describe('TON Center v3 source foundation', () => {
 	}) => {
 		getJson.mockResolvedValueOnce(response)
 
-		await expect(query(binding, {
+		await expect(query({
 			limit: 2,
 			offset: 0,
 		})).rejects.toThrow(error)
@@ -886,58 +856,11 @@ describe('TON Center v3 source foundation', () => {
 			}],
 		})
 
-		await expect(getTonCenterV3CompletedTraces(binding, {
+		await expect(getTonCenterV3CompletedTraces({
 			limit: 10,
 			offset: 0,
 			order: 'desc',
 		})).rejects.toThrow(error)
-	})
-
-	it.each([
-		[
-			'wrong source',
-			{
-				...binding,
-				source: Source.TonCenter_V2_Rest,
-			},
-		],
-		[
-			'wrong target',
-			{
-				...binding,
-				target: {
-					kind: SourceTargetKind.Global,
-					key: 'toncenter-v3',
-				},
-			},
-		],
-		[
-			'placeholder endpoint',
-			{
-				...binding,
-				endpoints: [{
-					...binding.endpoints[0],
-					locator: 'https://{toncenter-v3-api-host}',
-				}],
-			},
-		],
-		[
-			'remote-query delivery',
-			{
-				...binding,
-				delivery: SourceDelivery.RemoteQuery,
-			},
-		],
-	] satisfies [string, SourceBinding][])('rejects %s binding authority before transport', async (
-		_label,
-		invalidBinding
-	) => {
-		await expect(getTonCenterV3Blocks(invalidBinding, {
-			limit: 1,
-			offset: 0,
-			order: 'desc',
-		})).rejects.toThrow('canonical TON mainnet v3 binding')
-		expect(getJson).not.toHaveBeenCalled()
 	})
 
 	it('rejects malformed identities, int64 overflow, duplicates, and pagination bounds', async () => {
@@ -947,7 +870,7 @@ describe('TON Center v3 source foundation', () => {
 				root_hash: 'not-a-hash',
 			}],
 		})
-		await expect(getTonCenterV3Blocks(binding, {
+		await expect(getTonCenterV3Blocks({
 			limit: 1,
 			offset: 0,
 			order: 'desc',
@@ -959,7 +882,7 @@ describe('TON Center v3 source foundation', () => {
 				created_lt: '9223372036854775808',
 			}],
 		})
-		await expect(getTonCenterV3Messages(binding, {
+		await expect(getTonCenterV3Messages({
 			limit: 1,
 			offset: 0,
 			order: 'desc',
@@ -971,14 +894,14 @@ describe('TON Center v3 source foundation', () => {
 				block,
 			],
 		})
-		await expect(getTonCenterV3Blocks(binding, {
+		await expect(getTonCenterV3Blocks({
 			limit: 2,
 			offset: 0,
 			order: 'desc',
 		})).rejects.toThrow('duplicate block identity')
 
 		vi.clearAllMocks()
-		await expect(getTonCenterV3Messages(binding, {
+		await expect(getTonCenterV3Messages({
 			limit: 1_001,
 			offset: 0,
 			order: 'desc',

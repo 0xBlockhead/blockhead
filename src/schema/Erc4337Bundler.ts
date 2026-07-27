@@ -1,15 +1,12 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { entity, facet } from '$/schema/$schema.ts'
+import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { EvmAddress } from '$/schema/ZeroExHex.ts'
 import { type } from 'arktype'
 
-export enum Erc4337BundlerSelector {
-	EvmNetworkAddress = 'EvmNetworkAddress',
-}
-export const Erc4337Bundler = entity({
+export default entity({
 	entityType: EntityType.Erc4337Bundler,
 	labels: {
 		singular: 'ERC-4337 bundler',
@@ -25,7 +22,7 @@ export const Erc4337Bundler = entity({
 	address: {
 		label: 'Address',
 		type: EntityFieldType.Primitive,
-		primitiveType: (EvmAddress),
+		primitiveType: EvmAddress,
 		cardinality: EntityFieldCardinality.One,
 	},
 	$contract: {

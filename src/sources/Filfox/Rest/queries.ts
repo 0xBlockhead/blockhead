@@ -1,4 +1,3 @@
-import type { SourceBinding } from '$/sources/SourceBinding.ts'
 import {
 	firstHttpUrlForBinding,
 	sourceGetJson,
@@ -11,83 +10,72 @@ import type {
 	FilfoxOverview,
 	FilfoxTipset,
 } from '$/sources/Filfox/Rest/types.ts'
+import bindings from '$/sources/Filfox/bindings.ts'
+import { Source } from '$/sources/Source.ts'
 
-const base = (binding: SourceBinding) => `${firstHttpUrlForBinding(binding).replace(/\/$/, '')}/api/v1`
+const binding = bindings[Source.Filfox_Rest]
+const baseUrl = `${firstHttpUrlForBinding(binding).replace(/\/$/, '')}/api/v1`
 
 export const getTipset = ({
-	binding,
 	height,
 }: {
-	binding: SourceBinding
 	height: bigint
 }) => (
 	sourceGetJson<FilfoxTipset>(
 		binding,
-		`${base(binding)}/tipset/${height.toString()}`
+		`${baseUrl}/tipset/${height.toString()}`
 	)
 )
 
 export const getMessage = ({
-	binding,
 	messageCid,
 }: {
-	binding: SourceBinding
 	messageCid: string
 }) => (
 	sourceGetJson<FilfoxMessage>(
 		binding,
-		`${base(binding)}/message/${messageCid}`
+		`${baseUrl}/message/${messageCid}`
 	)
 )
 
 export const getBlock = ({
-	binding,
 	blockCid,
 }: {
-	binding: SourceBinding
 	blockCid: string
 }) => (
 	sourceGetJson<FilfoxBlock>(
 		binding,
-		`${base(binding)}/block/${blockCid}`
+		`${baseUrl}/block/${blockCid}`
 	)
 )
 
 export const getBlockMessages = ({
-	binding,
 	blockCid,
 	pageSize,
 }: {
-	binding: SourceBinding
 	blockCid: string
 	pageSize: number
 }) => (
 	sourceGetJson<FilfoxMessagesPage>(
 		binding,
-		`${base(binding)}/block/${blockCid}/messages?pageSize=${pageSize.toString()}`
+		`${baseUrl}/block/${blockCid}/messages?pageSize=${pageSize.toString()}`
 	)
 )
 
 export const getAddress = ({
-	binding,
 	address,
 }: {
-	binding: SourceBinding
 	address: string
 }) => (
 	sourceGetJson<FilfoxAddress>(
 		binding,
-		`${base(binding)}/address/${address}`
+		`${baseUrl}/address/${address}`
 	)
 )
 
-export const getOverview = ({
-	binding,
-}: {
-	binding: SourceBinding
-}) => (
+export const getOverview = () => (
 	sourceGetJson<FilfoxOverview>(
 		binding,
-		`${base(binding)}/overview`
+		`${baseUrl}/overview`
 	)
 )

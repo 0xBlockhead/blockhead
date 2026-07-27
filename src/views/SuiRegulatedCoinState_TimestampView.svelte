@@ -2,13 +2,8 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
 
 
 	// Context
@@ -20,35 +15,13 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.SuiRegulatedCoinState_Timestamp>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.SuiRegulatedCoinState_Timestamp>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.SuiRegulatedCoinState_Timestamp> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const suiRegulatedCoinStateTimestamp = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {},
-	} : {
-		sources: selection.sources,
-	}))
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const titleFallback = 'Sui regulated coin state timestamp'
-	const viewDomId = $derived('sui-regulated-coin-state-timestamp-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -61,24 +34,14 @@
 
 <EntityView
 	entityType={EntityType.SuiRegulatedCoinState_Timestamp}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails}
-			{title || titleFallback}
-		{:else}
-			<ResourceBoundary resource={suiRegulatedCoinStateTimestamp}>
-				{#snippet children(entity)}
-					{title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		Sui regulated coin state timestamp
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -97,55 +60,20 @@
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									timestampMs: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const timestampMs = resolvedEntity.timestampMs}
-							{#if timestampMs !== undefined && timestampMs !== null}
-								<Timestamp timestamp={Number(timestampMs)} />
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									source: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const source = resolvedEntity.source}
-							{#if source !== undefined && source !== null}
-								{String((source) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{pendingEntity.source}
 				</dd>
 			</div>
 
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							denyCapObjectId: true,
 						},
@@ -153,13 +81,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const denyCapObjectId = resolvedEntity.denyCapObjectId}
-					{#if denyCapObjectId !== undefined && denyCapObjectId !== null}
+					{@const denyCapObjectId = entity.denyCapObjectId}
+					{#if denyCapObjectId != null}
 						<div>
 							<dt>deny cap object ID</dt>
 							<dd>
-								{String((denyCapObjectId) ?? '')}
+								{denyCapObjectId}
 							</dd>
 						</div>
 					{/if}
@@ -169,7 +96,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							denyListObjectId: true,
 						},
@@ -177,13 +103,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const denyListObjectId = resolvedEntity.denyListObjectId}
-					{#if denyListObjectId !== undefined && denyListObjectId !== null}
+					{@const denyListObjectId = entity.denyListObjectId}
+					{#if denyListObjectId != null}
 						<div>
 							<dt>deny list object ID</dt>
 							<dd>
-								{String((denyListObjectId) ?? '')}
+								{denyListObjectId}
 							</dd>
 						</div>
 					{/if}
@@ -193,7 +118,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							globalPause: true,
 						},
@@ -201,9 +125,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const globalPause = resolvedEntity.globalPause}
-					{#if globalPause !== undefined && globalPause !== null}
+					{@const globalPause = entity.globalPause}
+					{#if globalPause != null}
 						<div>
 							<dt>global pause</dt>
 							<dd>
@@ -217,7 +140,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							denyListEpoch: true,
 						},
@@ -225,13 +147,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const denyListEpoch = resolvedEntity.denyListEpoch}
-					{#if denyListEpoch !== undefined && denyListEpoch !== null}
+					{@const denyListEpoch = entity.denyListEpoch}
+					{#if denyListEpoch != null}
 						<div>
 							<dt>deny list epoch</dt>
 							<dd>
-								{String((denyListEpoch) ?? '')}
+								{String(denyListEpoch)}
 							</dd>
 						</div>
 					{/if}
@@ -241,7 +162,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							deniedAddressCount: true,
 						},
@@ -249,13 +169,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const deniedAddressCount = resolvedEntity.deniedAddressCount}
-					{#if deniedAddressCount !== undefined && deniedAddressCount !== null}
+					{@const deniedAddressCount = entity.deniedAddressCount}
+					{#if deniedAddressCount != null}
 						<div>
 							<dt>denied address count</dt>
 							<dd>
-								<TruncatedValue value={String((deniedAddressCount) ?? '')} />
+								<TruncatedValue value={String(deniedAddressCount)} />
 							</dd>
 						</div>
 					{/if}

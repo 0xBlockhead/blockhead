@@ -9,9 +9,6 @@ import {
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
-import { sourceProviderDefinitions } from '$/sources/$sourceProviders.ts'
-import { SourceTargetKind } from '$/sources/SourceBinding.ts'
-import { SourceProvider } from '$/sources/SourceProvider.ts'
 import type {
 	TzktBigMap,
 	TzktBigMapKey,
@@ -21,36 +18,11 @@ import type {
 	TzktTokenBalance,
 	TzktTokenTransfer,
 } from '$/sources/Tzkt/Rest/types.ts'
-import { TezosAccountSelector } from '$/schema/TezosAccount.ts'
-import { TezosNetworkSelector } from '$/schema/TezosNetwork.ts'
-import { TezosContractSelector } from '$/schema/TezosContract.ts'
-import { TezosOperationGroupSelector } from '$/schema/TezosOperationGroup.ts'
-import { TezosOperationSelector } from '$/schema/TezosOperation.ts'
-import { TezosBigMapSelector } from '$/schema/TezosBigMap.ts'
-import { TezosBigMap_TimestampSelector } from '$/schema/TezosBigMap_Timestamp.ts'
-import { TezosBigMapDiffSelector } from '$/schema/TezosBigMapDiff.ts'
-import { TezosBigMapKeySelector } from '$/schema/TezosBigMapKey.ts'
-import { TezosBigMapKey_TimestampSelector } from '$/schema/TezosBigMapKey_Timestamp.ts'
-import { TezosBlockSelector } from '$/schema/TezosBlock.ts'
 
 type NetworkId = { caip2: {
 	namespace: string
 	reference: string
 } } | { slug: string }
-
-const tzktRestBindings = sourceProviderDefinitions
-	.flatMap((provider) => provider.bindings)
-	.filter((binding) => (
-		binding.provider === SourceProvider.Tzkt
-		&& binding.source === Source.Tzkt_Rest
-		&& binding.target.kind === SourceTargetKind.Caip2Network
-		&& binding.target.key === 'tezos:NetXdQprcVkpaWU'
-	))
-
-if (tzktRestBindings.length !== 1)
-	throw new Error('Tzkt_Rest: canonical Tezos mainnet source binding is missing or ambiguous')
-
-const [tzktRestBinding] = tzktRestBindings
 
 const assertTezosMainnet = (network: NetworkId) => {
 	if (
@@ -222,7 +194,7 @@ export default {
 		defineResolver(Source.Tzkt_Rest, {
 			entityType: EntityType.TezosNetwork,
 			resolve: {
-				[TezosNetworkSelector.Network]: {
+				Network: {
 					resolve: async ({ $network }) => {
 						assertTezosMainnet($network)
 						return {
@@ -240,12 +212,11 @@ export default {
 		defineResolver(Source.Tzkt_Rest, {
 			entityType: EntityType.TezosAccount,
 			resolve: {
-				[TezosAccountSelector.NetworkAddress]: {
+				NetworkAddress: {
 					resolve: async (account) => {
 						assertTezosMainnet(account.$network.$network)
 						const { getAccount } = await import('$/sources/Tzkt/Rest/queries.ts')
 						const snapshot = await getAccount({
-							binding: tzktRestBinding,
 							address: account.address,
 						})
 						assertAccount(account.address, snapshot)
@@ -287,7 +258,7 @@ export default {
 		defineResolver(Source.Tzkt_Rest, {
 			entityType: EntityType.TezosAccount,
 			resolve: {
-				[TezosAccountSelector.NetworkAddress]: {
+				NetworkAddress: {
 					resolve: async (account, context) => {
 						assertTezosMainnet(account.$network.$network)
 						const offset = accountOffset(context.providerContinuationToken)
@@ -297,7 +268,6 @@ export default {
 							listOperationsByHash,
 						} = await import('$/sources/Tzkt/Rest/queries.ts')
 						const operations = await listAccountOperations({
-							binding: tzktRestBinding,
 							address: account.address,
 							offset,
 							limit,
@@ -307,7 +277,6 @@ export default {
 							[...new Set(operations.map((operation) => operation.hash))]
 								.map(async (operationHash) => {
 									const operationGroup = await listOperationsByHash({
-										binding: tzktRestBinding,
 										operationHash,
 									})
 									const operationIds = new Set<number>()
@@ -396,14 +365,13 @@ export default {
 		defineResolver(Source.Tzkt_Rest, {
 			entityType: EntityType.TezosAccount,
 			resolve: {
-				[TezosAccountSelector.NetworkAddress]: {
+				NetworkAddress: {
 					resolve: async (account, context) => {
 						assertTezosMainnet(account.$network.$network)
 						const offset = accountOffset(context.providerContinuationToken)
 						const limit = Math.min(resolverContextRowLimit(context), 1_000)
 						const { listAccountTokenBalances } = await import('$/sources/Tzkt/Rest/queries.ts')
 						const balances = await listAccountTokenBalances({
-							binding: tzktRestBinding,
 							address: account.address,
 							offset,
 							limit,
@@ -473,14 +441,13 @@ export default {
 		defineResolver(Source.Tzkt_Rest, {
 			entityType: EntityType.TezosAccount,
 			resolve: {
-				[TezosAccountSelector.NetworkAddress]: {
+				NetworkAddress: {
 					resolve: async (account, context) => {
 						assertTezosMainnet(account.$network.$network)
 						const offset = accountOffset(context.providerContinuationToken)
 						const limit = Math.min(resolverContextRowLimit(context), 1_000)
 						const { listAccountTokenTransfers } = await import('$/sources/Tzkt/Rest/queries.ts')
 						const transfers = await listAccountTokenTransfers({
-							binding: tzktRestBinding,
 							address: account.address,
 							offset,
 							limit,
@@ -574,7 +541,7 @@ export default {
 		defineResolver(Source.Tzkt_Rest, {
 			entityType: EntityType.TezosBlock,
 			resolve: {
-				[TezosBlockSelector.NetworkLevel]: {
+				NetworkLevel: {
 					resolve: async ({ $network, level }) => {
 						assertTezosMainnet($network.$network)
 						if (level < 0n || level > BigInt(Number.MAX_SAFE_INTEGER))
@@ -582,7 +549,6 @@ export default {
 
 						const { getBlock } = await import('$/sources/Tzkt/Rest/queries.ts')
 						const block = await getBlock({
-							binding: tzktRestBinding,
 							level,
 						})
 						if (BigInt(block.level) !== level)
@@ -615,12 +581,11 @@ export default {
 		defineResolver(Source.Tzkt_Rest, {
 			entityType: EntityType.TezosNetwork,
 			resolve: {
-				[TezosNetworkSelector.Network]: {
+				Network: {
 					resolve: async ({ $network }, context) => {
 						assertTezosMainnet($network)
 						const { listBigMaps } = await import('$/sources/Tzkt/Rest/queries.ts')
 						return (await listBigMaps({
-							binding: tzktRestBinding,
 							limit: resolverContextRowLimit(context),
 						})).map((bigMap) => ({
 							[EntityMetaKey.Selector]: {
@@ -641,12 +606,11 @@ export default {
 		defineResolver(Source.Tzkt_Rest, {
 			entityType: EntityType.TezosNetwork,
 			resolve: {
-				[TezosNetworkSelector.Network]: {
+				Network: {
 					resolve: async ({ $network }, context) => {
 						assertTezosMainnet($network)
 						const { listBigMapUpdates } = await import('$/sources/Tzkt/Rest/queries.ts')
 						return (await listBigMapUpdates({
-							binding: tzktRestBinding,
 							limit: resolverContextRowLimit(context),
 						})).flatMap((update) => (
 							update.contract?.address == null ?
@@ -678,12 +642,11 @@ export default {
 		defineResolver(Source.Tzkt_Rest, {
 			entityType: EntityType.TezosNetwork,
 			resolve: {
-				[TezosNetworkSelector.Network]: {
+				Network: {
 					resolve: async ({ $network }, context) => {
 						assertTezosMainnet($network)
 						const { listBigMaps, listBigMapKeys } = await import('$/sources/Tzkt/Rest/queries.ts')
 						const bigMaps = await listBigMaps({
-							binding: tzktRestBinding,
 							limit: Math.min(resolverContextRowLimit(context), 5),
 						})
 						const keyRows = (
@@ -691,7 +654,6 @@ export default {
 								bigMaps.map(async (bigMap) => ({
 									bigMap,
 									keys: await listBigMapKeys({
-										binding: tzktRestBinding,
 										bigMapId: bigMap.ptr,
 										limit: Math.max(1, Math.floor(resolverContextRowLimit(context) / Math.max(bigMaps.length, 1))),
 									}),
@@ -733,12 +695,11 @@ export default {
 		defineResolver(Source.Tzkt_Rest, {
 			entityType: EntityType.TezosNetwork,
 			resolve: {
-				[TezosNetworkSelector.Network]: {
+				Network: {
 					resolve: async ({ $network }, context) => {
 						assertTezosMainnet($network)
 						const { listBigMaps, listBigMapKeys } = await import('$/sources/Tzkt/Rest/queries.ts')
 						const bigMaps = await listBigMaps({
-							binding: tzktRestBinding,
 							limit: Math.min(resolverContextRowLimit(context), 5),
 						})
 						const keyRows = (
@@ -746,7 +707,6 @@ export default {
 								bigMaps.map(async (bigMap) => ({
 									bigMap,
 									keys: await listBigMapKeys({
-										binding: tzktRestBinding,
 										bigMapId: bigMap.ptr,
 										limit: Math.max(1, Math.floor(resolverContextRowLimit(context) / Math.max(bigMaps.length, 1))),
 									}),
@@ -780,12 +740,11 @@ export default {
 		defineResolver(Source.Tzkt_Rest, {
 			entityType: EntityType.TezosContract,
 			resolve: {
-				[TezosContractSelector.NetworkAddress]: {
+				NetworkAddress: {
 					resolve: async ({ $network, address }) => {
 						assertTezosMainnet($network.$network)
 						const { getContract } = await import('$/sources/Tzkt/Rest/queries.ts')
 						await getContract({
-							binding: tzktRestBinding,
 							address,
 						})
 						return {
@@ -805,12 +764,11 @@ export default {
 		defineResolver(Source.Tzkt_Rest, {
 			entityType: EntityType.TezosContract,
 			resolve: {
-				[TezosContractSelector.NetworkAddress]: {
+				NetworkAddress: {
 					resolve: async ({ $network, address }, context) => {
 						assertTezosMainnet($network.$network)
 						const { listBigMaps } = await import('$/sources/Tzkt/Rest/queries.ts')
 						return (await listBigMaps({
-							binding: tzktRestBinding,
 							contract: address,
 							limit: resolverContextRowLimit(context),
 						})).map((bigMap) => ({
@@ -832,12 +790,11 @@ export default {
 		defineResolver(Source.Tzkt_Rest, {
 			entityType: EntityType.TezosOperationGroup,
 			resolve: {
-				[TezosOperationGroupSelector.NetworkOperationHash]: {
+				NetworkOperationHash: {
 					resolve: async ({ $network, operationHash }) => {
 						assertTezosMainnet($network.$network)
 						const { listOperationsByHash } = await import('$/sources/Tzkt/Rest/queries.ts')
 						const operations = await listOperationsByHash({
-							binding: tzktRestBinding,
 							operationHash,
 						})
 						if (operations.length === 0)
@@ -859,12 +816,11 @@ export default {
 		defineResolver(Source.Tzkt_Rest, {
 			entityType: EntityType.TezosOperationGroup,
 			resolve: {
-				[TezosOperationGroupSelector.NetworkOperationHash]: {
+				NetworkOperationHash: {
 					resolve: async ({ $network, operationHash }) => {
 						assertTezosMainnet($network.$network)
 						const { listOperationsByHash } = await import('$/sources/Tzkt/Rest/queries.ts')
 						const operations = await listOperationsByHash({
-							binding: tzktRestBinding,
 							operationHash,
 						})
 						return operations.map((operation, contentIndex) => ({
@@ -889,12 +845,11 @@ export default {
 		defineResolver(Source.Tzkt_Rest, {
 			entityType: EntityType.TezosOperation,
 			resolve: {
-				[TezosOperationSelector.OperationGroupContentIndex]: {
+				OperationGroupContentIndex: {
 					resolve: async ({ $operationGroup, contentIndex }) => {
 						assertTezosMainnet($operationGroup.$network.$network)
 						const { listOperationsByHash } = await import('$/sources/Tzkt/Rest/queries.ts')
 						const operations = await listOperationsByHash({
-							binding: tzktRestBinding,
 							operationHash: $operationGroup.operationHash,
 						})
 						const operation = operations.at(contentIndex)
@@ -920,18 +875,16 @@ export default {
 		defineResolver(Source.Tzkt_Rest, {
 			entityType: EntityType.TezosOperation,
 			resolve: {
-				[TezosOperationSelector.OperationGroupContentIndex]: {
+				OperationGroupContentIndex: {
 					resolve: async ({ $operationGroup, contentIndex }) => {
 						assertTezosMainnet($operationGroup.$network.$network)
 						const { listOperationsByHash, listBigMapUpdates } = await import('$/sources/Tzkt/Rest/queries.ts')
 						const operations = await listOperationsByHash({
-							binding: tzktRestBinding,
 							operationHash: $operationGroup.operationHash,
 						})
 						const operation = operations.at(contentIndex)
 						if (operation == null) return []
 						const updates = await listBigMapUpdates({
-							binding: tzktRestBinding,
 							level: operation.level,
 						})
 						return updates.flatMap((update) => (
@@ -961,12 +914,11 @@ export default {
 		defineResolver(Source.Tzkt_Rest, {
 			entityType: EntityType.TezosBigMap,
 			resolve: {
-				[TezosBigMapSelector.ContractBigMapId]: {
+				ContractBigMapId: {
 					resolve: async ({ $contract, bigMapId }) => {
 						assertTezosMainnet($contract.$network.$network)
 						const { getBigMap } = await import('$/sources/Tzkt/Rest/queries.ts')
 						const bigMap = await getBigMap({
-							binding: tzktRestBinding,
 							bigMapId,
 						})
 						if (BigInt(bigMap.ptr) !== bigMapId)
@@ -986,12 +938,11 @@ export default {
 		defineResolver(Source.Tzkt_Rest, {
 			entityType: EntityType.TezosBigMap,
 			resolve: {
-				[TezosBigMapSelector.ContractBigMapId]: {
+				ContractBigMapId: {
 					resolve: async ({ $contract, bigMapId }, context) => {
 						assertTezosMainnet($contract.$network.$network)
 						const { listBigMapKeys } = await import('$/sources/Tzkt/Rest/queries.ts')
 						return (await listBigMapKeys({
-							binding: tzktRestBinding,
 							bigMapId,
 							limit: resolverContextRowLimit(context),
 						})).map((key) => ({
@@ -1013,12 +964,11 @@ export default {
 		defineResolver(Source.Tzkt_Rest, {
 			entityType: EntityType.TezosBigMap,
 			resolve: {
-				[TezosBigMapSelector.ContractBigMapId]: {
+				ContractBigMapId: {
 					resolve: async ({ $contract, bigMapId }, context) => {
 						assertTezosMainnet($contract.$network.$network)
 						const { listBigMapUpdates } = await import('$/sources/Tzkt/Rest/queries.ts')
 						return (await listBigMapUpdates({
-							binding: tzktRestBinding,
 							bigMapId,
 							limit: resolverContextRowLimit(context),
 						})).map((update) => ({
@@ -1041,12 +991,11 @@ export default {
 		defineResolver(Source.Tzkt_Rest, {
 			entityType: EntityType.TezosBigMapKey,
 			resolve: {
-				[TezosBigMapKeySelector.BigMapKeyHash]: {
+				BigMapKeyHash: {
 					resolve: async ({ $bigMap, keyHash }, context) => {
 						assertTezosMainnet($bigMap.$contract.$network.$network)
 						const { listBigMapUpdates } = await import('$/sources/Tzkt/Rest/queries.ts')
 						return (await listBigMapUpdates({
-							binding: tzktRestBinding,
 							bigMapId: $bigMap.bigMapId,
 							keyHash,
 							limit: resolverContextRowLimit(context),
@@ -1070,7 +1019,7 @@ export default {
 		defineResolver(Source.Tzkt_Rest, {
 			entityType: EntityType.TezosBigMap_Timestamp,
 			resolve: {
-				[TezosBigMap_TimestampSelector.BigMapLevelSource]: {
+				BigMapLevelSource: {
 					resolve: async ({ $bigMap, level, source }) => {
 						assertTezosMainnet($bigMap.$contract.$network.$network)
 						if (source !== Source.Tzkt_Rest)
@@ -1081,12 +1030,10 @@ export default {
 							block,
 						] = await Promise.all([
 							getBigMap({
-								binding: tzktRestBinding,
 								bigMapId: $bigMap.bigMapId,
 								level,
 							}),
 							getBlock({
-								binding: tzktRestBinding,
 								level,
 							}),
 						])
@@ -1120,7 +1067,7 @@ export default {
 		defineResolver(Source.Tzkt_Rest, {
 			entityType: EntityType.TezosBigMapDiff,
 			resolve: {
-				[TezosBigMapDiffSelector.OperationBigMapIdKeyHash]: {
+				OperationBigMapIdKeyHash: {
 					resolve: async ({
 						$operation,
 						bigMapId,
@@ -1129,14 +1076,12 @@ export default {
 						assertTezosMainnet($operation.$operationGroup.$network.$network)
 						const { listOperationsByHash, listBigMapUpdates } = await import('$/sources/Tzkt/Rest/queries.ts')
 						const operations = await listOperationsByHash({
-							binding: tzktRestBinding,
 							operationHash: $operation.$operationGroup.operationHash,
 						})
 						const operation = operations.at($operation.contentIndex)
 						if (operation == null)
 							throw new Error(`Tzkt_Rest: operation ${$operation.$operationGroup.operationHash}[${$operation.contentIndex}] not found`)
 						const updates = await listBigMapUpdates({
-							binding: tzktRestBinding,
 							bigMapId,
 							level: operation.level,
 						})
@@ -1169,12 +1114,11 @@ export default {
 		defineResolver(Source.Tzkt_Rest, {
 			entityType: EntityType.TezosBigMapKey,
 			resolve: {
-				[TezosBigMapKeySelector.BigMapKeyHash]: {
+				BigMapKeyHash: {
 					resolve: async ({ $bigMap, keyHash }) => {
 						assertTezosMainnet($bigMap.$contract.$network.$network)
 						const { getBigMapKey } = await import('$/sources/Tzkt/Rest/queries.ts')
 						const key = await getBigMapKey({
-							binding: tzktRestBinding,
 							bigMapId: $bigMap.bigMapId,
 							keyHash,
 						})
@@ -1190,7 +1134,7 @@ export default {
 		defineResolver(Source.Tzkt_Rest, {
 			entityType: EntityType.TezosBigMapKey_Timestamp,
 			resolve: {
-				[TezosBigMapKey_TimestampSelector.BigMapKeyLevelSource]: {
+				BigMapKeyLevelSource: {
 					resolve: async ({
 						$bigMapKey,
 						level,
@@ -1205,13 +1149,11 @@ export default {
 							block,
 						] = await Promise.all([
 							getBigMapKey({
-								binding: tzktRestBinding,
 								bigMapId: $bigMapKey.$bigMap.bigMapId,
 								keyHash: $bigMapKey.keyHash,
 								level,
 							}),
 							getBlock({
-								binding: tzktRestBinding,
 								level,
 							}),
 						])

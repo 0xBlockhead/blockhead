@@ -1,23 +1,28 @@
 import { getGithubContents, getGithubRawText } from '$/sources/_shared/hosts/Github/Http/client.ts'
-import { githubHttpEndpoints } from '$/sources/_shared/hosts/Github/Http/constants.ts'
+import type { SourceBinding } from '$/sources/SourceBinding.ts'
 
 const target = {
 	owner: 'codex-storage-network',
 	repo: 'codex-network-presets',
 	ref: 'master',
 	path: '',
-} as const
+}
 
-export const getContents = () => (
+export const getContents = (
+	binding: SourceBinding
+) => (
 	getGithubContents({
-		endpoints: githubHttpEndpoints,
+		binding,
 		target,
 	})
 )
 
-export const getRawText = (path: string) => (
+export const getRawText = (
+	binding: SourceBinding,
+	path: string
+) => (
 	getGithubRawText({
-		endpoints: githubHttpEndpoints,
+		binding,
 		target: {
 			...target,
 			path,

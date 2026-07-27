@@ -10,99 +10,133 @@
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		data,
-		params,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(data.entityType === EntityType.EvmTransaction && data.selectorName === 'EvmNetworkTxHash' ? select(EntityType.EvmTransaction, data.selector, {
-		sources: [
-			Source.Blockscout_Rest,
-			Source.EnvioHyperRpc_JsonRpc,
-			Source.GetBlockRpc_JsonRpc,
-			Source.GoldRushFoundational_Rest,
-			Source.Voltaire_JsonRpc,
-		],
-		fields: {
-			$block: true,
-			$from: true,
-			$to: true,
-			ContractCreation: {
-				fields: {
-					$contract: true,
-				},
-			},
-			kind: true,
-			value: true,
-			executionStatus: true,
-			gasUsed: true,
-			gas: true,
-			gasPrice: true,
-			effectiveGasPrice: true,
-			FeeMarket: {
-				fields: {
-					maxFeePerGas: true,
-					maxPriorityFeePerGas: true,
-				},
-			},
-			cumulativeGasUsed: true,
-			envelopeType: true,
-			nonce: true,
-			indexInBlock: true,
-			input: true,
-			r: true,
-			s: true,
-			v: true,
-			Blob: {
-				fields: {
-					blobGasUsed: true,
-					maxFeePerBlobGas: true,
-				},
-			},
+	const pageSelection = $derived(
+		(
+			data.entityType === EntityType.EvmTransaction && data.selectorName === 'EvmNetworkTxHash' ?
+				select(EntityType.EvmTransaction, data.selector, {
+					sources: [
+						Source.Blockscout_Rest,
+						Source.Voltaire_JsonRpc,
+					],
+					fields: {
+						$block: true,
+						$from: true,
+						$to: true,
+						ContractCreation: {
+							fields: {
+								$contract: true,
+							},
+						},
+						kind: true,
+						value: true,
+						executionStatus: true,
+						gasUsed: true,
+						gas: true,
+						gasPrice: true,
+						effectiveGasPrice: true,
+						FeeMarket: {
+							fields: {
+								maxFeePerGas: true,
+								maxPriorityFeePerGas: true,
+							},
+						},
+						cumulativeGasUsed: true,
+						envelopeType: true,
+						nonce: true,
+						indexInBlock: true,
+						input: true,
+						r: true,
+						s: true,
+						v: true,
+						Blob: {
+							fields: {
+								blobGasUsed: true,
+								maxFeePerBlobGas: true,
+							},
+						},
+					},
+				})
+			:
+			data.entityType === EntityType.SolanaTransaction && data.selectorName === 'NetworkSignature' ?
+				select(EntityType.SolanaTransaction, data.selector, {
+					fields: {
+						status: true,
+						slot: true,
+						feeLamports: true,
+						computeUnitsConsumed: true,
+						$block: true,
+						$feePayer: true,
+					},
+				})
+			:
+			data.entityType === EntityType.CardanoTransaction && data.selectorName === 'NetworkHash' ?
+				select(EntityType.CardanoTransaction, data.selector, {
+					sources: [
+						Source.Blockfrost_Rest,
+					],
+					fields: {
+						blockSlot: true,
+						fee: true,
+						deposit: true,
+						sizeBytes: true,
+						validityStartSlot: true,
+						ttlSlot: true,
+					},
+				})
+			:
+				select(EntityType.UtxoTransaction, data.selector, {
+					fields: {
+						feeSats: true,
+						isCoinbase: true,
+						version: true,
+						lockTime: true,
+						sizeBytes: true,
+						virtualSizeBytes: true,
+						weightUnits: true,
+						$block: true,
+					},
+				})
+		)
+	)
+	const pageTitle = $derived(
+		(
+			data.entityType === EntityType.EvmTransaction && data.selectorName === 'EvmNetworkTxHash' ?
+				(data.selector.txHash || 'EVM transaction')
+			:
+			data.entityType === EntityType.SolanaTransaction && data.selectorName === 'NetworkSignature' ?
+				(data.selector.signature || 'solana transaction')
+			:
+			data.entityType === EntityType.CardanoTransaction && data.selectorName === 'NetworkHash' ?
+				(data.selector.hash || 'Cardano transaction')
+			:
+				(data.selector.txId || 'UTXO transaction')
+		)
+	)
+	const entityViewByType = {
+		[EntityType.EvmTransaction]: {
+			Component: EvmTransactionView,
+			label: 'EVM transaction',
 		},
-	}) : data.entityType === EntityType.SolanaTransaction && data.selectorName === 'NetworkSignature' ? select(EntityType.SolanaTransaction, data.selector, {
-		fields: {
-			status: true,
-			slot: true,
-			feeLamports: true,
-			computeUnitsConsumed: true,
-			$block: true,
-			$feePayer: true,
+		[EntityType.SolanaTransaction]: {
+			Component: SolanaTransactionView,
+			label: 'solana transaction',
 		},
-	}) : data.entityType === EntityType.CardanoTransaction && data.selectorName === 'NetworkHash' ? select(EntityType.CardanoTransaction, data.selector, {
-		sources: [
-			Source.Blockfrost_Rest,
-		],
-		fields: {
-			blockSlot: true,
-			fee: true,
-			deposit: true,
-			sizeBytes: true,
-			validityStartSlot: true,
-			ttlSlot: true,
+		[EntityType.CardanoTransaction]: {
+			Component: CardanoTransactionView,
+			label: 'Cardano transaction',
 		},
-	}) : select(EntityType.UtxoTransaction, data.selector, {
-		fields: {
-			feeSats: true,
-			isCoinbase: true,
-			version: true,
-			lockTime: true,
-			sizeBytes: true,
-			virtualSizeBytes: true,
-			weightUnits: true,
-			$block: true,
+		[EntityType.UtxoTransaction]: {
+			Component: UtxoTransactionView,
+			label: 'UTXO transaction',
 		},
-	}))
-	const entityViewComponentByType = {
-		[EntityType.EvmTransaction]: EvmTransactionView,
-		[EntityType.SolanaTransaction]: SolanaTransactionView,
-		[EntityType.CardanoTransaction]: CardanoTransactionView,
-		[EntityType.UtxoTransaction]: UtxoTransactionView,
 	}
 
 	// Components
@@ -115,20 +149,14 @@
 
 
 <svelte:head>
-	<title>{data.entityType === EntityType.EvmTransaction && data.selectorName === 'EvmNetworkTxHash' ? (pageSelection.entity == null ? [String((data.selector.txHash) ?? '')].filter(Boolean).join(' ') || 'EVM transaction' : [String((({ ...data.selector, ...pageSelection.entity }).txHash) ?? '')].filter(Boolean).join(' ') || 'EVM transaction') : data.entityType === EntityType.SolanaTransaction && data.selectorName === 'NetworkSignature' ? (pageSelection.entity == null ? [String((data.selector.signature) ?? '')].filter(Boolean).join(' ') || 'solana transaction' : [String((({ ...data.selector, ...pageSelection.entity }).signature) ?? '')].filter(Boolean).join(' ') || 'solana transaction') : data.entityType === EntityType.CardanoTransaction && data.selectorName === 'NetworkHash' ? (pageSelection.entity == null ? [String((data.selector.hash) ?? '')].filter(Boolean).join(' ') || 'Cardano transaction' : [String((({ ...data.selector, ...pageSelection.entity }).hash) ?? '')].filter(Boolean).join(' ') || 'Cardano transaction') : (pageSelection.entity == null ? [String((data.selector.txId) ?? '')].filter(Boolean).join(' ') || 'UTXO transaction' : [String((({ ...data.selector, ...pageSelection.entity }).txId) ?? '')].filter(Boolean).join(' ') || 'UTXO transaction')} • {data.entityType === EntityType.EvmTransaction && data.selectorName === 'EvmNetworkTxHash' ? 'EVM transaction' : data.entityType === EntityType.SolanaTransaction && data.selectorName === 'NetworkSignature' ? 'solana transaction' : data.entityType === EntityType.CardanoTransaction && data.selectorName === 'NetworkHash' ? 'Cardano transaction' : 'UTXO transaction'} • Blockhead</title>
+	<title>{pageTitle} • {entityViewByType[data.entityType].label} • Blockhead</title>
 </svelte:head>
 
 
 <Page>
-	{@const EntityView = entityViewComponentByType[data.entityType]}
+	{@const EntityView = entityViewByType[data.entityType].Component}
 
 	<EntityView
-		href={
-			resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]', {
-				network: params.network,
-				transactionId: params.transactionId,
-			})
-		}
 		selection={pageSelection}
 	/>
 </Page>

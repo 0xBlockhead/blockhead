@@ -2,69 +2,30 @@
 
 <script lang="ts">
 	// Types/constants
-	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
-	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
-	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
+	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-
-
 
 
 	// State
 	let {
 		selection,
-		countResource,
-		title = 'Cashu keysets',
-		typeAnnotationParagraphs = [],
-		placeholderText = undefined,
-		emptyText = undefined,
 		open = $bindable(true),
-		collapsible = true,
-		showTypeAnnotation = true,
-		id = 'CashuKeysets-list',
 		...EntitiesListProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyEntitiesSelection<EntityType.CashuKeyset>
-			countResource?: SvelteKitResource<number>
-			title?: string
-			typeAnnotationParagraphs?: string[]
-			placeholderText?: string
-			emptyText?: string
-			open?: boolean
-			collapsible?: boolean
-			showTypeAnnotation?: boolean
-			id?: string
-		},
-		EntitiesListForwardProps
-	> = $props()
+	}: EntityListViewProps<EntityType.CashuKeyset> = $props()
 
 
 	// Components
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView from '$/components/EntityView.svelte'
 </script>
 
-
-{#snippet TypeAnnotationParagraphs()}
-	{#each typeAnnotationParagraphs as paragraph (paragraph)}
-		<p>{paragraph}</p>
-	{/each}
-{/snippet}
 
 <EntitiesList
 	{...EntitiesListProps}
 	entityType={EntityType.CashuKeyset}
-	{id}
-	{title}
 	bind:open
-	{collapsible}
-	{showTypeAnnotation}
-	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
 	resource={
 		selection({
-			sources: selection.sources,
 			fields: {
 				keysetId: true,
 				unit: true,
@@ -72,38 +33,23 @@
 			},
 		})
 	}
-	{countResource}
-	getResourceItems={(cashuKeysets) => [...new Map(cashuKeysets.values.map((cashuKeyset) => [cashuKeyset[EntityMetaKey.SelectorKey], cashuKeyset])).values()]}
-	getKey={(cashuKeyset) => cashuKeyset[EntityMetaKey.SelectorKey]}
-	{placeholderText}
 >
-	{#snippet Empty()}
-		{#if emptyText != null}
-			<p data-text="muted">{emptyText}</p>
-		{:else}
-			<p data-text="muted">No Cashu keysets yet.</p>
-		{/if}
-	{/snippet}
-
 	{#snippet Item({ item: cashuKeyset })}
-		{@const cashuKeysetFields = { ...cashuKeyset[EntityMetaKey.Selector], ...cashuKeyset }}
+		{@const cashuKeysetSelector = cashuKeyset[EntityMetaKey.Selector]}
 		<EntityView
 			entityType={EntityType.CashuKeyset}
-			entitySelector={cashuKeyset[EntityMetaKey.Selector]}
-			layout={EntityLayout.Summary}
-			open={false}
-			showTypeAnnotation={false}
+			entitySelector={cashuKeysetSelector}
 		>
 			{#snippet Title()}
-				{[String((cashuKeysetFields.keysetId) ?? '')].filter(Boolean).join(' ') || 'Cashu keyset'}
+				{cashuKeysetSelector.keysetId || 'Cashu keyset'}
 			{/snippet}
 
 			{#snippet Value()}
-				{[String((cashuKeysetFields.unit) ?? '')].filter(Boolean).join(' ')}
+				{(cashuKeyset.unit ?? '')}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{[[String((cashuKeysetFields.$mint.mintUrl) ?? '')].filter(Boolean).join(' ') || 'Cashu mint'].filter(Boolean).join(' ')}</span>
+				<span data-text="annotation">{cashuKeysetSelector.$mint.mintUrl || 'Cashu mint'}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

@@ -3,12 +3,11 @@
 <script lang="ts">
 	// Types/constants
 	import type { PageProps } from './$types.ts'
+	import { resolve } from '$app/paths'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
@@ -17,11 +16,8 @@
 		data,
 		params,
 	}: PageProps = $props()
-
-
 	// Components
 	import Page from '$/components/Page.svelte'
-	import ProjectionBoundary from '$/components/ProjectionBoundary.svelte'
 	import EvmContractsView from '$/views/EvmContractsView.svelte'
 </script>
 
@@ -32,30 +28,20 @@
 
 
 <Page>
-	<ProjectionBoundary
-		resource={select(EntityType.Network, data.selector).Evm}
-	>
-		{#snippet Applicable(projection)}
-			<EvmContractsView
-				href={
-					resolve('/network/[network=networkCaip2OrNetworkSlug]/precompiles', {
-						network: params.network,
-					})
+	<EvmContractsView
+		href={
+			resolve(
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/precompiles',
+				{
+					network: String(params.network),
 				}
-				title='Precompiles'
-				selection={
-					projection
-						.$$precompiles({
-							sources: [
-								Source.Constants_Internal,
-							],
-						})
-				}
-				id='account-evm-contract'
-				data-column-item="flexible"
-				data-card
-				data-scroll-container
-			/>
-		{/snippet}
-	</ProjectionBoundary>
+			)
+		}
+		title='Precompiles'
+		selection={select(EntityType.Network, data.selector).Evm.$$precompiles}
+		id='precompiles'
+		data-column-item="flexible"
+		data-card
+		data-scroll-container
+	/>
 </Page>

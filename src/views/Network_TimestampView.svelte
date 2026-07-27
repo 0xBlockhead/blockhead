@@ -2,15 +2,10 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
 	import ProjectionBoundary from '$/components/ProjectionBoundary.svelte'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
 	import { NetworkExecutionModel, NetworkLedgerModel } from '$/constants/Network.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
@@ -28,31 +23,10 @@
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.Network_Timestamp>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.Network_Timestamp>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.Network_Timestamp> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const networkTimestamp = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {},
-	} : {
-		sources: selection.sources,
-	}))
-	const titleFallback = $derived([String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || 'Network timestamp')
-	const viewDomId = $derived('network-timestamp-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const titleFallback = $derived(String(pendingEntity.timestampMs ?? '') || 'Network timestamp')
 
 
 	// Components
@@ -66,35 +40,21 @@
 
 <EntityView
 	entityType={EntityType.Network_Timestamp}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
 	href={
-		href ?? (
-			selection.entitySelector != null && 'timestampMs' in selection.entitySelector
-			&& selection.entitySelector.timestampMs != null
-			&& selection.entitySelector != null && 'source' in selection.entitySelector
-			&& selection.entitySelector.source != null
-			&& selection.entitySelector != null && '$network' in selection.entitySelector ?
-				selection.entitySelector.$network != null && 'caip2' in selection.entitySelector.$network
-				&& selection.entitySelector.$network.caip2 != null ?
-					resolve('/network/[network=networkCaip2OrNetworkSlug]/observation/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
-				timestampMs: String(selection.entitySelector.timestampMs ?? ''),
-				source: String(selection.entitySelector.source ?? ''),
-				network: String(caip2StringFromValue(selection.entitySelector.$network.caip2) ?? ''),
-			})
-			:
-					selection.entitySelector.$network != null && 'slug' in selection.entitySelector.$network
-					&& selection.entitySelector.$network.slug != null ?
-						resolve('/network/[network=networkCaip2OrNetworkSlug]/observation/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
-					timestampMs: String(selection.entitySelector.timestampMs ?? ''),
-					source: String(selection.entitySelector.source ?? ''),
-					network: String(selection.entitySelector.$network.slug ?? ''),
-				})
-				:
-					undefined
-		:
-				undefined
+		href ?? resolve(
+			'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/observation/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
+			{
+				network: (
+					'caip2' in selection.entitySelector.$network ?
+						String(caip2StringFromValue(selection.entitySelector.$network.caip2))
+					:
+						String(selection.entitySelector.$network.slug)
+				),
+				timestampMs: String(selection.entitySelector.timestampMs),
+				source: String(selection.entitySelector.source),
+			}
 		)
 	}
 	{layout}
@@ -102,35 +62,11 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails}
-			{@const timestampMs0 = pendingEntity.timestampMs}
-			{#if timestampMs0 !== undefined && timestampMs0 !== null}
-				<Timestamp timestamp={Number(timestampMs0)} />
-			{/if}
-		{:else}
-			<ResourceBoundary resource={networkTimestamp}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const timestampMs0 = resolvedEntity.timestampMs}
-					{#if timestampMs0 !== undefined && timestampMs0 !== null}
-						<Timestamp timestamp={Number(timestampMs0)} />
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
 	{/snippet}
 
 	{#snippet Value()}
-		{#if layout !== EntityLayout.SummaryDetails}
-			{[String((pendingEntity.source) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || titleFallback}
-		{:else}
-			<ResourceBoundary resource={networkTimestamp}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.source) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		{(pendingEntity.source ?? '') || String(pendingEntity.timestampMs ?? '') || titleFallback}
 	{/snippet}
 
 	{#snippet TypeAnnotationTooltip()}
@@ -146,23 +82,6 @@
 				<dd>
 					<NetworkView
 						selection={select(EntityType.Network, selection.entitySelector.$network)}
-						href={
-							(
-								selection.entitySelector.$network != null && 'caip2' in selection.entitySelector.$network
-								&& selection.entitySelector.$network.caip2 != null ?
-									resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-								network: String(caip2StringFromValue(selection.entitySelector.$network.caip2) ?? ''),
-							})
-							:
-									selection.entitySelector.$network != null && 'slug' in selection.entitySelector.$network
-									&& selection.entitySelector.$network.slug != null ?
-										resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-									network: String(selection.entitySelector.$network.slug ?? ''),
-								})
-								:
-									undefined
-							)
-						}
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -172,48 +91,14 @@
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									timestampMs: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const timestampMs = resolvedEntity.timestampMs}
-							{#if timestampMs !== undefined && timestampMs !== null}
-								<Timestamp timestamp={Number(timestampMs)} />
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									source: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const source = resolvedEntity.source}
-							{#if source !== undefined && source !== null}
-								{String((source) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{pendingEntity.source}
 				</dd>
 			</div>
 
@@ -223,7 +108,6 @@
 					<ResourceBoundary
 						resource={
 							selection({
-								sources: selection.sources,
 								fields: {
 									ledgerModels: true,
 								},
@@ -231,11 +115,7 @@
 						}
 					>
 						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const ledgerModels = resolvedEntity.ledgerModels}
-							{#if ledgerModels !== undefined && ledgerModels !== null}
-								{ledgerModels.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')}
-							{/if}
+							{entity.ledgerModels.values.join(', ')}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -247,7 +127,6 @@
 					<ResourceBoundary
 						resource={
 							selection({
-								sources: selection.sources,
 								fields: {
 									executionModels: true,
 								},
@@ -255,11 +134,7 @@
 						}
 					>
 						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const executionModels = resolvedEntity.executionModels}
-							{#if executionModels !== undefined && executionModels !== null}
-								{executionModels.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')}
-							{/if}
+							{entity.executionModels.values.join(', ')}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -275,7 +150,7 @@
 						resource={projection.latestBlockHeight}
 					>
 						{#snippet children(latestBlockHeight)}
-							{#if latestBlockHeight !== undefined && latestBlockHeight !== null}
+							{#if latestBlockHeight != null}
 								<div>
 									<dt>Latest block height</dt>
 									<dd>
@@ -292,11 +167,11 @@
 						resource={projection.latestBlockHash}
 					>
 						{#snippet children(latestBlockHash)}
-							{#if latestBlockHash !== undefined && latestBlockHash !== null}
+							{#if latestBlockHash != null}
 								<div>
 									<dt>Latest block hash</dt>
 									<dd>
-										<TruncatedValue value={String((latestBlockHash) ?? '')} />
+										<TruncatedValue value={latestBlockHash} />
 									</dd>
 								</div>
 							{/if}
@@ -307,7 +182,7 @@
 						resource={projection.latestBlockTimeMs}
 					>
 						{#snippet children(latestBlockTimeMs)}
-							{#if latestBlockTimeMs !== undefined && latestBlockTimeMs !== null}
+							{#if latestBlockTimeMs != null}
 								<div>
 									<dt>Latest block time</dt>
 									<dd>
@@ -322,7 +197,7 @@
 						resource={projection.latestBlockTransactionCount}
 					>
 						{#snippet children(latestBlockTransactionCount)}
-							{#if latestBlockTransactionCount !== undefined && latestBlockTransactionCount !== null}
+							{#if latestBlockTransactionCount != null}
 								<div>
 									<dt>Latest block transactions</dt>
 									<dd>
@@ -347,11 +222,11 @@
 						resource={projection.chainId}
 					>
 						{#snippet children(chainId)}
-							{#if chainId !== undefined && chainId !== null}
+							{#if chainId != null}
 								<div>
 									<dt>Chain ID</dt>
 									<dd>
-										{String((chainId) ?? '')}
+										{chainId}
 									</dd>
 								</div>
 							{/if}
@@ -362,11 +237,11 @@
 						resource={projection.nodeNetwork}
 					>
 						{#snippet children(nodeNetwork)}
-							{#if nodeNetwork !== undefined && nodeNetwork !== null}
+							{#if nodeNetwork != null}
 								<div>
 									<dt>Node network</dt>
 									<dd>
-										{String((nodeNetwork) ?? '')}
+										{nodeNetwork}
 									</dd>
 								</div>
 							{/if}
@@ -377,11 +252,11 @@
 						resource={projection.applicationName}
 					>
 						{#snippet children(applicationName)}
-							{#if applicationName !== undefined && applicationName !== null}
+							{#if applicationName != null}
 								<div>
 									<dt>Application name</dt>
 									<dd>
-										{String((applicationName) ?? '')}
+										{applicationName}
 									</dd>
 								</div>
 							{/if}
@@ -392,11 +267,11 @@
 						resource={projection.applicationVersion}
 					>
 						{#snippet children(applicationVersion)}
-							{#if applicationVersion !== undefined && applicationVersion !== null}
+							{#if applicationVersion != null}
 								<div>
 									<dt>Application version</dt>
 									<dd>
-										{String((applicationVersion) ?? '')}
+										{applicationVersion}
 									</dd>
 								</div>
 							{/if}
@@ -407,11 +282,11 @@
 						resource={projection.cosmosSdkVersion}
 					>
 						{#snippet children(cosmosSdkVersion)}
-							{#if cosmosSdkVersion !== undefined && cosmosSdkVersion !== null}
+							{#if cosmosSdkVersion != null}
 								<div>
 									<dt>Cosmos SDK version</dt>
 									<dd>
-										{String((cosmosSdkVersion) ?? '')}
+										{cosmosSdkVersion}
 									</dd>
 								</div>
 							{/if}
@@ -422,7 +297,7 @@
 						resource={projection.isSyncing}
 					>
 						{#snippet children(isSyncing)}
-							{#if isSyncing !== undefined && isSyncing !== null}
+							{#if isSyncing != null}
 								<div>
 									<dt>Syncing</dt>
 									<dd>
@@ -437,11 +312,11 @@
 						resource={projection.bondedValidatorCount}
 					>
 						{#snippet children(bondedValidatorCount)}
-							{#if bondedValidatorCount !== undefined && bondedValidatorCount !== null}
+							{#if bondedValidatorCount != null}
 								<div>
 									<dt>Bonded validators</dt>
 									<dd>
-										{String((bondedValidatorCount) ?? '')}
+										{String(bondedValidatorCount)}
 									</dd>
 								</div>
 							{/if}
@@ -452,11 +327,11 @@
 						resource={projection.bondedTokens}
 					>
 						{#snippet children(bondedTokens)}
-							{#if bondedTokens !== undefined && bondedTokens !== null}
+							{#if bondedTokens != null}
 								<div>
 									<dt>Bonded tokens</dt>
 									<dd>
-										{String((bondedTokens) ?? '')}
+										{String(bondedTokens)}
 									</dd>
 								</div>
 							{/if}
@@ -467,11 +342,11 @@
 						resource={projection.notBondedTokens}
 					>
 						{#snippet children(notBondedTokens)}
-							{#if notBondedTokens !== undefined && notBondedTokens !== null}
+							{#if notBondedTokens != null}
 								<div>
 									<dt>Not bonded tokens</dt>
 									<dd>
-										{String((notBondedTokens) ?? '')}
+										{String(notBondedTokens)}
 									</dd>
 								</div>
 							{/if}
@@ -490,7 +365,7 @@
 						resource={projection.finalizedBlockNumber}
 					>
 						{#snippet children(finalizedBlockNumber)}
-							{#if finalizedBlockNumber !== undefined && finalizedBlockNumber !== null}
+							{#if finalizedBlockNumber != null}
 								<div>
 									<dt>Finalized block number</dt>
 									<dd>
@@ -507,11 +382,11 @@
 						resource={projection.finalizedBlockHash}
 					>
 						{#snippet children(finalizedBlockHash)}
-							{#if finalizedBlockHash !== undefined && finalizedBlockHash !== null}
+							{#if finalizedBlockHash != null}
 								<div>
 									<dt>Finalized block hash</dt>
 									<dd>
-										<TruncatedValue value={String((finalizedBlockHash) ?? '')} />
+										<TruncatedValue value={finalizedBlockHash} />
 									</dd>
 								</div>
 							{/if}
@@ -522,7 +397,7 @@
 						resource={projection.finalizedExtrinsicCount}
 					>
 						{#snippet children(finalizedExtrinsicCount)}
-							{#if finalizedExtrinsicCount !== undefined && finalizedExtrinsicCount !== null}
+							{#if finalizedExtrinsicCount != null}
 								<div>
 									<dt>Finalized extrinsics</dt>
 									<dd>
@@ -539,11 +414,11 @@
 						resource={projection.runtimeSpecName}
 					>
 						{#snippet children(runtimeSpecName)}
-							{#if runtimeSpecName !== undefined && runtimeSpecName !== null}
+							{#if runtimeSpecName != null}
 								<div>
 									<dt>Runtime spec name</dt>
 									<dd>
-										{String((runtimeSpecName) ?? '')}
+										{runtimeSpecName}
 									</dd>
 								</div>
 							{/if}
@@ -554,11 +429,11 @@
 						resource={projection.runtimeSpecVersion}
 					>
 						{#snippet children(runtimeSpecVersion)}
-							{#if runtimeSpecVersion !== undefined && runtimeSpecVersion !== null}
+							{#if runtimeSpecVersion != null}
 								<div>
 									<dt>Runtime spec version</dt>
 									<dd>
-										{String((runtimeSpecVersion) ?? '')}
+										{String(runtimeSpecVersion)}
 									</dd>
 								</div>
 							{/if}
@@ -569,11 +444,11 @@
 						resource={projection.transactionVersion}
 					>
 						{#snippet children(transactionVersion)}
-							{#if transactionVersion !== undefined && transactionVersion !== null}
+							{#if transactionVersion != null}
 								<div>
 									<dt>Transaction version</dt>
 									<dd>
-										{String((transactionVersion) ?? '')}
+										{String(transactionVersion)}
 									</dd>
 								</div>
 							{/if}
@@ -584,11 +459,11 @@
 						resource={projection.stateVersion}
 					>
 						{#snippet children(stateVersion)}
-							{#if stateVersion !== undefined && stateVersion !== null}
+							{#if stateVersion != null}
 								<div>
 									<dt>State version</dt>
 									<dd>
-										{String((stateVersion) ?? '')}
+										{String(stateVersion)}
 									</dd>
 								</div>
 							{/if}
@@ -599,11 +474,11 @@
 						resource={projection.peerCount}
 					>
 						{#snippet children(peerCount)}
-							{#if peerCount !== undefined && peerCount !== null}
+							{#if peerCount != null}
 								<div>
 									<dt>Peers</dt>
 									<dd>
-										{String((peerCount) ?? '')}
+										{String(peerCount)}
 									</dd>
 								</div>
 							{/if}
@@ -614,7 +489,7 @@
 						resource={projection.isSyncing}
 					>
 						{#snippet children(isSyncing)}
-							{#if isSyncing !== undefined && isSyncing !== null}
+							{#if isSyncing != null}
 								<div>
 									<dt>Syncing</dt>
 									<dd>
@@ -629,7 +504,7 @@
 						resource={projection.shouldHavePeers}
 					>
 						{#snippet children(shouldHavePeers)}
-							{#if shouldHavePeers !== undefined && shouldHavePeers !== null}
+							{#if shouldHavePeers != null}
 								<div>
 									<dt>Should have peers</dt>
 									<dd>
@@ -652,11 +527,11 @@
 						resource={projection.health}
 					>
 						{#snippet children(health)}
-							{#if health !== undefined && health !== null}
+							{#if health != null}
 								<div>
 									<dt>Health</dt>
 									<dd>
-										{String((health) ?? '')}
+										{health}
 									</dd>
 								</div>
 							{/if}
@@ -667,7 +542,7 @@
 						resource={projection.absoluteSlot}
 					>
 						{#snippet children(absoluteSlot)}
-							{#if absoluteSlot !== undefined && absoluteSlot !== null}
+							{#if absoluteSlot != null}
 								<div>
 									<dt>Absolute slot</dt>
 									<dd>
@@ -684,7 +559,7 @@
 						resource={projection.blockHeight}
 					>
 						{#snippet children(blockHeight)}
-							{#if blockHeight !== undefined && blockHeight !== null}
+							{#if blockHeight != null}
 								<div>
 									<dt>Block height</dt>
 									<dd>
@@ -701,11 +576,11 @@
 						resource={projection.epoch}
 					>
 						{#snippet children(epoch)}
-							{#if epoch !== undefined && epoch !== null}
+							{#if epoch != null}
 								<div>
 									<dt>Epoch</dt>
 									<dd>
-										{String((epoch) ?? '')}
+										{String(epoch)}
 									</dd>
 								</div>
 							{/if}
@@ -716,11 +591,11 @@
 						resource={projection.slotIndex}
 					>
 						{#snippet children(slotIndex)}
-							{#if slotIndex !== undefined && slotIndex !== null}
+							{#if slotIndex != null}
 								<div>
 									<dt>Slot index</dt>
 									<dd>
-										{String((slotIndex) ?? '')}
+										{String(slotIndex)}
 									</dd>
 								</div>
 							{/if}
@@ -731,11 +606,11 @@
 						resource={projection.slotsInEpoch}
 					>
 						{#snippet children(slotsInEpoch)}
-							{#if slotsInEpoch !== undefined && slotsInEpoch !== null}
+							{#if slotsInEpoch != null}
 								<div>
 									<dt>Slots in epoch</dt>
 									<dd>
-										{String((slotsInEpoch) ?? '')}
+										{String(slotsInEpoch)}
 									</dd>
 								</div>
 							{/if}
@@ -746,7 +621,7 @@
 						resource={projection.transactionCount}
 					>
 						{#snippet children(transactionCount)}
-							{#if transactionCount !== undefined && transactionCount !== null}
+							{#if transactionCount != null}
 								<div>
 									<dt>Transaction count</dt>
 									<dd>
@@ -763,11 +638,11 @@
 						resource={projection.currentValidatorCount}
 					>
 						{#snippet children(currentValidatorCount)}
-							{#if currentValidatorCount !== undefined && currentValidatorCount !== null}
+							{#if currentValidatorCount != null}
 								<div>
 									<dt>Current validator count</dt>
 									<dd>
-										{String((currentValidatorCount) ?? '')}
+										{String(currentValidatorCount)}
 									</dd>
 								</div>
 							{/if}
@@ -778,11 +653,11 @@
 						resource={projection.delinquentValidatorCount}
 					>
 						{#snippet children(delinquentValidatorCount)}
-							{#if delinquentValidatorCount !== undefined && delinquentValidatorCount !== null}
+							{#if delinquentValidatorCount != null}
 								<div>
 									<dt>Delinquent validator count</dt>
 									<dd>
-										{String((delinquentValidatorCount) ?? '')}
+										{String(delinquentValidatorCount)}
 									</dd>
 								</div>
 							{/if}
@@ -793,11 +668,11 @@
 						resource={projection.totalActivatedStakeLamports}
 					>
 						{#snippet children(totalActivatedStakeLamports)}
-							{#if totalActivatedStakeLamports !== undefined && totalActivatedStakeLamports !== null}
+							{#if totalActivatedStakeLamports != null}
 								<div>
 									<dt>Total activated stake</dt>
 									<dd>
-										{String((totalActivatedStakeLamports) ?? '')}
+										{String(totalActivatedStakeLamports)}
 									</dd>
 								</div>
 							{/if}
@@ -808,11 +683,11 @@
 						resource={projection.solanaCoreVersion}
 					>
 						{#snippet children(solanaCoreVersion)}
-							{#if solanaCoreVersion !== undefined && solanaCoreVersion !== null}
+							{#if solanaCoreVersion != null}
 								<div>
 									<dt>Solana core version</dt>
 									<dd>
-										{String((solanaCoreVersion) ?? '')}
+										{solanaCoreVersion}
 									</dd>
 								</div>
 							{/if}
@@ -823,11 +698,11 @@
 						resource={projection.featureSet}
 					>
 						{#snippet children(featureSet)}
-							{#if featureSet !== undefined && featureSet !== null}
+							{#if featureSet != null}
 								<div>
 									<dt>Feature set</dt>
 									<dd>
-										{String((featureSet) ?? '')}
+										{String(featureSet)}
 									</dd>
 								</div>
 							{/if}
@@ -846,7 +721,7 @@
 						resource={projection.bestBlockHeight}
 					>
 						{#snippet children(bestBlockHeight)}
-							{#if bestBlockHeight !== undefined && bestBlockHeight !== null}
+							{#if bestBlockHeight != null}
 								<div>
 									<dt>Best block height</dt>
 									<dd>
@@ -863,11 +738,11 @@
 						resource={projection.bestBlockHash}
 					>
 						{#snippet children(bestBlockHash)}
-							{#if bestBlockHash !== undefined && bestBlockHash !== null}
+							{#if bestBlockHash != null}
 								<div>
 									<dt>Best block hash</dt>
 									<dd>
-										<TruncatedValue value={String((bestBlockHash) ?? '')} />
+										<TruncatedValue value={bestBlockHash} />
 									</dd>
 								</div>
 							{/if}
@@ -878,7 +753,7 @@
 						resource={projection.bestBlockTimeMs}
 					>
 						{#snippet children(bestBlockTimeMs)}
-							{#if bestBlockTimeMs !== undefined && bestBlockTimeMs !== null}
+							{#if bestBlockTimeMs != null}
 								<div>
 									<dt>Best block time</dt>
 									<dd>
@@ -893,11 +768,11 @@
 						resource={projection.blockCount}
 					>
 						{#snippet children(blockCount)}
-							{#if blockCount !== undefined && blockCount !== null}
+							{#if blockCount != null}
 								<div>
 									<dt>Block count</dt>
 									<dd>
-										{String((blockCount) ?? '')}
+										{String(blockCount)}
 									</dd>
 								</div>
 							{/if}
@@ -908,11 +783,11 @@
 						resource={projection.transactionCount}
 					>
 						{#snippet children(transactionCount)}
-							{#if transactionCount !== undefined && transactionCount !== null}
+							{#if transactionCount != null}
 								<div>
 									<dt>Transaction count</dt>
 									<dd>
-										{String((transactionCount) ?? '')}
+										{String(transactionCount)}
 									</dd>
 								</div>
 							{/if}
@@ -923,11 +798,11 @@
 						resource={projection.blocks24h}
 					>
 						{#snippet children(blocks24h)}
-							{#if blocks24h !== undefined && blocks24h !== null}
+							{#if blocks24h != null}
 								<div>
 									<dt>Blocks 24h</dt>
 									<dd>
-										{String((blocks24h) ?? '')}
+										{String(blocks24h)}
 									</dd>
 								</div>
 							{/if}
@@ -938,11 +813,11 @@
 						resource={projection.transactions24h}
 					>
 						{#snippet children(transactions24h)}
-							{#if transactions24h !== undefined && transactions24h !== null}
+							{#if transactions24h != null}
 								<div>
 									<dt>Transactions 24h</dt>
 									<dd>
-										{String((transactions24h) ?? '')}
+										{String(transactions24h)}
 									</dd>
 								</div>
 							{/if}
@@ -953,11 +828,11 @@
 						resource={projection.mempoolTransactionCount}
 					>
 						{#snippet children(mempoolTransactionCount)}
-							{#if mempoolTransactionCount !== undefined && mempoolTransactionCount !== null}
+							{#if mempoolTransactionCount != null}
 								<div>
 									<dt>Mempool transaction count</dt>
 									<dd>
-										{String((mempoolTransactionCount) ?? '')}
+										{String(mempoolTransactionCount)}
 									</dd>
 								</div>
 							{/if}
@@ -968,11 +843,11 @@
 						resource={projection.mempoolSizeBytes}
 					>
 						{#snippet children(mempoolSizeBytes)}
-							{#if mempoolSizeBytes !== undefined && mempoolSizeBytes !== null}
+							{#if mempoolSizeBytes != null}
 								<div>
 									<dt>Mempool size</dt>
 									<dd>
-										{String((mempoolSizeBytes) ?? '')}
+										{String(mempoolSizeBytes)}
 									</dd>
 								</div>
 							{/if}
@@ -983,11 +858,11 @@
 						resource={projection.mempoolTps}
 					>
 						{#snippet children(mempoolTps)}
-							{#if mempoolTps !== undefined && mempoolTps !== null}
+							{#if mempoolTps != null}
 								<div>
 									<dt>Mempool TPS</dt>
 									<dd>
-										{String((mempoolTps) ?? '')}
+										{String(mempoolTps)}
 									</dd>
 								</div>
 							{/if}
@@ -998,11 +873,11 @@
 						resource={projection.averageTransactionFee24hSats}
 					>
 						{#snippet children(averageTransactionFee24hSats)}
-							{#if averageTransactionFee24hSats !== undefined && averageTransactionFee24hSats !== null}
+							{#if averageTransactionFee24hSats != null}
 								<div>
 									<dt>Average transaction fee 24h</dt>
 									<dd>
-										{String((averageTransactionFee24hSats) ?? '')}
+										{String(averageTransactionFee24hSats)}
 									</dd>
 								</div>
 							{/if}
@@ -1013,11 +888,11 @@
 						resource={projection.medianTransactionFee24hSats}
 					>
 						{#snippet children(medianTransactionFee24hSats)}
-							{#if medianTransactionFee24hSats !== undefined && medianTransactionFee24hSats !== null}
+							{#if medianTransactionFee24hSats != null}
 								<div>
 									<dt>Median transaction fee 24h</dt>
 									<dd>
-										{String((medianTransactionFee24hSats) ?? '')}
+										{String(medianTransactionFee24hSats)}
 									</dd>
 								</div>
 							{/if}
@@ -1028,11 +903,11 @@
 						resource={projection.suggestedTransactionFeePerByteSats}
 					>
 						{#snippet children(suggestedTransactionFeePerByteSats)}
-							{#if suggestedTransactionFeePerByteSats !== undefined && suggestedTransactionFeePerByteSats !== null}
+							{#if suggestedTransactionFeePerByteSats != null}
 								<div>
 									<dt>Suggested fee per byte</dt>
 									<dd>
-										{String((suggestedTransactionFeePerByteSats) ?? '')}
+										{String(suggestedTransactionFeePerByteSats)}
 									</dd>
 								</div>
 							{/if}
@@ -1043,11 +918,11 @@
 						resource={projection.blockchainSizeBytes}
 					>
 						{#snippet children(blockchainSizeBytes)}
-							{#if blockchainSizeBytes !== undefined && blockchainSizeBytes !== null}
+							{#if blockchainSizeBytes != null}
 								<div>
 									<dt>Blockchain size</dt>
 									<dd>
-										{String((blockchainSizeBytes) ?? '')}
+										{String(blockchainSizeBytes)}
 									</dd>
 								</div>
 							{/if}

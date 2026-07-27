@@ -9,7 +9,6 @@ import {
 	defineResolver,
 	type SourceResolverContext,
 } from '$/resolvers/defineResolver.ts'
-import { resolveMediaUrlTransport } from '$/lib/media.ts'
 import { mediaFromUrl } from '$/resolvers/media.ts'
 import {
 	entityFieldAddressKey,
@@ -27,17 +26,8 @@ import type {
 	LifiBlockExplorerUrlLike,
 	LifiChain,
 } from '$/sources/Lifi/Rest/types.ts'
-import { NetworkSelector } from '$/schema/Network.ts'
-import { _GlobalSelector } from '$/schema/_Global.ts'
-import { CoinBridgeCapabilitySelector } from '$/schema/CoinBridgeCapability.ts'
-import { BridgeRouteSelector } from '$/schema/BridgeRoute.ts'
-import { BridgeRouteStepSelector } from '$/schema/BridgeRouteStep.ts'
 import type { BridgeRouteStepFields } from '$/resolvers/Lifi/Rest/routes.ts'
-import { CoinSelector } from '$/schema/Coin.ts'
-import {
-	CoinInstanceType,
-	EvmCoinInstanceSelector,
-} from '$/schema/EvmCoinInstance.ts'
+import { CoinInstanceType } from '$/schema/EvmCoinInstance.ts'
 
 const canonicalPublicHttpUrlFromCatalogString = (raw: string): string => {
 	const trimmed = raw.trim()
@@ -182,7 +172,7 @@ const coinIdForBridgeInstanceSelector = async (
 		return CoinId.ETH
 
 	const { resolveCoinIdForCoinInstanceEntitySelector } = await import(
-		'$/resolvers/Coingecko/Rest/coinInstances.ts'
+		'$/sources/Coingecko/Rest/coinInstances.ts'
 	)
 	const coinId = await resolveCoinIdForCoinInstanceEntitySelector(
 		entitySelector,
@@ -200,7 +190,7 @@ export default {
 		defineResolver(Source.Lifi_Rest, {
 			entityType: EntityType.Network,
 			resolve: {
-				[NetworkSelector.Caip2]: {
+				Caip2: {
 					resolve: async ({ caip2 }, context) => {
 						const { fetchChains } = await import('$/sources/Lifi/Rest/queries.ts')
 						const lifiChain = (await fetchChains()).chains.find((lifiChainEntry) => lifiChainEntry.id === Number(caip2.reference))
@@ -219,7 +209,7 @@ export default {
 		defineResolver(Source.Lifi_Rest, {
 			entityType: EntityType.CoinBridgeCapability,
 			resolve: {
-				[CoinBridgeCapabilitySelector.EvmCoinInstanceEvmCoinInstanceToolKey]: {
+				EvmCoinInstanceEvmCoinInstanceToolKey: {
 					resolve: async ({ toolKey }): Promise<{ toolKey: string } & Omit<BridgeToolRow, 'key'>> => {
 						const coinBridgeCapabilityFields = bridgeToolByKey[toolKey]
 						if (coinBridgeCapabilityFields == null)
@@ -242,12 +232,14 @@ export default {
 		defineResolver(Source.Lifi_Rest, {
 			entityType: EntityType.BridgeRoute,
 			resolve: {
-				[BridgeRouteSelector.Quote]: {
+				Quote: {
 					resolve: async (entitySelector) => {
 						const { fetchBridgeRouteBundleForQuoteId } = await import(
 							'$/resolvers/Lifi/Rest/routes.ts'
 						)
-						const bundle = await fetchBridgeRouteBundleForQuoteId(entitySelector)
+						const bundle = await fetchBridgeRouteBundleForQuoteId(
+							entitySelector
+						)
 						return {
 							...bundle.routeFields,
 							$$steps: bundle.steps,
@@ -270,12 +262,14 @@ export default {
 		defineResolver(Source.Lifi_Rest, {
 			entityType: EntityType.BridgeRouteStep,
 			resolve: {
-				[BridgeRouteStepSelector.RouteIndexInRoute]: {
+				RouteIndexInRoute: {
 					resolve: async ({ $route, indexInRoute }): Promise<Omit<BridgeRouteStepFields, typeof EntityMetaKey.Selector>> => {
 						const { fetchBridgeRouteBundleForQuoteId } = await import(
 							'$/resolvers/Lifi/Rest/routes.ts'
 						)
-						const bundle = await fetchBridgeRouteBundleForQuoteId($route)
+						const bundle = await fetchBridgeRouteBundleForQuoteId(
+							$route
+						)
 						const step = bundle.steps[indexInRoute]
 						const { [EntityMetaKey.Selector]: _id, ...fields } = step
 						return fields
@@ -298,7 +292,7 @@ export default {
 		defineResolver(Source.Lifi_Rest, {
 			entityType: EntityType._Global,
 			resolve: {
-				[_GlobalSelector.Scope]: {
+				Scope: {
 					resolve: async () => {
 						const { fetchChains } = await import('$/sources/Lifi/Rest/queries.ts')
 						return (await fetchChains()).chains.map(networkEntityFieldsFromLifiChain)
@@ -312,7 +306,7 @@ export default {
 		defineResolver(Source.Lifi_Rest, {
 			entityType: EntityType.Coin,
 			resolve: {
-				[CoinSelector.CoinId]: {
+				CoinId: {
 					resolve: async (entitySelector) => {
 						return coinBridgeCapabilityRowsForCoin(entitySelector)
 					},
@@ -325,7 +319,7 @@ export default {
 		defineResolver(Source.Lifi_Rest, {
 			entityType: EntityType.EvmCoinInstance,
 			resolve: {
-				[EvmCoinInstanceSelector.NetworkType]: {
+				NetworkType: {
 					resolve: async (entitySelector, context) => {
 						const { filterCoinBridgeCapabilityRowsForInstance } = await import(
 							'$/resolvers/Lifi/Rest/coinBridgeCapabilities.ts'
@@ -335,7 +329,7 @@ export default {
 						return filterCoinBridgeCapabilityRowsForInstance(bridgeCapabilities, entitySelector, 'outbound')
 					},
 				},
-				[EvmCoinInstanceSelector.NetworkTypeContract]: {
+				NetworkTypeContract: {
 					resolve: async (entitySelector, context) => {
 						const { filterCoinBridgeCapabilityRowsForInstance } = await import(
 							'$/resolvers/Lifi/Rest/coinBridgeCapabilities.ts'
@@ -358,7 +352,7 @@ export default {
 		defineResolver(Source.Lifi_Rest, {
 			entityType: EntityType.EvmCoinInstance,
 			resolve: {
-				[EvmCoinInstanceSelector.NetworkType]: {
+				NetworkType: {
 					resolve: async (entitySelector, context) => {
 						const { filterCoinBridgeCapabilityRowsForInstance } = await import(
 							'$/resolvers/Lifi/Rest/coinBridgeCapabilities.ts'
@@ -368,7 +362,7 @@ export default {
 						return filterCoinBridgeCapabilityRowsForInstance(bridgeCapabilities, entitySelector, 'inbound')
 					},
 				},
-				[EvmCoinInstanceSelector.NetworkTypeContract]: {
+				NetworkTypeContract: {
 					resolve: async (entitySelector, context) => {
 						const { filterCoinBridgeCapabilityRowsForInstance } = await import(
 							'$/resolvers/Lifi/Rest/coinBridgeCapabilities.ts'
@@ -391,7 +385,7 @@ export default {
 		defineResolver(Source.Lifi_Rest, {
 			entityType: EntityType.Network,
 			resolve: {
-				[NetworkSelector.Caip2]: {
+				Caip2: {
 					resolve: async ({ caip2 }, _context) => {
 						const { fetchChains } = await import('$/sources/Lifi/Rest/queries.ts')
 						const lifiChain = (await fetchChains()).chains.find((lifiChainEntry) => lifiChainEntry.id === Number(caip2.reference))

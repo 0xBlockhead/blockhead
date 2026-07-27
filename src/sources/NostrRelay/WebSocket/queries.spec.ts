@@ -182,7 +182,7 @@ describe('Nostr relay WebSocket subscriptions', () => {
 			older,
 			invalidSignature,
 			...tied,
-		], pubkey)?.eventId).toBe(expected.id)
+		], pubkey).eventId).toBe(expected.id)
 		for (const kind of [
 			1_111,
 			9_735,

@@ -2,15 +2,8 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
-	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -22,42 +15,19 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.IbcClient>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.IbcClient>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.IbcClient> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const ibcClient = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {
-			clientType: true,
-			counterpartyChainId: true,
-		},
-	} : {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const ibcClient = $derived(selection({
 		fields: {
 			clientType: true,
 			counterpartyChainId: true,
 		},
 	}))
-	const titleFallback = $derived([String((pendingEntity.clientId) ?? '')].filter(Boolean).join(' ') || 'IBC client')
-	const viewDomId = $derived('ibc-client-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const titleFallback = $derived((pendingEntity.clientId ?? '') || 'IBC client')
 
 
 	// Components
@@ -70,61 +40,35 @@
 
 <EntityView
 	entityType={EntityType.IbcClient}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'clientType') && Object.hasOwn(prefetched, 'counterpartyChainId')}
-			{[String((pendingEntity.clientId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-		{:else}
-			<ResourceBoundary resource={ibcClient}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.clientId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		{(pendingEntity.clientId ?? '') || 'IBC client'}
 	{/snippet}
 
 	{#snippet Value()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'clientType') && Object.hasOwn(prefetched, 'counterpartyChainId')}
-			{[String((pendingEntity.clientType) ?? ''), String((pendingEntity.clientId) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.clientId) ?? '')].filter(Boolean).join(' ') || titleFallback}
-		{:else}
-			<ResourceBoundary resource={ibcClient}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.clientType) ?? ''), String((resolvedEntity.clientId) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.clientId) ?? '')].filter(Boolean).join(' ') || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={ibcClient}>
+			{#snippet children(entity)}
+				{[(entity.clientType ?? ''), pendingEntity.clientId].filter(Boolean).join(' ') || pendingEntity.clientId || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'clientType') && Object.hasOwn(prefetched, 'counterpartyChainId')}
-			{@const counterpartyChainId0 = pendingEntity.counterpartyChainId}
-			{#if counterpartyChainId0 !== undefined && counterpartyChainId0 !== null}
-				<span data-text="muted">
-					{String((counterpartyChainId0) ?? '')}
-				</span>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={ibcClient}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const counterpartyChainId0 = resolvedEntity.counterpartyChainId}
-					{#if counterpartyChainId0 !== undefined && counterpartyChainId0 !== null}
-						<span data-text="muted">
-							{String((counterpartyChainId0) ?? '')}
-						</span>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={ibcClient}>
+			{#snippet children(entity)}
+				{@const counterpartyChainId0 = entity.counterpartyChainId}
+				{#if counterpartyChainId0 != null}
+					<span data-text="muted">
+						{counterpartyChainId0}
+					</span>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -132,45 +76,20 @@
 			<div>
 				<dt>Client ID</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									clientId: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const clientId = resolvedEntity.clientId}
-							{#if clientId !== undefined && clientId !== null}
-								{String((clientId) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{pendingEntity.clientId}
 				</dd>
 			</div>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							clientType: true,
-						},
-					})
-				}
+				resource={ibcClient}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const clientType = resolvedEntity.clientType}
-					{#if clientType !== undefined && clientType !== null}
+					{@const clientType = entity.clientType}
+					{#if clientType != null}
 						<div>
 							<dt>Client type</dt>
 							<dd>
-								{String((clientType) ?? '')}
+								{clientType}
 							</dd>
 						</div>
 					{/if}
@@ -180,7 +99,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							trustLevel: true,
 						},
@@ -188,13 +106,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const trustLevel = resolvedEntity.trustLevel}
-					{#if trustLevel !== undefined && trustLevel !== null}
+					{@const trustLevel = entity.trustLevel}
+					{#if trustLevel != null}
 						<div>
 							<dt>Trust level</dt>
 							<dd>
-								{String((trustLevel) ?? '')}
+								{trustLevel}
 							</dd>
 						</div>
 					{/if}
@@ -202,23 +119,15 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							counterpartyChainId: true,
-						},
-					})
-				}
+				resource={ibcClient}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const counterpartyChainId = resolvedEntity.counterpartyChainId}
-					{#if counterpartyChainId !== undefined && counterpartyChainId !== null}
+					{@const counterpartyChainId = entity.counterpartyChainId}
+					{#if counterpartyChainId != null}
 						<div>
 							<dt>Counterparty chain ID</dt>
 							<dd>
-								{String((counterpartyChainId) ?? '')}
+								{counterpartyChainId}
 							</dd>
 						</div>
 					{/if}
@@ -230,7 +139,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							trustingPeriodNs: true,
 						},
@@ -238,13 +146,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const trustingPeriodNs = resolvedEntity.trustingPeriodNs}
-					{#if trustingPeriodNs !== undefined && trustingPeriodNs !== null}
+					{@const trustingPeriodNs = entity.trustingPeriodNs}
+					{#if trustingPeriodNs != null}
 						<div>
 							<dt>Trusting period ns</dt>
 							<dd>
-								{String((trustingPeriodNs) ?? '')}
+								{String(trustingPeriodNs)}
 							</dd>
 						</div>
 					{/if}
@@ -254,7 +161,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							unbondingPeriodNs: true,
 						},
@@ -262,13 +168,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const unbondingPeriodNs = resolvedEntity.unbondingPeriodNs}
-					{#if unbondingPeriodNs !== undefined && unbondingPeriodNs !== null}
+					{@const unbondingPeriodNs = entity.unbondingPeriodNs}
+					{#if unbondingPeriodNs != null}
 						<div>
 							<dt>Unbonding period ns</dt>
 							<dd>
-								{String((unbondingPeriodNs) ?? '')}
+								{String(unbondingPeriodNs)}
 							</dd>
 						</div>
 					{/if}
@@ -278,7 +183,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							maxClockDriftNs: true,
 						},
@@ -286,13 +190,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const maxClockDriftNs = resolvedEntity.maxClockDriftNs}
-					{#if maxClockDriftNs !== undefined && maxClockDriftNs !== null}
+					{@const maxClockDriftNs = entity.maxClockDriftNs}
+					{#if maxClockDriftNs != null}
 						<div>
 							<dt>Max clock drift ns</dt>
 							<dd>
-								{String((maxClockDriftNs) ?? '')}
+								{String(maxClockDriftNs)}
 							</dd>
 						</div>
 					{/if}
@@ -304,23 +207,6 @@
 				<dd>
 					<NetworkView
 						selection={select(EntityType.Network, selection.entitySelector.$network)}
-						href={
-							(
-								selection.entitySelector.$network != null && 'caip2' in selection.entitySelector.$network
-								&& selection.entitySelector.$network.caip2 != null ?
-									resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-								network: String(caip2StringFromValue(selection.entitySelector.$network.caip2) ?? ''),
-							})
-							:
-									selection.entitySelector.$network != null && 'slug' in selection.entitySelector.$network
-									&& selection.entitySelector.$network.slug != null ?
-										resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-									network: String(selection.entitySelector.$network.slug ?? ''),
-								})
-								:
-									undefined
-							)
-						}
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -336,12 +222,12 @@
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
-				<IbcConnectionsView
-					selection={ibcClientIbcConnectionsViewConnectionsResource}
-					countResource={ibcClientIbcConnectionsViewConnectionsResource.count}
-					title='Connections'
-					id='IbcConnectionsView-connections'
-				/>
+					<IbcConnectionsView
+						selection={ibcClientIbcConnectionsViewConnectionsResource}
+						countResource={ibcClientIbcConnectionsViewConnectionsResource.count}
+						title='Connections'
+						id='connections'
+					/>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>
@@ -351,12 +237,12 @@
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
-				<IbcChannelsView
-					selection={ibcClientIbcChannelsViewChannelsResource}
-					countResource={ibcClientIbcChannelsViewChannelsResource.count}
-					title='Channels'
-					id='IbcChannelsView-channels'
-				/>
+					<IbcChannelsView
+						selection={ibcClientIbcChannelsViewChannelsResource}
+						countResource={ibcClientIbcChannelsViewChannelsResource.count}
+						title='Channels'
+						id='channels'
+					/>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>

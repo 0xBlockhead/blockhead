@@ -12,9 +12,6 @@ import {
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
-import { _GlobalSelector } from '$/schema/_Global.ts'
-import { SpecificationProposalSelector } from '$/schema/SpecificationProposal.ts'
-
 const githubEnsipProposalIndexRows = async (
 	data: {
 		type: string
@@ -51,7 +48,7 @@ export default {
 		defineResolver(Source.Ensips_Github, {
 			entityType: EntityType.SpecificationProposal,
 			resolve: {
-				[SpecificationProposalSelector.RealmCategoryNumber]: {
+				RealmCategoryNumber: {
 					appliesTo: [
 						{
 							realm: OwnedSpecificationRealm.Ens,
@@ -67,7 +64,9 @@ export default {
 						if (realm !== SpecificationRealm.Ens || category !== ProposalCategory.Ensip) {
 							throw new Error('Ensips_Github: proposal resolver only supports ENSIPs')
 						}
-						const text = await getProposalMarkdownText({ number: number })
+						const text = await getProposalMarkdownText({
+							number: number,
+						})
 						const body = stripFrontmatter(text)
 						const fm = parseFrontmatter(text)
 						return {
@@ -93,7 +92,7 @@ export default {
 		defineResolver(Source.Ensips_Github, {
 			entityType: EntityType._Global,
 			resolve: {
-				[_GlobalSelector.Scope]: {
+				Scope: {
 					resolve: async () => {
 						const { getContents } = await import('$/sources/Ensips/Github/queries.ts')
 						return githubEnsipProposalIndexRows(await getContents())

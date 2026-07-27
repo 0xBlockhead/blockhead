@@ -2,13 +2,8 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
 
 
 	// Context
@@ -20,42 +15,19 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.CelestiaNamespace>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.CelestiaNamespace>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.CelestiaNamespace> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const celestiaNamespace = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {
-			label: true,
-			namespaceVersion: true,
-		},
-	} : {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const celestiaNamespace = $derived(selection({
 		fields: {
 			label: true,
 			namespaceVersion: true,
 		},
 	}))
-	const titleFallback = $derived([String((pendingEntity.label) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.namespaceId) ?? '')].filter(Boolean).join(' ') || 'celestia namespace')
-	const viewDomId = $derived('celestia-namespace-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const titleFallback = $derived((pendingEntity.label ?? '') || (pendingEntity.namespaceId ?? '') || 'celestia namespace')
 
 
 	// Components
@@ -70,48 +42,31 @@
 
 <EntityView
 	entityType={EntityType.CelestiaNamespace}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'label') && Object.hasOwn(prefetched, 'namespaceVersion')}
-			{[String((pendingEntity.label) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-		{:else}
-			<ResourceBoundary resource={celestiaNamespace}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.label) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={celestiaNamespace}>
+			{#snippet children(entity)}
+				{(entity.label ?? '') || title || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Value()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'label') && Object.hasOwn(prefetched, 'namespaceVersion')}
-			{@const namespaceVersion0 = pendingEntity.namespaceVersion}
-			{#if namespaceVersion0 !== undefined && namespaceVersion0 !== null}
-				<NumberValue
-					value={namespaceVersion0}
-				/>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={celestiaNamespace}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const namespaceVersion0 = resolvedEntity.namespaceVersion}
-					{#if namespaceVersion0 !== undefined && namespaceVersion0 !== null}
-						<NumberValue
-							value={namespaceVersion0}
-						/>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={celestiaNamespace}>
+			{#snippet children(entity)}
+				{@const namespaceVersion0 = entity.namespaceVersion}
+				{#if namespaceVersion0 != null}
+					<NumberValue
+						value={namespaceVersion0}
+					/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -130,41 +85,16 @@
 			<div>
 				<dt>namespace ID</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									namespaceId: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const namespaceId = resolvedEntity.namespaceId}
-							{#if namespaceId !== undefined && namespaceId !== null}
-								<TruncatedValue value={String((namespaceId) ?? '')} />
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					<TruncatedValue value={pendingEntity.namespaceId} />
 				</dd>
 			</div>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							namespaceVersion: true,
-						},
-					})
-				}
+				resource={celestiaNamespace}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const namespaceVersion = resolvedEntity.namespaceVersion}
-					{#if namespaceVersion !== undefined && namespaceVersion !== null}
+					{@const namespaceVersion = entity.namespaceVersion}
+					{#if namespaceVersion != null}
 						<div>
 							<dt>namespace version</dt>
 							<dd>
@@ -178,23 +108,15 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							label: true,
-						},
-					})
-				}
+				resource={celestiaNamespace}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const label = resolvedEntity.label}
-					{#if label !== undefined && label !== null}
+					{@const label = entity.label}
+					{#if label != null}
 						<div>
 							<dt>Label</dt>
 							<dd>
-								{String((label) ?? '')}
+								{label}
 							</dd>
 						</div>
 					{/if}
@@ -210,12 +132,12 @@
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
-				<CelestiaNamespace_TimestampsView
-					selection={celestiaNamespaceCelestiaNamespaceTimestampsViewTimestampsResource}
-					countResource={celestiaNamespaceCelestiaNamespaceTimestampsViewTimestampsResource.count}
-					title='timestamps'
-					id='CelestiaNamespace_TimestampsView-timestamps'
-				/>
+					<CelestiaNamespace_TimestampsView
+						selection={celestiaNamespaceCelestiaNamespaceTimestampsViewTimestampsResource}
+						countResource={celestiaNamespaceCelestiaNamespaceTimestampsViewTimestampsResource.count}
+						title='timestamps'
+						id='timestamps'
+					/>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>
@@ -225,12 +147,12 @@
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
-				<CelestiaBlobsView
-					selection={celestiaNamespaceCelestiaBlobsViewBlobsResource}
-					countResource={celestiaNamespaceCelestiaBlobsViewBlobsResource.count}
-					title='blobs'
-					id='CelestiaBlobsView-blobs'
-				/>
+					<CelestiaBlobsView
+						selection={celestiaNamespaceCelestiaBlobsViewBlobsResource}
+						countResource={celestiaNamespaceCelestiaBlobsViewBlobsResource.count}
+						title='blobs'
+						id='blobs'
+					/>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>

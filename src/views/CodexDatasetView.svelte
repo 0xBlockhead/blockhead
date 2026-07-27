@@ -2,13 +2,9 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// State
@@ -16,44 +12,25 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.CodexDataset>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.CodexDataset>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.CodexDataset> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const codexDataset = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {
-			filename: true,
-			mimetype: true,
-			datasetSizeBytes: true,
-		},
-	} : {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const viewSelection = $derived(selection({
+		sources: selection.sources ?? [
+			Source.Local_Internal,
+		],
+	}))
+	const codexDataset = $derived(viewSelection({
 		fields: {
 			filename: true,
 			mimetype: true,
 			datasetSizeBytes: true,
 		},
 	}))
-	const titleFallback = $derived([String((pendingEntity.filename) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.cid) ?? '')].filter(Boolean).join(' ') || 'codex dataset')
-	const viewDomId = $derived('codex-dataset-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const titleFallback = $derived((pendingEntity.filename ?? '') || (pendingEntity.cid ?? '') || 'codex dataset')
 
 
 	// Components
@@ -65,65 +42,41 @@
 
 <EntityView
 	entityType={EntityType.CodexDataset}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'filename') && Object.hasOwn(prefetched, 'mimetype') && Object.hasOwn(prefetched, 'datasetSizeBytes')}
-			{[String((pendingEntity.filename) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-		{:else}
-			<ResourceBoundary resource={codexDataset}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.filename) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={codexDataset}>
+			{#snippet children(entity)}
+				{(entity.filename ?? '') || title || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Value()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'filename') && Object.hasOwn(prefetched, 'mimetype') && Object.hasOwn(prefetched, 'datasetSizeBytes')}
-			{[String((pendingEntity.mimetype) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.filename) ?? '')].filter(Boolean).join(' ') || titleFallback}
-		{:else}
-			<ResourceBoundary resource={codexDataset}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.mimetype) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.filename) ?? '')].filter(Boolean).join(' ') || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={codexDataset}>
+			{#snippet children(entity)}
+				{(entity.mimetype ?? '') || (entity.filename ?? '') || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'filename') && Object.hasOwn(prefetched, 'mimetype') && Object.hasOwn(prefetched, 'datasetSizeBytes')}
-			{@const datasetSizeBytes0 = pendingEntity.datasetSizeBytes}
-			{#if datasetSizeBytes0 !== undefined && datasetSizeBytes0 !== null}
-				<span data-text="muted">
-					<NumberValue
-						value={datasetSizeBytes0}
-					/>
-				</span>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={codexDataset}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const datasetSizeBytes0 = resolvedEntity.datasetSizeBytes}
-					{#if datasetSizeBytes0 !== undefined && datasetSizeBytes0 !== null}
-						<span data-text="muted">
-							<NumberValue
-								value={datasetSizeBytes0}
-							/>
-						</span>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={codexDataset}>
+			{#snippet children(entity)}
+				{@const datasetSizeBytes0 = entity.datasetSizeBytes}
+				{#if datasetSizeBytes0 != null}
+					<span data-text="muted">
+						<NumberValue
+							value={datasetSizeBytes0}
+						/>
+					</span>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -131,31 +84,13 @@
 			<div>
 				<dt>CID</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									cid: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const cid = resolvedEntity.cid}
-							{#if cid !== undefined && cid !== null}
-								{String((cid) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{pendingEntity.cid}
 				</dd>
 			</div>
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							treeCid: true,
 						},
@@ -163,13 +98,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const treeCid = resolvedEntity.treeCid}
-					{#if treeCid !== undefined && treeCid !== null}
+					{@const treeCid = entity.treeCid}
+					{#if treeCid != null}
 						<div>
 							<dt>tree CID</dt>
 							<dd>
-								{String((treeCid) ?? '')}
+								{treeCid}
 							</dd>
 						</div>
 					{/if}
@@ -177,23 +111,15 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							filename: true,
-						},
-					})
-				}
+				resource={codexDataset}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const filename = resolvedEntity.filename}
-					{#if filename !== undefined && filename !== null}
+					{@const filename = entity.filename}
+					{#if filename != null}
 						<div>
 							<dt>filename</dt>
 							<dd>
-								{String((filename) ?? '')}
+								{filename}
 							</dd>
 						</div>
 					{/if}
@@ -201,23 +127,15 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							mimetype: true,
-						},
-					})
-				}
+				resource={codexDataset}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const mimetype = resolvedEntity.mimetype}
-					{#if mimetype !== undefined && mimetype !== null}
+					{@const mimetype = entity.mimetype}
+					{#if mimetype != null}
 						<div>
 							<dt>mimetype</dt>
 							<dd>
-								{String((mimetype) ?? '')}
+								{mimetype}
 							</dd>
 						</div>
 					{/if}
@@ -227,19 +145,11 @@
 
 		<dl data-column-item="center">
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							datasetSizeBytes: true,
-						},
-					})
-				}
+				resource={codexDataset}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const datasetSizeBytes = resolvedEntity.datasetSizeBytes}
-					{#if datasetSizeBytes !== undefined && datasetSizeBytes !== null}
+					{@const datasetSizeBytes = entity.datasetSizeBytes}
+					{#if datasetSizeBytes != null}
 						<div>
 							<dt>dataset size bytes</dt>
 							<dd>
@@ -254,8 +164,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							blockSizeBytes: true,
 						},
@@ -263,9 +172,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const blockSizeBytes = resolvedEntity.blockSizeBytes}
-					{#if blockSizeBytes !== undefined && blockSizeBytes !== null}
+					{@const blockSizeBytes = entity.blockSizeBytes}
+					{#if blockSizeBytes != null}
 						<div>
 							<dt>block size bytes</dt>
 							<dd>
@@ -287,12 +195,12 @@
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
-				<BlockheadCodexStoredDataEntriesView
-					selection={codexDatasetBlockheadCodexStoredDataEntriesViewLocalCopiesResource}
-					countResource={codexDatasetBlockheadCodexStoredDataEntriesViewLocalCopiesResource.count}
-					title='local copies'
-					id='BlockheadCodexStoredDataEntriesView-local-copies'
-				/>
+					<BlockheadCodexStoredDataEntriesView
+						selection={codexDatasetBlockheadCodexStoredDataEntriesViewLocalCopiesResource}
+						countResource={codexDatasetBlockheadCodexStoredDataEntriesViewLocalCopiesResource.count}
+						title='local copies'
+						id='local-copies'
+					/>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>

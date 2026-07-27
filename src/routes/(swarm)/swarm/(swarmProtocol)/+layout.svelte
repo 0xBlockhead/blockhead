@@ -28,16 +28,16 @@
 
 
 <ParentPageCollapsible
-	href={resolve('/swarm')}
+	href={resolve('/(swarm)/swarm')}
 >
 	{#snippet Summary()}
-		{@const DetailView = SwarmProtocolView}
-
-		<DetailView
-			selection={select(EntityType.SwarmProtocol, data.selector, { sources: [
-	Source.Constants_Internal,
-] })}
-			href={resolve('/swarm')}
+		<SwarmProtocolView
+			selection={
+				select(EntityType.SwarmProtocol, data.selector, { sources: [
+					Source.Constants_Internal,
+				] })
+			}
+			href={resolve('/(swarm)/swarm')}
 			layout={EntityLayout.SummaryInline}
 		/>
 	{/snippet}

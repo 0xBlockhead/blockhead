@@ -2,15 +2,8 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
-	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -22,35 +15,13 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.CardanoConstitution_Epoch>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.CardanoConstitution_Epoch>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.CardanoConstitution_Epoch> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const cardanoConstitutionEpoch = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {},
-	} : {
-		sources: selection.sources,
-	}))
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const titleFallback = 'Cardano constitution epoch'
-	const viewDomId = $derived('cardano-constitution-epoch-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -62,24 +33,14 @@
 
 <EntityView
 	entityType={EntityType.CardanoConstitution_Epoch}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails}
-			{title || titleFallback}
-		{:else}
-			<ResourceBoundary resource={cardanoConstitutionEpoch}>
-				{#snippet children(entity)}
-					{title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		Cardano constitution epoch
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -89,23 +50,6 @@
 				<dd>
 					<NetworkView
 						selection={select(EntityType.Network, selection.entitySelector.$network)}
-						href={
-							(
-								selection.entitySelector.$network != null && 'caip2' in selection.entitySelector.$network
-								&& selection.entitySelector.$network.caip2 != null ?
-									resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-								network: String(caip2StringFromValue(selection.entitySelector.$network.caip2) ?? ''),
-							})
-							:
-									selection.entitySelector.$network != null && 'slug' in selection.entitySelector.$network
-									&& selection.entitySelector.$network.slug != null ?
-										resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-									network: String(selection.entitySelector.$network.slug ?? ''),
-								})
-								:
-									undefined
-							)
-						}
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -115,55 +59,20 @@
 			<div>
 				<dt>epoch</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									epoch: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const epoch = resolvedEntity.epoch}
-							{#if epoch !== undefined && epoch !== null}
-								{String((epoch) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{String(pendingEntity.epoch)}
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									source: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const source = resolvedEntity.source}
-							{#if source !== undefined && source !== null}
-								{String((source) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{pendingEntity.source}
 				</dd>
 			</div>
 
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							slot: true,
 						},
@@ -171,13 +80,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const slot = resolvedEntity.slot}
-					{#if slot !== undefined && slot !== null}
+					{@const slot = entity.slot}
+					{#if slot != null}
 						<div>
 							<dt>slot</dt>
 							<dd>
-								{String((slot) ?? '')}
+								{String(slot)}
 							</dd>
 						</div>
 					{/if}
@@ -187,7 +95,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							anchorUrl: true,
 						},
@@ -195,20 +102,18 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const anchorUrl = resolvedEntity.anchorUrl}
-					{#if anchorUrl !== undefined && anchorUrl !== null}
+					{@const anchorUrl = entity.anchorUrl}
+					{#if anchorUrl != null}
 						<div>
 							<dt>anchor URL</dt>
 							<dd>
-								<svelte:element
-									this={'a'}
+								<a
 									href={String(anchorUrl)}
 									target="_blank"
 									rel="noreferrer noopener"
 								>
 									<TruncatedValue value={String(anchorUrl)} />
-								</svelte:element>
+								</a>
 							</dd>
 						</div>
 					{/if}
@@ -218,7 +123,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							anchorHash: true,
 						},
@@ -226,13 +130,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const anchorHash = resolvedEntity.anchorHash}
-					{#if anchorHash !== undefined && anchorHash !== null}
+					{@const anchorHash = entity.anchorHash}
+					{#if anchorHash != null}
 						<div>
 							<dt>anchor hash</dt>
 							<dd>
-								<TruncatedValue value={String((anchorHash) ?? '')} />
+								<TruncatedValue value={anchorHash} />
 							</dd>
 						</div>
 					{/if}
@@ -242,7 +145,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							scriptHash: true,
 						},
@@ -250,13 +152,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const scriptHash = resolvedEntity.scriptHash}
-					{#if scriptHash !== undefined && scriptHash !== null}
+					{@const scriptHash = entity.scriptHash}
+					{#if scriptHash != null}
 						<div>
 							<dt>script hash</dt>
 							<dd>
-								<TruncatedValue value={String((scriptHash) ?? '')} />
+								<TruncatedValue value={scriptHash} />
 							</dd>
 						</div>
 					{/if}
@@ -266,7 +167,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							previousAnchorUrl: true,
 						},
@@ -274,20 +174,18 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const previousAnchorUrl = resolvedEntity.previousAnchorUrl}
-					{#if previousAnchorUrl !== undefined && previousAnchorUrl !== null}
+					{@const previousAnchorUrl = entity.previousAnchorUrl}
+					{#if previousAnchorUrl != null}
 						<div>
 							<dt>previous anchor URL</dt>
 							<dd>
-								<svelte:element
-									this={'a'}
+								<a
 									href={String(previousAnchorUrl)}
 									target="_blank"
 									rel="noreferrer noopener"
 								>
 									<TruncatedValue value={String(previousAnchorUrl)} />
-								</svelte:element>
+								</a>
 							</dd>
 						</div>
 					{/if}
@@ -297,7 +195,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							previousAnchorHash: true,
 						},
@@ -305,13 +202,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const previousAnchorHash = resolvedEntity.previousAnchorHash}
-					{#if previousAnchorHash !== undefined && previousAnchorHash !== null}
+					{@const previousAnchorHash = entity.previousAnchorHash}
+					{#if previousAnchorHash != null}
 						<div>
 							<dt>previous anchor hash</dt>
 							<dd>
-								<TruncatedValue value={String((previousAnchorHash) ?? '')} />
+								<TruncatedValue value={previousAnchorHash} />
 							</dd>
 						</div>
 					{/if}

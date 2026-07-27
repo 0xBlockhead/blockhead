@@ -2,13 +2,9 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
 	import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 
 
@@ -21,40 +17,18 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.GitPackfile>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.GitPackfile>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.GitPackfile> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const gitPackfile = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {
-			objectFormat: true,
-		},
-	} : {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const gitPackfile = $derived(selection({
 		fields: {
 			objectFormat: true,
 		},
 	}))
-	const titleFallback = $derived([String((pendingEntity.packHash) ?? '')].filter(Boolean).join(' ') || 'Git packfile')
-	const viewDomId = $derived('git-packfile-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const titleFallback = $derived(String(pendingEntity.packHash ?? '') || 'Git packfile')
 
 
 	// Components
@@ -67,44 +41,22 @@
 
 <EntityView
 	entityType={EntityType.GitPackfile}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'objectFormat')}
-			{@const packHash0 = pendingEntity.packHash}
-			{#if packHash0 !== undefined && packHash0 !== null}
-				<TruncatedValue value={String((packHash0) ?? '')} />
-			{/if}
-		{:else}
-			<ResourceBoundary resource={gitPackfile}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const packHash0 = resolvedEntity.packHash}
-					{#if packHash0 !== undefined && packHash0 !== null}
-						<TruncatedValue value={String((packHash0) ?? '')} />
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<TruncatedValue value={String(pendingEntity.packHash)} />
 	{/snippet}
 
 	{#snippet Value()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'objectFormat')}
-			{[String((pendingEntity.objectFormat) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.packHash) ?? '')].filter(Boolean).join(' ') || titleFallback}
-		{:else}
-			<ResourceBoundary resource={gitPackfile}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.objectFormat) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.packHash) ?? '')].filter(Boolean).join(' ') || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={gitPackfile}>
+			{#snippet children(entity)}
+				{entity.objectFormat || String(pendingEntity.packHash) || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -112,24 +64,7 @@
 			<div>
 				<dt>pack hash</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									packHash: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const packHash = resolvedEntity.packHash}
-							{#if packHash !== undefined && packHash !== null}
-								<TruncatedValue value={String((packHash) ?? '')} />
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					<TruncatedValue value={String(pendingEntity.packHash)} />
 				</dd>
 			</div>
 
@@ -137,21 +72,10 @@
 				<dt>object format</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									objectFormat: true,
-								},
-							})
-						}
+						resource={gitPackfile}
 					>
 						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const objectFormat = resolvedEntity.objectFormat}
-							{#if objectFormat !== undefined && objectFormat !== null}
-								{String((objectFormat) ?? '')}
-							{/if}
+							{entity.objectFormat}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -160,7 +84,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							objectCount: true,
 						},
@@ -168,9 +91,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const objectCount = resolvedEntity.objectCount}
-					{#if objectCount !== undefined && objectCount !== null}
+					{@const objectCount = entity.objectCount}
+					{#if objectCount != null}
 						<div>
 							<dt>object count</dt>
 							<dd>
@@ -186,7 +108,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							packSizeBytes: true,
 						},
@@ -194,9 +115,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const packSizeBytes = resolvedEntity.packSizeBytes}
-					{#if packSizeBytes !== undefined && packSizeBytes !== null}
+					{@const packSizeBytes = entity.packSizeBytes}
+					{#if packSizeBytes != null}
 						<div>
 							<dt>pack size bytes</dt>
 							<dd>
@@ -212,7 +132,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							indexHash: true,
 						},
@@ -220,13 +139,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const indexHash = resolvedEntity.indexHash}
-					{#if indexHash !== undefined && indexHash !== null}
+					{@const indexHash = entity.indexHash}
+					{#if indexHash != null}
 						<div>
 							<dt>index hash</dt>
 							<dd>
-								<TruncatedValue value={String((indexHash) ?? '')} />
+								<TruncatedValue value={String(indexHash)} />
 							</dd>
 						</div>
 					{/if}
@@ -237,7 +155,7 @@
 				resource={selection.$repository}
 			>
 				{#snippet children(gitRepository)}
-					{#if gitRepository != null && gitRepository[EntityMetaKey.Selector] != null}
+					{#if gitRepository != null}
 						<div>
 							<dt>repository</dt>
 							<dd>

@@ -1,12 +1,4 @@
 import { jsonErrorHintFromResponse } from '$/lib/http.ts'
-import { type as arktype } from 'arktype'
-import { Source } from '$/sources/Source.ts'
-import {
-	ApiFamily,
-	SourceEndpointKind,
-	SourceTargetKind,
-	type SourceBinding,
-} from '$/sources/SourceBinding.ts'
 import { sourceFetch } from '$/sources/_runtime/http.ts'
 import {
 	getJson,
@@ -17,6 +9,11 @@ import type {
 	ArweaveTransactionStatus,
 	ArweaveTransactionWire,
 } from '$/sources/Arweave/Rest/types.ts'
+import {
+	SourceEndpointKind,
+	type SourceBinding,
+} from '$/sources/SourceBinding.ts'
+import { type as arktype } from 'arktype'
 
 const gatewayUrlLastSegment = /([^/]+)$/
 const transactionOffset = arktype({
@@ -26,18 +23,7 @@ const transactionOffset = arktype({
 
 const trimSlashes = (value: string) => value.replace(/^\/+|\/+$/g, '')
 
-const assertBinding = (binding: SourceBinding) => {
-	if (
-		binding.source !== Source.Arweave_Rest
-		|| binding.target.kind !== SourceTargetKind.ContentAddressScheme
-		|| binding.target.key !== 'arweave'
-		|| binding.apiFamily !== ApiFamily.ArweaveGateway
-	)
-		throw new Error('Arweave_Rest: expected canonical Arweave gateway binding')
-}
-
 const arweaveGatewayEndpoints = (binding: SourceBinding) => {
-	assertBinding(binding)
 	const endpoints = binding.endpoints.filter((endpoint) => (
 		endpoint.endpointKind === SourceEndpointKind.HttpUrl
 		&& endpoint.origin != null
@@ -76,7 +62,6 @@ export const getWalletBalance = async (
 	binding: SourceBinding,
 	address: string
 ) => {
-	assertBinding(binding)
 	assertBase64UrlId(address, 'wallet address')
 	const balanceWinston = (await getText(
 		binding,
@@ -90,7 +75,6 @@ export const getTransaction = async (
 	binding: SourceBinding,
 	transactionId: string
 ) => {
-	assertBinding(binding)
 	assertBase64UrlId(transactionId, 'transaction ID')
 	const transaction = await getJson<ArweaveTransactionWire>(
 		binding,
@@ -116,7 +100,6 @@ export const getTransactionStatus = async (
 	binding: SourceBinding,
 	transactionId: string
 ) => {
-	assertBinding(binding)
 	assertBase64UrlId(transactionId, 'transaction ID')
 	const status = await getJson<ArweaveTransactionStatus>(
 		binding,
@@ -226,7 +209,7 @@ export const fetchBrowseResult = async ({
 		const chunks: Uint8Array[] = []
 		let receivedBytes = 0
 		let exceedsLimit = false
-		while (true) {
+		for (;;) {
 			const chunk = await reader.read()
 			if (chunk.done)
 				break

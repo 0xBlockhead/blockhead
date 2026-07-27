@@ -1,10 +1,13 @@
 import { throwHttpError } from '$/lib/http.ts'
-import { jsonRpcHeaders, jsonRpcVersion } from '$/sources/Evm/JsonRpc/constants.ts'
-import type { SourceBinding } from '$/sources/SourceBinding.ts'
+import { filecoinNetworkBySlug } from '$/constants/FilecoinNetwork.ts'
+import { TransportType } from '$/constants/TransportType.ts'
+import { jsonRpcHeaders, jsonRpcVersion } from '$/sources/_shared/wire/JsonRpc2/constants.ts'
 import {
 	firstHttpUrlForBinding,
 	sourceFetch,
 } from '$/sources/_runtime/http.ts'
+import bindings from '$/sources/Lotus/bindings.ts'
+import { Source } from '$/sources/Source.ts'
 import type { JsonValue } from '$/typescript/JsonValue.ts'
 import type {
 	LotusActor,
@@ -18,6 +21,18 @@ import type {
 	LotusVersion,
 } from '$/sources/Lotus/JsonRpc/types.ts'
 
+const binding = bindings[Source.Lotus_JsonRpc].find(({ target }) => (
+	target.key === `${filecoinNetworkBySlug.filecoin.caip2.namespace}:${filecoinNetworkBySlug.filecoin.caip2.reference}`
+))
+if (binding == null)
+	throw new Error('Lotus_JsonRpc: Filecoin mainnet binding is not registered')
+
+export const getRpcEndpoints = () => [{
+	url: `${firstHttpUrlForBinding(binding).replace(/\/$/, '')}/rpc/v1`,
+	transportType: TransportType.Http,
+	providerName: 'GLIF',
+}]
+
 type JsonRpcResponse<_Result> = {
 	jsonrpc: typeof jsonRpcVersion
 	id: number | string | null
@@ -30,11 +45,9 @@ type JsonRpcResponse<_Result> = {
 }
 
 const lotusJsonRpc = async <_Result>({
-	binding,
 	method,
 	params,
 }: {
-	binding: SourceBinding
 	method: string
 	params: JsonValue[]
 }) => {
@@ -60,14 +73,11 @@ const lotusJsonRpc = async <_Result>({
 }
 
 export const getTipSetByHeight = ({
-	binding,
 	height,
 }: {
-	binding: SourceBinding
 	height: bigint
 }) => (
 	lotusJsonRpc<LotusTipset>({
-		binding,
 		method: 'Filecoin.ChainGetTipSetByHeight',
 		params: [
 			Number(height),
@@ -76,39 +86,26 @@ export const getTipSetByHeight = ({
 	})
 )
 
-export const getHead = ({
-	binding,
-}: {
-	binding: SourceBinding
-}) => (
+export const getHead = () => (
 	lotusJsonRpc<LotusTipset>({
-		binding,
 		method: 'Filecoin.ChainHead',
 		params: [],
 	})
 )
 
-export const getVersion = ({
-	binding,
-}: {
-	binding: SourceBinding
-}) => (
+export const getVersion = () => (
 	lotusJsonRpc<LotusVersion>({
-		binding,
 		method: 'Filecoin.Version',
 		params: [],
 	})
 )
 
 export const getNetworkVersion = ({
-	binding,
 	tipsetKey,
 }: {
-	binding: SourceBinding
 	tipsetKey: LotusTipsetKey
 }) => (
 	lotusJsonRpc<number>({
-		binding,
 		method: 'Filecoin.StateNetworkVersion',
 		params: [
 			tipsetKey,
@@ -117,16 +114,13 @@ export const getNetworkVersion = ({
 )
 
 export const getMinerPower = ({
-	binding,
 	minerAddress,
 	tipsetKey,
 }: {
-	binding: SourceBinding
 	minerAddress: string
 	tipsetKey: LotusTipsetKey
 }) => (
 	lotusJsonRpc<LotusMinerPower>({
-		binding,
 		method: 'Filecoin.StateMinerPower',
 		params: [
 			minerAddress,
@@ -136,16 +130,13 @@ export const getMinerPower = ({
 )
 
 export const getMinerInfo = ({
-	binding,
 	minerAddress,
 	tipsetKey,
 }: {
-	binding: SourceBinding
 	minerAddress: string
 	tipsetKey: LotusTipsetKey
 }) => (
 	lotusJsonRpc<LotusMinerInfo>({
-		binding,
 		method: 'Filecoin.StateMinerInfo',
 		params: [
 			minerAddress,
@@ -155,14 +146,11 @@ export const getMinerInfo = ({
 )
 
 export const getMessage = ({
-	binding,
 	messageCid,
 }: {
-	binding: SourceBinding
 	messageCid: string
 }) => (
 	lotusJsonRpc<LotusMessage>({
-		binding,
 		method: 'Filecoin.ChainGetMessage',
 		params: [
 			{ '/': messageCid },
@@ -171,16 +159,13 @@ export const getMessage = ({
 )
 
 export const getActor = ({
-	binding,
 	address,
 	tipsetKey,
 }: {
-	binding: SourceBinding
 	address: string
 	tipsetKey: LotusTipsetKey
 }) => (
 	lotusJsonRpc<LotusActor>({
-		binding,
 		method: 'Filecoin.StateGetActor',
 		params: [
 			address,
@@ -190,16 +175,13 @@ export const getActor = ({
 )
 
 export const getIdAddress = ({
-	binding,
 	address,
 	tipsetKey,
 }: {
-	binding: SourceBinding
 	address: string
 	tipsetKey: LotusTipsetKey
 }) => (
 	lotusJsonRpc<string>({
-		binding,
 		method: 'Filecoin.StateLookupID',
 		params: [
 			address,
@@ -209,16 +191,13 @@ export const getIdAddress = ({
 )
 
 export const getMinerSectors = ({
-	binding,
 	minerAddress,
 	tipsetKey,
 }: {
-	binding: SourceBinding
 	minerAddress: string
 	tipsetKey: LotusTipsetKey
 }) => (
 	lotusJsonRpc<LotusSectorOnChainInfo[]>({
-		binding,
 		method: 'Filecoin.StateMinerSectors',
 		params: [
 			minerAddress,
@@ -229,16 +208,13 @@ export const getMinerSectors = ({
 )
 
 export const getMinerActiveSectors = ({
-	binding,
 	minerAddress,
 	tipsetKey,
 }: {
-	binding: SourceBinding
 	minerAddress: string
 	tipsetKey: LotusTipsetKey
 }) => (
 	lotusJsonRpc<LotusSectorOnChainInfo[]>({
-		binding,
 		method: 'Filecoin.StateMinerActiveSectors',
 		params: [
 			minerAddress,
@@ -248,16 +224,13 @@ export const getMinerActiveSectors = ({
 )
 
 export const getMinerSectorCount = ({
-	binding,
 	minerAddress,
 	tipsetKey,
 }: {
-	binding: SourceBinding
 	minerAddress: string
 	tipsetKey: LotusTipsetKey
 }) => (
 	lotusJsonRpc<LotusMinerSectorCount>({
-		binding,
 		method: 'Filecoin.StateMinerSectorCount',
 		params: [
 			minerAddress,

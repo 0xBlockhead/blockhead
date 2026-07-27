@@ -1,14 +1,11 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { entity, facet } from '$/schema/$schema.ts'
+import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { type } from 'arktype'
 
-export enum AssetSupply_LedgerCoordinateSelector {
-	AssetInstanceSupplyScopeKeyLedgerCoordinateKindLedgerCoordinateValueSource = 'AssetInstanceSupplyScopeKeyLedgerCoordinateKindLedgerCoordinateValueSource',
-}
-export const AssetSupply_LedgerCoordinate = entity({
+export default entity({
 	entityType: EntityType.AssetSupply_LedgerCoordinate,
 	labels: {
 		singular: 'asset supply ledger coordinate',

@@ -4,7 +4,7 @@ import type { LayoutLoad } from './$types'
 import { error } from '@sveltejs/kit'
 import { match as matchStringSegment } from '$/params/stringSegment.ts'
 import { parseEntitySelector } from '$/schema/$schema.ts'
-import { Coin as CoinSchema } from '$/schema/Coin.ts'
+import CoinSchema from '$/schema/Coin.ts'
 import { schema } from '$/schema/index.ts'
 import { type as arktype } from 'arktype'
 

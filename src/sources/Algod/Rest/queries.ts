@@ -1,19 +1,6 @@
-import { Source } from '$/sources/Source.ts'
-import {
-	SourceTargetKind,
-	type SourceBinding,
-} from '$/sources/SourceBinding.ts'
 import { getJson } from '$/sources/_shared/wire/HttpRest/client.ts'
 import type { AlgodAccountResponse } from '$/sources/Algod/Rest/types.ts'
-
-const assertBinding = (binding: SourceBinding) => {
-	if (
-		binding.source !== Source.Algod_Rest
-		|| binding.target.kind !== SourceTargetKind.NetworkSlug
-		|| binding.target.key !== 'algorand'
-	)
-		throw new Error('Algod_Rest: expected canonical Algorand binding')
-}
+import type { SourceBinding } from '$/sources/SourceBinding.ts'
 
 const assertAddress = (
 	address: string,
@@ -42,7 +29,6 @@ export const getAccount = async (
 	binding: SourceBinding,
 	address: string
 ) => {
-	assertBinding(binding)
 	assertAddress(address, 'account address')
 	const account = await query<AlgodAccountResponse>(
 		binding,

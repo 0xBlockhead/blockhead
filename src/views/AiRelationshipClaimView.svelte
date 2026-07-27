@@ -2,14 +2,11 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
 	import { UrlString } from '$/schema/UrlString.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -21,35 +18,19 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.AiRelationshipClaim>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.AiRelationshipClaim>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.AiRelationshipClaim> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const aiRelationshipClaim = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {},
-	} : {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const viewSelection = $derived(selection({
+		sources: selection.sources ?? [
+			Source.Eip8004Scan_Rest,
+			Source.Ipfs_Rest,
+		],
 	}))
-	const titleFallback = $derived([String((pendingEntity.relationshipKind) ?? '')].filter(Boolean).join(' ') || 'AI relationship claim')
-	const viewDomId = $derived('ai-relationship-claim-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const titleFallback = $derived((pendingEntity.relationshipKind ?? '') || 'AI relationship claim')
 
 
 	// Components
@@ -64,61 +45,24 @@
 
 <EntityView
 	entityType={EntityType.AiRelationshipClaim}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails}
-			{[String((pendingEntity.relationshipKind) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-		{:else}
-			<ResourceBoundary resource={aiRelationshipClaim}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.relationshipKind) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		{(pendingEntity.relationshipKind ?? '') || 'AI relationship claim'}
 	{/snippet}
 
 	{#snippet Value()}
-		{#if layout !== EntityLayout.SummaryDetails}
-			{[String((pendingEntity.subjectKind) ?? ''), String((pendingEntity.objectKind) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.relationshipKind) ?? '')].filter(Boolean).join(' ') || titleFallback}
-		{:else}
-			<ResourceBoundary resource={aiRelationshipClaim}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.subjectKind) ?? ''), String((resolvedEntity.objectKind) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.relationshipKind) ?? '')].filter(Boolean).join(' ') || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		{[(pendingEntity.subjectKind ?? ''), (pendingEntity.objectKind ?? '')].filter(Boolean).join(' ') || (pendingEntity.relationshipKind ?? '') || titleFallback}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if layout !== EntityLayout.SummaryDetails}
-			{@const timestampMs0 = pendingEntity.timestampMs}
-			{#if timestampMs0 !== undefined && timestampMs0 !== null}
-				<span data-text="muted">
-					<Timestamp timestamp={Number(timestampMs0)} />
-				</span>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={aiRelationshipClaim}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const timestampMs0 = resolvedEntity.timestampMs}
-					{#if timestampMs0 !== undefined && timestampMs0 !== null}
-						<span data-text="muted">
-							<Timestamp timestamp={Number(timestampMs0)} />
-						</span>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<span data-text="muted">
+			<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+		</span>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -126,72 +70,21 @@
 			<div>
 				<dt>subject kind</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									subjectKind: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const subjectKind = resolvedEntity.subjectKind}
-							{#if subjectKind !== undefined && subjectKind !== null}
-								{String((subjectKind) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{pendingEntity.subjectKind}
 				</dd>
 			</div>
 
 			<div>
 				<dt>relationship kind</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									relationshipKind: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const relationshipKind = resolvedEntity.relationshipKind}
-							{#if relationshipKind !== undefined && relationshipKind !== null}
-								{String((relationshipKind) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{pendingEntity.relationshipKind}
 				</dd>
 			</div>
 
 			<div>
 				<dt>object kind</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									objectKind: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const objectKind = resolvedEntity.objectKind}
-							{#if objectKind !== undefined && objectKind !== null}
-								{String((objectKind) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{pendingEntity.objectKind}
 				</dd>
 			</div>
 		</dl>
@@ -200,55 +93,20 @@
 			<div>
 				<dt>Source</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									source: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const source = resolvedEntity.source}
-							{#if source !== undefined && source !== null}
-								{String((source) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{pendingEntity.source}
 				</dd>
 			</div>
 
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									timestampMs: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const timestampMs = resolvedEntity.timestampMs}
-							{#if timestampMs !== undefined && timestampMs !== null}
-								<Timestamp timestamp={Number(timestampMs)} />
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
 				</dd>
 			</div>
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							confidence: true,
 						},
@@ -256,9 +114,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const confidence = resolvedEntity.confidence}
-					{#if confidence !== undefined && confidence !== null}
+					{@const confidence = entity.confidence}
+					{#if confidence != null}
 						<div>
 							<dt>confidence</dt>
 							<dd>
@@ -275,7 +132,7 @@
 				resource={selection.$document}
 			>
 				{#snippet children(aiDocument)}
-					{#if aiDocument != null && aiDocument[EntityMetaKey.Selector] != null}
+					{#if aiDocument != null}
 						<div>
 							<dt>document</dt>
 							<dd>
@@ -295,7 +152,7 @@
 				resource={selection.$documentClaim}
 			>
 				{#snippet children(aiDocumentClaim)}
-					{#if aiDocumentClaim != null && aiDocumentClaim[EntityMetaKey.Selector] != null}
+					{#if aiDocumentClaim != null}
 						<div>
 							<dt>document claim</dt>
 							<dd>
@@ -315,8 +172,7 @@
 		<dl data-column-item="center">
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							evidenceUri: true,
 						},
@@ -324,20 +180,18 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const evidenceUri = resolvedEntity.evidenceUri}
-					{#if evidenceUri !== undefined && evidenceUri !== null}
+					{@const evidenceUri = entity.evidenceUri}
+					{#if evidenceUri != null}
 						<div>
 							<dt>evidence URI</dt>
 							<dd>
-								<svelte:element
-									this={'a'}
+								<a
 									href={String(evidenceUri)}
 									target="_blank"
 									rel="noreferrer noopener"
 								>
 									<TruncatedValue value={String(evidenceUri)} />
-								</svelte:element>
+								</a>
 							</dd>
 						</div>
 					{/if}
@@ -346,8 +200,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							evidenceHashAlgorithm: true,
 						},
@@ -355,13 +208,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const evidenceHashAlgorithm = resolvedEntity.evidenceHashAlgorithm}
-					{#if evidenceHashAlgorithm !== undefined && evidenceHashAlgorithm !== null}
+					{@const evidenceHashAlgorithm = entity.evidenceHashAlgorithm}
+					{#if evidenceHashAlgorithm != null}
 						<div>
 							<dt>evidence hash algorithm</dt>
 							<dd>
-								<TruncatedValue value={String((evidenceHashAlgorithm) ?? '')} />
+								<TruncatedValue value={evidenceHashAlgorithm} />
 							</dd>
 						</div>
 					{/if}
@@ -370,8 +222,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							evidenceHash: true,
 						},
@@ -379,13 +230,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const evidenceHash = resolvedEntity.evidenceHash}
-					{#if evidenceHash !== undefined && evidenceHash !== null}
+					{@const evidenceHash = entity.evidenceHash}
+					{#if evidenceHash != null}
 						<div>
 							<dt>evidence hash</dt>
 							<dd>
-								<TruncatedValue value={String((evidenceHash) ?? '')} />
+								<TruncatedValue value={evidenceHash} />
 							</dd>
 						</div>
 					{/if}

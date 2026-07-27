@@ -12,9 +12,6 @@ import {
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
-import { _GlobalSelector } from '$/schema/_Global.ts'
-import { SpecificationProposalSelector } from '$/schema/SpecificationProposal.ts'
-
 const solanaSimdProposalRows = async (
 	entries: {
 		type: string
@@ -49,7 +46,7 @@ export default {
 		defineResolver(Source.SolanaSimds_Github, {
 			entityType: EntityType.SpecificationProposal,
 			resolve: {
-				[SpecificationProposalSelector.RealmCategoryNumber]: {
+				RealmCategoryNumber: {
 					appliesTo: [
 						{
 							realm: OwnedSpecificationRealm.Solana,
@@ -62,7 +59,9 @@ export default {
 						throw new Error('SolanaSimds_Github: unsupported proposal id')
 					}
 					const { getProposalMarkdownText } = await import('$/sources/SolanaSimds/Github/queries.ts')
-					const text = await getProposalMarkdownText({ number: number })
+					const text = await getProposalMarkdownText({
+						number: number,
+					})
 					const body = stripFrontmatter(text)
 					const frontmatter = parseFrontmatter(text)
 					return {
@@ -87,11 +86,11 @@ export default {
 		defineResolver(Source.SolanaSimds_Github, {
 			entityType: EntityType._Global,
 			resolve: {
-				[_GlobalSelector.Scope]: {
+				Scope: {
 					resolve: async () => {
-					const { getProposalContents } = await import('$/sources/SolanaSimds/Github/queries.ts')
-					return solanaSimdProposalRows(await getProposalContents())
-				},
+						const { getProposalContents } = await import('$/sources/SolanaSimds/Github/queries.ts')
+						return solanaSimdProposalRows(await getProposalContents())
+					},
 				}
 			}
 		})({

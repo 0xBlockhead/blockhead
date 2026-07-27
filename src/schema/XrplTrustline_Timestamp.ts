@@ -1,14 +1,11 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { entity, facet } from '$/schema/$schema.ts'
+import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { type } from 'arktype'
 
-export enum XrplTrustline_TimestampSelector {
-	TrustlineLedgerIndexSource = 'TrustlineLedgerIndexSource',
-}
-export const XrplTrustline_Timestamp = entity({
+export default entity({
 	entityType: EntityType.XrplTrustline_Timestamp,
 	labels: {
 		singular: 'xrpl trustline timestamp',

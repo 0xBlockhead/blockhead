@@ -6,16 +6,7 @@ import {
 	EntityMetaKey,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import { sourceProviderDefinitions } from '$/sources/$sourceProviders.ts'
 import { Source } from '$/sources/Source.ts'
-import {
-	SourceEndpointKind,
-	SourceTargetKind,
-} from '$/sources/SourceBinding.ts'
-import { PolkadotBlockSelector } from '$/schema/PolkadotBlock.ts'
-import { PolkadotExtrinsicSelector } from '$/schema/PolkadotExtrinsic.ts'
-import { PolkadotReferendumSelector } from '$/schema/PolkadotReferendum.ts'
-import { PolkadotReferendum_TimestampSelector } from '$/schema/PolkadotReferendum_Timestamp.ts'
 
 type NetworkId = { caip2: {
 	namespace: string
@@ -32,21 +23,6 @@ const assertPolkadotMainnet = (network: NetworkId) => {
 	}
 }
 
-const subscanPolkadotRestBindings = sourceProviderDefinitions
-	.flatMap((provider) => provider.bindings)
-	.filter((binding) => (
-		binding.source === Source.Subscan_Rest
-		&& binding.target.kind === SourceTargetKind.Caip2Network
-		&& binding.target.key === 'polkadot:91b171bb158e2d3848fa23a9f1c25182'
-		&& binding.endpoints.length === 1
-		&& binding.endpoints[0]?.endpointKind === SourceEndpointKind.HttpUrl
-	))
-
-if (subscanPolkadotRestBindings.length !== 1)
-	throw new Error('Subscan_Rest: canonical Polkadot mainnet source binding is missing or ambiguous')
-
-const [subscanPolkadotRestBinding] = subscanPolkadotRestBindings
-
 const referendumIndexFromId = (referendumId: string) => {
 	const referendumIndex = Number(referendumId)
 	if (!Number.isSafeInteger(referendumIndex) || referendumIndex < 0 || String(referendumIndex) !== referendumId)
@@ -61,12 +37,11 @@ export default {
 		defineResolver(Source.Subscan_Rest, {
 			entityType: EntityType.PolkadotBlock,
 			resolve: {
-				[PolkadotBlockSelector.NetworkBlockNumberHash]: {
+				NetworkBlockNumberHash: {
 					resolve: async ({ $network, blockNumber }, context) => {
 						assertPolkadotMainnet($network)
 						const { getBlock } = await import('$/sources/Subscan/Rest/queries.ts')
 						const block = (await getBlock({
-							binding: subscanPolkadotRestBinding,
 							height: blockNumber,
 							publicEnv: context.publicEnv,
 						})).data
@@ -97,13 +72,12 @@ export default {
 		defineResolver(Source.Subscan_Rest, {
 			entityType: EntityType.PolkadotExtrinsic,
 			resolve: {
-				[PolkadotExtrinsicSelector.BlockIndexInBlock]: {
+				BlockIndexInBlock: {
 					resolve: async ({ $block, indexInBlock }, context) => {
 						assertPolkadotMainnet($block.$network)
 						const { getExtrinsic } = await import('$/sources/Subscan/Rest/queries.ts')
 						const extrinsicIndex = `${$block.blockNumber.toString()}-${indexInBlock}`
 						const extrinsic = (await getExtrinsic({
-							binding: subscanPolkadotRestBinding,
 							extrinsicIndex,
 							publicEnv: context.publicEnv,
 						})).data
@@ -157,12 +131,11 @@ export default {
 		defineResolver(Source.Subscan_Rest, {
 			entityType: EntityType.PolkadotReferendum,
 			resolve: {
-				[PolkadotReferendumSelector.NetworkReferendumId]: {
+				NetworkReferendumId: {
 					resolve: async (entitySelector, context) => {
 						assertPolkadotMainnet(entitySelector.$network)
 						const { getReferendum } = await import('$/sources/Subscan/Rest/queries.ts')
 						const referendum = (await getReferendum({
-							binding: subscanPolkadotRestBinding,
 							referendumIndex: referendumIndexFromId(entitySelector.referendumId),
 							publicEnv: context.publicEnv,
 						})).data
@@ -184,7 +157,7 @@ export default {
 		defineResolver(Source.Subscan_Rest, {
 			entityType: EntityType.PolkadotReferendum_Timestamp,
 			resolve: {
-				[PolkadotReferendum_TimestampSelector.ReferendumTimestampMsSource]: {
+				ReferendumTimestampMsSource: {
 					resolve: async ({
 						$referendum,
 						timestampMs,
@@ -195,7 +168,6 @@ export default {
 						assertPolkadotMainnet($referendum.$network)
 						const { getReferendum } = await import('$/sources/Subscan/Rest/queries.ts')
 						const referendum = (await getReferendum({
-							binding: subscanPolkadotRestBinding,
 							referendumIndex: referendumIndexFromId($referendum.referendumId),
 							publicEnv: context.publicEnv,
 						})).data

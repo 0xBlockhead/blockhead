@@ -24,7 +24,7 @@ const functionSelector = {
 	decimals: '0x313ce567',
 	description: '0x7284e416',
 	latestRoundData: '0xfeaf968c',
-} as const
+}
 
 const assertAddress = (
 	value: string,

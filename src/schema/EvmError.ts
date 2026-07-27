@@ -1,15 +1,12 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { entity, facet } from '$/schema/$schema.ts'
+import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 import { type } from 'arktype'
 
-export enum EvmErrorSelector {
-	Hex = 'Hex',
-}
-export const EvmError = entity({
+export default entity({
 	entityType: EntityType.EvmError,
 	labels: {
 		singular: 'EVM error',
@@ -19,7 +16,7 @@ export const EvmError = entity({
 	hex: {
 		label: 'Hex',
 		type: EntityFieldType.Primitive,
-		primitiveType: (ZeroExHex),
+		primitiveType: ZeroExHex,
 		cardinality: EntityFieldCardinality.One,
 	},
 	signatures: {

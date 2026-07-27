@@ -30,27 +30,33 @@
 {#key [params.feedUrl, params.itemIdentityKind, params.itemIdentity].join(':')}
 	<ParentPageCollapsible
 		href={
-			resolve('/rss/feed/[feedUrl=absoluteUrl]/item/[itemIdentityKind=rssItemIdentityKind]/[itemIdentity=stringSegment]', {
-				feedUrl: params.feedUrl,
-				itemIdentityKind: params.itemIdentityKind,
-				itemIdentity: params.itemIdentity,
-			})
+			resolve(
+				'/(social)/(rss)/rss/(rssNetwork)/feed/[feedUrl=absoluteUrl]/(rssFeed)/item/[itemIdentityKind=rssItemIdentityKind]/[itemIdentity=stringSegment]',
+				{
+					feedUrl: String(params.feedUrl),
+					itemIdentityKind: String(params.itemIdentityKind),
+					itemIdentity: String(params.itemIdentity),
+				}
+			)
 		}
 	>
 		{#snippet Summary()}
-			{@const DetailView = RssItemView}
-
-			<DetailView
-				selection={select(EntityType.RssItem, data.selector, { sources: [
-		Source.Rss_Rest,
-		Source.Rss2Json_Rest,
-	] })}
+			<RssItemView
+				selection={
+					select(EntityType.RssItem, data.selector, { sources: [
+						Source.Rss_Rest,
+						Source.Rss2Json_Rest,
+					] })
+				}
 				href={
-					resolve('/rss/feed/[feedUrl=absoluteUrl]/item/[itemIdentityKind=rssItemIdentityKind]/[itemIdentity=stringSegment]', {
-						feedUrl: params.feedUrl,
-						itemIdentityKind: params.itemIdentityKind,
-						itemIdentity: params.itemIdentity,
-					})
+					resolve(
+						'/(social)/(rss)/rss/(rssNetwork)/feed/[feedUrl=absoluteUrl]/(rssFeed)/item/[itemIdentityKind=rssItemIdentityKind]/[itemIdentity=stringSegment]',
+						{
+							feedUrl: String(params.feedUrl),
+							itemIdentityKind: String(params.itemIdentityKind),
+							itemIdentity: String(params.itemIdentity),
+						}
+					)
 				}
 				layout={EntityLayout.SummaryInline}
 			/>

@@ -2,13 +2,9 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -20,35 +16,21 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.KaspaBlock>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.KaspaBlock>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.KaspaBlock> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const kaspaBlock = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {},
-	} : {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const viewSelection = $derived(selection({
+		sources: selection.sources ?? [
+			Source.KaspaExplorer_Rest,
+			Source.KaspaNode_Grpc,
+			Source.KaspaNode_Rest,
+			Source.KaspaNode_Wrpc,
+		],
 	}))
 	const titleFallback = 'kaspa block'
-	const viewDomId = $derived('kaspa-block-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -63,24 +45,14 @@
 
 <EntityView
 	entityType={EntityType.KaspaBlock}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails}
-			{title || titleFallback}
-		{:else}
-			<ResourceBoundary resource={kaspaBlock}>
-				{#snippet children(entity)}
-					{title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		kaspa block
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -99,31 +71,13 @@
 			<div>
 				<dt>Block hash</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									blockHash: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const blockHash = resolvedEntity.blockHash}
-							{#if blockHash !== undefined && blockHash !== null}
-								<TruncatedValue value={String((blockHash) ?? '')} />
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					<TruncatedValue value={pendingEntity.blockHash} />
 				</dd>
 			</div>
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							timestampMs: true,
 						},
@@ -131,9 +85,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const timestampMs = resolvedEntity.timestampMs}
-					{#if timestampMs !== undefined && timestampMs !== null}
+					{@const timestampMs = entity.timestampMs}
+					{#if timestampMs != null}
 						<div>
 							<dt>Timestamp</dt>
 							<dd>
@@ -146,8 +99,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							blueScore: true,
 						},
@@ -155,9 +107,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const blueScore = resolvedEntity.blueScore}
-					{#if blueScore !== undefined && blueScore !== null}
+					{@const blueScore = entity.blueScore}
+					{#if blueScore != null}
 						<div>
 							<dt>blue score</dt>
 							<dd>
@@ -172,8 +123,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							daaScore: true,
 						},
@@ -181,9 +131,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const daaScore = resolvedEntity.daaScore}
-					{#if daaScore !== undefined && daaScore !== null}
+					{@const daaScore = entity.daaScore}
+					{#if daaScore != null}
 						<div>
 							<dt>daa score</dt>
 							<dd>
@@ -200,8 +149,7 @@
 		<dl data-column-item="center">
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							selectedParentHash: true,
 						},
@@ -209,13 +157,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const selectedParentHash = resolvedEntity.selectedParentHash}
-					{#if selectedParentHash !== undefined && selectedParentHash !== null}
+					{@const selectedParentHash = entity.selectedParentHash}
+					{#if selectedParentHash != null}
 						<div>
 							<dt>selected parent hash</dt>
 							<dd>
-								<TruncatedValue value={String((selectedParentHash) ?? '')} />
+								<TruncatedValue value={selectedParentHash} />
 							</dd>
 						</div>
 					{/if}
@@ -227,8 +174,7 @@
 				<dd>
 					<ResourceBoundary
 						resource={
-							selection({
-								sources: selection.sources,
+							viewSelection({
 								fields: {
 									parentHashes: true,
 								},
@@ -236,11 +182,7 @@
 						}
 					>
 						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const parentHashes = resolvedEntity.parentHashes}
-							{#if parentHashes !== undefined && parentHashes !== null}
-								<TruncatedValue value={parentHashes.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')} />
-							{/if}
+							<TruncatedValue value={entity.parentHashes.values.join(', ')} />
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -248,8 +190,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							utxoCommitment: true,
 						},
@@ -257,13 +198,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const utxoCommitment = resolvedEntity.utxoCommitment}
-					{#if utxoCommitment !== undefined && utxoCommitment !== null}
+					{@const utxoCommitment = entity.utxoCommitment}
+					{#if utxoCommitment != null}
 						<div>
 							<dt>UTXO commitment</dt>
 							<dd>
-								{String((utxoCommitment) ?? '')}
+								{utxoCommitment}
 							</dd>
 						</div>
 					{/if}
@@ -279,12 +219,12 @@
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
-				<KaspaAcceptedTransactionsView
-					selection={kaspaBlockKaspaAcceptedTransactionsViewAcceptedTransactionsResource}
-					countResource={kaspaBlockKaspaAcceptedTransactionsViewAcceptedTransactionsResource.count}
-					title='accepted transactions'
-					id='KaspaAcceptedTransactionsView-accepted-transactions'
-				/>
+					<KaspaAcceptedTransactionsView
+						selection={kaspaBlockKaspaAcceptedTransactionsViewAcceptedTransactionsResource}
+						countResource={kaspaBlockKaspaAcceptedTransactionsViewAcceptedTransactionsResource.count}
+						title='accepted transactions'
+						id='accepted-transactions'
+					/>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>

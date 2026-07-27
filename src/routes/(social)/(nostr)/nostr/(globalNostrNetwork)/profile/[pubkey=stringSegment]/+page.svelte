@@ -8,14 +8,12 @@
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		data,
-		params,
 	}: PageProps = $props()
 
 	const pageSelection = $derived(select(EntityType.NostrProfile, data.selector, {
@@ -37,17 +35,12 @@
 
 
 <svelte:head>
-	<title>{(data.title ?? (pageSelection.entity == null ? [String((data.selector.pubkey) ?? '')].filter(Boolean).join(' ') || 'Nostr profile' : [String((({ ...data.selector, ...pageSelection.entity }).pubkey) ?? '')].filter(Boolean).join(' ') || 'Nostr profile'))} • Nostr profile • Blockhead</title>
+	<title>{(data.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.pubkey ?? '') || 'Nostr profile' : pageSelection.entitySelector.pubkey || 'Nostr profile'))} • Nostr profile • Blockhead</title>
 </svelte:head>
 
 
 <Page>
 	<NostrProfileView
-		href={
-			resolve('/nostr/profile/[pubkey=stringSegment]', {
-				pubkey: params.pubkey,
-			})
-		}
 		selection={pageSelection}
 	/>
 </Page>

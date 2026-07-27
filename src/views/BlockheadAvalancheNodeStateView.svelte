@@ -2,16 +2,11 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
-	import { caip2StringFromValue } from '$/lib/caip2.ts'
 	import { ZeroExHex } from '$/schema/ZeroExHex.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -23,40 +18,23 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.BlockheadAvalancheNodeState>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.BlockheadAvalancheNodeState>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.BlockheadAvalancheNodeState> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const blockheadAvalancheNodeState = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {
-			nodeIp: true,
-		},
-	} : {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const viewSelection = $derived(selection({
+		sources: selection.sources ?? [
+			Source.Local_Internal,
+		],
+	}))
+	const blockheadAvalancheNodeState = $derived(viewSelection({
 		fields: {
 			nodeIp: true,
 		},
 	}))
-	const titleFallback = $derived([String((pendingEntity.nodeId) ?? '')].filter(Boolean).join(' ') || 'blockhead avalanche node state')
-	const viewDomId = $derived('blockhead-avalanche-node-state-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const titleFallback = $derived((pendingEntity.nodeId ?? '') || 'blockhead avalanche node state')
 
 
 	// Components
@@ -68,41 +46,30 @@
 
 <EntityView
 	entityType={EntityType.BlockheadAvalancheNodeState}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={blockheadAvalancheNodeState}>
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.nodeId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{(pendingEntity.nodeId ?? '') || 'blockhead avalanche node state'}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={blockheadAvalancheNodeState}>
-			{#snippet children(entity)}
-				<ResourceBoundary
-					resource={selection.$network}
-				>
-					{#snippet children(network)}
-						{#if network != null && network[EntityMetaKey.Selector] != null}
-							<NetworkView
-								selection={select(EntityType.Network, network[EntityMetaKey.Selector])}
-								prefetched={network}
-								href=""
-								layout={EntityLayout.Value}
-								open={false}
-							/>
-						{/if}
-					{/snippet}
-				</ResourceBoundary>
+		<ResourceBoundary
+			resource={selection.$network}
+		>
+			{#snippet children(network)}
+				{#if network != null}
+					<NetworkView
+						selection={select(EntityType.Network, network[EntityMetaKey.Selector])}
+						prefetched={network}
+						href=""
+						layout={EntityLayout.Value}
+						open={false}
+					/>
+				{/if}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -110,11 +77,10 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={blockheadAvalancheNodeState}>
 			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const nodeIp0 = resolvedEntity.nodeIp}
-				{#if nodeIp0 !== undefined && nodeIp0 !== null}
+				{@const nodeIp0 = entity.nodeIp}
+				{#if nodeIp0 != null}
 					<span data-text="muted">
-						{String((nodeIp0) ?? '')}
+						{nodeIp0}
 					</span>
 				{/if}
 			{/snippet}
@@ -126,24 +92,7 @@
 			<div>
 				<dt>node ID</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									nodeId: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const nodeId = resolvedEntity.nodeId}
-							{#if nodeId !== undefined && nodeId !== null}
-								{String((nodeId) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{pendingEntity.nodeId}
 				</dd>
 			</div>
 
@@ -151,30 +100,13 @@
 				resource={selection.$network}
 			>
 				{#snippet children(network)}
-					{#if network != null && network[EntityMetaKey.Selector] != null}
+					{#if network != null}
 						<div>
 							<dt>network</dt>
 							<dd>
 								<NetworkView
 									selection={select(EntityType.Network, network[EntityMetaKey.Selector])}
 									prefetched={network}
-									href={
-										(
-											network[EntityMetaKey.Selector] != null && 'caip2' in network[EntityMetaKey.Selector]
-											&& network[EntityMetaKey.Selector].caip2 != null ?
-												resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-											network: String(caip2StringFromValue(network[EntityMetaKey.Selector].caip2) ?? ''),
-										})
-										:
-												network[EntityMetaKey.Selector] != null && 'slug' in network[EntityMetaKey.Selector]
-												&& network[EntityMetaKey.Selector].slug != null ?
-													resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-												network: String(network[EntityMetaKey.Selector].slug ?? ''),
-											})
-											:
-												undefined
-										)
-									}
 									layout={EntityLayout.Value}
 									open={false}
 								/>
@@ -185,23 +117,15 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							nodeIp: true,
-						},
-					})
-				}
+				resource={blockheadAvalancheNodeState}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const nodeIp = resolvedEntity.nodeIp}
-					{#if nodeIp !== undefined && nodeIp !== null}
+					{@const nodeIp = entity.nodeIp}
+					{#if nodeIp != null}
 						<div>
 							<dt>node IP</dt>
 							<dd>
-								{String((nodeIp) ?? '')}
+								{nodeIp}
 							</dd>
 						</div>
 					{/if}
@@ -210,8 +134,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							nodePopPublicKey: true,
 						},
@@ -219,13 +142,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const nodePopPublicKey = resolvedEntity.nodePopPublicKey}
-					{#if nodePopPublicKey !== undefined && nodePopPublicKey !== null}
+					{@const nodePopPublicKey = entity.nodePopPublicKey}
+					{#if nodePopPublicKey != null}
 						<div>
 							<dt>node PoP public key</dt>
 							<dd>
-								{String((nodePopPublicKey) ?? '')}
+								{String(nodePopPublicKey)}
 							</dd>
 						</div>
 					{/if}
@@ -234,8 +156,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							nodePopProofOfPossession: true,
 						},
@@ -243,13 +164,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const nodePopProofOfPossession = resolvedEntity.nodePopProofOfPossession}
-					{#if nodePopProofOfPossession !== undefined && nodePopProofOfPossession !== null}
+					{@const nodePopProofOfPossession = entity.nodePopProofOfPossession}
+					{#if nodePopProofOfPossession != null}
 						<div>
 							<dt>node PoP proof of possession</dt>
 							<dd>
-								{String((nodePopProofOfPossession) ?? '')}
+								{String(nodePopProofOfPossession)}
 							</dd>
 						</div>
 					{/if}
@@ -265,12 +185,12 @@
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
-				<BlockheadAvalancheNodeState_TimestampsView
-					selection={blockheadAvalancheNodeStateBlockheadAvalancheNodeStateTimestampsViewTimestampsResource}
-					countResource={blockheadAvalancheNodeStateBlockheadAvalancheNodeStateTimestampsViewTimestampsResource.count}
-					title='timestamps'
-					id='BlockheadAvalancheNodeState_TimestampsView-timestamps'
-				/>
+					<BlockheadAvalancheNodeState_TimestampsView
+						selection={blockheadAvalancheNodeStateBlockheadAvalancheNodeStateTimestampsViewTimestampsResource}
+						countResource={blockheadAvalancheNodeStateBlockheadAvalancheNodeStateTimestampsViewTimestampsResource.count}
+						title='timestamps'
+						id='timestamps'
+					/>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>

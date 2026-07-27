@@ -1,15 +1,12 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { entity, facet } from '$/schema/$schema.ts'
+import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { UrlString } from '$/schema/UrlString.ts'
 import { type } from 'arktype'
 
-export enum BlockheadAgentConnectionSelector {
-	ConnectionId = 'ConnectionId',
-}
-export const BlockheadAgentConnection = entity({
+export default entity({
 	entityType: EntityType.BlockheadAgentConnection,
 	labels: {
 		singular: 'blockhead agent connection',
@@ -44,7 +41,7 @@ export const BlockheadAgentConnection = entity({
 	endpointUrl: {
 		label: 'endpoint URL',
 		type: EntityFieldType.Primitive,
-		primitiveType: (UrlString),
+		primitiveType: UrlString,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	authKind: {

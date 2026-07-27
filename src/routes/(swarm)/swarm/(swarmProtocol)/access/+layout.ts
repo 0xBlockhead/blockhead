@@ -2,7 +2,7 @@
 
 import type { LayoutLoad } from './$types'
 import { error } from '@sveltejs/kit'
-import { _GlobalSwarmAccess as _GlobalSwarmAccessSchema } from '$/schema/_GlobalSwarmAccess.ts'
+import _GlobalSwarmAccessSchema from '$/schema/_GlobalSwarmAccess.ts'
 import { parseEntitySelector } from '$/schema/$schema.ts'
 import { schema } from '$/schema/index.ts'
 import { type as arktype } from 'arktype'

@@ -2,98 +2,44 @@
 
 <script lang="ts">
 	// Types/constants
-	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
-	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
-	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
+	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-
-
 
 
 	// State
 	let {
 		selection,
-		countResource,
-		title = 'Hyperliquid networks',
-		typeAnnotationParagraphs = [],
-		placeholderText = undefined,
-		emptyText = undefined,
 		open = $bindable(true),
-		collapsible = true,
-		showTypeAnnotation = true,
-		id = 'HyperliquidNetworks-list',
 		...EntitiesListProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyEntitiesSelection<EntityType.HyperliquidNetwork>
-			countResource?: SvelteKitResource<number>
-			title?: string
-			typeAnnotationParagraphs?: string[]
-			placeholderText?: string
-			emptyText?: string
-			open?: boolean
-			collapsible?: boolean
-			showTypeAnnotation?: boolean
-			id?: string
-		},
-		EntitiesListForwardProps
-	> = $props()
+	}: EntityListViewProps<EntityType.HyperliquidNetwork> = $props()
 
 
 	// Components
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView from '$/components/EntityView.svelte'
 </script>
 
-
-{#snippet TypeAnnotationParagraphs()}
-	{#each typeAnnotationParagraphs as paragraph (paragraph)}
-		<p>{paragraph}</p>
-	{/each}
-{/snippet}
 
 <EntitiesList
 	{...EntitiesListProps}
 	entityType={EntityType.HyperliquidNetwork}
-	{id}
-	{title}
 	bind:open
-	{collapsible}
-	{showTypeAnnotation}
-	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
 	resource={
 		selection({
-			sources: selection.sources,
 			fields: {
 				$network: true,
 			},
 		})
 	}
-	{countResource}
-	getResourceItems={(hyperliquidNetworks) => [...new Map(hyperliquidNetworks.values.map((hyperliquidNetwork) => [hyperliquidNetwork[EntityMetaKey.SelectorKey], hyperliquidNetwork])).values()]}
-	getKey={(hyperliquidNetwork) => hyperliquidNetwork[EntityMetaKey.SelectorKey]}
-	{placeholderText}
 >
-	{#snippet Empty()}
-		{#if emptyText != null}
-			<p data-text="muted">{emptyText}</p>
-		{:else}
-			<p data-text="muted">No Hyperliquid networks yet.</p>
-		{/if}
-	{/snippet}
-
 	{#snippet Item({ item: hyperliquidNetwork })}
-		{@const hyperliquidNetworkFields = { ...hyperliquidNetwork[EntityMetaKey.Selector], ...hyperliquidNetwork }}
+		{@const hyperliquidNetworkSelector = hyperliquidNetwork[EntityMetaKey.Selector]}
 		<EntityView
 			entityType={EntityType.HyperliquidNetwork}
-			entitySelector={hyperliquidNetwork[EntityMetaKey.Selector]}
-			layout={EntityLayout.Summary}
-			open={false}
-			showTypeAnnotation={false}
+			entitySelector={hyperliquidNetworkSelector}
 		>
 			{#snippet Title()}
-				{[[String((hyperliquidNetworkFields.$network.name) ?? '')].filter(Boolean).join(' ') || [hyperliquidNetworkFields.$network.caip2 == null ? '' : String(`${(hyperliquidNetworkFields.$network.caip2).namespace}:${(hyperliquidNetworkFields.$network.caip2).reference}`)].filter(Boolean).join(' ') || 'Network'].filter(Boolean).join(' ') || 'hyperliquid network'}
+				{(hyperliquidNetwork.$network.name || (hyperliquidNetworkSelector.$network.caip2 == null ? '' : `${hyperliquidNetworkSelector.$network.caip2.namespace}:${hyperliquidNetworkSelector.$network.caip2.reference}`) || 'Network')}
 			{/snippet}
 		</EntityView>
 	{/snippet}

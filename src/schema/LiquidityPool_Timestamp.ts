@@ -1,16 +1,13 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { entity, facet } from '$/schema/$schema.ts'
+import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { UrlString } from '$/schema/UrlString.ts'
 import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
-export enum LiquidityPool_TimestampSelector {
-	LiquidityPoolTimestampMsFeedKey = 'LiquidityPoolTimestampMsFeedKey',
-}
-export const LiquidityPool_Timestamp = entity({
+export default entity({
 	entityType: EntityType.LiquidityPool_Timestamp,
 	labels: {
 		singular: 'liquidity pool timestamp',
@@ -27,7 +24,7 @@ export const LiquidityPool_Timestamp = entity({
 		label: 'Timestamp',
 		description: 'The observation time in Unix milliseconds.',
 		type: EntityFieldType.Primitive,
-		primitiveType: (type('number.integer >= 0')),
+		primitiveType: type('number.integer >= 0'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	feedKey: {
@@ -105,7 +102,7 @@ export const LiquidityPool_Timestamp = entity({
 	dexscreenerPairUrl: {
 		label: 'Dexscreener',
 		type: EntityFieldType.Primitive,
-		primitiveType: (UrlString),
+		primitiveType: UrlString,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
 			Source.Dexscreener_OpenApi,

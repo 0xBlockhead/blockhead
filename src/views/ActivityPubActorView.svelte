@@ -2,14 +2,10 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -26,41 +22,27 @@
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.ActivityPubActor>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.ActivityPubActor>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.ActivityPubActor> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const activityPubActor = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const viewSelection = $derived(selection({
+		sources: selection.sources ?? [
+			Source.Mastodon_Rest,
+		],
+	}))
+	const activityPubActor = $derived(viewSelection({
 		fields: {
 			displayName: true,
 			username: true,
-		},
-	} : {
-		sources: selection.sources,
-		fields: {
-			displayName: true,
-			username: true,
+			acct: true,
+			localAccountId: true,
+			activityStreamsUri: true,
 			profileUrl: true,
 			createdAt: true,
 			note: true,
 		},
 	}))
-	const titleFallback = $derived([String((pendingEntity.displayName) ?? ''), String((pendingEntity.acct) ?? ''), String((pendingEntity.username) ?? ''), String((pendingEntity.localAccountId) ?? '')].filter(Boolean).join(' ') || 'ActivityPub actor')
-	const viewDomId = $derived('activity-pub-actor-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const titleFallback = $derived([(pendingEntity.displayName ?? ''), (pendingEntity.acct ?? ''), (pendingEntity.username ?? ''), (pendingEntity.localAccountId ?? '')].filter(Boolean).join(' ') || 'ActivityPub actor')
 
 
 	// Components
@@ -76,20 +58,20 @@
 
 <EntityView
 	entityType={EntityType.ActivityPubActor}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
 	href={
 		href ?? (
-			selection.entitySelector != null && 'instanceOrigin' in selection.entitySelector
-			&& selection.entitySelector.instanceOrigin != null
-			&& selection.entitySelector != null && 'localAccountId' in selection.entitySelector
-			&& selection.entitySelector.localAccountId != null ?
-				resolve('/activitypub/actor/[instanceOrigin=absoluteUrl]/[localAccountId=stringSegment]', {
-			instanceOrigin: encodeURIComponent(String(selection.entitySelector.instanceOrigin ?? '')),
-			localAccountId: String(selection.entitySelector.localAccountId ?? ''),
-		})
-		:
+			'instanceOrigin' in selection.entitySelector
+			&& 'localAccountId' in selection.entitySelector ?
+				resolve(
+					'/(social)/(activitypub)/activitypub/(globalActivityPubNetwork)/actor/[instanceOrigin=absoluteUrl]/[localAccountId=stringSegment]',
+					{
+						instanceOrigin: encodeURIComponent(String(selection.entitySelector.instanceOrigin)),
+						localAccountId: String(selection.entitySelector.localAccountId),
+					}
+				)
+			:
 				undefined
 		)
 	}
@@ -117,8 +99,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={activityPubActor}>
 			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.displayName) ?? ''), String((resolvedEntity.acct) ?? ''), String((resolvedEntity.username) ?? ''), String((resolvedEntity.localAccountId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+				{[(entity.displayName ?? ''), entity.acct, (entity.username ?? ''), entity.localAccountId].filter(Boolean).join(' ') || title || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -126,8 +107,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={activityPubActor}>
 			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.acct) ?? ''), String((resolvedEntity.localAccountId) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.displayName) ?? ''), String((resolvedEntity.acct) ?? ''), String((resolvedEntity.username) ?? ''), String((resolvedEntity.localAccountId) ?? '')].filter(Boolean).join(' ') || titleFallback}
+				{[entity.acct, entity.localAccountId].filter(Boolean).join(' ') || [(entity.displayName ?? ''), entity.acct, (entity.username ?? ''), entity.localAccountId].filter(Boolean).join(' ') || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -138,21 +118,10 @@
 				<dt>acct</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									acct: true,
-								},
-							})
-						}
+						resource={activityPubActor}
 					>
 						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const acct = resolvedEntity.acct}
-							{#if acct !== undefined && acct !== null}
-								{String((acct) ?? '')}
-							{/if}
+							{entity.acct}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -161,23 +130,15 @@
 
 		<dl data-column-item="center">
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							username: true,
-						},
-					})
-				}
+				resource={activityPubActor}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const username = resolvedEntity.username}
-					{#if username !== undefined && username !== null}
+					{@const username = entity.username}
+					{#if username != null}
 						<div>
 							<dt>Username</dt>
 							<dd>
-								{String((username) ?? '')}
+								{username}
 							</dd>
 						</div>
 					{/if}
@@ -187,30 +148,21 @@
 
 		<dl data-column-item="center">
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							profileUrl: true,
-						},
-					})
-				}
+				resource={activityPubActor}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const profileUrl = resolvedEntity.profileUrl}
-					{#if profileUrl !== undefined && profileUrl !== null}
+					{@const profileUrl = entity.profileUrl}
+					{#if profileUrl != null}
 						<div>
 							<dt>Profile URL</dt>
 							<dd>
-								<svelte:element
-									this={'a'}
+								<a
 									href={String(profileUrl)}
 									target="_blank"
 									rel="noreferrer noopener"
 								>
 									<TruncatedValue value={String(profileUrl)} />
-								</svelte:element>
+								</a>
 							</dd>
 						</div>
 					{/if}
@@ -223,28 +175,16 @@
 				<dt>ActivityStreams URI</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									activityStreamsUri: true,
-								},
-							})
-						}
+						resource={activityPubActor}
 					>
 						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const activityStreamsUri = resolvedEntity.activityStreamsUri}
-							{#if activityStreamsUri !== undefined && activityStreamsUri !== null}
-								<svelte:element
-									this={'a'}
-									href={String(activityStreamsUri)}
-									target="_blank"
-									rel="noreferrer noopener"
-								>
-									<TruncatedValue value={String(activityStreamsUri)} />
-								</svelte:element>
-							{/if}
+							<a
+								href={String(entity.activityStreamsUri)}
+								target="_blank"
+								rel="noreferrer noopener"
+							>
+								<TruncatedValue value={String(entity.activityStreamsUri)} />
+							</a>
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -253,19 +193,11 @@
 
 		<dl data-column-item="center">
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							createdAt: true,
-						},
-					})
-				}
+				resource={activityPubActor}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const createdAt = resolvedEntity.createdAt}
-					{#if createdAt !== undefined && createdAt !== null}
+					{@const createdAt = entity.createdAt}
+					{#if createdAt != null}
 						<div>
 							<dt>Created</dt>
 							<dd>
@@ -278,19 +210,11 @@
 		</dl>
 
 		<ResourceBoundary
-			resource={
-				selection({
-					sources: selection.sources,
-					fields: {
-						note: true,
-					},
-				})
-			}
+			resource={activityPubActor}
 		>
 			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const note = resolvedEntity.note}
-				{#if note !== undefined && note !== null && note !== ''}
+				{@const note = entity.note}
+				{#if note != null && note !== ''}
 					<Markdown content={String(note)} mode="syndication" />
 				{/if}
 			{/snippet}
@@ -298,60 +222,57 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-				{@const activityPubActorActivityPubNotesViewNotesResource = selection
-		.$$notes({
-			sources: [
-				Source.Mastodon_Rest,
-			],
-		})}
-				<ResourceBoundary
-					resource={activityPubActorActivityPubNotesViewNotesResource}
-				>
-					{#snippet children(entities)}
-						{#if entities.values.length > 0}
-						<ResourceBoundary
-							resource={
-									selection({
-										fields: {
-											instanceOrigin: true,
-											localAccountId: true,
-										},
-									})
-								}
-						>
-							{#snippet children(entity)}
-								{@const resolvedEntity = { ...pendingEntity, ...entity }}
-								<ActivityPubNotesView
-									selection={activityPubActorActivityPubNotesViewNotesResource}
-									countResource={activityPubActorActivityPubNotesViewNotesResource.count}
-									title='Notes'
-									href={
-											(entity != null && 'instanceOrigin' in entity && entity.instanceOrigin != null && entity != null && 'localAccountId' in entity && entity.localAccountId != null ? resolve('/activitypub/actor/[instanceOrigin=absoluteUrl]/[localAccountId=stringSegment]/notes', {
-												instanceOrigin: encodeURIComponent(String(entity.instanceOrigin ?? '')),
-												localAccountId: String(entity.localAccountId ?? ''),
-											}) : undefined)
+		{@const activityPubActorActivityPubNotesViewNotesResource = selection.$$notes}
+		<ResourceBoundary
+			resource={activityPubActorActivityPubNotesViewNotesResource}
+		>
+			{#snippet children(entities)}
+				{#if entities.values.length > 0}
+					<ResourceBoundary
+						resource={
+							selection({
+								fields: {
+									instanceOrigin: true,
+									localAccountId: true,
+								},
+							})
+						}
+					>
+						{#snippet children(entity)}
+							<ActivityPubNotesView
+								selection={activityPubActorActivityPubNotesViewNotesResource}
+								countResource={activityPubActorActivityPubNotesViewNotesResource.count}
+								title='Notes'
+								href={
+									(entity.instanceOrigin != null && entity.localAccountId != null ? resolve(
+										'/(social)/(activitypub)/activitypub/(globalActivityPubNetwork)/actor/[instanceOrigin=absoluteUrl]/[localAccountId=stringSegment]/(activityPubActor)/notes',
+										{
+											instanceOrigin: encodeURIComponent(String(entity.instanceOrigin)),
+											localAccountId: String(entity.localAccountId),
 										}
-									id='ActivityPubNotesView-notes'
-								/>
-							{/snippet}
-						</ResourceBoundary>
-						{/if}
-					{/snippet}
-				</ResourceBoundary>
-				{@const activityPubActorActivityPubActorTimestampsViewTimestampsResource = selection.$$timestamps}
-				<ResourceBoundary
-					resource={activityPubActorActivityPubActorTimestampsViewTimestampsResource}
-				>
-					{#snippet children(entities)}
-						{#if entities.values.length > 0}
-						<ActivityPubActor_TimestampsView
-							selection={activityPubActorActivityPubActorTimestampsViewTimestampsResource}
-							countResource={activityPubActorActivityPubActorTimestampsViewTimestampsResource.count}
-							title='Observations'
-							id='ActivityPubActor_TimestampsView-timestamps'
-						/>
-						{/if}
-					{/snippet}
-				</ResourceBoundary>
+									) : undefined)
+								}
+								id='notes'
+							/>
+						{/snippet}
+					</ResourceBoundary>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
+		{@const activityPubActorActivityPubActorTimestampsViewTimestampsResource = selection.$$timestamps}
+		<ResourceBoundary
+			resource={activityPubActorActivityPubActorTimestampsViewTimestampsResource}
+		>
+			{#snippet children(entities)}
+				{#if entities.values.length > 0}
+					<ActivityPubActor_TimestampsView
+						selection={activityPubActorActivityPubActorTimestampsViewTimestampsResource}
+						countResource={activityPubActorActivityPubActorTimestampsViewTimestampsResource.count}
+						title='Observations'
+						id='timestamps'
+					/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 </EntityView>

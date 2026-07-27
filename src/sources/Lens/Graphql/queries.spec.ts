@@ -12,6 +12,10 @@ import {
 	queryUsername,
 	queryUsernames,
 } from '$/sources/Lens/Graphql/queries.ts'
+import bindings from '$/sources/Lens/bindings.ts'
+import { Source } from '$/sources/Source.ts'
+
+const binding = bindings[Source.Lens_Graphql]
 
 
 const fetchMock = vi.fn<typeof fetch>()

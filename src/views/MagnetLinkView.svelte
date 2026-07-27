@@ -2,13 +2,9 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
 
 
 	// Context
@@ -20,42 +16,19 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.MagnetLink>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.MagnetLink>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.MagnetLink> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const magnetLink = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {
-			displayName: true,
-			infoHash: true,
-		},
-	} : {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const magnetLink = $derived(selection({
 		fields: {
 			displayName: true,
 			infoHash: true,
 		},
 	}))
-	const titleFallback = $derived([String((pendingEntity.displayName) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.magnetUri) ?? '')].filter(Boolean).join(' ') || 'magnet link')
-	const viewDomId = $derived('magnet-link-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const titleFallback = $derived((pendingEntity.displayName ?? '') || (pendingEntity.magnetUri ?? '') || 'magnet link')
 
 
 	// Components
@@ -69,44 +42,29 @@
 
 <EntityView
 	entityType={EntityType.MagnetLink}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'displayName') && Object.hasOwn(prefetched, 'infoHash')}
-			{[String((pendingEntity.displayName) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-		{:else}
-			<ResourceBoundary resource={magnetLink}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.displayName) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={magnetLink}>
+			{#snippet children(entity)}
+				{(entity.displayName ?? '') || title || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Value()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'displayName') && Object.hasOwn(prefetched, 'infoHash')}
-			{@const infoHash0 = pendingEntity.infoHash}
-			{#if infoHash0 !== undefined && infoHash0 !== null}
-				<TruncatedValue value={String((infoHash0) ?? '')} />
-			{/if}
-		{:else}
-			<ResourceBoundary resource={magnetLink}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const infoHash0 = resolvedEntity.infoHash}
-					{#if infoHash0 !== undefined && infoHash0 !== null}
-						<TruncatedValue value={String((infoHash0) ?? '')} />
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={magnetLink}>
+			{#snippet children(entity)}
+				{@const infoHash0 = entity.infoHash}
+				{#if infoHash0 != null}
+					<TruncatedValue value={infoHash0} />
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -114,45 +72,20 @@
 			<div>
 				<dt>magnet URI</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									magnetUri: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const magnetUri = resolvedEntity.magnetUri}
-							{#if magnetUri !== undefined && magnetUri !== null}
-								<TruncatedValue value={String((magnetUri) ?? '')} />
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					<TruncatedValue value={pendingEntity.magnetUri} />
 				</dd>
 			</div>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							infoHash: true,
-						},
-					})
-				}
+				resource={magnetLink}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const infoHash = resolvedEntity.infoHash}
-					{#if infoHash !== undefined && infoHash !== null}
+					{@const infoHash = entity.infoHash}
+					{#if infoHash != null}
 						<div>
 							<dt>info hash</dt>
 							<dd>
-								<TruncatedValue value={String((infoHash) ?? '')} />
+								<TruncatedValue value={infoHash} />
 							</dd>
 						</div>
 					{/if}
@@ -160,23 +93,15 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							displayName: true,
-						},
-					})
-				}
+				resource={magnetLink}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const displayName = resolvedEntity.displayName}
-					{#if displayName !== undefined && displayName !== null}
+					{@const displayName = entity.displayName}
+					{#if displayName != null}
 						<div>
 							<dt>display name</dt>
 							<dd>
-								{String((displayName) ?? '')}
+								{displayName}
 							</dd>
 						</div>
 					{/if}
@@ -186,7 +111,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							exactLength: true,
 						},
@@ -194,9 +118,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const exactLength = resolvedEntity.exactLength}
-					{#if exactLength !== undefined && exactLength !== null}
+					{@const exactLength = entity.exactLength}
+					{#if exactLength != null}
 						<div>
 							<dt>exact length</dt>
 							<dd>
@@ -217,7 +140,6 @@
 					<ResourceBoundary
 						resource={
 							selection({
-								sources: selection.sources,
 								fields: {
 									trackers: true,
 								},
@@ -225,11 +147,7 @@
 						}
 					>
 						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const trackers = resolvedEntity.trackers}
-							{#if trackers !== undefined && trackers !== null}
-								{trackers.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')}
-							{/if}
+							{entity.trackers.values.join(', ')}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -241,7 +159,6 @@
 					<ResourceBoundary
 						resource={
 							selection({
-								sources: selection.sources,
 								fields: {
 									webSeeds: true,
 								},
@@ -249,11 +166,7 @@
 						}
 					>
 						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const webSeeds = resolvedEntity.webSeeds}
-							{#if webSeeds !== undefined && webSeeds !== null}
-								{webSeeds.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')}
-							{/if}
+							{entity.webSeeds.values.join(', ')}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -265,7 +178,6 @@
 					<ResourceBoundary
 						resource={
 							selection({
-								sources: selection.sources,
 								fields: {
 									acceptableSources: true,
 								},
@@ -273,11 +185,7 @@
 						}
 					>
 						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const acceptableSources = resolvedEntity.acceptableSources}
-							{#if acceptableSources !== undefined && acceptableSources !== null}
-								{acceptableSources.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')}
-							{/if}
+							{entity.acceptableSources.values.join(', ')}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -287,7 +195,7 @@
 				resource={selection.$torrent}
 			>
 				{#snippet children(bitTorrentMetainfo)}
-					{#if bitTorrentMetainfo != null && bitTorrentMetainfo[EntityMetaKey.Selector] != null}
+					{#if bitTorrentMetainfo != null}
 						<div>
 							<dt>torrent</dt>
 							<dd>
@@ -312,12 +220,12 @@
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
-				<MagnetResolution_TimestampsView
-					selection={magnetLinkMagnetResolutionTimestampsViewResolutionTimestampsResource}
-					countResource={magnetLinkMagnetResolutionTimestampsViewResolutionTimestampsResource.count}
-					title='resolution timestamps'
-					id='MagnetResolution_TimestampsView-resolution-timestamps'
-				/>
+					<MagnetResolution_TimestampsView
+						selection={magnetLinkMagnetResolutionTimestampsViewResolutionTimestampsResource}
+						countResource={magnetLinkMagnetResolutionTimestampsViewResolutionTimestampsResource.count}
+						title='resolution timestamps'
+						id='resolution-timestamps'
+					/>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>

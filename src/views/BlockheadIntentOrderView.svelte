@@ -2,14 +2,11 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
 	import { ZeroExHex } from '$/schema/ZeroExHex.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -21,36 +18,18 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.BlockheadIntentOrder>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.BlockheadIntentOrder>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.BlockheadIntentOrder> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const blockheadIntentOrder = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {
-			orderId: true,
-			providerProtocol: true,
-			submittedAt: true,
-		},
-	} : {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const viewSelection = $derived(selection({
+		sources: selection.sources ?? [
+			Source.Local_Internal,
+		],
+	}))
+	const blockheadIntentOrder = $derived(viewSelection({
 		fields: {
 			source: true,
 			orderId: true,
@@ -58,8 +37,7 @@
 			submittedAt: true,
 		},
 	}))
-	const titleFallback = $derived([String((pendingEntity.orderId) ?? '')].filter(Boolean).join(' ') || 'blockhead intent order')
-	const viewDomId = $derived('blockhead-intent-order-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const titleFallback = $derived((pendingEntity.orderId ?? '') || 'blockhead intent order')
 
 
 	// Components
@@ -74,61 +52,36 @@
 
 <EntityView
 	entityType={EntityType.BlockheadIntentOrder}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'orderId') && Object.hasOwn(prefetched, 'providerProtocol') && Object.hasOwn(prefetched, 'submittedAt')}
-			{[String((pendingEntity.orderId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-		{:else}
-			<ResourceBoundary resource={blockheadIntentOrder}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.orderId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={blockheadIntentOrder}>
+			{#snippet children(entity)}
+				{entity.orderId || title || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Value()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'orderId') && Object.hasOwn(prefetched, 'providerProtocol') && Object.hasOwn(prefetched, 'submittedAt')}
-			{[String((pendingEntity.providerProtocol) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.orderId) ?? '')].filter(Boolean).join(' ') || titleFallback}
-		{:else}
-			<ResourceBoundary resource={blockheadIntentOrder}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.providerProtocol) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.orderId) ?? '')].filter(Boolean).join(' ') || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={blockheadIntentOrder}>
+			{#snippet children(entity)}
+				{entity.providerProtocol || entity.orderId || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'orderId') && Object.hasOwn(prefetched, 'providerProtocol') && Object.hasOwn(prefetched, 'submittedAt')}
-			{@const submittedAt0 = pendingEntity.submittedAt}
-			{#if submittedAt0 !== undefined && submittedAt0 !== null}
+		<ResourceBoundary resource={blockheadIntentOrder}>
+			{#snippet children(entity)}
 				<span data-text="muted">
-					<Timestamp timestamp={Number(submittedAt0)} />
+					<Timestamp timestamp={Number(entity.submittedAt)} />
 				</span>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={blockheadIntentOrder}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const submittedAt0 = resolvedEntity.submittedAt}
-					{#if submittedAt0 !== undefined && submittedAt0 !== null}
-						<span data-text="muted">
-							<Timestamp timestamp={Number(submittedAt0)} />
-						</span>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -136,24 +89,7 @@
 			<div>
 				<dt>ID</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									id: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const id = resolvedEntity.id}
-							{#if id !== undefined && id !== null}
-								{String((id) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{pendingEntity.id}
 				</dd>
 			</div>
 
@@ -161,21 +97,10 @@
 				<dt>Source</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									source: true,
-								},
-							})
-						}
+						resource={blockheadIntentOrder}
 					>
 						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const source = resolvedEntity.source}
-							{#if source !== undefined && source !== null}
-								{String((source) ?? '')}
-							{/if}
+							{entity.source}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -185,21 +110,10 @@
 				<dt>order ID</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									orderId: true,
-								},
-							})
-						}
+						resource={blockheadIntentOrder}
 					>
 						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const orderId = resolvedEntity.orderId}
-							{#if orderId !== undefined && orderId !== null}
-								{String((orderId) ?? '')}
-							{/if}
+							{entity.orderId}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -209,7 +123,7 @@
 				resource={selection.$quote}
 			>
 				{#snippet children(blockheadIntentQuote)}
-					{#if blockheadIntentQuote != null && blockheadIntentQuote[EntityMetaKey.Selector] != null}
+					{#if blockheadIntentQuote != null}
 						<div>
 							<dt>quote</dt>
 							<dd>
@@ -229,7 +143,7 @@
 				resource={selection.$sessionAction}
 			>
 				{#snippet children(blockheadSessionAction)}
-					{#if blockheadSessionAction != null && blockheadSessionAction[EntityMetaKey.Selector] != null}
+					{#if blockheadSessionAction != null}
 						<div>
 							<dt>session action</dt>
 							<dd>
@@ -249,21 +163,10 @@
 				<dt>provider protocol</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									providerProtocol: true,
-								},
-							})
-						}
+						resource={blockheadIntentOrder}
 					>
 						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const providerProtocol = resolvedEntity.providerProtocol}
-							{#if providerProtocol !== undefined && providerProtocol !== null}
-								{String((providerProtocol) ?? '')}
-							{/if}
+							{entity.providerProtocol}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -275,21 +178,10 @@
 				<dt>submitted AT</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									submittedAt: true,
-								},
-							})
-						}
+						resource={blockheadIntentOrder}
 					>
 						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const submittedAt = resolvedEntity.submittedAt}
-							{#if submittedAt !== undefined && submittedAt !== null}
-								<Timestamp timestamp={Number(submittedAt)} />
-							{/if}
+							<Timestamp timestamp={Number(entity.submittedAt)} />
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -297,8 +189,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							signatureHash: true,
 						},
@@ -306,13 +197,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const signatureHash = resolvedEntity.signatureHash}
-					{#if signatureHash !== undefined && signatureHash !== null}
+					{@const signatureHash = entity.signatureHash}
+					{#if signatureHash != null}
 						<div>
 							<dt>signature hash</dt>
 							<dd>
-								<TruncatedValue value={String((signatureHash) ?? '')} />
+								<TruncatedValue value={String(signatureHash)} />
 							</dd>
 						</div>
 					{/if}
@@ -321,8 +211,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							orderPayloadHash: true,
 						},
@@ -330,13 +219,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const orderPayloadHash = resolvedEntity.orderPayloadHash}
-					{#if orderPayloadHash !== undefined && orderPayloadHash !== null}
+					{@const orderPayloadHash = entity.orderPayloadHash}
+					{#if orderPayloadHash != null}
 						<div>
 							<dt>order payload hash</dt>
 							<dd>
-								<TruncatedValue value={String((orderPayloadHash) ?? '')} />
+								<TruncatedValue value={String(orderPayloadHash)} />
 							</dd>
 						</div>
 					{/if}
@@ -352,12 +240,12 @@
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
-				<BlockheadIntentOrder_TimestampsView
-					selection={blockheadIntentOrderBlockheadIntentOrderTimestampsViewTimestampsResource}
-					countResource={blockheadIntentOrderBlockheadIntentOrderTimestampsViewTimestampsResource.count}
-					title='timestamps'
-					id='BlockheadIntentOrder_TimestampsView-timestamps'
-				/>
+					<BlockheadIntentOrder_TimestampsView
+						selection={blockheadIntentOrderBlockheadIntentOrderTimestampsViewTimestampsResource}
+						countResource={blockheadIntentOrderBlockheadIntentOrderTimestampsViewTimestampsResource.count}
+						title='timestamps'
+						id='timestamps'
+					/>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>

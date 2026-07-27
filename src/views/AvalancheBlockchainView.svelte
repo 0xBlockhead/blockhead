@@ -2,15 +2,9 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
-	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -22,44 +16,20 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.AvalancheBlockchain>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.AvalancheBlockchain>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.AvalancheBlockchain> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const avalancheBlockchain = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {
-			chainName: true,
-			chainAlias: true,
-			vmId: true,
-		},
-	} : {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const avalancheBlockchain = $derived(selection({
 		fields: {
 			chainName: true,
 			chainAlias: true,
 			vmId: true,
 		},
 	}))
-	const titleFallback = $derived([String((pendingEntity.chainName) ?? ''), String((pendingEntity.chainAlias) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.blockchainId) ?? '')].filter(Boolean).join(' ') || 'avalanche blockchain')
-	const viewDomId = $derived('avalanche-blockchain-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const titleFallback = $derived([(pendingEntity.chainName ?? ''), (pendingEntity.chainAlias ?? '')].filter(Boolean).join(' ') || (pendingEntity.blockchainId ?? '') || 'avalanche blockchain')
 
 
 	// Components
@@ -72,38 +42,26 @@
 
 <EntityView
 	entityType={EntityType.AvalancheBlockchain}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'chainName') && Object.hasOwn(prefetched, 'chainAlias') && Object.hasOwn(prefetched, 'vmId')}
-			{[String((pendingEntity.chainName) ?? ''), String((pendingEntity.chainAlias) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-		{:else}
-			<ResourceBoundary resource={avalancheBlockchain}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.chainName) ?? ''), String((resolvedEntity.chainAlias) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={avalancheBlockchain}>
+			{#snippet children(entity)}
+				{[(entity.chainName ?? ''), (entity.chainAlias ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Value()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'chainName') && Object.hasOwn(prefetched, 'chainAlias') && Object.hasOwn(prefetched, 'vmId')}
-			{[String((pendingEntity.vmId) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.chainName) ?? ''), String((pendingEntity.chainAlias) ?? '')].filter(Boolean).join(' ') || titleFallback}
-		{:else}
-			<ResourceBoundary resource={avalancheBlockchain}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.vmId) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.chainName) ?? ''), String((resolvedEntity.chainAlias) ?? '')].filter(Boolean).join(' ') || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={avalancheBlockchain}>
+			{#snippet children(entity)}
+				{entity.vmId || [(entity.chainName ?? ''), (entity.chainAlias ?? '')].filter(Boolean).join(' ') || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -111,24 +69,7 @@
 			<div>
 				<dt>blockchain ID</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									blockchainId: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const blockchainId = resolvedEntity.blockchainId}
-							{#if blockchainId !== undefined && blockchainId !== null}
-								<TruncatedValue value={String((blockchainId) ?? '')} />
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					<TruncatedValue value={pendingEntity.blockchainId} />
 				</dd>
 			</div>
 
@@ -139,14 +80,12 @@
 						resource={selection.$subnet}
 					>
 						{#snippet children(avalancheSubnet)}
-							{#if avalancheSubnet != null && avalancheSubnet[EntityMetaKey.Selector] != null}
-								<AvalancheSubnetView
-									selection={select(EntityType.AvalancheSubnet, avalancheSubnet[EntityMetaKey.Selector])}
-									prefetched={avalancheSubnet}
-									layout={EntityLayout.Value}
-									open={false}
-								/>
-							{/if}
+							<AvalancheSubnetView
+								selection={select(EntityType.AvalancheSubnet, avalancheSubnet[EntityMetaKey.Selector])}
+								prefetched={avalancheSubnet}
+								layout={EntityLayout.Value}
+								open={false}
+							/>
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -156,44 +95,25 @@
 				<dt>vm ID</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									vmId: true,
-								},
-							})
-						}
+						resource={avalancheBlockchain}
 					>
 						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const vmId = resolvedEntity.vmId}
-							{#if vmId !== undefined && vmId !== null}
-								{String((vmId) ?? '')}
-							{/if}
+							{entity.vmId}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
 			</div>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							chainName: true,
-						},
-					})
-				}
+				resource={avalancheBlockchain}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const chainName = resolvedEntity.chainName}
-					{#if chainName !== undefined && chainName !== null}
+					{@const chainName = entity.chainName}
+					{#if chainName != null}
 						<div>
 							<dt>chain name</dt>
 							<dd>
-								{String((chainName) ?? '')}
+								{chainName}
 							</dd>
 						</div>
 					{/if}
@@ -201,23 +121,15 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							chainAlias: true,
-						},
-					})
-				}
+				resource={avalancheBlockchain}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const chainAlias = resolvedEntity.chainAlias}
-					{#if chainAlias !== undefined && chainAlias !== null}
+					{@const chainAlias = entity.chainAlias}
+					{#if chainAlias != null}
 						<div>
 							<dt>chain alias</dt>
 							<dd>
-								{String((chainAlias) ?? '')}
+								{chainAlias}
 							</dd>
 						</div>
 					{/if}
@@ -228,30 +140,13 @@
 				resource={selection.$network}
 			>
 				{#snippet children(network)}
-					{#if network != null && network[EntityMetaKey.Selector] != null}
+					{#if network != null}
 						<div>
 							<dt>network</dt>
 							<dd>
 								<NetworkView
 									selection={select(EntityType.Network, network[EntityMetaKey.Selector])}
 									prefetched={network}
-									href={
-										(
-											network[EntityMetaKey.Selector] != null && 'caip2' in network[EntityMetaKey.Selector]
-											&& network[EntityMetaKey.Selector].caip2 != null ?
-												resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-											network: String(caip2StringFromValue(network[EntityMetaKey.Selector].caip2) ?? ''),
-										})
-										:
-												network[EntityMetaKey.Selector] != null && 'slug' in network[EntityMetaKey.Selector]
-												&& network[EntityMetaKey.Selector].slug != null ?
-													resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-												network: String(network[EntityMetaKey.Selector].slug ?? ''),
-											})
-											:
-												undefined
-										)
-									}
 									layout={EntityLayout.Value}
 									open={false}
 								/>
@@ -266,7 +161,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							genesisDataHash: true,
 						},
@@ -274,13 +168,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const genesisDataHash = resolvedEntity.genesisDataHash}
-					{#if genesisDataHash !== undefined && genesisDataHash !== null}
+					{@const genesisDataHash = entity.genesisDataHash}
+					{#if genesisDataHash != null}
 						<div>
 							<dt>genesis data hash</dt>
 							<dd>
-								<TruncatedValue value={String((genesisDataHash) ?? '')} />
+								<TruncatedValue value={genesisDataHash} />
 							</dd>
 						</div>
 					{/if}
@@ -290,7 +183,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							createdAtTxId: true,
 						},
@@ -298,13 +190,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const createdAtTxId = resolvedEntity.createdAtTxId}
-					{#if createdAtTxId !== undefined && createdAtTxId !== null}
+					{@const createdAtTxId = entity.createdAtTxId}
+					{#if createdAtTxId != null}
 						<div>
 							<dt>created AT transaction ID</dt>
 							<dd>
-								<TruncatedValue value={String((createdAtTxId) ?? '')} />
+								<TruncatedValue value={createdAtTxId} />
 							</dd>
 						</div>
 					{/if}

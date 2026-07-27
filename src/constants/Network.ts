@@ -1,5 +1,3 @@
-// Generated from APP.ts. Do not edit by hand.
-
 export enum NetworkNamespace {
 	Algorand = 'Algorand',
 	Aptos = 'Aptos',
@@ -358,10 +356,6 @@ export const networks = [
 	{
 		slug: 'hyperliquid',
 		name: 'Hyperliquid',
-		caip2: {
-			namespace: 'eip155',
-			reference: '999',
-		},
 		namespace: NetworkNamespace.Hyperliquid,
 		environment: NetworkEnvironment.Mainnet,
 		ledgerModels: [NetworkLedgerModel.Account],

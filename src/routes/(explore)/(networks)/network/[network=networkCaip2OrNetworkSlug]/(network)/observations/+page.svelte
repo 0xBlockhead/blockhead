@@ -3,12 +3,11 @@
 <script lang="ts">
 	// Types/constants
 	import type { PageProps } from './$types.ts'
+	import { resolve } from '$app/paths'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
@@ -17,11 +16,8 @@
 		data,
 		params,
 	}: PageProps = $props()
-
-
 	// Components
 	import Page from '$/components/Page.svelte'
-	import ProjectionBoundary from '$/components/ProjectionBoundary.svelte'
 	import EvmNetwork_TimestampsView from '$/views/EvmNetwork_TimestampsView.svelte'
 </script>
 
@@ -32,30 +28,20 @@
 
 
 <Page>
-	<ProjectionBoundary
-		resource={select(EntityType.Network, data.selector).Evm}
-	>
-		{#snippet Applicable(projection)}
-			<EvmNetwork_TimestampsView
-				href={
-					resolve('/network/[network=networkCaip2OrNetworkSlug]/observations', {
-						network: params.network,
-					})
+	<EvmNetwork_TimestampsView
+		href={
+			resolve(
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/observations',
+				{
+					network: String(params.network),
 				}
-				title='Observations'
-				selection={
-					projection
-						.$$timestamps({
-							sources: [
-								Source.Voltaire_JsonRpc,
-							],
-						})
-				}
-				id='account-evm-network-timestamp'
-				data-column-item="flexible"
-				data-card
-				data-scroll-container
-			/>
-		{/snippet}
-	</ProjectionBoundary>
+			)
+		}
+		title='Observations'
+		selection={select(EntityType.Network, data.selector).Evm.$$timestamps}
+		id='timestamps'
+		data-column-item="flexible"
+		data-card
+		data-scroll-container
+	/>
 </Page>

@@ -7,17 +7,9 @@ import {
 } from 'vitest'
 
 import { Source } from '$/sources/Source.ts'
+import bindings from '$/sources/OpenSea/bindings.ts'
 import { SourceProvider } from '$/sources/SourceProvider.ts'
-import {
-	ApiFamily,
-	SourceCredentialScope,
-	SourceDelivery,
-	SourceEndpointKind,
-	SourceOperationGroup,
-	SourceTargetKind,
-	WireProtocol,
-	type SourceBinding,
-} from '$/sources/SourceBinding.ts'
+import { SourceTargetKind } from '$/sources/SourceBinding.ts'
 import { sourceFetch } from '$/sources/_runtime/http.ts'
 import {
 	getAccountEvents,
@@ -25,33 +17,11 @@ import {
 } from '$/sources/OpenSea/Rest/queries.ts'
 
 vi.mock('$/sources/_runtime/http.ts', () => ({
-	firstHttpUrlForBinding: () => 'https://api.opensea.test',
+	firstHttpUrlForBinding: () => 'https://api.opensea.io',
 	sourceFetch: vi.fn(),
 }))
 
-const binding = {
-	provider: SourceProvider.OpenSea,
-	source: Source.OpenSea_Rest,
-	target: {
-		kind: SourceTargetKind.Global,
-		key: 'opensea-api',
-	},
-	endpoints: [{
-		endpointKind: SourceEndpointKind.HttpUrl,
-		locator: 'https://api.opensea.test',
-		origin: 'https://api.opensea.test',
-		corsEnabled: false,
-	}],
-	wireProtocol: WireProtocol.HttpRest,
-	apiFamily: ApiFamily.OpenApiHttp,
-	operationGroups: [
-		SourceOperationGroup.GenericRead,
-	],
-	delivery: SourceDelivery.ServerOnly,
-	credentials: [{
-		scope: SourceCredentialScope.RuntimeSecret,
-	}],
-} as const satisfies SourceBinding
+const binding = bindings[Source.OpenSea_Rest]
 
 const address = '0x1111111111111111111111111111111111111111'
 const counterparty = '0x2222222222222222222222222222222222222222'
@@ -111,7 +81,7 @@ describe('OpenSea public owner reads', () => {
 		})
 		expect(sourceFetch).toHaveBeenCalledWith(
 			binding,
-			`https://api.opensea.test/api/v2/chain/ethereum/account/${address}/nfts?limit=50&next.value=prior%2B%2F%3D`,
+			`https://api.opensea.io/api/v2/chain/ethereum/account/${address}/nfts?limit=50&next.value=prior%2B%2F%3D`,
 			{
 				headers: {
 					accept: 'application/json',
@@ -191,7 +161,7 @@ describe('OpenSea public owner reads', () => {
 			],
 		})
 		expect(vi.mocked(sourceFetch).mock.calls[0]?.[1]).toBe(
-			`https://api.opensea.test/api/v2/events/accounts/${address}?limit=2&chain=ethereum&event_type=sale&event_type=transfer&event_type=mint`
+			`https://api.opensea.io/api/v2/events/accounts/${address}?limit=2&chain=ethereum&event_type=sale&event_type=transfer&event_type=mint`
 		)
 	})
 

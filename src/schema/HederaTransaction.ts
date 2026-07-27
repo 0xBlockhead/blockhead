@@ -1,15 +1,11 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { entity, facet } from '$/schema/$schema.ts'
+import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { type } from 'arktype'
 
-export enum HederaTransactionSelector {
-	NetworkConsensusTimestamp = 'NetworkConsensusTimestamp',
-	NetworkTransactionIdNonce = 'NetworkTransactionIdNonce',
-}
-export const HederaTransaction = entity({
+export default entity({
 	entityType: EntityType.HederaTransaction,
 	labels: {
 		singular: 'hedera transaction',

@@ -9,7 +9,6 @@
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
@@ -39,13 +38,12 @@
 
 
 <svelte:head>
-	<title>{(data.title ?? (pageSelection.entity == null ? 'Swarm protocol' : [String((({ ...data.selector, ...pageSelection.entity }).protocolName) ?? '')].filter(Boolean).join(' ') || 'Swarm protocol'))} • Swarm protocol • Blockhead</title>
+	<title>{(data.title ?? (pageSelection.entity == null ? 'Swarm protocol' : pageSelection.entity.protocolName || 'Swarm protocol'))} • Swarm protocol • Blockhead</title>
 </svelte:head>
 
 
 <Page>
 	<SwarmProtocolView
-		href={resolve('/swarm')}
 		selection={pageSelection}
 	/>
 </Page>

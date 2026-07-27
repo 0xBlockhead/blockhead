@@ -1,17 +1,13 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { entity, facet } from '$/schema/$schema.ts'
+import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { UrlString } from '$/schema/UrlString.ts'
 import { EvmAddress } from '$/schema/ZeroExHex.ts'
 import { type } from 'arktype'
 
-export enum EvmAccountSelector {
-	Address = 'Address',
-	AddressInteropAddress = 'AddressInteropAddress',
-}
-export const EvmAccount = entity({
+export default entity({
 	entityType: EntityType.EvmAccount,
 	labels: {
 		singular: 'EVM account',
@@ -23,7 +19,7 @@ export const EvmAccount = entity({
 		label: 'Address',
 		description: 'The address or account identifier used by the source protocol.',
 		type: EntityFieldType.Primitive,
-		primitiveType: (EvmAddress),
+		primitiveType: EvmAddress,
 		cardinality: EntityFieldCardinality.One,
 	},
 	interopAddress: {
@@ -41,7 +37,7 @@ export const EvmAccount = entity({
 	avatarUrl: {
 		label: 'Avatar URL',
 		type: EntityFieldType.Primitive,
-		primitiveType: (UrlString),
+		primitiveType: UrlString,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$avatar: {

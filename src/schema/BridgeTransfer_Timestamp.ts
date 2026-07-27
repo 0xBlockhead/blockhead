@@ -1,15 +1,12 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { entity, facet } from '$/schema/$schema.ts'
+import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { EvmAddress, ZeroExHex } from '$/schema/ZeroExHex.ts'
 import { type } from 'arktype'
 
-export enum BridgeTransfer_TimestampSelector {
-	TransferTimestampMsSource = 'TransferTimestampMsSource',
-}
-export const BridgeTransfer_Timestamp = entity({
+export default entity({
 	entityType: EntityType.BridgeTransfer_Timestamp,
 	labels: {
 		singular: 'bridge transfer timestamp',
@@ -63,19 +60,19 @@ export const BridgeTransfer_Timestamp = entity({
 	destinationTxHash: {
 		label: 'destination tx hash',
 		type: EntityFieldType.Primitive,
-		primitiveType: (ZeroExHex),
+		primitiveType: ZeroExHex,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	relayer: {
 		label: 'relayer',
 		type: EntityFieldType.Primitive,
-		primitiveType: (EvmAddress),
+		primitiveType: EvmAddress,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	refundTxHash: {
 		label: 'refund tx hash',
 		type: EntityFieldType.Primitive,
-		primitiveType: (ZeroExHex),
+		primitiveType: ZeroExHex,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	estimatedCompletionMs: {

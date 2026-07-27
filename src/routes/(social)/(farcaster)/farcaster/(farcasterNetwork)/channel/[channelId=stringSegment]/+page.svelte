@@ -8,21 +8,17 @@
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		data,
-		params,
 	}: PageProps = $props()
 
 	const pageSelection = $derived(select(EntityType.FarcasterChannel, data.selector, {
 		sources: [
 			Source.Farcaster_Rest,
-			Source.Neynar_Rest,
-			Source.Snapchain_Rest,
 		],
 		fields: {
 			$icon: true,
@@ -44,17 +40,12 @@
 
 
 <svelte:head>
-	<title>{(data.title ?? (pageSelection.entity == null ? [String((data.selector.id) ?? '')].filter(Boolean).join(' ') || 'Farcaster channel' : [String((({ ...data.selector, ...pageSelection.entity }).name) ?? ''), String((({ ...data.selector, ...pageSelection.entity }).id) ?? '')].filter(Boolean).join(' ') || 'Farcaster channel'))} • Farcaster channel • Blockhead</title>
+	<title>{(data.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.id ?? '') || 'Farcaster channel' : [pageSelection.entity.name, pageSelection.entitySelector.id].filter(Boolean).join(' ') || 'Farcaster channel'))} • Farcaster channel • Blockhead</title>
 </svelte:head>
 
 
 <Page>
 	<FarcasterChannelView
-		href={
-			resolve('/farcaster/channel/[channelId=stringSegment]', {
-				channelId: params.channelId,
-			})
-		}
 		selection={pageSelection}
 	/>
 </Page>

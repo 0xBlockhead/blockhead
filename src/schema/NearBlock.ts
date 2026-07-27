@@ -1,16 +1,12 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { entity, facet } from '$/schema/$schema.ts'
+import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
-export enum NearBlockSelector {
-	NetworkHeight = 'NetworkHeight',
-	NetworkHeightHash = 'NetworkHeightHash',
-}
-export const NearBlock = entity({
+export default entity({
 	entityType: EntityType.NearBlock,
 	labels: {
 		singular: 'near block',
@@ -45,7 +41,6 @@ export const NearBlock = entity({
 		defaultSources: [
 			Source.NearRpc_JsonRpc,
 			Source.NearBlocks_Rest,
-			Source.ThreeXpl_Rest,
 		],
 	},
 	epochId: {

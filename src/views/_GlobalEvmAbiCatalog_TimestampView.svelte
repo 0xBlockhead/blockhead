@@ -2,13 +2,9 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -20,35 +16,18 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType._GlobalEvmAbiCatalog_Timestamp>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType._GlobalEvmAbiCatalog_Timestamp>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType._GlobalEvmAbiCatalog_Timestamp> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const globalEvmAbiCatalogTimestamp = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {},
-	} : {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const viewSelection = $derived(selection({
+		sources: selection.sources ?? [
+			Source.Local_Internal,
+		],
 	}))
 	const titleFallback = 'global EVM ABI catalog timestamp'
-	const viewDomId = $derived('-global-evm-abi-catalog-timestamp-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -61,57 +40,23 @@
 
 <EntityView
 	entityType={EntityType._GlobalEvmAbiCatalog_Timestamp}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, '$hub') && prefetched.$hub != null}
-			{@const globalEvmAbiCatalog0 = pendingEntity.$hub}
-			{#if globalEvmAbiCatalog0 != null && selection.entitySelector.$hub != null}
-				<GlobalEvmAbiCatalogView
-					selection={select(EntityType._GlobalEvmAbiCatalog, selection.entitySelector.$hub, { sources: selection.sources })}
-					prefetched={globalEvmAbiCatalog0}
-					href=""
-					layout={EntityLayout.Title}
-					open={false}
-				/>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={globalEvmAbiCatalogTimestamp}>
-				{#snippet children(entity)}
-					<GlobalEvmAbiCatalogView
-						selection={select(EntityType._GlobalEvmAbiCatalog, selection.entitySelector.$hub)}
-						href=""
-						layout={EntityLayout.Title}
-						open={false}
-					/>
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<GlobalEvmAbiCatalogView
+			selection={select(EntityType._GlobalEvmAbiCatalog, selection.entitySelector.$hub)}
+			href=""
+			layout={EntityLayout.Title}
+			open={false}
+		/>
 	{/snippet}
 
 	{#snippet Value()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, '$hub') && prefetched.$hub != null}
-			{@const timestampMs0 = pendingEntity.timestampMs}
-			{#if timestampMs0 !== undefined && timestampMs0 !== null}
-				<Timestamp timestamp={Number(timestampMs0)} />
-			{/if}
-		{:else}
-			<ResourceBoundary resource={globalEvmAbiCatalogTimestamp}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const timestampMs0 = resolvedEntity.timestampMs}
-					{#if timestampMs0 !== undefined && timestampMs0 !== null}
-						<Timestamp timestamp={Number(timestampMs0)} />
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -130,48 +75,14 @@
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									timestampMs: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const timestampMs = resolvedEntity.timestampMs}
-							{#if timestampMs !== undefined && timestampMs !== null}
-								<Timestamp timestamp={Number(timestampMs)} />
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									source: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const source = resolvedEntity.source}
-							{#if source !== undefined && source !== null}
-								{String((source) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{pendingEntity.source}
 				</dd>
 			</div>
 		</dl>
@@ -179,8 +90,7 @@
 		<dl data-column-item="center">
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							sourceReportedSelectorCount: true,
 						},
@@ -188,9 +98,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const sourceReportedSelectorCount = resolvedEntity.sourceReportedSelectorCount}
-					{#if sourceReportedSelectorCount !== undefined && sourceReportedSelectorCount !== null}
+					{@const sourceReportedSelectorCount = entity.sourceReportedSelectorCount}
+					{#if sourceReportedSelectorCount != null}
 						<div>
 							<dt>source reported selector count</dt>
 							<dd>
@@ -205,8 +114,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							sourceReportedTopicCount: true,
 						},
@@ -214,9 +122,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const sourceReportedTopicCount = resolvedEntity.sourceReportedTopicCount}
-					{#if sourceReportedTopicCount !== undefined && sourceReportedTopicCount !== null}
+					{@const sourceReportedTopicCount = entity.sourceReportedTopicCount}
+					{#if sourceReportedTopicCount != null}
 						<div>
 							<dt>source reported topic count</dt>
 							<dd>
@@ -231,8 +138,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							sourceReportedErrorCount: true,
 						},
@@ -240,9 +146,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const sourceReportedErrorCount = resolvedEntity.sourceReportedErrorCount}
-					{#if sourceReportedErrorCount !== undefined && sourceReportedErrorCount !== null}
+					{@const sourceReportedErrorCount = entity.sourceReportedErrorCount}
+					{#if sourceReportedErrorCount != null}
 						<div>
 							<dt>source reported error count</dt>
 							<dd>
@@ -259,8 +164,7 @@
 		<dl data-column-item="center">
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							seededSelectorCount: true,
 						},
@@ -268,9 +172,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const seededSelectorCount = resolvedEntity.seededSelectorCount}
-					{#if seededSelectorCount !== undefined && seededSelectorCount !== null}
+					{@const seededSelectorCount = entity.seededSelectorCount}
+					{#if seededSelectorCount != null}
 						<div>
 							<dt>seeded selector count</dt>
 							<dd>
@@ -285,8 +188,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							seededTopicCount: true,
 						},
@@ -294,9 +196,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const seededTopicCount = resolvedEntity.seededTopicCount}
-					{#if seededTopicCount !== undefined && seededTopicCount !== null}
+					{@const seededTopicCount = entity.seededTopicCount}
+					{#if seededTopicCount != null}
 						<div>
 							<dt>seeded topic count</dt>
 							<dd>
@@ -311,8 +212,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							seededErrorCount: true,
 						},
@@ -320,9 +220,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const seededErrorCount = resolvedEntity.seededErrorCount}
-					{#if seededErrorCount !== undefined && seededErrorCount !== null}
+					{@const seededErrorCount = entity.seededErrorCount}
+					{#if seededErrorCount != null}
 						<div>
 							<dt>seeded error count</dt>
 							<dd>
@@ -339,8 +238,7 @@
 		<dl data-column-item="center">
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							reachable: true,
 						},
@@ -348,9 +246,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const reachable = resolvedEntity.reachable}
-					{#if reachable !== undefined && reachable !== null}
+					{@const reachable = entity.reachable}
+					{#if reachable != null}
 						<div>
 							<dt>reachable</dt>
 							<dd>
@@ -363,8 +260,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							rateLimitRemaining: true,
 						},
@@ -372,9 +268,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const rateLimitRemaining = resolvedEntity.rateLimitRemaining}
-					{#if rateLimitRemaining !== undefined && rateLimitRemaining !== null}
+					{@const rateLimitRemaining = entity.rateLimitRemaining}
+					{#if rateLimitRemaining != null}
 						<div>
 							<dt>rate limit remaining</dt>
 							<dd>

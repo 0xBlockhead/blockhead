@@ -2,13 +2,9 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
 
 
 	// Context
@@ -20,35 +16,13 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.TezosTokenTransfer>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.TezosTokenTransfer>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.TezosTokenTransfer> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const tezosTokenTransfer = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {},
-	} : {
-		sources: selection.sources,
-	}))
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const titleFallback = 'tezos token transfer'
-	const viewDomId = $derived('tezos-token-transfer-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -64,24 +38,14 @@
 
 <EntityView
 	entityType={EntityType.TezosTokenTransfer}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails}
-			{title || titleFallback}
-		{:else}
-			<ResourceBoundary resource={tezosTokenTransfer}>
-				{#snippet children(entity)}
-					{title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		tezos token transfer
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -100,48 +64,14 @@
 			<div>
 				<dt>transfer ID</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									transferId: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const transferId = resolvedEntity.transferId}
-							{#if transferId !== undefined && transferId !== null}
-								{String((transferId) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{pendingEntity.transferId}
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									source: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const source = resolvedEntity.source}
-							{#if source !== undefined && source !== null}
-								{String((source) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{pendingEntity.source}
 				</dd>
 			</div>
 
@@ -149,7 +79,7 @@
 				resource={selection.$token}
 			>
 				{#snippet children(tezosToken)}
-					{#if tezosToken != null && tezosToken[EntityMetaKey.Selector] != null}
+					{#if tezosToken != null}
 						<div>
 							<dt>token</dt>
 							<dd>
@@ -169,7 +99,7 @@
 				resource={selection.$from}
 			>
 				{#snippet children(tezosAccount)}
-					{#if tezosAccount != null && tezosAccount[EntityMetaKey.Selector] != null}
+					{#if tezosAccount != null}
 						<div>
 							<dt>from</dt>
 							<dd>
@@ -189,7 +119,7 @@
 				resource={selection.$to}
 			>
 				{#snippet children(tezosAccount)}
-					{#if tezosAccount != null && tezosAccount[EntityMetaKey.Selector] != null}
+					{#if tezosAccount != null}
 						<div>
 							<dt>to</dt>
 							<dd>
@@ -209,7 +139,7 @@
 				resource={selection.$operation}
 			>
 				{#snippet children(tezosOperation)}
-					{#if tezosOperation != null && tezosOperation[EntityMetaKey.Selector] != null}
+					{#if tezosOperation != null}
 						<div>
 							<dt>operation</dt>
 							<dd>
@@ -228,7 +158,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							level: true,
 						},
@@ -236,13 +165,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const level = resolvedEntity.level}
-					{#if level !== undefined && level !== null}
+					{@const level = entity.level}
+					{#if level != null}
 						<div>
 							<dt>level</dt>
 							<dd>
-								{String((level) ?? '')}
+								{String(level)}
 							</dd>
 						</div>
 					{/if}
@@ -252,7 +180,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							timestampMs: true,
 						},
@@ -260,9 +187,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const timestampMs = resolvedEntity.timestampMs}
-					{#if timestampMs !== undefined && timestampMs !== null}
+					{@const timestampMs = entity.timestampMs}
+					{#if timestampMs != null}
 						<div>
 							<dt>Timestamp</dt>
 							<dd>
@@ -276,7 +202,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							contractAddress: true,
 						},
@@ -284,13 +209,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const contractAddress = resolvedEntity.contractAddress}
-					{#if contractAddress !== undefined && contractAddress !== null}
+					{@const contractAddress = entity.contractAddress}
+					{#if contractAddress != null}
 						<div>
 							<dt>contract address</dt>
 							<dd>
-								<TruncatedValue value={String((contractAddress) ?? '')} />
+								<TruncatedValue value={contractAddress} />
 							</dd>
 						</div>
 					{/if}
@@ -300,7 +224,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							tokenId: true,
 						},
@@ -308,13 +231,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const tokenId = resolvedEntity.tokenId}
-					{#if tokenId !== undefined && tokenId !== null}
+					{@const tokenId = entity.tokenId}
+					{#if tokenId != null}
 						<div>
 							<dt>Token ID</dt>
 							<dd>
-								{String((tokenId) ?? '')}
+								{String(tokenId)}
 							</dd>
 						</div>
 					{/if}
@@ -324,7 +246,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							amount: true,
 						},
@@ -332,13 +253,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const amount = resolvedEntity.amount}
-					{#if amount !== undefined && amount !== null}
+					{@const amount = entity.amount}
+					{#if amount != null}
 						<div>
 							<dt>amount</dt>
 							<dd>
-								{String((amount) ?? '')}
+								{String(amount)}
 							</dd>
 						</div>
 					{/if}
@@ -348,7 +268,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							standard: true,
 						},
@@ -356,13 +275,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const standard = resolvedEntity.standard}
-					{#if standard !== undefined && standard !== null}
+					{@const standard = entity.standard}
+					{#if standard != null}
 						<div>
 							<dt>standard</dt>
 							<dd>
-								{String((standard) ?? '')}
+								{standard}
 							</dd>
 						</div>
 					{/if}
@@ -372,7 +290,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							transactionId: true,
 						},
@@ -380,13 +297,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const transactionId = resolvedEntity.transactionId}
-					{#if transactionId !== undefined && transactionId !== null}
+					{@const transactionId = entity.transactionId}
+					{#if transactionId != null}
 						<div>
 							<dt>transaction ID</dt>
 							<dd>
-								{String((transactionId) ?? '')}
+								{transactionId}
 							</dd>
 						</div>
 					{/if}

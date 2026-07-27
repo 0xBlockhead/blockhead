@@ -2,13 +2,9 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
 
 
 	// Context
@@ -20,40 +16,18 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.ArweaveResource>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.ArweaveResource>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.ArweaveResource> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const arweaveResource = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {
-			canonicalUri: true,
-		},
-	} : {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const arweaveResource = $derived(selection({
 		fields: {
 			canonicalUri: true,
 		},
 	}))
-	const titleFallback = $derived([String((pendingEntity.canonicalUri) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.transactionId) ?? '')].filter(Boolean).join(' ') || 'arweave resource')
-	const viewDomId = $derived('arweave-resource-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const titleFallback = $derived((pendingEntity.canonicalUri ?? '') || (pendingEntity.transactionId ?? '') || 'arweave resource')
 
 
 	// Components
@@ -66,38 +40,22 @@
 
 <EntityView
 	entityType={EntityType.ArweaveResource}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'canonicalUri')}
-			{[String((pendingEntity.canonicalUri) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-		{:else}
-			<ResourceBoundary resource={arweaveResource}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.canonicalUri) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={arweaveResource}>
+			{#snippet children(entity)}
+				{entity.canonicalUri || title || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Value()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'canonicalUri')}
-			{[String((pendingEntity.contentPath) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.canonicalUri) ?? '')].filter(Boolean).join(' ') || titleFallback}
-		{:else}
-			<ResourceBoundary resource={arweaveResource}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.contentPath) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.canonicalUri) ?? '')].filter(Boolean).join(' ') || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		{(pendingEntity.contentPath ?? '') || (pendingEntity.canonicalUri ?? '') || titleFallback}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -105,48 +63,14 @@
 			<div>
 				<dt>transaction ID</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									transactionId: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const transactionId = resolvedEntity.transactionId}
-							{#if transactionId !== undefined && transactionId !== null}
-								<TruncatedValue value={String((transactionId) ?? '')} />
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					<TruncatedValue value={pendingEntity.transactionId} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>content path</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									contentPath: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const contentPath = resolvedEntity.contentPath}
-							{#if contentPath !== undefined && contentPath !== null}
-								{String((contentPath) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{pendingEntity.contentPath}
 				</dd>
 			</div>
 
@@ -154,28 +78,16 @@
 				<dt>canonical URI</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									canonicalUri: true,
-								},
-							})
-						}
+						resource={arweaveResource}
 					>
 						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const canonicalUri = resolvedEntity.canonicalUri}
-							{#if canonicalUri !== undefined && canonicalUri !== null}
-								<svelte:element
-									this={'a'}
-									href={String(canonicalUri)}
-									target="_blank"
-									rel="noreferrer noopener"
-								>
-									<TruncatedValue value={String(canonicalUri)} />
-								</svelte:element>
-							{/if}
+							<a
+								href={String(entity.canonicalUri)}
+								target="_blank"
+								rel="noreferrer noopener"
+							>
+								<TruncatedValue value={String(entity.canonicalUri)} />
+							</a>
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -185,7 +97,7 @@
 				resource={selection.$transaction}
 			>
 				{#snippet children(arweaveTransaction)}
-					{#if arweaveTransaction != null && arweaveTransaction[EntityMetaKey.Selector] != null}
+					{#if arweaveTransaction != null}
 						<div>
 							<dt>transaction</dt>
 							<dd>
@@ -210,12 +122,12 @@
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
-				<ArweaveResource_TimestampsView
-					selection={arweaveResourceArweaveResourceTimestampsViewTimestampsResource}
-					countResource={arweaveResourceArweaveResourceTimestampsViewTimestampsResource.count}
-					title='timestamps'
-					id='ArweaveResource_TimestampsView-timestamps'
-				/>
+					<ArweaveResource_TimestampsView
+						selection={arweaveResourceArweaveResourceTimestampsViewTimestampsResource}
+						countResource={arweaveResourceArweaveResourceTimestampsViewTimestampsResource.count}
+						title='timestamps'
+						id='timestamps'
+					/>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>

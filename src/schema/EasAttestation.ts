@@ -1,15 +1,12 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { entity, facet } from '$/schema/$schema.ts'
+import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { EvmAddress, ZeroExHex } from '$/schema/ZeroExHex.ts'
 import { type } from 'arktype'
 
-export enum EasAttestationSelector {
-	NetworkUid = 'NetworkUid',
-}
-export const EasAttestation = entity({
+export default entity({
 	entityType: EntityType.EasAttestation,
 	labels: {
 		singular: 'EAS attestation',
@@ -25,7 +22,7 @@ export const EasAttestation = entity({
 	uid: {
 		label: 'UID',
 		type: EntityFieldType.Primitive,
-		primitiveType: (ZeroExHex),
+		primitiveType: ZeroExHex,
 		cardinality: EntityFieldCardinality.One,
 	},
 	$schema: {
@@ -37,13 +34,13 @@ export const EasAttestation = entity({
 	schemaUid: {
 		label: 'Schema UID',
 		type: EntityFieldType.Primitive,
-		primitiveType: (ZeroExHex),
+		primitiveType: ZeroExHex,
 		cardinality: EntityFieldCardinality.One,
 	},
 	recipient: {
 		label: 'Recipient',
 		type: EntityFieldType.Primitive,
-		primitiveType: (EvmAddress),
+		primitiveType: EvmAddress,
 		cardinality: EntityFieldCardinality.One,
 	},
 	$recipientAccount: {
@@ -55,7 +52,7 @@ export const EasAttestation = entity({
 	attester: {
 		label: 'Attester',
 		type: EntityFieldType.Primitive,
-		primitiveType: (EvmAddress),
+		primitiveType: EvmAddress,
 		cardinality: EntityFieldCardinality.One,
 	},
 	$attesterAccount: {
@@ -67,7 +64,7 @@ export const EasAttestation = entity({
 	refUid: {
 		label: 'Ref UID',
 		type: EntityFieldType.Primitive,
-		primitiveType: (ZeroExHex),
+		primitiveType: ZeroExHex,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$refAttestation: {
@@ -97,7 +94,7 @@ export const EasAttestation = entity({
 	data: {
 		label: 'Data',
 		type: EntityFieldType.Primitive,
-		primitiveType: (ZeroExHex),
+		primitiveType: ZeroExHex,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$$timestamps: {

@@ -2,95 +2,37 @@
 
 <script lang="ts">
 	// Types/constants
-	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
-	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
-	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
+	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-
-
 
 
 	// State
 	let {
 		selection,
-		countResource,
-		title = 'Stellar account signers',
-		typeAnnotationParagraphs = [],
-		placeholderText = undefined,
-		emptyText = undefined,
 		open = $bindable(true),
-		collapsible = true,
-		showTypeAnnotation = true,
-		id = 'StellarAccountSigners-list',
 		...EntitiesListProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyEntitiesSelection<EntityType.StellarAccountSigner>
-			countResource?: SvelteKitResource<number>
-			title?: string
-			typeAnnotationParagraphs?: string[]
-			placeholderText?: string
-			emptyText?: string
-			open?: boolean
-			collapsible?: boolean
-			showTypeAnnotation?: boolean
-			id?: string
-		},
-		EntitiesListForwardProps
-	> = $props()
+	}: EntityListViewProps<EntityType.StellarAccountSigner> = $props()
 
 
 	// Components
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView from '$/components/EntityView.svelte'
 </script>
 
-
-{#snippet TypeAnnotationParagraphs()}
-	{#each typeAnnotationParagraphs as paragraph (paragraph)}
-		<p>{paragraph}</p>
-	{/each}
-{/snippet}
 
 <EntitiesList
 	{...EntitiesListProps}
 	entityType={EntityType.StellarAccountSigner}
-	{id}
-	{title}
 	bind:open
-	{collapsible}
-	{showTypeAnnotation}
-	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	resource={
-		selection({
-			sources: selection.sources,
-		})
-	}
-	{countResource}
-	getResourceItems={(stellarAccountSigners) => [...new Map(stellarAccountSigners.values.map((stellarAccountSigner) => [stellarAccountSigner[EntityMetaKey.SelectorKey], stellarAccountSigner])).values()]}
-	getKey={(stellarAccountSigner) => stellarAccountSigner[EntityMetaKey.SelectorKey]}
-	{placeholderText}
+	resource={selection()}
 >
-	{#snippet Empty()}
-		{#if emptyText != null}
-			<p data-text="muted">{emptyText}</p>
-		{:else}
-			<p data-text="muted">No Stellar account signers yet.</p>
-		{/if}
-	{/snippet}
-
 	{#snippet Item({ item: stellarAccountSigner })}
-		{@const stellarAccountSignerFields = { ...stellarAccountSigner[EntityMetaKey.Selector], ...stellarAccountSigner }}
 		<EntityView
 			entityType={EntityType.StellarAccountSigner}
 			entitySelector={stellarAccountSigner[EntityMetaKey.Selector]}
-			layout={EntityLayout.Summary}
-			open={false}
-			showTypeAnnotation={false}
 		>
 			{#snippet Title()}
-				{'stellar account signer'}
+				stellar account signer
 			{/snippet}
 		</EntityView>
 	{/snippet}

@@ -1,9 +1,14 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
-import { sourceProviderDefinitions } from '$/sources/$sourceProviders.ts'
+import bindings from '$/sources/NostrBand/bindings.ts'
 import { listTopProfiles } from '$/sources/NostrBand/Rest/queries.ts'
+import {
+	SourceDelivery,
+	SourceEndpointKind,
+	SourceOperationGroup,
+	SourceTargetKind,
+} from '$/sources/SourceBinding.ts'
 import { Source } from '$/sources/Source.ts'
-import { SourceDelivery } from '$/sources/SourceBinding.ts'
 
 describe('NostrBand REST client delivery', () => {
 	afterEach(() => {
@@ -20,15 +25,18 @@ describe('NostrBand REST client delivery', () => {
 		}))
 		vi.stubGlobal('fetch', fetchMock)
 		vi.stubGlobal('window', {})
-		const binding = sourceProviderDefinitions
-			.flatMap((provider) => provider.bindings)
-			.find(({ source }) => source === Source.NostrBand_Rest)
-		if (binding == null || binding.proxyId == null)
-			throw new Error('NostrBand REST proxy binding is not registered')
+		const binding = bindings[Source.NostrBand_Rest]
 
 		await expect(listTopProfiles(20)).resolves.toEqual({ profiles: [] })
 
+		expect(binding.target).toEqual({
+			kind: SourceTargetKind.Global,
+			key: 'api',
+		})
+		expect(binding.operationGroups).toContain(SourceOperationGroup.GenericRead)
 		expect(binding.delivery).toBe(SourceDelivery.HttpProxy)
+		expect(binding.endpoints).toHaveLength(1)
+		expect(binding.endpoints[0].endpointKind).toBe(SourceEndpointKind.HttpUrl)
 		expect(fetchMock).toHaveBeenCalledWith(
 			`/api-proxy/${encodeURIComponent(binding.proxyId)}/0/${encodeURIComponent('https://api.nostr.band/v0/stats/profile/list?limit=20')}`,
 			expect.objectContaining({

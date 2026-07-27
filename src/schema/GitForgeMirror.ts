@@ -1,15 +1,12 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { entity, facet } from '$/schema/$schema.ts'
+import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { UrlString } from '$/schema/UrlString.ts'
 import { type } from 'arktype'
 
-export enum GitForgeMirrorSelector {
-	ForgeHostOwnerRepositoryName = 'ForgeHostOwnerRepositoryName',
-}
-export const GitForgeMirror = entity({
+export default entity({
 	entityType: EntityType.GitForgeMirror,
 	labels: {
 		singular: 'Git forge mirror',
@@ -61,7 +58,7 @@ export const GitForgeMirror = entity({
 	htmlUrl: {
 		label: 'HTML URL',
 		type: EntityFieldType.Primitive,
-		primitiveType: (UrlString),
+		primitiveType: UrlString,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	providerRepositoryId: {

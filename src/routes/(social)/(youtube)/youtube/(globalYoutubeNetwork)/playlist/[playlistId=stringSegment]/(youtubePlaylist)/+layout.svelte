@@ -30,24 +30,30 @@
 {#key params.playlistId}
 	<ParentPageCollapsible
 		href={
-			resolve('/youtube/playlist/[playlistId=stringSegment]', {
-				playlistId: params.playlistId,
-			})
+			resolve(
+				'/(social)/(youtube)/youtube/(globalYoutubeNetwork)/playlist/[playlistId=stringSegment]',
+				{
+					playlistId: String(params.playlistId),
+				}
+			)
 		}
 	>
 		{#snippet Summary()}
-			{@const DetailView = YoutubePlaylistView}
-
-			<DetailView
-				selection={select(EntityType.YoutubePlaylist, data.selector, { sources: [
-		Source.Youtube_Rest,
-		Source.Piped_Rest,
-		Source.Constants_Internal,
-	] })}
+			<YoutubePlaylistView
+				selection={
+					select(EntityType.YoutubePlaylist, data.selector, { sources: [
+						Source.Youtube_Rest,
+						Source.Piped_Rest,
+						Source.Constants_Internal,
+					] })
+				}
 				href={
-					resolve('/youtube/playlist/[playlistId=stringSegment]', {
-						playlistId: params.playlistId,
-					})
+					resolve(
+						'/(social)/(youtube)/youtube/(globalYoutubeNetwork)/playlist/[playlistId=stringSegment]',
+						{
+							playlistId: String(params.playlistId),
+						}
+					)
 				}
 				layout={EntityLayout.SummaryInline}
 			/>

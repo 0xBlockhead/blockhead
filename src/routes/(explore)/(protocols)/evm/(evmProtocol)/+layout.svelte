@@ -28,16 +28,16 @@
 
 
 <ParentPageCollapsible
-	href={resolve('/evm')}
+	href={resolve('/(explore)/(protocols)/evm')}
 >
 	{#snippet Summary()}
-		{@const DetailView = EvmProtocolView}
-
-		<DetailView
-			selection={select(EntityType.EvmProtocol, data.selector, { sources: [
-	Source.Constants_Internal,
-] })}
-			href={resolve('/evm')}
+		<EvmProtocolView
+			selection={
+				select(EntityType.EvmProtocol, data.selector, { sources: [
+					Source.Constants_Internal,
+				] })
+			}
+			href={resolve('/(explore)/(protocols)/evm')}
 			layout={EntityLayout.SummaryInline}
 		/>
 	{/snippet}

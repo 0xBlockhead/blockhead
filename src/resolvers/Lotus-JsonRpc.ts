@@ -5,7 +5,6 @@ import {
 import {
 	filecoinNetworkBySlug,
 } from '$/constants/FilecoinNetwork.ts'
-import { TransportType } from '$/constants/TransportType.ts'
 import {
 	EntityMetaKey,
 	entityFieldAddressKey,
@@ -13,38 +12,10 @@ import {
 import type { EntitySelector } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { schema } from '$/schema/index.ts'
-import { sourceProviderDefinitions } from '$/sources/$sourceProviders.ts'
 import { Source } from '$/sources/Source.ts'
-import { SourceTargetKind } from '$/sources/SourceBinding.ts'
-import { firstHttpUrlForBinding } from '$/sources/_runtime/http.ts'
 import type { LotusTipset } from '$/sources/Lotus/JsonRpc/types.ts'
-import { FilecoinNetworkSelector } from '$/schema/FilecoinNetwork.ts'
-import { FilecoinNetwork_TimestampSelector } from '$/schema/FilecoinNetwork_Timestamp.ts'
-import { FilecoinTipsetSelector } from '$/schema/FilecoinTipset.ts'
-import { FilecoinBlockSelector } from '$/schema/FilecoinBlock.ts'
-import { FilecoinSectorSelector } from '$/schema/FilecoinSector.ts'
-import { FilecoinActorSelector } from '$/schema/FilecoinActor.ts'
-import { FilecoinMinerSelector } from '$/schema/FilecoinMiner.ts'
-import { FilecoinActor_TimestampSelector } from '$/schema/FilecoinActor_Timestamp.ts'
-import { FilecoinMiner_TimestampSelector } from '$/schema/FilecoinMiner_Timestamp.ts'
-import { FilecoinSector_TimestampSelector } from '$/schema/FilecoinSector_Timestamp.ts'
-import { NetworkSelector } from '$/schema/Network.ts'
 
 type NetworkId = EntitySelector<typeof schema, EntityType.Network>
-
-const lotusMainnetBindings = sourceProviderDefinitions
-	.flatMap((provider) => provider.bindings)
-	.filter((binding) => (
-		binding.source === Source.Lotus_JsonRpc
-		&& binding.target.kind === SourceTargetKind.Caip2Network
-		&& binding.target.key === `${filecoinNetworkBySlug.filecoin.caip2.namespace}:${filecoinNetworkBySlug.filecoin.caip2.reference}`
-	))
-
-if (lotusMainnetBindings.length !== 1)
-	throw new Error('Lotus_JsonRpc: canonical Filecoin mainnet source binding is missing or ambiguous')
-
-const lotusMainnetBinding = lotusMainnetBindings[0]
-const lotusMainnetRpcUrl = `${firstHttpUrlForBinding(lotusMainnetBinding).replace(/\/$/, '')}/rpc/v1`
 
 const assertFilecoinMainnet = (network: NetworkId) => {
 	if (
@@ -104,7 +75,6 @@ const sectorRows = async ({ $network, minerAddress, tipsetKey }: {
 	assertFilecoinMainnet($network)
 	const { getMinerSectors } = await import('$/sources/Lotus/JsonRpc/queries.ts')
 	return (await getMinerSectors({
-		binding: lotusMainnetBinding,
 		minerAddress: minerAddress,
 		tipsetKey,
 	})).map((sector) => ({
@@ -132,20 +102,15 @@ export default {
 		defineResolver(Source.Lotus_JsonRpc, {
 			entityType: EntityType.FilecoinNetwork,
 			resolve: {
-				[FilecoinNetworkSelector.Network]: {
+				Network: {
 					resolve: async ({ $network }) => {
 						assertFilecoinMainnet($network)
+						const { getRpcEndpoints } = await import('$/sources/Lotus/JsonRpc/queries.ts')
 						return {
 							$network: {
 								[EntityMetaKey.Selector]: $network,
 							},
-							rpcEndpoints: [
-								{
-									url: lotusMainnetRpcUrl,
-									transportType: TransportType.Http,
-									providerName: 'GLIF',
-								},
-							],
+							rpcEndpoints: getRpcEndpoints(),
 						}
 					},
 				}
@@ -158,17 +123,12 @@ export default {
 		defineResolver(Source.Lotus_JsonRpc, {
 			entityType: EntityType.Network,
 			resolve: {
-				[NetworkSelector.Slug]: {
+				Slug: {
 					resolve: async (network) => {
 						assertFilecoinMainnet(network)
+						const { getRpcEndpoints } = await import('$/sources/Lotus/JsonRpc/queries.ts')
 						return {
-							filecoinRpcEndpoints: [
-								{
-									url: lotusMainnetRpcUrl,
-									transportType: TransportType.Http,
-									providerName: 'GLIF',
-								},
-							],
+							filecoinRpcEndpoints: getRpcEndpoints(),
 						}
 					},
 				}
@@ -182,7 +142,7 @@ export default {
 		defineResolver(Source.Lotus_JsonRpc, {
 			entityType: EntityType.FilecoinNetwork_Timestamp,
 			resolve: {
-				[FilecoinNetwork_TimestampSelector.NetworkTimestampMsSource]: {
+				NetworkTimestampMsSource: {
 					resolve: async ({ $network }) => {
 						assertFilecoinMainnet($network)
 						const {
@@ -191,19 +151,17 @@ export default {
 							getNetworkVersion,
 							getVersion,
 						} = await import('$/sources/Lotus/JsonRpc/queries.ts')
-						const head = await getHead({ binding: lotusMainnetBinding })
+						const head = await getHead()
 						const [
 							lotusVersion,
 							networkVersion,
 							power,
 						] = await Promise.all([
-							getVersion({ binding: lotusMainnetBinding }),
+							getVersion(),
 							getNetworkVersion({
-								binding: lotusMainnetBinding,
 								tipsetKey: head.Cids,
 							}),
 							getMinerPower({
-								binding: lotusMainnetBinding,
 								minerAddress: head.Blocks[0].Miner,
 								tipsetKey: head.Cids,
 							}).catch(() => undefined),
@@ -265,12 +223,11 @@ export default {
 		defineResolver(Source.Lotus_JsonRpc, {
 			entityType: EntityType.FilecoinTipset,
 			resolve: {
-				[FilecoinTipsetSelector.NetworkHeightTipsetKey]: {
+				NetworkHeightTipsetKey: {
 					resolve: async ({ $network, height }) => {
 						assertFilecoinMainnet($network)
 						const { getTipSetByHeight } = await import('$/sources/Lotus/JsonRpc/queries.ts')
 						const tipset = await getTipSetByHeight({
-							binding: lotusMainnetBinding,
 							height: height,
 						})
 						return {
@@ -304,11 +261,11 @@ export default {
 		defineResolver(Source.Lotus_JsonRpc, {
 			entityType: EntityType.FilecoinBlock,
 			resolve: {
-				[FilecoinBlockSelector.NetworkCid]: {
+				NetworkCid: {
 					resolve: async ({ $network, cid }) => {
 						assertFilecoinMainnet($network)
 						const { getHead } = await import('$/sources/Lotus/JsonRpc/queries.ts')
-						const head = await getHead({ binding: lotusMainnetBinding })
+						const head = await getHead()
 						const block = blockRows(
 							$network,
 							head
@@ -328,10 +285,10 @@ export default {
 		defineResolver(Source.Lotus_JsonRpc, {
 			entityType: EntityType.FilecoinSector,
 			resolve: {
-				[FilecoinSectorSelector.FilecoinMinerSectorNumber]: {
+				FilecoinMinerSectorNumber: {
 					resolve: async ({ $miner, sectorNumber }) => {
 						const { getHead } = await import('$/sources/Lotus/JsonRpc/queries.ts')
-						const head = await getHead({ binding: lotusMainnetBinding })
+						const head = await getHead()
 						const sector = (await sectorRows({
 							...$miner,
 							tipsetKey: head.Cids,
@@ -352,11 +309,11 @@ export default {
 		defineResolver(Source.Lotus_JsonRpc, {
 			entityType: EntityType.FilecoinActor,
 			resolve: {
-				[FilecoinActorSelector.NetworkAddress]: {
+				NetworkAddress: {
 					resolve: async ({ $network, address }) => {
 						assertFilecoinMainnet($network)
 						const { getHead } = await import('$/sources/Lotus/JsonRpc/queries.ts')
-						const head = await getHead({ binding: lotusMainnetBinding })
+						const head = await getHead()
 						return {
 							$$timestamps: [{
 								$actor: {
@@ -378,7 +335,7 @@ export default {
 		defineResolver(Source.Lotus_JsonRpc, {
 			entityType: EntityType.FilecoinActor_Timestamp,
 			resolve: {
-				[FilecoinActor_TimestampSelector.ActorHeightTipsetKeySource]: {
+				ActorHeightTipsetKeySource: {
 					resolve: async ({ $actor, height, tipsetKey: selectorTipsetKey, source }) => {
 						assertFilecoinMainnet($actor.$network)
 						if (source !== Source.Lotus_JsonRpc)
@@ -390,7 +347,6 @@ export default {
 							getTipSetByHeight,
 						} = await import('$/sources/Lotus/JsonRpc/queries.ts')
 						const tipset = await getTipSetByHeight({
-							binding: lotusMainnetBinding,
 							height,
 						})
 						if (BigInt(tipset.Height) !== height || tipsetKey(tipset.Cids) !== selectorTipsetKey)
@@ -400,12 +356,10 @@ export default {
 							throw new Error(`Lotus_JsonRpc: actor observation ${height.toString()}/${selectorTipsetKey} has no timestamp`)
 						const [actor, idAddress] = await Promise.all([
 							getActor({
-								binding: lotusMainnetBinding,
 								address: $actor.address,
 								tipsetKey: tipset.Cids,
 							}),
 							getIdAddress({
-								binding: lotusMainnetBinding,
 								address: $actor.address,
 								tipsetKey: tipset.Cids,
 							}),
@@ -445,10 +399,10 @@ export default {
 		defineResolver(Source.Lotus_JsonRpc, {
 			entityType: EntityType.FilecoinSector_Timestamp,
 			resolve: {
-				[FilecoinSector_TimestampSelector.SectorTimestampMsSource]: {
+				SectorTimestampMsSource: {
 					resolve: async ({ $sector }) => {
 						const { getHead } = await import('$/sources/Lotus/JsonRpc/queries.ts')
-						const head = await getHead({ binding: lotusMainnetBinding })
+						const head = await getHead()
 						const sector = (await sectorRows({
 							$network: $sector.$miner.$network,
 							minerAddress: $sector.$miner.minerAddress,
@@ -470,7 +424,7 @@ export default {
 		defineResolver(Source.Lotus_JsonRpc, {
 			entityType: EntityType.FilecoinMiner_Timestamp,
 			resolve: {
-				[FilecoinMiner_TimestampSelector.MinerHeightTipsetKeySource]: {
+				MinerHeightTipsetKeySource: {
 					resolve: async ({ $miner, height, tipsetKey: selectorTipsetKey, source }) => {
 						assertFilecoinMainnet($miner.$network)
 						if (source !== Source.Lotus_JsonRpc)
@@ -482,7 +436,7 @@ export default {
 							getMinerPower,
 							getMinerSectorCount,
 						} = await import('$/sources/Lotus/JsonRpc/queries.ts')
-						const head = await getHead({ binding: lotusMainnetBinding })
+						const head = await getHead()
 						if (BigInt(head.Height) !== height || tipsetKey(head.Cids) !== selectorTipsetKey)
 							throw new Error(`Lotus_JsonRpc: miner observation ${height.toString()}/${selectorTipsetKey} is not the current head`)
 
@@ -492,17 +446,14 @@ export default {
 							sectorCount,
 						] = await Promise.all([
 							getMinerInfo({
-								binding: lotusMainnetBinding,
 								minerAddress: $miner.minerAddress,
 								tipsetKey: head.Cids,
 							}),
 							getMinerPower({
-								binding: lotusMainnetBinding,
 								minerAddress: $miner.minerAddress,
 								tipsetKey: head.Cids,
 							}),
 							getMinerSectorCount({
-								binding: lotusMainnetBinding,
 								minerAddress: $miner.minerAddress,
 								tipsetKey: head.Cids,
 							}),
@@ -534,6 +485,7 @@ export default {
 							qualityAdjustedPower: BigInt(minerPower.MinerPower.QualityAdjPower),
 							networkRawBytePower: BigInt(minerPower.TotalPower.RawBytePower),
 							networkQualityAdjustedPower: BigInt(minerPower.TotalPower.QualityAdjPower),
+							activeSectorCount: sectorCount.Active,
 							liveSectorCount: sectorCount.Live,
 							faultySectorCount: sectorCount.Faulty,
 						}
@@ -551,6 +503,7 @@ export default {
 				qualityAdjustedPower: (timestamp) => timestamp.qualityAdjustedPower,
 				networkRawBytePower: (timestamp) => timestamp.networkRawBytePower,
 				networkQualityAdjustedPower: (timestamp) => timestamp.networkQualityAdjustedPower,
+				activeSectorCount: (timestamp) => timestamp.activeSectorCount,
 				liveSectorCount: (timestamp) => timestamp.liveSectorCount,
 				faultySectorCount: (timestamp) => timestamp.faultySectorCount,
 			}),
@@ -558,7 +511,7 @@ export default {
 		defineResolver(Source.Lotus_JsonRpc, {
 			entityType: EntityType.FilecoinNetwork,
 			resolve: {
-				[FilecoinNetworkSelector.Network]: {
+				Network: {
 					resolve: async ({ $network }) => {
 						assertFilecoinMainnet($network)
 						return [
@@ -580,7 +533,7 @@ export default {
 		defineResolver(Source.Lotus_JsonRpc, {
 			entityType: EntityType.Network,
 			resolve: {
-				[NetworkSelector.Slug]: {
+				Slug: {
 					resolve: async (network) => {
 						assertFilecoinMainnet(network)
 						return [
@@ -604,14 +557,14 @@ export default {
 		defineResolver(Source.Lotus_JsonRpc, {
 			entityType: EntityType.FilecoinNetwork,
 			resolve: {
-				[FilecoinNetworkSelector.Network]: {
+				Network: {
 					resolve: async ({ $network }, context) => {
 						assertFilecoinMainnet($network)
 						const {
 							getTipSetByHeight,
 							getHead,
 						} = await import('$/sources/Lotus/JsonRpc/queries.ts')
-						const head = await getHead({ binding: lotusMainnetBinding })
+						const head = await getHead()
 						return Promise.all(Array.from({
 							length: Math.min(
 								Number(BigInt(head.Height) + 1n),
@@ -623,7 +576,6 @@ export default {
 									head
 								:
 									await getTipSetByHeight({
-										binding: lotusMainnetBinding,
 										height: BigInt(head.Height) - BigInt(tipsetOffset),
 									})
 							)
@@ -650,14 +602,14 @@ export default {
 		defineResolver(Source.Lotus_JsonRpc, {
 			entityType: EntityType.Network,
 			resolve: {
-				[NetworkSelector.Slug]: {
+				Slug: {
 					resolve: async (network, context) => {
 						assertFilecoinMainnet(network)
 						const {
 							getTipSetByHeight,
 							getHead,
 						} = await import('$/sources/Lotus/JsonRpc/queries.ts')
-						const head = await getHead({ binding: lotusMainnetBinding })
+						const head = await getHead()
 						return Promise.all(Array.from({
 							length: Math.min(
 								Number(BigInt(head.Height) + 1n),
@@ -669,7 +621,6 @@ export default {
 									head
 								:
 									await getTipSetByHeight({
-										binding: lotusMainnetBinding,
 										height: BigInt(head.Height) - BigInt(tipsetOffset),
 									})
 							)
@@ -695,14 +646,13 @@ export default {
 		defineResolver(Source.Lotus_JsonRpc, {
 			entityType: EntityType.FilecoinTipset,
 			resolve: {
-				[FilecoinTipsetSelector.NetworkHeightTipsetKey]: {
+				NetworkHeightTipsetKey: {
 					resolve: async ({ $network, height }) => {
 						assertFilecoinMainnet($network)
 						const { getTipSetByHeight } = await import('$/sources/Lotus/JsonRpc/queries.ts')
 						return blockRows(
 							$network,
 							await getTipSetByHeight({
-								binding: lotusMainnetBinding,
 								height: height,
 							})
 						)
@@ -716,22 +666,33 @@ export default {
 		defineResolver(Source.Lotus_JsonRpc, {
 			entityType: EntityType.FilecoinMiner,
 			resolve: {
-				[FilecoinMinerSelector.NetworkMinerAddress]: {
+				NetworkMinerAddress: {
 					resolve: async (entitySelector, context) => {
 						const { getHead } = await import('$/sources/Lotus/JsonRpc/queries.ts')
-						const head = await getHead({ binding: lotusMainnetBinding })
-						return (await sectorRows({
-							...entitySelector,
-							tipsetKey: head.Cids,
-						})).slice(
-							0,
-							resolverContextRowLimit(context)
-						)
+						const head = await getHead()
+						return {
+							sectors: (await sectorRows({
+								...entitySelector,
+								tipsetKey: head.Cids,
+							})).slice(
+								0,
+								resolverContextRowLimit(context)
+							),
+							timestamps: [{
+								[EntityMetaKey.Selector]: {
+									$miner: entitySelector,
+									height: BigInt(head.Height),
+									tipsetKey: tipsetKey(head.Cids),
+									source: Source.Lotus_JsonRpc,
+								},
+							}],
+						}
 					},
 				}
 			},
 		})({
-				$$sectors: (sectors) => sectors,
+				$$sectors: (miner) => miner.sectors,
+				$$timestamps: (miner) => miner.timestamps,
 			}),
 	],
 }

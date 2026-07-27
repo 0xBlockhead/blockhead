@@ -1,9 +1,12 @@
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import { WalletCapability } from '$/constants/Wallet.ts'
+	import { normalizeBoundaryError } from '$/lib/errors.ts'
 	import { BlockheadConnectionStatus } from '$/schema/BlockheadWalletConnection.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -22,11 +25,32 @@
 	const availableCandidates = $derived(walletRuntime?.candidates.filter((candidate) => (
 		!walletRuntime.connections.some((connection) => connection.walletId === candidate.id)
 	)) ?? [])
+	const walletRequests = $derived(
+		select(EntityType._Global, {
+			scope: '$$blockheadWalletRequests',
+		})
+			.$$blockheadWalletRequests({
+				sources: [
+					Source.Local_Internal,
+				],
+			})
+	)
+	let walletRequestPending = $state(
+		false
+	)
+	let walletRequestFailure = $state<{
+		error: Error
+	}>()
+	let walletControlStatus = $state(
+		''
+	)
 
 
 	// Components
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import BlockheadWalletConnectionView from '$/views/BlockheadWalletConnectionView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import Boundary from '$/components/Boundary.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import BlockheadWalletRequestsView from '$/views/BlockheadWalletRequestsView.svelte'
 	import BlockheadWalletView from '$/views/BlockheadWalletView.svelte'
 	import Icon from '$/components/Icon.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
@@ -49,6 +73,8 @@
 		:
 			`Wallet discovery active. Active connections: ${walletRuntime.connections.filter((connection) => connection.status === BlockheadConnectionStatus.Connected).length}. Saved connections: ${walletRuntime.connections.length}. Providers detected: ${walletRuntime.candidates.length}.`}
 	</output>
+
+	<output aria-live="polite">{walletControlStatus}</output>
 </article>
 
 {#if walletRuntime}
@@ -58,45 +84,69 @@
 		)) as connection (connection.connectionKey ?? connection.walletId)}
 			{@const connectionKey = connection.connectionKey ?? connection.walletId}
 			{@const candidate = walletRuntime.candidates.find((candidate) => candidate.id === connection.walletId)}
-			{@const connectionSelection = select(EntityType.BlockheadWalletConnection, {
-				connectionKey,
-			})}
-			{@const connectionPrefetched = {
-				[EntityMetaKey.Selector]: {
-					connectionKey,
-				},
-				connectionKey,
-				$wallet: {
-					[EntityMetaKey.Selector]: {
-						id: connection.walletId,
-					},
-					id: connection.walletId,
-					name: candidate?.name ?? connection.walletId,
-					protocol: connection.protocol,
-				},
-				status: connection.status,
-				protocol: connection.protocol,
-				transportKind: connection.transportKind,
-				selected: connection.selected,
-			}}
 			<article
 				data-column-item="flexible"
 				data-card
 				data-scroll-container
 			>
-				<BlockheadWalletConnectionView
-					selection={connectionSelection}
-					prefetched={connectionPrefetched}
+				<EntityView
+					entityType={EntityType.BlockheadWalletConnection}
+					entitySelector={{
+						connectionKey,
+					}}
+					href={resolve(
+						'/~/accounts/connections/[connectionKey=stringSegment]',
+						{
+							connectionKey,
+						}
+					)}
 					layout={EntityLayout.SummaryInline}
 					open={false}
-				/>
+				>
+					{#snippet Title()}
+						{candidate?.name ?? connection.walletId}
+					{/snippet}
+
+					{#snippet HeadingAfter()}
+						<span data-text="muted">{connection.status}</span>
+					{/snippet}
+				</EntityView>
 
 				{#if candidate == null}
 					<p data-text="muted">Provider unavailable. This saved connection is read-only.</p>
 				{/if}
 
-				{#if connection.error}
-					<p role="alert">{connection.error}</p>
+				<Boundary
+					failure={connection.error == null ? undefined : {
+						error: new Error(connection.error),
+					}}
+					boundaryKey={`Wallet connection ${connectionKey}`}
+				/>
+
+				{#if (
+					connection.status === BlockheadConnectionStatus.Connecting
+					&& candidate?.connectionUri
+				)}
+					<p>
+						<button
+							type="button"
+							onclick={() => globalThis.location.assign(candidate.connectionUri)}
+						>
+							Open {candidate.name} to continue
+						</button>
+						<button
+							type="button"
+							onclick={async () => {
+								await navigator.clipboard.writeText(candidate.connectionUri)
+								walletControlStatus = 'WalletConnect URI copied.'
+							}}
+						>
+							Copy connection URI
+						</button>
+					</p>
+					<output aria-live="polite">
+						<TruncatedValue value={candidate.connectionUri} />
+					</output>
 				{/if}
 
 				{#if connection.status === BlockheadConnectionStatus.Connected && connection.accounts.length > 0}
@@ -127,6 +177,59 @@
 							</label>
 						{/each}
 					</fieldset>
+				{/if}
+
+				{#if (
+					connection.status === BlockheadConnectionStatus.Connected
+					&& connection.selected
+					&& candidate?.capabilities.includes(WalletCapability.SignMessage)
+					&& connection.activeAccount?.namespace === 'eip155'
+				)}
+					<Boundary
+						failure={walletRequestFailure}
+						boundaryKey="Wallet message signing"
+					>
+						<form
+							onsubmit={async (event) => {
+								event.preventDefault()
+								const form = event.currentTarget
+								walletRequestFailure = undefined
+								walletRequestPending = true
+								walletControlStatus = 'Wallet request pending.'
+								try {
+									const result = await walletRuntime.signMessage(
+										connectionKey,
+										String(new FormData(form).get('message'))
+									)
+									walletControlStatus = `Message signed by ${result.accountAddress}. Request history was saved.`
+									form.reset()
+								}
+								catch (error) {
+									walletControlStatus = ''
+									walletRequestFailure = {
+										error: normalizeBoundaryError(error),
+									}
+								}
+								finally {
+									walletRequestPending = false
+								}
+							}}
+						>
+							<label for={`${id}-${connectionKey}-message`}>Message to sign</label>
+							<input
+								id={`${id}-${connectionKey}-message`}
+								name="message"
+								autocomplete="off"
+								required
+							/>
+							<button
+								type="submit"
+								disabled={walletRequestPending}
+							>
+								Sign message
+							</button>
+						</form>
+					</Boundary>
 				{/if}
 
 				<div data-row="start wrap gap-2">
@@ -215,3 +318,21 @@
 		{/each}
 	{/if}
 {/if}
+
+<ResourceBoundary resource={walletRequests.count}>
+	{#snippet children(requestCount)}
+		{#if requestCount > 0}
+			<BlockheadWalletRequestsView
+				selection={walletRequests}
+				countResource={walletRequests.count}
+				title="Wallet request history"
+				id={`${id}-requests`}
+				data-column-item="flexible"
+				data-card
+				data-scroll-container
+			/>
+		{/if}
+	{/snippet}
+
+	{#snippet Pending()}{/snippet}
+</ResourceBoundary>

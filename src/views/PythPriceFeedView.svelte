@@ -2,16 +2,11 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
-	import { marketAssetRouteLabelByKind } from '$/constants/Market.ts'
 	import { ZeroExHex } from '$/schema/ZeroExHex.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -23,40 +18,27 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.PythPriceFeed>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.PythPriceFeed>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.PythPriceFeed> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const pythPriceFeed = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {
-			symbol: true,
-		},
-	} : {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const viewSelection = $derived(selection({
+		sources: selection.sources ?? [
+			Source.PythBenchmarks_Rest,
+			Source.PythHermes_Rest,
+			Source.PythPriceFeedsCatalog_Rest,
+			Source.Pyth_EvmContract,
+			Source.Pyth_SolanaProgram,
+		],
+	}))
+	const pythPriceFeed = $derived(viewSelection({
 		fields: {
 			symbol: true,
 		},
 	}))
-	const titleFallback = $derived([String((pendingEntity.symbol) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.priceFeedId) ?? '')].filter(Boolean).join(' ') || 'Pyth price feed')
-	const viewDomId = $derived('pyth-price-feed-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const titleFallback = $derived((pendingEntity.symbol ?? '') || String(pendingEntity.priceFeedId ?? '') || 'Pyth price feed')
 
 
 	// Components
@@ -68,10 +50,8 @@
 
 <EntityView
 	entityType={EntityType.PythPriceFeed}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -79,70 +59,30 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={pythPriceFeed}>
 			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.symbol) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+				{(entity.symbol ?? '') || title || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={pythPriceFeed}>
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.channel) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.symbol) ?? '')].filter(Boolean).join(' ') || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{(pendingEntity.channel ?? '') || (pendingEntity.symbol ?? '') || titleFallback}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		<ResourceBoundary resource={pythPriceFeed}>
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				<ResourceBoundary
-					resource={selection.$market}
-				>
-					{#snippet children(market)}
-						{#if market != null && market[EntityMetaKey.Selector] != null}
-							<span data-text="muted">
-								<MarketView
-									selection={select(EntityType.Market, market[EntityMetaKey.Selector])}
-									prefetched={market}
-									href={
-										(
-											market[EntityMetaKey.Selector] != null && 'marketKind' in market[EntityMetaKey.Selector]
-											&& market[EntityMetaKey.Selector].marketKind != null
-											&& market[EntityMetaKey.Selector] != null && '$base' in market[EntityMetaKey.Selector]
-											&& market[EntityMetaKey.Selector].$base != null && 'assetKey' in market[EntityMetaKey.Selector].$base
-											&& market[EntityMetaKey.Selector].$base.assetKey != null
-											&& market[EntityMetaKey.Selector] != null && '$quote' in market[EntityMetaKey.Selector]
-											&& market[EntityMetaKey.Selector].$quote != null && 'assetKey' in market[EntityMetaKey.Selector].$quote
-											&& market[EntityMetaKey.Selector].$quote.assetKey != null
-											&& market[EntityMetaKey.Selector] != null && '$marketVenue' in market[EntityMetaKey.Selector]
-											&& market[EntityMetaKey.Selector].$marketVenue != null && 'marketVenueId' in market[EntityMetaKey.Selector].$marketVenue
-											&& market[EntityMetaKey.Selector].$marketVenue.marketVenueId != null
-											&& market[EntityMetaKey.Selector].$base != null && 'kind' in market[EntityMetaKey.Selector].$base
-											&& market[EntityMetaKey.Selector].$base.kind != null
-											&& market[EntityMetaKey.Selector].$quote != null && 'kind' in market[EntityMetaKey.Selector].$quote
-											&& market[EntityMetaKey.Selector].$quote.kind != null ?
-												resolve('/venue/[marketVenue=marketVenueId]/market/[baseKind=stringSegment]/[base=stringSegment]/[quoteKind=stringSegment]/[quote=stringSegment]/[marketKind=stringSegment]', {
-											marketKind: String(market[EntityMetaKey.Selector].marketKind ?? ''),
-											base: String(market[EntityMetaKey.Selector].$base.assetKey ?? ''),
-											quote: String(market[EntityMetaKey.Selector].$quote.assetKey ?? ''),
-											marketVenue: String(market[EntityMetaKey.Selector].$marketVenue.marketVenueId ?? ''),
-											baseKind: String(marketAssetRouteLabelByKind[String(market[EntityMetaKey.Selector].$base.kind)] ?? ''),
-											quoteKind: String(marketAssetRouteLabelByKind[String(market[EntityMetaKey.Selector].$quote.kind)] ?? ''),
-										})
-										:
-												undefined
-										)
-									}
-									layout={EntityLayout.Title}
-									open={false}
-								/>
-							</span>
-						{/if}
-					{/snippet}
-				</ResourceBoundary>
+		<ResourceBoundary
+			resource={selection.$market}
+		>
+			{#snippet children(market)}
+				{#if market != null}
+					<span data-text="muted">
+						<MarketView
+							selection={select(EntityType.Market, market[EntityMetaKey.Selector])}
+							prefetched={market}
+							layout={EntityLayout.Title}
+							open={false}
+						/>
+					</span>
+				{/if}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -152,69 +92,27 @@
 			<div>
 				<dt>Price feed ID</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									priceFeedId: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const priceFeedId = resolvedEntity.priceFeedId}
-							{#if priceFeedId !== undefined && priceFeedId !== null}
-								{String((priceFeedId) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{String(pendingEntity.priceFeedId)}
 				</dd>
 			</div>
 
 			<div>
 				<dt>Channel</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									channel: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const channel = resolvedEntity.channel}
-							{#if channel !== undefined && channel !== null}
-								{String((channel) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{pendingEntity.channel}
 				</dd>
 			</div>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							symbol: true,
-						},
-					})
-				}
+				resource={pythPriceFeed}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const symbol = resolvedEntity.symbol}
-					{#if symbol !== undefined && symbol !== null}
+					{@const symbol = entity.symbol}
+					{#if symbol != null}
 						<div>
 							<dt>Symbol</dt>
 							<dd>
-								{String((symbol) ?? '')}
+								{symbol}
 							</dd>
 						</div>
 					{/if}
@@ -223,8 +121,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							assetClass: true,
 						},
@@ -232,13 +129,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const assetClass = resolvedEntity.assetClass}
-					{#if assetClass !== undefined && assetClass !== null}
+					{@const assetClass = entity.assetClass}
+					{#if assetClass != null}
 						<div>
 							<dt>Asset class</dt>
 							<dd>
-								{String((assetClass) ?? '')}
+								{assetClass}
 							</dd>
 						</div>
 					{/if}
@@ -247,8 +143,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							baseAsset: true,
 						},
@@ -256,13 +151,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const baseAsset = resolvedEntity.baseAsset}
-					{#if baseAsset !== undefined && baseAsset !== null}
+					{@const baseAsset = entity.baseAsset}
+					{#if baseAsset != null}
 						<div>
 							<dt>Base asset</dt>
 							<dd>
-								{String((baseAsset) ?? '')}
+								{baseAsset}
 							</dd>
 						</div>
 					{/if}
@@ -273,8 +167,7 @@
 		<dl data-column-item="center">
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							quoteAsset: true,
 						},
@@ -282,13 +175,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const quoteAsset = resolvedEntity.quoteAsset}
-					{#if quoteAsset !== undefined && quoteAsset !== null}
+					{@const quoteAsset = entity.quoteAsset}
+					{#if quoteAsset != null}
 						<div>
 							<dt>Quote asset</dt>
 							<dd>
-								{String((quoteAsset) ?? '')}
+								{quoteAsset}
 							</dd>
 						</div>
 					{/if}
@@ -299,42 +191,13 @@
 				resource={selection.$market}
 			>
 				{#snippet children(market)}
-					{#if market != null && market[EntityMetaKey.Selector] != null}
+					{#if market != null}
 						<div>
 							<dt>Market</dt>
 							<dd>
 								<MarketView
 									selection={select(EntityType.Market, market[EntityMetaKey.Selector])}
 									prefetched={market}
-									href={
-										(
-											market[EntityMetaKey.Selector] != null && 'marketKind' in market[EntityMetaKey.Selector]
-											&& market[EntityMetaKey.Selector].marketKind != null
-											&& market[EntityMetaKey.Selector] != null && '$base' in market[EntityMetaKey.Selector]
-											&& market[EntityMetaKey.Selector].$base != null && 'assetKey' in market[EntityMetaKey.Selector].$base
-											&& market[EntityMetaKey.Selector].$base.assetKey != null
-											&& market[EntityMetaKey.Selector] != null && '$quote' in market[EntityMetaKey.Selector]
-											&& market[EntityMetaKey.Selector].$quote != null && 'assetKey' in market[EntityMetaKey.Selector].$quote
-											&& market[EntityMetaKey.Selector].$quote.assetKey != null
-											&& market[EntityMetaKey.Selector] != null && '$marketVenue' in market[EntityMetaKey.Selector]
-											&& market[EntityMetaKey.Selector].$marketVenue != null && 'marketVenueId' in market[EntityMetaKey.Selector].$marketVenue
-											&& market[EntityMetaKey.Selector].$marketVenue.marketVenueId != null
-											&& market[EntityMetaKey.Selector].$base != null && 'kind' in market[EntityMetaKey.Selector].$base
-											&& market[EntityMetaKey.Selector].$base.kind != null
-											&& market[EntityMetaKey.Selector].$quote != null && 'kind' in market[EntityMetaKey.Selector].$quote
-											&& market[EntityMetaKey.Selector].$quote.kind != null ?
-												resolve('/venue/[marketVenue=marketVenueId]/market/[baseKind=stringSegment]/[base=stringSegment]/[quoteKind=stringSegment]/[quote=stringSegment]/[marketKind=stringSegment]', {
-											marketKind: String(market[EntityMetaKey.Selector].marketKind ?? ''),
-											base: String(market[EntityMetaKey.Selector].$base.assetKey ?? ''),
-											quote: String(market[EntityMetaKey.Selector].$quote.assetKey ?? ''),
-											marketVenue: String(market[EntityMetaKey.Selector].$marketVenue.marketVenueId ?? ''),
-											baseKind: String(marketAssetRouteLabelByKind[String(market[EntityMetaKey.Selector].$base.kind)] ?? ''),
-											quoteKind: String(marketAssetRouteLabelByKind[String(market[EntityMetaKey.Selector].$quote.kind)] ?? ''),
-										})
-										:
-												undefined
-										)
-									}
 									layout={EntityLayout.Value}
 									open={false}
 								/>
@@ -353,12 +216,12 @@
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
-				<PythPriceFeed_TimestampsView
-					selection={pythPriceFeedPythPriceFeedTimestampsViewTimestampsResource}
-					countResource={pythPriceFeedPythPriceFeedTimestampsViewTimestampsResource.count}
-					title='Timestamps'
-					id='PythPriceFeed_TimestampsView-timestamps'
-				/>
+					<PythPriceFeed_TimestampsView
+						selection={pythPriceFeedPythPriceFeedTimestampsViewTimestampsResource}
+						countResource={pythPriceFeedPythPriceFeedTimestampsViewTimestampsResource.count}
+						title='Timestamps'
+						id='timestamps'
+					/>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>

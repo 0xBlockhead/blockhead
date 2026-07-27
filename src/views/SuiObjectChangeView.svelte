@@ -2,13 +2,8 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
 
 
 	// Context
@@ -20,35 +15,13 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.SuiObjectChange>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.SuiObjectChange>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.SuiObjectChange> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const suiObjectChange = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {},
-	} : {
-		sources: selection.sources,
-	}))
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const titleFallback = 'Sui object change'
-	const viewDomId = $derived('sui-object-change-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -60,24 +33,14 @@
 
 <EntityView
 	entityType={EntityType.SuiObjectChange}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails}
-			{title || titleFallback}
-		{:else}
-			<ResourceBoundary resource={suiObjectChange}>
-				{#snippet children(entity)}
-					{title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		Sui object change
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -96,24 +59,7 @@
 			<div>
 				<dt>change index</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									changeIndex: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const changeIndex = resolvedEntity.changeIndex}
-							{#if changeIndex !== undefined && changeIndex !== null}
-								{String((changeIndex) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{String(pendingEntity.changeIndex)}
 				</dd>
 			</div>
 
@@ -123,7 +69,6 @@
 					<ResourceBoundary
 						resource={
 							selection({
-								sources: selection.sources,
 								fields: {
 									changeKind: true,
 								},
@@ -131,11 +76,7 @@
 						}
 					>
 						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const changeKind = resolvedEntity.changeKind}
-							{#if changeKind !== undefined && changeKind !== null}
-								{String((changeKind) ?? '')}
-							{/if}
+							{entity.changeKind}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -144,7 +85,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							objectId: true,
 						},
@@ -152,13 +92,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const objectId = resolvedEntity.objectId}
-					{#if objectId !== undefined && objectId !== null}
+					{@const objectId = entity.objectId}
+					{#if objectId != null}
 						<div>
 							<dt>object ID</dt>
 							<dd>
-								{String((objectId) ?? '')}
+								{objectId}
 							</dd>
 						</div>
 					{/if}
@@ -168,7 +107,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							objectType: true,
 						},
@@ -176,13 +114,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const objectType = resolvedEntity.objectType}
-					{#if objectType !== undefined && objectType !== null}
+					{@const objectType = entity.objectType}
+					{#if objectType != null}
 						<div>
 							<dt>object type</dt>
 							<dd>
-								{String((objectType) ?? '')}
+								{objectType}
 							</dd>
 						</div>
 					{/if}
@@ -192,7 +129,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							version: true,
 						},
@@ -200,13 +136,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const version = resolvedEntity.version}
-					{#if version !== undefined && version !== null}
+					{@const version = entity.version}
+					{#if version != null}
 						<div>
 							<dt>version</dt>
 							<dd>
-								{String((version) ?? '')}
+								{String(version)}
 							</dd>
 						</div>
 					{/if}
@@ -216,7 +151,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							digest: true,
 						},
@@ -224,13 +158,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const digest = resolvedEntity.digest}
-					{#if digest !== undefined && digest !== null}
+					{@const digest = entity.digest}
+					{#if digest != null}
 						<div>
 							<dt>digest</dt>
 							<dd>
-								<TruncatedValue value={String((digest) ?? '')} />
+								<TruncatedValue value={digest} />
 							</dd>
 						</div>
 					{/if}

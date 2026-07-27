@@ -2,8 +2,17 @@
 
 import type { SourceServerCredentialDefinition } from '$/sources/SourceBinding.ts'
 
-export const sourceServerCredentialsById = {
-	'Blockfrost_Rest-55': {
+export default {
+	'["Amboss_Graphql","Global","amboss-space","HttpProxy","GraphqlHttp"]': {
+		envKey: 'AMBOSS_API_KEY',
+		injection: {
+			header: {
+				name: 'authorization',
+				prefix: 'Bearer ',
+			},
+		},
+	},
+	'["Blockfrost_Rest","Caip2Network","cip34:1-764824073","HttpProxy","OpenApiHttp"]': {
 		envKey: 'BLOCKFROST_PROJECT_ID',
 		injection: {
 			header: {
@@ -11,7 +20,7 @@ export const sourceServerCredentialsById = {
 			},
 		},
 	},
-	'EnvioHyperRpc_JsonRpc-129': {
+	'["EnvioHyperRpc_JsonRpc","Eip155Chain","1","HttpProxy","EvmExecutionJsonRpc"]': {
 		envKey: 'ENVIO_API_TOKEN',
 		injection: {
 			endpointTemplate: {
@@ -19,7 +28,7 @@ export const sourceServerCredentialsById = {
 			},
 		},
 	},
-	'EnvioHyperSync_RawHttp-130': {
+	'["EnvioHyperSync_RawHttp","Eip155Chain","1","HttpProxy","EnvioHyperSyncApi"]': {
 		envKey: 'ENVIO_API_TOKEN',
 		injection: {
 			header: {
@@ -28,7 +37,7 @@ export const sourceServerCredentialsById = {
 			},
 		},
 	},
-	'GetBlockRpc_JsonRpc-143': {
+	'["GetBlockRpc_JsonRpc","Eip155Chain","1","HttpProxy","EvmExecutionJsonRpc"]': {
 		envKey: 'GETBLOCK_API_KEY',
 		injection: {
 			endpointTemplate: {
@@ -36,7 +45,7 @@ export const sourceServerCredentialsById = {
 			},
 		},
 	},
-	'GetBlockYellowstone_Grpc-144': {
+	'["GetBlockYellowstone_Grpc","Caip2Network","solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp","RemoteLive","GrpcService"]': {
 		envKey: 'GETBLOCK_API_KEY',
 		injection: {
 			endpointTemplate: {
@@ -44,7 +53,7 @@ export const sourceServerCredentialsById = {
 			},
 		},
 	},
-	'GoldRushFoundational_Rest-150': {
+	'["GoldRushFoundational_Rest","Eip155Chain","1","HttpProxy","GoldRushFoundationalApi"]': {
 		envKey: 'COVALENT_API_KEY',
 		injection: {
 			header: {
@@ -53,7 +62,7 @@ export const sourceServerCredentialsById = {
 			},
 		},
 	},
-	'OpenAI_Rest-237': {
+	'["OpenAI_Rest","Global","openai-api","HttpProxy","RestJson"]': {
 		envKey: 'OPENAI_API_KEY',
 		injection: {
 			header: {
@@ -62,11 +71,46 @@ export const sourceServerCredentialsById = {
 			},
 		},
 	},
-	'SpaceAndTime_MakeInfinite-277': {
+	'["SafeTransactionService_Rest","Eip155Chain","1","HttpProxy","RestJson"]': {
+		envKey: 'SAFE_TRANSACTION_SERVICE_API_KEY',
+		injection: {
+			header: {
+				name: 'authorization',
+				prefix: 'Bearer ',
+			},
+		},
+	},
+	'["SafeTransactionService_Rest","Eip155Chain","100","HttpProxy","RestJson"]': {
+		envKey: 'SAFE_TRANSACTION_SERVICE_API_KEY',
+		injection: {
+			header: {
+				name: 'authorization',
+				prefix: 'Bearer ',
+			},
+		},
+	},
+	'["SafeTransactionService_Rest","Eip155Chain","8453","HttpProxy","RestJson"]': {
+		envKey: 'SAFE_TRANSACTION_SERVICE_API_KEY',
+		injection: {
+			header: {
+				name: 'authorization',
+				prefix: 'Bearer ',
+			},
+		},
+	},
+	'["SpaceAndTime_MakeInfinite","Caip2Network","eip155:1","HttpProxy","RestJson"]': {
 		envKey: 'MAKEINFINITE_API_KEY',
 		injection: {
 			header: {
 				name: 'apikey',
+			},
+		},
+	},
+	'["Tally_Graphql","Global","tally-api","HttpProxy","GraphqlHttp"]': {
+		envKey: 'TALLY_API_KEY',
+		injection: {
+			header: {
+				name: 'Api-Key',
 			},
 		},
 	},

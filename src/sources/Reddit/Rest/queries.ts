@@ -12,12 +12,12 @@ export const getInfo = async (publicEnv: SourcePublicEnv, id: string) => (
 		publicEnv,
 		`/api/info?${(
 			new URLSearchParams({ id, raw_json: '1' }).toString()
-		)}` as const
+		)}`
 	)
 )
 
 export const getSubredditAbout = async (publicEnv: SourcePublicEnv, name: string) => (
-	oauthGetJson<RedditApiSubredditAbout>(publicEnv, `/r/${encodeURIComponent(name)}/about?raw_json=1` as const)
+	oauthGetJson<RedditApiSubredditAbout>(publicEnv, `/r/${encodeURIComponent(name)}/about?raw_json=1`)
 )
 
 export const listSubredditLinks = async (
@@ -37,7 +37,7 @@ export const listSubredditLinks = async (
 				limit: String(limit),
 				raw_json: '1',
 			}).toString()
-		)}` as const
+		)}`
 	)
 )
 
@@ -57,7 +57,7 @@ export const listPopularLinks = async (
 				limit: String(limit),
 				raw_json: '1',
 			}).toString()
-		)}` as const
+		)}`
 	)
 )
 
@@ -89,6 +89,6 @@ export const getLinkCommentsByArticleId = async (
 				limit: String(limit),
 				raw_json: '1',
 			}).toString()
-		)}` as const
+		)}`
 	)
 )

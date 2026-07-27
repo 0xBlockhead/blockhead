@@ -2,14 +2,9 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
@@ -26,31 +21,9 @@
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.XrplLedger>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.XrplLedger>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.XrplLedger> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const xrplLedger = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {},
-	} : {
-		sources: selection.sources,
-	}))
 	const titleFallback = 'XRPL ledger'
-	const viewDomId = $derived('xrpl-ledger-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -62,30 +35,24 @@
 
 <EntityView
 	entityType={EntityType.XrplLedger}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
 	href={
 		href ?? (
-			selection.entitySelector != null && 'ledgerIndex' in selection.entitySelector
-			&& selection.entitySelector.ledgerIndex != null
-			&& selection.entitySelector != null && '$network' in selection.entitySelector ?
-				selection.entitySelector.$network != null && 'caip2' in selection.entitySelector.$network
-				&& selection.entitySelector.$network.caip2 != null ?
-					resolve('/network/[network=networkCaip2OrNetworkSlug]/ledger/[ledgerIndex=nonNegativeBigInt]', {
-				ledgerIndex: String(selection.entitySelector.ledgerIndex ?? ''),
-				network: String(caip2StringFromValue(selection.entitySelector.$network.caip2) ?? ''),
-			})
+			'ledgerIndex' in selection.entitySelector ?
+				resolve(
+					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/ledger/[ledgerIndex=nonNegativeBigInt]',
+					{
+						network: (
+							'caip2' in selection.entitySelector.$network ?
+								String(caip2StringFromValue(selection.entitySelector.$network.caip2))
+							:
+								String(selection.entitySelector.$network.slug)
+						),
+						ledgerIndex: String(selection.entitySelector.ledgerIndex),
+					}
+				)
 			:
-					selection.entitySelector.$network != null && 'slug' in selection.entitySelector.$network
-					&& selection.entitySelector.$network.slug != null ?
-						resolve('/network/[network=networkCaip2OrNetworkSlug]/ledger/[ledgerIndex=nonNegativeBigInt]', {
-					ledgerIndex: String(selection.entitySelector.ledgerIndex ?? ''),
-					network: String(selection.entitySelector.$network.slug ?? ''),
-				})
-				:
-					undefined
-		:
 				undefined
 		)
 	}
@@ -94,15 +61,7 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails}
-			{title || titleFallback}
-		{:else}
-			<ResourceBoundary resource={xrplLedger}>
-				{#snippet children(entity)}
-					{title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		XRPL ledger
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -112,23 +71,6 @@
 				<dd>
 					<NetworkView
 						selection={select(EntityType.Network, selection.entitySelector.$network)}
-						href={
-							(
-								selection.entitySelector.$network != null && 'caip2' in selection.entitySelector.$network
-								&& selection.entitySelector.$network.caip2 != null ?
-									resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-								network: String(caip2StringFromValue(selection.entitySelector.$network.caip2) ?? ''),
-							})
-							:
-									selection.entitySelector.$network != null && 'slug' in selection.entitySelector.$network
-									&& selection.entitySelector.$network.slug != null ?
-										resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-									network: String(selection.entitySelector.$network.slug ?? ''),
-								})
-								:
-									undefined
-							)
-						}
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -141,7 +83,6 @@
 					<ResourceBoundary
 						resource={
 							selection({
-								sources: selection.sources,
 								fields: {
 									ledgerIndex: true,
 								},
@@ -149,11 +90,7 @@
 						}
 					>
 						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const ledgerIndex = resolvedEntity.ledgerIndex}
-							{#if ledgerIndex !== undefined && ledgerIndex !== null}
-								{String((ledgerIndex) ?? '')}
-							{/if}
+							{String(entity.ledgerIndex)}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -165,7 +102,6 @@
 					<ResourceBoundary
 						resource={
 							selection({
-								sources: selection.sources,
 								fields: {
 									ledgerHash: true,
 								},
@@ -173,11 +109,7 @@
 						}
 					>
 						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const ledgerHash = resolvedEntity.ledgerHash}
-							{#if ledgerHash !== undefined && ledgerHash !== null}
-								<TruncatedValue value={String((ledgerHash) ?? '')} />
-							{/if}
+							<TruncatedValue value={entity.ledgerHash} />
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -186,7 +118,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							closeTimeMs: true,
 						},
@@ -194,13 +125,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const closeTimeMs = resolvedEntity.closeTimeMs}
-					{#if closeTimeMs !== undefined && closeTimeMs !== null}
+					{@const closeTimeMs = entity.closeTimeMs}
+					{#if closeTimeMs != null}
 						<div>
 							<dt>close time ms</dt>
 							<dd>
-								{String((closeTimeMs) ?? '')}
+								{String(closeTimeMs)}
 							</dd>
 						</div>
 					{/if}
@@ -210,7 +140,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							validated: true,
 						},
@@ -218,9 +147,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const validated = resolvedEntity.validated}
-					{#if validated !== undefined && validated !== null}
+					{@const validated = entity.validated}
+					{#if validated != null}
 						<div>
 							<dt>validated</dt>
 							<dd>
@@ -234,7 +162,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							totalCoinsDrops: true,
 						},
@@ -242,13 +169,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const totalCoinsDrops = resolvedEntity.totalCoinsDrops}
-					{#if totalCoinsDrops !== undefined && totalCoinsDrops !== null}
+					{@const totalCoinsDrops = entity.totalCoinsDrops}
+					{#if totalCoinsDrops != null}
 						<div>
 							<dt>total coins drops</dt>
 							<dd>
-								{String((totalCoinsDrops) ?? '')}
+								{String(totalCoinsDrops)}
 							</dd>
 						</div>
 					{/if}
@@ -258,7 +184,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							parentHash: true,
 						},
@@ -266,13 +191,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const parentHash = resolvedEntity.parentHash}
-					{#if parentHash !== undefined && parentHash !== null}
+					{@const parentHash = entity.parentHash}
+					{#if parentHash != null}
 						<div>
 							<dt>parent hash</dt>
 							<dd>
-								<TruncatedValue value={String((parentHash) ?? '')} />
+								<TruncatedValue value={parentHash} />
 							</dd>
 						</div>
 					{/if}
@@ -282,7 +206,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							accountHash: true,
 						},
@@ -290,13 +213,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const accountHash = resolvedEntity.accountHash}
-					{#if accountHash !== undefined && accountHash !== null}
+					{@const accountHash = entity.accountHash}
+					{#if accountHash != null}
 						<div>
 							<dt>account hash</dt>
 							<dd>
-								<TruncatedValue value={String((accountHash) ?? '')} />
+								<TruncatedValue value={accountHash} />
 							</dd>
 						</div>
 					{/if}
@@ -306,7 +228,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							transactionHash: true,
 						},
@@ -314,13 +235,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const transactionHash = resolvedEntity.transactionHash}
-					{#if transactionHash !== undefined && transactionHash !== null}
+					{@const transactionHash = entity.transactionHash}
+					{#if transactionHash != null}
 						<div>
 							<dt>transaction hash</dt>
 							<dd>
-								<TruncatedValue value={String((transactionHash) ?? '')} />
+								<TruncatedValue value={transactionHash} />
 							</dd>
 						</div>
 					{/if}

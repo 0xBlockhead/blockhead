@@ -9,14 +9,12 @@
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		data,
-		params,
 	}: PageProps = $props()
 
 	const pageSelection = $derived(select(EntityType.EvmBlob, data.selector, {
@@ -39,19 +37,12 @@
 
 
 <svelte:head>
-	<title>{(data.title ?? (pageSelection.entity == null ? (String((data.selector.indexInTransaction) ?? '') ? 'Blob #' + String((data.selector.indexInTransaction) ?? '') : '') || 'EVM blob' : (String((({ ...data.selector, ...pageSelection.entity }).indexInTransaction) ?? '') ? 'Blob #' + String((({ ...data.selector, ...pageSelection.entity }).indexInTransaction) ?? '') : '') || 'EVM blob'))} • EVM blob • Blockhead</title>
+	<title>{(data.title ?? ((String(pageSelection.entitySelector.indexInTransaction ?? '') ? 'Blob #' + String(pageSelection.entitySelector.indexInTransaction ?? '') : '') || 'EVM blob'))} • EVM blob • Blockhead</title>
 </svelte:head>
 
 
 <Page>
 	<EvmBlobView
-		href={
-			resolve('/network/[network=networkCaip2OrNetworkSlug]/blob/[transactionId=evmTxHash]/[indexInTransaction=nonNegativeInteger]', {
-				network: params.network,
-				transactionId: params.transactionId,
-				indexInTransaction: params.indexInTransaction,
-			})
-		}
 		selection={pageSelection}
 	/>
 </Page>

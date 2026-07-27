@@ -2,15 +2,12 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { stringify } from 'devalue'
 	import { UrlString } from '$/schema/UrlString.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -22,42 +19,26 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.McpServer>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.McpServer>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.McpServer> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const mcpServer = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {
-			transportKind: true,
-			endpointUrl: true,
-		},
-	} : {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const viewSelection = $derived(selection({
+		sources: selection.sources ?? [
+			Source.Eip8004Scan_Rest,
+			Source.McpDeclared_Protocol,
+		],
+	}))
+	const mcpServer = $derived(viewSelection({
 		fields: {
 			transportKind: true,
 			endpointUrl: true,
 		},
 	}))
-	const titleFallback = $derived([String((pendingEntity.serverKey) ?? '')].filter(Boolean).join(' ') || 'mcp server')
-	const viewDomId = $derived('mcp-server-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const titleFallback = $derived((pendingEntity.serverKey ?? '') || 'mcp server')
+	const viewDomId = $derived('mcp-server-' + encodeURIComponent(stringify(selection.entitySelector)))
 
 
 	// Components
@@ -77,75 +58,42 @@
 
 <EntityView
 	entityType={EntityType.McpServer}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
+	entitySelector={selection.entitySelector}
 	id={viewDomId}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'transportKind') && Object.hasOwn(prefetched, 'endpointUrl')}
-			{[String((pendingEntity.serverKey) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-		{:else}
-			<ResourceBoundary resource={mcpServer}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.serverKey) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		{(pendingEntity.serverKey ?? '') || 'mcp server'}
 	{/snippet}
 
 	{#snippet Value()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'transportKind') && Object.hasOwn(prefetched, 'endpointUrl')}
-			{[String((pendingEntity.transportKind) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.serverKey) ?? '')].filter(Boolean).join(' ') || titleFallback}
-		{:else}
-			<ResourceBoundary resource={mcpServer}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.transportKind) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.serverKey) ?? '')].filter(Boolean).join(' ') || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={mcpServer}>
+			{#snippet children(entity)}
+				{(entity.transportKind ?? '') || pendingEntity.serverKey || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'transportKind') && Object.hasOwn(prefetched, 'endpointUrl')}
-			{@const endpointUrl0 = pendingEntity.endpointUrl}
-			{#if endpointUrl0 !== undefined && endpointUrl0 !== null}
-				<span data-text="muted">
-					<svelte:element
-						this={'a'}
-						href={String(endpointUrl0)}
-						target="_blank"
-						rel="noreferrer noopener"
-					>
-						<TruncatedValue value={String(endpointUrl0)} />
-					</svelte:element>
-				</span>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={mcpServer}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const endpointUrl0 = resolvedEntity.endpointUrl}
-					{#if endpointUrl0 !== undefined && endpointUrl0 !== null}
-						<span data-text="muted">
-							<svelte:element
-								this={'a'}
-								href={String(endpointUrl0)}
-								target="_blank"
-								rel="noreferrer noopener"
-							>
-								<TruncatedValue value={String(endpointUrl0)} />
-							</svelte:element>
-						</span>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={mcpServer}>
+			{#snippet children(entity)}
+				{@const endpointUrl0 = entity.endpointUrl}
+				{#if endpointUrl0 != null}
+					<span data-text="muted">
+						<a
+							href={String(endpointUrl0)}
+							target="_blank"
+							rel="noreferrer noopener"
+						>
+							<TruncatedValue value={String(endpointUrl0)} />
+						</a>
+					</span>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -153,24 +101,7 @@
 			<div>
 				<dt>server key</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									serverKey: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const serverKey = resolvedEntity.serverKey}
-							{#if serverKey !== undefined && serverKey !== null}
-								{String((serverKey) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{pendingEntity.serverKey}
 				</dd>
 			</div>
 
@@ -178,24 +109,13 @@
 				resource={selection.$source}
 			>
 				{#snippet children(blockheadSource)}
-					{#if blockheadSource != null && blockheadSource[EntityMetaKey.Selector] != null}
+					{#if blockheadSource != null}
 						<div>
 							<dt>Source</dt>
 							<dd>
 								<BlockheadSourceView
 									selection={select(EntityType.BlockheadSource, blockheadSource[EntityMetaKey.Selector])}
 									prefetched={blockheadSource}
-									href={
-										(
-											blockheadSource[EntityMetaKey.Selector] != null && 'id' in blockheadSource[EntityMetaKey.Selector]
-											&& blockheadSource[EntityMetaKey.Selector].id != null ?
-												resolve('/~/manage/source/[sourceId=stringSegment]', {
-											sourceId: String(blockheadSource[EntityMetaKey.Selector].id ?? ''),
-										})
-										:
-												undefined
-										)
-									}
 									layout={EntityLayout.Value}
 									open={false}
 								/>
@@ -209,7 +129,7 @@
 				resource={selection.$packageVersion}
 			>
 				{#snippet children(mcpServerPackageVersion)}
-					{#if mcpServerPackageVersion != null && mcpServerPackageVersion[EntityMetaKey.Selector] != null}
+					{#if mcpServerPackageVersion != null}
 						<div>
 							<dt>package version</dt>
 							<dd>
@@ -226,23 +146,15 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							transportKind: true,
-						},
-					})
-				}
+				resource={mcpServer}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const transportKind = resolvedEntity.transportKind}
-					{#if transportKind !== undefined && transportKind !== null}
+					{@const transportKind = entity.transportKind}
+					{#if transportKind != null}
 						<div>
 							<dt>transport kind</dt>
 							<dd>
-								{String((transportKind) ?? '')}
+								{transportKind}
 							</dd>
 						</div>
 					{/if}
@@ -250,30 +162,21 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							endpointUrl: true,
-						},
-					})
-				}
+				resource={mcpServer}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const endpointUrl = resolvedEntity.endpointUrl}
-					{#if endpointUrl !== undefined && endpointUrl !== null}
+					{@const endpointUrl = entity.endpointUrl}
+					{#if endpointUrl != null}
 						<div>
 							<dt>endpoint URL</dt>
 							<dd>
-								<svelte:element
-									this={'a'}
+								<a
 									href={String(endpointUrl)}
 									target="_blank"
 									rel="noreferrer noopener"
 								>
 									<TruncatedValue value={String(endpointUrl)} />
-								</svelte:element>
+								</a>
 							</dd>
 						</div>
 					{/if}
@@ -291,12 +194,10 @@
 					{
 						id: 'mcp-tools',
 						label: 'Tools',
-						ownsSection: true,
 					},
 					{
 						id: 'mcp-prompts',
 						label: 'Prompts',
-						ownsSection: true,
 					},
 				]
 			}
@@ -309,136 +210,34 @@
 				</header>
 			{/snippet}
 
-			{#snippet MarkerMcpTools(_context, Content)}
-				{@const mcpCapabilitiesMcpToolsResource = selection.$$tools}
-				<ResourceBoundary
-					resource={mcpCapabilitiesMcpToolsResource}
-				>
-					{#snippet children(_resolved)}
-						{@render Content()}
-					{/snippet}
-
-					{#snippet PendingContent()}
-						{@render Content()}
-					{/snippet}
-
-					{#snippet FailedContent(_error, _retry)}
-						{@render Content()}
-					{/snippet}
-				</ResourceBoundary>
+			{#snippet SectionMcpTools({ id, label, open })}
+				<McpToolsView
+					selection={selection.$$tools}
+					CollapsibleProps={{ canToggle: false }}
+					collapsible={false}
+					data-column-item="flexible"
+					data-card
+					data-scroll-container
+					open={open}
+					title={label}
+					emptyText='No MCP tools.'
+					id={`${id}-list`}
+				/>
 			{/snippet}
 
-			{#snippet SectionMcpTools({ id, label, open, active })}
-				{@const mcpCapabilitiesMcpToolsResource = selection.$$tools}
-				<ResourceBoundary
-					resource={mcpCapabilitiesMcpToolsResource}
-				>
-					{#snippet children(mcpTool)}
-						<section
-							id={id}
-							aria-labelledby={`${id}:marker`}
-							data-scroll-marker-label={label}
-							data-column-item="flexible"
-							data-column
-							data-active={active}
-						>
-							<McpToolsView
-								selection={mcpCapabilitiesMcpToolsResource}
-								CollapsibleProps={{ canToggle: false }}
-								collapsible={false}
-								data-column-item="flexible"
-								data-card
-								data-scroll-container
-								open={open}
-								title={label}
-								emptyText='No MCP tools.'
-								id={`${id}-list`}
-							/>
-						</section>
-					{/snippet}
-
-					{#snippet Pending()}
-						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
-							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
-								<span data-tag data-text="muted" data-resource-state="pending" class="loading inline-placeholder" aria-busy="true" aria-label="Loading…">•••</span>
-							</article>
-						</section>
-					{/snippet}
-
-					{#snippet Failed(_error, _retry)}
-						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
-							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
-								<span data-tag data-resource-state="failed" class="inline-placeholder" aria-label="Failed to load">•••</span>
-							</article>
-						</section>
-					{/snippet}
-				</ResourceBoundary>
-			{/snippet}
-
-			{#snippet MarkerMcpPrompts(_context, Content)}
-				{@const mcpCapabilitiesMcpPromptsResource = selection.$$prompts}
-				<ResourceBoundary
-					resource={mcpCapabilitiesMcpPromptsResource}
-				>
-					{#snippet children(_resolved)}
-						{@render Content()}
-					{/snippet}
-
-					{#snippet PendingContent()}
-						{@render Content()}
-					{/snippet}
-
-					{#snippet FailedContent(_error, _retry)}
-						{@render Content()}
-					{/snippet}
-				</ResourceBoundary>
-			{/snippet}
-
-			{#snippet SectionMcpPrompts({ id, label, open, active })}
-				{@const mcpCapabilitiesMcpPromptsResource = selection.$$prompts}
-				<ResourceBoundary
-					resource={mcpCapabilitiesMcpPromptsResource}
-				>
-					{#snippet children(mcpPrompt)}
-						<section
-							id={id}
-							aria-labelledby={`${id}:marker`}
-							data-scroll-marker-label={label}
-							data-column-item="flexible"
-							data-column
-							data-active={active}
-						>
-							<McpPromptsView
-								selection={mcpCapabilitiesMcpPromptsResource}
-								CollapsibleProps={{ canToggle: false }}
-								collapsible={false}
-								data-column-item="flexible"
-								data-card
-								data-scroll-container
-								open={open}
-								title={label}
-								emptyText='No MCP prompts.'
-								id={`${id}-list`}
-							/>
-						</section>
-					{/snippet}
-
-					{#snippet Pending()}
-						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
-							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
-								<span data-tag data-text="muted" data-resource-state="pending" class="loading inline-placeholder" aria-busy="true" aria-label="Loading…">•••</span>
-							</article>
-						</section>
-					{/snippet}
-
-					{#snippet Failed(_error, _retry)}
-						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
-							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
-								<span data-tag data-resource-state="failed" class="inline-placeholder" aria-label="Failed to load">•••</span>
-							</article>
-						</section>
-					{/snippet}
-				</ResourceBoundary>
+			{#snippet SectionMcpPrompts({ id, label, open })}
+				<McpPromptsView
+					selection={selection.$$prompts}
+					CollapsibleProps={{ canToggle: false }}
+					collapsible={false}
+					data-column-item="flexible"
+					data-card
+					data-scroll-container
+					open={open}
+					title={label}
+					emptyText='No MCP prompts.'
+					id={`${id}-list`}
+				/>
 			{/snippet}
 
 		</CollapsibleTabs>
@@ -451,12 +250,10 @@
 					{
 						id: 'mcp-resource-list',
 						label: 'Resources',
-						ownsSection: true,
 					},
 					{
 						id: 'mcp-resource-templates',
 						label: 'Resource templates',
-						ownsSection: true,
 					},
 				]
 			}
@@ -469,136 +266,34 @@
 				</header>
 			{/snippet}
 
-			{#snippet MarkerMcpResourceList(_context, Content)}
-				{@const mcpResourcesMcpResourceListResource = selection.$$resources}
-				<ResourceBoundary
-					resource={mcpResourcesMcpResourceListResource}
-				>
-					{#snippet children(_resolved)}
-						{@render Content()}
-					{/snippet}
-
-					{#snippet PendingContent()}
-						{@render Content()}
-					{/snippet}
-
-					{#snippet FailedContent(_error, _retry)}
-						{@render Content()}
-					{/snippet}
-				</ResourceBoundary>
+			{#snippet SectionMcpResourceList({ id, label, open })}
+				<McpResourcesView
+					selection={selection.$$resources}
+					CollapsibleProps={{ canToggle: false }}
+					collapsible={false}
+					data-column-item="flexible"
+					data-card
+					data-scroll-container
+					open={open}
+					title={label}
+					emptyText='No MCP resources.'
+					id={`${id}-list`}
+				/>
 			{/snippet}
 
-			{#snippet SectionMcpResourceList({ id, label, open, active })}
-				{@const mcpResourcesMcpResourceListResource = selection.$$resources}
-				<ResourceBoundary
-					resource={mcpResourcesMcpResourceListResource}
-				>
-					{#snippet children(mcpResource)}
-						<section
-							id={id}
-							aria-labelledby={`${id}:marker`}
-							data-scroll-marker-label={label}
-							data-column-item="flexible"
-							data-column
-							data-active={active}
-						>
-							<McpResourcesView
-								selection={mcpResourcesMcpResourceListResource}
-								CollapsibleProps={{ canToggle: false }}
-								collapsible={false}
-								data-column-item="flexible"
-								data-card
-								data-scroll-container
-								open={open}
-								title={label}
-								emptyText='No MCP resources.'
-								id={`${id}-list`}
-							/>
-						</section>
-					{/snippet}
-
-					{#snippet Pending()}
-						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
-							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
-								<span data-tag data-text="muted" data-resource-state="pending" class="loading inline-placeholder" aria-busy="true" aria-label="Loading…">•••</span>
-							</article>
-						</section>
-					{/snippet}
-
-					{#snippet Failed(_error, _retry)}
-						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
-							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
-								<span data-tag data-resource-state="failed" class="inline-placeholder" aria-label="Failed to load">•••</span>
-							</article>
-						</section>
-					{/snippet}
-				</ResourceBoundary>
-			{/snippet}
-
-			{#snippet MarkerMcpResourceTemplates(_context, Content)}
-				{@const mcpResourcesMcpResourceTemplatesResource = selection.$$resourceTemplates}
-				<ResourceBoundary
-					resource={mcpResourcesMcpResourceTemplatesResource}
-				>
-					{#snippet children(_resolved)}
-						{@render Content()}
-					{/snippet}
-
-					{#snippet PendingContent()}
-						{@render Content()}
-					{/snippet}
-
-					{#snippet FailedContent(_error, _retry)}
-						{@render Content()}
-					{/snippet}
-				</ResourceBoundary>
-			{/snippet}
-
-			{#snippet SectionMcpResourceTemplates({ id, label, open, active })}
-				{@const mcpResourcesMcpResourceTemplatesResource = selection.$$resourceTemplates}
-				<ResourceBoundary
-					resource={mcpResourcesMcpResourceTemplatesResource}
-				>
-					{#snippet children(mcpResourceTemplate)}
-						<section
-							id={id}
-							aria-labelledby={`${id}:marker`}
-							data-scroll-marker-label={label}
-							data-column-item="flexible"
-							data-column
-							data-active={active}
-						>
-							<McpResourceTemplatesView
-								selection={mcpResourcesMcpResourceTemplatesResource}
-								CollapsibleProps={{ canToggle: false }}
-								collapsible={false}
-								data-column-item="flexible"
-								data-card
-								data-scroll-container
-								open={open}
-								title={label}
-								emptyText='No MCP resource templates.'
-								id={`${id}-list`}
-							/>
-						</section>
-					{/snippet}
-
-					{#snippet Pending()}
-						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
-							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
-								<span data-tag data-text="muted" data-resource-state="pending" class="loading inline-placeholder" aria-busy="true" aria-label="Loading…">•••</span>
-							</article>
-						</section>
-					{/snippet}
-
-					{#snippet Failed(_error, _retry)}
-						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
-							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
-								<span data-tag data-resource-state="failed" class="inline-placeholder" aria-label="Failed to load">•••</span>
-							</article>
-						</section>
-					{/snippet}
-				</ResourceBoundary>
+			{#snippet SectionMcpResourceTemplates({ id, label, open })}
+				<McpResourceTemplatesView
+					selection={selection.$$resourceTemplates}
+					CollapsibleProps={{ canToggle: false }}
+					collapsible={false}
+					data-column-item="flexible"
+					data-card
+					data-scroll-container
+					open={open}
+					title={label}
+					emptyText='No MCP resource templates.'
+					id={`${id}-list`}
+				/>
 			{/snippet}
 
 		</CollapsibleTabs>
@@ -611,7 +306,6 @@
 					{
 						id: 'mcp-server-observations',
 						label: 'Observations',
-						ownsSection: true,
 					},
 				]
 			}
@@ -624,70 +318,19 @@
 				</header>
 			{/snippet}
 
-			{#snippet MarkerMcpServerObservations(_context, Content)}
-				{@const mcpObservationsMcpServerObservationsResource = selection.$$timestamps}
-				<ResourceBoundary
-					resource={mcpObservationsMcpServerObservationsResource}
-				>
-					{#snippet children(_resolved)}
-						{@render Content()}
-					{/snippet}
-
-					{#snippet PendingContent()}
-						{@render Content()}
-					{/snippet}
-
-					{#snippet FailedContent(_error, _retry)}
-						{@render Content()}
-					{/snippet}
-				</ResourceBoundary>
-			{/snippet}
-
-			{#snippet SectionMcpServerObservations({ id, label, open, active })}
-				{@const mcpObservationsMcpServerObservationsResource = selection.$$timestamps}
-				<ResourceBoundary
-					resource={mcpObservationsMcpServerObservationsResource}
-				>
-					{#snippet children(mcpServerTimestamp)}
-						<section
-							id={id}
-							aria-labelledby={`${id}:marker`}
-							data-scroll-marker-label={label}
-							data-column-item="flexible"
-							data-column
-							data-active={active}
-						>
-							<McpServer_TimestampsView
-								selection={mcpObservationsMcpServerObservationsResource}
-								CollapsibleProps={{ canToggle: false }}
-								collapsible={false}
-								data-column-item="flexible"
-								data-card
-								data-scroll-container
-								open={open}
-								title={label}
-								emptyText='No MCP server observations.'
-								id={`${id}-list`}
-							/>
-						</section>
-					{/snippet}
-
-					{#snippet Pending()}
-						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
-							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
-								<span data-tag data-text="muted" data-resource-state="pending" class="loading inline-placeholder" aria-busy="true" aria-label="Loading…">•••</span>
-							</article>
-						</section>
-					{/snippet}
-
-					{#snippet Failed(_error, _retry)}
-						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
-							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
-								<span data-tag data-resource-state="failed" class="inline-placeholder" aria-label="Failed to load">•••</span>
-							</article>
-						</section>
-					{/snippet}
-				</ResourceBoundary>
+			{#snippet SectionMcpServerObservations({ id, label, open })}
+				<McpServer_TimestampsView
+					selection={selection.$$timestamps}
+					CollapsibleProps={{ canToggle: false }}
+					collapsible={false}
+					data-column-item="flexible"
+					data-card
+					data-scroll-container
+					open={open}
+					title={label}
+					emptyText='No MCP server observations.'
+					id={`${id}-list`}
+				/>
 			{/snippet}
 
 		</CollapsibleTabs>

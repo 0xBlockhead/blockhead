@@ -11,8 +11,6 @@ import {
 	EntityMetaKey,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import { XPostSelector } from '$/schema/XPost.ts'
-import { XUserSelector } from '$/schema/XUser.ts'
 import { Source } from '$/sources/Source.ts'
 
 const fxEmbedQueries = vi.hoisted(() => ({
@@ -66,7 +64,7 @@ describe('X reading identity and observation contract', () => {
 			},
 		})
 
-		await expect(fxEmbedResolvers.resolvers[0].resolve[XUserSelector.Username].resolve(
+		await expect(fxEmbedResolvers.resolvers[0].resolve['Username'].resolve(
 			{ username: 'former_reader' },
 			context
 		)).resolves.toMatchObject({
@@ -99,7 +97,7 @@ describe('X reading identity and observation contract', () => {
 			},
 		})
 
-		await expect(fxEmbedResolvers.resolvers[5].resolve[XUserSelector.Username].resolve(
+		await expect(fxEmbedResolvers.resolvers[5].resolve['Username'].resolve(
 			{ username: 'fixture_reader' },
 			context
 		)).resolves.toEqual([{
@@ -116,7 +114,7 @@ describe('X reading identity and observation contract', () => {
 				[entityFieldAddressKey(EntityType.XUser_Timestamp, [], 'tweetCount')]: 0,
 			},
 		}])
-		await expect(xResolvers.resolvers[2].resolve[XPostSelector.Id].resolve(
+		await expect(xResolvers.resolvers[2].resolve['Id'].resolve(
 			{ id: '1890000000000000000' },
 			context
 		)).resolves.toEqual([{
@@ -173,7 +171,7 @@ describe('X reading identity and observation contract', () => {
 			},
 		})
 
-		const page = await xResolvers.resolvers[4].resolve[XUserSelector.Id].resolve(
+		const page = await xResolvers.resolvers[4].resolve['Id'].resolve(
 			{ id: '44196397' },
 			context
 		)
@@ -234,7 +232,7 @@ describe('X reading identity and observation contract', () => {
 			},
 		})
 
-		await expect(fxEmbedResolvers.resolvers[1].resolve[XPostSelector.Id].resolve(
+		await expect(fxEmbedResolvers.resolvers[1].resolve['Id'].resolve(
 			{ id: '1890000000000000000' },
 			context
 		)).resolves.toMatchObject({
@@ -274,7 +272,7 @@ describe('X reading identity and observation contract', () => {
 			},
 		})
 
-		await expect(xResolvers.resolvers[1].resolve[XPostSelector.Id].resolve(
+		await expect(xResolvers.resolvers[1].resolve['Id'].resolve(
 			{ id: '1890000000000000000' },
 			context
 		)).resolves.toMatchObject({
@@ -312,7 +310,7 @@ describe('X reading identity and observation contract', () => {
 				},
 			},
 		})
-		await expect(fxEmbedResolvers.resolvers[1].resolve[XPostSelector.Id].resolve(
+		await expect(fxEmbedResolvers.resolvers[1].resolve['Id'].resolve(
 			{ id: '1890000000000000000' },
 			context
 		)).resolves.toMatchObject({
@@ -338,7 +336,7 @@ describe('X reading identity and observation contract', () => {
 				},
 			},
 		})
-		await expect(fxEmbedResolvers.resolvers[1].resolve[XPostSelector.Id].resolve(
+		await expect(fxEmbedResolvers.resolvers[1].resolve['Id'].resolve(
 			{ id: '1890000000000000000' },
 			context
 		)).resolves.not.toHaveProperty('$quotedPost')
@@ -348,7 +346,7 @@ describe('X reading identity and observation contract', () => {
 		xQueries.getTweet.mockResolvedValueOnce({
 			data: { id: '1880000000000000000' },
 		})
-		await expect(xResolvers.resolvers[1].resolve[XPostSelector.Id].resolve(
+		await expect(xResolvers.resolvers[1].resolve['Id'].resolve(
 			{ id: '1890000000000000000' },
 			context
 		)).rejects.toThrow('post id mismatch')
@@ -359,7 +357,7 @@ describe('X reading identity and observation contract', () => {
 				id: '1880000000000000000',
 			},
 		})
-		await expect(fxEmbedResolvers.resolvers[1].resolve[XPostSelector.Id].resolve(
+		await expect(fxEmbedResolvers.resolvers[1].resolve['Id'].resolve(
 			{ id: '1890000000000000000' },
 			context
 		)).rejects.toThrow('post id mismatch')
@@ -370,7 +368,7 @@ describe('X reading identity and observation contract', () => {
 				screen_name: 'fixture_reader',
 			},
 		})
-		await expect(fxEmbedResolvers.resolvers[0].resolve[XUserSelector.Id].resolve(
+		await expect(fxEmbedResolvers.resolvers[0].resolve['Id'].resolve(
 			{ id: '44196397' },
 			context
 		)).rejects.toThrow('user id mismatch')
@@ -380,7 +378,7 @@ describe('X reading identity and observation contract', () => {
 				username: 'fixture_reader',
 			},
 		})
-		await expect(xResolvers.resolvers[0].resolve[XUserSelector.Id].resolve(
+		await expect(xResolvers.resolvers[0].resolve['Id'].resolve(
 			{ id: '44196397' },
 			context
 		)).rejects.toThrow('user id mismatch')

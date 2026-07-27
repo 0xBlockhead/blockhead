@@ -1,23 +1,6 @@
 import { CoinId } from '$/constants/Coin.ts'
 import { MarketVenueId } from '$/constants/MarketVenue.ts'
 
-/** Demo vs pro API hosts (REST path {@link pathPrefix}). */
-export const demoOrigin = 'https://api.coingecko.com' as const
-export const proOrigin = 'https://pro-api.coingecko.com' as const
-
-export const coingeckoOrigins = [
-	{
-		origin: demoOrigin,
-		corsEnabled: false,
-	},
-] as const
-
-export const pathPrefix = '/api/v3' as const
-
-export const demoBaseUrl = `${demoOrigin}${pathPrefix}` as const
-
-export const proBaseUrl = `${proOrigin}${pathPrefix}` as const
-
 const catalog: readonly {
 	coinId: CoinId
 	wireId?: string

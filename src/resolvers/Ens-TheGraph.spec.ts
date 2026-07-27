@@ -5,13 +5,8 @@ import {
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import type { EnsSubgraphDomain } from '$/sources/TheGraph/Graphql/Ens/types.ts'
-import { EnsNameSelector } from '$/schema/EnsName.ts'
-import { EnsName_TimestampSelector } from '$/schema/EnsName_Timestamp.ts'
-import { EnsRecordSelector } from '$/schema/EnsRecord.ts'
-import { BlockheadEnsNameSearchSelector } from '$/schema/BlockheadEnsNameSearch.ts'
-import { EvmAccountSelector } from '$/schema/EvmAccount.ts'
-import { _GlobalEnsNetwork_TimestampSelector } from '$/schema/_GlobalEnsNetwork_Timestamp.ts'
 import { Source } from '$/sources/Source.ts'
+import bindings from '$/sources/TheGraph/bindings.ts'
 
 
 const getName = vi.fn()
@@ -151,7 +146,7 @@ describe('Ens-TheGraph entity resolver', () => {
 		expect(ensNameResolver).toBeDefined()
 		getName.mockResolvedValueOnce([vitalikDomainWire])
 
-		const resolvedEntity = await ensNameResolver.resolve[EnsNameSelector.NormalizedName].resolve(
+		const resolvedEntity = await ensNameResolver.resolve['NormalizedName'].resolve(
 			{ name: 'vitalik.eth' },
 			resolverContext
 		)
@@ -226,7 +221,7 @@ describe('Ens-TheGraph entity resolver', () => {
 			owner: null,
 		}])
 
-		const resolvedEntity = await ensNameResolver.resolve[EnsNameSelector.NormalizedName].resolve(
+		const resolvedEntity = await ensNameResolver.resolve['NormalizedName'].resolve(
 			{ name: 'vitalik.eth' },
 			resolverContext
 		)
@@ -244,7 +239,7 @@ describe('Ens-TheGraph global observation resolver', () => {
 
 		await expect(
 			globalEnsNetworkTimestampResolver.resolve[
-				_GlobalEnsNetwork_TimestampSelector.HubTimestampMsSource
+				'HubTimestampMsSource'
 			].resolve(
 				{
 					$hub: {
@@ -272,7 +267,7 @@ describe('Ens-TheGraph global observation resolver', () => {
 
 		await expect(
 			globalEnsNetworkTimestampResolver.resolve[
-				_GlobalEnsNetwork_TimestampSelector.HubTimestampMsSource
+				'HubTimestampMsSource'
 			].resolve(
 				{
 					$hub: {
@@ -293,7 +288,7 @@ describe('Ens-TheGraph global observation resolver', () => {
 
 		await expect(
 			globalEnsNetworkTimestampResolver.resolve[
-				_GlobalEnsNetwork_TimestampSelector.HubTimestampMsSource
+				'HubTimestampMsSource'
 			].resolve(
 				{
 					$hub: {
@@ -316,7 +311,7 @@ describe('Ens-TheGraph ENS name observation resolver', () => {
 
 		await expect(
 			ensNameTimestampResolver.resolve[
-				EnsName_TimestampSelector.NameTimestampMsSource
+				'NameTimestampMsSource'
 			].resolve(
 				{
 					$name: {
@@ -358,7 +353,7 @@ describe('Ens-TheGraph ENS name observation resolver', () => {
 
 		await expect(
 			ensNameTimestampResolver.resolve[
-				EnsName_TimestampSelector.NameTimestampMsSource
+				'NameTimestampMsSource'
 			].resolve(
 				{
 					$name: {
@@ -377,7 +372,7 @@ describe('Ens-TheGraph ENS name observation resolver', () => {
 describe('Ens-TheGraph EnsRecord resolver', () => {
 	it('derives text and coin record display fields from record keys', () => {
 		expect(
-			ensRecordResolver.resolve[EnsRecordSelector.NameRecordKey].resolve(
+			ensRecordResolver.resolve['NameRecordKey'].resolve(
 				{
 					$name: {
 						name: 'vitalik.eth',
@@ -391,7 +386,7 @@ describe('Ens-TheGraph EnsRecord resolver', () => {
 			recordKind: 'text',
 		})
 		expect(
-			ensRecordResolver.resolve[EnsRecordSelector.NameRecordKey].resolve(
+			ensRecordResolver.resolve['NameRecordKey'].resolve(
 				{
 					$name: {
 						name: 'vitalik.eth',
@@ -422,7 +417,7 @@ describe('Ens-TheGraph $$ensNamesOwned field resolver', () => {
 			},
 		])
 
-		const resolvedEntity = await ensNamesOwnedResolver.resolve[EvmAccountSelector.AddressInteropAddress].resolve(
+		const resolvedEntity = await ensNamesOwnedResolver.resolve['AddressInteropAddress'].resolve(
 			{
 				address: '0xd8da6bf26964af9d7eed9e03e53415d37aa96045',
 				interopAddress: 'eip155:1:0xd8da6bf26964af9d7eed9e03e53415d37aa96045',
@@ -453,7 +448,7 @@ describe('Ens-TheGraph BlockheadEnsNameSearch $$matchingNames field resolver', (
 			},
 		])
 
-		const resolvedEntity = await ensNameSearchResolver.resolve[BlockheadEnsNameSearchSelector.Query].resolve(
+		const resolvedEntity = await ensNameSearchResolver.resolve['Query'].resolve(
 			{ query: 'vitalik' },
 			{
 				...resolverContext,

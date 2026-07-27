@@ -2,13 +2,9 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
 
 
 	// Context
@@ -20,40 +16,18 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.BlockheadFedimintClientState>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.BlockheadFedimintClientState>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.BlockheadFedimintClientState> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const blockheadFedimintClientState = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {
-			clientName: true,
-		},
-	} : {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const blockheadFedimintClientState = $derived(selection({
 		fields: {
 			clientName: true,
 		},
 	}))
-	const titleFallback = $derived([String((pendingEntity.clientName) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.clientId) ?? '')].filter(Boolean).join(' ') || 'blockhead Fedimint client state')
-	const viewDomId = $derived('blockhead-fedimint-client-state-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const titleFallback = $derived((pendingEntity.clientName ?? '') || (pendingEntity.clientId ?? '') || 'blockhead Fedimint client state')
 
 
 	// Components
@@ -67,38 +41,22 @@
 
 <EntityView
 	entityType={EntityType.BlockheadFedimintClientState}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'clientName')}
-			{[String((pendingEntity.clientName) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-		{:else}
-			<ResourceBoundary resource={blockheadFedimintClientState}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.clientName) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={blockheadFedimintClientState}>
+			{#snippet children(entity)}
+				{(entity.clientName ?? '') || title || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Value()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'clientName')}
-			{[String((pendingEntity.federationId) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.clientName) ?? '')].filter(Boolean).join(' ') || titleFallback}
-		{:else}
-			<ResourceBoundary resource={blockheadFedimintClientState}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.federationId) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.clientName) ?? '')].filter(Boolean).join(' ') || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		{(pendingEntity.federationId ?? '') || (pendingEntity.clientName ?? '') || titleFallback}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -106,45 +64,20 @@
 			<div>
 				<dt>client ID</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									clientId: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const clientId = resolvedEntity.clientId}
-							{#if clientId !== undefined && clientId !== null}
-								{String((clientId) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{pendingEntity.clientId}
 				</dd>
 			</div>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							clientName: true,
-						},
-					})
-				}
+				resource={blockheadFedimintClientState}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const clientName = resolvedEntity.clientName}
-					{#if clientName !== undefined && clientName !== null}
+					{@const clientName = entity.clientName}
+					{#if clientName != null}
 						<div>
 							<dt>client name</dt>
 							<dd>
-								{String((clientName) ?? '')}
+								{clientName}
 							</dd>
 						</div>
 					{/if}
@@ -154,24 +87,7 @@
 			<div>
 				<dt>federation ID</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									federationId: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const federationId = resolvedEntity.federationId}
-							{#if federationId !== undefined && federationId !== null}
-								{String((federationId) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{pendingEntity.federationId}
 				</dd>
 			</div>
 
@@ -182,14 +98,12 @@
 						resource={selection.$federation}
 					>
 						{#snippet children(fedimintFederation)}
-							{#if fedimintFederation != null && fedimintFederation[EntityMetaKey.Selector] != null}
-								<FedimintFederationView
-									selection={select(EntityType.FedimintFederation, fedimintFederation[EntityMetaKey.Selector])}
-									prefetched={fedimintFederation}
-									layout={EntityLayout.Value}
-									open={false}
-								/>
-							{/if}
+							<FedimintFederationView
+								selection={select(EntityType.FedimintFederation, fedimintFederation[EntityMetaKey.Selector])}
+								prefetched={fedimintFederation}
+								layout={EntityLayout.Value}
+								open={false}
+							/>
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -198,7 +112,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							inviteCode: true,
 						},
@@ -206,13 +119,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const inviteCode = resolvedEntity.inviteCode}
-					{#if inviteCode !== undefined && inviteCode !== null}
+					{@const inviteCode = entity.inviteCode}
+					{#if inviteCode != null}
 						<div>
 							<dt>invite code</dt>
 							<dd>
-								{String((inviteCode) ?? '')}
+								{inviteCode}
 							</dd>
 						</div>
 					{/if}
@@ -222,7 +134,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							mnemonicSet: true,
 						},
@@ -230,9 +141,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const mnemonicSet = resolvedEntity.mnemonicSet}
-					{#if mnemonicSet !== undefined && mnemonicSet !== null}
+					{@const mnemonicSet = entity.mnemonicSet}
+					{#if mnemonicSet != null}
 						<div>
 							<dt>mnemonic set</dt>
 							<dd>
@@ -248,7 +158,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							guardianThreshold: true,
 						},
@@ -256,9 +165,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const guardianThreshold = resolvedEntity.guardianThreshold}
-					{#if guardianThreshold !== undefined && guardianThreshold !== null}
+					{@const guardianThreshold = entity.guardianThreshold}
+					{#if guardianThreshold != null}
 						<div>
 							<dt>guardian threshold</dt>
 							<dd>
@@ -274,7 +182,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							moduleConfigJson: true,
 						},
@@ -282,13 +189,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const moduleConfigJson = resolvedEntity.moduleConfigJson}
-					{#if moduleConfigJson !== undefined && moduleConfigJson !== null}
+					{@const moduleConfigJson = entity.moduleConfigJson}
+					{#if moduleConfigJson != null}
 						<div>
 							<dt>module config JSON</dt>
 							<dd>
-								{String((moduleConfigJson) ?? '')}
+								{moduleConfigJson}
 							</dd>
 						</div>
 					{/if}
@@ -298,7 +204,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							joinedAt: true,
 						},
@@ -306,9 +211,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const joinedAt = resolvedEntity.joinedAt}
-					{#if joinedAt !== undefined && joinedAt !== null}
+					{@const joinedAt = entity.joinedAt}
+					{#if joinedAt != null}
 						<div>
 							<dt>joined AT</dt>
 							<dd>
@@ -322,7 +226,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							viewingKeyJson: true,
 						},
@@ -330,13 +233,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const viewingKeyJson = resolvedEntity.viewingKeyJson}
-					{#if viewingKeyJson !== undefined && viewingKeyJson !== null}
+					{@const viewingKeyJson = entity.viewingKeyJson}
+					{#if viewingKeyJson != null}
 						<div>
 							<dt>viewing key JSON</dt>
 							<dd>
-								{String((viewingKeyJson) ?? '')}
+								{viewingKeyJson}
 							</dd>
 						</div>
 					{/if}
@@ -352,12 +254,12 @@
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
-				<BlockheadFedimintClientState_TimestampsView
-					selection={blockheadFedimintClientStateBlockheadFedimintClientStateTimestampsViewTimestampsResource}
-					countResource={blockheadFedimintClientStateBlockheadFedimintClientStateTimestampsViewTimestampsResource.count}
-					title='timestamps'
-					id='BlockheadFedimintClientState_TimestampsView-timestamps'
-				/>
+					<BlockheadFedimintClientState_TimestampsView
+						selection={blockheadFedimintClientStateBlockheadFedimintClientStateTimestampsViewTimestampsResource}
+						countResource={blockheadFedimintClientStateBlockheadFedimintClientStateTimestampsViewTimestampsResource.count}
+						title='timestamps'
+						id='timestamps'
+					/>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>

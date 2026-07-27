@@ -2,69 +2,32 @@
 
 <script lang="ts">
 	// Types/constants
-	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
-	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
-	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
+	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-
-
 
 
 	// State
 	let {
 		selection,
-		countResource,
 		title = 'Blockhead Monero output state observations',
-		typeAnnotationParagraphs = [],
-		placeholderText = undefined,
-		emptyText = undefined,
 		open = $bindable(true),
-		collapsible = true,
-		showTypeAnnotation = true,
-		id = 'BlockheadMoneroOutputState_Timestamps-list',
 		...EntitiesListProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyEntitiesSelection<EntityType.BlockheadMoneroOutputState_Timestamp>
-			countResource?: SvelteKitResource<number>
-			title?: string
-			typeAnnotationParagraphs?: string[]
-			placeholderText?: string
-			emptyText?: string
-			open?: boolean
-			collapsible?: boolean
-			showTypeAnnotation?: boolean
-			id?: string
-		},
-		EntitiesListForwardProps
-	> = $props()
+	}: EntityListViewProps<EntityType.BlockheadMoneroOutputState_Timestamp> = $props()
 
 
 	// Components
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView from '$/components/EntityView.svelte'
 </script>
 
-
-{#snippet TypeAnnotationParagraphs()}
-	{#each typeAnnotationParagraphs as paragraph (paragraph)}
-		<p>{paragraph}</p>
-	{/each}
-{/snippet}
 
 <EntitiesList
 	{...EntitiesListProps}
 	entityType={EntityType.BlockheadMoneroOutputState_Timestamp}
-	{id}
 	{title}
 	bind:open
-	{collapsible}
-	{showTypeAnnotation}
-	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
 	resource={
 		selection({
-			sources: selection.sources,
 			fields: {
 				timestampMs: true,
 				spent: true,
@@ -73,38 +36,23 @@
 			},
 		})
 	}
-	{countResource}
-	getResourceItems={(blockheadMoneroOutputStateTimestamps) => [...new Map(blockheadMoneroOutputStateTimestamps.values.map((blockheadMoneroOutputStateTimestamp) => [blockheadMoneroOutputStateTimestamp[EntityMetaKey.SelectorKey], blockheadMoneroOutputStateTimestamp])).values()]}
-	getKey={(blockheadMoneroOutputStateTimestamp) => blockheadMoneroOutputStateTimestamp[EntityMetaKey.SelectorKey]}
-	{placeholderText}
 >
-	{#snippet Empty()}
-		{#if emptyText != null}
-			<p data-text="muted">{emptyText}</p>
-		{:else}
-			<p data-text="muted">No Blockhead monero output state observations yet.</p>
-		{/if}
-	{/snippet}
-
 	{#snippet Item({ item: blockheadMoneroOutputStateTimestamp })}
-		{@const blockheadMoneroOutputStateTimestampFields = { ...blockheadMoneroOutputStateTimestamp[EntityMetaKey.Selector], ...blockheadMoneroOutputStateTimestamp }}
+		{@const blockheadMoneroOutputStateTimestampSelector = blockheadMoneroOutputStateTimestamp[EntityMetaKey.Selector]}
 		<EntityView
 			entityType={EntityType.BlockheadMoneroOutputState_Timestamp}
-			entitySelector={blockheadMoneroOutputStateTimestamp[EntityMetaKey.Selector]}
-			layout={EntityLayout.Summary}
-			open={false}
-			showTypeAnnotation={false}
+			entitySelector={blockheadMoneroOutputStateTimestampSelector}
 		>
 			{#snippet Title()}
-				{[String((blockheadMoneroOutputStateTimestampFields.timestampMs) ?? '')].filter(Boolean).join(' ') || 'blockhead monero output state timestamp'}
+				{String(blockheadMoneroOutputStateTimestampSelector.timestampMs) || 'blockhead monero output state timestamp'}
 			{/snippet}
 
 			{#snippet Value()}
-				{[String((blockheadMoneroOutputStateTimestampFields.spent) ?? ''), String((blockheadMoneroOutputStateTimestampFields.unlocked) ?? '')].filter(Boolean).join(' ')}
+				{[String(blockheadMoneroOutputStateTimestamp.spent ?? ''), String(blockheadMoneroOutputStateTimestamp.unlocked ?? '')].filter(Boolean).join(' ')}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{[String((blockheadMoneroOutputStateTimestampFields.confirmations) ?? '')].filter(Boolean).join(' ')}</span>
+				<span data-text="annotation">{String(blockheadMoneroOutputStateTimestamp.confirmations ?? '')}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

@@ -2,15 +2,9 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
-	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -22,40 +16,18 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.ElementsPeg>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.ElementsPeg>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.ElementsPeg> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const elementsPeg = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {
-			amountSats: true,
-		},
-	} : {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const elementsPeg = $derived(selection({
 		fields: {
 			amountSats: true,
 		},
 	}))
-	const titleFallback = $derived([String((pendingEntity.direction) ?? ''), String((pendingEntity.pegTransactionId) ?? '')].filter(Boolean).join(' ') || 'Elements peg')
-	const viewDomId = $derived('elements-peg-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const titleFallback = $derived([(pendingEntity.direction ?? ''), (pendingEntity.pegTransactionId ?? '')].filter(Boolean).join(' ') || 'Elements peg')
 
 
 	// Components
@@ -70,48 +42,27 @@
 
 <EntityView
 	entityType={EntityType.ElementsPeg}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'amountSats')}
-			{[String((pendingEntity.direction) ?? ''), String((pendingEntity.pegTransactionId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-		{:else}
-			<ResourceBoundary resource={elementsPeg}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.direction) ?? ''), String((resolvedEntity.pegTransactionId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		{[(pendingEntity.direction ?? ''), (pendingEntity.pegTransactionId ?? '')].filter(Boolean).join(' ') || 'Elements peg'}
 	{/snippet}
 
 	{#snippet Value()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'amountSats')}
-			{@const amountSats0 = pendingEntity.amountSats}
-			{#if amountSats0 !== undefined && amountSats0 !== null}
-				<NumberValue
-					value={amountSats0}
-				/>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={elementsPeg}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const amountSats0 = resolvedEntity.amountSats}
-					{#if amountSats0 !== undefined && amountSats0 !== null}
-						<NumberValue
-							value={amountSats0}
-						/>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={elementsPeg}>
+			{#snippet children(entity)}
+				{@const amountSats0 = entity.amountSats}
+				{#if amountSats0 != null}
+					<NumberValue
+						value={amountSats0}
+					/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -130,65 +81,23 @@
 			<div>
 				<dt>Direction</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									direction: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const direction = resolvedEntity.direction}
-							{#if direction !== undefined && direction !== null}
-								{String((direction) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{pendingEntity.direction}
 				</dd>
 			</div>
 
 			<div>
 				<dt>Peg transaction ID</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									pegTransactionId: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const pegTransactionId = resolvedEntity.pegTransactionId}
-							{#if pegTransactionId !== undefined && pegTransactionId !== null}
-								<TruncatedValue value={String((pegTransactionId) ?? '')} />
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					<TruncatedValue value={pendingEntity.pegTransactionId} />
 				</dd>
 			</div>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							amountSats: true,
-						},
-					})
-				}
+				resource={elementsPeg}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const amountSats = resolvedEntity.amountSats}
-					{#if amountSats !== undefined && amountSats !== null}
+					{@const amountSats = entity.amountSats}
+					{#if amountSats != null}
 						<div>
 							<dt>Amount sats</dt>
 							<dd>
@@ -205,37 +114,13 @@
 				resource={selection.$bitcoinTransaction}
 			>
 				{#snippet children(utxoTransaction)}
-					{#if utxoTransaction != null && utxoTransaction[EntityMetaKey.Selector] != null}
+					{#if utxoTransaction != null}
 						<div>
 							<dt>Bitcoin transaction</dt>
 							<dd>
 								<UtxoTransactionView
 									selection={select(EntityType.UtxoTransaction, utxoTransaction[EntityMetaKey.Selector])}
 									prefetched={utxoTransaction}
-									href={
-										(
-											utxoTransaction[EntityMetaKey.Selector] != null && 'txId' in utxoTransaction[EntityMetaKey.Selector]
-											&& utxoTransaction[EntityMetaKey.Selector].txId != null
-											&& utxoTransaction[EntityMetaKey.Selector] != null && '$network' in utxoTransaction[EntityMetaKey.Selector] ?
-												utxoTransaction[EntityMetaKey.Selector].$network != null && 'caip2' in utxoTransaction[EntityMetaKey.Selector].$network
-												&& utxoTransaction[EntityMetaKey.Selector].$network.caip2 != null ?
-													resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]', {
-												transactionId: String(utxoTransaction[EntityMetaKey.Selector].txId ?? ''),
-												network: String(caip2StringFromValue(utxoTransaction[EntityMetaKey.Selector].$network.caip2) ?? ''),
-											})
-											:
-													utxoTransaction[EntityMetaKey.Selector].$network != null && 'slug' in utxoTransaction[EntityMetaKey.Selector].$network
-													&& utxoTransaction[EntityMetaKey.Selector].$network.slug != null ?
-														resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]', {
-													transactionId: String(utxoTransaction[EntityMetaKey.Selector].txId ?? ''),
-													network: String(utxoTransaction[EntityMetaKey.Selector].$network.slug ?? ''),
-												})
-												:
-													undefined
-										:
-												undefined
-										)
-									}
 									layout={EntityLayout.Value}
 									open={false}
 								/>
@@ -249,37 +134,13 @@
 				resource={selection.$elementsTransaction}
 			>
 				{#snippet children(utxoTransaction)}
-					{#if utxoTransaction != null && utxoTransaction[EntityMetaKey.Selector] != null}
+					{#if utxoTransaction != null}
 						<div>
 							<dt>Elements transaction</dt>
 							<dd>
 								<UtxoTransactionView
 									selection={select(EntityType.UtxoTransaction, utxoTransaction[EntityMetaKey.Selector])}
 									prefetched={utxoTransaction}
-									href={
-										(
-											utxoTransaction[EntityMetaKey.Selector] != null && 'txId' in utxoTransaction[EntityMetaKey.Selector]
-											&& utxoTransaction[EntityMetaKey.Selector].txId != null
-											&& utxoTransaction[EntityMetaKey.Selector] != null && '$network' in utxoTransaction[EntityMetaKey.Selector] ?
-												utxoTransaction[EntityMetaKey.Selector].$network != null && 'caip2' in utxoTransaction[EntityMetaKey.Selector].$network
-												&& utxoTransaction[EntityMetaKey.Selector].$network.caip2 != null ?
-													resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]', {
-												transactionId: String(utxoTransaction[EntityMetaKey.Selector].txId ?? ''),
-												network: String(caip2StringFromValue(utxoTransaction[EntityMetaKey.Selector].$network.caip2) ?? ''),
-											})
-											:
-													utxoTransaction[EntityMetaKey.Selector].$network != null && 'slug' in utxoTransaction[EntityMetaKey.Selector].$network
-													&& utxoTransaction[EntityMetaKey.Selector].$network.slug != null ?
-														resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]', {
-													transactionId: String(utxoTransaction[EntityMetaKey.Selector].txId ?? ''),
-													network: String(utxoTransaction[EntityMetaKey.Selector].$network.slug ?? ''),
-												})
-												:
-													undefined
-										:
-												undefined
-										)
-									}
 									layout={EntityLayout.Value}
 									open={false}
 								/>
@@ -294,7 +155,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							claimScript: true,
 						},
@@ -302,13 +162,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const claimScript = resolvedEntity.claimScript}
-					{#if claimScript !== undefined && claimScript !== null}
+					{@const claimScript = entity.claimScript}
+					{#if claimScript != null}
 						<div>
 							<dt>Claim script</dt>
 							<dd>
-								<TruncatedValue value={String((claimScript) ?? '')} />
+								<TruncatedValue value={claimScript} />
 							</dd>
 						</div>
 					{/if}
@@ -318,7 +177,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							pakProof: true,
 						},
@@ -326,13 +184,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const pakProof = resolvedEntity.pakProof}
-					{#if pakProof !== undefined && pakProof !== null}
+					{@const pakProof = entity.pakProof}
+					{#if pakProof != null}
 						<div>
 							<dt>PAK proof</dt>
 							<dd>
-								<TruncatedValue value={String((pakProof) ?? '')} />
+								<TruncatedValue value={pakProof} />
 							</dd>
 						</div>
 					{/if}
@@ -348,12 +205,12 @@
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
-				<ElementsPeg_TimestampsView
-					selection={elementsPegElementsPegTimestampsViewTimestampsResource}
-					countResource={elementsPegElementsPegTimestampsViewTimestampsResource.count}
-					title='Observations'
-					id='ElementsPeg_TimestampsView-timestamps'
-				/>
+					<ElementsPeg_TimestampsView
+						selection={elementsPegElementsPegTimestampsViewTimestampsResource}
+						countResource={elementsPegElementsPegTimestampsViewTimestampsResource.count}
+						title='Observations'
+						id='timestamps'
+					/>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>

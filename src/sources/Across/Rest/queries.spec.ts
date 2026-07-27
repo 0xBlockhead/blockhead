@@ -7,7 +7,6 @@ import {
 } from 'vitest'
 
 import { Source } from '$/sources/Source.ts'
-import { SourceProvider } from '$/sources/SourceProvider.ts'
 import {
 	ApiFamily,
 	SourceCredentialScope,
@@ -19,10 +18,11 @@ import {
 	type SourceBinding,
 } from '$/sources/SourceBinding.ts'
 
-const getJson = vi.hoisted(() => vi.fn())
+const sourceGetJson = vi.hoisted(() => vi.fn())
 
-vi.mock('$/sources/_shared/wire/HttpRest/client.ts', () => ({
-	getJson,
+vi.mock('$/sources/_runtime/http.ts', async (importOriginal) => ({
+	...await importOriginal<typeof import('$/sources/_runtime/http.ts')>(),
+	sourceGetJson,
 }))
 
 const {
@@ -34,7 +34,6 @@ const {
 } = await import('$/sources/Across/Rest/queries.ts')
 
 const binding = {
-	provider: SourceProvider.Across,
 	source: Source.Across_Rest,
 	target: {
 		kind: SourceTargetKind.Global,
@@ -51,6 +50,7 @@ const binding = {
 	operationGroups: [SourceOperationGroup.GenericRead],
 	delivery: SourceDelivery.HttpProxy,
 	credentials: [{ scope: SourceCredentialScope.None }],
+	proxyId: 'Across_Rest-4',
 } as const satisfies SourceBinding
 
 const depositor = '0xA4d353BBc130cbeF1811f27ac70989F9d568CeAB'
@@ -96,11 +96,11 @@ const deposit = {
 
 describe('Across public bridge observations', () => {
 	beforeEach(() => {
-		getJson.mockReset()
+		sourceGetJson.mockReset()
 	})
 
 	it('preserves deposit, relay, fill, token, amount, fee, and lifecycle identity', async () => {
-		getJson.mockResolvedValue({
+		sourceGetJson.mockResolvedValue({
 			deposit,
 			pagination: {
 				currentIndex: 0,
@@ -126,14 +126,14 @@ describe('Across public bridge observations', () => {
 			},
 			observedBy: 'Across_Rest',
 		})
-		expect(getJson).toHaveBeenCalledWith(
+		expect(sourceGetJson).toHaveBeenCalledWith(
 			binding,
-			`/api/deposit?originChainId=8453&depositId=${depositId}&index=0`
+			`https://app.across.to/api/deposit?originChainId=8453&depositId=${depositId}&index=0`
 		)
 	})
 
 	it('distinguishes multiple deposits in one transaction by index', async () => {
-		getJson.mockResolvedValue({
+		sourceGetJson.mockResolvedValue({
 			deposit,
 			pagination: {
 				currentIndex: 2,
@@ -146,14 +146,14 @@ describe('Across public bridge observations', () => {
 			depositTxnRef,
 			index: 2,
 		})
-		expect(getJson).toHaveBeenCalledWith(
+		expect(sourceGetJson).toHaveBeenCalledWith(
 			binding,
-			`/api/deposit?depositTxnRef=${depositTxnRef}&index=2`
+			`https://app.across.to/api/deposit?depositTxnRef=${depositTxnRef}&index=2`
 		)
 	})
 
 	it('tracks status by lossless origin-chain deposit identity', async () => {
-		getJson.mockResolvedValue({
+		sourceGetJson.mockResolvedValue({
 			status: 'filled',
 			originChainId: 8453,
 			depositId,
@@ -183,19 +183,19 @@ describe('Across public bridge observations', () => {
 	})
 
 	it('bounds depositor pagination and rejects foreign rows', async () => {
-		getJson.mockResolvedValue([deposit])
+		sourceGetJson.mockResolvedValue([deposit])
 		await getDeposits({
 			binding,
 			depositor,
 			limit: 1,
 			skip: 100,
 		})
-		expect(getJson).toHaveBeenCalledWith(
+		expect(sourceGetJson).toHaveBeenCalledWith(
 			binding,
-			`/api/deposits?depositor=${depositor}&limit=1&skip=100`
+			`https://app.across.to/api/deposits?depositor=${depositor}&limit=1&skip=100`
 		)
 
-		getJson.mockResolvedValue([{
+		sourceGetJson.mockResolvedValue([{
 			...deposit,
 			depositor: recipient,
 		}])
@@ -206,7 +206,7 @@ describe('Across public bridge observations', () => {
 	})
 
 	it('preserves quote amounts, fee percentages, limits, and route identity', async () => {
-		getJson.mockResolvedValue({
+		sourceGetJson.mockResolvedValue({
 			estimatedFillTimeSec: 2,
 			capitalFeePct: '78750000000001',
 			capitalFeeTotal: '78750000000001',
@@ -291,7 +291,7 @@ describe('Across public bridge observations', () => {
 			limit: 101,
 		})).rejects.toThrow('invalid page limit')
 
-		getJson.mockResolvedValue({
+		sourceGetJson.mockResolvedValue({
 			deposit: {
 				...deposit,
 				inputAmount: '1.5',
@@ -307,7 +307,7 @@ describe('Across public bridge observations', () => {
 			depositId,
 		})).rejects.toThrow('invalid input amount')
 
-		getJson.mockResolvedValue({
+		sourceGetJson.mockResolvedValue({
 			deposit: {
 				...deposit,
 				fillBlockTimestamp: '2026-07-24T16:10:00.000Z',

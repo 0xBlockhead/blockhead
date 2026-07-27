@@ -8,14 +8,12 @@
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		data,
-		params,
 	}: PageProps = $props()
 
 	const pageSelection = $derived(select(EntityType.FarcasterUser, data.selector, {
@@ -40,17 +38,12 @@
 
 
 <svelte:head>
-	<title>{(data.title ?? (pageSelection.entity == null ? [String((data.selector.fid) ?? '')].filter(Boolean).join(' ') || 'Farcaster user' : [String((({ ...data.selector, ...pageSelection.entity }).displayName) ?? ''), String((({ ...data.selector, ...pageSelection.entity }).username) ?? ''), String((({ ...data.selector, ...pageSelection.entity }).fid) ?? '')].filter(Boolean).join(' ') || 'Farcaster user'))} • Farcaster user • Blockhead</title>
+	<title>{(data.title ?? (pageSelection.entity == null ? String(pageSelection.entitySelector.fid ?? '') || 'Farcaster user' : [(pageSelection.entity.displayName ?? ''), (pageSelection.entity.username ?? ''), String(pageSelection.entitySelector.fid)].filter(Boolean).join(' ') || 'Farcaster user'))} • Farcaster user • Blockhead</title>
 </svelte:head>
 
 
 <Page>
 	<FarcasterUserView
-		href={
-			resolve('/farcaster/user/[userId=farcasterFid]', {
-				userId: params.userId,
-			})
-		}
 		selection={pageSelection}
 	/>
 </Page>

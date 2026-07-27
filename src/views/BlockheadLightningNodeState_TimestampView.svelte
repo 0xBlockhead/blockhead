@@ -2,13 +2,9 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -20,44 +16,27 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.BlockheadLightningNodeState_Timestamp>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.BlockheadLightningNodeState_Timestamp>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.BlockheadLightningNodeState_Timestamp> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const blockheadLightningNodeStateTimestamp = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {
-			syncedToChain: true,
-			syncedToGraph: true,
-			blockHeight: true,
-		},
-	} : {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const viewSelection = $derived(selection({
+		sources: selection.sources ?? [
+			Source.LightningLnd_Grpc,
+			Source.LightningLnd_Rest,
+			Source.Local_Internal,
+		],
+	}))
+	const blockheadLightningNodeStateTimestamp = $derived(viewSelection({
 		fields: {
 			syncedToChain: true,
 			syncedToGraph: true,
 			blockHeight: true,
 		},
 	}))
-	const titleFallback = $derived([String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || 'blockhead Lightning node state timestamp')
-	const viewDomId = $derived('blockhead-lightning-node-state-timestamp-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const titleFallback = $derived(String(pendingEntity.timestampMs ?? '') || 'blockhead Lightning node state timestamp')
 
 
 	// Components
@@ -70,71 +49,37 @@
 
 <EntityView
 	entityType={EntityType.BlockheadLightningNodeState_Timestamp}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'syncedToChain') && Object.hasOwn(prefetched, 'syncedToGraph') && Object.hasOwn(prefetched, 'blockHeight')}
-			{@const timestampMs0 = pendingEntity.timestampMs}
-			{#if timestampMs0 !== undefined && timestampMs0 !== null}
-				<Timestamp timestamp={Number(timestampMs0)} />
-			{/if}
-		{:else}
-			<ResourceBoundary resource={blockheadLightningNodeStateTimestamp}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const timestampMs0 = resolvedEntity.timestampMs}
-					{#if timestampMs0 !== undefined && timestampMs0 !== null}
-						<Timestamp timestamp={Number(timestampMs0)} />
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
 	{/snippet}
 
 	{#snippet Value()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'syncedToChain') && Object.hasOwn(prefetched, 'syncedToGraph') && Object.hasOwn(prefetched, 'blockHeight')}
-			{[String((pendingEntity.syncedToChain) ?? ''), String((pendingEntity.syncedToGraph) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || titleFallback}
-		{:else}
-			<ResourceBoundary resource={blockheadLightningNodeStateTimestamp}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.syncedToChain) ?? ''), String((resolvedEntity.syncedToGraph) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={blockheadLightningNodeStateTimestamp}>
+			{#snippet children(entity)}
+				{[String(entity.syncedToChain ?? ''), String(entity.syncedToGraph ?? '')].filter(Boolean).join(' ') || String(pendingEntity.timestampMs) || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'syncedToChain') && Object.hasOwn(prefetched, 'syncedToGraph') && Object.hasOwn(prefetched, 'blockHeight')}
-			{@const blockHeight0 = pendingEntity.blockHeight}
-			{#if blockHeight0 !== undefined && blockHeight0 !== null}
-				<span data-text="muted">
-					<NumberValue
-						value={blockHeight0}
-					/>
-				</span>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={blockheadLightningNodeStateTimestamp}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const blockHeight0 = resolvedEntity.blockHeight}
-					{#if blockHeight0 !== undefined && blockHeight0 !== null}
-						<span data-text="muted">
-							<NumberValue
-								value={blockHeight0}
-							/>
-						</span>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={blockheadLightningNodeStateTimestamp}>
+			{#snippet children(entity)}
+				{@const blockHeight0 = entity.blockHeight}
+				{#if blockHeight0 != null}
+					<span data-text="muted">
+						<NumberValue
+							value={blockHeight0}
+						/>
+					</span>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -153,65 +98,23 @@
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									timestampMs: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const timestampMs = resolvedEntity.timestampMs}
-							{#if timestampMs !== undefined && timestampMs !== null}
-								<Timestamp timestamp={Number(timestampMs)} />
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									source: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const source = resolvedEntity.source}
-							{#if source !== undefined && source !== null}
-								{String((source) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{pendingEntity.source}
 				</dd>
 			</div>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							syncedToChain: true,
-						},
-					})
-				}
+				resource={blockheadLightningNodeStateTimestamp}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const syncedToChain = resolvedEntity.syncedToChain}
-					{#if syncedToChain !== undefined && syncedToChain !== null}
+					{@const syncedToChain = entity.syncedToChain}
+					{#if syncedToChain != null}
 						<div>
 							<dt>synced to chain</dt>
 							<dd>
@@ -223,19 +126,11 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							syncedToGraph: true,
-						},
-					})
-				}
+				resource={blockheadLightningNodeStateTimestamp}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const syncedToGraph = resolvedEntity.syncedToGraph}
-					{#if syncedToGraph !== undefined && syncedToGraph !== null}
+					{@const syncedToGraph = entity.syncedToGraph}
+					{#if syncedToGraph != null}
 						<div>
 							<dt>synced to graph</dt>
 							<dd>
@@ -249,19 +144,11 @@
 
 		<dl data-column-item="center">
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							blockHeight: true,
-						},
-					})
-				}
+				resource={blockheadLightningNodeStateTimestamp}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const blockHeight = resolvedEntity.blockHeight}
-					{#if blockHeight !== undefined && blockHeight !== null}
+					{@const blockHeight = entity.blockHeight}
+					{#if blockHeight != null}
 						<div>
 							<dt>block height</dt>
 							<dd>
@@ -276,8 +163,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							bestHeaderTimestampMs: true,
 						},
@@ -285,9 +171,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const bestHeaderTimestampMs = resolvedEntity.bestHeaderTimestampMs}
-					{#if bestHeaderTimestampMs !== undefined && bestHeaderTimestampMs !== null}
+					{@const bestHeaderTimestampMs = entity.bestHeaderTimestampMs}
+					{#if bestHeaderTimestampMs != null}
 						<div>
 							<dt>best header timestamp ms</dt>
 							<dd>
@@ -302,8 +187,7 @@
 		<dl data-column-item="center">
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							walletBalanceSats: true,
 						},
@@ -311,9 +195,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const walletBalanceSats = resolvedEntity.walletBalanceSats}
-					{#if walletBalanceSats !== undefined && walletBalanceSats !== null}
+					{@const walletBalanceSats = entity.walletBalanceSats}
+					{#if walletBalanceSats != null}
 						<div>
 							<dt>wallet balance sats</dt>
 							<dd>
@@ -328,8 +211,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							channelBalanceSats: true,
 						},
@@ -337,9 +219,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const channelBalanceSats = resolvedEntity.channelBalanceSats}
-					{#if channelBalanceSats !== undefined && channelBalanceSats !== null}
+					{@const channelBalanceSats = entity.channelBalanceSats}
+					{#if channelBalanceSats != null}
 						<div>
 							<dt>channel balance sats</dt>
 							<dd>
@@ -354,8 +235,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							pendingChannelBalanceSats: true,
 						},
@@ -363,9 +243,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const pendingChannelBalanceSats = resolvedEntity.pendingChannelBalanceSats}
-					{#if pendingChannelBalanceSats !== undefined && pendingChannelBalanceSats !== null}
+					{@const pendingChannelBalanceSats = entity.pendingChannelBalanceSats}
+					{#if pendingChannelBalanceSats != null}
 						<div>
 							<dt>pending channel balance sats</dt>
 							<dd>
@@ -382,8 +261,7 @@
 		<dl data-column-item="center">
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							peerCount: true,
 						},
@@ -391,9 +269,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const peerCount = resolvedEntity.peerCount}
-					{#if peerCount !== undefined && peerCount !== null}
+					{@const peerCount = entity.peerCount}
+					{#if peerCount != null}
 						<div>
 							<dt>peer count</dt>
 							<dd>
@@ -408,8 +285,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							activeChannelCount: true,
 						},
@@ -417,9 +293,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const activeChannelCount = resolvedEntity.activeChannelCount}
-					{#if activeChannelCount !== undefined && activeChannelCount !== null}
+					{@const activeChannelCount = entity.activeChannelCount}
+					{#if activeChannelCount != null}
 						<div>
 							<dt>active channel count</dt>
 							<dd>
@@ -434,8 +309,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							inactiveChannelCount: true,
 						},
@@ -443,9 +317,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const inactiveChannelCount = resolvedEntity.inactiveChannelCount}
-					{#if inactiveChannelCount !== undefined && inactiveChannelCount !== null}
+					{@const inactiveChannelCount = entity.inactiveChannelCount}
+					{#if inactiveChannelCount != null}
 						<div>
 							<dt>inactive channel count</dt>
 							<dd>
@@ -460,8 +333,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							pendingChannelCount: true,
 						},
@@ -469,9 +341,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const pendingChannelCount = resolvedEntity.pendingChannelCount}
-					{#if pendingChannelCount !== undefined && pendingChannelCount !== null}
+					{@const pendingChannelCount = entity.pendingChannelCount}
+					{#if pendingChannelCount != null}
 						<div>
 							<dt>pending channel count</dt>
 							<dd>

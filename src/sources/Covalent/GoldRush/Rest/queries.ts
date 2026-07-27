@@ -1,8 +1,7 @@
-import { sourceProviderDefinitions } from '$/sources/$sourceProviders.ts'
-import { Source } from '$/sources/Source.ts'
+import bindings from '$/sources/Covalent/bindings.ts'
 import {
 	firstHttpUrlForBinding,
-	sourceGetJson as getJson,
+	sourceGetJson,
 } from '$/sources/_runtime/http.ts'
 import type {
 	GoldRushAddressTransactionsResponse,
@@ -13,27 +12,23 @@ import type {
 	GoldRushTokenBalancesResponse,
 	GoldRushTokenBalancesResult,
 } from '$/sources/Covalent/GoldRush/Rest/types.ts'
+import { Source } from '$/sources/Source.ts'
+
+const binding = bindings[Source.GoldRushFoundational_Rest]
 
 const evmAddressPattern = /^0x[0-9a-f]{40}$/i
 const unsignedIntegerPattern = /^(0|[1-9][0-9]*)$/
 
-const bindingForChain = (
+const goldRushBaseUrl = (
 	chainId: number
 ) => {
-	if (!Number.isSafeInteger(chainId) || chainId < 1)
-		throw new Error('GoldRushFoundational_Rest: invalid chain ID')
-
-	const binding = sourceProviderDefinitions
-		.flatMap((provider) => provider.bindings)
-		.find((candidate) => (
-			candidate.source === Source.GoldRushFoundational_Rest
-			&& candidate.target.key === String(chainId)
-		))
-
-	if (binding == null)
+	if (
+		!Number.isSafeInteger(chainId)
+		|| chainId < 1
+	)
 		throw new Error(`GoldRushFoundational_Rest: unsupported chain ${String(chainId)}`)
 
-	return binding
+	return firstHttpUrlForBinding(binding)
 }
 
 export const getTransaction = async ({
@@ -50,11 +45,11 @@ export const getTransaction = async ({
 	if (chainName.trim() === '')
 		throw new Error('GoldRushFoundational_Rest: unsupported chain')
 
-	const binding = bindingForChain(chainId)
-
 	const url = new URL(
 		`/v1/${encodeURIComponent(chainName)}/transaction_v2/${encodeURIComponent(txHash)}/`,
-		firstHttpUrlForBinding(binding)
+		goldRushBaseUrl(
+			chainId
+		)
 	)
 	if (expansions?.withInternal != null)
 		url.searchParams.set('with-internal', String(expansions.withInternal))
@@ -63,7 +58,7 @@ export const getTransaction = async ({
 	if (expansions?.withInputData != null)
 		url.searchParams.set('with-input-data', String(expansions.withInputData))
 
-	const envelope = await getJson<GoldRushTransactionResponse>(
+	const envelope = await sourceGetJson<GoldRushTransactionResponse>(
 		binding,
 		url.toString()
 	)
@@ -107,15 +102,16 @@ export const getTokenBalances = async ({
 	if (!evmAddressPattern.test(address))
 		throw new Error('GoldRushFoundational_Rest: invalid account address')
 
-	const binding = bindingForChain(chainId)
 	const url = new URL(
 		`/v1/${encodeURIComponent(chainName)}/address/${encodeURIComponent(address)}/balances_v2/`,
-		firstHttpUrlForBinding(binding)
+		goldRushBaseUrl(
+			chainId
+		)
 	)
 
 	url.searchParams.set('no-spam', String(noSpam))
 
-	const envelope = await getJson<GoldRushTokenBalancesResponse>(
+	const envelope = await sourceGetJson<GoldRushTokenBalancesResponse>(
 		binding,
 		url.toString()
 	)
@@ -209,16 +205,17 @@ export const getAddressTransactions = async ({
 	if (!Number.isSafeInteger(page) || page < 0)
 		throw new Error('GoldRushFoundational_Rest: page must be a nonnegative safe integer')
 
-	const binding = bindingForChain(chainId)
 	const url = new URL(
 		`/v1/${encodeURIComponent(chainName)}/address/${encodeURIComponent(address)}/transactions_v3/page/${String(page)}/`,
-		firstHttpUrlForBinding(binding)
+		goldRushBaseUrl(
+			chainId
+		)
 	)
 
 	url.searchParams.set('no-logs', String(noLogs))
 	url.searchParams.set('block-signed-at-asc', String(ascending))
 
-	const envelope = await getJson<GoldRushAddressTransactionsResponse>(
+	const envelope = await sourceGetJson<GoldRushAddressTransactionsResponse>(
 		binding,
 		url.toString()
 	)

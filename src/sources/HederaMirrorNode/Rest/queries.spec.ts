@@ -7,7 +7,7 @@ import {
 } from 'vitest'
 
 import { Source } from '$/sources/Source.ts'
-import { sourceProviderDefinitions } from '$/sources/$sourceProviders.ts'
+import bindings from '$/sources/HederaMirrorNode/bindings.ts'
 import {
 	SourceDelivery,
 	SourceTargetKind,
@@ -25,16 +25,7 @@ const {
 	getTransactions,
 } = await import('$/sources/HederaMirrorNode/Rest/queries.ts')
 
-const binding = sourceProviderDefinitions
-	.flatMap((provider) => provider.bindings)
-	.find((candidate) => (
-		candidate.source === Source.HederaMirrorNode_Rest
-		&& candidate.target.kind === SourceTargetKind.Caip2Network
-		&& candidate.target.key === 'hedera:mainnet'
-	))
-
-if (binding == null)
-	throw new Error('HederaMirrorNode_Rest spec missing canonical mainnet binding')
+const binding = bindings[Source.HederaMirrorNode_Rest]
 
 const cases = [
 	{
@@ -82,7 +73,7 @@ describe('Hedera Mirror network collections', () => {
 	}) => {
 		sourceGetText.mockResolvedValueOnce(`{"${rowsKey}":[{"${identityKey}":"${identities[0]}","${largeKey}":9007199254740993},{"${identityKey}":"${identities[1]}","${largeKey}":9007199254740995}],"links":{"next":"${continuation}"}}`)
 
-		const page = await getPage(binding, 2)
+		const page = await getPage(2)
 		expect(page).toMatchObject({
 			[rowsKey]: [
 				{ [identityKey]: identities[0], [largeKey]: '9007199254740993' },
@@ -99,7 +90,7 @@ describe('Hedera Mirror network collections', () => {
 	it('preserves unsafe node identifiers and the complete documented node wire', async () => {
 		sourceGetText.mockResolvedValueOnce('{"nodes":[{"admin_key":null,"associated_registered_nodes":[1,9.007199254740993e15],"decline_reward":false,"description":"node","file_id":"0.0.102","max_stake":9.007199254740995e15,"memo":"0.0.3","min_stake":1,"node_account_id":"0.0.3","node_cert_hash":"hash","node_id":9007199254740997.0,"public_key":"key","reward_rate_start":2,"service_endpoints":[{"domain_name":"node.example","port":50211}],"stake":3,"stake_not_rewarded":4,"stake_rewarded":5,"staking_period":{"from":"1.0","to":null},"timestamp":{"from":"2.0","to":null}}],"links":{"next":null}}')
 
-		await expect(getNodes(binding, 1)).resolves.toMatchObject({
+		await expect(getNodes(1)).resolves.toMatchObject({
 			nodes: [{
 				associated_registered_nodes: [
 					'1',
@@ -114,7 +105,7 @@ describe('Hedera Mirror network collections', () => {
 	it('preserves integer-valued exponent and fractional transaction fields', async () => {
 		sourceGetText.mockResolvedValueOnce('{"transactions":[{"charged_tx_fee":9.007199254740993e15,"max_fee":-9.007199254740995e15,"valid_duration_seconds":1.1e1}],"links":{"next":null}}')
 
-		await expect(getTransactions(binding, 1)).resolves.toMatchObject({
+		await expect(getTransactions(1)).resolves.toMatchObject({
 			transactions: [{
 				charged_tx_fee: '9007199254740993',
 				max_fee: '-9007199254740995',
@@ -129,12 +120,10 @@ describe('Hedera Mirror network collections', () => {
 			.mockResolvedValueOnce('{"transactions":[],"links":{"next":null}}')
 
 		await expect(getTransactions(
-			binding,
 			2,
 			'/api/v1/transactions?limit=2&order=desc&timestamp=ne:1750000000'
 		)).resolves.toMatchObject({ transactions: [] })
 		await expect(getTransactions(
-			binding,
 			2,
 			'/api/v1/transactions?limit=2&order=desc&timestamp=gte:1750000000&timestamp=lt:1750000001.000000001'
 		)).resolves.toMatchObject({ transactions: [] })
@@ -149,11 +138,11 @@ describe('Hedera Mirror network collections', () => {
 			.mockResolvedValueOnce(`{"${rowsKey}":[],"links":{"next":null}}`)
 			.mockResolvedValueOnce('{"malformed":"provider pass-through"}')
 
-		await expect(getPage(binding, 16)).resolves.toEqual({
+		await expect(getPage(16)).resolves.toEqual({
 			[rowsKey]: [],
 			links: { next: null },
 		})
-		await expect(getPage(binding, 2, continuation)).resolves.toEqual({
+		await expect(getPage(2, continuation)).resolves.toEqual({
 			malformed: 'provider pass-through',
 		})
 		expect(sourceGetText).toHaveBeenLastCalledWith(
@@ -163,21 +152,21 @@ describe('Hedera Mirror network collections', () => {
 	})
 
 	it('rejects invalid limits and cross-operation continuations', () => {
-		expect(() => getTransactions(binding, 0)).toThrow('invalid transaction list limit')
-		expect(() => getNodes(binding, 101)).toThrow('invalid node list limit')
-		expect(() => getTransactions(binding, 2, '/api/v1/network/nodes?limit=2')).toThrow('invalid continuation')
-		expect(() => getNodes(binding, 2, '/api/v1/transactions?limit=2')).toThrow('invalid continuation')
-		expect(() => getTransactions(binding, 2, '/api/v1/transactions?account.id=0.0.3')).toThrow('invalid global transaction continuation')
-		expect(() => getTransactions(binding, 2, '/api/v1/transactions?limit=3&order=desc&timestamp=lt:1.0')).toThrow('invalid global transaction continuation')
-		expect(() => getTransactions(binding, 2, '/api/v1/transactions?limit=2&order=asc&timestamp=lt:1.0')).toThrow('invalid global transaction continuation')
-		expect(() => getTransactions(binding, 2, '/api/v1/transactions?limit=2&limit=2&order=desc&timestamp=lt:1.0')).toThrow('invalid global transaction continuation')
-		expect(() => getTransactions(binding, 2, '/api/v1/transactions?limit=2&order=desc&timestamp=drop')).toThrow('invalid global transaction continuation')
-		expect(() => getNodes(binding, 2, '/api/v1/network/nodes?limit=2&order=asc&file.id=0.0.102')).toThrow('invalid node continuation')
-		expect(() => getNodes(binding, 2, '/api/v1/network/nodes?limit=2&order=asc&node.id=gt:4&node.id=gt:5')).toThrow('invalid node continuation')
-		expect(() => getNodes(binding, 2, '/api/v1/network/nodes?limit=2&order=asc&node.id=drop')).toThrow('invalid node continuation')
-		expect(() => getNodes(binding, 2, 'https://example.com/api/v1/network/nodes?limit=2&order=asc')).toThrow('invalid continuation')
-		expect(() => getNodes(binding, 2, 'https://user@mainnet-public.mirrornode.hedera.com/api/v1/network/nodes?limit=2&order=asc&node.id=gt:4')).toThrow('invalid continuation')
-		expect(() => getNodes(binding, 2, '/api/v1/network/nodes?limit=2&order=asc&node.id=gt:4#fragment')).toThrow('invalid continuation')
+		expect(() => getTransactions(0)).toThrow('invalid transaction list limit')
+		expect(() => getNodes(101)).toThrow('invalid node list limit')
+		expect(() => getTransactions(2, '/api/v1/network/nodes?limit=2')).toThrow('invalid continuation')
+		expect(() => getNodes(2, '/api/v1/transactions?limit=2')).toThrow('invalid continuation')
+		expect(() => getTransactions(2, '/api/v1/transactions?account.id=0.0.3')).toThrow('invalid global transaction continuation')
+		expect(() => getTransactions(2, '/api/v1/transactions?limit=3&order=desc&timestamp=lt:1.0')).toThrow('invalid global transaction continuation')
+		expect(() => getTransactions(2, '/api/v1/transactions?limit=2&order=asc&timestamp=lt:1.0')).toThrow('invalid global transaction continuation')
+		expect(() => getTransactions(2, '/api/v1/transactions?limit=2&limit=2&order=desc&timestamp=lt:1.0')).toThrow('invalid global transaction continuation')
+		expect(() => getTransactions(2, '/api/v1/transactions?limit=2&order=desc&timestamp=drop')).toThrow('invalid global transaction continuation')
+		expect(() => getNodes(2, '/api/v1/network/nodes?limit=2&order=asc&file.id=0.0.102')).toThrow('invalid node continuation')
+		expect(() => getNodes(2, '/api/v1/network/nodes?limit=2&order=asc&node.id=gt:4&node.id=gt:5')).toThrow('invalid node continuation')
+		expect(() => getNodes(2, '/api/v1/network/nodes?limit=2&order=asc&node.id=drop')).toThrow('invalid node continuation')
+		expect(() => getNodes(2, 'https://example.com/api/v1/network/nodes?limit=2&order=asc')).toThrow('invalid continuation')
+		expect(() => getNodes(2, 'https://user@mainnet-public.mirrornode.hedera.com/api/v1/network/nodes?limit=2&order=asc&node.id=gt:4')).toThrow('invalid continuation')
+		expect(() => getNodes(2, '/api/v1/network/nodes?limit=2&order=asc&node.id=gt:4#fragment')).toThrow('invalid continuation')
 	})
 
 	it('uses the canonical mainnet HTTP proxy binding', () => {

@@ -1,15 +1,8 @@
 import {
-	ApiFamily,
-	SourceCredentialScope,
-	SourceDelivery,
-	SourceTargetKind,
-	WireProtocol,
-	type SourceBinding,
-} from '$/sources/SourceBinding.ts'
-import {
 	firstHttpUrlForBinding,
 	sourceFetch,
 } from '$/sources/_runtime/http.ts'
+import type { SourceBinding } from '$/sources/SourceBinding.ts'
 import type {
 	TallyAccount,
 	TallyBlockOrTimestamp,
@@ -34,7 +27,6 @@ import type {
 } from '$/sources/Tally/Graphql/types.ts'
 import type { JsonValue } from '$/typescript/JsonValue.ts'
 
-export const tallyGraphqlEndpoint = 'https://api.tally.xyz/query' as const
 export const maximumTallyGraphqlResponseBytes = 2_000_000
 
 const maximumUint64 = (1n << 64n) - 1n
@@ -262,25 +254,6 @@ const proposalFields = `
 	}
 `
 
-const assertBinding = (
-	binding: SourceBinding
-) => {
-	if (
-		binding.target.kind !== SourceTargetKind.Global
-		|| binding.target.key !== 'tally-api'
-		|| binding.wireProtocol !== WireProtocol.Graphql
-		|| binding.apiFamily !== ApiFamily.GraphqlHttp
-		|| binding.delivery !== SourceDelivery.HttpProxy
-		|| !binding.credentials.some((credential) => (
-			credential.scope === SourceCredentialScope.RuntimeSecret
-		))
-		|| binding.proxyId == null
-		|| binding.serverCredentialId == null
-		|| firstHttpUrlForBinding(binding) !== tallyGraphqlEndpoint
-	)
-		throw new Error('Tally_Graphql: expected canonical runtime-secret API binding')
-}
-
 const assertOpaqueIdentity = (
 	value: string,
 	label: string,
@@ -454,10 +427,9 @@ const graphql = async <_Data>({
 	query: string
 	variables: JsonValue
 }) => {
-	assertBinding(binding)
 	const response = await sourceFetch(
 		binding,
-		tallyGraphqlEndpoint,
+		firstHttpUrlForBinding(binding),
 		{
 			method: 'POST',
 			headers: {
@@ -484,11 +456,12 @@ const graphql = async <_Data>({
 }
 
 const observation = <_Value>(
+	binding: SourceBinding,
 	value: _Value
 ): TallyObservation<_Value> => ({
 	value,
 	observedBy: 'Tally_Graphql',
-	endpoint: tallyGraphqlEndpoint,
+	endpoint: firstHttpUrlForBinding(binding),
 	resolvedAtMs: Date.now(),
 })
 
@@ -558,7 +531,7 @@ const assertGovernor = (
 		[governor.proposalStats.active, 'active proposal count'],
 		[governor.proposalStats.failed, 'failed proposal count'],
 		[governor.proposalStats.passed, 'passed proposal count'],
-	] as const)
+	])
 		assertSafeNonnegativeInteger(value, label)
 	if (
 		governor.proposalStats.active > governor.proposalStats.total
@@ -574,7 +547,7 @@ const assertGovernor = (
 		[governor.parameters.gracePeriod, 'governor grace period'],
 		[governor.parameters.quorumNumerator, 'governor quorum numerator'],
 		[governor.parameters.quorumDenominator, 'governor quorum denominator'],
-	] as const)
+	])
 		if (value != null)
 			assertUint256(value, label)
 	assertUint256(governor.quorum, 'governor quorum')
@@ -673,7 +646,7 @@ const assertProposal = (
 	for (const [timestamp, label] of [
 		[proposal.metadata.eta, 'proposal execution timestamp'],
 		[proposal.metadata.previousEnd, 'proposal previous end'],
-	] as const)
+	])
 		if (timestamp != null)
 			assertSafeNonnegativeInteger(timestamp, label)
 	if (proposal.metadata.timelockId != null)
@@ -683,7 +656,7 @@ const assertProposal = (
 	for (const [url, label] of [
 		[proposal.metadata.discourseURL, 'proposal discourse URL'],
 		[proposal.metadata.snapshotURL, 'proposal Snapshot URL'],
-	] as const)
+	])
 		if (url != null)
 			assertOpaqueIdentity(url, label, 4_096)
 	const eventIdentities = new Set<string>()
@@ -783,14 +756,14 @@ export const getOrganization = async ({
 		},
 	})
 	if (organization == null)
-		return observation(null)
+		return observation(binding, null)
 	assertOrganization(organization)
 	if (
 		(organizationId != null && organization.id !== organizationId)
 		|| (slug != null && organization.slug !== slug)
 	)
 		throw new Error('Tally_Graphql: returned a foreign organization')
-	return observation(organization)
+	return observation(binding, organization)
 }
 
 export const getOrganizationsPage = async ({
@@ -865,7 +838,7 @@ export const getOrganizationsPage = async ({
 			throw new Error('Tally_Graphql: duplicate organization in page')
 		organizationIds.add(organization.id)
 	}
-	return observation(page(
+	return observation(binding, page(
 		organizations.nodes,
 		organizations.pageInfo,
 		limit,
@@ -897,11 +870,11 @@ export const getGovernor = async ({
 		},
 	})
 	if (governor == null)
-		return observation(null)
+		return observation(binding, null)
 	assertGovernor(governor)
 	if (governor.id.toLowerCase() !== governorId.toLowerCase())
 		throw new Error('Tally_Graphql: returned a foreign governor')
-	return observation(governor)
+	return observation(binding, governor)
 }
 
 export const getGovernorsPage = async ({
@@ -976,7 +949,7 @@ export const getGovernorsPage = async ({
 			throw new Error('Tally_Graphql: duplicate governor in page')
 		governorIds.add(governor.id.toLowerCase())
 	}
-	return observation(page(
+	return observation(binding, page(
 		governors.nodes,
 		governors.pageInfo,
 		limit,
@@ -1012,14 +985,14 @@ export const getProposal = async ({
 		},
 	})
 	if (proposal == null)
-		return observation(null)
+		return observation(binding, null)
 	assertProposal(proposal)
 	if (
 		proposal.governor?.id.toLowerCase() !== governorId.toLowerCase()
 		|| proposal.onchainId !== onchainId
 	)
 		throw new Error('Tally_Graphql: returned a foreign proposal')
-	return observation(proposal)
+	return observation(binding, proposal)
 }
 
 export const getProposalsPage = async ({
@@ -1092,7 +1065,7 @@ export const getProposalsPage = async ({
 			throw new Error('Tally_Graphql: duplicate proposal in page')
 		proposalIds.add(proposal.id)
 	}
-	return observation(page(
+	return observation(binding, page(
 		proposals.nodes,
 		proposals.pageInfo,
 		limit,

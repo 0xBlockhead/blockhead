@@ -8,7 +8,6 @@
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
@@ -48,24 +47,12 @@
 
 
 <svelte:head>
-	<title>{(pageSelection.entity == null ? [String(({
-		kind: params.kind,
-		assetKey: params.assetKey,
-	}.assetKey) ?? '')].filter(Boolean).join(' ') || 'Market asset' : [String((({ ...{
-		kind: params.kind,
-		assetKey: params.assetKey,
-	}, ...pageSelection.entity }).assetKey) ?? '')].filter(Boolean).join(' ') || 'Market asset')} • Market asset • Blockhead</title>
+	<title>{(pageSelection.entitySelector.assetKey || 'Market asset')} • Market asset • Blockhead</title>
 </svelte:head>
 
 
 <Page>
 	<MarketAssetView
-		href={
-			resolve('/market-asset/[kind=stringSegment]/[assetKey=stringSegment]', {
-				kind: params.kind,
-				assetKey: params.assetKey,
-			})
-		}
 		selection={pageSelection}
 	/>
 </Page>

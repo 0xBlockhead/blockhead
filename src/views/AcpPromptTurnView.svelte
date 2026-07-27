@@ -2,14 +2,10 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
 	import { ZeroExHex } from '$/schema/ZeroExHex.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -21,42 +17,24 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.AcpPromptTurn>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.AcpPromptTurn>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.AcpPromptTurn> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const acpPromptTurn = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {
-			stopReason: true,
-			startedAt: true,
-		},
-	} : {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const viewSelection = $derived(selection({
+		sources: selection.sources ?? [
+			Source.AcpLocal_JsonRpc,
+		],
+	}))
+	const acpPromptTurn = $derived(viewSelection({
 		fields: {
 			stopReason: true,
 			startedAt: true,
 		},
 	}))
-	const titleFallback = $derived([String((pendingEntity.turnId) ?? '')].filter(Boolean).join(' ') || 'ACP prompt turn')
-	const viewDomId = $derived('acp-prompt-turn-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const titleFallback = $derived((pendingEntity.turnId ?? '') || 'ACP prompt turn')
 
 
 	// Components
@@ -69,61 +47,35 @@
 
 <EntityView
 	entityType={EntityType.AcpPromptTurn}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'stopReason') && Object.hasOwn(prefetched, 'startedAt')}
-			{[String((pendingEntity.turnId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-		{:else}
-			<ResourceBoundary resource={acpPromptTurn}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.turnId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		{(pendingEntity.turnId ?? '') || 'ACP prompt turn'}
 	{/snippet}
 
 	{#snippet Value()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'stopReason') && Object.hasOwn(prefetched, 'startedAt')}
-			{[String((pendingEntity.stopReason) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.turnId) ?? '')].filter(Boolean).join(' ') || titleFallback}
-		{:else}
-			<ResourceBoundary resource={acpPromptTurn}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.stopReason) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.turnId) ?? '')].filter(Boolean).join(' ') || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={acpPromptTurn}>
+			{#snippet children(entity)}
+				{(entity.stopReason ?? '') || pendingEntity.turnId || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'stopReason') && Object.hasOwn(prefetched, 'startedAt')}
-			{@const startedAt0 = pendingEntity.startedAt}
-			{#if startedAt0 !== undefined && startedAt0 !== null}
-				<span data-text="muted">
-					<Timestamp timestamp={Number(startedAt0)} />
-				</span>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={acpPromptTurn}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const startedAt0 = resolvedEntity.startedAt}
-					{#if startedAt0 !== undefined && startedAt0 !== null}
-						<span data-text="muted">
-							<Timestamp timestamp={Number(startedAt0)} />
-						</span>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={acpPromptTurn}>
+			{#snippet children(entity)}
+				{@const startedAt0 = entity.startedAt}
+				{#if startedAt0 != null}
+					<span data-text="muted">
+						<Timestamp timestamp={Number(startedAt0)} />
+					</span>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -142,45 +94,20 @@
 			<div>
 				<dt>turn ID</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									turnId: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const turnId = resolvedEntity.turnId}
-							{#if turnId !== undefined && turnId !== null}
-								{String((turnId) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{pendingEntity.turnId}
 				</dd>
 			</div>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							stopReason: true,
-						},
-					})
-				}
+				resource={acpPromptTurn}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const stopReason = resolvedEntity.stopReason}
-					{#if stopReason !== undefined && stopReason !== null}
+					{@const stopReason = entity.stopReason}
+					{#if stopReason != null}
 						<div>
 							<dt>stop reason</dt>
 							<dd>
-								{String((stopReason) ?? '')}
+								{stopReason}
 							</dd>
 						</div>
 					{/if}
@@ -190,19 +117,11 @@
 
 		<dl data-column-item="center">
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							startedAt: true,
-						},
-					})
-				}
+				resource={acpPromptTurn}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const startedAt = resolvedEntity.startedAt}
-					{#if startedAt !== undefined && startedAt !== null}
+					{@const startedAt = entity.startedAt}
+					{#if startedAt != null}
 						<div>
 							<dt>started AT</dt>
 							<dd>
@@ -215,8 +134,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							completedAt: true,
 						},
@@ -224,9 +142,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const completedAt = resolvedEntity.completedAt}
-					{#if completedAt !== undefined && completedAt !== null}
+					{@const completedAt = entity.completedAt}
+					{#if completedAt != null}
 						<div>
 							<dt>completed AT</dt>
 							<dd>
@@ -239,8 +156,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							cancelledAt: true,
 						},
@@ -248,9 +164,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const cancelledAt = resolvedEntity.cancelledAt}
-					{#if cancelledAt !== undefined && cancelledAt !== null}
+					{@const cancelledAt = entity.cancelledAt}
+					{#if cancelledAt != null}
 						<div>
 							<dt>cancelled AT</dt>
 							<dd>
@@ -265,8 +180,7 @@
 		<dl data-column-item="center">
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							userPromptHashAlgorithm: true,
 						},
@@ -274,13 +188,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const userPromptHashAlgorithm = resolvedEntity.userPromptHashAlgorithm}
-					{#if userPromptHashAlgorithm !== undefined && userPromptHashAlgorithm !== null}
+					{@const userPromptHashAlgorithm = entity.userPromptHashAlgorithm}
+					{#if userPromptHashAlgorithm != null}
 						<div>
 							<dt>user prompt hash algorithm</dt>
 							<dd>
-								<TruncatedValue value={String((userPromptHashAlgorithm) ?? '')} />
+								<TruncatedValue value={userPromptHashAlgorithm} />
 							</dd>
 						</div>
 					{/if}
@@ -289,8 +202,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							userPromptHash: true,
 						},
@@ -298,13 +210,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const userPromptHash = resolvedEntity.userPromptHash}
-					{#if userPromptHash !== undefined && userPromptHash !== null}
+					{@const userPromptHash = entity.userPromptHash}
+					{#if userPromptHash != null}
 						<div>
 							<dt>user prompt hash</dt>
 							<dd>
-								<TruncatedValue value={String((userPromptHash) ?? '')} />
+								<TruncatedValue value={String(userPromptHash)} />
 							</dd>
 						</div>
 					{/if}

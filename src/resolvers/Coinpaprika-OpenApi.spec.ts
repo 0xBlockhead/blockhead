@@ -3,12 +3,11 @@ import { describe, expect, it, vi } from 'vitest'
 import { CoinId } from '$/constants/Coin.ts'
 import { EntityMetaKey, entityFieldAddressKey } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import { _GlobalSelector } from '$/schema/_Global.ts'
 
 const getCoins = vi.hoisted(() => vi.fn())
 
-vi.mock('$/resolvers/Coinpaprika/OpenApi/queries.ts', async (importOriginal) => ({
-	...await importOriginal<typeof import('$/resolvers/Coinpaprika/OpenApi/queries.ts')>(),
+vi.mock('$/sources/Coinpaprika/OpenApi/queries.ts', async (importOriginal) => ({
+	...await importOriginal<typeof import('$/sources/Coinpaprika/OpenApi/queries.ts')>(),
 	getCoins,
 }))
 
@@ -50,7 +49,7 @@ describe('Coinpaprika coin catalog resolver', () => {
 		if (resolver == null)
 			throw new Error('Coinpaprika global coin resolver is not registered')
 
-		const rows = await resolver.resolve[_GlobalSelector.Scope].resolve({
+		const rows = await resolver.resolve['Scope'].resolve({
 			scope: 'global',
 		}, resolverContext)
 

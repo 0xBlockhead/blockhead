@@ -91,13 +91,18 @@ describe('HTTP error helpers', () => {
 		vi.stubGlobal('window', {})
 		try {
 			await corsFetch('https://registered.example/data', {
+				delivery: SourceDelivery.HttpProxy,
 				origins: [{
 					origin: 'https://registered.example',
 					corsEnabled: false,
 				}],
+				proxy: {
+					proxyId: 'registered-proxy',
+					endpointIndex: 0,
+				},
 			})
 			expect(fetchMock).toHaveBeenCalledWith(
-				'/api-proxy/https://registered.example/data',
+				'/api-proxy/registered-proxy/0/https%3A%2F%2Fregistered.example%2Fdata',
 				expect.objectContaining({
 					signal: expect.any(AbortSignal),
 				})
@@ -118,9 +123,13 @@ describe('HTTP error helpers', () => {
 					origin: 'https://registered.example',
 					corsEnabled: true,
 				}],
+				proxy: {
+					proxyId: 'registered-proxy',
+					endpointIndex: 0,
+				},
 			})
 			expect(fetchMock).toHaveBeenCalledWith(
-				'/api-proxy/https://registered.example/data',
+				'/api-proxy/registered-proxy/0/https%3A%2F%2Fregistered.example%2Fdata',
 				expect.objectContaining({
 					signal: expect.any(AbortSignal),
 				})
@@ -276,24 +285,29 @@ describe('HTTP error helpers', () => {
 		vi.stubGlobal('window', {})
 		try {
 			await expect(corsFetch('https://registered.example/data', {
+				delivery: SourceDelivery.HttpProxy,
 				origins: [{
 					origin: 'https://registered.example',
 					corsEnabled: false,
 				}],
+				proxy: {
+					proxyId: 'registered-proxy',
+					endpointIndex: 0,
+				},
 				retry: {
 					maxRetries: 1,
 				},
 			})).resolves.toHaveProperty('ok', true)
 			expect(fetchMock).toHaveBeenNthCalledWith(
 				1,
-				'/api-proxy/https://registered.example/data',
+				'/api-proxy/registered-proxy/0/https%3A%2F%2Fregistered.example%2Fdata',
 				expect.objectContaining({
 					signal: expect.any(AbortSignal),
 				})
 			)
 			expect(fetchMock).toHaveBeenNthCalledWith(
 				2,
-				'/api-proxy/https://registered.example/data',
+				'/api-proxy/registered-proxy/0/https%3A%2F%2Fregistered.example%2Fdata',
 				expect.objectContaining({
 					signal: expect.any(AbortSignal),
 				})

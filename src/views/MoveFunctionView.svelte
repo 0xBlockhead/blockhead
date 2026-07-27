@@ -2,13 +2,8 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
 
 
 	// Context
@@ -20,40 +15,18 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.MoveFunction>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.MoveFunction>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.MoveFunction> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const moveFunction = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {
-			visibility: true,
-		},
-	} : {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const moveFunction = $derived(selection({
 		fields: {
 			visibility: true,
 		},
 	}))
-	const titleFallback = $derived([String((pendingEntity.functionName) ?? '')].filter(Boolean).join(' ') || 'move function')
-	const viewDomId = $derived('move-function-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const titleFallback = $derived((pendingEntity.functionName ?? '') || 'move function')
 
 
 	// Components
@@ -64,45 +37,32 @@
 
 <EntityView
 	entityType={EntityType.MoveFunction}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={moveFunction}>
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.functionName) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{(pendingEntity.functionName ?? '') || 'move function'}
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={moveFunction}>
 			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.visibility) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.functionName) ?? '')].filter(Boolean).join(' ') || titleFallback}
+				{(entity.visibility ?? '') || pendingEntity.functionName || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		<ResourceBoundary resource={moveFunction}>
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				<span data-text="muted">
-					<MoveModuleView
-						selection={select(EntityType.MoveModule, selection.entitySelector.$module)}
-						layout={EntityLayout.Title}
-						open={false}
-					/>
-				</span>
-			{/snippet}
-		</ResourceBoundary>
+		<span data-text="muted">
+			<MoveModuleView
+				selection={select(EntityType.MoveModule, selection.entitySelector.$module)}
+				layout={EntityLayout.Title}
+				open={false}
+			/>
+		</span>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -121,45 +81,20 @@
 			<div>
 				<dt>function name</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									functionName: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const functionName = resolvedEntity.functionName}
-							{#if functionName !== undefined && functionName !== null}
-								{String((functionName) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{pendingEntity.functionName}
 				</dd>
 			</div>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							visibility: true,
-						},
-					})
-				}
+				resource={moveFunction}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const visibility = resolvedEntity.visibility}
-					{#if visibility !== undefined && visibility !== null}
+					{@const visibility = entity.visibility}
+					{#if visibility != null}
 						<div>
 							<dt>visibility</dt>
 							<dd>
-								{String((visibility) ?? '')}
+								{visibility}
 							</dd>
 						</div>
 					{/if}
@@ -169,7 +104,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							isEntry: true,
 						},
@@ -177,9 +111,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const isEntry = resolvedEntity.isEntry}
-					{#if isEntry !== undefined && isEntry !== null}
+					{@const isEntry = entity.isEntry}
+					{#if isEntry != null}
 						<div>
 							<dt>is entry</dt>
 							<dd>
@@ -193,7 +126,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							isView: true,
 						},
@@ -201,9 +133,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const isView = resolvedEntity.isView}
-					{#if isView !== undefined && isView !== null}
+					{@const isView = entity.isView}
+					{#if isView != null}
 						<div>
 							<dt>is view</dt>
 							<dd>
@@ -222,7 +153,6 @@
 					<ResourceBoundary
 						resource={
 							selection({
-								sources: selection.sources,
 								fields: {
 									parameters: true,
 								},
@@ -230,11 +160,7 @@
 						}
 					>
 						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const parameters = resolvedEntity.parameters}
-							{#if parameters !== undefined && parameters !== null}
-								{parameters.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')}
-							{/if}
+							{entity.parameters.values.join(', ')}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -246,7 +172,6 @@
 					<ResourceBoundary
 						resource={
 							selection({
-								sources: selection.sources,
 								fields: {
 									returnTypes: true,
 								},
@@ -254,11 +179,7 @@
 						}
 					>
 						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const returnTypes = resolvedEntity.returnTypes}
-							{#if returnTypes !== undefined && returnTypes !== null}
-								{returnTypes.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')}
-							{/if}
+							{entity.returnTypes.values.join(', ')}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>

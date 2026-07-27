@@ -2,15 +2,10 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
-	import { caip2StringFromValue } from '$/lib/caip2.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -22,40 +17,26 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.CctpDomainSupport>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.CctpDomainSupport>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.CctpDomainSupport> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const cctpDomainSupport = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {
-			name: true,
-		},
-	} : {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const viewSelection = $derived(selection({
+		sources: selection.sources ?? [
+			Source.CircleCctpContracts_Evm,
+			Source.CircleCctpContracts_Solana,
+			Source.CircleCctpContracts_Stellar,
+			Source.CircleCctp_IrisApi,
+		],
+	}))
+	const cctpDomainSupport = $derived(viewSelection({
 		fields: {
 			name: true,
 		},
 	}))
-	const titleFallback = $derived([String((pendingEntity.name) ?? '')].filter(Boolean).join(' ') || 'CCTP domain support')
-	const viewDomId = $derived('cctp-domain-support-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const titleFallback = $derived((pendingEntity.name ?? '') || 'CCTP domain support')
 
 
 	// Components
@@ -69,61 +50,28 @@
 
 <EntityView
 	entityType={EntityType.CctpDomainSupport}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'name')}
-			{[String((pendingEntity.name) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-		{:else}
-			<ResourceBoundary resource={cctpDomainSupport}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.name) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={cctpDomainSupport}>
+			{#snippet children(entity)}
+				{entity.name || title || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Value()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'name')}
-			{[String((pendingEntity.domainId) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.name) ?? '')].filter(Boolean).join(' ') || titleFallback}
-		{:else}
-			<ResourceBoundary resource={cctpDomainSupport}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.domainId) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.name) ?? '')].filter(Boolean).join(' ') || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		{String(pendingEntity.domainId ?? '') || (pendingEntity.name ?? '') || titleFallback}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'name')}
-			{@const cctpVersion0 = pendingEntity.cctpVersion}
-			{#if cctpVersion0 !== undefined && cctpVersion0 !== null}
-				<span data-text="muted">
-					{String((cctpVersion0) ?? '')}
-				</span>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={cctpDomainSupport}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const cctpVersion0 = resolvedEntity.cctpVersion}
-					{#if cctpVersion0 !== undefined && cctpVersion0 !== null}
-						<span data-text="muted">
-							{String((cctpVersion0) ?? '')}
-						</span>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<span data-text="muted">
+			{String(pendingEntity.cctpVersion)}
+		</span>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -131,48 +79,14 @@
 			<div>
 				<dt>CCTP version</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									cctpVersion: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const cctpVersion = resolvedEntity.cctpVersion}
-							{#if cctpVersion !== undefined && cctpVersion !== null}
-								{String((cctpVersion) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{String(pendingEntity.cctpVersion)}
 				</dd>
 			</div>
 
 			<div>
 				<dt>Domain ID</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									domainId: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const domainId = resolvedEntity.domainId}
-							{#if domainId !== undefined && domainId !== null}
-								{String((domainId) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{String(pendingEntity.domainId)}
 				</dd>
 			</div>
 
@@ -180,21 +94,10 @@
 				<dt>Name</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									name: true,
-								},
-							})
-						}
+						resource={cctpDomainSupport}
 					>
 						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const name = resolvedEntity.name}
-							{#if name !== undefined && name !== null}
-								{String((name) ?? '')}
-							{/if}
+							{entity.name}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -204,30 +107,13 @@
 				resource={selection.$network}
 			>
 				{#snippet children(network)}
-					{#if network != null && network[EntityMetaKey.Selector] != null}
+					{#if network != null}
 						<div>
 							<dt>Network</dt>
 							<dd>
 								<NetworkView
 									selection={select(EntityType.Network, network[EntityMetaKey.Selector])}
 									prefetched={network}
-									href={
-										(
-											network[EntityMetaKey.Selector] != null && 'caip2' in network[EntityMetaKey.Selector]
-											&& network[EntityMetaKey.Selector].caip2 != null ?
-												resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-											network: String(caip2StringFromValue(network[EntityMetaKey.Selector].caip2) ?? ''),
-										})
-										:
-												network[EntityMetaKey.Selector] != null && 'slug' in network[EntityMetaKey.Selector]
-												&& network[EntityMetaKey.Selector].slug != null ?
-													resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-												network: String(network[EntityMetaKey.Selector].slug ?? ''),
-											})
-											:
-												undefined
-										)
-									}
 									layout={EntityLayout.Value}
 									open={false}
 								/>
@@ -241,8 +127,7 @@
 		<dl data-column-item="center">
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							standardTransferSource: true,
 						},
@@ -250,9 +135,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const standardTransferSource = resolvedEntity.standardTransferSource}
-					{#if standardTransferSource !== undefined && standardTransferSource !== null}
+					{@const standardTransferSource = entity.standardTransferSource}
+					{#if standardTransferSource != null}
 						<div>
 							<dt>Standard transfer source</dt>
 							<dd>
@@ -265,8 +149,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							fastTransferSource: true,
 						},
@@ -274,9 +157,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const fastTransferSource = resolvedEntity.fastTransferSource}
-					{#if fastTransferSource !== undefined && fastTransferSource !== null}
+					{@const fastTransferSource = entity.fastTransferSource}
+					{#if fastTransferSource != null}
 						<div>
 							<dt>Fast transfer source</dt>
 							<dd>
@@ -289,8 +171,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							forwardingDestination: true,
 						},
@@ -298,9 +179,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const forwardingDestination = resolvedEntity.forwardingDestination}
-					{#if forwardingDestination !== undefined && forwardingDestination !== null}
+					{@const forwardingDestination = entity.forwardingDestination}
+					{#if forwardingDestination != null}
 						<div>
 							<dt>Forwarding destination</dt>
 							<dd>
@@ -316,8 +196,7 @@
 				<dd>
 					<ResourceBoundary
 						resource={
-							selection({
-								sources: selection.sources,
+							viewSelection({
 								fields: {
 									supportedTokens: true,
 								},
@@ -325,11 +204,7 @@
 						}
 					>
 						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const supportedTokens = resolvedEntity.supportedTokens}
-							{#if supportedTokens !== undefined && supportedTokens !== null}
-								{supportedTokens.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')}
-							{/if}
+							{entity.supportedTokens.values.join(', ')}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -339,8 +214,7 @@
 		<dl data-column-item="center">
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							tokenMessengerAddress: true,
 						},
@@ -348,13 +222,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const tokenMessengerAddress = resolvedEntity.tokenMessengerAddress}
-					{#if tokenMessengerAddress !== undefined && tokenMessengerAddress !== null}
+					{@const tokenMessengerAddress = entity.tokenMessengerAddress}
+					{#if tokenMessengerAddress != null}
 						<div>
 							<dt>Token messenger address</dt>
 							<dd>
-								<TruncatedValue value={String((tokenMessengerAddress) ?? '')} />
+								<TruncatedValue value={tokenMessengerAddress} />
 							</dd>
 						</div>
 					{/if}
@@ -363,8 +236,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							messageTransmitterAddress: true,
 						},
@@ -372,13 +244,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const messageTransmitterAddress = resolvedEntity.messageTransmitterAddress}
-					{#if messageTransmitterAddress !== undefined && messageTransmitterAddress !== null}
+					{@const messageTransmitterAddress = entity.messageTransmitterAddress}
+					{#if messageTransmitterAddress != null}
 						<div>
 							<dt>Message transmitter address</dt>
 							<dd>
-								<TruncatedValue value={String((messageTransmitterAddress) ?? '')} />
+								<TruncatedValue value={messageTransmitterAddress} />
 							</dd>
 						</div>
 					{/if}
@@ -387,8 +258,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							tokenMinterAddress: true,
 						},
@@ -396,13 +266,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const tokenMinterAddress = resolvedEntity.tokenMinterAddress}
-					{#if tokenMinterAddress !== undefined && tokenMinterAddress !== null}
+					{@const tokenMinterAddress = entity.tokenMinterAddress}
+					{#if tokenMinterAddress != null}
 						<div>
 							<dt>Token minter address</dt>
 							<dd>
-								<TruncatedValue value={String((tokenMinterAddress) ?? '')} />
+								<TruncatedValue value={tokenMinterAddress} />
 							</dd>
 						</div>
 					{/if}
@@ -418,12 +287,12 @@
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
-				<CctpMessagesView
-					selection={cctpDomainSupportCctpMessagesViewMessagesResource}
-					countResource={cctpDomainSupportCctpMessagesViewMessagesResource.count}
-					title='Messages'
-					id='CctpMessagesView-messages'
-				/>
+					<CctpMessagesView
+						selection={cctpDomainSupportCctpMessagesViewMessagesResource}
+						countResource={cctpDomainSupportCctpMessagesViewMessagesResource.count}
+						title='Messages'
+						id='messages'
+					/>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>
@@ -433,12 +302,12 @@
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
-				<CctpBurnFee_TimestampsView
-					selection={cctpDomainSupportCctpBurnFeeTimestampsViewBurnFeeTimestampsResource}
-					countResource={cctpDomainSupportCctpBurnFeeTimestampsViewBurnFeeTimestampsResource.count}
-					title='Burn fee timestamps'
-					id='CctpBurnFee_TimestampsView-burn-fee-timestamps'
-				/>
+					<CctpBurnFee_TimestampsView
+						selection={cctpDomainSupportCctpBurnFeeTimestampsViewBurnFeeTimestampsResource}
+						countResource={cctpDomainSupportCctpBurnFeeTimestampsViewBurnFeeTimestampsResource.count}
+						title='Burn fee timestamps'
+						id='burn-fee-timestamps'
+					/>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>

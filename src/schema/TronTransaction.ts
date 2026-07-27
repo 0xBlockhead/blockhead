@@ -1,15 +1,12 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { entity, facet } from '$/schema/$schema.ts'
+import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
-export enum TronTransactionSelector {
-	NetworkTransactionId = 'NetworkTransactionId',
-}
-export const TronTransaction = entity({
+export default entity({
 	entityType: EntityType.TronTransaction,
 	labels: {
 		singular: 'tron transaction',
@@ -36,7 +33,6 @@ export const TronTransaction = entity({
 		defaultSources: [
 			Source.TronGrid_Rest,
 			Source.TronFullNode_Rest,
-			Source.TronSolidityNode_Rest,
 			Source.TronScan_Rest,
 			Source.ThreeXpl_Rest,
 		],

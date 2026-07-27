@@ -1,14 +1,12 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { sourceProviderDefinitions } from '$/sources/$sourceProviders.ts'
-import { sourceServerCredentialsById } from '$/sources/$sourceServerCredentials.server.ts'
+import sourceProviders from '$/sources/$sourceProviders.ts'
+import sourceServerCredentialsById from '$/sources/$sourceServerCredentials.server.ts'
 import { SourceCredentialScope, SourceDelivery, SourceEndpointKind, type SourceBinding } from '$/sources/SourceBinding.ts'
-import { validateSourceBindings } from '$/sources/validateSourceBindings.ts'
 import { env as privateEnv } from '$env/dynamic/private'
 
-export const sourceBindings = validateSourceBindings(
-	sourceProviderDefinitions.flatMap((provider) => provider.bindings)
-) satisfies readonly SourceBinding[]
+export const sourceBindings = sourceProviders
+	.flatMap((provider): readonly SourceBinding[] => provider.bindings)
 
 export const enabledSourceBindings = sourceBindings.filter((binding) => (
 	binding.credentials.every((credential) => (

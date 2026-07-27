@@ -2,15 +2,9 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
-	import { caip2StringFromValue } from '$/lib/caip2.ts'
 	import { UrlString } from '$/schema/UrlString.ts'
 	import { EvmAddress } from '$/schema/ZeroExHex.ts'
 
@@ -24,37 +18,13 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.ScalingDeploymentClaim_Timestamp>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.ScalingDeploymentClaim_Timestamp>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.ScalingDeploymentClaim_Timestamp> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const scalingDeploymentClaimTimestamp = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {
-			architectureKind: true,
-			protocolLabel: true,
-			stack: true,
-			proofSystemKind: true,
-		},
-	} : {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const scalingDeploymentClaimTimestamp = $derived(selection({
 		fields: {
 			architectureKind: true,
 			protocolLabel: true,
@@ -62,8 +32,7 @@
 			proofSystemKind: true,
 		},
 	}))
-	const titleFallback = $derived([String((pendingEntity.architectureKind) ?? ''), String((pendingEntity.protocolLabel) ?? ''), String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || 'scaling deployment claim timestamp')
-	const viewDomId = $derived('scaling-deployment-claim-timestamp-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const titleFallback = $derived([(pendingEntity.architectureKind ?? ''), (pendingEntity.protocolLabel ?? ''), String(pendingEntity.timestampMs ?? '')].filter(Boolean).join(' ') || 'scaling deployment claim timestamp')
 
 
 	// Components
@@ -77,10 +46,8 @@
 
 <EntityView
 	entityType={EntityType.ScalingDeploymentClaim_Timestamp}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -88,8 +55,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={scalingDeploymentClaimTimestamp}>
 			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.architectureKind) ?? ''), String((resolvedEntity.protocolLabel) ?? ''), String((resolvedEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+				{[(entity.architectureKind ?? ''), (entity.protocolLabel ?? ''), String(pendingEntity.timestampMs)].filter(Boolean).join(' ') || title || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -97,25 +63,19 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={scalingDeploymentClaimTimestamp}>
 			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.architectureKind) ?? ''), String((resolvedEntity.stack) ?? ''), String((resolvedEntity.proofSystemKind) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.architectureKind) ?? ''), String((resolvedEntity.protocolLabel) ?? ''), String((resolvedEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || titleFallback}
+				{[(entity.architectureKind ?? ''), (entity.stack ?? ''), (entity.proofSystemKind ?? '')].filter(Boolean).join(' ') || [(entity.architectureKind ?? ''), (entity.protocolLabel ?? ''), String(pendingEntity.timestampMs)].filter(Boolean).join(' ') || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		<ResourceBoundary resource={scalingDeploymentClaimTimestamp}>
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				<span data-text="muted">
-					<ScalingDeploymentClaimView
-						selection={select(EntityType.ScalingDeploymentClaim, selection.entitySelector.$claim)}
-						layout={EntityLayout.Title}
-						open={false}
-					/>
-				</span>
-			{/snippet}
-		</ResourceBoundary>
+		<span data-text="muted">
+			<ScalingDeploymentClaimView
+				selection={select(EntityType.ScalingDeploymentClaim, selection.entitySelector.$claim)}
+				layout={EntityLayout.Title}
+				open={false}
+			/>
+		</span>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -134,55 +94,20 @@
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									timestampMs: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const timestampMs = resolvedEntity.timestampMs}
-							{#if timestampMs !== undefined && timestampMs !== null}
-								<Timestamp timestamp={Number(timestampMs)} />
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									source: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const source = resolvedEntity.source}
-							{#if source !== undefined && source !== null}
-								{String((source) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{pendingEntity.source}
 				</dd>
 			</div>
 
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							sourceUpdatedAt: true,
 						},
@@ -190,9 +115,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const sourceUpdatedAt = resolvedEntity.sourceUpdatedAt}
-					{#if sourceUpdatedAt !== undefined && sourceUpdatedAt !== null}
+					{@const sourceUpdatedAt = entity.sourceUpdatedAt}
+					{#if sourceUpdatedAt != null}
 						<div>
 							<dt>Source updated at</dt>
 							<dd>
@@ -206,23 +130,15 @@
 
 		<dl data-column-item="center">
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							architectureKind: true,
-						},
-					})
-				}
+				resource={scalingDeploymentClaimTimestamp}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const architectureKind = resolvedEntity.architectureKind}
-					{#if architectureKind !== undefined && architectureKind !== null}
+					{@const architectureKind = entity.architectureKind}
+					{#if architectureKind != null}
 						<div>
 							<dt>Architecture kind</dt>
 							<dd>
-								{String((architectureKind) ?? '')}
+								{architectureKind}
 							</dd>
 						</div>
 					{/if}
@@ -230,23 +146,15 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							stack: true,
-						},
-					})
-				}
+				resource={scalingDeploymentClaimTimestamp}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const stack = resolvedEntity.stack}
-					{#if stack !== undefined && stack !== null}
+					{@const stack = entity.stack}
+					{#if stack != null}
 						<div>
 							<dt>Stack</dt>
 							<dd>
-								{String((stack) ?? '')}
+								{stack}
 							</dd>
 						</div>
 					{/if}
@@ -256,7 +164,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							protocolId: true,
 						},
@@ -264,13 +171,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const protocolId = resolvedEntity.protocolId}
-					{#if protocolId !== undefined && protocolId !== null}
+					{@const protocolId = entity.protocolId}
+					{#if protocolId != null}
 						<div>
 							<dt>Protocol ID</dt>
 							<dd>
-								{String((protocolId) ?? '')}
+								{protocolId}
 							</dd>
 						</div>
 					{/if}
@@ -278,23 +184,15 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							protocolLabel: true,
-						},
-					})
-				}
+				resource={scalingDeploymentClaimTimestamp}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const protocolLabel = resolvedEntity.protocolLabel}
-					{#if protocolLabel !== undefined && protocolLabel !== null}
+					{@const protocolLabel = entity.protocolLabel}
+					{#if protocolLabel != null}
 						<div>
 							<dt>Protocol label</dt>
 							<dd>
-								{String((protocolLabel) ?? '')}
+								{protocolLabel}
 							</dd>
 						</div>
 					{/if}
@@ -304,7 +202,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							protocolKind: true,
 						},
@@ -312,13 +209,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const protocolKind = resolvedEntity.protocolKind}
-					{#if protocolKind !== undefined && protocolKind !== null}
+					{@const protocolKind = entity.protocolKind}
+					{#if protocolKind != null}
 						<div>
 							<dt>Protocol kind</dt>
 							<dd>
-								{String((protocolKind) ?? '')}
+								{protocolKind}
 							</dd>
 						</div>
 					{/if}
@@ -326,23 +222,15 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							proofSystemKind: true,
-						},
-					})
-				}
+				resource={scalingDeploymentClaimTimestamp}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const proofSystemKind = resolvedEntity.proofSystemKind}
-					{#if proofSystemKind !== undefined && proofSystemKind !== null}
+					{@const proofSystemKind = entity.proofSystemKind}
+					{#if proofSystemKind != null}
 						<div>
 							<dt>Proof system kind</dt>
 							<dd>
-								{String((proofSystemKind) ?? '')}
+								{proofSystemKind}
 							</dd>
 						</div>
 					{/if}
@@ -355,30 +243,13 @@
 				resource={selection.$settlementNetwork}
 			>
 				{#snippet children(network)}
-					{#if network != null && network[EntityMetaKey.Selector] != null}
+					{#if network != null}
 						<div>
 							<dt>Settlement network</dt>
 							<dd>
 								<NetworkView
 									selection={select(EntityType.Network, network[EntityMetaKey.Selector])}
 									prefetched={network}
-									href={
-										(
-											network[EntityMetaKey.Selector] != null && 'caip2' in network[EntityMetaKey.Selector]
-											&& network[EntityMetaKey.Selector].caip2 != null ?
-												resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-											network: String(caip2StringFromValue(network[EntityMetaKey.Selector].caip2) ?? ''),
-										})
-										:
-												network[EntityMetaKey.Selector] != null && 'slug' in network[EntityMetaKey.Selector]
-												&& network[EntityMetaKey.Selector].slug != null ?
-													resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-												network: String(network[EntityMetaKey.Selector].slug ?? ''),
-											})
-											:
-												undefined
-										)
-									}
 									layout={EntityLayout.Value}
 									open={false}
 								/>
@@ -391,7 +262,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							batchInboxAddress: true,
 						},
@@ -399,13 +269,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const batchInboxAddress = resolvedEntity.batchInboxAddress}
-					{#if batchInboxAddress !== undefined && batchInboxAddress !== null}
+					{@const batchInboxAddress = entity.batchInboxAddress}
+					{#if batchInboxAddress != null}
 						<div>
 							<dt>Batch inbox address</dt>
 							<dd>
-								<TruncatedValue value={String((batchInboxAddress) ?? '')} />
+								<TruncatedValue value={String(batchInboxAddress)} />
 							</dd>
 						</div>
 					{/if}
@@ -417,7 +286,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							dataAvailabilityKind: true,
 						},
@@ -425,13 +293,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const dataAvailabilityKind = resolvedEntity.dataAvailabilityKind}
-					{#if dataAvailabilityKind !== undefined && dataAvailabilityKind !== null}
+					{@const dataAvailabilityKind = entity.dataAvailabilityKind}
+					{#if dataAvailabilityKind != null}
 						<div>
 							<dt>Data availability kind</dt>
 							<dd>
-								{String((dataAvailabilityKind) ?? '')}
+								{dataAvailabilityKind}
 							</dd>
 						</div>
 					{/if}
@@ -442,30 +309,13 @@
 				resource={selection.$dataAvailabilityNetwork}
 			>
 				{#snippet children(network)}
-					{#if network != null && network[EntityMetaKey.Selector] != null}
+					{#if network != null}
 						<div>
 							<dt>Data availability network</dt>
 							<dd>
 								<NetworkView
 									selection={select(EntityType.Network, network[EntityMetaKey.Selector])}
 									prefetched={network}
-									href={
-										(
-											network[EntityMetaKey.Selector] != null && 'caip2' in network[EntityMetaKey.Selector]
-											&& network[EntityMetaKey.Selector].caip2 != null ?
-												resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-											network: String(caip2StringFromValue(network[EntityMetaKey.Selector].caip2) ?? ''),
-										})
-										:
-												network[EntityMetaKey.Selector] != null && 'slug' in network[EntityMetaKey.Selector]
-												&& network[EntityMetaKey.Selector].slug != null ?
-													resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-												network: String(network[EntityMetaKey.Selector].slug ?? ''),
-											})
-											:
-												undefined
-										)
-									}
 									layout={EntityLayout.Value}
 									open={false}
 								/>
@@ -480,7 +330,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							chainConfigUrl: true,
 						},
@@ -488,20 +337,18 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const chainConfigUrl = resolvedEntity.chainConfigUrl}
-					{#if chainConfigUrl !== undefined && chainConfigUrl !== null}
+					{@const chainConfigUrl = entity.chainConfigUrl}
+					{#if chainConfigUrl != null}
 						<div>
 							<dt>Chain config URL</dt>
 							<dd>
-								<svelte:element
-									this={'a'}
+								<a
 									href={String(chainConfigUrl)}
 									target="_blank"
 									rel="noreferrer noopener"
 								>
 									<TruncatedValue value={String(chainConfigUrl)} />
-								</svelte:element>
+								</a>
 							</dd>
 						</div>
 					{/if}
@@ -511,7 +358,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							derivationSpecUrl: true,
 						},
@@ -519,20 +365,18 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const derivationSpecUrl = resolvedEntity.derivationSpecUrl}
-					{#if derivationSpecUrl !== undefined && derivationSpecUrl !== null}
+					{@const derivationSpecUrl = entity.derivationSpecUrl}
+					{#if derivationSpecUrl != null}
 						<div>
 							<dt>Derivation spec URL</dt>
 							<dd>
-								<svelte:element
-									this={'a'}
+								<a
 									href={String(derivationSpecUrl)}
 									target="_blank"
 									rel="noreferrer noopener"
 								>
 									<TruncatedValue value={String(derivationSpecUrl)} />
-								</svelte:element>
+								</a>
 							</dd>
 						</div>
 					{/if}
@@ -542,7 +386,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							publicRpcUrl: true,
 						},
@@ -550,20 +393,18 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const publicRpcUrl = resolvedEntity.publicRpcUrl}
-					{#if publicRpcUrl !== undefined && publicRpcUrl !== null}
+					{@const publicRpcUrl = entity.publicRpcUrl}
+					{#if publicRpcUrl != null}
 						<div>
 							<dt>Public RPC URL</dt>
 							<dd>
-								<svelte:element
-									this={'a'}
+								<a
 									href={String(publicRpcUrl)}
 									target="_blank"
 									rel="noreferrer noopener"
 								>
 									<TruncatedValue value={String(publicRpcUrl)} />
-								</svelte:element>
+								</a>
 							</dd>
 						</div>
 					{/if}
@@ -573,7 +414,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							sequencerRpcUrl: true,
 						},
@@ -581,20 +421,18 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const sequencerRpcUrl = resolvedEntity.sequencerRpcUrl}
-					{#if sequencerRpcUrl !== undefined && sequencerRpcUrl !== null}
+					{@const sequencerRpcUrl = entity.sequencerRpcUrl}
+					{#if sequencerRpcUrl != null}
 						<div>
 							<dt>Sequencer RPC URL</dt>
 							<dd>
-								<svelte:element
-									this={'a'}
+								<a
 									href={String(sequencerRpcUrl)}
 									target="_blank"
 									rel="noreferrer noopener"
 								>
 									<TruncatedValue value={String(sequencerRpcUrl)} />
-								</svelte:element>
+								</a>
 							</dd>
 						</div>
 					{/if}

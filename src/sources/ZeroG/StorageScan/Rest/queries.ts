@@ -1,8 +1,9 @@
-import type { SourceBinding } from '$/sources/SourceBinding.ts'
+import { Source } from '$/sources/Source.ts'
 import {
 	firstHttpUrlForBinding,
 	sourceGetJson,
 } from '$/sources/_runtime/http.ts'
+import bindings from '$/sources/ZeroG/bindings.ts'
 import type {
 	ZeroGStorageScanList,
 	ZeroGStorageScanMiner,
@@ -12,12 +13,12 @@ import type {
 	ZeroGStorageScanTransaction,
 } from '$/sources/ZeroG/StorageScan/Rest/types.ts'
 
+const binding = bindings[Source.ZeroGStorageScan_Rest]
+
 const storageScanUrl = ({
-	binding,
 	path,
 	searchParams,
 }: {
-	binding: SourceBinding
 	path: string
 	searchParams?: Record<string, string | number | undefined>
 }) => {
@@ -29,18 +30,15 @@ const storageScanUrl = ({
 }
 
 const getStorageScanData = async <_Data>({
-	binding,
 	path,
 	searchParams,
 }: {
-	binding: SourceBinding
 	path: string
 	searchParams?: Record<string, string | number | undefined>
 }) => {
 	const response = await sourceGetJson<ZeroGStorageScanResponse<_Data>>(
 		binding,
 		storageScanUrl({
-			binding,
 			path,
 			searchParams,
 		})
@@ -49,28 +47,24 @@ const getStorageScanData = async <_Data>({
 	return response.data
 }
 
-export const getStorageSummary = (binding: SourceBinding) => (
+export const getStorageSummary = () => (
 	getStorageScanData<ZeroGStorageScanSummary>({
-		binding,
 		path: '/api/stats/summary',
 	})
 )
 
 export const listStorageTransactions = ({
-	binding,
 	limit,
 	skip,
 	rootHash,
 	txHash,
 }: {
-	binding: SourceBinding
 	limit: number
 	skip?: number
 	rootHash?: string
 	txHash?: string
 }) => (
 	getStorageScanData<ZeroGStorageScanList<ZeroGStorageScanTransaction>>({
-		binding,
 		path: '/api/txs',
 		searchParams: {
 			limit,
@@ -82,29 +76,23 @@ export const listStorageTransactions = ({
 )
 
 export const getStorageTransaction = ({
-	binding,
 	txSeq,
 }: {
-	binding: SourceBinding
 	txSeq: string | number | bigint
 }) => (
 	getStorageScanData<ZeroGStorageScanTransaction>({
-		binding,
 		path: `/api/txs/${txSeq.toString()}`,
 	})
 )
 
 export const listStorageMiners = ({
-	binding,
 	limit,
 	skip,
 }: {
-	binding: SourceBinding
 	limit: number
 	skip?: number
 }) => (
 	getStorageScanData<ZeroGStorageScanList<ZeroGStorageScanMiner>>({
-		binding,
 		path: '/api/miners',
 		searchParams: {
 			limit,
@@ -114,14 +102,11 @@ export const listStorageMiners = ({
 )
 
 export const getStorageMiner = ({
-	binding,
 	address,
 }: {
-	binding: SourceBinding
 	address: `0x${string}`
 }) => (
 	getStorageScanData<ZeroGStorageScanMinerInfo>({
-		binding,
 		path: `/api/miners/${address}`,
 	})
 )

@@ -2,14 +2,11 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -25,31 +22,15 @@
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.BlockheadAgentConversation>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.BlockheadAgentConversation>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.BlockheadAgentConversation> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const blockheadAgentConversation = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {
-			name: true,
-			updatedAt: true,
-		},
-	} : {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const viewSelection = $derived(selection({
+		sources: selection.sources ?? [
+			Source.Local_Internal,
+		],
+	}))
+	const blockheadAgentConversation = $derived(viewSelection({
 		fields: {
 			name: true,
 			pinned: true,
@@ -57,8 +38,7 @@
 			updatedAt: true,
 		},
 	}))
-	const titleFallback = $derived([String((pendingEntity.name) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.id) ?? '')].filter(Boolean).join(' ') || 'agent conversation')
-	const viewDomId = $derived('blockhead-agent-conversation-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const titleFallback = $derived((pendingEntity.name ?? '') || (pendingEntity.id ?? '') || 'agent conversation')
 
 
 	// Components
@@ -72,18 +52,14 @@
 
 <EntityView
 	entityType={EntityType.BlockheadAgentConversation}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
 	href={
-		href ?? (
-			selection.entitySelector != null && 'id' in selection.entitySelector
-			&& selection.entitySelector.id != null ?
-				resolve('/~/agents/conversation/[conversationId=stringSegment]', {
-			conversationId: String(selection.entitySelector.id ?? ''),
-		})
-		:
-				undefined
+		href ?? resolve(
+			'/~/agents/conversation/[conversationId=stringSegment]',
+			{
+				conversationId: String(selection.entitySelector.id),
+			}
 		)
 	}
 	{layout}
@@ -91,35 +67,19 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'name') && Object.hasOwn(prefetched, 'updatedAt')}
-			{[String((pendingEntity.name) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-		{:else}
-			<ResourceBoundary resource={blockheadAgentConversation}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.name) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={blockheadAgentConversation}>
+			{#snippet children(entity)}
+				{(entity.name ?? '') || title || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Value()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'name') && Object.hasOwn(prefetched, 'updatedAt')}
-			{@const updatedAt0 = pendingEntity.updatedAt}
-			{#if updatedAt0 !== undefined && updatedAt0 !== null}
-				<Timestamp timestamp={Number(updatedAt0)} />
-			{/if}
-		{:else}
-			<ResourceBoundary resource={blockheadAgentConversation}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const updatedAt0 = resolvedEntity.updatedAt}
-					{#if updatedAt0 !== undefined && updatedAt0 !== null}
-						<Timestamp timestamp={Number(updatedAt0)} />
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={blockheadAgentConversation}>
+			{#snippet children(entity)}
+				<Timestamp timestamp={Number(entity.updatedAt)} />
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -128,21 +88,10 @@
 				<dt>Pinned</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									pinned: true,
-								},
-							})
-						}
+						resource={blockheadAgentConversation}
 					>
 						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const pinned = resolvedEntity.pinned}
-							{#if pinned !== undefined && pinned !== null}
-								{pinned ? 'Yes' : 'No'}
-							{/if}
+							{entity.pinned ? 'Yes' : 'No'}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -152,21 +101,10 @@
 				<dt>Created</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									createdAt: true,
-								},
-							})
-						}
+						resource={blockheadAgentConversation}
 					>
 						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const createdAt = resolvedEntity.createdAt}
-							{#if createdAt !== undefined && createdAt !== null}
-								<Timestamp timestamp={Number(createdAt)} />
-							{/if}
+							<Timestamp timestamp={Number(entity.createdAt)} />
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -176,21 +114,10 @@
 				<dt>Updated</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									updatedAt: true,
-								},
-							})
-						}
+						resource={blockheadAgentConversation}
 					>
 						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const updatedAt = resolvedEntity.updatedAt}
-							{#if updatedAt !== undefined && updatedAt !== null}
-								<Timestamp timestamp={Number(updatedAt)} />
-							{/if}
+							<Timestamp timestamp={Number(entity.updatedAt)} />
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -200,8 +127,7 @@
 		<dl data-column-item="center">
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							defaultConnectionId: true,
 						},
@@ -209,13 +135,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const defaultConnectionId = resolvedEntity.defaultConnectionId}
-					{#if defaultConnectionId !== undefined && defaultConnectionId !== null}
+					{@const defaultConnectionId = entity.defaultConnectionId}
+					{#if defaultConnectionId != null}
 						<div>
 							<dt>Default connection ID</dt>
 							<dd>
-								{String((defaultConnectionId) ?? '')}
+								{defaultConnectionId}
 							</dd>
 						</div>
 					{/if}
@@ -224,8 +149,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							defaultModelId: true,
 						},
@@ -233,13 +157,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const defaultModelId = resolvedEntity.defaultModelId}
-					{#if defaultModelId !== undefined && defaultModelId !== null}
+					{@const defaultModelId = entity.defaultModelId}
+					{#if defaultModelId != null}
 						<div>
 							<dt>Default model ID</dt>
 							<dd>
-								{String((defaultModelId) ?? '')}
+								{defaultModelId}
 							</dd>
 						</div>
 					{/if}
@@ -250,7 +173,7 @@
 				resource={selection.$profile}
 			>
 				{#snippet children(blockheadAgentProfile)}
-					{#if blockheadAgentProfile != null && blockheadAgentProfile[EntityMetaKey.Selector] != null}
+					{#if blockheadAgentProfile != null}
 						<div>
 							<dt>profile</dt>
 							<dd>
@@ -269,8 +192,7 @@
 
 		<ResourceBoundary
 			resource={
-				selection({
-					sources: selection.sources,
+				viewSelection({
 					fields: {
 						systemPrompt: true,
 					},
@@ -278,10 +200,9 @@
 			}
 		>
 			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const systemPrompt = resolvedEntity.systemPrompt}
-				{#if systemPrompt !== undefined && systemPrompt !== null && systemPrompt !== ''}
-					<p data-text="long-text">{String((systemPrompt) ?? '')}</p>
+				{@const systemPrompt = entity.systemPrompt}
+				{#if systemPrompt != null && systemPrompt !== ''}
+					<p data-text="long-text">{systemPrompt}</p>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>
@@ -294,12 +215,12 @@
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
-				<BlockheadAgentConversationTurnsView
-					selection={blockheadAgentConversationBlockheadAgentConversationTurnsViewTurnsResource}
-					countResource={blockheadAgentConversationBlockheadAgentConversationTurnsViewTurnsResource.count}
-					title='Turns'
-					id='BlockheadAgentConversationTurnsView-turns'
-				/>
+					<BlockheadAgentConversationTurnsView
+						selection={blockheadAgentConversationBlockheadAgentConversationTurnsViewTurnsResource}
+						countResource={blockheadAgentConversationBlockheadAgentConversationTurnsViewTurnsResource.count}
+						title='Turns'
+						id='turns'
+					/>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>

@@ -1,8 +1,8 @@
 import {
-	caipNamespacesGithubEndpoints,
 	caipNamespacesGithubRepo,
 	caipNamespacesHumanBaseUrl,
 } from '$/sources/Caips/Namespaces/Github/constants.ts'
+import type { SourceBinding } from '$/sources/SourceBinding.ts'
 import type { CaipNamespacesGithubContents } from '$/sources/Caips/Namespaces/Github/types.ts'
 import {
 	getGithubContents,
@@ -13,9 +13,11 @@ export const getContentsUrl = () => (
 	githubContentsUrl(caipNamespacesGithubRepo)
 )
 
-export const getContents = (): Promise<CaipNamespacesGithubContents> => (
+export const getContents = (
+	binding: SourceBinding
+): Promise<CaipNamespacesGithubContents> => (
 	getGithubContents({
-		endpoints: caipNamespacesGithubEndpoints,
+		binding,
 		target: caipNamespacesGithubRepo,
 	})
 )

@@ -2,14 +2,10 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -21,37 +17,18 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.BlockheadSocialPostSession>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.BlockheadSocialPostSession>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.BlockheadSocialPostSession> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const blockheadSocialPostSession = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {
-			status: true,
-			protocol: true,
-			updatedAt: true,
-			name: true,
-		},
-	} : {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const viewSelection = $derived(selection({
+		sources: selection.sources ?? [
+			Source.Local_Internal,
+		],
+	}))
+	const blockheadSocialPostSession = $derived(viewSelection({
 		fields: {
 			status: true,
 			protocol: true,
@@ -60,8 +37,7 @@
 			name: true,
 		},
 	}))
-	const titleFallback = $derived([String((pendingEntity.name) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.id) ?? '')].filter(Boolean).join(' ') || 'blockhead social post session')
-	const viewDomId = $derived('blockhead-social-post-session-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const titleFallback = $derived((pendingEntity.name ?? '') || (pendingEntity.id ?? '') || 'blockhead social post session')
 
 
 	// Components
@@ -76,61 +52,36 @@
 
 <EntityView
 	entityType={EntityType.BlockheadSocialPostSession}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'name') && Object.hasOwn(prefetched, 'status') && Object.hasOwn(prefetched, 'protocol') && Object.hasOwn(prefetched, 'updatedAt')}
-			{[String((pendingEntity.name) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-		{:else}
-			<ResourceBoundary resource={blockheadSocialPostSession}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.name) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={blockheadSocialPostSession}>
+			{#snippet children(entity)}
+				{(entity.name ?? '') || title || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Value()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'name') && Object.hasOwn(prefetched, 'status') && Object.hasOwn(prefetched, 'protocol') && Object.hasOwn(prefetched, 'updatedAt')}
-			{[String((pendingEntity.status) ?? ''), String((pendingEntity.protocol) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.name) ?? '')].filter(Boolean).join(' ') || titleFallback}
-		{:else}
-			<ResourceBoundary resource={blockheadSocialPostSession}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.status) ?? ''), String((resolvedEntity.protocol) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.name) ?? '')].filter(Boolean).join(' ') || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={blockheadSocialPostSession}>
+			{#snippet children(entity)}
+				{[entity.status, entity.protocol].filter(Boolean).join(' ') || (entity.name ?? '') || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'name') && Object.hasOwn(prefetched, 'status') && Object.hasOwn(prefetched, 'protocol') && Object.hasOwn(prefetched, 'updatedAt')}
-			{@const updatedAt0 = pendingEntity.updatedAt}
-			{#if updatedAt0 !== undefined && updatedAt0 !== null}
+		<ResourceBoundary resource={blockheadSocialPostSession}>
+			{#snippet children(entity)}
 				<span data-text="muted">
-					<Timestamp timestamp={Number(updatedAt0)} />
+					<Timestamp timestamp={Number(entity.updatedAt)} />
 				</span>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={blockheadSocialPostSession}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const updatedAt0 = resolvedEntity.updatedAt}
-					{#if updatedAt0 !== undefined && updatedAt0 !== null}
-						<span data-text="muted">
-							<Timestamp timestamp={Number(updatedAt0)} />
-						</span>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -138,45 +89,20 @@
 			<div>
 				<dt>ID</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									id: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const id = resolvedEntity.id}
-							{#if id !== undefined && id !== null}
-								{String((id) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{pendingEntity.id}
 				</dd>
 			</div>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							name: true,
-						},
-					})
-				}
+				resource={blockheadSocialPostSession}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const name = resolvedEntity.name}
-					{#if name !== undefined && name !== null}
+					{@const name = entity.name}
+					{#if name != null}
 						<div>
 							<dt>Name</dt>
 							<dd>
-								{String((name) ?? '')}
+								{name}
 							</dd>
 						</div>
 					{/if}
@@ -187,21 +113,10 @@
 				<dt>status</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									status: true,
-								},
-							})
-						}
+						resource={blockheadSocialPostSession}
 					>
 						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const status = resolvedEntity.status}
-							{#if status !== undefined && status !== null}
-								{String((status) ?? '')}
-							{/if}
+							{entity.status}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -211,21 +126,10 @@
 				<dt>protocol</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									protocol: true,
-								},
-							})
-						}
+						resource={blockheadSocialPostSession}
 					>
 						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const protocol = resolvedEntity.protocol}
-							{#if protocol !== undefined && protocol !== null}
-								{String((protocol) ?? '')}
-							{/if}
+							{entity.protocol}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -233,8 +137,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							authorKey: true,
 						},
@@ -242,13 +145,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const authorKey = resolvedEntity.authorKey}
-					{#if authorKey !== undefined && authorKey !== null}
+					{@const authorKey = entity.authorKey}
+					{#if authorKey != null}
 						<div>
 							<dt>author key</dt>
 							<dd>
-								{String((authorKey) ?? '')}
+								{authorKey}
 							</dd>
 						</div>
 					{/if}
@@ -259,24 +161,13 @@
 				resource={selection.$walletConnection}
 			>
 				{#snippet children(blockheadWalletConnection)}
-					{#if blockheadWalletConnection != null && blockheadWalletConnection[EntityMetaKey.Selector] != null}
+					{#if blockheadWalletConnection != null}
 						<div>
 							<dt>wallet connection</dt>
 							<dd>
 								<BlockheadWalletConnectionView
 									selection={select(EntityType.BlockheadWalletConnection, blockheadWalletConnection[EntityMetaKey.Selector])}
 									prefetched={blockheadWalletConnection}
-									href={
-										(
-											blockheadWalletConnection[EntityMetaKey.Selector] != null && 'connectionKey' in blockheadWalletConnection[EntityMetaKey.Selector]
-											&& blockheadWalletConnection[EntityMetaKey.Selector].connectionKey != null ?
-												resolve('/~/accounts/connections/[connectionKey=stringSegment]', {
-											connectionKey: String(blockheadWalletConnection[EntityMetaKey.Selector].connectionKey ?? ''),
-										})
-										:
-												undefined
-										)
-									}
 									layout={EntityLayout.Value}
 									open={false}
 								/>
@@ -290,24 +181,13 @@
 				resource={selection.$agentConversation}
 			>
 				{#snippet children(blockheadAgentConversation)}
-					{#if blockheadAgentConversation != null && blockheadAgentConversation[EntityMetaKey.Selector] != null}
+					{#if blockheadAgentConversation != null}
 						<div>
 							<dt>agent conversation</dt>
 							<dd>
 								<BlockheadAgentConversationView
 									selection={select(EntityType.BlockheadAgentConversation, blockheadAgentConversation[EntityMetaKey.Selector])}
 									prefetched={blockheadAgentConversation}
-									href={
-										(
-											blockheadAgentConversation[EntityMetaKey.Selector] != null && 'id' in blockheadAgentConversation[EntityMetaKey.Selector]
-											&& blockheadAgentConversation[EntityMetaKey.Selector].id != null ?
-												resolve('/~/agents/conversation/[conversationId=stringSegment]', {
-											conversationId: String(blockheadAgentConversation[EntityMetaKey.Selector].id ?? ''),
-										})
-										:
-												undefined
-										)
-									}
 									layout={EntityLayout.Value}
 									open={false}
 								/>
@@ -321,8 +201,7 @@
 		<dl data-column-item="center">
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							text: true,
 						},
@@ -330,13 +209,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const text = resolvedEntity.text}
-					{#if text !== undefined && text !== null}
+					{@const text = entity.text}
+					{#if text != null}
 						<div>
 							<dt>text</dt>
 							<dd>
-								{String((text) ?? '')}
+								{text}
 							</dd>
 						</div>
 					{/if}
@@ -345,8 +223,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							publishedEntityType: true,
 						},
@@ -354,13 +231,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const publishedEntityType = resolvedEntity.publishedEntityType}
-					{#if publishedEntityType !== undefined && publishedEntityType !== null}
+					{@const publishedEntityType = entity.publishedEntityType}
+					{#if publishedEntityType != null}
 						<div>
 							<dt>published entity type</dt>
 							<dd>
-								{String((publishedEntityType) ?? '')}
+								{publishedEntityType}
 							</dd>
 						</div>
 					{/if}
@@ -373,21 +249,10 @@
 				<dt>Created</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									createdAt: true,
-								},
-							})
-						}
+						resource={blockheadSocialPostSession}
 					>
 						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const createdAt = resolvedEntity.createdAt}
-							{#if createdAt !== undefined && createdAt !== null}
-								<Timestamp timestamp={Number(createdAt)} />
-							{/if}
+							<Timestamp timestamp={Number(entity.createdAt)} />
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -397,21 +262,10 @@
 				<dt>Updated</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									updatedAt: true,
-								},
-							})
-						}
+						resource={blockheadSocialPostSession}
 					>
 						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const updatedAt = resolvedEntity.updatedAt}
-							{#if updatedAt !== undefined && updatedAt !== null}
-								<Timestamp timestamp={Number(updatedAt)} />
-							{/if}
+							<Timestamp timestamp={Number(entity.updatedAt)} />
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -419,8 +273,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							lockedAt: true,
 						},
@@ -428,9 +281,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const lockedAt = resolvedEntity.lockedAt}
-					{#if lockedAt !== undefined && lockedAt !== null}
+					{@const lockedAt = entity.lockedAt}
+					{#if lockedAt != null}
 						<div>
 							<dt>locked AT</dt>
 							<dd>
@@ -450,12 +302,12 @@
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
-				<MediaListView
-					selection={blockheadSocialPostSessionMediaListViewMediaResource}
-					countResource={blockheadSocialPostSessionMediaListViewMediaResource.count}
-					title='media'
-					id='MediaListView-media'
-				/>
+					<MediaListView
+						selection={blockheadSocialPostSessionMediaListViewMediaResource}
+						countResource={blockheadSocialPostSessionMediaListViewMediaResource.count}
+						title='media'
+						id='media'
+					/>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>

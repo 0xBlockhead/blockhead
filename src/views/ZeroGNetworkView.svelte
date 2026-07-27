@@ -2,15 +2,11 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { stringify } from 'devalue'
-	import { caip2StringFromValue } from '$/lib/caip2.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -22,35 +18,18 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.ZeroGNetwork>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.ZeroGNetwork>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.ZeroGNetwork> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const zeroGNetwork = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {
-			name: true,
-			environment: true,
-		},
-	} : {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const viewSelection = $derived(selection({
+		sources: selection.sources ?? [
+			Source.Constants_Internal,
+		],
+	}))
+	const zeroGNetwork = $derived(viewSelection({
 		fields: {
 			name: true,
 			namespace: true,
@@ -58,8 +37,8 @@
 			chainId: true,
 		},
 	}))
-	const titleFallback = $derived([String((pendingEntity.name) ?? '')].filter(Boolean).join(' ') || 'zero g network')
-	const viewDomId = $derived('zero-gnetwork-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const titleFallback = $derived((pendingEntity.name ?? '') || 'zero g network')
+	const viewDomId = $derived('zero-gnetwork-' + encodeURIComponent(stringify(selection.entitySelector)))
 
 
 	// Components
@@ -81,61 +60,33 @@
 
 <EntityView
 	entityType={EntityType.ZeroGNetwork}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
+	entitySelector={selection.entitySelector}
 	id={viewDomId}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'name') && Object.hasOwn(prefetched, 'environment')}
-			{[String((pendingEntity.name) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-		{:else}
-			<ResourceBoundary resource={zeroGNetwork}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.name) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={zeroGNetwork}>
+			{#snippet children(entity)}
+				{entity.name || title || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Value()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'name') && Object.hasOwn(prefetched, 'environment')}
-			{[String((pendingEntity.slug) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.name) ?? '')].filter(Boolean).join(' ') || titleFallback}
-		{:else}
-			<ResourceBoundary resource={zeroGNetwork}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.slug) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.name) ?? '')].filter(Boolean).join(' ') || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		{(pendingEntity.slug ?? '') || (pendingEntity.name ?? '') || titleFallback}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'name') && Object.hasOwn(prefetched, 'environment')}
-			{@const environment0 = pendingEntity.environment}
-			{#if environment0 !== undefined && environment0 !== null}
+		<ResourceBoundary resource={zeroGNetwork}>
+			{#snippet children(entity)}
 				<span data-text="muted">
-					{String((environment0) ?? '')}
+					{entity.environment}
 				</span>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={zeroGNetwork}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const environment0 = resolvedEntity.environment}
-					{#if environment0 !== undefined && environment0 !== null}
-						<span data-text="muted">
-							{String((environment0) ?? '')}
-						</span>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -143,24 +94,7 @@
 			<div>
 				<dt>Slug</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									slug: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const slug = resolvedEntity.slug}
-							{#if slug !== undefined && slug !== null}
-								{String((slug) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{pendingEntity.slug}
 				</dd>
 			</div>
 
@@ -168,21 +102,10 @@
 				<dt>Name</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									name: true,
-								},
-							})
-						}
+						resource={zeroGNetwork}
 					>
 						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const name = resolvedEntity.name}
-							{#if name !== undefined && name !== null}
-								{String((name) ?? '')}
-							{/if}
+							{entity.name}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -192,21 +115,10 @@
 				<dt>Namespace</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									namespace: true,
-								},
-							})
-						}
+						resource={zeroGNetwork}
 					>
 						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const namespace = resolvedEntity.namespace}
-							{#if namespace !== undefined && namespace !== null}
-								{String((namespace) ?? '')}
-							{/if}
+							{entity.namespace}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -216,21 +128,10 @@
 				<dt>environment</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									environment: true,
-								},
-							})
-						}
+						resource={zeroGNetwork}
 					>
 						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const environment = resolvedEntity.environment}
-							{#if environment !== undefined && environment !== null}
-								{String((environment) ?? '')}
-							{/if}
+							{entity.environment}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -240,23 +141,12 @@
 				<dt>Chain ID</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									chainId: true,
-								},
-							})
-						}
+						resource={zeroGNetwork}
 					>
 						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const chainId = resolvedEntity.chainId}
-							{#if chainId !== undefined && chainId !== null}
-								<NumberValue
-									value={chainId}
-								/>
-							{/if}
+							<NumberValue
+								value={entity.chainId}
+							/>
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -268,30 +158,13 @@
 				resource={selection.$executionNetwork}
 			>
 				{#snippet children(network)}
-					{#if network != null && network[EntityMetaKey.Selector] != null}
+					{#if network != null}
 						<div>
 							<dt>execution network</dt>
 							<dd>
 								<NetworkView
 									selection={select(EntityType.Network, network[EntityMetaKey.Selector])}
 									prefetched={network}
-									href={
-										(
-											network[EntityMetaKey.Selector] != null && 'caip2' in network[EntityMetaKey.Selector]
-											&& network[EntityMetaKey.Selector].caip2 != null ?
-												resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-											network: String(caip2StringFromValue(network[EntityMetaKey.Selector].caip2) ?? ''),
-										})
-										:
-												network[EntityMetaKey.Selector] != null && 'slug' in network[EntityMetaKey.Selector]
-												&& network[EntityMetaKey.Selector].slug != null ?
-													resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-												network: String(network[EntityMetaKey.Selector].slug ?? ''),
-											})
-											:
-												undefined
-										)
-									}
 									layout={EntityLayout.Value}
 									open={false}
 								/>
@@ -305,7 +178,7 @@
 				resource={selection.$consensusNetwork}
 			>
 				{#snippet children(zeroGConsensusNetwork)}
-					{#if zeroGConsensusNetwork != null && zeroGConsensusNetwork[EntityMetaKey.Selector] != null}
+					{#if zeroGConsensusNetwork != null}
 						<div>
 							<dt>consensus network</dt>
 							<dd>
@@ -332,7 +205,6 @@
 					{
 						id: 'zerog-network-observations',
 						label: 'Observations',
-						ownsSection: true,
 					},
 				]
 			}
@@ -345,70 +217,19 @@
 				</header>
 			{/snippet}
 
-			{#snippet MarkerZerogNetworkObservations(_context, Content)}
-				{@const zerogObservationsZerogNetworkObservationsResource = selection.$$timestamps}
-				<ResourceBoundary
-					resource={zerogObservationsZerogNetworkObservationsResource}
-				>
-					{#snippet children(_resolved)}
-						{@render Content()}
-					{/snippet}
-
-					{#snippet PendingContent()}
-						{@render Content()}
-					{/snippet}
-
-					{#snippet FailedContent(_error, _retry)}
-						{@render Content()}
-					{/snippet}
-				</ResourceBoundary>
-			{/snippet}
-
-			{#snippet SectionZerogNetworkObservations({ id, label, open, active })}
-				{@const zerogObservationsZerogNetworkObservationsResource = selection.$$timestamps}
-				<ResourceBoundary
-					resource={zerogObservationsZerogNetworkObservationsResource}
-				>
-					{#snippet children(zeroGNetworkTimestamp)}
-						<section
-							id={id}
-							aria-labelledby={`${id}:marker`}
-							data-scroll-marker-label={label}
-							data-column-item="flexible"
-							data-column
-							data-active={active}
-						>
-							<ZeroGNetwork_TimestampsView
-								selection={zerogObservationsZerogNetworkObservationsResource}
-								CollapsibleProps={{ canToggle: false }}
-								collapsible={false}
-								data-column-item="flexible"
-								data-card
-								data-scroll-container
-								open={open}
-								title={label}
-								emptyText='No 0G network observations.'
-								id={`${id}-list`}
-							/>
-						</section>
-					{/snippet}
-
-					{#snippet Pending()}
-						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
-							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
-								<span data-tag data-text="muted" data-resource-state="pending" class="loading inline-placeholder" aria-busy="true" aria-label="Loading…">•••</span>
-							</article>
-						</section>
-					{/snippet}
-
-					{#snippet Failed(_error, _retry)}
-						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
-							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
-								<span data-tag data-resource-state="failed" class="inline-placeholder" aria-label="Failed to load">•••</span>
-							</article>
-						</section>
-					{/snippet}
-				</ResourceBoundary>
+			{#snippet SectionZerogNetworkObservations({ id, label, open })}
+				<ZeroGNetwork_TimestampsView
+					selection={selection.$$timestamps}
+					CollapsibleProps={{ canToggle: false }}
+					collapsible={false}
+					data-column-item="flexible"
+					data-card
+					data-scroll-container
+					open={open}
+					title={label}
+					emptyText='No 0G network observations.'
+					id={`${id}-list`}
+				/>
 			{/snippet}
 
 		</CollapsibleTabs>
@@ -421,17 +242,14 @@
 					{
 						id: 'zerog-storage-nodes',
 						label: 'Storage nodes',
-						ownsSection: true,
 					},
 					{
 						id: 'zerog-data-blobs',
 						label: 'Data blobs',
-						ownsSection: true,
 					},
 					{
 						id: 'zerog-kv-entries',
 						label: 'KV entries',
-						ownsSection: true,
 					},
 				]
 			}
@@ -444,202 +262,49 @@
 				</header>
 			{/snippet}
 
-			{#snippet MarkerZerogStorageNodes(_context, Content)}
-				{@const zerogStorageNodesResource = selection.$$storageNodes}
-				<ResourceBoundary
-					resource={zerogStorageNodesResource}
-				>
-					{#snippet children(_resolved)}
-						{@render Content()}
-					{/snippet}
-
-					{#snippet PendingContent()}
-						{@render Content()}
-					{/snippet}
-
-					{#snippet FailedContent(_error, _retry)}
-						{@render Content()}
-					{/snippet}
-				</ResourceBoundary>
+			{#snippet SectionZerogStorageNodes({ id, label, open })}
+				<ZeroGStorageNodesView
+					selection={selection.$$storageNodes}
+					CollapsibleProps={{ canToggle: false }}
+					collapsible={false}
+					data-column-item="flexible"
+					data-card
+					data-scroll-container
+					open={open}
+					title={label}
+					emptyText='No 0G storage nodes.'
+					id={`${id}-list`}
+				/>
 			{/snippet}
 
-			{#snippet SectionZerogStorageNodes({ id, label, open, active })}
-				{@const zerogStorageNodesResource = selection.$$storageNodes}
-				<ResourceBoundary
-					resource={zerogStorageNodesResource}
-				>
-					{#snippet children(zeroGStorageNode)}
-						<section
-							id={id}
-							aria-labelledby={`${id}:marker`}
-							data-scroll-marker-label={label}
-							data-column-item="flexible"
-							data-column
-							data-active={active}
-						>
-							<ZeroGStorageNodesView
-								selection={zerogStorageNodesResource}
-								CollapsibleProps={{ canToggle: false }}
-								collapsible={false}
-								data-column-item="flexible"
-								data-card
-								data-scroll-container
-								open={open}
-								title={label}
-								emptyText='No 0G storage nodes.'
-								id={`${id}-list`}
-							/>
-						</section>
-					{/snippet}
-
-					{#snippet Pending()}
-						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
-							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
-								<span data-tag data-text="muted" data-resource-state="pending" class="loading inline-placeholder" aria-busy="true" aria-label="Loading…">•••</span>
-							</article>
-						</section>
-					{/snippet}
-
-					{#snippet Failed(_error, _retry)}
-						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
-							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
-								<span data-tag data-resource-state="failed" class="inline-placeholder" aria-label="Failed to load">•••</span>
-							</article>
-						</section>
-					{/snippet}
-				</ResourceBoundary>
+			{#snippet SectionZerogDataBlobs({ id, label, open })}
+				<ZeroGDataBlobsView
+					selection={selection.$$dataBlobs}
+					CollapsibleProps={{ canToggle: false }}
+					collapsible={false}
+					data-column-item="flexible"
+					data-card
+					data-scroll-container
+					open={open}
+					title={label}
+					emptyText='No 0G data blobs.'
+					id={`${id}-list`}
+				/>
 			{/snippet}
 
-			{#snippet MarkerZerogDataBlobs(_context, Content)}
-				{@const zerogStorageZerogDataBlobsResource = selection.$$dataBlobs}
-				<ResourceBoundary
-					resource={zerogStorageZerogDataBlobsResource}
-				>
-					{#snippet children(_resolved)}
-						{@render Content()}
-					{/snippet}
-
-					{#snippet PendingContent()}
-						{@render Content()}
-					{/snippet}
-
-					{#snippet FailedContent(_error, _retry)}
-						{@render Content()}
-					{/snippet}
-				</ResourceBoundary>
-			{/snippet}
-
-			{#snippet SectionZerogDataBlobs({ id, label, open, active })}
-				{@const zerogStorageZerogDataBlobsResource = selection.$$dataBlobs}
-				<ResourceBoundary
-					resource={zerogStorageZerogDataBlobsResource}
-				>
-					{#snippet children(zeroGDataBlob)}
-						<section
-							id={id}
-							aria-labelledby={`${id}:marker`}
-							data-scroll-marker-label={label}
-							data-column-item="flexible"
-							data-column
-							data-active={active}
-						>
-							<ZeroGDataBlobsView
-								selection={zerogStorageZerogDataBlobsResource}
-								CollapsibleProps={{ canToggle: false }}
-								collapsible={false}
-								data-column-item="flexible"
-								data-card
-								data-scroll-container
-								open={open}
-								title={label}
-								emptyText='No 0G data blobs.'
-								id={`${id}-list`}
-							/>
-						</section>
-					{/snippet}
-
-					{#snippet Pending()}
-						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
-							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
-								<span data-tag data-text="muted" data-resource-state="pending" class="loading inline-placeholder" aria-busy="true" aria-label="Loading…">•••</span>
-							</article>
-						</section>
-					{/snippet}
-
-					{#snippet Failed(_error, _retry)}
-						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
-							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
-								<span data-tag data-resource-state="failed" class="inline-placeholder" aria-label="Failed to load">•••</span>
-							</article>
-						</section>
-					{/snippet}
-				</ResourceBoundary>
-			{/snippet}
-
-			{#snippet MarkerZerogKvEntries(_context, Content)}
-				{@const zerogStorageZerogKvEntriesResource = selection.$$kvEntries}
-				<ResourceBoundary
-					resource={zerogStorageZerogKvEntriesResource}
-				>
-					{#snippet children(_resolved)}
-						{@render Content()}
-					{/snippet}
-
-					{#snippet PendingContent()}
-						{@render Content()}
-					{/snippet}
-
-					{#snippet FailedContent(_error, _retry)}
-						{@render Content()}
-					{/snippet}
-				</ResourceBoundary>
-			{/snippet}
-
-			{#snippet SectionZerogKvEntries({ id, label, open, active })}
-				{@const zerogStorageZerogKvEntriesResource = selection.$$kvEntries}
-				<ResourceBoundary
-					resource={zerogStorageZerogKvEntriesResource}
-				>
-					{#snippet children(zeroGKvEntry)}
-						<section
-							id={id}
-							aria-labelledby={`${id}:marker`}
-							data-scroll-marker-label={label}
-							data-column-item="flexible"
-							data-column
-							data-active={active}
-						>
-							<ZeroGKvEntriesView
-								selection={zerogStorageZerogKvEntriesResource}
-								CollapsibleProps={{ canToggle: false }}
-								collapsible={false}
-								data-column-item="flexible"
-								data-card
-								data-scroll-container
-								open={open}
-								title={label}
-								emptyText='No 0G KV entries.'
-								id={`${id}-list`}
-							/>
-						</section>
-					{/snippet}
-
-					{#snippet Pending()}
-						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
-							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
-								<span data-tag data-text="muted" data-resource-state="pending" class="loading inline-placeholder" aria-busy="true" aria-label="Loading…">•••</span>
-							</article>
-						</section>
-					{/snippet}
-
-					{#snippet Failed(_error, _retry)}
-						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
-							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
-								<span data-tag data-resource-state="failed" class="inline-placeholder" aria-label="Failed to load">•••</span>
-							</article>
-						</section>
-					{/snippet}
-				</ResourceBoundary>
+			{#snippet SectionZerogKvEntries({ id, label, open })}
+				<ZeroGKvEntriesView
+					selection={selection.$$kvEntries}
+					CollapsibleProps={{ canToggle: false }}
+					collapsible={false}
+					data-column-item="flexible"
+					data-card
+					data-scroll-container
+					open={open}
+					title={label}
+					emptyText='No 0G KV entries.'
+					id={`${id}-list`}
+				/>
 			{/snippet}
 
 		</CollapsibleTabs>
@@ -652,12 +317,10 @@
 					{
 						id: 'zerog-da-quorums',
 						label: 'DA quorums',
-						ownsSection: true,
 					},
 					{
 						id: 'zerog-da-nodes',
 						label: 'DA nodes',
-						ownsSection: true,
 					},
 				]
 			}
@@ -670,136 +333,34 @@
 				</header>
 			{/snippet}
 
-			{#snippet MarkerZerogDaQuorums(_context, Content)}
-				{@const zerogDataAvailabilityZerogDaQuorumsResource = selection.$$daQuorums}
-				<ResourceBoundary
-					resource={zerogDataAvailabilityZerogDaQuorumsResource}
-				>
-					{#snippet children(_resolved)}
-						{@render Content()}
-					{/snippet}
-
-					{#snippet PendingContent()}
-						{@render Content()}
-					{/snippet}
-
-					{#snippet FailedContent(_error, _retry)}
-						{@render Content()}
-					{/snippet}
-				</ResourceBoundary>
+			{#snippet SectionZerogDaQuorums({ id, label, open })}
+				<ZeroGDaQuorumsView
+					selection={selection.$$daQuorums}
+					CollapsibleProps={{ canToggle: false }}
+					collapsible={false}
+					data-column-item="flexible"
+					data-card
+					data-scroll-container
+					open={open}
+					title={label}
+					emptyText='No 0G DA quorums.'
+					id={`${id}-list`}
+				/>
 			{/snippet}
 
-			{#snippet SectionZerogDaQuorums({ id, label, open, active })}
-				{@const zerogDataAvailabilityZerogDaQuorumsResource = selection.$$daQuorums}
-				<ResourceBoundary
-					resource={zerogDataAvailabilityZerogDaQuorumsResource}
-				>
-					{#snippet children(zeroGDaQuorum)}
-						<section
-							id={id}
-							aria-labelledby={`${id}:marker`}
-							data-scroll-marker-label={label}
-							data-column-item="flexible"
-							data-column
-							data-active={active}
-						>
-							<ZeroGDaQuorumsView
-								selection={zerogDataAvailabilityZerogDaQuorumsResource}
-								CollapsibleProps={{ canToggle: false }}
-								collapsible={false}
-								data-column-item="flexible"
-								data-card
-								data-scroll-container
-								open={open}
-								title={label}
-								emptyText='No 0G DA quorums.'
-								id={`${id}-list`}
-							/>
-						</section>
-					{/snippet}
-
-					{#snippet Pending()}
-						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
-							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
-								<span data-tag data-text="muted" data-resource-state="pending" class="loading inline-placeholder" aria-busy="true" aria-label="Loading…">•••</span>
-							</article>
-						</section>
-					{/snippet}
-
-					{#snippet Failed(_error, _retry)}
-						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
-							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
-								<span data-tag data-resource-state="failed" class="inline-placeholder" aria-label="Failed to load">•••</span>
-							</article>
-						</section>
-					{/snippet}
-				</ResourceBoundary>
-			{/snippet}
-
-			{#snippet MarkerZerogDaNodes(_context, Content)}
-				{@const zerogDataAvailabilityZerogDaNodesResource = selection.$$daNodes}
-				<ResourceBoundary
-					resource={zerogDataAvailabilityZerogDaNodesResource}
-				>
-					{#snippet children(_resolved)}
-						{@render Content()}
-					{/snippet}
-
-					{#snippet PendingContent()}
-						{@render Content()}
-					{/snippet}
-
-					{#snippet FailedContent(_error, _retry)}
-						{@render Content()}
-					{/snippet}
-				</ResourceBoundary>
-			{/snippet}
-
-			{#snippet SectionZerogDaNodes({ id, label, open, active })}
-				{@const zerogDataAvailabilityZerogDaNodesResource = selection.$$daNodes}
-				<ResourceBoundary
-					resource={zerogDataAvailabilityZerogDaNodesResource}
-				>
-					{#snippet children(zeroGDaNode)}
-						<section
-							id={id}
-							aria-labelledby={`${id}:marker`}
-							data-scroll-marker-label={label}
-							data-column-item="flexible"
-							data-column
-							data-active={active}
-						>
-							<ZeroGDaNodesView
-								selection={zerogDataAvailabilityZerogDaNodesResource}
-								CollapsibleProps={{ canToggle: false }}
-								collapsible={false}
-								data-column-item="flexible"
-								data-card
-								data-scroll-container
-								open={open}
-								title={label}
-								emptyText='No 0G DA nodes.'
-								id={`${id}-list`}
-							/>
-						</section>
-					{/snippet}
-
-					{#snippet Pending()}
-						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
-							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
-								<span data-tag data-text="muted" data-resource-state="pending" class="loading inline-placeholder" aria-busy="true" aria-label="Loading…">•••</span>
-							</article>
-						</section>
-					{/snippet}
-
-					{#snippet Failed(_error, _retry)}
-						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
-							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
-								<span data-tag data-resource-state="failed" class="inline-placeholder" aria-label="Failed to load">•••</span>
-							</article>
-						</section>
-					{/snippet}
-				</ResourceBoundary>
+			{#snippet SectionZerogDaNodes({ id, label, open })}
+				<ZeroGDaNodesView
+					selection={selection.$$daNodes}
+					CollapsibleProps={{ canToggle: false }}
+					collapsible={false}
+					data-column-item="flexible"
+					data-card
+					data-scroll-container
+					open={open}
+					title={label}
+					emptyText='No 0G DA nodes.'
+					id={`${id}-list`}
+				/>
 			{/snippet}
 
 		</CollapsibleTabs>
@@ -812,7 +373,6 @@
 					{
 						id: 'zerog-service-provider-list',
 						label: 'Service providers',
-						ownsSection: true,
 					},
 				]
 			}
@@ -825,70 +385,19 @@
 				</header>
 			{/snippet}
 
-			{#snippet MarkerZerogServiceProviderList(_context, Content)}
-				{@const zerogServiceProvidersZerogServiceProviderListResource = selection.$$serviceProviders}
-				<ResourceBoundary
-					resource={zerogServiceProvidersZerogServiceProviderListResource}
-				>
-					{#snippet children(_resolved)}
-						{@render Content()}
-					{/snippet}
-
-					{#snippet PendingContent()}
-						{@render Content()}
-					{/snippet}
-
-					{#snippet FailedContent(_error, _retry)}
-						{@render Content()}
-					{/snippet}
-				</ResourceBoundary>
-			{/snippet}
-
-			{#snippet SectionZerogServiceProviderList({ id, label, open, active })}
-				{@const zerogServiceProvidersZerogServiceProviderListResource = selection.$$serviceProviders}
-				<ResourceBoundary
-					resource={zerogServiceProvidersZerogServiceProviderListResource}
-				>
-					{#snippet children(zeroGServiceProvider)}
-						<section
-							id={id}
-							aria-labelledby={`${id}:marker`}
-							data-scroll-marker-label={label}
-							data-column-item="flexible"
-							data-column
-							data-active={active}
-						>
-							<ZeroGServiceProvidersView
-								selection={zerogServiceProvidersZerogServiceProviderListResource}
-								CollapsibleProps={{ canToggle: false }}
-								collapsible={false}
-								data-column-item="flexible"
-								data-card
-								data-scroll-container
-								open={open}
-								title={label}
-								emptyText='No 0G service providers.'
-								id={`${id}-list`}
-							/>
-						</section>
-					{/snippet}
-
-					{#snippet Pending()}
-						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
-							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
-								<span data-tag data-text="muted" data-resource-state="pending" class="loading inline-placeholder" aria-busy="true" aria-label="Loading…">•••</span>
-							</article>
-						</section>
-					{/snippet}
-
-					{#snippet Failed(_error, _retry)}
-						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
-							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
-								<span data-tag data-resource-state="failed" class="inline-placeholder" aria-label="Failed to load">•••</span>
-							</article>
-						</section>
-					{/snippet}
-				</ResourceBoundary>
+			{#snippet SectionZerogServiceProviderList({ id, label, open })}
+				<ZeroGServiceProvidersView
+					selection={selection.$$serviceProviders}
+					CollapsibleProps={{ canToggle: false }}
+					collapsible={false}
+					data-column-item="flexible"
+					data-card
+					data-scroll-container
+					open={open}
+					title={label}
+					emptyText='No 0G service providers.'
+					id={`${id}-list`}
+				/>
 			{/snippet}
 
 		</CollapsibleTabs>

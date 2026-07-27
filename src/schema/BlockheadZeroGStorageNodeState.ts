@@ -1,16 +1,13 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { entity, facet } from '$/schema/$schema.ts'
+import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { UrlString } from '$/schema/UrlString.ts'
 import { EvmAddress } from '$/schema/ZeroExHex.ts'
 import { type } from 'arktype'
 
-export enum BlockheadZeroGStorageNodeStateSelector {
-	ConnectionIdNetworkNodeId = 'ConnectionIdNetworkNodeId',
-}
-export const BlockheadZeroGStorageNodeState = entity({
+export default entity({
 	entityType: EntityType.BlockheadZeroGStorageNodeState,
 	labels: {
 		singular: 'blockhead zero g storage node state',
@@ -32,13 +29,13 @@ export const BlockheadZeroGStorageNodeState = entity({
 	nodeId: {
 		label: 'node ID',
 		type: EntityFieldType.Primitive,
-		primitiveType: (EvmAddress),
+		primitiveType: EvmAddress,
 		cardinality: EntityFieldCardinality.One,
 	},
 	endpoint: {
 		label: 'endpoint',
 		type: EntityFieldType.Primitive,
-		primitiveType: (UrlString),
+		primitiveType: UrlString,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	storagePath: {

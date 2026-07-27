@@ -3,6 +3,6 @@ export type {
 	SubstrateRpcHeader as BittensorRpcHeader,
 	SubstrateRuntimeVersion as BittensorRuntimeVersion,
 	SubstrateSystemHealth as BittensorSystemHealth,
-} from '$/sources/Substrate/JsonRpc/types.ts'
+} from '$/sources/_shared/interfaces/SubstrateJsonRpc/types.ts'
 
 export type BittensorScaleBytes = number[]

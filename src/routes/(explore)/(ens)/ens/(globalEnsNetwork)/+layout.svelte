@@ -28,16 +28,16 @@
 
 
 <ParentPageCollapsible
-	href={resolve('/ens')}
+	href={resolve('/(explore)/(ens)/ens')}
 >
 	{#snippet Summary()}
-		{@const DetailView = GlobalEnsNetworkView}
-
-		<DetailView
-			selection={select(EntityType._GlobalEnsNetwork, data.selector, { sources: [
-	Source.Constants_Internal,
-] })}
-			href={resolve('/ens')}
+		<GlobalEnsNetworkView
+			selection={
+				select(EntityType._GlobalEnsNetwork, data.selector, { sources: [
+					Source.Constants_Internal,
+				] })
+			}
+			href={resolve('/(explore)/(ens)/ens')}
 			layout={EntityLayout.SummaryInline}
 		/>
 	{/snippet}

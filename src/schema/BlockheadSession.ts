@@ -1,6 +1,6 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { entity, facet } from '$/schema/$schema.ts'
+import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { type } from 'arktype'
@@ -10,10 +10,8 @@ export enum BlockheadSessionStatus {
 	Submitted = 'Submitted',
 	Finalized = 'Finalized',
 }
-export enum BlockheadSessionSelector {
-	Id = 'Id',
-}
-export const BlockheadSession = entity({
+
+export default entity({
 	entityType: EntityType.BlockheadSession,
 	labels: {
 		singular: 'session',

@@ -2,15 +2,9 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
-	import { caip2StringFromValue } from '$/lib/caip2.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -23,40 +17,23 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.ElementsNetwork>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.ElementsNetwork>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.ElementsNetwork> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const elementsNetwork = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {
-			federationName: true,
-		},
-	} : {
-		sources: selection.sources,
+	const viewSelection = $derived(selection({
+		sources: selection.sources ?? [
+			Source.Constants_Internal,
+			Source.Esplora_Rest,
+		],
+	}))
+	const elementsNetwork = $derived(viewSelection({
 		fields: {
 			federationName: true,
 		},
 	}))
 	const titleFallback = 'Elements network'
-	const viewDomId = $derived('elements-network-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -70,32 +47,25 @@
 
 <EntityView
 	entityType={EntityType.ElementsNetwork}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={elementsNetwork}>
-			{#snippet children(entity)}
-				<NetworkView
-					selection={select(EntityType.Network, selection.entitySelector.$network)}
-					href=""
-					layout={EntityLayout.Title}
-					open={false}
-				/>
-			{/snippet}
-		</ResourceBoundary>
+		<NetworkView
+			selection={select(EntityType.Network, selection.entitySelector.$network)}
+			href=""
+			layout={EntityLayout.Title}
+			open={false}
+		/>
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={elementsNetwork}>
 			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.federationName) ?? '')].filter(Boolean).join(' ') || titleFallback}
+				{(entity.federationName ?? '') || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -113,23 +83,6 @@
 				<dd>
 					<NetworkView
 						selection={select(EntityType.Network, selection.entitySelector.$network)}
-						href={
-							(
-								selection.entitySelector.$network != null && 'caip2' in selection.entitySelector.$network
-								&& selection.entitySelector.$network.caip2 != null ?
-									resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-								network: String(caip2StringFromValue(selection.entitySelector.$network.caip2) ?? ''),
-							})
-							:
-									selection.entitySelector.$network != null && 'slug' in selection.entitySelector.$network
-									&& selection.entitySelector.$network.slug != null ?
-										resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-									network: String(selection.entitySelector.$network.slug ?? ''),
-								})
-								:
-									undefined
-							)
-						}
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -137,40 +90,16 @@
 			</div>
 
 			<ResourceBoundary
-				resource={
-					selection
-						.$settlementNetwork({
-							sources: [
-								Source.Constants_Internal,
-							],
-						})
-				}
+				resource={selection.$settlementNetwork}
 			>
 				{#snippet children(network)}
-					{#if network != null && network[EntityMetaKey.Selector] != null}
+					{#if network != null}
 						<div>
 							<dt>Settlement network</dt>
 							<dd>
 								<NetworkView
 									selection={select(EntityType.Network, network[EntityMetaKey.Selector])}
 									prefetched={network}
-									href={
-										(
-											network[EntityMetaKey.Selector] != null && 'caip2' in network[EntityMetaKey.Selector]
-											&& network[EntityMetaKey.Selector].caip2 != null ?
-												resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-											network: String(caip2StringFromValue(network[EntityMetaKey.Selector].caip2) ?? ''),
-										})
-										:
-												network[EntityMetaKey.Selector] != null && 'slug' in network[EntityMetaKey.Selector]
-												&& network[EntityMetaKey.Selector].slug != null ?
-													resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-												network: String(network[EntityMetaKey.Selector].slug ?? ''),
-											})
-											:
-												undefined
-										)
-									}
 									layout={EntityLayout.Value}
 									open={false}
 								/>
@@ -181,23 +110,15 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							federationName: true,
-						},
-					})
-				}
+				resource={elementsNetwork}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const federationName = resolvedEntity.federationName}
-					{#if federationName !== undefined && federationName !== null}
+					{@const federationName = entity.federationName}
+					{#if federationName != null}
 						<div>
 							<dt>Federation</dt>
 							<dd>
-								{String((federationName) ?? '')}
+								{federationName}
 							</dd>
 						</div>
 					{/if}
@@ -206,8 +127,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							blockTimeSeconds: true,
 						},
@@ -215,9 +135,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const blockTimeSeconds = resolvedEntity.blockTimeSeconds}
-					{#if blockTimeSeconds !== undefined && blockTimeSeconds !== null}
+					{@const blockTimeSeconds = entity.blockTimeSeconds}
+					{#if blockTimeSeconds != null}
 						<div>
 							<dt>Block time seconds</dt>
 							<dd>
@@ -232,8 +151,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							confidentialTransactionsDefault: true,
 						},
@@ -241,9 +159,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const confidentialTransactionsDefault = resolvedEntity.confidentialTransactionsDefault}
-					{#if confidentialTransactionsDefault !== undefined && confidentialTransactionsDefault !== null}
+					{@const confidentialTransactionsDefault = entity.confidentialTransactionsDefault}
+					{#if confidentialTransactionsDefault != null}
 						<div>
 							<dt>Confidential transactions by default</dt>
 							<dd>
@@ -255,17 +172,10 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={
-					selection
-						.$nativeAsset({
-							sources: [
-								Source.Esplora_Rest,
-							],
-						})
-				}
+				resource={selection.$nativeAsset}
 			>
 				{#snippet children(elementsAsset)}
-					{#if elementsAsset != null && elementsAsset[EntityMetaKey.Selector] != null}
+					{#if elementsAsset != null}
 						<div>
 							<dt>Native asset</dt>
 							<dd>
@@ -284,25 +194,20 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-				{@const elementsNetworkElementsAssetsViewAssetsResource = selection
-		.$$assets({
-			sources: [
-				Source.Esplora_Rest,
-			],
-		})}
-				<ResourceBoundary
-					resource={elementsNetworkElementsAssetsViewAssetsResource}
-				>
-					{#snippet children(entities)}
-						{#if entities.values.length > 0}
-						<ElementsAssetsView
-							selection={elementsNetworkElementsAssetsViewAssetsResource}
-							countResource={elementsNetworkElementsAssetsViewAssetsResource.count}
-							title='Assets'
-							id='ElementsAssetsView-assets'
-						/>
-						{/if}
-					{/snippet}
-				</ResourceBoundary>
+		{@const elementsNetworkElementsAssetsViewAssetsResource = selection.$$assets}
+		<ResourceBoundary
+			resource={elementsNetworkElementsAssetsViewAssetsResource}
+		>
+			{#snippet children(entities)}
+				{#if entities.values.length > 0}
+					<ElementsAssetsView
+						selection={elementsNetworkElementsAssetsViewAssetsResource}
+						countResource={elementsNetworkElementsAssetsViewAssetsResource.count}
+						title='Assets'
+						id='assets'
+					/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 </EntityView>

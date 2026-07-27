@@ -8,14 +8,12 @@
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		data,
-		params,
 	}: PageProps = $props()
 
 	const pageSelection = $derived(select(EntityType.Currency, data.selector, {
@@ -38,17 +36,12 @@
 
 
 <svelte:head>
-	<title>{(data.title ?? (pageSelection.entity == null ? [String((data.selector.iso4217) ?? '')].filter(Boolean).join(' ') || 'currency' : [String((({ ...data.selector, ...pageSelection.entity }).name) ?? '')].filter(Boolean).join(' ') || [String((({ ...data.selector, ...pageSelection.entity }).iso4217) ?? '')].filter(Boolean).join(' ') || 'currency'))} • currency • Blockhead</title>
+	<title>{(data.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.iso4217 ?? '') || 'currency' : pageSelection.entity.name || pageSelection.entitySelector.iso4217 || 'currency'))} • currency • Blockhead</title>
 </svelte:head>
 
 
 <Page>
 	<CurrencyView
-		href={
-			resolve('/currency/[iso4217=iso4217]', {
-				iso4217: params.iso4217,
-			})
-		}
 		selection={pageSelection}
 	/>
 </Page>

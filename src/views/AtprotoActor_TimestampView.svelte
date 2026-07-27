@@ -2,14 +2,10 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
 
 
 	// Context
@@ -25,38 +21,16 @@
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.AtprotoActor_Timestamp>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.AtprotoActor_Timestamp>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.AtprotoActor_Timestamp> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const atprotoActorTimestamp = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {
-			displayName: true,
-			handle: true,
-		},
-	} : {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const atprotoActorTimestamp = $derived(selection({
 		fields: {
 			displayName: true,
 			handle: true,
 		},
 	}))
-	const titleFallback = $derived([String((pendingEntity.displayName) ?? ''), String((pendingEntity.handle) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || 'AT Protocol account observation')
-	const viewDomId = $derived('atproto-actor-timestamp-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const titleFallback = $derived([(pendingEntity.displayName ?? ''), (pendingEntity.handle ?? '')].filter(Boolean).join(' ') || String(pendingEntity.timestampMs ?? '') || 'AT Protocol account observation')
 
 
 	// Components
@@ -69,24 +43,20 @@
 
 <EntityView
 	entityType={EntityType.AtprotoActor_Timestamp}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
 	href={
 		href ?? (
-			selection.entitySelector != null && 'timestampMs' in selection.entitySelector
-			&& selection.entitySelector.timestampMs != null
-			&& selection.entitySelector != null && 'source' in selection.entitySelector
-			&& selection.entitySelector.source != null
-			&& selection.entitySelector != null && '$actor' in selection.entitySelector
-			&& selection.entitySelector.$actor != null && 'did' in selection.entitySelector.$actor
-			&& selection.entitySelector.$actor.did != null ?
-				resolve('/atproto/actor/[did=stringSegment]/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
-			timestampMs: String(selection.entitySelector.timestampMs ?? ''),
-			source: String(selection.entitySelector.source ?? ''),
-			did: encodeURIComponent(String(selection.entitySelector.$actor.did ?? '')),
-		})
-		:
+			'did' in selection.entitySelector.$actor ?
+				resolve(
+					'/(social)/(atproto)/atproto/(globalAtprotoNetwork)/actor/[did=stringSegment]/(atprotoActor)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
+					{
+						did: encodeURIComponent(String(selection.entitySelector.$actor.did)),
+						timestampMs: String(selection.entitySelector.timestampMs),
+						source: String(selection.entitySelector.source),
+					}
+				)
+			:
 				undefined
 		)
 	}
@@ -114,24 +84,15 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={atprotoActorTimestamp}>
 			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.displayName) ?? ''), String((resolvedEntity.handle) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+				{[(entity.displayName ?? ''), entity.handle].filter(Boolean).join(' ') || title || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		<ResourceBoundary resource={atprotoActorTimestamp}>
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const source0 = resolvedEntity.source}
-				{#if source0 !== undefined && source0 !== null}
-					<span data-text="muted">
-						{String((source0) ?? '')}
-					</span>
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		<span data-text="muted">
+			{pendingEntity.source}
+		</span>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -139,48 +100,14 @@
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									timestampMs: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const timestampMs = resolvedEntity.timestampMs}
-							{#if timestampMs !== undefined && timestampMs !== null}
-								<Timestamp timestamp={Number(timestampMs)} />
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									source: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const source = resolvedEntity.source}
-							{#if source !== undefined && source !== null}
-								{String((source) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{pendingEntity.source}
 				</dd>
 			</div>
 
@@ -188,45 +115,26 @@
 				<dt>Observed handle</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									handle: true,
-								},
-							})
-						}
+						resource={atprotoActorTimestamp}
 					>
 						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const handle = resolvedEntity.handle}
-							{#if handle !== undefined && handle !== null}
-								<span>@</span>
-								{String((handle) ?? '')}
-							{/if}
+							<span>@</span>
+							{entity.handle}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
 			</div>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							displayName: true,
-						},
-					})
-				}
+				resource={atprotoActorTimestamp}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const displayName = resolvedEntity.displayName}
-					{#if displayName !== undefined && displayName !== null}
+					{@const displayName = entity.displayName}
+					{#if displayName != null}
 						<div>
 							<dt>Display name</dt>
 							<dd>
-								{String((displayName) ?? '')}
+								{displayName}
 							</dd>
 						</div>
 					{/if}
@@ -236,7 +144,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							indexedAt: true,
 						},
@@ -244,9 +151,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const indexedAt = resolvedEntity.indexedAt}
-					{#if indexedAt !== undefined && indexedAt !== null}
+					{@const indexedAt = entity.indexedAt}
+					{#if indexedAt != null}
 						<div>
 							<dt>Indexed</dt>
 							<dd>
@@ -261,24 +167,13 @@
 				resource={selection.$icon}
 			>
 				{#snippet children(media)}
-					{#if media != null && media[EntityMetaKey.Selector] != null}
+					{#if media != null}
 						<div>
 							<dt>Avatar</dt>
 							<dd>
 								<MediaView
 									selection={select(EntityType.Media, media[EntityMetaKey.Selector])}
 									prefetched={media}
-									href={
-										(
-											media[EntityMetaKey.Selector] != null && 'url' in media[EntityMetaKey.Selector]
-											&& media[EntityMetaKey.Selector].url != null ?
-												resolve('/media/[url=absoluteUrl]', {
-											url: encodeURIComponent(String(media[EntityMetaKey.Selector].url ?? '')),
-										})
-										:
-												undefined
-										)
-									}
 									layout={EntityLayout.Value}
 									open={false}
 								/>
@@ -292,24 +187,13 @@
 				resource={selection.$banner}
 			>
 				{#snippet children(media)}
-					{#if media != null && media[EntityMetaKey.Selector] != null}
+					{#if media != null}
 						<div>
 							<dt>Banner</dt>
 							<dd>
 								<MediaView
 									selection={select(EntityType.Media, media[EntityMetaKey.Selector])}
 									prefetched={media}
-									href={
-										(
-											media[EntityMetaKey.Selector] != null && 'url' in media[EntityMetaKey.Selector]
-											&& media[EntityMetaKey.Selector].url != null ?
-												resolve('/media/[url=absoluteUrl]', {
-											url: encodeURIComponent(String(media[EntityMetaKey.Selector].url ?? '')),
-										})
-										:
-												undefined
-										)
-									}
 									layout={EntityLayout.Value}
 									open={false}
 								/>
@@ -322,7 +206,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							followersCount: true,
 						},
@@ -330,9 +213,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const followersCount = resolvedEntity.followersCount}
-					{#if followersCount !== undefined && followersCount !== null}
+					{@const followersCount = entity.followersCount}
+					{#if followersCount != null}
 						<div>
 							<dt>Followers</dt>
 							<dd>
@@ -348,7 +230,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							followsCount: true,
 						},
@@ -356,9 +237,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const followsCount = resolvedEntity.followsCount}
-					{#if followsCount !== undefined && followsCount !== null}
+					{@const followsCount = entity.followsCount}
+					{#if followsCount != null}
 						<div>
 							<dt>Following</dt>
 							<dd>
@@ -374,7 +254,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							postsCount: true,
 						},
@@ -382,9 +261,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const postsCount = resolvedEntity.postsCount}
-					{#if postsCount !== undefined && postsCount !== null}
+					{@const postsCount = entity.postsCount}
+					{#if postsCount != null}
 						<div>
 							<dt>Posts</dt>
 							<dd>
@@ -401,7 +279,6 @@
 		<ResourceBoundary
 			resource={
 				selection({
-					sources: selection.sources,
 					fields: {
 						description: true,
 					},
@@ -409,10 +286,9 @@
 			}
 		>
 			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const description = resolvedEntity.description}
-				{#if description !== undefined && description !== null && description !== ''}
-					<p data-text="long-text">{String((description) ?? '')}</p>
+				{@const description = entity.description}
+				{#if description != null && description !== ''}
+					<p data-text="long-text">{description}</p>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>

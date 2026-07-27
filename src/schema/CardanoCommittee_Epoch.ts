@@ -1,15 +1,12 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { entity, facet } from '$/schema/$schema.ts'
+import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
-export enum CardanoCommittee_EpochSelector {
-	NetworkEpochSource = 'NetworkEpochSource',
-}
-export const CardanoCommittee_Epoch = entity({
+export default entity({
 	entityType: EntityType.CardanoCommittee_Epoch,
 	labels: {
 		singular: 'cardano committee epoch',
@@ -25,7 +22,7 @@ export const CardanoCommittee_Epoch = entity({
 	epoch: {
 		label: 'epoch',
 		type: EntityFieldType.Primitive,
-		primitiveType: (type('number.integer >= 0')),
+		primitiveType: type('number.integer >= 0'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	source: {

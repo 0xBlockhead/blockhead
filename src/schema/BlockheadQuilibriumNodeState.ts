@@ -1,15 +1,12 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { entity, facet } from '$/schema/$schema.ts'
+import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { UrlString } from '$/schema/UrlString.ts'
 import { type } from 'arktype'
 
-export enum BlockheadQuilibriumNodeStateSelector {
-	ConnectionIdNetwork = 'ConnectionIdNetwork',
-}
-export const BlockheadQuilibriumNodeState = entity({
+export default entity({
 	entityType: EntityType.BlockheadQuilibriumNodeState,
 	labels: {
 		singular: 'blockhead quilibrium node state',
@@ -31,7 +28,7 @@ export const BlockheadQuilibriumNodeState = entity({
 	endpoint: {
 		label: 'endpoint',
 		type: EntityFieldType.Primitive,
-		primitiveType: (UrlString),
+		primitiveType: UrlString,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	grpcPort: {

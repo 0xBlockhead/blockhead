@@ -12,11 +12,6 @@ import {
 import { EvmAddress } from '$/schema/ZeroExHex.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
-import { _GlobalSelector } from '$/schema/_Global.ts'
-import { Eip8004AgentRegistrationSelector } from '$/schema/Eip8004AgentRegistration.ts'
-import { Eip8004AgentServiceEndpointSelector } from '$/schema/Eip8004AgentServiceEndpoint.ts'
-import { EvmNftSelector } from '$/schema/EvmNft.ts'
-
 export default {
 	source: Source.Eip8004Scan_Rest,
 
@@ -24,7 +19,7 @@ export default {
 		defineResolver(Source.Eip8004Scan_Rest, {
 			entityType: EntityType.Eip8004AgentRegistration,
 			resolve: {
-				[Eip8004AgentRegistrationSelector.NamespaceChainIdIdentityRegistryAgentId]: {
+				NamespaceChainIdIdentityRegistryAgentId: {
 					resolve: async ({
 						namespace,
 						chainId,
@@ -39,10 +34,12 @@ export default {
 						const { fetchAgentDetail } = await import(
 							'$/sources/Eip8004Scan/Rest/queries.ts'
 						)
-						const detail = await fetchAgentDetail({
-							chainId,
-							tokenId: agentId,
-						})
+						const detail = await fetchAgentDetail(
+							{
+								chainId,
+								tokenId: agentId,
+							}
+						)
 						if (detail == null)
 							throw new Error('Eip8004Scan_Rest: agent registration not found')
 						if (
@@ -86,7 +83,7 @@ export default {
 		defineResolver(Source.Eip8004Scan_Rest, {
 			entityType: EntityType.Eip8004AgentServiceEndpoint,
 			resolve: {
-				[Eip8004AgentServiceEndpointSelector.RegistrationFileEndpointKindEndpointUrl]: {
+				RegistrationFileEndpointKindEndpointUrl: {
 					resolve: async ({
 						$registrationFile,
 						endpointKind,
@@ -106,10 +103,12 @@ export default {
 						const { fetchAgentDetail } = await import(
 							'$/sources/Eip8004Scan/Rest/queries.ts'
 						)
-						const detail = await fetchAgentDetail({
-							chainId,
-							tokenId: agentId,
-						})
+						const detail = await fetchAgentDetail(
+							{
+								chainId,
+								tokenId: agentId,
+							}
+						)
 						if (detail == null)
 							throw new Error('Eip8004Scan_Rest: service endpoint registration not found')
 						if (
@@ -147,15 +146,17 @@ export default {
 		defineResolver(Source.Eip8004Scan_Rest, {
 			entityType: EntityType.EvmNft,
 			resolve: {
-				[EvmNftSelector.EvmContractTokenId]: {
+				EvmContractTokenId: {
 					resolve: async ({ $contract, tokenId }) => {
 						const { fetchAgentDetail } = await import(
 							'$/sources/Eip8004Scan/Rest/queries.ts'
 						)
-						const detail = await fetchAgentDetail({
-							chainId: Number($contract.$network.caip2.reference),
-							tokenId,
-						})
+						const detail = await fetchAgentDetail(
+							{
+								chainId: Number($contract.$network.caip2.reference),
+								tokenId,
+							}
+						)
 						if (detail == null) {
 							throw new Error(
 								`Eip8004Scan_Rest: agent ${$contract.$network.caip2.reference}/${tokenId} not found`
@@ -219,13 +220,15 @@ export default {
 		defineResolver(Source.Eip8004Scan_Rest, {
 			entityType: EntityType._Global,
 			resolve: {
-				[_GlobalSelector.Scope]: {
+				Scope: {
 					resolve: async (_entitySelector, context) => {
 						const { fetchAgentList } = await import(
 							'$/sources/Eip8004Scan/Rest/queries.ts'
 						)
 						const limit = resolverContextRowLimit(context)
-						const agents = await fetchAgentList({ limit })
+						const agents = await fetchAgentList(
+							{ limit }
+						)
 						return (
 							agents.map((agent) => ({
 								[EntityMetaKey.Selector]: {

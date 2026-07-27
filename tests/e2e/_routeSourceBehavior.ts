@@ -8,8 +8,7 @@ export type RouteSourceBehavior =
 	| 'upstream-unavailable'
 
 type RouteSourceAuthorityMetadata = {
-	nodeId: string
-	publicPath: string
+	routeId: string
 	routedEntityTypes?: readonly string[]
 	sourceBehaviorByEntityType?: Readonly<Record<string, string>>
 }
@@ -31,11 +30,11 @@ export const deriveRouteSourceBehaviorByEntityType = (
 	const behaviorByEntityType = new Map<string, RouteSourceBehavior>()
 	const failures: string[] = []
 
-	for (const metadata of Object.values(metadataByNodeId)) {
+	for (const [nodeId, metadata] of Object.entries(metadataByNodeId)) {
 		for (const entityType of metadata.routedEntityTypes ?? []) {
 			const behavior = routeSourceBehavior(metadata.sourceBehaviorByEntityType?.[entityType])
 			if (behavior == null) {
-				failures.push(`${metadata.nodeId}: ${entityType} is missing explicit route source authority`)
+				failures.push(`${nodeId}: ${entityType} is missing explicit route source authority`)
 				continue
 			}
 
@@ -48,13 +47,13 @@ export const deriveRouteSourceBehaviorByEntityType = (
 
 		for (const [entityType, rawBehavior] of Object.entries(metadata.sourceBehaviorByEntityType ?? {})) {
 			if (metadata.routedEntityTypes != null && !metadata.routedEntityTypes.includes(entityType)) {
-				failures.push(`${metadata.nodeId}: ${entityType} source authority is not attached to a routed entity`)
+				failures.push(`${nodeId}: ${entityType} source authority is not attached to a routed entity`)
 				continue
 			}
 
 			const behavior = routeSourceBehavior(rawBehavior)
 			if (behavior == null) {
-				failures.push(`${metadata.nodeId}: ${entityType} has forbidden route source authority ${rawBehavior}`)
+				failures.push(`${nodeId}: ${entityType} has forbidden route source authority ${rawBehavior}`)
 				continue
 			}
 

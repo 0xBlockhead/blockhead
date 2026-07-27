@@ -8,7 +8,6 @@
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
@@ -37,21 +36,12 @@
 
 
 <svelte:head>
-	<title>{(pageSelection.entity == null ? [String(({
-		query: params.query,
-	}.query) ?? '')].filter(Boolean).join(' ') || 'Nostr profile search' : [String((({ ...{
-		query: params.query,
-	}, ...pageSelection.entity }).query) ?? '')].filter(Boolean).join(' ') || 'Nostr profile search')} • Nostr profile search • Blockhead</title>
+	<title>{(pageSelection.entitySelector.query || 'Nostr profile search')} • Nostr profile search • Blockhead</title>
 </svelte:head>
 
 
 <Page>
 	<NostrSearchQueryView
-		href={
-			resolve('/nostr/search/[query=stringSegment]', {
-				query: params.query,
-			})
-		}
 		selection={pageSelection}
 	/>
 </Page>

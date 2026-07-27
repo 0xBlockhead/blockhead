@@ -3,12 +3,12 @@
 <script lang="ts">
 	// Types/constants
 	import type { PageProps } from './$types.ts'
+	import { resolve } from '$app/paths'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
@@ -16,8 +16,6 @@
 	let {
 		params,
 	}: PageProps = $props()
-
-
 	// Components
 	import Page from '$/components/Page.svelte'
 	import ActivityPubNotesView from '$/views/ActivityPubNotesView.svelte'
@@ -30,36 +28,29 @@
 
 
 <Page>
+	{@const collectionSelection = select(EntityType.ActivityPubActor, {
+		instanceOrigin: decodeURIComponent(params.instanceOrigin),
+		localAccountId: params.localAccountId,
+	})
+		.$$notes({
+			sources: [
+				Source.Mastodon_Rest,
+			],
+		})}
+
 	<ActivityPubNotesView
 		href={
-			resolve('/activitypub/actor/[instanceOrigin=absoluteUrl]/[localAccountId=stringSegment]/notes', {
-				instanceOrigin: params.instanceOrigin,
-				localAccountId: params.localAccountId,
-			})
+			resolve(
+				'/(social)/(activitypub)/activitypub/(globalActivityPubNetwork)/actor/[instanceOrigin=absoluteUrl]/[localAccountId=stringSegment]/(activityPubActor)/notes',
+				{
+					instanceOrigin: String(params.instanceOrigin),
+					localAccountId: String(params.localAccountId),
+				}
+			)
 		}
 		title='ActivityPub actor notes'
-		selection={
-			select(EntityType.ActivityPubActor, {
-				instanceOrigin: decodeURIComponent(params.instanceOrigin),
-				localAccountId: params.localAccountId,
-			})
-				.$$notes({
-					sources: [
-						Source.Mastodon_Rest,
-					],
-				})
-		}
-		countResource={
-			select(EntityType.ActivityPubActor, {
-				instanceOrigin: decodeURIComponent(params.instanceOrigin),
-				localAccountId: params.localAccountId,
-			})
-				.$$notes({
-					sources: [
-						Source.Mastodon_Rest,
-					],
-				}).count
-		}
+		selection={collectionSelection}
+		countResource={collectionSelection.count}
 		id='notes'
 		data-column-item="flexible"
 		data-card

@@ -30,24 +30,30 @@
 {#key [params.network, params.minerAddress].join(':')}
 	<ParentPageCollapsible
 		href={
-			resolve('/network/[network=networkCaip2OrNetworkSlug]/miner/[minerAddress=stringSegment]', {
-				network: params.network,
-				minerAddress: params.minerAddress,
-			})
+			resolve(
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/miner/[minerAddress=stringSegment]',
+				{
+					network: String(params.network),
+					minerAddress: String(params.minerAddress),
+				}
+			)
 		}
 	>
 		{#snippet Summary()}
-			{@const DetailView = FilecoinMinerView}
-
-			<DetailView
-				selection={select(EntityType.FilecoinMiner, data.selector, { sources: [
-		Source.Lotus_JsonRpc,
-	] })}
+			<FilecoinMinerView
+				selection={
+					select(EntityType.FilecoinMiner, data.selector, { sources: [
+						Source.Lotus_JsonRpc,
+					] })
+				}
 				href={
-					resolve('/network/[network=networkCaip2OrNetworkSlug]/miner/[minerAddress=stringSegment]', {
-						network: params.network,
-						minerAddress: params.minerAddress,
-					})
+					resolve(
+						'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/miner/[minerAddress=stringSegment]',
+						{
+							network: String(params.network),
+							minerAddress: String(params.minerAddress),
+						}
+					)
 				}
 				layout={EntityLayout.SummaryInline}
 			/>

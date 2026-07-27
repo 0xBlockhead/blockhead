@@ -7,10 +7,7 @@ import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
-export enum MarketSelector {
-	BaseQuoteMarketVenueKind = 'BaseQuoteMarketVenueKind',
-}
-export const Market = entity({
+export default entity({
 	entityType: EntityType.Market,
 	labels: {
 		singular: 'Market',
@@ -53,12 +50,6 @@ export const Market = entity({
 		defaultSources: [
 			Source.Constants_Internal,
 			Source.Coingecko_Rest,
-			Source.Coingecko_OpenApi,
-			Source.CoinMarketCap_Rest,
-			Source.Coinpaprika_OpenApi,
-			Source.Defillama_OpenApi,
-			Source.Blockscout_Rest,
-			Source.Defillama_Rest,
 		],
 	},
 	$$marketTimeIntervalTimestamps: {

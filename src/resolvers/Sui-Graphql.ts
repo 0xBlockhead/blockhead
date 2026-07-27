@@ -6,23 +6,7 @@ import {
 	EntityMetaKey,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import { SuiAccountSelector } from '$/schema/SuiAccount.ts'
-import { sourceProviderDefinitions } from '$/sources/$sourceProviders.ts'
 import { Source } from '$/sources/Source.ts'
-import { SourceTargetKind } from '$/sources/SourceBinding.ts'
-
-const suiGraphqlBindings = sourceProviderDefinitions
-	.flatMap((provider) => provider.bindings)
-	.filter((binding) => (
-		binding.source === Source.Sui_Graphql
-		&& binding.target.kind === SourceTargetKind.NetworkSlug
-		&& binding.target.key === networkBySlug.sui.slug
-	))
-
-if (suiGraphqlBindings.length !== 1)
-	throw new Error('Sui_Graphql: canonical Sui network binding is missing or ambiguous')
-
-const [suiGraphqlBinding] = suiGraphqlBindings
 
 const assertSuiNetwork = ($network: {
 	$network: {
@@ -40,7 +24,7 @@ export default {
 		defineResolver(Source.Sui_Graphql, {
 			entityType: EntityType.SuiAccount,
 			resolve: {
-				[SuiAccountSelector.NetworkAddress]: {
+				NetworkAddress: {
 					resolve: async (account, context) => {
 						assertSuiNetwork(account.$network)
 						const {
@@ -51,7 +35,7 @@ export default {
 
 						return {
 							address,
-							page: await getAddressBalances(suiGraphqlBinding, {
+							page: await getAddressBalances({
 								address,
 								limit: Math.min(resolverContextRowLimit(context), 50),
 								after: context.providerContinuationToken,
@@ -105,7 +89,7 @@ export default {
 		defineResolver(Source.Sui_Graphql, {
 			entityType: EntityType.SuiAccount,
 			resolve: {
-				[SuiAccountSelector.NetworkAddress]: {
+				NetworkAddress: {
 					resolve: async (account, context) => {
 						assertSuiNetwork(account.$network)
 						const {
@@ -113,7 +97,7 @@ export default {
 							normalizeSuiAddress,
 						} = await import('$/sources/Sui/Graphql/queries.ts')
 						const address = normalizeSuiAddress(account.address)
-						const page = await getAddressTransactions(suiGraphqlBinding, {
+						const page = await getAddressTransactions({
 							address,
 							limit: Math.min(resolverContextRowLimit(context), 50),
 							after: context.providerContinuationToken,

@@ -13,12 +13,6 @@ import {
 import { MediaType } from '$/schema/Media.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
-import { LensAccountSelector } from '$/schema/LensAccount.ts'
-import { LensNetworkSelector } from '$/schema/LensNetwork.ts'
-import { LensPostSelector } from '$/schema/LensPost.ts'
-import { LensAccount_TimestampSelector } from '$/schema/LensAccount_Timestamp.ts'
-import { LensPost_TimestampSelector } from '$/schema/LensPost_Timestamp.ts'
-import { LensFeedSelector } from '$/schema/LensFeed.ts'
 
 
 /** Lens / subgraph wire — may omit `0x` or use mixed case. */
@@ -185,7 +179,7 @@ const lensGraphqlResolvers = {
 		defineResolver(Source.Lens_Graphql, {
 			entityType: EntityType.LensNetwork,
 			resolve: {
-				[LensNetworkSelector.Scope]: {
+				Scope: {
 					resolve: async (_entitySelector, context) => {
 						const { queryLatestPosts } = await import('$/sources/Lens/Graphql/queries.ts')
 						const limit = resolverContextRowLimit(context)
@@ -203,7 +197,7 @@ const lensGraphqlResolvers = {
 		defineResolver(Source.Lens_Graphql, {
 			entityType: EntityType.LensAccount,
 			resolve: {
-				[LensAccountSelector.Address]: {
+				Address: {
 					resolve: async ({ address }, context) => {
 						const { queryAccount } = await import('$/sources/Lens/Graphql/queries.ts')
 						const wire = await queryAccount(
@@ -236,7 +230,7 @@ const lensGraphqlResolvers = {
 						}
 					},
 				},
-				[LensAccountSelector.LocalName]: {
+				LocalName: {
 					resolve: async ({ localName: selectedLocalName }, context) => {
 						const { queryAccount } = await import('$/sources/Lens/Graphql/queries.ts')
 						const wire = await queryAccount(
@@ -267,7 +261,7 @@ const lensGraphqlResolvers = {
 						}
 					},
 				},
-				[LensAccountSelector.LegacyProfileId]: {
+				LegacyProfileId: {
 					resolve: async ({ legacyProfileId }, context) => {
 						const { queryAccount } = await import('$/sources/Lens/Graphql/queries.ts')
 						const wire = await queryAccount(
@@ -315,7 +309,7 @@ const lensGraphqlResolvers = {
 		defineResolver(Source.Lens_Graphql, {
 			entityType: EntityType.LensPost,
 			resolve: {
-				[LensPostSelector.Id]: {
+				Id: {
 					resolve: async ({ id }, context) => {
 						const { queryPost } = await import('$/sources/Lens/Graphql/queries.ts')
 						const p = (await queryPost(context.publicEnv, id)).post
@@ -407,7 +401,7 @@ const lensGraphqlResolvers = {
 		defineResolver(Source.Lens_Graphql, {
 			entityType: EntityType.LensAccount_Timestamp,
 			resolve: {
-				[LensAccount_TimestampSelector.LensAccountTimestampMs]: {
+				LensAccountTimestampMs: {
 					resolve: async ({ $account }, context) => {
 						const { queryAccount } = await import('$/sources/Lens/Graphql/queries.ts')
 						const wire = await queryAccount(context.publicEnv, $account)
@@ -424,7 +418,7 @@ const lensGraphqlResolvers = {
 		defineResolver(Source.Lens_Graphql, {
 			entityType: EntityType.LensPost_Timestamp,
 			resolve: {
-				[LensPost_TimestampSelector.LensPostTimestampMs]: {
+				LensPostTimestampMs: {
 					resolve: async ({ $post }, context) => {
 						const { queryPost } = await import('$/sources/Lens/Graphql/queries.ts')
 						const p = (await queryPost(context.publicEnv, $post.id)).post
@@ -446,7 +440,7 @@ const lensGraphqlResolvers = {
 		defineResolver(Source.Lens_Graphql, {
 			entityType: EntityType.LensPost,
 			resolve: {
-				[LensPostSelector.Id]: {
+				Id: {
 					resolve: async (entitySelector, context) => {
 						const { queryPost } = await import('$/sources/Lens/Graphql/queries.ts')
 						const p = (await queryPost(context.publicEnv, entitySelector.id)).post
@@ -476,7 +470,7 @@ const lensGraphqlResolvers = {
 		defineResolver(Source.Lens_Graphql, {
 			entityType: EntityType.LensPost,
 			resolve: {
-				[LensPostSelector.Id]: {
+				Id: {
 					resolve: async ({ id }, context) => {
 						const { queryPostComments } = await import('$/sources/Lens/Graphql/queries.ts')
 						const limit = resolverContextRowLimit(context)
@@ -499,7 +493,7 @@ const lensGraphqlResolvers = {
 		defineResolver(Source.Lens_Graphql, {
 			entityType: EntityType.LensAccount,
 			resolve: {
-				[LensAccountSelector.Address]: {
+				Address: {
 					resolve: async ({ address }, context) => {
 						const { queryAccount } = await import('$/sources/Lens/Graphql/queries.ts')
 						const wire = await queryAccount(
@@ -527,7 +521,7 @@ const lensGraphqlResolvers = {
 						]
 					},
 				},
-				[LensAccountSelector.LocalName]: {
+				LocalName: {
 					resolve: async ({ localName: selectedLocalName }, context) => {
 						const { queryAccount } = await import('$/sources/Lens/Graphql/queries.ts')
 						const wire = await queryAccount(
@@ -555,7 +549,7 @@ const lensGraphqlResolvers = {
 						]
 					},
 				},
-				[LensAccountSelector.LegacyProfileId]: {
+				LegacyProfileId: {
 					resolve: async ({ legacyProfileId }, context) => {
 						const { queryAccount } = await import('$/sources/Lens/Graphql/queries.ts')
 						const wire = await queryAccount(
@@ -591,7 +585,7 @@ const lensGraphqlResolvers = {
 		defineResolver(Source.Lens_Graphql, {
 			entityType: EntityType.LensAccount,
 			resolve: {
-				[LensAccountSelector.Address]: {
+				Address: {
 					resolve: async ({ address }, context) => {
 						const { queryPostsByAuthor } = await import('$/sources/Lens/Graphql/queries.ts')
 						const limit = resolverContextRowLimit(context)
@@ -615,7 +609,7 @@ const lensGraphqlResolvers = {
 		defineResolver(Source.Lens_Graphql, {
 			entityType: EntityType.LensNetwork,
 			resolve: {
-				[LensNetworkSelector.Scope]: {
+				Scope: {
 					resolve: async (_entitySelector, context) => {
 						const { queryAccounts } = await import('$/sources/Lens/Graphql/queries.ts')
 						return (await queryAccounts(context.publicEnv, resolverContextRowLimit(context))).accounts.items.map((account) => ({
@@ -641,7 +635,7 @@ const lensGraphqlResolvers = {
 		defineResolver(Source.Lens_Graphql, {
 			entityType: EntityType.LensFeed,
 			resolve: {
-				[LensFeedSelector.Address]: {
+				Address: {
 					resolve: async ({ address }, context) => {
 						const { queryFeed } = await import('$/sources/Lens/Graphql/queries.ts')
 						const feed = (await queryFeed(context.publicEnv, zeroExLowerCase(address))).feed
@@ -669,7 +663,7 @@ const lensGraphqlResolvers = {
 		defineResolver(Source.Lens_Graphql, {
 			entityType: EntityType.LensFeed,
 			resolve: {
-				[LensFeedSelector.Address]: {
+				Address: {
 					resolve: async ({ address }, context) => {
 						const { queryFeedPosts } = await import('$/sources/Lens/Graphql/queries.ts')
 						return (await queryFeedPosts(

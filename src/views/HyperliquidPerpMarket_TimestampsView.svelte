@@ -2,95 +2,37 @@
 
 <script lang="ts">
 	// Types/constants
-	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
-	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
-	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
+	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-
-
 
 
 	// State
 	let {
 		selection,
-		countResource,
-		title = 'Hyperliquid perp market observations',
-		typeAnnotationParagraphs = [],
-		placeholderText = undefined,
-		emptyText = undefined,
 		open = $bindable(true),
-		collapsible = true,
-		showTypeAnnotation = true,
-		id = 'HyperliquidPerpMarket_Timestamps-list',
 		...EntitiesListProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyEntitiesSelection<EntityType.HyperliquidPerpMarket_Timestamp>
-			countResource?: SvelteKitResource<number>
-			title?: string
-			typeAnnotationParagraphs?: string[]
-			placeholderText?: string
-			emptyText?: string
-			open?: boolean
-			collapsible?: boolean
-			showTypeAnnotation?: boolean
-			id?: string
-		},
-		EntitiesListForwardProps
-	> = $props()
+	}: EntityListViewProps<EntityType.HyperliquidPerpMarket_Timestamp> = $props()
 
 
 	// Components
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView from '$/components/EntityView.svelte'
 </script>
 
-
-{#snippet TypeAnnotationParagraphs()}
-	{#each typeAnnotationParagraphs as paragraph (paragraph)}
-		<p>{paragraph}</p>
-	{/each}
-{/snippet}
 
 <EntitiesList
 	{...EntitiesListProps}
 	entityType={EntityType.HyperliquidPerpMarket_Timestamp}
-	{id}
-	{title}
 	bind:open
-	{collapsible}
-	{showTypeAnnotation}
-	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-	resource={
-		selection({
-			sources: selection.sources,
-		})
-	}
-	{countResource}
-	getResourceItems={(hyperliquidPerpMarketTimestamps) => [...new Map(hyperliquidPerpMarketTimestamps.values.map((hyperliquidPerpMarketTimestamp) => [hyperliquidPerpMarketTimestamp[EntityMetaKey.SelectorKey], hyperliquidPerpMarketTimestamp])).values()]}
-	getKey={(hyperliquidPerpMarketTimestamp) => hyperliquidPerpMarketTimestamp[EntityMetaKey.SelectorKey]}
-	{placeholderText}
+	resource={selection()}
 >
-	{#snippet Empty()}
-		{#if emptyText != null}
-			<p data-text="muted">{emptyText}</p>
-		{:else}
-			<p data-text="muted">No Hyperliquid perp market observations yet.</p>
-		{/if}
-	{/snippet}
-
 	{#snippet Item({ item: hyperliquidPerpMarketTimestamp })}
-		{@const hyperliquidPerpMarketTimestampFields = { ...hyperliquidPerpMarketTimestamp[EntityMetaKey.Selector], ...hyperliquidPerpMarketTimestamp }}
 		<EntityView
 			entityType={EntityType.HyperliquidPerpMarket_Timestamp}
 			entitySelector={hyperliquidPerpMarketTimestamp[EntityMetaKey.Selector]}
-			layout={EntityLayout.Summary}
-			open={false}
-			showTypeAnnotation={false}
 		>
 			{#snippet Title()}
-				{'hyperliquid perp market timestamp'}
+				hyperliquid perp market timestamp
 			{/snippet}
 		</EntityView>
 	{/snippet}

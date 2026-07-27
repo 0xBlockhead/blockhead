@@ -2,14 +2,9 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
 	import { ExecutionProtocol } from '$/schema/NetworkUpgradeProtocols.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -24,40 +19,25 @@
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.EthereumExecutionUpgrade>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.EthereumExecutionUpgrade>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.EthereumExecutionUpgrade> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const ethereumExecutionUpgrade = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const viewSelection = $derived(selection({
+		sources: selection.sources ?? [
+			Source.Constants_Internal,
+		],
+	}))
+	const ethereumExecutionUpgrade = $derived(viewSelection({
 		fields: {
 			name: true,
-		},
-	} : {
-		sources: selection.sources,
-		fields: {
-			name: true,
+			upgradeId: true,
 			protocol: true,
 			activationBlock: true,
 			activationEpoch: true,
 			activationTimestampMs: true,
 		},
 	}))
-	const titleFallback = $derived([String((pendingEntity.upgradeId) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.name) ?? '')].filter(Boolean).join(' ') || 'Ethereum execution upgrade')
-	const viewDomId = $derived('ethereum-execution-upgrade-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const titleFallback = $derived((pendingEntity.upgradeId ?? '') || (pendingEntity.name ?? '') || 'Ethereum execution upgrade')
 
 
 	// Components
@@ -70,30 +50,24 @@
 
 <EntityView
 	entityType={EntityType.EthereumExecutionUpgrade}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
 	href={
 		href ?? (
-			selection.entitySelector != null && 'slug' in selection.entitySelector
-			&& selection.entitySelector.slug != null
-			&& selection.entitySelector != null && '$network' in selection.entitySelector ?
-				selection.entitySelector.$network != null && 'caip2' in selection.entitySelector.$network
-				&& selection.entitySelector.$network.caip2 != null ?
-					resolve('/network/[network=networkCaip2OrNetworkSlug]/execution/[upgradeSlug=stringSegment]', {
-				upgradeSlug: String(selection.entitySelector.slug ?? ''),
-				network: String(caip2StringFromValue(selection.entitySelector.$network.caip2) ?? ''),
-			})
+			'slug' in selection.entitySelector ?
+				resolve(
+					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(upgrades)/execution/[upgradeSlug=stringSegment]',
+					{
+						network: (
+							'caip2' in selection.entitySelector.$network ?
+								String(caip2StringFromValue(selection.entitySelector.$network.caip2))
+							:
+								String(selection.entitySelector.$network.slug)
+						),
+						upgradeSlug: String(selection.entitySelector.slug),
+					}
+				)
 			:
-					selection.entitySelector.$network != null && 'slug' in selection.entitySelector.$network
-					&& selection.entitySelector.$network.slug != null ?
-						resolve('/network/[network=networkCaip2OrNetworkSlug]/execution/[upgradeSlug=stringSegment]', {
-					upgradeSlug: String(selection.entitySelector.slug ?? ''),
-					network: String(selection.entitySelector.$network.slug ?? ''),
-				})
-				:
-					undefined
-		:
 				undefined
 		)
 	}
@@ -102,51 +76,33 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'upgradeId') && Object.hasOwn(prefetched, 'name')}
-			{[String((pendingEntity.upgradeId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-		{:else}
-			<ResourceBoundary resource={ethereumExecutionUpgrade}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.upgradeId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={ethereumExecutionUpgrade}>
+			{#snippet children(entity)}
+				{entity.upgradeId || title || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Value()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'upgradeId') && Object.hasOwn(prefetched, 'name')}
-			{[String((pendingEntity.upgradeId) ?? '')].filter(Boolean).join(' ') || titleFallback}
-		{:else}
-			<ResourceBoundary resource={ethereumExecutionUpgrade}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.upgradeId) ?? '')].filter(Boolean).join(' ') || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={ethereumExecutionUpgrade}>
+			{#snippet children(entity)}
+				{entity.upgradeId || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
 		<dl data-column-item="center">
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							protocol: true,
-						},
-					})
-				}
+				resource={ethereumExecutionUpgrade}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const protocol = resolvedEntity.protocol}
-					{#if protocol !== undefined && protocol !== null}
+					{@const protocol = entity.protocol}
+					{#if protocol != null}
 						<div>
 							<dt>Execution fork</dt>
 							<dd>
-								{String((protocol) ?? '')}
+								{protocol}
 							</dd>
 						</div>
 					{/if}
@@ -154,19 +110,11 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							activationBlock: true,
-						},
-					})
-				}
+				resource={ethereumExecutionUpgrade}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const activationBlock = resolvedEntity.activationBlock}
-					{#if activationBlock !== undefined && activationBlock !== null}
+					{@const activationBlock = entity.activationBlock}
+					{#if activationBlock != null}
 						<div>
 							<dt>Activation block</dt>
 							<dd>
@@ -180,19 +128,11 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							activationEpoch: true,
-						},
-					})
-				}
+				resource={ethereumExecutionUpgrade}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const activationEpoch = resolvedEntity.activationEpoch}
-					{#if activationEpoch !== undefined && activationEpoch !== null}
+					{@const activationEpoch = entity.activationEpoch}
+					{#if activationEpoch != null}
 						<div>
 							<dt>Activation epoch</dt>
 							<dd>
@@ -206,19 +146,11 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							activationTimestampMs: true,
-						},
-					})
-				}
+				resource={ethereumExecutionUpgrade}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const activationTimestampMs = resolvedEntity.activationTimestampMs}
-					{#if activationTimestampMs !== undefined && activationTimestampMs !== null}
+					{@const activationTimestampMs = entity.activationTimestampMs}
+					{#if activationTimestampMs != null}
 						<div>
 							<dt>Activation time</dt>
 							<dd>
@@ -232,25 +164,25 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-				{@const ethereumExecutionUpgradeSpecificationProposalsViewProposalsResource = selection
+		{@const ethereumExecutionUpgradeSpecificationProposalsViewProposalsResource = selection
 		.$$proposals({
 			sources: [
 				Source.Constants_Internal,
 			],
 		})}
-				<ResourceBoundary
-					resource={ethereumExecutionUpgradeSpecificationProposalsViewProposalsResource}
-				>
-					{#snippet children(entities)}
-						{#if entities.values.length > 0}
-						<SpecificationProposalsView
-							selection={ethereumExecutionUpgradeSpecificationProposalsViewProposalsResource}
-							countResource={ethereumExecutionUpgradeSpecificationProposalsViewProposalsResource.count}
-							title='Specification proposals'
-							id='SpecificationProposalsView-proposals'
-						/>
-						{/if}
-					{/snippet}
-				</ResourceBoundary>
+		<ResourceBoundary
+			resource={ethereumExecutionUpgradeSpecificationProposalsViewProposalsResource}
+		>
+			{#snippet children(entities)}
+				{#if entities.values.length > 0}
+					<SpecificationProposalsView
+						selection={ethereumExecutionUpgradeSpecificationProposalsViewProposalsResource}
+						countResource={ethereumExecutionUpgradeSpecificationProposalsViewProposalsResource.count}
+						title='Specification proposals'
+						id='proposals'
+					/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 </EntityView>

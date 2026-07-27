@@ -2,6 +2,8 @@ import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 
 import { describe, expect, it } from 'vitest'
+import { e2eRouteFixtureMetadataByNodeId } from '../../tests/e2e/_generatedRouteFixtureMetadata.ts'
+import { publicRouteIdFromRouteId } from '../../tests/e2e/_routeDiscovery.ts'
 
 const generatedRouteFixtureMetadata = readFileSync(join(process.cwd(), 'tests/e2e/_generatedRouteFixtureMetadata.ts'), 'utf8')
 const networkSchema = readFileSync(join(process.cwd(), 'src/schema/Network.ts'), 'utf8')
@@ -11,7 +13,7 @@ const sessionRoute = readFileSync(join(process.cwd(), 'src/routes/~/session/[ses
 
 describe('generated route href contracts', () => {
 	it('strips compiler-only route groups from public view hrefs', () => {
-		const publicPaths = [...generatedRouteFixtureMetadata.matchAll(/publicPath: '([^']+)'/g)].map((match) => match[1])
+		const publicPaths = Object.values(e2eRouteFixtureMetadataByNodeId).map(({ routeId }) => publicRouteIdFromRouteId(routeId))
 		const networkFacetSegments = new Set(
 			[...networkSchema.matchAll(/^\t\t([A-Za-z0-9]+): facet\(/gm)]
 				.flatMap((match) => [
@@ -21,7 +23,7 @@ describe('generated route href contracts', () => {
 						.toLowerCase(),
 				])
 		)
-		expect(generatedRouteFixtureMetadata).toMatch(/nodeId: '\/\(explore\)\/\(networks\)\/network\/\[network\]'/)
+		expect(generatedRouteFixtureMetadata).toMatch(/'\/\(explore\)\/\(networks\)\/network\/\[network\]': \{/)
 		expect(publicPaths).toContain('/network/[network]')
 		expect(publicPaths.some((publicPath) => /=/.test(publicPath))).toBe(false)
 		expect(publicPaths.some((publicPath) => /[()]/.test(publicPath))).toBe(false)
@@ -61,15 +63,20 @@ describe('generated route href contracts', () => {
 	})
 
 	it('guards branch-specific route coordinates and falls back to no href', () => {
-		expect(solanaInstructionView).toMatch(/instructionKind === 'Instruction'[\s\S]*?indexInTransaction !== undefined[\s\S]*?resolve\('\/network\/\[network=networkCaip2OrNetworkSlug\]\/tx\/\[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId\]\/instruction\/\[instructionKind=stringSegment\]\/\[indexInTransaction=nonNegativeInteger\]'/)
-		expect(solanaInstructionView).toMatch(/instructionKind === 'InnerInstruction'[\s\S]*?indexInInstruction !== undefined[\s\S]*?resolve\('\/network\/\[network=networkCaip2OrNetworkSlug\]\/tx\/\[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId\]\/instruction\/\[instructionKind=stringSegment\]\/\[indexInTransaction=nonNegativeInteger\]\/inner\/\[indexInInstruction=nonNegativeInteger\]'/)
-		expect(solanaInstructionView).toMatch(/indexInInstruction: String\(pendingEntity\.indexInInstruction \?\? ''\),/)
-		expect(solanaInstructionView).toMatch(/inner\/\[indexInInstruction=nonNegativeInteger\]'[\s\S]*?: undefined\)/)
+		expect(solanaInstructionView).toMatch(
+			/selection\.entitySelector\.instructionKind === 'Instruction'[\s\S]*?resolve\([\s\S]*?'\/\(explore\)\/\(networks\)\/network\/\[network=networkCaip2OrNetworkSlug\]\/\(network\)\/\(transactions\)\/tx\/\[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId\]\/\(selection\)\/instruction\/\[instructionKind=stringSegment\]\/\[indexInTransaction=nonNegativeInteger\]'/
+		)
+		expect(solanaInstructionView).toMatch(
+			/selection\.entitySelector\.instructionKind === 'InnerInstruction'[\s\S]*?'indexInInstruction' in selection\.entitySelector[\s\S]*?\/inner\/\[indexInInstruction=nonNegativeInteger\]'[\s\S]*?indexInInstruction: String\(selection\.entitySelector\.indexInInstruction\)/
+		)
+		expect(solanaInstructionView).toMatch(/indexInInstruction: String\(selection\.entitySelector\.indexInInstruction\)[\s\S]*?:\s*undefined/)
+		expect(solanaInstructionView).not.toMatch(/resolve\(`/)
 	})
 
 	it('keeps generated page titles in the public format for collection and entity routes', () => {
 		expect(assetsRoute).toMatch(/<title>Assets • Blockhead<\/title>/)
-		expect(sessionRoute).toMatch(/<title>\{pageEntityTitle\} • session • Blockhead<\/title>/)
+		expect(sessionRoute).not.toMatch(/\bpageEntity\b/)
+		expect(sessionRoute).toMatch(/<title>\{\(pageSelection\.entity == null \?[\s\S]*?pageSelection\.entitySelector\.id[\s\S]*?pageSelection\.entity\.name[\s\S]*?\)\} • session • Blockhead<\/title>/)
 	})
 
 })

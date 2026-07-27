@@ -2,69 +2,30 @@
 
 <script lang="ts">
 	// Types/constants
-	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
-	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
-	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
+	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-
-
 
 
 	// State
 	let {
 		selection,
-		countResource,
-		title = 'Near contract observations',
-		typeAnnotationParagraphs = [],
-		placeholderText = undefined,
-		emptyText = undefined,
 		open = $bindable(true),
-		collapsible = true,
-		showTypeAnnotation = true,
-		id = 'NearContract_Timestamps-list',
 		...EntitiesListProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyEntitiesSelection<EntityType.NearContract_Timestamp>
-			countResource?: SvelteKitResource<number>
-			title?: string
-			typeAnnotationParagraphs?: string[]
-			placeholderText?: string
-			emptyText?: string
-			open?: boolean
-			collapsible?: boolean
-			showTypeAnnotation?: boolean
-			id?: string
-		},
-		EntitiesListForwardProps
-	> = $props()
+	}: EntityListViewProps<EntityType.NearContract_Timestamp> = $props()
 
 
 	// Components
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView from '$/components/EntityView.svelte'
 </script>
 
-
-{#snippet TypeAnnotationParagraphs()}
-	{#each typeAnnotationParagraphs as paragraph (paragraph)}
-		<p>{paragraph}</p>
-	{/each}
-{/snippet}
 
 <EntitiesList
 	{...EntitiesListProps}
 	entityType={EntityType.NearContract_Timestamp}
-	{id}
-	{title}
 	bind:open
-	{collapsible}
-	{showTypeAnnotation}
-	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
 	resource={
 		selection({
-			sources: selection.sources,
 			fields: {
 				timestampMs: true,
 				codeHash: true,
@@ -72,38 +33,23 @@
 			},
 		})
 	}
-	{countResource}
-	getResourceItems={(nearContractTimestamps) => [...new Map(nearContractTimestamps.values.map((nearContractTimestamp) => [nearContractTimestamp[EntityMetaKey.SelectorKey], nearContractTimestamp])).values()]}
-	getKey={(nearContractTimestamp) => nearContractTimestamp[EntityMetaKey.SelectorKey]}
-	{placeholderText}
 >
-	{#snippet Empty()}
-		{#if emptyText != null}
-			<p data-text="muted">{emptyText}</p>
-		{:else}
-			<p data-text="muted">No Near contract observations yet.</p>
-		{/if}
-	{/snippet}
-
 	{#snippet Item({ item: nearContractTimestamp })}
-		{@const nearContractTimestampFields = { ...nearContractTimestamp[EntityMetaKey.Selector], ...nearContractTimestamp }}
+		{@const nearContractTimestampSelector = nearContractTimestamp[EntityMetaKey.Selector]}
 		<EntityView
 			entityType={EntityType.NearContract_Timestamp}
-			entitySelector={nearContractTimestamp[EntityMetaKey.Selector]}
-			layout={EntityLayout.Summary}
-			open={false}
-			showTypeAnnotation={false}
+			entitySelector={nearContractTimestampSelector}
 		>
 			{#snippet Title()}
-				{[String((nearContractTimestampFields.timestampMs) ?? '')].filter(Boolean).join(' ') || 'near contract timestamp'}
+				{String(nearContractTimestampSelector.timestampMs) || 'near contract timestamp'}
 			{/snippet}
 
 			{#snippet Value()}
-				{[String((nearContractTimestampFields.codeHash) ?? '')].filter(Boolean).join(' ')}
+				{(nearContractTimestamp.codeHash ?? '')}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{[String((nearContractTimestampFields.blockHeight) ?? '')].filter(Boolean).join(' ')}</span>
+				<span data-text="annotation">{String(nearContractTimestamp.blockHeight ?? '')}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

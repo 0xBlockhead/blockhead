@@ -1,15 +1,12 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { entity, facet } from '$/schema/$schema.ts'
+import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
-export enum _GlobalSelector {
-	Scope = 'Scope',
-}
-export const _Global = entity({
+export default entity({
 	entityType: EntityType._Global,
 	labels: {
 		singular: 'global',
@@ -47,6 +44,9 @@ export const _Global = entity({
 		type: EntityFieldType.EntitiesReference,
 		entityType: EntityType.EthereumNetworkUpgrade,
 		cardinality: EntityFieldCardinality.Many,
+		defaultSources: [
+			Source.Constants_Internal,
+		],
 	},
 	$$proposals: {
 		label: 'proposals',
@@ -131,6 +131,9 @@ export const _Global = entity({
 		type: EntityFieldType.EntitiesReference,
 		entityType: EntityType.BlockheadSource,
 		cardinality: EntityFieldCardinality.Many,
+		defaultSources: [
+			Source.Local_Internal,
+		],
 	},
 	$$blockheadWallets: {
 		label: 'blockhead wallets',
@@ -260,18 +263,27 @@ export const _Global = entity({
 		type: EntityFieldType.EntitiesReference,
 		entityType: EntityType.EvmNft,
 		cardinality: EntityFieldCardinality.Many,
+		defaultSources: [
+			Source.Eip8004Scan_Rest,
+		],
 	},
 	$$blockheadRoomPeers: {
 		label: 'blockhead room peers',
 		type: EntityFieldType.EntitiesReference,
 		entityType: EntityType.BlockheadRoomPeer,
 		cardinality: EntityFieldCardinality.Many,
+		defaultSources: [
+			Source.Local_Internal,
+		],
 	},
 	$$blockheadRooms: {
 		label: 'blockhead rooms',
 		type: EntityFieldType.EntitiesReference,
 		entityType: EntityType.BlockheadRoom,
 		cardinality: EntityFieldCardinality.Many,
+		defaultSources: [
+			Source.Local_Internal,
+		],
 	},
 	$$blockheadStateChannels: {
 		label: 'blockhead state channels',

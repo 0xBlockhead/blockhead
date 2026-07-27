@@ -2,14 +2,10 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
 	import { ZeroExHex } from '$/schema/ZeroExHex.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -21,40 +17,23 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.McpPromptResult>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.McpPromptResult>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.McpPromptResult> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const mcpPromptResult = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {
-			error: true,
-		},
-	} : {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const viewSelection = $derived(selection({
+		sources: selection.sources ?? [
+			Source.McpDeclared_Protocol,
+		],
+	}))
+	const mcpPromptResult = $derived(viewSelection({
 		fields: {
 			error: true,
 		},
 	}))
-	const titleFallback = $derived([String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || 'mcp prompt result')
-	const viewDomId = $derived('mcp-prompt-result-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const titleFallback = $derived(String(pendingEntity.timestampMs ?? '') || 'mcp prompt result')
 
 
 	// Components
@@ -67,80 +46,36 @@
 
 <EntityView
 	entityType={EntityType.McpPromptResult}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, '$prompt') && prefetched.$prompt != null && Object.hasOwn(prefetched.$prompt, 'title') && Object.hasOwn(prefetched.$prompt, '$server') && prefetched.$prompt.$server != null && Object.hasOwn(prefetched.$prompt.$server, 'transportKind') && Object.hasOwn(prefetched.$prompt.$server, 'endpointUrl') && Object.hasOwn(prefetched, 'error')}
-			{@const timestampMs0 = pendingEntity.timestampMs}
-			{#if timestampMs0 !== undefined && timestampMs0 !== null}
-				<Timestamp timestamp={Number(timestampMs0)} />
-			{/if}
-		{:else}
-			<ResourceBoundary resource={mcpPromptResult}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const timestampMs0 = resolvedEntity.timestampMs}
-					{#if timestampMs0 !== undefined && timestampMs0 !== null}
-						<Timestamp timestamp={Number(timestampMs0)} />
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
 	{/snippet}
 
 	{#snippet Value()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, '$prompt') && prefetched.$prompt != null && Object.hasOwn(prefetched.$prompt, 'title') && Object.hasOwn(prefetched.$prompt, '$server') && prefetched.$prompt.$server != null && Object.hasOwn(prefetched.$prompt.$server, 'transportKind') && Object.hasOwn(prefetched.$prompt.$server, 'endpointUrl') && Object.hasOwn(prefetched, 'error')}
-			{@const mcpPrompt0 = pendingEntity.$prompt}
-			{#if mcpPrompt0 != null && selection.entitySelector.$prompt != null}
-				<McpPromptView
-					selection={select(EntityType.McpPrompt, selection.entitySelector.$prompt, { sources: selection.sources })}
-					prefetched={mcpPrompt0}
-					href=""
-					layout={EntityLayout.Value}
-					open={false}
-				/>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={mcpPromptResult}>
-				{#snippet children(entity)}
-					<McpPromptView
-						selection={select(EntityType.McpPrompt, selection.entitySelector.$prompt)}
-						href=""
-						layout={EntityLayout.Value}
-						open={false}
-					/>
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<McpPromptView
+			selection={select(EntityType.McpPrompt, selection.entitySelector.$prompt)}
+			href=""
+			layout={EntityLayout.Value}
+			open={false}
+		/>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, '$prompt') && prefetched.$prompt != null && Object.hasOwn(prefetched.$prompt, 'title') && Object.hasOwn(prefetched.$prompt, '$server') && prefetched.$prompt.$server != null && Object.hasOwn(prefetched.$prompt.$server, 'transportKind') && Object.hasOwn(prefetched.$prompt.$server, 'endpointUrl') && Object.hasOwn(prefetched, 'error')}
-			{@const error0 = pendingEntity.error}
-			{#if error0 !== undefined && error0 !== null}
-				<span data-text="muted">
-					{String((error0) ?? '')}
-				</span>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={mcpPromptResult}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const error0 = resolvedEntity.error}
-					{#if error0 !== undefined && error0 !== null}
-						<span data-text="muted">
-							{String((error0) ?? '')}
-						</span>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={mcpPromptResult}>
+			{#snippet children(entity)}
+				{@const error0 = entity.error}
+				{#if error0 != null}
+					<span data-text="muted">
+						{error0}
+					</span>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -159,96 +94,28 @@
 			<div>
 				<dt>arguments hash algorithm</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									argumentsHashAlgorithm: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const argumentsHashAlgorithm = resolvedEntity.argumentsHashAlgorithm}
-							{#if argumentsHashAlgorithm !== undefined && argumentsHashAlgorithm !== null}
-								<TruncatedValue value={String((argumentsHashAlgorithm) ?? '')} />
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					<TruncatedValue value={pendingEntity.argumentsHashAlgorithm} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>arguments hash</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									argumentsHash: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const argumentsHash = resolvedEntity.argumentsHash}
-							{#if argumentsHash !== undefined && argumentsHash !== null}
-								<TruncatedValue value={String((argumentsHash) ?? '')} />
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					<TruncatedValue value={String(pendingEntity.argumentsHash)} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									timestampMs: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const timestampMs = resolvedEntity.timestampMs}
-							{#if timestampMs !== undefined && timestampMs !== null}
-								<Timestamp timestamp={Number(timestampMs)} />
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									source: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const source = resolvedEntity.source}
-							{#if source !== undefined && source !== null}
-								{String((source) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{pendingEntity.source}
 				</dd>
 			</div>
 		</dl>
@@ -256,8 +123,7 @@
 		<dl data-column-item="center">
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							description: true,
 						},
@@ -265,13 +131,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const description = resolvedEntity.description}
-					{#if description !== undefined && description !== null}
+					{@const description = entity.description}
+					{#if description != null}
 						<div>
 							<dt>Description</dt>
 							<dd>
-								{String((description) ?? '')}
+								{description}
 							</dd>
 						</div>
 					{/if}
@@ -279,23 +144,15 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							error: true,
-						},
-					})
-				}
+				resource={mcpPromptResult}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const error = resolvedEntity.error}
-					{#if error !== undefined && error !== null}
+					{@const error = entity.error}
+					{#if error != null}
 						<div>
 							<dt>error</dt>
 							<dd>
-								{String((error) ?? '')}
+								{error}
 							</dd>
 						</div>
 					{/if}

@@ -1,18 +1,40 @@
-import { describe, expect, it, vi } from 'vitest'
-
-import * as http from '$/lib/http.ts'
 import {
+	beforeEach,
+	describe,
+	expect,
+	it,
+	vi,
+} from 'vitest'
+
+import bindings from '$/sources/SafeTransactionService/bindings.ts'
+import { Source } from '$/sources/Source.ts'
+import {
+	SourceDelivery,
+	type SourceBinding,
+} from '$/sources/SourceBinding.ts'
+
+const { sourceGetJson } = vi.hoisted(() => ({
+	sourceGetJson: vi.fn(),
+}))
+
+vi.mock('$/sources/_runtime/http.ts', async (importOriginal) => ({
+	...await importOriginal<typeof import('$/sources/_runtime/http.ts')>(),
+	sourceGetJson,
+}))
+
+const {
 	getSafeMultisigTransactions,
 	getSafeStatus,
 	getSafeTransactionConfirmations,
 	isSafeNonceRejectionTransaction,
-} from '$/sources/SafeTransactionService/Rest/queries.ts'
+} = await import('$/sources/SafeTransactionService/Rest/queries.ts')
 
-const network = {
-	chainId: '8453',
-	chainPrefix: 'base',
-} as const
-const apiKey = 'safe-api-key'
+const binding = bindings[Source.SafeTransactionService_Rest]
+	.find((candidate) => candidate.target.key === '8453')
+
+if (binding == null)
+	throw new Error('SafeTransactionService_Rest spec missing Base binding')
+
 const safeAddress = `0x${'a'.repeat(40)}`
 const ownerAddress = `0x${'b'.repeat(40)}`
 const recipientAddress = `0x${'c'.repeat(40)}`
@@ -48,8 +70,12 @@ const transaction = {
 }
 
 describe('Safe Transaction Service public multisig queries', () => {
+	beforeEach(() => {
+		vi.clearAllMocks()
+	})
+
 	it('preserves exact Safe identity, owners, threshold, and lossless nonce', async () => {
-		vi.spyOn(http, 'getJson').mockResolvedValue({
+		sourceGetJson.mockResolvedValue({
 			address: safeAddress.toUpperCase().replace('0X', '0x'),
 			nonce: '9007199254740993',
 			threshold: 1,
@@ -63,19 +89,20 @@ describe('Safe Transaction Service public multisig queries', () => {
 			version: '1.4.1',
 		})
 
-		await expect(getSafeStatus({
-			network,
-			apiKey,
+		await expect(getSafeStatus(binding, {
 			safeAddress,
 		})).resolves.toMatchObject({
 			nonce: '9007199254740993',
 			threshold: 1,
 		})
+		expect(sourceGetJson).toHaveBeenCalledWith(
+			binding,
+			`https://api.safe.global/tx-service/base/api/v1/safes/${safeAddress}/`
+		)
 	})
 
 	it('returns bounded queued transactions and rejects foreign-subject rows', async () => {
-		const getJson = vi.spyOn(http, 'getJson')
-		getJson.mockResolvedValueOnce({
+		sourceGetJson.mockResolvedValueOnce({
 			count: 1,
 			next: null,
 			previous: null,
@@ -84,9 +111,7 @@ describe('Safe Transaction Service public multisig queries', () => {
 			],
 		})
 
-		await expect(getSafeMultisigTransactions({
-			network,
-			apiKey,
+		await expect(getSafeMultisigTransactions(binding, {
 			safeAddress,
 			limit: 20,
 			offset: 0,
@@ -100,7 +125,7 @@ describe('Safe Transaction Service public multisig queries', () => {
 			],
 		})
 
-		getJson.mockResolvedValueOnce({
+		sourceGetJson.mockResolvedValueOnce({
 			count: 1,
 			next: null,
 			previous: null,
@@ -111,9 +136,7 @@ describe('Safe Transaction Service public multisig queries', () => {
 				},
 			],
 		})
-		await expect(getSafeMultisigTransactions({
-			network,
-			apiKey,
+		await expect(getSafeMultisigTransactions(binding, {
 			safeAddress,
 			limit: 20,
 			offset: 0,
@@ -121,7 +144,7 @@ describe('Safe Transaction Service public multisig queries', () => {
 	})
 
 	it('rejects continuations that escape the exact chain and Safe path', async () => {
-		vi.spyOn(http, 'getJson').mockResolvedValue({
+		sourceGetJson.mockResolvedValue({
 			count: 1,
 			next: `https://api.safe.global/tx-service/eth/api/v2/safes/${safeAddress}/multisig-transactions/?offset=20`,
 			previous: null,
@@ -130,9 +153,7 @@ describe('Safe Transaction Service public multisig queries', () => {
 			],
 		})
 
-		await expect(getSafeMultisigTransactions({
-			network,
-			apiKey,
+		await expect(getSafeMultisigTransactions(binding, {
 			safeAddress,
 			limit: 20,
 			offset: 0,
@@ -140,7 +161,7 @@ describe('Safe Transaction Service public multisig queries', () => {
 	})
 
 	it('binds confirmations to the exact transaction and current Safe owners', async () => {
-		vi.spyOn(http, 'getJson')
+		sourceGetJson
 			.mockResolvedValueOnce({
 				address: safeAddress,
 				nonce: '2',
@@ -175,9 +196,7 @@ describe('Safe Transaction Service public multisig queries', () => {
 				],
 			})
 
-		await expect(getSafeTransactionConfirmations({
-			network,
-			apiKey,
+		await expect(getSafeTransactionConfirmations(binding, {
 			safeAddress,
 			safeTxHash,
 			limit: 20,
@@ -191,17 +210,8 @@ describe('Safe Transaction Service public multisig queries', () => {
 		})
 	})
 
-	it('rejects chain-prefix substitution and invalid thresholds', async () => {
-		await expect(getSafeStatus({
-			network: {
-				chainId: '1',
-				chainPrefix: 'base',
-			},
-			apiKey,
-			safeAddress,
-		})).rejects.toThrow('chain ID and service prefix disagree')
-
-		vi.spyOn(http, 'getJson').mockResolvedValue({
+	it('rejects invalid thresholds', async () => {
+		sourceGetJson.mockResolvedValue({
 			address: safeAddress,
 			nonce: '0',
 			threshold: 2,
@@ -214,9 +224,7 @@ describe('Safe Transaction Service public multisig queries', () => {
 			guard: `0x${'0'.repeat(40)}`,
 			version: '1.4.1',
 		})
-		await expect(getSafeStatus({
-			network,
-			apiKey,
+		await expect(getSafeStatus(binding, {
 			safeAddress,
 		})).rejects.toThrow('threshold exceeds its owner set')
 	})

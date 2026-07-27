@@ -1,7 +1,7 @@
 import type {
 	Caip2NetworkKey,
 	NetworkSlug,
-} from './Network.ts'
+} from '../../../src/constants/Network.ts'
 
 export type SourceTarget<_Kind extends string> = {
 	[_TargetKind in _Kind]: {

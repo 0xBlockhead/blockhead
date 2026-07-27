@@ -3,11 +3,11 @@
 <script lang="ts">
 	// Types/constants
 	import type { PageProps } from './$types.ts'
+	import { resolve } from '$app/paths'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
@@ -16,8 +16,6 @@
 		data,
 		params,
 	}: PageProps = $props()
-
-
 	// Components
 	import Page from '$/components/Page.svelte'
 	import LightningNodesView from '$/views/LightningNodesView.svelte'
@@ -30,15 +28,20 @@
 
 
 <Page>
+	{@const collectionSelection = select(EntityType.LightningNetwork, data.selector).$$nodes}
+
 	<LightningNodesView
 		href={
-			resolve('/network/[network=networkCaip2OrNetworkSlug]/nodes', {
-				network: params.network,
-			})
+			resolve(
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/nodes',
+				{
+					network: String(params.network),
+				}
+			)
 		}
 		title='Nodes'
-		selection={select(EntityType.LightningNetwork, data.selector).$$nodes}
-		countResource={select(EntityType.LightningNetwork, data.selector).$$nodes.count}
+		selection={collectionSelection}
+		countResource={collectionSelection.count}
 		id='nodes'
 		data-column-item="flexible"
 		data-card

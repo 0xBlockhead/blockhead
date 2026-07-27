@@ -2,13 +2,9 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
 	import { UrlString } from '$/schema/UrlString.ts'
 
 
@@ -21,44 +17,22 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.AiBenchmark>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.AiBenchmark>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.AiBenchmark> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const aiBenchmark = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const aiBenchmark = $derived(selection({
 		fields: {
 			label: true,
 			taskType: true,
-			metricName: true,
-		},
-	} : {
-		sources: selection.sources,
-		fields: {
-			label: true,
-			taskType: true,
+			benchmarkId: true,
+			benchmarkUri: true,
 			metricName: true,
 		},
 	}))
-	const titleFallback = $derived([String((pendingEntity.label) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.benchmarkId) ?? ''), String((pendingEntity.benchmarkUri) ?? '')].filter(Boolean).join(' ') || 'AI benchmark')
-	const viewDomId = $derived('ai-benchmark-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const titleFallback = $derived((pendingEntity.label ?? '') || [(pendingEntity.benchmarkId ?? ''), String(pendingEntity.benchmarkUri ?? '')].filter(Boolean).join(' ') || 'AI benchmark')
 
 
 	// Components
@@ -71,83 +45,53 @@
 
 <EntityView
 	entityType={EntityType.AiBenchmark}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'label') && Object.hasOwn(prefetched, 'taskType') && Object.hasOwn(prefetched, 'benchmarkId') && Object.hasOwn(prefetched, 'benchmarkUri') && Object.hasOwn(prefetched, 'metricName')}
-			{[String((pendingEntity.label) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-		{:else}
-			<ResourceBoundary resource={aiBenchmark}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.label) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={aiBenchmark}>
+			{#snippet children(entity)}
+				{(entity.label ?? '') || title || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Value()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'label') && Object.hasOwn(prefetched, 'taskType') && Object.hasOwn(prefetched, 'benchmarkId') && Object.hasOwn(prefetched, 'benchmarkUri') && Object.hasOwn(prefetched, 'metricName')}
-			{[String((pendingEntity.taskType) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.label) ?? '')].filter(Boolean).join(' ') || titleFallback}
-		{:else}
-			<ResourceBoundary resource={aiBenchmark}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.taskType) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.label) ?? '')].filter(Boolean).join(' ') || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={aiBenchmark}>
+			{#snippet children(entity)}
+				{(entity.taskType ?? '') || (entity.label ?? '') || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'label') && Object.hasOwn(prefetched, 'taskType') && Object.hasOwn(prefetched, 'benchmarkId') && Object.hasOwn(prefetched, 'benchmarkUri') && Object.hasOwn(prefetched, 'metricName')}
-			{@const metricName0 = pendingEntity.metricName}
-			{#if metricName0 !== undefined && metricName0 !== null}
-				<span data-text="muted">
-					{String((metricName0) ?? '')}
-				</span>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={aiBenchmark}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const metricName0 = resolvedEntity.metricName}
-					{#if metricName0 !== undefined && metricName0 !== null}
-						<span data-text="muted">
-							{String((metricName0) ?? '')}
-						</span>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={aiBenchmark}>
+			{#snippet children(entity)}
+				{@const metricName0 = entity.metricName}
+				{#if metricName0 != null}
+					<span data-text="muted">
+						{metricName0}
+					</span>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
 		<dl data-column-item="center">
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							benchmarkId: true,
-						},
-					})
-				}
+				resource={aiBenchmark}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const benchmarkId = resolvedEntity.benchmarkId}
-					{#if benchmarkId !== undefined && benchmarkId !== null}
+					{@const benchmarkId = entity.benchmarkId}
+					{#if benchmarkId != null}
 						<div>
 							<dt>benchmark ID</dt>
 							<dd>
-								{String((benchmarkId) ?? '')}
+								{benchmarkId}
 							</dd>
 						</div>
 					{/if}
@@ -155,30 +99,21 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							benchmarkUri: true,
-						},
-					})
-				}
+				resource={aiBenchmark}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const benchmarkUri = resolvedEntity.benchmarkUri}
-					{#if benchmarkUri !== undefined && benchmarkUri !== null}
+					{@const benchmarkUri = entity.benchmarkUri}
+					{#if benchmarkUri != null}
 						<div>
 							<dt>benchmark URI</dt>
 							<dd>
-								<svelte:element
-									this={'a'}
+								<a
 									href={String(benchmarkUri)}
 									target="_blank"
 									rel="noreferrer noopener"
 								>
 									<TruncatedValue value={String(benchmarkUri)} />
-								</svelte:element>
+								</a>
 							</dd>
 						</div>
 					{/if}
@@ -188,7 +123,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							source: true,
 						},
@@ -196,13 +130,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const source = resolvedEntity.source}
-					{#if source !== undefined && source !== null}
+					{@const source = entity.source}
+					{#if source != null}
 						<div>
 							<dt>Source</dt>
 							<dd>
-								{String((source) ?? '')}
+								{source}
 							</dd>
 						</div>
 					{/if}
@@ -212,7 +145,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							sourceBenchmarkId: true,
 						},
@@ -220,13 +152,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const sourceBenchmarkId = resolvedEntity.sourceBenchmarkId}
-					{#if sourceBenchmarkId !== undefined && sourceBenchmarkId !== null}
+					{@const sourceBenchmarkId = entity.sourceBenchmarkId}
+					{#if sourceBenchmarkId != null}
 						<div>
 							<dt>source benchmark ID</dt>
 							<dd>
-								{String((sourceBenchmarkId) ?? '')}
+								{sourceBenchmarkId}
 							</dd>
 						</div>
 					{/if}
@@ -234,23 +165,15 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							label: true,
-						},
-					})
-				}
+				resource={aiBenchmark}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const label = resolvedEntity.label}
-					{#if label !== undefined && label !== null}
+					{@const label = entity.label}
+					{#if label != null}
 						<div>
 							<dt>Label</dt>
 							<dd>
-								{String((label) ?? '')}
+								{label}
 							</dd>
 						</div>
 					{/if}
@@ -260,23 +183,15 @@
 
 		<dl data-column-item="center">
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							taskType: true,
-						},
-					})
-				}
+				resource={aiBenchmark}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const taskType = resolvedEntity.taskType}
-					{#if taskType !== undefined && taskType !== null}
+					{@const taskType = entity.taskType}
+					{#if taskType != null}
 						<div>
 							<dt>task type</dt>
 							<dd>
-								{String((taskType) ?? '')}
+								{taskType}
 							</dd>
 						</div>
 					{/if}
@@ -284,23 +199,15 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							metricName: true,
-						},
-					})
-				}
+				resource={aiBenchmark}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const metricName = resolvedEntity.metricName}
-					{#if metricName !== undefined && metricName !== null}
+					{@const metricName = entity.metricName}
+					{#if metricName != null}
 						<div>
 							<dt>metric name</dt>
 							<dd>
-								{String((metricName) ?? '')}
+								{metricName}
 							</dd>
 						</div>
 					{/if}
@@ -310,7 +217,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							metricType: true,
 						},
@@ -318,13 +224,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const metricType = resolvedEntity.metricType}
-					{#if metricType !== undefined && metricType !== null}
+					{@const metricType = entity.metricType}
+					{#if metricType != null}
 						<div>
 							<dt>metric type</dt>
 							<dd>
-								{String((metricType) ?? '')}
+								{metricType}
 							</dd>
 						</div>
 					{/if}
@@ -334,7 +239,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							license: true,
 						},
@@ -342,13 +246,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const license = resolvedEntity.license}
-					{#if license !== undefined && license !== null}
+					{@const license = entity.license}
+					{#if license != null}
 						<div>
 							<dt>license</dt>
 							<dd>
-								{String((license) ?? '')}
+								{license}
 							</dd>
 						</div>
 					{/if}
@@ -359,7 +262,7 @@
 				resource={selection.$dataset}
 			>
 				{#snippet children(aiDataset)}
-					{#if aiDataset != null && aiDataset[EntityMetaKey.Selector] != null}
+					{#if aiDataset != null}
 						<div>
 							<dt>dataset</dt>
 							<dd>
@@ -384,12 +287,12 @@
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
-				<AiDocumentsView
-					selection={aiBenchmarkAiDocumentsViewDocumentsResource}
-					countResource={aiBenchmarkAiDocumentsViewDocumentsResource.count}
-					title='documents'
-					id='AiDocumentsView-documents'
-				/>
+					<AiDocumentsView
+						selection={aiBenchmarkAiDocumentsViewDocumentsResource}
+						countResource={aiBenchmarkAiDocumentsViewDocumentsResource.count}
+						title='documents'
+						id='documents'
+					/>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>

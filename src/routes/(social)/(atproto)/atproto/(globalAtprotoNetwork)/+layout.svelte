@@ -28,16 +28,16 @@
 
 
 <ParentPageCollapsible
-	href={resolve('/atproto')}
+	href={resolve('/(social)/(atproto)/atproto')}
 >
 	{#snippet Summary()}
-		{@const DetailView = GlobalAtprotoNetworkView}
-
-		<DetailView
-			selection={select(EntityType._GlobalAtprotoNetwork, data.selector, { sources: [
-	Source.Constants_Internal,
-] })}
-			href={resolve('/atproto')}
+		<GlobalAtprotoNetworkView
+			selection={
+				select(EntityType._GlobalAtprotoNetwork, data.selector, { sources: [
+					Source.Constants_Internal,
+				] })
+			}
+			href={resolve('/(social)/(atproto)/atproto')}
 			layout={EntityLayout.SummaryInline}
 		/>
 	{/snippet}

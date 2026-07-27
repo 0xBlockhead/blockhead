@@ -5,7 +5,6 @@ import { render } from 'vitest-browser-svelte'
 import CollapsibleFixture from './Collapsible.fixture.svelte'
 
 
-
 it('keeps closed details unmounted and scoped to the item identity', async () => {
 	const first = await render(CollapsibleFixture, {
 		itemKey: 'A',

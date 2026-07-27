@@ -1,15 +1,12 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { entity, facet } from '$/schema/$schema.ts'
+import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
-export enum AtprotoActor_TimestampSelector {
-	AtprotoActorTimestampMsSource = 'AtprotoActorTimestampMsSource',
-}
-export const AtprotoActor_Timestamp = entity({
+export default entity({
 	entityType: EntityType.AtprotoActor_Timestamp,
 	labels: {
 		singular: 'AT Protocol account observation',
@@ -26,7 +23,7 @@ export const AtprotoActor_Timestamp = entity({
 		label: 'Timestamp',
 		description: 'The observation time in Unix milliseconds.',
 		type: EntityFieldType.Primitive,
-		primitiveType: (type('number.integer >= 0')),
+		primitiveType: type('number.integer >= 0'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	source: {

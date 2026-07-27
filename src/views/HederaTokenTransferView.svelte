@@ -2,15 +2,9 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
-	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -22,35 +16,13 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.HederaTokenTransfer>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.HederaTokenTransfer>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.HederaTokenTransfer> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const hederaTokenTransfer = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {},
-	} : {
-		sources: selection.sources,
-	}))
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const titleFallback = 'hedera token transfer'
-	const viewDomId = $derived('hedera-token-transfer-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -65,24 +37,14 @@
 
 <EntityView
 	entityType={EntityType.HederaTokenTransfer}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails}
-			{title || titleFallback}
-		{:else}
-			<ResourceBoundary resource={hederaTokenTransfer}>
-				{#snippet children(entity)}
-					{title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		hedera token transfer
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -101,79 +63,27 @@
 			<div>
 				<dt>Token ID</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									tokenId: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const tokenId = resolvedEntity.tokenId}
-							{#if tokenId !== undefined && tokenId !== null}
-								{String((tokenId) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{pendingEntity.tokenId}
 				</dd>
 			</div>
 
 			<div>
 				<dt>account ID</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									accountId: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const accountId = resolvedEntity.accountId}
-							{#if accountId !== undefined && accountId !== null}
-								<TruncatedValue value={String((accountId) ?? '')} />
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					<TruncatedValue value={pendingEntity.accountId} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>transfer index</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									transferIndex: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const transferIndex = resolvedEntity.transferIndex}
-							{#if transferIndex !== undefined && transferIndex !== null}
-								{String((transferIndex) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{String(pendingEntity.transferIndex)}
 				</dd>
 			</div>
 
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							amount: true,
 						},
@@ -181,13 +91,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const amount = resolvedEntity.amount}
-					{#if amount !== undefined && amount !== null}
+					{@const amount = entity.amount}
+					{#if amount != null}
 						<div>
 							<dt>amount</dt>
 							<dd>
-								{String((amount) ?? '')}
+								{String(amount)}
 							</dd>
 						</div>
 					{/if}
@@ -197,7 +106,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							serialNumber: true,
 						},
@@ -205,13 +113,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const serialNumber = resolvedEntity.serialNumber}
-					{#if serialNumber !== undefined && serialNumber !== null}
+					{@const serialNumber = entity.serialNumber}
+					{#if serialNumber != null}
 						<div>
 							<dt>serial number</dt>
 							<dd>
-								{String((serialNumber) ?? '')}
+								{String(serialNumber)}
 							</dd>
 						</div>
 					{/if}
@@ -221,7 +128,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							isApproval: true,
 						},
@@ -229,9 +135,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const isApproval = resolvedEntity.isApproval}
-					{#if isApproval !== undefined && isApproval !== null}
+					{@const isApproval = entity.isApproval}
+					{#if isApproval != null}
 						<div>
 							<dt>is approval</dt>
 							<dd>
@@ -246,7 +151,7 @@
 				resource={selection.$token}
 			>
 				{#snippet children(hederaToken)}
-					{#if hederaToken != null && hederaToken[EntityMetaKey.Selector] != null}
+					{#if hederaToken != null}
 						<div>
 							<dt>token</dt>
 							<dd>
@@ -266,37 +171,13 @@
 				resource={selection.$account}
 			>
 				{#snippet children(hederaAccount)}
-					{#if hederaAccount != null && hederaAccount[EntityMetaKey.Selector] != null}
+					{#if hederaAccount != null}
 						<div>
 							<dt>account</dt>
 							<dd>
 								<HederaAccountView
 									selection={select(EntityType.HederaAccount, hederaAccount[EntityMetaKey.Selector])}
 									prefetched={hederaAccount}
-									href={
-										(
-											hederaAccount[EntityMetaKey.Selector] != null && 'accountId' in hederaAccount[EntityMetaKey.Selector]
-											&& hederaAccount[EntityMetaKey.Selector].accountId != null
-											&& hederaAccount[EntityMetaKey.Selector] != null && '$network' in hederaAccount[EntityMetaKey.Selector] ?
-												hederaAccount[EntityMetaKey.Selector].$network != null && 'caip2' in hederaAccount[EntityMetaKey.Selector].$network
-												&& hederaAccount[EntityMetaKey.Selector].$network.caip2 != null ?
-													resolve('/network/[network=networkCaip2OrNetworkSlug]/account/[accountId=polkadotAccountIdOrStringSegmentOrEvmAddressOrSolanaPubkey]', {
-												accountId: String(hederaAccount[EntityMetaKey.Selector].accountId ?? ''),
-												network: String(caip2StringFromValue(hederaAccount[EntityMetaKey.Selector].$network.caip2) ?? ''),
-											})
-											:
-													hederaAccount[EntityMetaKey.Selector].$network != null && 'slug' in hederaAccount[EntityMetaKey.Selector].$network
-													&& hederaAccount[EntityMetaKey.Selector].$network.slug != null ?
-														resolve('/network/[network=networkCaip2OrNetworkSlug]/account/[accountId=polkadotAccountIdOrStringSegmentOrEvmAddressOrSolanaPubkey]', {
-													accountId: String(hederaAccount[EntityMetaKey.Selector].accountId ?? ''),
-													network: String(hederaAccount[EntityMetaKey.Selector].$network.slug ?? ''),
-												})
-												:
-													undefined
-										:
-												undefined
-										)
-									}
 									layout={EntityLayout.Value}
 									open={false}
 								/>
@@ -310,7 +191,7 @@
 				resource={selection.$nft}
 			>
 				{#snippet children(hederaNft)}
-					{#if hederaNft != null && hederaNft[EntityMetaKey.Selector] != null}
+					{#if hederaNft != null}
 						<div>
 							<dt>NFT</dt>
 							<dd>

@@ -1,15 +1,11 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { entity, facet } from '$/schema/$schema.ts'
+import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { type } from 'arktype'
 
-export enum XrplLedgerSelector {
-	NetworkLedgerIndex = 'NetworkLedgerIndex',
-	NetworkLedgerHash = 'NetworkLedgerHash',
-}
-export const XrplLedger = entity({
+export default entity({
 	entityType: EntityType.XrplLedger,
 	labels: {
 		singular: 'xrpl ledger',
@@ -25,7 +21,7 @@ export const XrplLedger = entity({
 	ledgerIndex: {
 		label: 'ledger index',
 		type: EntityFieldType.Primitive,
-		primitiveType: (type('bigint').narrow((value) => value >= 0n)),
+		primitiveType: type('bigint').narrow((value) => value >= 0n),
 		cardinality: EntityFieldCardinality.One,
 	},
 	ledgerHash: {

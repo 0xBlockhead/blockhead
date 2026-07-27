@@ -1,14 +1,11 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { entity, facet } from '$/schema/$schema.ts'
+import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { type } from 'arktype'
 
-export enum ZeroGDataBlobSelector {
-	NetworkDataRoot = 'NetworkDataRoot',
-}
-export const ZeroGDataBlob = entity({
+export default entity({
 	entityType: EntityType.ZeroGDataBlob,
 	labels: {
 		singular: 'zero g data blob',

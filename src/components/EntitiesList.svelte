@@ -1,6 +1,10 @@
 <script module lang="ts">
 	import type { ComponentProps as ModuleComponentProps } from 'svelte'
 	import type { ResolvedPathname as ModuleResolvedPathname } from '$app/types'
+	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
+	import type { RegisteredEntityType } from '$/schema/index.ts'
+	import type { WithRest } from '$/typescript/WithRest.ts'
 
 	type CollapsibleForwardProps = Omit<
 		ModuleComponentProps<(typeof import('$/components/Collapsible.svelte'))['default']>,
@@ -18,6 +22,25 @@
 		'data-scroll-container'?: boolean
 		href?: ModuleResolvedPathname
 	}
+
+	export type EntityListViewProps<
+		_EntityType extends RegisteredEntityType,
+		_ExtraProps extends object = object,
+	> = WithRest<
+		{
+			selection: RegisteredEntityProxyEntitiesSelection<_EntityType>
+			countResource?: SvelteKitResource<number>
+			title?: string
+			typeAnnotationParagraphs?: string[]
+			placeholderText?: string
+			emptyText?: string
+			open?: boolean
+			collapsible?: boolean
+			showTypeAnnotation?: boolean
+			id?: string
+		} & _ExtraProps,
+		EntitiesListForwardProps
+	>
 </script>
 
 
@@ -25,19 +48,21 @@
 	lang="ts"
 	generics="
 		_EntityType extends RegisteredEntityType,
-		_Item = (
+		_Key extends string | number = string | number,
+		_Item extends {
+			readonly [EntityMetaKey.SelectorKey]: _Key
+		} = (
 			& EntitySelector<typeof schema, _EntityType>
 			& Entity<typeof schema, _EntityType>
 			& {
 				value: Entity<typeof schema, _EntityType>
 			}
-		),
-		_Key extends string | number = string | number
+		)
 	"
 >
 	// Types/constants
 	import type { ResolvedPathname } from '$app/types'
-	import type { Entity, EntitySelector } from '$/schema/$schema.ts'
+	import { EntityMetaKey, type Entity, type EntitySelector } from '$/schema/$schema.ts'
 	import type { RegisteredEntityType, schema } from '$/schema/index.ts'
 	import { entityDefinitionByType } from '$/schema/index.ts'
 	import type { ComponentProps, Snippet } from 'svelte'
@@ -89,16 +114,17 @@
 	// State
 	let {
 		entityType,
-		id = `EntitiesList:${entityType}`,
-		title = entityDefinitionByType[entityType].labels.plural,
+		id = `${entityType}s-list`,
+		title = `${entityDefinitionByType[entityType].labels.plural[0]?.toUpperCase() ?? ''}${entityDefinitionByType[entityType].labels.plural.slice(1)}`,
 		href,
 		open = $bindable(
 			!(getIsInsideEntityList() ?? false),
 		),
 		items,
-		getKey,
+		getKey = (item) => item[EntityMetaKey.SelectorKey],
 		getSortValue,
 		placeholderText,
+		emptyText,
 		resource,
 		countResource,
 		getResourceItems,
@@ -108,6 +134,7 @@
 		Empty,
 		body,
 		TypeAnnotationTooltip,
+		typeAnnotationParagraphs = [],
 		collapsible: _collapsible = true,
 		layout = EntitiesListLayout.Default,
 		showTypeAnnotation = true,
@@ -139,6 +166,7 @@
 			Empty?: Snippet
 			/** Tooltip body for the list entity-type label (label plural); hover target is the annotation, not a separate icon. */
 			TypeAnnotationTooltip?: Snippet
+			typeAnnotationParagraphs?: string[]
 			'data-column-item'?: string
 			entityType: _EntityType
 			getKey?: (item: _Item) => _Key
@@ -150,11 +178,12 @@
 			ItemPlaceholder?: Snippet<[context: PlaceholderListItemProps]>
 			/** Ignored when `resource` is set; list rows come from the boundary resolution. */
 			items?: ItemsInput
+			getResourceItems?: (resource: ResourceItemsInput) => ItemsInput
 			open?: boolean
+			emptyText?: string
 			placeholderText?: string
 			resource?: SvelteKitResource<ResourceItemsInput | undefined>
 			countResource?: SvelteKitResource<number>
-			getResourceItems?: (resource: ResourceItemsInput) => ItemsInput
 			placeholderKeys?: Set<_Key>
 			title?: string
 			UnorderedListProps?: UnorderedListForwardProps
@@ -241,12 +270,13 @@
 		{#if Empty}
 			{@render Empty()}
 		{:else}
-			{@const emptyLabel = entityDefinitionByType[entityType].labels.plural}
 			<div
 				class="entity-details"
 				style:view-transition-name={`EntitiesList-Details-${id}`}
 			>
-				<p data-text="muted">No {emptyLabel[0]?.toUpperCase() ?? ''}{emptyLabel.slice(1)} yet.</p>
+				<p data-text="muted">
+					{emptyText ?? `No ${entityDefinitionByType[entityType].labels.plural[0]?.toUpperCase() ?? ''}${entityDefinitionByType[entityType].labels.plural.slice(1)} yet.`}
+				</p>
 			</div>
 		{/if}
 	{/snippet}
@@ -285,10 +315,16 @@
 	{/snippet}
 
 	{#snippet SummaryAnnotation()}
-		{#if showTypeAnnotation && TypeAnnotationTooltip}
+		{#if showTypeAnnotation && (typeAnnotationParagraphs.length > 0 || TypeAnnotationTooltip)}
 			<Tooltip contentProps={{ side: 'top' }}>
 				{#snippet Content()}
-					{@render TypeAnnotationTooltip()}
+					{#if typeAnnotationParagraphs.length > 0}
+						{#each typeAnnotationParagraphs as paragraph (paragraph)}
+							<p>{paragraph}</p>
+						{/each}
+					{:else if TypeAnnotationTooltip}
+						{@render TypeAnnotationTooltip()}
+					{/if}
 				{/snippet}
 
 				<span data-text="annotation">{entityDefinitionByType[entityType].labels.plural}</span>
@@ -306,7 +342,7 @@
 			items={rows}
 			{placeholderKeys}
 			bind:summary={listSummary}
-			getKey={getKey!}
+			{getKey}
 			{getSortValue}
 			Item={Item!}
 			{ItemPlaceholder}
@@ -343,7 +379,7 @@
 			{@render body({
 				open,
 			})}
-		{:else if getKey !== undefined && Item !== undefined}
+		{:else if Item !== undefined}
 				{#if resource !== undefined}
 					<ResourceBoundary
 						resource={resource}
@@ -357,7 +393,10 @@
 							resource === undefined ?
 								[]
 							:
-								[...(getResourceItems?.(resource) ?? resource.values)],
+								[...new Map(
+									[...(getResourceItems?.(resource) ?? resource.values)]
+										.map((item) => [getKey(item), item])
+								).values()],
 							resource?.continuation
 						)}
 					{/snippet}

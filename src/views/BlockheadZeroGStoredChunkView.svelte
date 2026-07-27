@@ -2,13 +2,10 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -20,40 +17,24 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.BlockheadZeroGStoredChunk>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.BlockheadZeroGStoredChunk>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.BlockheadZeroGStoredChunk> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const blockheadZeroGStoredChunk = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {
-			present: true,
-		},
-	} : {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const viewSelection = $derived(selection({
+		sources: selection.sources ?? [
+			Source.Local_Internal,
+			Source.ZeroGStorageNode_JsonRpc,
+		],
+	}))
+	const blockheadZeroGStoredChunk = $derived(viewSelection({
 		fields: {
 			present: true,
 		},
 	}))
-	const titleFallback = $derived([String((pendingEntity.dataRoot) ?? '')].filter(Boolean).join(' ') || 'blockhead zero g stored chunk')
-	const viewDomId = $derived('blockhead-zero-gstored-chunk-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const titleFallback = $derived((pendingEntity.dataRoot ?? '') || 'blockhead zero g stored chunk')
 
 
 	// Components
@@ -68,71 +49,30 @@
 
 <EntityView
 	entityType={EntityType.BlockheadZeroGStoredChunk}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'present')}
-			{[String((pendingEntity.dataRoot) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-		{:else}
-			<ResourceBoundary resource={blockheadZeroGStoredChunk}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.dataRoot) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		{(pendingEntity.dataRoot ?? '') || 'blockhead zero g stored chunk'}
 	{/snippet}
 
 	{#snippet Value()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'present')}
-			{@const chunkIndex0 = pendingEntity.chunkIndex}
-			{#if chunkIndex0 !== undefined && chunkIndex0 !== null}
-				<NumberValue
-					value={chunkIndex0}
-				/>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={blockheadZeroGStoredChunk}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const chunkIndex0 = resolvedEntity.chunkIndex}
-					{#if chunkIndex0 !== undefined && chunkIndex0 !== null}
-						<NumberValue
-							value={chunkIndex0}
-						/>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<NumberValue
+			value={pendingEntity.chunkIndex}
+		/>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'present')}
-			{@const present0 = pendingEntity.present}
-			{#if present0 !== undefined && present0 !== null}
+		<ResourceBoundary resource={blockheadZeroGStoredChunk}>
+			{#snippet children(entity)}
 				<span data-text="muted">
-					{present0 ? 'Yes' : 'No'}
+					{entity.present ? 'Yes' : 'No'}
 				</span>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={blockheadZeroGStoredChunk}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const present0 = resolvedEntity.present}
-					{#if present0 !== undefined && present0 !== null}
-						<span data-text="muted">
-							{present0 ? 'Yes' : 'No'}
-						</span>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -151,50 +91,16 @@
 			<div>
 				<dt>data root</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									dataRoot: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const dataRoot = resolvedEntity.dataRoot}
-							{#if dataRoot !== undefined && dataRoot !== null}
-								{String((dataRoot) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{pendingEntity.dataRoot}
 				</dd>
 			</div>
 
 			<div>
 				<dt>chunk index</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									chunkIndex: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const chunkIndex = resolvedEntity.chunkIndex}
-							{#if chunkIndex !== undefined && chunkIndex !== null}
-								<NumberValue
-									value={chunkIndex}
-								/>
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					<NumberValue
+						value={pendingEntity.chunkIndex}
+					/>
 				</dd>
 			</div>
 
@@ -202,7 +108,7 @@
 				resource={selection.$dataBlob}
 			>
 				{#snippet children(zeroGDataBlob)}
-					{#if zeroGDataBlob != null && zeroGDataBlob[EntityMetaKey.Selector] != null}
+					{#if zeroGDataBlob != null}
 						<div>
 							<dt>data blob</dt>
 							<dd>
@@ -222,7 +128,7 @@
 				resource={selection.$publicChunk}
 			>
 				{#snippet children(zeroGDataChunk)}
-					{#if zeroGDataChunk != null && zeroGDataChunk[EntityMetaKey.Selector] != null}
+					{#if zeroGDataChunk != null}
 						<div>
 							<dt>public chunk</dt>
 							<dd>
@@ -240,8 +146,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							chunkRoot: true,
 						},
@@ -249,13 +154,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const chunkRoot = resolvedEntity.chunkRoot}
-					{#if chunkRoot !== undefined && chunkRoot !== null}
+					{@const chunkRoot = entity.chunkRoot}
+					{#if chunkRoot != null}
 						<div>
 							<dt>chunk root</dt>
 							<dd>
-								{String((chunkRoot) ?? '')}
+								{chunkRoot}
 							</dd>
 						</div>
 					{/if}
@@ -266,8 +170,7 @@
 		<dl data-column-item="center">
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							sizeBytes: true,
 						},
@@ -275,9 +178,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const sizeBytes = resolvedEntity.sizeBytes}
-					{#if sizeBytes !== undefined && sizeBytes !== null}
+					{@const sizeBytes = entity.sizeBytes}
+					{#if sizeBytes != null}
 						<div>
 							<dt>size bytes</dt>
 							<dd>
@@ -292,8 +194,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							filePath: true,
 						},
@@ -301,13 +202,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const filePath = resolvedEntity.filePath}
-					{#if filePath !== undefined && filePath !== null}
+					{@const filePath = entity.filePath}
+					{#if filePath != null}
 						<div>
 							<dt>file path</dt>
 							<dd>
-								{String((filePath) ?? '')}
+								{filePath}
 							</dd>
 						</div>
 					{/if}
@@ -318,21 +218,10 @@
 				<dt>present</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									present: true,
-								},
-							})
-						}
+						resource={blockheadZeroGStoredChunk}
 					>
 						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const present = resolvedEntity.present}
-							{#if present !== undefined && present !== null}
-								{present ? 'Yes' : 'No'}
-							{/if}
+							{entity.present ? 'Yes' : 'No'}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -340,8 +229,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							lastCheckedAt: true,
 						},
@@ -349,9 +237,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const lastCheckedAt = resolvedEntity.lastCheckedAt}
-					{#if lastCheckedAt !== undefined && lastCheckedAt !== null}
+					{@const lastCheckedAt = entity.lastCheckedAt}
+					{#if lastCheckedAt != null}
 						<div>
 							<dt>last checked AT</dt>
 							<dd>

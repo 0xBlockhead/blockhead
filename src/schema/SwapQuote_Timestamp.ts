@@ -1,15 +1,12 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { entity, facet } from '$/schema/$schema.ts'
+import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { EvmAddress } from '$/schema/ZeroExHex.ts'
 import { type } from 'arktype'
 
-export enum SwapQuote_TimestampSelector {
-	SourceQuoteRequestHashTimestampMs = 'SourceQuoteRequestHashTimestampMs',
-}
-export const SwapQuote_Timestamp = entity({
+export default entity({
 	entityType: EntityType.SwapQuote_Timestamp,
 	labels: {
 		singular: 'swap quote timestamp',
@@ -69,13 +66,13 @@ export const SwapQuote_Timestamp = entity({
 	fromAddress: {
 		label: 'from address',
 		type: EntityFieldType.Primitive,
-		primitiveType: (EvmAddress),
+		primitiveType: EvmAddress,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	toAddress: {
 		label: 'to address',
 		type: EntityFieldType.Primitive,
-		primitiveType: (EvmAddress),
+		primitiveType: EvmAddress,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$intent: {
@@ -123,13 +120,13 @@ export const SwapQuote_Timestamp = entity({
 	allowanceTarget: {
 		label: 'allowance target',
 		type: EntityFieldType.Primitive,
-		primitiveType: (EvmAddress),
+		primitiveType: EvmAddress,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	transactionTo: {
 		label: 'transaction to',
 		type: EntityFieldType.Primitive,
-		primitiveType: (EvmAddress),
+		primitiveType: EvmAddress,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	transactionDataHash: {

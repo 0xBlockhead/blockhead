@@ -28,16 +28,16 @@
 
 
 <ParentPageCollapsible
-	href={resolve('/xmtp')}
+	href={resolve('/(social)/(xmtp)/xmtp')}
 >
 	{#snippet Summary()}
-		{@const DetailView = XmtpNetworkView}
-
-		<DetailView
-			selection={select(EntityType.XmtpNetwork, data.selector, { sources: [
-	Source.Constants_Internal,
-] })}
-			href={resolve('/xmtp')}
+		<XmtpNetworkView
+			selection={
+				select(EntityType.XmtpNetwork, data.selector, { sources: [
+					Source.Constants_Internal,
+				] })
+			}
+			href={resolve('/(social)/(xmtp)/xmtp')}
 			layout={EntityLayout.SummaryInline}
 		/>
 	{/snippet}

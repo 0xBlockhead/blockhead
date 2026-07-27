@@ -1,15 +1,12 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { entity, facet } from '$/schema/$schema.ts'
+import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
-export enum ElementsNetworkSelector {
-	Network = 'Network',
-}
-export const ElementsNetwork = entity({
+export default entity({
 	entityType: EntityType.ElementsNetwork,
 	labels: {
 		singular: 'Elements network',

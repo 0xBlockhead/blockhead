@@ -8,7 +8,6 @@
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
@@ -54,20 +53,12 @@
 
 
 <svelte:head>
-	<title>{(pageSelection.entity == null ? 'allowance' : 'allowance')} • allowance • Blockhead</title>
+	<title>{('allowance')} • allowance • Blockhead</title>
 </svelte:head>
 
 
 <Page>
 	<EvmActorCoinAllowanceView
-		href={
-			resolve('/~/accounts/allowance/[chainId=eip155ChainId]/[owner=evmAddress]/[coin=evmAddress]/[spender=evmAddress]', {
-				chainId: params.chainId,
-				owner: params.owner,
-				coin: params.coin,
-				spender: params.spender,
-			})
-		}
 		selection={pageSelection}
 	/>
 </Page>

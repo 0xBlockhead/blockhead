@@ -2,69 +2,30 @@
 
 <script lang="ts">
 	// Types/constants
-	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
-	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
-	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
+	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-
-
 
 
 	// State
 	let {
 		selection,
-		countResource,
-		title = 'Blockhead agent connections',
-		typeAnnotationParagraphs = [],
-		placeholderText = undefined,
-		emptyText = undefined,
 		open = $bindable(true),
-		collapsible = true,
-		showTypeAnnotation = true,
-		id = 'BlockheadAgentConnections-list',
 		...EntitiesListProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyEntitiesSelection<EntityType.BlockheadAgentConnection>
-			countResource?: SvelteKitResource<number>
-			title?: string
-			typeAnnotationParagraphs?: string[]
-			placeholderText?: string
-			emptyText?: string
-			open?: boolean
-			collapsible?: boolean
-			showTypeAnnotation?: boolean
-			id?: string
-		},
-		EntitiesListForwardProps
-	> = $props()
+	}: EntityListViewProps<EntityType.BlockheadAgentConnection> = $props()
 
 
 	// Components
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView from '$/components/EntityView.svelte'
 </script>
 
-
-{#snippet TypeAnnotationParagraphs()}
-	{#each typeAnnotationParagraphs as paragraph (paragraph)}
-		<p>{paragraph}</p>
-	{/each}
-{/snippet}
 
 <EntitiesList
 	{...EntitiesListProps}
 	entityType={EntityType.BlockheadAgentConnection}
-	{id}
-	{title}
 	bind:open
-	{collapsible}
-	{showTypeAnnotation}
-	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
 	resource={
 		selection({
-			sources: selection.sources,
 			fields: {
 				connectionId: true,
 				connectionKind: true,
@@ -72,38 +33,23 @@
 			},
 		})
 	}
-	{countResource}
-	getResourceItems={(blockheadAgentConnections) => [...new Map(blockheadAgentConnections.values.map((blockheadAgentConnection) => [blockheadAgentConnection[EntityMetaKey.SelectorKey], blockheadAgentConnection])).values()]}
-	getKey={(blockheadAgentConnection) => blockheadAgentConnection[EntityMetaKey.SelectorKey]}
-	{placeholderText}
 >
-	{#snippet Empty()}
-		{#if emptyText != null}
-			<p data-text="muted">{emptyText}</p>
-		{:else}
-			<p data-text="muted">No Blockhead agent connections yet.</p>
-		{/if}
-	{/snippet}
-
 	{#snippet Item({ item: blockheadAgentConnection })}
-		{@const blockheadAgentConnectionFields = { ...blockheadAgentConnection[EntityMetaKey.Selector], ...blockheadAgentConnection }}
+		{@const blockheadAgentConnectionSelector = blockheadAgentConnection[EntityMetaKey.Selector]}
 		<EntityView
 			entityType={EntityType.BlockheadAgentConnection}
-			entitySelector={blockheadAgentConnection[EntityMetaKey.Selector]}
-			layout={EntityLayout.Summary}
-			open={false}
-			showTypeAnnotation={false}
+			entitySelector={blockheadAgentConnectionSelector}
 		>
 			{#snippet Title()}
-				{[String((blockheadAgentConnectionFields.connectionId) ?? '')].filter(Boolean).join(' ') || 'blockhead agent connection'}
+				{blockheadAgentConnectionSelector.connectionId || 'blockhead agent connection'}
 			{/snippet}
 
 			{#snippet Value()}
-				{[String((blockheadAgentConnectionFields.connectionKind) ?? '')].filter(Boolean).join(' ')}
+				{(blockheadAgentConnection.connectionKind ?? '')}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{[String((blockheadAgentConnectionFields.enabled) ?? '')].filter(Boolean).join(' ')}</span>
+				<span data-text="annotation">{String(blockheadAgentConnection.enabled ?? '')}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

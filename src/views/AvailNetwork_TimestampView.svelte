@@ -2,13 +2,8 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
 
 
 	// Context
@@ -20,42 +15,19 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.AvailNetwork_Timestamp>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.AvailNetwork_Timestamp>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.AvailNetwork_Timestamp> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const availNetworkTimestamp = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {
-			latestBlockNumber: true,
-			health: true,
-		},
-	} : {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const availNetworkTimestamp = $derived(selection({
 		fields: {
 			latestBlockNumber: true,
 			health: true,
 		},
 	}))
-	const titleFallback = $derived([String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || 'avail network timestamp')
-	const viewDomId = $derived('avail-network-timestamp-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const titleFallback = $derived(String(pendingEntity.timestampMs ?? '') || 'avail network timestamp')
 
 
 	// Components
@@ -69,89 +41,43 @@
 
 <EntityView
 	entityType={EntityType.AvailNetwork_Timestamp}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'latestBlockNumber') && Object.hasOwn(prefetched, 'health')}
-			{@const timestampMs0 = pendingEntity.timestampMs}
-			{#if timestampMs0 !== undefined && timestampMs0 !== null}
-				<Timestamp timestamp={Number(timestampMs0)} />
-			{/if}
-		{:else}
-			<ResourceBoundary resource={availNetworkTimestamp}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const timestampMs0 = resolvedEntity.timestampMs}
-					{#if timestampMs0 !== undefined && timestampMs0 !== null}
-						<Timestamp timestamp={Number(timestampMs0)} />
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
 	{/snippet}
 
 	{#snippet Value()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'latestBlockNumber') && Object.hasOwn(prefetched, 'health')}
-			{@const latestBlockNumber0 = pendingEntity.latestBlockNumber}
-			{#if latestBlockNumber0 !== undefined && latestBlockNumber0 !== null}
-				<NumberValue
-					value={latestBlockNumber0}
-				/>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={availNetworkTimestamp}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const latestBlockNumber0 = resolvedEntity.latestBlockNumber}
-					{#if latestBlockNumber0 !== undefined && latestBlockNumber0 !== null}
-						<NumberValue
-							value={latestBlockNumber0}
-						/>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={availNetworkTimestamp}>
+			{#snippet children(entity)}
+				{@const latestBlockNumber0 = entity.latestBlockNumber}
+				{#if latestBlockNumber0 != null}
+					<NumberValue
+						value={latestBlockNumber0}
+					/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'latestBlockNumber') && Object.hasOwn(prefetched, 'health')}
-			{@const source0 = pendingEntity.source}
-			{#if source0 !== undefined && source0 !== null}
+		<ResourceBoundary resource={availNetworkTimestamp}>
+			{#snippet children(entity)}
 				<span data-text="muted">
-					{String((source0) ?? '')}
+					{pendingEntity.source}
 				</span>
-			{/if}
-			{@const health1 = pendingEntity.health}
-			{#if health1 !== undefined && health1 !== null}
-				<span data-text="muted">
-					{String((health1) ?? '')}
-				</span>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={availNetworkTimestamp}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const source0 = resolvedEntity.source}
-					{#if source0 !== undefined && source0 !== null}
-						<span data-text="muted">
-							{String((source0) ?? '')}
-						</span>
-					{/if}
-					{@const health1 = resolvedEntity.health}
-					{#if health1 !== undefined && health1 !== null}
-						<span data-text="muted">
-							{String((health1) ?? '')}
-						</span>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+				{@const health1 = entity.health}
+				{#if health1 != null}
+					<span data-text="muted">
+						{health1}
+					</span>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -170,69 +96,27 @@
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									timestampMs: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const timestampMs = resolvedEntity.timestampMs}
-							{#if timestampMs !== undefined && timestampMs !== null}
-								<Timestamp timestamp={Number(timestampMs)} />
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									source: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const source = resolvedEntity.source}
-							{#if source !== undefined && source !== null}
-								{String((source) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{pendingEntity.source}
 				</dd>
 			</div>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							health: true,
-						},
-					})
-				}
+				resource={availNetworkTimestamp}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const health = resolvedEntity.health}
-					{#if health !== undefined && health !== null}
+					{@const health = entity.health}
+					{#if health != null}
 						<div>
 							<dt>health</dt>
 							<dd>
-								{String((health) ?? '')}
+								{health}
 							</dd>
 						</div>
 					{/if}
@@ -242,7 +126,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							syncing: true,
 						},
@@ -250,9 +133,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const syncing = resolvedEntity.syncing}
-					{#if syncing !== undefined && syncing !== null}
+					{@const syncing = entity.syncing}
+					{#if syncing != null}
 						<div>
 							<dt>syncing</dt>
 							<dd>
@@ -266,19 +148,11 @@
 
 		<dl data-column-item="center">
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							latestBlockNumber: true,
-						},
-					})
-				}
+				resource={availNetworkTimestamp}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const latestBlockNumber = resolvedEntity.latestBlockNumber}
-					{#if latestBlockNumber !== undefined && latestBlockNumber !== null}
+					{@const latestBlockNumber = entity.latestBlockNumber}
+					{#if latestBlockNumber != null}
 						<div>
 							<dt>latest block number</dt>
 							<dd>
@@ -294,7 +168,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							latestBlockHash: true,
 						},
@@ -302,13 +175,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const latestBlockHash = resolvedEntity.latestBlockHash}
-					{#if latestBlockHash !== undefined && latestBlockHash !== null}
+					{@const latestBlockHash = entity.latestBlockHash}
+					{#if latestBlockHash != null}
 						<div>
 							<dt>latest block hash</dt>
 							<dd>
-								<TruncatedValue value={String((latestBlockHash) ?? '')} />
+								<TruncatedValue value={latestBlockHash} />
 							</dd>
 						</div>
 					{/if}
@@ -318,7 +190,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							finalizedBlockNumber: true,
 						},
@@ -326,9 +197,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const finalizedBlockNumber = resolvedEntity.finalizedBlockNumber}
-					{#if finalizedBlockNumber !== undefined && finalizedBlockNumber !== null}
+					{@const finalizedBlockNumber = entity.finalizedBlockNumber}
+					{#if finalizedBlockNumber != null}
 						<div>
 							<dt>finalized block number</dt>
 							<dd>
@@ -344,7 +214,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							finalizedBlockHash: true,
 						},
@@ -352,13 +221,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const finalizedBlockHash = resolvedEntity.finalizedBlockHash}
-					{#if finalizedBlockHash !== undefined && finalizedBlockHash !== null}
+					{@const finalizedBlockHash = entity.finalizedBlockHash}
+					{#if finalizedBlockHash != null}
 						<div>
 							<dt>finalized block hash</dt>
 							<dd>
-								<TruncatedValue value={String((finalizedBlockHash) ?? '')} />
+								<TruncatedValue value={finalizedBlockHash} />
 							</dd>
 						</div>
 					{/if}
@@ -370,7 +238,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							appIdCount: true,
 						},
@@ -378,9 +245,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const appIdCount = resolvedEntity.appIdCount}
-					{#if appIdCount !== undefined && appIdCount !== null}
+					{@const appIdCount = entity.appIdCount}
+					{#if appIdCount != null}
 						<div>
 							<dt>app ID count</dt>
 							<dd>
@@ -396,7 +262,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							dataSubmissionCount: true,
 						},
@@ -404,9 +269,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const dataSubmissionCount = resolvedEntity.dataSubmissionCount}
-					{#if dataSubmissionCount !== undefined && dataSubmissionCount !== null}
+					{@const dataSubmissionCount = entity.dataSubmissionCount}
+					{#if dataSubmissionCount != null}
 						<div>
 							<dt>data submission count</dt>
 							<dd>

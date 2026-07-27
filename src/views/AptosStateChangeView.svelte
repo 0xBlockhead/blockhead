@@ -2,13 +2,9 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
 
 
 	// Context
@@ -20,40 +16,18 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.AptosStateChange>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.AptosStateChange>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.AptosStateChange> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const aptosStateChange = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {
-			changeKind: true,
-		},
-	} : {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const aptosStateChange = $derived(selection({
 		fields: {
 			changeKind: true,
 		},
 	}))
-	const titleFallback = $derived([String((pendingEntity.changeKind) ?? '')].filter(Boolean).join(' ') || 'aptos state change')
-	const viewDomId = $derived('aptos-state-change-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const titleFallback = $derived((pendingEntity.changeKind ?? '') || 'aptos state change')
 
 
 	// Components
@@ -68,73 +42,34 @@
 
 <EntityView
 	entityType={EntityType.AptosStateChange}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'changeKind') && Object.hasOwn(prefetched, '$transaction') && prefetched.$transaction != null && Object.hasOwn(prefetched.$transaction, 'hash') && Object.hasOwn(prefetched.$transaction, 'transactionKind') && Object.hasOwn(prefetched.$transaction, 'version') && Object.hasOwn(prefetched.$transaction, 'sender')}
-			{[String((pendingEntity.changeKind) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-		{:else}
-			<ResourceBoundary resource={aptosStateChange}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.changeKind) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={aptosStateChange}>
+			{#snippet children(entity)}
+				{entity.changeKind || title || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Value()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'changeKind') && Object.hasOwn(prefetched, '$transaction') && prefetched.$transaction != null && Object.hasOwn(prefetched.$transaction, 'hash') && Object.hasOwn(prefetched.$transaction, 'transactionKind') && Object.hasOwn(prefetched.$transaction, 'version') && Object.hasOwn(prefetched.$transaction, 'sender')}
-			{@const changeIndex0 = pendingEntity.changeIndex}
-			{#if changeIndex0 !== undefined && changeIndex0 !== null}
-				<NumberValue
-					value={changeIndex0}
-				/>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={aptosStateChange}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const changeIndex0 = resolvedEntity.changeIndex}
-					{#if changeIndex0 !== undefined && changeIndex0 !== null}
-						<NumberValue
-							value={changeIndex0}
-						/>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<NumberValue
+			value={pendingEntity.changeIndex}
+		/>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'changeKind') && Object.hasOwn(prefetched, '$transaction') && prefetched.$transaction != null && Object.hasOwn(prefetched.$transaction, 'hash') && Object.hasOwn(prefetched.$transaction, 'transactionKind') && Object.hasOwn(prefetched.$transaction, 'version') && Object.hasOwn(prefetched.$transaction, 'sender')}
-			<span data-text="muted">
-				<AptosTransactionView
-					selection={select(EntityType.AptosTransaction, selection.entitySelector.$transaction)}
-					layout={EntityLayout.Title}
-					open={false}
-				/>
-			</span>
-		{:else}
-			<ResourceBoundary resource={aptosStateChange}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					<span data-text="muted">
-						<AptosTransactionView
-							selection={select(EntityType.AptosTransaction, selection.entitySelector.$transaction)}
-							layout={EntityLayout.Title}
-							open={false}
-						/>
-					</span>
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<span data-text="muted">
+			<AptosTransactionView
+				selection={select(EntityType.AptosTransaction, selection.entitySelector.$transaction)}
+				layout={EntityLayout.Title}
+				open={false}
+			/>
+		</span>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -153,26 +88,9 @@
 			<div>
 				<dt>change index</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									changeIndex: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const changeIndex = resolvedEntity.changeIndex}
-							{#if changeIndex !== undefined && changeIndex !== null}
-								<NumberValue
-									value={changeIndex}
-								/>
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					<NumberValue
+						value={pendingEntity.changeIndex}
+					/>
 				</dd>
 			</div>
 
@@ -180,21 +98,10 @@
 				<dt>change kind</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									changeKind: true,
-								},
-							})
-						}
+						resource={aptosStateChange}
 					>
 						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const changeKind = resolvedEntity.changeKind}
-							{#if changeKind !== undefined && changeKind !== null}
-								{String((changeKind) ?? '')}
-							{/if}
+							{entity.changeKind}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -205,7 +112,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							address: true,
 						},
@@ -213,13 +119,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const address = resolvedEntity.address}
-					{#if address !== undefined && address !== null}
+					{@const address = entity.address}
+					{#if address != null}
 						<div>
 							<dt>Address</dt>
 							<dd>
-								<TruncatedValue value={String((address) ?? '')} />
+								<TruncatedValue value={address} />
 							</dd>
 						</div>
 					{/if}
@@ -229,7 +134,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							stateKeyHash: true,
 						},
@@ -237,13 +141,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const stateKeyHash = resolvedEntity.stateKeyHash}
-					{#if stateKeyHash !== undefined && stateKeyHash !== null}
+					{@const stateKeyHash = entity.stateKeyHash}
+					{#if stateKeyHash != null}
 						<div>
 							<dt>state key hash</dt>
 							<dd>
-								<TruncatedValue value={String((stateKeyHash) ?? '')} />
+								<TruncatedValue value={stateKeyHash} />
 							</dd>
 						</div>
 					{/if}
@@ -253,7 +156,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							resourceType: true,
 						},
@@ -261,13 +163,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const resourceType = resolvedEntity.resourceType}
-					{#if resourceType !== undefined && resourceType !== null}
+					{@const resourceType = entity.resourceType}
+					{#if resourceType != null}
 						<div>
 							<dt>resource type</dt>
 							<dd>
-								{String((resourceType) ?? '')}
+								{resourceType}
 							</dd>
 						</div>
 					{/if}
@@ -278,7 +179,7 @@
 				resource={selection.$resource}
 			>
 				{#snippet children(aptosAccountResource)}
-					{#if aptosAccountResource != null && aptosAccountResource[EntityMetaKey.Selector] != null}
+					{#if aptosAccountResource != null}
 						<div>
 							<dt>resource</dt>
 							<dd>
@@ -299,7 +200,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							moduleAddress: true,
 						},
@@ -307,13 +207,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const moduleAddress = resolvedEntity.moduleAddress}
-					{#if moduleAddress !== undefined && moduleAddress !== null}
+					{@const moduleAddress = entity.moduleAddress}
+					{#if moduleAddress != null}
 						<div>
 							<dt>module address</dt>
 							<dd>
-								<TruncatedValue value={String((moduleAddress) ?? '')} />
+								<TruncatedValue value={moduleAddress} />
 							</dd>
 						</div>
 					{/if}
@@ -323,7 +222,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							moduleName: true,
 						},
@@ -331,13 +229,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const moduleName = resolvedEntity.moduleName}
-					{#if moduleName !== undefined && moduleName !== null}
+					{@const moduleName = entity.moduleName}
+					{#if moduleName != null}
 						<div>
 							<dt>module name</dt>
 							<dd>
-								{String((moduleName) ?? '')}
+								{moduleName}
 							</dd>
 						</div>
 					{/if}
@@ -348,7 +245,7 @@
 				resource={selection.$module}
 			>
 				{#snippet children(moveModule)}
-					{#if moveModule != null && moveModule[EntityMetaKey.Selector] != null}
+					{#if moveModule != null}
 						<div>
 							<dt>module</dt>
 							<dd>

@@ -2,8 +2,6 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { networkBySlug } from '$/constants/Network.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import { NetworkSelector } from '$/schema/Network.ts'
-import { Network_TimestampSelector } from '$/schema/Network_Timestamp.ts'
 import { Source } from '$/sources/Source.ts'
 
 const getBlocks = vi.fn()
@@ -50,13 +48,13 @@ describe('Blockchair Network selector applicability', () => {
 
 	it('covers both canonical CAIP-2 and preserved slug selectors for every Network projection', () => {
 		for (const resolver of networkResolvers) {
-			expect(resolver.resolve[NetworkSelector.Caip2].appliesTo).toContainEqual({
+			expect(resolver.resolve['Caip2'].appliesTo).toContainEqual({
 				caip2: networkBySlug.bitcoin.caip2,
 			})
-			expect(resolver.resolve[NetworkSelector.Slug].appliesTo).toContainEqual({
+			expect(resolver.resolve['Slug'].appliesTo).toContainEqual({
 				slug: 'bitcoin',
 			})
-			expect(resolver.resolve[NetworkSelector.Caip2].appliesTo).not.toContainEqual({
+			expect(resolver.resolve['Caip2'].appliesTo).not.toContainEqual({
 				caip2: networkBySlug.ethereum.caip2,
 			})
 		}
@@ -64,7 +62,7 @@ describe('Blockchair Network selector applicability', () => {
 
 	it('limits observations to Blockchair-owned timestamps on supported networks', () => {
 		const appliesTo = timestampResolver.resolve[
-			Network_TimestampSelector.NetworkTimestampMsSource
+			'NetworkTimestampMsSource'
 		].appliesTo
 		expect(appliesTo).toContainEqual({
 			$network: {
@@ -87,7 +85,7 @@ describe('Blockchair Network selector applicability', () => {
 			],
 		})
 
-		await expect(blocksResolver.resolve[NetworkSelector.Caip2].resolve({
+		await expect(blocksResolver.resolve['Caip2'].resolve({
 			caip2: networkBySlug.bitcoin.caip2,
 		}, resolverContext)).resolves.toHaveLength(1)
 		expect(getBlocks).toHaveBeenCalledWith({
@@ -98,7 +96,7 @@ describe('Blockchair Network selector applicability', () => {
 			},
 		})
 
-		await expect(blocksResolver.resolve[NetworkSelector.Caip2].resolve({
+		await expect(blocksResolver.resolve['Caip2'].resolve({
 			caip2: networkBySlug.ethereum.caip2,
 		}, resolverContext)).rejects.toThrow('unsupported UTXO network')
 		expect(getBlocks).toHaveBeenCalledTimes(1)

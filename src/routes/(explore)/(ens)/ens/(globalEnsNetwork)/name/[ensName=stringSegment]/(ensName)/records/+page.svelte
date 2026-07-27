@@ -3,12 +3,12 @@
 <script lang="ts">
 	// Types/constants
 	import type { PageProps } from './$types.ts'
+	import { resolve } from '$app/paths'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
@@ -16,8 +16,6 @@
 	let {
 		params,
 	}: PageProps = $props()
-
-
 	// Components
 	import Page from '$/components/Page.svelte'
 	import EnsRecordsView from '$/views/EnsRecordsView.svelte'
@@ -30,35 +28,28 @@
 
 
 <Page>
+	{@const collectionSelection = select(EntityType.EnsName, {
+		name: decodeURIComponent(params.ensName),
+	})
+		.$$records({
+			sources: [
+				Source.TheGraph_Graphql,
+				Source.Voltaire_JsonRpc,
+			],
+		})}
+
 	<EnsRecordsView
 		href={
-			resolve('/ens/name/[ensName=stringSegment]/records', {
-				ensName: params.ensName,
-			})
+			resolve(
+				'/(explore)/(ens)/ens/(globalEnsNetwork)/name/[ensName=stringSegment]/(ensName)/records',
+				{
+					ensName: String(params.ensName),
+				}
+			)
 		}
 		title='ENS records'
-		selection={
-			select(EntityType.EnsName, {
-				name: decodeURIComponent(params.ensName),
-			})
-				.$$records({
-					sources: [
-						Source.TheGraph_Graphql,
-						Source.Voltaire_JsonRpc,
-					],
-				})
-		}
-		countResource={
-			select(EntityType.EnsName, {
-				name: decodeURIComponent(params.ensName),
-			})
-				.$$records({
-					sources: [
-						Source.TheGraph_Graphql,
-						Source.Voltaire_JsonRpc,
-					],
-				}).count
-		}
+		selection={collectionSelection}
+		countResource={collectionSelection.count}
 		id='records'
 		data-column-item="flexible"
 		data-card

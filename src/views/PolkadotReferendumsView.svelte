@@ -2,69 +2,32 @@
 
 <script lang="ts">
 	// Types/constants
-	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
-	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
-	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
+	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-
-
 
 
 	// State
 	let {
 		selection,
-		countResource,
 		title = 'Referendums',
-		typeAnnotationParagraphs = [],
-		placeholderText = undefined,
-		emptyText = undefined,
 		open = $bindable(true),
-		collapsible = true,
-		showTypeAnnotation = true,
-		id = 'PolkadotReferendums-list',
 		...EntitiesListProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyEntitiesSelection<EntityType.PolkadotReferendum>
-			countResource?: SvelteKitResource<number>
-			title?: string
-			typeAnnotationParagraphs?: string[]
-			placeholderText?: string
-			emptyText?: string
-			open?: boolean
-			collapsible?: boolean
-			showTypeAnnotation?: boolean
-			id?: string
-		},
-		EntitiesListForwardProps
-	> = $props()
+	}: EntityListViewProps<EntityType.PolkadotReferendum> = $props()
 
 
 	// Components
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView from '$/components/EntityView.svelte'
 </script>
 
-
-{#snippet TypeAnnotationParagraphs()}
-	{#each typeAnnotationParagraphs as paragraph (paragraph)}
-		<p>{paragraph}</p>
-	{/each}
-{/snippet}
 
 <EntitiesList
 	{...EntitiesListProps}
 	entityType={EntityType.PolkadotReferendum}
-	{id}
 	{title}
 	bind:open
-	{collapsible}
-	{showTypeAnnotation}
-	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
 	resource={
 		selection({
-			sources: selection.sources,
 			fields: {
 				referendumId: true,
 				track: true,
@@ -72,38 +35,23 @@
 			},
 		})
 	}
-	{countResource}
-	getResourceItems={(polkadotReferendums) => [...new Map(polkadotReferendums.values.map((polkadotReferendum) => [polkadotReferendum[EntityMetaKey.SelectorKey], polkadotReferendum])).values()]}
-	getKey={(polkadotReferendum) => polkadotReferendum[EntityMetaKey.SelectorKey]}
-	{placeholderText}
 >
-	{#snippet Empty()}
-		{#if emptyText != null}
-			<p data-text="muted">{emptyText}</p>
-		{:else}
-			<p data-text="muted">No Polkadot referendums yet.</p>
-		{/if}
-	{/snippet}
-
 	{#snippet Item({ item: polkadotReferendum })}
-		{@const polkadotReferendumFields = { ...polkadotReferendum[EntityMetaKey.Selector], ...polkadotReferendum }}
+		{@const polkadotReferendumSelector = polkadotReferendum[EntityMetaKey.Selector]}
 		<EntityView
 			entityType={EntityType.PolkadotReferendum}
-			entitySelector={polkadotReferendum[EntityMetaKey.Selector]}
-			layout={EntityLayout.Summary}
-			open={false}
-			showTypeAnnotation={false}
+			entitySelector={polkadotReferendumSelector}
 		>
 			{#snippet Title()}
-				{[String((polkadotReferendumFields.referendumId) ?? '')].filter(Boolean).join(' ') || 'Polkadot referendum'}
+				{polkadotReferendumSelector.referendumId || 'Polkadot referendum'}
 			{/snippet}
 
 			{#snippet Value()}
-				{[String((polkadotReferendumFields.track) ?? '')].filter(Boolean).join(' ')}
+				{(polkadotReferendum.track ?? '')}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{[[String((polkadotReferendumFields.$network.name) ?? '')].filter(Boolean).join(' ') || [polkadotReferendumFields.$network.caip2 == null ? '' : String(`${(polkadotReferendumFields.$network.caip2).namespace}:${(polkadotReferendumFields.$network.caip2).reference}`)].filter(Boolean).join(' ') || 'Network'].filter(Boolean).join(' ')}</span>
+				<span data-text="annotation">{polkadotReferendum.$network.name || (polkadotReferendumSelector.$network.caip2 == null ? '' : `${polkadotReferendumSelector.$network.caip2.namespace}:${polkadotReferendumSelector.$network.caip2.reference}`) || 'Network'}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

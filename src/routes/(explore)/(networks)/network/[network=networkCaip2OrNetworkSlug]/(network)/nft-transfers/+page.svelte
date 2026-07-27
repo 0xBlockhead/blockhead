@@ -3,12 +3,11 @@
 <script lang="ts">
 	// Types/constants
 	import type { PageProps } from './$types.ts'
+	import { resolve } from '$app/paths'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
@@ -17,11 +16,8 @@
 		data,
 		params,
 	}: PageProps = $props()
-
-
 	// Components
 	import Page from '$/components/Page.svelte'
-	import ProjectionBoundary from '$/components/ProjectionBoundary.svelte'
 	import EvmTokenTransfersView from '$/views/EvmTokenTransfersView.svelte'
 </script>
 
@@ -32,30 +28,20 @@
 
 
 <Page>
-	<ProjectionBoundary
-		resource={select(EntityType.Network, data.selector).Evm}
-	>
-		{#snippet Applicable(projection)}
-			<EvmTokenTransfersView
-				href={
-					resolve('/network/[network=networkCaip2OrNetworkSlug]/nft-transfers', {
-						network: params.network,
-					})
+	<EvmTokenTransfersView
+		href={
+			resolve(
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/nft-transfers',
+				{
+					network: String(params.network),
 				}
-				title='NFT transfers'
-				selection={
-					projection
-						.$$nftTokenTransfers({
-							sources: [
-								Source.Blockscout_Rest,
-							],
-						})
-				}
-				id='account-evm-token-transfer'
-				data-column-item="flexible"
-				data-card
-				data-scroll-container
-			/>
-		{/snippet}
-	</ProjectionBoundary>
+			)
+		}
+		title='NFT transfers'
+		selection={select(EntityType.Network, data.selector).Evm.$$nftTokenTransfers}
+		id='nft-token-transfers'
+		data-column-item="flexible"
+		data-card
+		data-scroll-container
+	/>
 </Page>

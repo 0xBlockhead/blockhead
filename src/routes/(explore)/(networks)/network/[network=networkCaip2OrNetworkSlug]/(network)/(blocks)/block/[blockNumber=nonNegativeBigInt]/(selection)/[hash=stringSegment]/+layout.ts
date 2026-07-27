@@ -8,8 +8,8 @@ import { match as matchStringSegment } from '$/params/stringSegment.ts'
 import { parseEntitySelector, type EntitySelectorForSelectorName } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { schema } from '$/schema/index.ts'
-import { PolkadotBlock as PolkadotBlockSchema } from '$/schema/PolkadotBlock.ts'
-import { UtxoBlock as UtxoBlockSchema } from '$/schema/UtxoBlock.ts'
+import PolkadotBlockSchema from '$/schema/PolkadotBlock.ts'
+import UtxoBlockSchema from '$/schema/UtxoBlock.ts'
 import { type as arktype } from 'arktype'
 
 export const load: LayoutLoad = async ({ params, parent }) => {

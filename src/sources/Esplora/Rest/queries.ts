@@ -1,86 +1,85 @@
-import { getJson } from '$/lib/http.ts'
 import {
-	esploraOrigins,
-	esploraRestBaseUrlByNetworkKey,
-} from '$/sources/Esplora/Rest/constants.ts'
+	firstHttpUrlForBinding,
+	sourceGetJson,
+} from '$/sources/_runtime/http.ts'
+import bindings from '$/sources/Esplora/bindings.ts'
 import type {
 	EsploraAsset,
 	EsploraBlock,
 	EsploraTransaction,
 } from '$/sources/Esplora/Rest/types.ts'
+import { Source } from '$/sources/Source.ts'
 
-export {
-	esploraRestBaseUrlByNetworkKey,
-}
-
-const base = (restBaseUrl: string) => restBaseUrl.replace(/\/$/, '')
+const bindingByTarget = Object.fromEntries(
+	bindings[Source.Esplora_Rest].map((binding) => [binding.target.key, binding])
+)
 
 export const getBlock = ({
-	restBaseUrl,
 	blockHash,
+	target,
 }: {
-	restBaseUrl: string
 	blockHash: string
+	target: string
 }) => (
-	getJson<EsploraBlock>(
-		`${base(restBaseUrl)}/block/${blockHash}`,
-		{ origins: esploraOrigins  }
+	sourceGetJson<EsploraBlock>(
+		bindingByTarget[target],
+		`${firstHttpUrlForBinding(bindingByTarget[target]).replace(/\/$/, '')}/block/${blockHash}`
 	)
 )
 
 export const getBlockHashByHeight = ({
-	restBaseUrl,
 	height,
+	target,
 }: {
-	restBaseUrl: string
 	height: bigint
+	target: string
 }) => (
-	getJson<string>(
-		`${base(restBaseUrl)}/block-height/${height.toString()}`,
-		{ origins: esploraOrigins  }
+	sourceGetJson<string>(
+		bindingByTarget[target],
+		`${firstHttpUrlForBinding(bindingByTarget[target]).replace(/\/$/, '')}/block-height/${height.toString()}`
 	)
 )
 
 export const getTransaction = ({
-	restBaseUrl,
+	target,
 	txId,
 }: {
-	restBaseUrl: string
+	target: string
 	txId: string
 }) => (
-	getJson<EsploraTransaction>(
-		`${base(restBaseUrl)}/tx/${txId}`,
-		{ origins: esploraOrigins  }
+	sourceGetJson<EsploraTransaction>(
+		bindingByTarget[target],
+		`${firstHttpUrlForBinding(bindingByTarget[target]).replace(/\/$/, '')}/tx/${txId}`
 	)
 )
 
-export const getMempoolTransactionIds = ({ restBaseUrl }: { restBaseUrl: string }) => (
-	getJson<string[]>(
-		`${base(restBaseUrl)}/mempool/txids`,
-		{ origins: esploraOrigins  }
+export const getMempoolTransactionIds = (target: string) => (
+	sourceGetJson<string[]>(
+		bindingByTarget[target],
+		`${firstHttpUrlForBinding(bindingByTarget[target]).replace(/\/$/, '')}/mempool/txids`
 	)
 )
 
 export const getAsset = ({
-	restBaseUrl,
 	assetId,
+	target,
 }: {
-	restBaseUrl: string
 	assetId: string
+	target: string
 }) => (
-	getJson<EsploraAsset>(
-		`${base(restBaseUrl)}/asset/${assetId}`,
-		{ origins: esploraOrigins }
+	sourceGetJson<EsploraAsset>(
+		bindingByTarget[target],
+		`${firstHttpUrlForBinding(bindingByTarget[target]).replace(/\/$/, '')}/asset/${assetId}`
 	)
 )
 
 export const listRegistryAssets = ({
-	restBaseUrl,
+	target,
 }: {
-	restBaseUrl: string
+	target: string
 }) => (
-	getJson<EsploraAsset[]>(
-		`${base(restBaseUrl)}/assets/registry`,
-		{ origins: esploraOrigins }
+	sourceGetJson<EsploraAsset[]>(
+		bindingByTarget[target],
+		`${firstHttpUrlForBinding(bindingByTarget[target]).replace(/\/$/, '')}/assets/registry`
 	)
 )

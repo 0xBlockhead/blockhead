@@ -3,7 +3,7 @@
 import { Source } from '$/sources/Source.ts'
 import { SourceArtifactKind } from '$/sources/SourceBinding.ts'
 
-export const officialSourceArtifacts = [
+export default [
 	{
 		source: Source.AptosIndexer_Graphql,
 		artifactKind: SourceArtifactKind.GraphqlSchema,

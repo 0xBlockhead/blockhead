@@ -9,7 +9,6 @@
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
@@ -28,10 +27,9 @@
 			Source.Farcaster_Rest,
 		],
 		fields: {
+			text: true,
 			hash: true,
 			fid: true,
-			clientUrl: true,
-			text: true,
 			timestamp: true,
 			$author: true,
 			$channel: true,
@@ -39,6 +37,7 @@
 			parentUrl: true,
 			rootParentUrl: true,
 			threadHash: true,
+			clientUrl: true,
 		},
 	}))
 
@@ -50,24 +49,12 @@
 
 
 <svelte:head>
-	<title>{(pageSelection.entity == null ? 'Farcaster cast' : [String((({ ...{
-		username: params.fname,
-		hashPrefix: params.hash,
-	}, ...pageSelection.entity }).text) ?? ''), String((({ ...{
-		username: params.fname,
-		hashPrefix: params.hash,
-	}, ...pageSelection.entity }).hash) ?? '')].filter(Boolean).join(' ') || 'Farcaster cast')} • Farcaster cast • Blockhead</title>
+	<title>{(pageSelection.entity == null ? 'Farcaster cast' : [(pageSelection.entity.text ?? ''), String(pageSelection.entity.hash)].filter(Boolean).join(' ') || 'Farcaster cast')} • Farcaster cast • Blockhead</title>
 </svelte:head>
 
 
 <Page>
 	<FarcasterCastView
-		href={
-			resolve('/farcaster/c/[fname=stringSegment]/[hash=zeroExHex]', {
-				fname: params.fname,
-				hash: params.hash,
-			})
-		}
 		selection={pageSelection}
 	/>
 </Page>

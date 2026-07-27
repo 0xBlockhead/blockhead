@@ -1,15 +1,12 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { entity, facet } from '$/schema/$schema.ts'
+import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
-export enum CardanoDRepSelector {
-	NetworkDrepCredential = 'NetworkDrepCredential',
-}
-export const CardanoDRep = entity({
+export default entity({
 	entityType: EntityType.CardanoDRep,
 	labels: {
 		singular: 'cardano d rep',
@@ -69,9 +66,6 @@ export const CardanoDRep = entity({
 		type: EntityFieldType.EntitiesReference,
 		entityType: EntityType.CardanoDRep_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
-		defaultSources: [
-			Source.Blockfrost_Rest,
-		],
 	},
 	$$votes: {
 		label: 'votes',

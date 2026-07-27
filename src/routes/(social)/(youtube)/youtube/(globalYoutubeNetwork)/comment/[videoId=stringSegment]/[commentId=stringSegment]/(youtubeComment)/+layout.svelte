@@ -30,25 +30,31 @@
 {#key [params.videoId, params.commentId].join(':')}
 	<ParentPageCollapsible
 		href={
-			resolve('/youtube/comment/[videoId=stringSegment]/[commentId=stringSegment]', {
-				videoId: params.videoId,
-				commentId: params.commentId,
-			})
+			resolve(
+				'/(social)/(youtube)/youtube/(globalYoutubeNetwork)/comment/[videoId=stringSegment]/[commentId=stringSegment]',
+				{
+					videoId: String(params.videoId),
+					commentId: String(params.commentId),
+				}
+			)
 		}
 	>
 		{#snippet Summary()}
-			{@const DetailView = YoutubeCommentView}
-
-			<DetailView
-				selection={select(EntityType.YoutubeComment, data.selector, { sources: [
-		Source.Youtube_Rest,
-		Source.Piped_Rest,
-	] })}
+			<YoutubeCommentView
+				selection={
+					select(EntityType.YoutubeComment, data.selector, { sources: [
+						Source.Youtube_Rest,
+						Source.Piped_Rest,
+					] })
+				}
 				href={
-					resolve('/youtube/comment/[videoId=stringSegment]/[commentId=stringSegment]', {
-						videoId: params.videoId,
-						commentId: params.commentId,
-					})
+					resolve(
+						'/(social)/(youtube)/youtube/(globalYoutubeNetwork)/comment/[videoId=stringSegment]/[commentId=stringSegment]',
+						{
+							videoId: String(params.videoId),
+							commentId: String(params.commentId),
+						}
+					)
 				}
 				layout={EntityLayout.SummaryInline}
 			/>

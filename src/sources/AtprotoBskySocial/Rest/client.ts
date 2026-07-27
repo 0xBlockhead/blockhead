@@ -1,16 +1,12 @@
-import { sourceProviderDefinitions } from '$/sources/$sourceProviders.ts'
+
 import {
 	firstHttpUrlForBinding,
 	sourceGetJson,
 } from '$/sources/_runtime/http.ts'
+import bindings from '$/sources/AtprotoBskySocial/bindings.ts'
 import { Source } from '$/sources/Source.ts'
 
-const bskySocialBinding = sourceProviderDefinitions
-	.flatMap((provider) => provider.bindings)
-	.find(({ source }) => source === Source.Atproto_BskySocial_Xrpc)
-
-if (bskySocialBinding == null)
-	throw new Error('Atproto_BskySocial_Xrpc: source binding is missing')
+const binding = bindings[Source.Atproto_BskySocial_Xrpc]
 
 const toQuery = (params: Record<string, string | number | readonly string[] | undefined>) => {
 	const sp = new URLSearchParams()
@@ -31,7 +27,7 @@ export const bskySocialXrpcGet = async <T>(
 	params: Record<string, string | number | readonly string[] | undefined>
 ): Promise<T> => (
 	sourceGetJson<T>(
-		bskySocialBinding,
-		`${firstHttpUrlForBinding(bskySocialBinding)}/xrpc${path}${toQuery(params)}`
+		binding,
+		`${firstHttpUrlForBinding(binding)}/xrpc${path}${toQuery(params)}`
 	)
 )

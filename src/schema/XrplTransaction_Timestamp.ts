@@ -1,14 +1,11 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { entity, facet } from '$/schema/$schema.ts'
+import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { type } from 'arktype'
 
-export enum XrplTransaction_TimestampSelector {
-	TransactionLedgerIndexSource = 'TransactionLedgerIndexSource',
-}
-export const XrplTransaction_Timestamp = entity({
+export default entity({
 	entityType: EntityType.XrplTransaction_Timestamp,
 	labels: {
 		singular: 'xrpl transaction timestamp',

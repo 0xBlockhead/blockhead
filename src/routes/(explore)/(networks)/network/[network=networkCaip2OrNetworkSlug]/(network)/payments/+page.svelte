@@ -3,11 +3,11 @@
 <script lang="ts">
 	// Types/constants
 	import type { PageProps } from './$types.ts'
+	import { resolve } from '$app/paths'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
@@ -16,8 +16,6 @@
 		data,
 		params,
 	}: PageProps = $props()
-
-
 	// Components
 	import Page from '$/components/Page.svelte'
 	import BlockheadLightningPaymentsView from '$/views/BlockheadLightningPaymentsView.svelte'
@@ -30,15 +28,20 @@
 
 
 <Page>
+	{@const collectionSelection = select(EntityType.LightningNetwork, data.selector).$$payments}
+
 	<BlockheadLightningPaymentsView
 		href={
-			resolve('/network/[network=networkCaip2OrNetworkSlug]/payments', {
-				network: params.network,
-			})
+			resolve(
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/payments',
+				{
+					network: String(params.network),
+				}
+			)
 		}
 		title='Payments'
-		selection={select(EntityType.LightningNetwork, data.selector).$$payments}
-		countResource={select(EntityType.LightningNetwork, data.selector).$$payments.count}
+		selection={collectionSelection}
+		countResource={collectionSelection.count}
 		id='payments'
 		data-column-item="flexible"
 		data-card

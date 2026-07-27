@@ -17,9 +17,6 @@ import type {
 	XApiV2Tweet,
 	XApiV2User,
 } from '$/sources/X/Rest/types.ts'
-import { XUserSelector } from '$/schema/XUser.ts'
-import { XPostSelector } from '$/schema/XPost.ts'
-import { XNetworkSelector } from '$/schema/XNetwork.ts'
 
 const xUserReference = (
 	id: string,
@@ -82,7 +79,7 @@ export default {
 		defineResolver(Source.X_Rest, {
 			entityType: EntityType.XUser,
 			resolve: {
-				[XUserSelector.Id]: {
+				Id: {
 					resolve: async ({ id }, context) => {
 						const { getUser } = await import('$/sources/X/Rest/queries.ts')
 						const xUser = (await getUser(context.publicEnv, id)).data
@@ -154,7 +151,7 @@ export default {
 		defineResolver(Source.X_Rest, {
 			entityType: EntityType.XPost,
 			resolve: {
-				[XPostSelector.Id]: {
+				Id: {
 					resolve: async ({ id }, context) => {
 						const { getTweet } = await import('$/sources/X/Rest/queries.ts')
 						const response = await getTweet(context.publicEnv, id)
@@ -239,7 +236,7 @@ export default {
 		defineResolver(Source.X_Rest, {
 			entityType: EntityType.XPost,
 			resolve: {
-				[XPostSelector.Id]: {
+				Id: {
 					resolve: async ({ id }, context) => {
 						const { getTweet } = await import('$/sources/X/Rest/queries.ts')
 						const tweet = (await getTweet(context.publicEnv, id)).data
@@ -284,7 +281,7 @@ export default {
 		defineResolver(Source.X_Rest, {
 			entityType: EntityType.XUser,
 			resolve: {
-				[XUserSelector.Id]: {
+				Id: {
 					resolve: async ({ id }, context) => {
 						const { getUser } = await import('$/sources/X/Rest/queries.ts')
 						const user = (await getUser(context.publicEnv, id)).data
@@ -331,7 +328,7 @@ export default {
 		defineResolver(Source.X_Rest, {
 			entityType: EntityType.XUser,
 			resolve: {
-				[XUserSelector.Id]: {
+				Id: {
 					resolve: async ({ id }, context) => {
 						const { listUserTweets } = await import('$/sources/X/Rest/queries.ts')
 						const limit = resolverContextRowLimit(context)

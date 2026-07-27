@@ -2,15 +2,11 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
 	import { ZeroExHex } from '$/schema/ZeroExHex.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -22,43 +18,25 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.BlockheadSessionSimulation>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.BlockheadSessionSimulation>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.BlockheadSessionSimulation> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const blockheadSessionSimulation = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {
-			status: true,
-			createdAt: true,
-		},
-	} : {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const viewSelection = $derived(selection({
+		sources: selection.sources ?? [
+			Source.Local_Internal,
+		],
+	}))
+	const blockheadSessionSimulation = $derived(viewSelection({
 		fields: {
 			status: true,
 			createdAt: true,
 			paramsHash: true,
 		},
 	}))
-	const titleFallback = $derived([String((pendingEntity.status) ?? '')].filter(Boolean).join(' ') || 'blockhead session simulation')
-	const viewDomId = $derived('blockhead-session-simulation-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const titleFallback = $derived((pendingEntity.status ?? '') || 'blockhead session simulation')
 
 
 	// Components
@@ -74,104 +52,43 @@
 
 <EntityView
 	entityType={EntityType.BlockheadSessionSimulation}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'status') && Object.hasOwn(prefetched, 'createdAt') && Object.hasOwn(prefetched, '$session') && prefetched.$session != null && prefetched.$session[EntityMetaKey.Selector] != null && Object.hasOwn(prefetched.$session, 'name') && Object.hasOwn(prefetched.$session, 'status') && Object.hasOwn(prefetched.$session, 'updatedAt')}
-			{[String((pendingEntity.status) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-		{:else}
-			<ResourceBoundary resource={blockheadSessionSimulation}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.status) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={blockheadSessionSimulation}>
+			{#snippet children(entity)}
+				{entity.status || title || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Value()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'status') && Object.hasOwn(prefetched, 'createdAt') && Object.hasOwn(prefetched, '$session') && prefetched.$session != null && prefetched.$session[EntityMetaKey.Selector] != null && Object.hasOwn(prefetched.$session, 'name') && Object.hasOwn(prefetched.$session, 'status') && Object.hasOwn(prefetched.$session, 'updatedAt')}
-			{@const createdAt0 = pendingEntity.createdAt}
-			{#if createdAt0 !== undefined && createdAt0 !== null}
-				<Timestamp timestamp={Number(createdAt0)} />
-			{/if}
-		{:else}
-			<ResourceBoundary resource={blockheadSessionSimulation}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const createdAt0 = resolvedEntity.createdAt}
-					{#if createdAt0 !== undefined && createdAt0 !== null}
-						<Timestamp timestamp={Number(createdAt0)} />
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={blockheadSessionSimulation}>
+			{#snippet children(entity)}
+				<Timestamp timestamp={Number(entity.createdAt)} />
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'status') && Object.hasOwn(prefetched, 'createdAt') && Object.hasOwn(prefetched, '$session') && prefetched.$session != null && prefetched.$session[EntityMetaKey.Selector] != null && Object.hasOwn(prefetched.$session, 'name') && Object.hasOwn(prefetched.$session, 'status') && Object.hasOwn(prefetched.$session, 'updatedAt')}
-			{@const blockheadSession0 = pendingEntity.$session}
-			{#if blockheadSession0 != null && blockheadSession0[EntityMetaKey.Selector] != null}
+		<ResourceBoundary
+			resource={selection.$session}
+		>
+			{#snippet children(blockheadSession)}
 				<span data-text="muted">
 					<BlockheadSessionView
-						selection={select(EntityType.BlockheadSession, blockheadSession0[EntityMetaKey.Selector], { sources: selection.sources })}
-						prefetched={blockheadSession0}
-						href={
-							(
-								blockheadSession0[EntityMetaKey.Selector] != null && 'id' in blockheadSession0[EntityMetaKey.Selector]
-								&& blockheadSession0[EntityMetaKey.Selector].id != null ?
-									resolve('/~/session/[sessionId=stringSegment]', {
-								sessionId: String(blockheadSession0[EntityMetaKey.Selector].id ?? ''),
-							})
-							:
-									undefined
-							)
-						}
+						selection={select(EntityType.BlockheadSession, blockheadSession[EntityMetaKey.Selector])}
+						prefetched={blockheadSession}
 						layout={EntityLayout.Title}
 						open={false}
 					/>
 				</span>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={blockheadSessionSimulation}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					<ResourceBoundary
-						resource={selection.$session}
-					>
-						{#snippet children(blockheadSession)}
-							{#if blockheadSession != null && blockheadSession[EntityMetaKey.Selector] != null}
-							<span data-text="muted">
-								<BlockheadSessionView
-									selection={select(EntityType.BlockheadSession, blockheadSession[EntityMetaKey.Selector])}
-									prefetched={blockheadSession}
-									href={
-										(
-											blockheadSession[EntityMetaKey.Selector] != null && 'id' in blockheadSession[EntityMetaKey.Selector]
-											&& blockheadSession[EntityMetaKey.Selector].id != null ?
-												resolve('/~/session/[sessionId=stringSegment]', {
-											sessionId: String(blockheadSession[EntityMetaKey.Selector].id ?? ''),
-										})
-										:
-												undefined
-										)
-									}
-									layout={EntityLayout.Title}
-									open={false}
-								/>
-							</span>
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -183,25 +100,12 @@
 						resource={selection.$session}
 					>
 						{#snippet children(blockheadSession)}
-							{#if blockheadSession != null && blockheadSession[EntityMetaKey.Selector] != null}
-								<BlockheadSessionView
-									selection={select(EntityType.BlockheadSession, blockheadSession[EntityMetaKey.Selector])}
-									prefetched={blockheadSession}
-									href={
-										(
-											blockheadSession[EntityMetaKey.Selector] != null && 'id' in blockheadSession[EntityMetaKey.Selector]
-											&& blockheadSession[EntityMetaKey.Selector].id != null ?
-												resolve('/~/session/[sessionId=stringSegment]', {
-											sessionId: String(blockheadSession[EntityMetaKey.Selector].id ?? ''),
-										})
-										:
-												undefined
-										)
-									}
-									layout={EntityLayout.Value}
-									open={false}
-								/>
-							{/if}
+							<BlockheadSessionView
+								selection={select(EntityType.BlockheadSession, blockheadSession[EntityMetaKey.Selector])}
+								prefetched={blockheadSession}
+								layout={EntityLayout.Value}
+								open={false}
+							/>
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -211,21 +115,10 @@
 				<dt>status</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									status: true,
-								},
-							})
-						}
+						resource={blockheadSessionSimulation}
 					>
 						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const status = resolvedEntity.status}
-							{#if status !== undefined && status !== null}
-								{String((status) ?? '')}
-							{/if}
+							{entity.status}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -235,21 +128,10 @@
 				<dt>Created</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									createdAt: true,
-								},
-							})
-						}
+						resource={blockheadSessionSimulation}
 					>
 						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const createdAt = resolvedEntity.createdAt}
-							{#if createdAt !== undefined && createdAt !== null}
-								<Timestamp timestamp={Number(createdAt)} />
-							{/if}
+							<Timestamp timestamp={Number(entity.createdAt)} />
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -257,8 +139,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							completedAt: true,
 						},
@@ -266,9 +147,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const completedAt = resolvedEntity.completedAt}
-					{#if completedAt !== undefined && completedAt !== null}
+					{@const completedAt = entity.completedAt}
+					{#if completedAt != null}
 						<div>
 							<dt>completed AT</dt>
 							<dd>
@@ -283,21 +163,10 @@
 				<dt>params hash</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									paramsHash: true,
-								},
-							})
-						}
+						resource={blockheadSessionSimulation}
 					>
 						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const paramsHash = resolvedEntity.paramsHash}
-							{#if paramsHash !== undefined && paramsHash !== null}
-								<TruncatedValue value={String((paramsHash) ?? '')} />
-							{/if}
+							<TruncatedValue value={String(entity.paramsHash)} />
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -307,8 +176,7 @@
 		<dl data-column-item="center">
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							forkBlockNumber: true,
 						},
@@ -316,9 +184,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const forkBlockNumber = resolvedEntity.forkBlockNumber}
-					{#if forkBlockNumber !== undefined && forkBlockNumber !== null}
+					{@const forkBlockNumber = entity.forkBlockNumber}
+					{#if forkBlockNumber != null}
 						<div>
 							<dt>fork block number</dt>
 							<dd>
@@ -333,8 +200,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							actionCount: true,
 						},
@@ -342,9 +208,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const actionCount = resolvedEntity.actionCount}
-					{#if actionCount !== undefined && actionCount !== null}
+					{@const actionCount = entity.actionCount}
+					{#if actionCount != null}
 						<div>
 							<dt>action count</dt>
 							<dd>
@@ -359,8 +224,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							gasUsed: true,
 						},
@@ -368,9 +232,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const gasUsed = resolvedEntity.gasUsed}
-					{#if gasUsed !== undefined && gasUsed !== null}
+					{@const gasUsed = entity.gasUsed}
+					{#if gasUsed != null}
 						<div>
 							<dt>gas used</dt>
 							<dd>
@@ -385,8 +248,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							resultPayloadHash: true,
 						},
@@ -394,13 +256,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const resultPayloadHash = resolvedEntity.resultPayloadHash}
-					{#if resultPayloadHash !== undefined && resultPayloadHash !== null}
+					{@const resultPayloadHash = entity.resultPayloadHash}
+					{#if resultPayloadHash != null}
 						<div>
 							<dt>result payload hash</dt>
 							<dd>
-								<TruncatedValue value={String((resultPayloadHash) ?? '')} />
+								<TruncatedValue value={String(resultPayloadHash)} />
 							</dd>
 						</div>
 					{/if}
@@ -409,8 +270,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							error: true,
 						},
@@ -418,13 +278,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const error = resolvedEntity.error}
-					{#if error !== undefined && error !== null}
+					{@const error = entity.error}
+					{#if error != null}
 						<div>
 							<dt>error</dt>
 							<dd>
-								{String((error) ?? '')}
+								{error}
 							</dd>
 						</div>
 					{/if}
@@ -440,12 +299,12 @@
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
-				<BlockheadSessionSimulationCallsView
-					selection={blockheadSessionSimulationBlockheadSessionSimulationCallsViewCallsResource}
-					countResource={blockheadSessionSimulationBlockheadSessionSimulationCallsViewCallsResource.count}
-					title='calls'
-					id='BlockheadSessionSimulationCallsView-calls'
-				/>
+					<BlockheadSessionSimulationCallsView
+						selection={blockheadSessionSimulationBlockheadSessionSimulationCallsViewCallsResource}
+						countResource={blockheadSessionSimulationBlockheadSessionSimulationCallsViewCallsResource.count}
+						title='calls'
+						id='calls'
+					/>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>
@@ -455,12 +314,12 @@
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
-				<BlockheadSessionSimulationLogsView
-					selection={blockheadSessionSimulationBlockheadSessionSimulationLogsViewLogsResource}
-					countResource={blockheadSessionSimulationBlockheadSessionSimulationLogsViewLogsResource.count}
-					title='logs'
-					id='BlockheadSessionSimulationLogsView-logs'
-				/>
+					<BlockheadSessionSimulationLogsView
+						selection={blockheadSessionSimulationBlockheadSessionSimulationLogsViewLogsResource}
+						countResource={blockheadSessionSimulationBlockheadSessionSimulationLogsViewLogsResource.count}
+						title='logs'
+						id='logs'
+					/>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>

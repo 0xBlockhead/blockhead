@@ -5,6 +5,10 @@ import {
 	walletConnectionMethods,
 	walletProtocols,
 } from '$/constants/Wallet.ts'
+import {
+	Caip2Namespace,
+	Caip2Reference,
+} from '$/constants/Network.ts'
 import { BlockheadConnectionStatus } from '$/schema/BlockheadWalletConnection.ts'
 import type { ClientContext } from '$/client/$client.svelte.ts'
 import {
@@ -14,7 +18,10 @@ import {
 	writeLocalBlockheadWalletConnection,
 	writeLocalBlockheadWalletRequest,
 } from '$/collections/localMutations.ts'
-import { EntityMetaKey } from '$/schema/$schema.ts'
+import {
+	EntityMetaKey,
+	type EntitySelector,
+} from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import type { schema } from '$/schema/index.ts'
 import { Source } from '$/sources/Source.ts'
@@ -30,10 +37,17 @@ import { createTonConnectAdapter } from './adapters/tonConnect.ts'
 import { createTronInjectedAdapter } from './adapters/tronInjected.ts'
 import type { WalletAccount, WalletAdapter, WalletCandidate, WalletConnection } from './adapters/types.ts'
 import { createWalletStandardAdapter } from './adapters/walletStandard.ts'
+import {
+	createWalletConnectV2Adapter,
+	walletConnectV2ClientFromSignClient,
+} from './adapters/walletConnectV2.ts'
+import { browser } from '$app/environment'
+import { env } from '$env/dynamic/public'
 
 type WalletRuntime = {
 	candidates: WalletCandidate[]
 	connections: WalletConnection[]
+	registerAdapter(adapter: WalletAdapter): void
 	connect(walletId: string): Promise<void>
 	signMessage(connectionKey: string, message: string): Promise<{
 		accountAddress: string
@@ -44,6 +58,10 @@ type WalletRuntime = {
 	selectAccount(connectionKey: string, account: WalletAccount): void
 	destroy(): void
 }
+
+const blockheadWalletConnectionsSelector = {
+	scope: '$$blockheadWalletConnections',
+} as const satisfies EntitySelector<typeof schema, EntityType._Global>
 
 const hashWalletEvidence = async (value: string) => (
 	`0x${[...new Uint8Array(await globalThis.crypto.subtle.digest(
@@ -58,19 +76,22 @@ const createWalletRuntimeState = (
 	const cleanupByConnectionKey = new SvelteMap<string, () => void>()
 	const connectionAttemptByConnectionKey = new SvelteMap<string, number>()
 	const adapterByWalletId = new SvelteMap<string, WalletAdapter>()
+	const registeredAdapterIds = new Set<string>()
 	const adapterCleanups: (() => void)[] = []
 	const candidatesByAdapterId = new SvelteMap<string, WalletCandidate[]>()
 
 	let candidates = $state<WalletCandidate[]>([])
 	let connections = $state<WalletConnection[]>([])
-	let hasRuntimeMutation = false
+	const runtimeMutatedConnectionKeys = new Set<string>()
 
 	const upsertConnection = async (
 		connection: WalletConnection,
 		replacedConnectionKey?: string
 	) => {
-		hasRuntimeMutation = true
 		const connectionKey = connection.connectionKey ?? connection.sessionTopic ?? connection.sessionId ?? connection.walletId
+		runtimeMutatedConnectionKeys.add(connectionKey)
+		if (replacedConnectionKey !== undefined)
+			runtimeMutatedConnectionKeys.add(replacedConnectionKey)
 		const normalizedConnection = {
 			...connection,
 			connectionKey,
@@ -90,34 +111,80 @@ const createWalletRuntimeState = (
 			await deleteLocalBlockheadWalletConnection(context, replacedConnectionKey)
 	}
 
-	const adapters = [
-		createEip6963Adapter(),
-		createWalletStandardAdapter(),
-		createAptosInjectedAdapter(),
-		createCardanoCip30Adapter(),
-		createBitcoinInjectedAdapter(),
-		createCosmosOfflineSignerAdapter(),
-		createTonConnectAdapter(),
-		createTronInjectedAdapter(),
-		createStarknetWalletApiAdapter(),
-		createPolkadotInjectedWeb3Adapter(),
-	]
+	const subscribePersistedConnection = (
+		connection: WalletConnection,
+		adapter: WalletAdapter
+	) => {
+		if (
+			connection.status !== BlockheadConnectionStatus.Connected
+			|| connection.connectionKey == null
+			|| cleanupByConnectionKey.has(connection.connectionKey)
+		) return
 
-	for (const adapter of adapters)
-		adapterCleanups.push(adapter.start((nextCandidates) => {
-			candidatesByAdapterId.set(adapter.id, nextCandidates)
+		cleanupByConnectionKey.get(connection.connectionKey)?.()
+		cleanupByConnectionKey.set(
+			connection.connectionKey,
+			adapter.subscribeConnection(
+				connection.walletId,
+				(nextConnection) => upsertConnection({
+					...nextConnection,
+					connectionKey: connection.connectionKey,
+				}),
+				connection.connectionKey
+			)
+		)
+	}
 
-			for (const candidate of nextCandidates) {
-				adapterByWalletId.set(candidate.id, adapter)
-				writeLocalBlockheadWallet(context, candidate)
-			}
+	const registerAdapter = (adapter: WalletAdapter) => {
+		if (registeredAdapterIds.has(adapter.id))
+			throw new Error(`Wallet adapter ${adapter.id} is already registered`)
 
+		let cleanup: () => void
+		try {
+			cleanup = adapter.start((nextCandidates) => {
+				candidatesByAdapterId.set(adapter.id, nextCandidates)
+
+				for (const candidate of nextCandidates) {
+					const newlyAvailable = !adapterByWalletId.has(candidate.id)
+					adapterByWalletId.set(candidate.id, adapter)
+					if (newlyAvailable) {
+						writeLocalBlockheadWallet(context, candidate)
+						for (const connection of connections)
+							if (connection.walletId === candidate.id)
+								subscribePersistedConnection(connection, adapter)
+					}
+				}
+
+				candidates = [...candidatesByAdapterId.values()].flat()
+			})
+		}
+		catch (error) {
+			candidatesByAdapterId.delete(adapter.id)
+			for (const [walletId, registeredAdapter] of adapterByWalletId)
+				if (registeredAdapter === adapter)
+					adapterByWalletId.delete(walletId)
 			candidates = [...candidatesByAdapterId.values()].flat()
-		}))
+			throw error
+		}
+		registeredAdapterIds.add(adapter.id)
+		adapterCleanups.push(cleanup)
+	}
 
-	void context.select(EntityType._Global, {
-		scope: '$$blockheadWalletConnections',
-	}).$$blockheadWalletConnections({
+	registerAdapter(createEip6963Adapter())
+	registerAdapter(createWalletStandardAdapter())
+	registerAdapter(createAptosInjectedAdapter())
+	registerAdapter(createCardanoCip30Adapter())
+	registerAdapter(createBitcoinInjectedAdapter())
+	registerAdapter(createCosmosOfflineSignerAdapter())
+	registerAdapter(createTonConnectAdapter())
+	registerAdapter(createTronInjectedAdapter())
+	registerAdapter(createStarknetWalletApiAdapter())
+	registerAdapter(createPolkadotInjectedWeb3Adapter())
+
+	void context.select(
+		EntityType._Global,
+		blockheadWalletConnectionsSelector
+	).$$blockheadWalletConnections({
 		sources: [Source.Local_Internal],
 	}).then(async (persistedConnectionReferences) => {
 		const persistedConnections = (
@@ -196,31 +263,24 @@ const createWalletRuntimeState = (
 			}))
 		)
 
-		if (!hasRuntimeMutation) {
-			connections = persistedConnections
-			for (const connection of persistedConnections) {
-				if (connection.status !== BlockheadConnectionStatus.Connected)
-					continue
-				if (connection.connectionKey == null)
-					continue
+		const persistedConnectionKeys = new Set(persistedConnections.map((connection) => (
+			connection.connectionKey ?? connection.sessionTopic ?? connection.sessionId ?? connection.walletId
+		)))
+		connections = [
+			...connections.filter((connection) => {
+				const connectionKey = connection.connectionKey ?? connection.sessionTopic ?? connection.sessionId ?? connection.walletId
+				return runtimeMutatedConnectionKeys.has(connectionKey) || !persistedConnectionKeys.has(connectionKey)
+			}),
+			...persistedConnections.filter((connection) => !runtimeMutatedConnectionKeys.has(
+				connection.connectionKey ?? connection.sessionTopic ?? connection.sessionId ?? connection.walletId
+			)),
+		]
+		for (const connection of persistedConnections) {
+			const adapter = adapterByWalletId.get(connection.walletId)
+			if (adapter == null)
+				continue
 
-				const adapter = adapterByWalletId.get(connection.walletId)
-				if (adapter == null)
-					continue
-
-				cleanupByConnectionKey.get(connection.connectionKey)?.()
-				cleanupByConnectionKey.set(
-					connection.connectionKey,
-					adapter.subscribeConnection(
-						connection.walletId,
-						(nextConnection) => upsertConnection({
-							...nextConnection,
-							connectionKey: connection.connectionKey,
-						}),
-						connection.connectionKey
-					)
-				)
-			}
+			subscribePersistedConnection(connection, adapter)
 		}
 	})
 
@@ -263,7 +323,6 @@ const createWalletRuntimeState = (
 				return
 			}
 
-			await upsertConnection(connection, walletId)
 			const connectionKey = connection.connectionKey ?? connection.sessionTopic ?? connection.sessionId ?? connection.walletId
 			connectionAttemptByConnectionKey.delete(walletId)
 			cleanupByConnectionKey.get(connectionKey)?.()
@@ -278,6 +337,7 @@ const createWalletRuntimeState = (
 					connectionKey
 				)
 			)
+			await upsertConnection(connection, walletId)
 		}
 		catch (error) {
 			await connectingPersistence
@@ -299,12 +359,12 @@ const createWalletRuntimeState = (
 	}
 
 	const disconnect = async (connectionKey: string) => {
-		hasRuntimeMutation = true
 		const connection = connections.find((candidate) => (
 			(candidate.connectionKey ?? candidate.sessionTopic ?? candidate.sessionId ?? candidate.walletId) === connectionKey
 		))
 		if (connection == null) return
 
+		runtimeMutatedConnectionKeys.add(connectionKey)
 		const { walletId } = connection
 		connectionAttemptByConnectionKey.set(
 			connectionKey,
@@ -335,12 +395,12 @@ const createWalletRuntimeState = (
 	}
 
 	const remove = async (connectionKey: string) => {
-		hasRuntimeMutation = true
 		const connection = connections.find((candidate) => (
 			(candidate.connectionKey ?? candidate.sessionTopic ?? candidate.sessionId ?? candidate.walletId) === connectionKey
 		))
 		if (connection == null) return
 
+		runtimeMutatedConnectionKeys.add(connectionKey)
 		connectionAttemptByConnectionKey.set(
 			connectionKey,
 			(connectionAttemptByConnectionKey.get(connectionKey) ?? 0) + 1
@@ -509,7 +569,6 @@ const createWalletRuntimeState = (
 		connectionKey: string,
 		account: WalletAccount
 	) => {
-		hasRuntimeMutation = true
 		const selectedConnection = connections.find((connection) => (
 			(connection.connectionKey ?? connection.sessionTopic ?? connection.sessionId ?? connection.walletId) === connectionKey
 		))
@@ -529,12 +588,16 @@ const createWalletRuntimeState = (
 				}
 			),
 		}))
-		for (const connection of connections)
+		for (const connection of connections) {
+			runtimeMutatedConnectionKeys.add(
+				connection.connectionKey ?? connection.sessionTopic ?? connection.sessionId ?? connection.walletId
+			)
 			if (connection.connectedAt !== undefined)
 				void writeLocalBlockheadWalletConnection(context, {
 					...connection,
 					connectedAt: connection.connectedAt,
 				})
+		}
 	}
 
 	return {
@@ -544,6 +607,7 @@ const createWalletRuntimeState = (
 		get connections() {
 			return connections
 		},
+		registerAdapter,
 		connect,
 		signMessage,
 		disconnect,
@@ -559,6 +623,8 @@ const createWalletRuntimeState = (
 			cleanupByConnectionKey.clear()
 			connectionAttemptByConnectionKey.clear()
 			adapterByWalletId.clear()
+			registeredAdapterIds.clear()
+			runtimeMutatedConnectionKeys.clear()
 			candidatesByAdapterId.clear()
 			walletRuntime = null
 		},
@@ -573,6 +639,61 @@ export const mountWalletConnectionRuntime = (
 	if (walletRuntime != null) return walletRuntime
 
 	walletRuntime = createWalletRuntimeState(context)
+	const mountedWalletRuntime = walletRuntime
+	if (
+		browser
+		&& env.PUBLIC_WALLETCONNECT2_PROJECT_ID.trim()
+	)
+		void import('@walletconnect/sign-client')
+			.then(({ default: SignClient }) => SignClient.init({
+				projectId: env.PUBLIC_WALLETCONNECT2_PROJECT_ID.trim(),
+				...(env.PUBLIC_WALLETCONNECT2_RELAY_URL.trim() && {
+					relayUrl: env.PUBLIC_WALLETCONNECT2_RELAY_URL.trim(),
+				}),
+				metadata: {
+					name: 'Blockhead',
+					description: 'Explore public blockchain data and local wallet activity.',
+					url: globalThis.location.origin,
+					icons: [
+						new URL('/favicon.png', globalThis.location.origin).href,
+					],
+				},
+			}))
+			.then((signClient) => {
+				if (walletRuntime !== mountedWalletRuntime) {
+					void signClient.core.relayer.transportClose()
+					return
+				}
+
+				mountedWalletRuntime.registerAdapter(createWalletConnectV2Adapter({
+					client: walletConnectV2ClientFromSignClient(signClient),
+					requestedScopes: [
+						{
+							namespace: Caip2Namespace.Eip155,
+							reference: Caip2Reference.EthereumMainnet,
+							methods: [
+								'eth_accounts',
+							],
+							events: [
+								'accountsChanged',
+								'chainChanged',
+							],
+						},
+						{
+							namespace: Caip2Namespace.Solana,
+							reference: Caip2Reference.SolanaMainnet,
+							methods: [
+								'solana_getAccounts',
+							],
+							events: [],
+						},
+					],
+				}))
+			})
+			.catch((error) => {
+				if (walletRuntime === mountedWalletRuntime)
+					console.warn('WalletConnect Sign Client initialization failed', error)
+			})
 
 	return walletRuntime
 }

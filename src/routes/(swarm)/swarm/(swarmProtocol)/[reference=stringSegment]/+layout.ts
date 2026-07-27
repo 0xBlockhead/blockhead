@@ -6,7 +6,7 @@ import { swarmResourceReferenceFromRouteParam } from '$/lib/swarm.ts'
 import { match as matchStringSegment } from '$/params/stringSegment.ts'
 import { parseEntitySelector } from '$/schema/$schema.ts'
 import { schema } from '$/schema/index.ts'
-import { SwarmResource as SwarmResourceSchema } from '$/schema/SwarmResource.ts'
+import SwarmResourceSchema from '$/schema/SwarmResource.ts'
 import { type as arktype } from 'arktype'
 
 export const load: LayoutLoad = ({ params }) => {

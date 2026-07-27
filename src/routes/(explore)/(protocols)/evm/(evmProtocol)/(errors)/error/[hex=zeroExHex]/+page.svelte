@@ -9,14 +9,12 @@
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		data,
-		params,
 	}: PageProps = $props()
 
 	const pageSelection = $derived(select(EntityType.EvmError, data.selector, {
@@ -36,17 +34,12 @@
 
 
 <svelte:head>
-	<title>{(data.title ?? (pageSelection.entity == null ? 'EVM error' : 'EVM error'))} • EVM error • Blockhead</title>
+	<title>{(data.title ?? ('EVM error'))} • EVM error • Blockhead</title>
 </svelte:head>
 
 
 <Page>
 	<EvmErrorView
-		href={
-			resolve('/evm/error/[hex=zeroExHex]', {
-				hex: params.hex,
-			})
-		}
 		selection={pageSelection}
 	/>
 </Page>

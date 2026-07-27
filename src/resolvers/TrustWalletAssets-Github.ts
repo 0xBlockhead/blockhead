@@ -6,8 +6,6 @@ import { EntityType } from '$/schema/EntityType.ts'
 import { AssetInstanceKind } from '$/schema/AssetInstance.ts'
 import { MediaType } from '$/schema/Media.ts'
 import { Source } from '$/sources/Source.ts'
-import { NetworkSelector } from '$/schema/Network.ts'
-import { AssetInstanceSelector } from '$/schema/AssetInstance.ts'
 
 const trustWalletChainsByNetworkSlug = [
 	[
@@ -118,7 +116,7 @@ export default {
 		defineResolver(Source.TrustWalletAssets_Github, {
 			entityType: EntityType.Network,
 			resolve: {
-				[NetworkSelector.Caip2]: {
+				Caip2: {
 					appliesTo: [
 						...trustWalletChainsByEip155Reference.map(([reference]) => ({
 							caip2: {
@@ -141,7 +139,7 @@ export default {
 						return iconMedia
 					},
 				},
-				[NetworkSelector.Slug]: {
+				Slug: {
 					appliesTo: trustWalletChainsByNetworkSlug.map(([slug]) => ({
 						slug,
 					})),
@@ -162,7 +160,7 @@ export default {
 		defineResolver(Source.TrustWalletAssets_Github, {
 			entityType: EntityType.AssetInstance,
 			resolve: {
-				[AssetInstanceSelector.NetworkKindAssetKey]: {
+				NetworkKindAssetKey: {
 					appliesTo: [
 						...trustWalletChainsByNetworkSlug.map(([slug]) => ({
 							$network: {

@@ -14,9 +14,6 @@ import type {
 	CosmosChainRegistryAssetList,
 	CosmosChainRegistryChain,
 } from '$/sources/CosmosChainRegistry/Github/types.ts'
-import { NetworkSelector } from '$/schema/Network.ts'
-import { AssetInstanceSelector } from '$/schema/AssetInstance.ts'
-
 const assertCosmosRegistryNetwork = (network: { caip2: {
 	namespace: string
 	reference: string
@@ -74,7 +71,7 @@ export default {
 		defineResolver(Source.CosmosChainRegistry_Github, {
 			entityType: EntityType.Network,
 			resolve: {
-				[NetworkSelector.Caip2]: {
+				Caip2: {
 					appliesTo: [{
 						caip2: {
 							namespace: 'cosmos',
@@ -100,7 +97,7 @@ export default {
 						}
 					},
 				},
-				[NetworkSelector.Slug]: {
+				Slug: {
 					appliesTo: [{
 						slug: 'cosmos',
 					}],
@@ -129,7 +126,7 @@ export default {
 		defineResolver(Source.CosmosChainRegistry_Github, {
 			entityType: EntityType.AssetInstance,
 			resolve: {
-				[AssetInstanceSelector.NetworkKindAssetKey]: {
+				NetworkKindAssetKey: {
 					appliesTo: [
 						{
 							$network: {
@@ -168,7 +165,7 @@ export default {
 		defineResolver(Source.CosmosChainRegistry_Github, {
 			entityType: EntityType.Network,
 			resolve: {
-				[NetworkSelector.Caip2]: {
+				Caip2: {
 					appliesTo: [{
 						caip2: {
 							namespace: 'cosmos',
@@ -186,7 +183,7 @@ export default {
 						)
 					},
 				},
-				[NetworkSelector.Slug]: {
+				Slug: {
 					appliesTo: [{
 						slug: 'cosmos',
 					}],

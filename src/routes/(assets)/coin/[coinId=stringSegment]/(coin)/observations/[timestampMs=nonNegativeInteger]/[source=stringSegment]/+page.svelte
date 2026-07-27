@@ -7,7 +7,6 @@
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
@@ -49,19 +48,12 @@
 
 
 <svelte:head>
-	<title>{(pageSelection.entity == null ? 'coin timestamp' : 'coin timestamp')} • coin timestamp • Blockhead</title>
+	<title>{('coin timestamp')} • coin timestamp • Blockhead</title>
 </svelte:head>
 
 
 <Page>
 	<Coin_TimestampView
-		href={
-			resolve('/coin/[coinId=stringSegment]/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
-				coinId: params.coinId,
-				timestampMs: params.timestampMs,
-				source: params.source,
-			})
-		}
 		selection={pageSelection}
 	/>
 </Page>

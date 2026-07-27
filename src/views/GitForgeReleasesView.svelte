@@ -2,103 +2,49 @@
 
 <script lang="ts">
 	// Types/constants
-	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
-	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
-	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
+	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-
-
 
 
 	// State
 	let {
 		selection,
-		countResource,
-		title = 'Git forge releases',
-		typeAnnotationParagraphs = [],
-		placeholderText = undefined,
-		emptyText = undefined,
 		open = $bindable(true),
-		collapsible = true,
-		showTypeAnnotation = true,
-		id = 'GitForgeReleases-list',
 		...EntitiesListProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyEntitiesSelection<EntityType.GitForgeRelease>
-			countResource?: SvelteKitResource<number>
-			title?: string
-			typeAnnotationParagraphs?: string[]
-			placeholderText?: string
-			emptyText?: string
-			open?: boolean
-			collapsible?: boolean
-			showTypeAnnotation?: boolean
-			id?: string
-		},
-		EntitiesListForwardProps
-	> = $props()
+	}: EntityListViewProps<EntityType.GitForgeRelease> = $props()
 
 
 	// Components
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView from '$/components/EntityView.svelte'
 </script>
 
-
-{#snippet TypeAnnotationParagraphs()}
-	{#each typeAnnotationParagraphs as paragraph (paragraph)}
-		<p>{paragraph}</p>
-	{/each}
-{/snippet}
 
 <EntitiesList
 	{...EntitiesListProps}
 	entityType={EntityType.GitForgeRelease}
-	{id}
-	{title}
 	bind:open
-	{collapsible}
-	{showTypeAnnotation}
-	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
 	resource={
 		selection({
-			sources: selection.sources,
 			fields: {
 				name: true,
 				releaseTagName: true,
 			},
 		})
 	}
-	{countResource}
-	getResourceItems={(gitForgeReleases) => [...new Map(gitForgeReleases.values.map((gitForgeRelease) => [gitForgeRelease[EntityMetaKey.SelectorKey], gitForgeRelease])).values()]}
-	getKey={(gitForgeRelease) => gitForgeRelease[EntityMetaKey.SelectorKey]}
-	{placeholderText}
 >
-	{#snippet Empty()}
-		{#if emptyText != null}
-			<p data-text="muted">{emptyText}</p>
-		{:else}
-			<p data-text="muted">No Git forge releases yet.</p>
-		{/if}
-	{/snippet}
-
 	{#snippet Item({ item: gitForgeRelease })}
-		{@const gitForgeReleaseFields = { ...gitForgeRelease[EntityMetaKey.Selector], ...gitForgeRelease }}
+		{@const gitForgeReleaseSelector = gitForgeRelease[EntityMetaKey.Selector]}
 		<EntityView
 			entityType={EntityType.GitForgeRelease}
-			entitySelector={gitForgeRelease[EntityMetaKey.Selector]}
-			layout={EntityLayout.Summary}
-			open={false}
-			showTypeAnnotation={false}
+			entitySelector={gitForgeReleaseSelector}
 		>
 			{#snippet Title()}
-				{[String((gitForgeReleaseFields.name) ?? '')].filter(Boolean).join(' ') || [String((gitForgeReleaseFields.releaseTagName) ?? '')].filter(Boolean).join(' ') || 'Git forge release'}
+				{(gitForgeRelease.name ?? '') || gitForgeReleaseSelector.releaseTagName || 'Git forge release'}
 			{/snippet}
 
 			{#snippet Value()}
-				{[String((gitForgeReleaseFields.releaseTagName) ?? '')].filter(Boolean).join(' ')}
+				{gitForgeReleaseSelector.releaseTagName}
 			{/snippet}
 		</EntityView>
 	{/snippet}

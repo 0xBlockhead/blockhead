@@ -3,12 +3,11 @@
 <script lang="ts">
 	// Types/constants
 	import type { PageProps } from './$types.ts'
+	import { resolve } from '$app/paths'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
@@ -17,11 +16,8 @@
 		data,
 		params,
 	}: PageProps = $props()
-
-
 	// Components
 	import Page from '$/components/Page.svelte'
-	import ProjectionBoundary from '$/components/ProjectionBoundary.svelte'
 	import EthereumBeaconFinality_TimestampsView from '$/views/EthereumBeaconFinality_TimestampsView.svelte'
 </script>
 
@@ -32,30 +28,20 @@
 
 
 <Page>
-	<ProjectionBoundary
-		resource={select(EntityType.Network, data.selector).Evm}
-	>
-		{#snippet Applicable(projection)}
-			<EthereumBeaconFinality_TimestampsView
-				href={
-					resolve('/network/[network=networkCaip2OrNetworkSlug]/finality', {
-						network: params.network,
-					})
+	<EthereumBeaconFinality_TimestampsView
+		href={
+			resolve(
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/finality',
+				{
+					network: String(params.network),
 				}
-				title='Beacon finality'
-				selection={
-					projection
-						.$$beaconFinalityTimestamps({
-							sources: [
-								Source.Beacon_Rest,
-							],
-						})
-				}
-				id='account-ethereum-beacon-finality-timestamp'
-				data-column-item="flexible"
-				data-card
-				data-scroll-container
-			/>
-		{/snippet}
-	</ProjectionBoundary>
+			)
+		}
+		title='Beacon finality'
+		selection={select(EntityType.Network, data.selector).Evm.$$beaconFinalityTimestamps}
+		id='beacon-finality-timestamps'
+		data-column-item="flexible"
+		data-card
+		data-scroll-container
+	/>
 </Page>

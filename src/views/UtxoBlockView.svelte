@@ -2,14 +2,10 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
@@ -26,36 +22,16 @@
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.UtxoBlock>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.UtxoBlock>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.UtxoBlock> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const utxoBlock = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const utxoBlock = $derived(selection({
 		fields: {
-			transactionCount: true,
-		},
-	} : {
-		sources: selection.sources,
-		fields: {
+			hash: true,
 			transactionCount: true,
 		},
 	}))
-	const titleFallback = $derived((String((pendingEntity.height) ?? '') ? 'Block #' + String((pendingEntity.height) ?? '') : '') || [String((pendingEntity.hash) ?? '')].filter(Boolean).join(' ') || 'UTXO block')
-	const viewDomId = $derived('utxo-block-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const titleFallback = $derived((String(pendingEntity.height ?? '') ? 'Block #' + String(pendingEntity.height ?? '') : '') || (pendingEntity.hash ?? '') || 'UTXO block')
 
 
 	// Components
@@ -71,35 +47,26 @@
 
 <EntityView
 	entityType={EntityType.UtxoBlock}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
 	idDragPlainText={String(pendingEntity.height ?? '')}
 	href={
 		href ?? (
-			selection.entitySelector != null && 'height' in selection.entitySelector
-			&& selection.entitySelector.height != null
-			&& selection.entitySelector != null && 'hash' in selection.entitySelector
-			&& selection.entitySelector.hash != null
-			&& selection.entitySelector != null && '$network' in selection.entitySelector ?
-				selection.entitySelector.$network != null && 'caip2' in selection.entitySelector.$network
-				&& selection.entitySelector.$network.caip2 != null ?
-					resolve('/network/[network=networkCaip2OrNetworkSlug]/block/[blockNumber=nonNegativeBigInt]/[hash=stringSegment]', {
-				blockNumber: String(selection.entitySelector.height ?? ''),
-				hash: String(selection.entitySelector.hash ?? ''),
-				network: String(caip2StringFromValue(selection.entitySelector.$network.caip2) ?? ''),
-			})
+			'hash' in selection.entitySelector ?
+				resolve(
+					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(blocks)/block/[blockNumber=nonNegativeBigInt]/(selection)/[hash=stringSegment]',
+					{
+						network: (
+							'caip2' in selection.entitySelector.$network ?
+								String(caip2StringFromValue(selection.entitySelector.$network.caip2))
+							:
+								String(selection.entitySelector.$network.slug)
+						),
+						blockNumber: String(selection.entitySelector.height),
+						hash: String(selection.entitySelector.hash),
+					}
+				)
 			:
-					selection.entitySelector.$network != null && 'slug' in selection.entitySelector.$network
-					&& selection.entitySelector.$network.slug != null ?
-						resolve('/network/[network=networkCaip2OrNetworkSlug]/block/[blockNumber=nonNegativeBigInt]/[hash=stringSegment]', {
-					blockNumber: String(selection.entitySelector.height ?? ''),
-					hash: String(selection.entitySelector.hash ?? ''),
-					network: String(selection.entitySelector.$network.slug ?? ''),
-				})
-				:
-					undefined
-		:
 				undefined
 		)
 	}
@@ -108,51 +75,31 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{@const serialValue = pendingEntity.height}
-		{#if serialValue !== undefined && serialValue !== null}
-			<span data-row="inline align-center gap-2 wrap">
-				<span>Block </span>
-				<span data-badge="small">
-					#{String((serialValue) ?? '')}
-				</span>
+		<span data-row="inline align-center gap-2 wrap">
+			<span>Block </span>
+			<span data-badge="small">
+				#{String(pendingEntity.height)}
 			</span>
-		{:else}
-			{[String((pendingEntity.hash) ?? '')].filter(Boolean).join(' ')}
-		{/if}
+		</span>
 	{/snippet}
 
 	{#snippet Value()}
-		{@const serialValue = pendingEntity.height}
-		{#if serialValue !== undefined && serialValue !== null}
-			<span data-badge="small">
-				#{String((serialValue) ?? '')}
-			</span>
-		{:else}
-			{[String((pendingEntity.hash) ?? '')].filter(Boolean).join(' ')}
-		{/if}
+		<span data-badge="small">
+			#{String(pendingEntity.height)}
+		</span>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'hash') && Object.hasOwn(prefetched, 'transactionCount')}
-			{@const transactionCount0 = pendingEntity.transactionCount}
-			{#if transactionCount0 !== undefined && transactionCount0 !== null}
-				<span data-text="muted">
-					{String((transactionCount0) ?? '')}
-				</span>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={utxoBlock}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const transactionCount0 = resolvedEntity.transactionCount}
-					{#if transactionCount0 !== undefined && transactionCount0 !== null}
-						<span data-text="muted">
-							{String((transactionCount0) ?? '')}
-						</span>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={utxoBlock}>
+			{#snippet children(entity)}
+				{@const transactionCount0 = entity.transactionCount}
+				{#if transactionCount0 != null}
+					<span data-text="muted">
+						{String(transactionCount0)}
+					</span>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -160,26 +107,9 @@
 			<div>
 				<dt>Height</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									height: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const height = resolvedEntity.height}
-							{#if height !== undefined && height !== null}
-								<NumberValue
-									value={height}
-								/>
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					<NumberValue
+						value={pendingEntity.height}
+					/>
 				</dd>
 			</div>
 
@@ -187,21 +117,10 @@
 				<dt>Hash</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									hash: true,
-								},
-							})
-						}
+						resource={utxoBlock}
 					>
 						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const hash = resolvedEntity.hash}
-							{#if hash !== undefined && hash !== null}
-								<TruncatedValue value={String((hash) ?? '')} />
-							{/if}
+							<TruncatedValue value={entity.hash} />
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -210,7 +129,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							timestampMs: true,
 						},
@@ -218,9 +136,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const timestampMs = resolvedEntity.timestampMs}
-					{#if timestampMs !== undefined && timestampMs !== null}
+					{@const timestampMs = entity.timestampMs}
+					{#if timestampMs != null}
 						<div>
 							<dt>Timestamp</dt>
 							<dd>
@@ -232,23 +149,15 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							transactionCount: true,
-						},
-					})
-				}
+				resource={utxoBlock}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const transactionCount = resolvedEntity.transactionCount}
-					{#if transactionCount !== undefined && transactionCount !== null}
+					{@const transactionCount = entity.transactionCount}
+					{#if transactionCount != null}
 						<div>
 							<dt>Transaction count</dt>
 							<dd>
-								{String((transactionCount) ?? '')}
+								{String(transactionCount)}
 							</dd>
 						</div>
 					{/if}
@@ -260,7 +169,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							merkleRoot: true,
 						},
@@ -268,13 +176,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const merkleRoot = resolvedEntity.merkleRoot}
-					{#if merkleRoot !== undefined && merkleRoot !== null}
+					{@const merkleRoot = entity.merkleRoot}
+					{#if merkleRoot != null}
 						<div>
 							<dt>Merkle root</dt>
 							<dd>
-								{String((merkleRoot) ?? '')}
+								{merkleRoot}
 							</dd>
 						</div>
 					{/if}
@@ -284,7 +191,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							nonce: true,
 						},
@@ -292,13 +198,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const nonce = resolvedEntity.nonce}
-					{#if nonce !== undefined && nonce !== null}
+					{@const nonce = entity.nonce}
+					{#if nonce != null}
 						<div>
 							<dt>Nonce</dt>
 							<dd>
-								{String((nonce) ?? '')}
+								{String(nonce)}
 							</dd>
 						</div>
 					{/if}
@@ -308,7 +213,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							difficulty: true,
 						},
@@ -316,13 +220,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const difficulty = resolvedEntity.difficulty}
-					{#if difficulty !== undefined && difficulty !== null}
+					{@const difficulty = entity.difficulty}
+					{#if difficulty != null}
 						<div>
 							<dt>Difficulty</dt>
 							<dd>
-								{String((difficulty) ?? '')}
+								{String(difficulty)}
 							</dd>
 						</div>
 					{/if}
@@ -332,7 +235,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							sizeBytes: true,
 						},
@@ -340,13 +242,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const sizeBytes = resolvedEntity.sizeBytes}
-					{#if sizeBytes !== undefined && sizeBytes !== null}
+					{@const sizeBytes = entity.sizeBytes}
+					{#if sizeBytes != null}
 						<div>
 							<dt>Size</dt>
 							<dd>
-								{String((sizeBytes) ?? '')}
+								{String(sizeBytes)}
 							</dd>
 						</div>
 					{/if}
@@ -356,7 +257,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							weightUnits: true,
 						},
@@ -364,13 +264,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const weightUnits = resolvedEntity.weightUnits}
-					{#if weightUnits !== undefined && weightUnits !== null}
+					{@const weightUnits = entity.weightUnits}
+					{#if weightUnits != null}
 						<div>
 							<dt>Weight</dt>
 							<dd>
-								{String((weightUnits) ?? '')}
+								{String(weightUnits)}
 							</dd>
 						</div>
 					{/if}
@@ -381,41 +280,13 @@
 				resource={selection.$parent}
 			>
 				{#snippet children(utxoBlock)}
-					{#if utxoBlock != null && utxoBlock[EntityMetaKey.Selector] != null}
+					{#if utxoBlock != null}
 						<div>
 							<dt>Parent</dt>
 							<dd>
 								<UtxoBlockView
 									selection={select(EntityType.UtxoBlock, utxoBlock[EntityMetaKey.Selector])}
 									prefetched={utxoBlock}
-									href={
-										(
-											utxoBlock[EntityMetaKey.Selector] != null && 'height' in utxoBlock[EntityMetaKey.Selector]
-											&& utxoBlock[EntityMetaKey.Selector].height != null
-											&& utxoBlock[EntityMetaKey.Selector] != null && 'hash' in utxoBlock[EntityMetaKey.Selector]
-											&& utxoBlock[EntityMetaKey.Selector].hash != null
-											&& utxoBlock[EntityMetaKey.Selector] != null && '$network' in utxoBlock[EntityMetaKey.Selector] ?
-												utxoBlock[EntityMetaKey.Selector].$network != null && 'caip2' in utxoBlock[EntityMetaKey.Selector].$network
-												&& utxoBlock[EntityMetaKey.Selector].$network.caip2 != null ?
-													resolve('/network/[network=networkCaip2OrNetworkSlug]/block/[blockNumber=nonNegativeBigInt]/[hash=stringSegment]', {
-												blockNumber: String(utxoBlock[EntityMetaKey.Selector].height ?? ''),
-												hash: String(utxoBlock[EntityMetaKey.Selector].hash ?? ''),
-												network: String(caip2StringFromValue(utxoBlock[EntityMetaKey.Selector].$network.caip2) ?? ''),
-											})
-											:
-													utxoBlock[EntityMetaKey.Selector].$network != null && 'slug' in utxoBlock[EntityMetaKey.Selector].$network
-													&& utxoBlock[EntityMetaKey.Selector].$network.slug != null ?
-														resolve('/network/[network=networkCaip2OrNetworkSlug]/block/[blockNumber=nonNegativeBigInt]/[hash=stringSegment]', {
-													blockNumber: String(utxoBlock[EntityMetaKey.Selector].height ?? ''),
-													hash: String(utxoBlock[EntityMetaKey.Selector].hash ?? ''),
-													network: String(utxoBlock[EntityMetaKey.Selector].$network.slug ?? ''),
-												})
-												:
-													undefined
-										:
-												undefined
-										)
-									}
 									layout={EntityLayout.Value}
 									open={false}
 								/>
@@ -430,23 +301,6 @@
 				<dd>
 					<NetworkView
 						selection={select(EntityType.Network, selection.entitySelector.$network)}
-						href={
-							(
-								selection.entitySelector.$network != null && 'caip2' in selection.entitySelector.$network
-								&& selection.entitySelector.$network.caip2 != null ?
-									resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-								network: String(caip2StringFromValue(selection.entitySelector.$network.caip2) ?? ''),
-							})
-							:
-									selection.entitySelector.$network != null && 'slug' in selection.entitySelector.$network
-									&& selection.entitySelector.$network.slug != null ?
-										resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-									network: String(selection.entitySelector.$network.slug ?? ''),
-								})
-								:
-									undefined
-							)
-						}
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -462,12 +316,12 @@
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
-				<UtxoTransactionsView
-					selection={utxoBlockUtxoTransactionsViewTransactionsResource}
-					countResource={utxoBlockUtxoTransactionsViewTransactionsResource.count}
-					title='Transactions'
-					id='UtxoTransactionsView-transactions'
-				/>
+					<UtxoTransactionsView
+						selection={utxoBlockUtxoTransactionsViewTransactionsResource}
+						countResource={utxoBlockUtxoTransactionsViewTransactionsResource.count}
+						title='Transactions'
+						id='transactions'
+					/>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>

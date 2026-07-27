@@ -1,18 +1,22 @@
-import type { SourceBinding } from '$/sources/SourceBinding.ts'
-import { sourceFetch, firstHttpUrlForBinding } from '$/sources/_runtime/http.ts'
-import { sourceGetText } from '$/sources/_runtime/http.ts'
+import bindings from '$/sources/HuggingFace/bindings.ts'
+import {
+	firstHttpUrlForBinding,
+	sourceFetch,
+	sourceGetText,
+} from '$/sources/_runtime/http.ts'
 import { throwHttpError } from '$/lib/http.ts'
 import type {
 	HuggingFaceModel,
 	HuggingFaceModelList,
 } from '$/sources/HuggingFace/Rest/types.ts'
+import { Source } from '$/sources/Source.ts'
 
-const getJson = async <_Result>({
-	binding,
+const binding = bindings[Source.HuggingFaceHub_Rest]
+
+const requestHuggingFaceJson = async <_Result>({
 	path,
 	credential,
 }: {
-	binding: SourceBinding
 	path: string
 	credential?: string
 }) => {
@@ -31,15 +35,12 @@ const getJson = async <_Result>({
 }
 
 export const listModels = ({
-	binding,
 	credential,
 	search,
 }: {
-	binding: SourceBinding
 	credential?: string
 	search?: string
-}) => getJson<HuggingFaceModelList>({
-	binding,
+}) => requestHuggingFaceJson<HuggingFaceModelList>({
 	path: `/api/models${
 		search == null || search === '' ?
 			''
@@ -50,17 +51,14 @@ export const listModels = ({
 })
 
 export const retrieveModel = ({
-	binding,
 	repoId,
 	revision,
 	credential,
 }: {
-	binding: SourceBinding
 	repoId: string
 	revision?: string
 	credential?: string
-}) => getJson<HuggingFaceModel>({
-	binding,
+}) => requestHuggingFaceJson<HuggingFaceModel>({
 	path: `/api/models/${repoId}${
 		revision == null || revision === '' ?
 			''
@@ -71,16 +69,16 @@ export const retrieveModel = ({
 })
 
 export const retrieveFileText = ({
-	binding,
 	repoId,
 	revision,
 	path,
 }: {
-	binding: SourceBinding
 	repoId: string
 	revision: string
 	path: string
-}) => sourceGetText(
-	binding,
-	`https://huggingface.co/${repoId}/resolve/${revision}/${path}`
-)
+}) => {
+	return sourceGetText(
+		binding,
+		`https://huggingface.co/${repoId}/resolve/${revision}/${path}`
+	)
+}

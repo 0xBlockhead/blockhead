@@ -3,7 +3,6 @@
 import type { Caip2NetworkKey, NetworkSlug } from '$/constants/Network.ts'
 import type { SourcePublicEnv } from '$/sources/$sources.ts'
 import { Source } from '$/sources/Source.ts'
-import type { SourceProvider } from '$/sources/SourceProvider.ts'
 import type { Type } from 'arktype'
 
 export enum SourceTargetKind {
@@ -57,7 +56,6 @@ export enum WireProtocol {
 }
 
 export enum ApiFamily {
-	A2aProtocol = 'A2aProtocol',
 	AcpProtocol = 'AcpProtocol',
 	ArweaveGateway = 'ArweaveGateway',
 	AtprotoSync = 'AtprotoSync',
@@ -112,11 +110,11 @@ export enum ApiFamily {
 	SubstrateJsonRpc = 'SubstrateJsonRpc',
 	SwarmGateway = 'SwarmGateway',
 	TezosNodeRpc = 'TezosNodeRpc',
+	TonCenterV3Api = 'TonCenterV3Api',
 	TonLiteServerAdnl = 'TonLiteServerAdnl',
 	UriScheme = 'UriScheme',
 	WalletApi = 'WalletApi',
 	WebTorrentApi = 'WebTorrentApi',
-	X402Protocol = 'X402Protocol',
 	XmtpClientApi = 'XmtpClientApi',
 	XrpcLexicon = 'XrpcLexicon',
 }
@@ -261,9 +259,10 @@ export type SourceServerCredentialDefinition = {
 	injection: SourceServerCredentialInjection
 }
 
-export type SourceBinding = {
-	provider: SourceProvider
-	source: Source
+export type SourceBinding<
+	_Source extends Source = Source,
+> = {
+	source: _Source
 	target: SourceTarget
 	endpoints: readonly SourceEndpoint[]
 	wireProtocol: WireProtocol
@@ -275,3 +274,25 @@ export type SourceBinding = {
 	proxyId?: string
 	serverCredentialId?: string
 }
+
+export type SourceBindingIndex = {
+	readonly [_Source in Source]?:
+		| SourceBinding<_Source>
+		| readonly SourceBinding<_Source>[]
+}
+
+export const sourceBindingId = ({
+	source,
+	target,
+	delivery,
+	apiFamily,
+}: Pick<
+	SourceBinding,
+	'source' | 'target' | 'delivery' | 'apiFamily'
+>) => JSON.stringify([
+	source,
+	target.kind,
+	target.key,
+	delivery,
+	apiFamily,
+])

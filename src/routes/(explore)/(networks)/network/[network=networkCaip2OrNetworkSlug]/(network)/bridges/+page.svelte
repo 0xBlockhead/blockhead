@@ -3,11 +3,11 @@
 <script lang="ts">
 	// Types/constants
 	import type { PageProps } from './$types.ts'
+	import { resolve } from '$app/paths'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
@@ -16,11 +16,8 @@
 		data,
 		params,
 	}: PageProps = $props()
-
-
 	// Components
 	import Page from '$/components/Page.svelte'
-	import ProjectionBoundary from '$/components/ProjectionBoundary.svelte'
 	import EvmNetworkBridgesView from '$/views/EvmNetworkBridgesView.svelte'
 </script>
 
@@ -31,23 +28,20 @@
 
 
 <Page>
-	<ProjectionBoundary
-		resource={select(EntityType.Network, data.selector).Evm}
-	>
-		{#snippet Applicable(projection)}
-			<EvmNetworkBridgesView
-				href={
-					resolve('/network/[network=networkCaip2OrNetworkSlug]/bridges', {
-						network: params.network,
-					})
+	<EvmNetworkBridgesView
+		href={
+			resolve(
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/bridges',
+				{
+					network: String(params.network),
 				}
-				title='Bridges'
-				selection={projection.$$bridges}
-				id='account-evm-network-bridge'
-				data-column-item="flexible"
-				data-card
-				data-scroll-container
-			/>
-		{/snippet}
-	</ProjectionBoundary>
+			)
+		}
+		title='Bridges'
+		selection={select(EntityType.Network, data.selector).Evm.$$bridges}
+		id='bridges'
+		data-column-item="flexible"
+		data-card
+		data-scroll-container
+	/>
 </Page>

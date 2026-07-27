@@ -30,22 +30,28 @@
 {#key params.fullname}
 	<ParentPageCollapsible
 		href={
-			resolve('/reddit/link/[fullname=stringSegment]', {
-				fullname: params.fullname,
-			})
+			resolve(
+				'/(social)/(reddit)/reddit/(globalRedditNetwork)/link/[fullname=stringSegment]',
+				{
+					fullname: String(params.fullname),
+				}
+			)
 		}
 	>
 		{#snippet Summary()}
-			{@const DetailView = RedditLinkView}
-
-			<DetailView
-				selection={select(EntityType.RedditLink, data.selector, { sources: [
-		Source.Reddit_PublicJson,
-	] })}
+			<RedditLinkView
+				selection={
+					select(EntityType.RedditLink, data.selector, { sources: [
+						Source.Reddit_PublicJson,
+					] })
+				}
 				href={
-					resolve('/reddit/link/[fullname=stringSegment]', {
-						fullname: params.fullname,
-					})
+					resolve(
+						'/(social)/(reddit)/reddit/(globalRedditNetwork)/link/[fullname=stringSegment]',
+						{
+							fullname: String(params.fullname),
+						}
+					)
 				}
 				layout={EntityLayout.SummaryInline}
 			/>

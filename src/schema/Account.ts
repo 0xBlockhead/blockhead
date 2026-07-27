@@ -6,10 +6,7 @@ import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
-export enum AccountSelector {
-	Caip10 = 'Caip10',
-}
-export const Account = entity({
+export default entity({
 	entityType: EntityType.Account,
 	labels: {
 		singular: 'account',

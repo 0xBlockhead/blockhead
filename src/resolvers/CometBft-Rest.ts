@@ -2,15 +2,11 @@ import {
 	defineResolver,
 } from '$/resolvers/defineResolver.ts'
 import { cosmosNetworkBySlug } from '$/constants/CosmosNetwork.ts'
-import { sourceProviderDefinitions } from '$/sources/$sourceProviders.ts'
-import { SourceTargetKind } from '$/sources/SourceBinding.ts'
 import {
 	EntityMetaKey,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
-import { CosmosBlockSelector } from '$/schema/CosmosBlock.ts'
-import { CosmosTransactionSelector } from '$/schema/CosmosTransaction.ts'
 
 type NetworkId = { caip2: {
 	namespace: string
@@ -27,19 +23,6 @@ const assertCosmosHub = (network: NetworkId) => {
 	}
 }
 
-const cometBftBindings = sourceProviderDefinitions
-	.flatMap((provider) => provider.bindings)
-	.filter((binding) => (
-		binding.source === Source.CometBft_Rest
-		&& binding.target.kind === SourceTargetKind.Caip2Network
-		&& binding.target.key === `${cosmosNetworkBySlug.cosmos.caip2.namespace}:${cosmosNetworkBySlug.cosmos.caip2.reference}`
-	))
-
-if (cometBftBindings.length !== 1)
-	throw new Error('CometBft_Rest: canonical Cosmos Hub source binding is missing or ambiguous')
-
-const cometBftBinding = cometBftBindings[0]
-
 export default {
 	source: Source.CometBft_Rest,
 
@@ -47,13 +30,12 @@ export default {
 		defineResolver(Source.CometBft_Rest, {
 			entityType: EntityType.CosmosBlock,
 			resolve: {
-				[CosmosBlockSelector.NetworkHeight]: {
+				NetworkHeight: {
 					resolve: async ({ $network, height }) => {
 						assertCosmosHub($network)
 
 						const { getBlock } = await import('$/sources/CometBft/Rest/queries.ts')
 						const wireBlock = await getBlock({
-							binding: cometBftBinding,
 							height,
 						})
 						return {
@@ -73,12 +55,11 @@ export default {
 		defineResolver(Source.CometBft_Rest, {
 			entityType: EntityType.CosmosTransaction,
 			resolve: {
-				[CosmosTransactionSelector.NetworkTxHash]: {
+				NetworkTxHash: {
 					resolve: async ({ $network, txHash }) => {
 						assertCosmosHub($network)
 						const { getTx } = await import('$/sources/CometBft/Rest/queries.ts')
 						const wireTransaction = await getTx({
-							binding: cometBftBinding,
 							txHash: txHash,
 						})
 						return {

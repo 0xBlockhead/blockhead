@@ -2,14 +2,10 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
 	import { marketAssetRouteLabelByKind } from '$/constants/Market.ts'
 
 
@@ -26,40 +22,17 @@
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.Market_Derivative_Timestamp>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.Market_Derivative_Timestamp>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.Market_Derivative_Timestamp> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const marketDerivativeTimestamp = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {
-			markPrice: true,
-			indexPrice: true,
-			fundingRate: true,
-		},
-	} : {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const marketDerivativeTimestamp = $derived(selection({
 		fields: {
 			markPrice: true,
 			indexPrice: true,
 			fundingRate: true,
 		},
 	}))
-	const titleFallback = $derived([String((pendingEntity.feedKey) ?? '')].filter(Boolean).join(' ') || 'market derivative timestamp')
-	const viewDomId = $derived('market-derivative-timestamp-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const titleFallback = $derived((pendingEntity.feedKey ?? '') || 'market derivative timestamp')
 
 
 	// Components
@@ -72,45 +45,21 @@
 
 <EntityView
 	entityType={EntityType.Market_Derivative_Timestamp}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
 	href={
-		href ?? (
-			selection.entitySelector != null && 'timestampMs' in selection.entitySelector
-			&& selection.entitySelector.timestampMs != null
-			&& selection.entitySelector != null && 'feedKey' in selection.entitySelector
-			&& selection.entitySelector.feedKey != null
-			&& selection.entitySelector != null && '$market' in selection.entitySelector
-			&& selection.entitySelector.$market != null && 'marketKind' in selection.entitySelector.$market
-			&& selection.entitySelector.$market.marketKind != null
-			&& selection.entitySelector.$market != null && '$base' in selection.entitySelector.$market
-			&& selection.entitySelector.$market.$base != null && 'assetKey' in selection.entitySelector.$market.$base
-			&& selection.entitySelector.$market.$base.assetKey != null
-			&& selection.entitySelector.$market != null && '$quote' in selection.entitySelector.$market
-			&& selection.entitySelector.$market.$quote != null && 'assetKey' in selection.entitySelector.$market.$quote
-			&& selection.entitySelector.$market.$quote.assetKey != null
-			&& selection.entitySelector.$market != null && '$marketVenue' in selection.entitySelector.$market
-			&& selection.entitySelector.$market.$marketVenue != null && 'marketVenueId' in selection.entitySelector.$market.$marketVenue
-			&& selection.entitySelector.$market.$marketVenue.marketVenueId != null
-			&& selection.entitySelector != null && '$base' in selection.entitySelector
-			&& selection.entitySelector.$base != null && 'kind' in selection.entitySelector.$base
-			&& selection.entitySelector.$base.kind != null
-			&& selection.entitySelector != null && '$quote' in selection.entitySelector
-			&& selection.entitySelector.$quote != null && 'kind' in selection.entitySelector.$quote
-			&& selection.entitySelector.$quote.kind != null ?
-				resolve('/venue/[marketVenue=marketVenueId]/market/[baseKind=stringSegment]/[base=stringSegment]/[quoteKind=stringSegment]/[quote=stringSegment]/[marketKind=stringSegment]/derivatives/[timestampMs=nonNegativeInteger]/[feedKey=stringSegment]', {
-			timestampMs: String(selection.entitySelector.timestampMs ?? ''),
-			feedKey: encodeURIComponent(String(selection.entitySelector.feedKey ?? '')),
-			marketKind: String(selection.entitySelector.$market.marketKind ?? ''),
-			base: String(selection.entitySelector.$market.$base.assetKey ?? ''),
-			quote: String(selection.entitySelector.$market.$quote.assetKey ?? ''),
-			marketVenue: String(selection.entitySelector.$market.$marketVenue.marketVenueId ?? ''),
-			baseKind: String(marketAssetRouteLabelByKind[String(selection.entitySelector.$base.kind)] ?? ''),
-			quoteKind: String(marketAssetRouteLabelByKind[String(selection.entitySelector.$quote.kind)] ?? ''),
-		})
-		:
-				undefined
+		href ?? resolve(
+			'/(assets)/venue/[marketVenue=marketVenueId]/market/[baseKind=stringSegment]/[base=stringSegment]/[quoteKind=stringSegment]/[quote=stringSegment]/[marketKind=stringSegment]/(market)/derivatives/[timestampMs=nonNegativeInteger]/[feedKey=stringSegment]',
+			{
+				marketVenue: String(selection.entitySelector.$market.$marketVenue.marketVenueId),
+				baseKind: String(marketAssetRouteLabelByKind[String(selection.entitySelector.$market.$base.kind)]),
+				base: String(selection.entitySelector.$market.$base.assetKey),
+				quoteKind: String(marketAssetRouteLabelByKind[String(selection.entitySelector.$market.$quote.kind)]),
+				quote: String(selection.entitySelector.$market.$quote.assetKey),
+				marketKind: String(selection.entitySelector.$market.marketKind),
+				timestampMs: String(selection.entitySelector.timestampMs),
+				feedKey: encodeURIComponent(String(selection.entitySelector.feedKey)),
+			}
 		)
 	}
 	{layout}
@@ -118,54 +67,29 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'markPrice') && Object.hasOwn(prefetched, 'indexPrice') && Object.hasOwn(prefetched, 'fundingRate')}
-			{[String((pendingEntity.feedKey) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-		{:else}
-			<ResourceBoundary resource={marketDerivativeTimestamp}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.feedKey) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		{(pendingEntity.feedKey ?? '') || 'market derivative timestamp'}
 	{/snippet}
 
 	{#snippet Value()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'markPrice') && Object.hasOwn(prefetched, 'indexPrice') && Object.hasOwn(prefetched, 'fundingRate')}
-			{[String((pendingEntity.markPrice) ?? ''), String((pendingEntity.indexPrice) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.feedKey) ?? '')].filter(Boolean).join(' ') || titleFallback}
-		{:else}
-			<ResourceBoundary resource={marketDerivativeTimestamp}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.markPrice) ?? ''), String((resolvedEntity.indexPrice) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.feedKey) ?? '')].filter(Boolean).join(' ') || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={marketDerivativeTimestamp}>
+			{#snippet children(entity)}
+				{[String(entity.markPrice ?? ''), String(entity.indexPrice ?? '')].filter(Boolean).join(' ') || pendingEntity.feedKey || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'markPrice') && Object.hasOwn(prefetched, 'indexPrice') && Object.hasOwn(prefetched, 'fundingRate')}
-			{@const fundingRate0 = pendingEntity.fundingRate}
-			{#if fundingRate0 !== undefined && fundingRate0 !== null}
-				<span data-text="muted">
-					{String((fundingRate0) ?? '')}
-					<span>%</span>
-				</span>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={marketDerivativeTimestamp}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const fundingRate0 = resolvedEntity.fundingRate}
-					{#if fundingRate0 !== undefined && fundingRate0 !== null}
-						<span data-text="muted">
-							{String((fundingRate0) ?? '')}
-							<span>%</span>
-						</span>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={marketDerivativeTimestamp}>
+			{#snippet children(entity)}
+				{@const fundingRate0 = entity.fundingRate}
+				{#if fundingRate0 != null}
+					<span data-text="muted">
+						{String(fundingRate0)}
+						<span>%</span>
+					</span>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -173,69 +97,27 @@
 			<div>
 				<dt>Feed key</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									feedKey: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const feedKey = resolvedEntity.feedKey}
-							{#if feedKey !== undefined && feedKey !== null}
-								{String((feedKey) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{pendingEntity.feedKey}
 				</dd>
 			</div>
 
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									timestampMs: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const timestampMs = resolvedEntity.timestampMs}
-							{#if timestampMs !== undefined && timestampMs !== null}
-								<Timestamp timestamp={Number(timestampMs)} />
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
 				</dd>
 			</div>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							fundingRate: true,
-						},
-					})
-				}
+				resource={marketDerivativeTimestamp}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const fundingRate = resolvedEntity.fundingRate}
-					{#if fundingRate !== undefined && fundingRate !== null}
+					{@const fundingRate = entity.fundingRate}
+					{#if fundingRate != null}
 						<div>
 							<dt>Funding rate</dt>
 							<dd>
-								{String((fundingRate) ?? '')}
+								{String(fundingRate)}
 								<span>%</span>
 							</dd>
 						</div>
@@ -246,7 +128,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							openInterestUsd: true,
 						},
@@ -254,9 +135,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const openInterestUsd = resolvedEntity.openInterestUsd}
-					{#if openInterestUsd !== undefined && openInterestUsd !== null}
+					{@const openInterestUsd = entity.openInterestUsd}
+					{#if openInterestUsd != null}
 						<div>
 							<dt>Open interest USD</dt>
 							<dd>
@@ -273,7 +153,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							indexBasisPercent: true,
 						},
@@ -281,13 +160,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const indexBasisPercent = resolvedEntity.indexBasisPercent}
-					{#if indexBasisPercent !== undefined && indexBasisPercent !== null}
+					{@const indexBasisPercent = entity.indexBasisPercent}
+					{#if indexBasisPercent != null}
 						<div>
 							<dt>Index basis percent</dt>
 							<dd>
-								{String((indexBasisPercent) ?? '')}
+								{String(indexBasisPercent)}
 								<span>%</span>
 							</dd>
 						</div>
@@ -298,19 +176,11 @@
 
 		<dl data-column-item="center">
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							markPrice: true,
-						},
-					})
-				}
+				resource={marketDerivativeTimestamp}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const markPrice = resolvedEntity.markPrice}
-					{#if markPrice !== undefined && markPrice !== null}
+					{@const markPrice = entity.markPrice}
+					{#if markPrice != null}
 						<div>
 							<dt>Mark price</dt>
 							<dd>
@@ -325,19 +195,11 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							indexPrice: true,
-						},
-					})
-				}
+				resource={marketDerivativeTimestamp}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const indexPrice = resolvedEntity.indexPrice}
-					{#if indexPrice !== undefined && indexPrice !== null}
+					{@const indexPrice = entity.indexPrice}
+					{#if indexPrice != null}
 						<div>
 							<dt>Index price</dt>
 							<dd>
@@ -354,7 +216,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							expiredAtMs: true,
 						},
@@ -362,13 +223,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const expiredAtMs = resolvedEntity.expiredAtMs}
-					{#if expiredAtMs !== undefined && expiredAtMs !== null}
+					{@const expiredAtMs = entity.expiredAtMs}
+					{#if expiredAtMs != null}
 						<div>
 							<dt>Expired at</dt>
 							<dd>
-								{String((expiredAtMs) ?? '')}
+								{String(expiredAtMs)}
 							</dd>
 						</div>
 					{/if}
@@ -378,7 +238,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							lastTradedAtMs: true,
 						},
@@ -386,13 +245,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const lastTradedAtMs = resolvedEntity.lastTradedAtMs}
-					{#if lastTradedAtMs !== undefined && lastTradedAtMs !== null}
+					{@const lastTradedAtMs = entity.lastTradedAtMs}
+					{#if lastTradedAtMs != null}
 						<div>
 							<dt>Last traded at</dt>
 							<dd>
-								{String((lastTradedAtMs) ?? '')}
+								{String(lastTradedAtMs)}
 							</dd>
 						</div>
 					{/if}
@@ -402,7 +260,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							providerAssetId: true,
 						},
@@ -410,13 +267,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const providerAssetId = resolvedEntity.providerAssetId}
-					{#if providerAssetId !== undefined && providerAssetId !== null}
+					{@const providerAssetId = entity.providerAssetId}
+					{#if providerAssetId != null}
 						<div>
 							<dt>Provider asset ID</dt>
 							<dd>
-								{String((providerAssetId) ?? '')}
+								{providerAssetId}
 							</dd>
 						</div>
 					{/if}
@@ -426,7 +282,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							transport: true,
 						},
@@ -434,13 +289,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const transport = resolvedEntity.transport}
-					{#if transport !== undefined && transport !== null}
+					{@const transport = entity.transport}
+					{#if transport != null}
 						<div>
 							<dt>Transport</dt>
 							<dd>
-								{String((transport) ?? '')}
+								{transport}
 							</dd>
 						</div>
 					{/if}
@@ -452,35 +306,6 @@
 				<dd>
 					<MarketView
 						selection={select(EntityType.Market, selection.entitySelector.$market)}
-						href={
-							(
-								selection.entitySelector.$market != null && 'marketKind' in selection.entitySelector.$market
-								&& selection.entitySelector.$market.marketKind != null
-								&& selection.entitySelector.$market != null && '$base' in selection.entitySelector.$market
-								&& selection.entitySelector.$market.$base != null && 'assetKey' in selection.entitySelector.$market.$base
-								&& selection.entitySelector.$market.$base.assetKey != null
-								&& selection.entitySelector.$market != null && '$quote' in selection.entitySelector.$market
-								&& selection.entitySelector.$market.$quote != null && 'assetKey' in selection.entitySelector.$market.$quote
-								&& selection.entitySelector.$market.$quote.assetKey != null
-								&& selection.entitySelector.$market != null && '$marketVenue' in selection.entitySelector.$market
-								&& selection.entitySelector.$market.$marketVenue != null && 'marketVenueId' in selection.entitySelector.$market.$marketVenue
-								&& selection.entitySelector.$market.$marketVenue.marketVenueId != null
-								&& selection.entitySelector.$market.$base != null && 'kind' in selection.entitySelector.$market.$base
-								&& selection.entitySelector.$market.$base.kind != null
-								&& selection.entitySelector.$market.$quote != null && 'kind' in selection.entitySelector.$market.$quote
-								&& selection.entitySelector.$market.$quote.kind != null ?
-									resolve('/venue/[marketVenue=marketVenueId]/market/[baseKind=stringSegment]/[base=stringSegment]/[quoteKind=stringSegment]/[quote=stringSegment]/[marketKind=stringSegment]', {
-								marketKind: String(selection.entitySelector.$market.marketKind ?? ''),
-								base: String(selection.entitySelector.$market.$base.assetKey ?? ''),
-								quote: String(selection.entitySelector.$market.$quote.assetKey ?? ''),
-								marketVenue: String(selection.entitySelector.$market.$marketVenue.marketVenueId ?? ''),
-								baseKind: String(marketAssetRouteLabelByKind[String(selection.entitySelector.$market.$base.kind)] ?? ''),
-								quoteKind: String(marketAssetRouteLabelByKind[String(selection.entitySelector.$market.$quote.kind)] ?? ''),
-							})
-							:
-									undefined
-							)
-						}
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -494,43 +319,12 @@
 						resource={selection.$parentMarket}
 					>
 						{#snippet children(market)}
-							{#if market != null && market[EntityMetaKey.Selector] != null}
-								<MarketView
-									selection={select(EntityType.Market, market[EntityMetaKey.Selector])}
-									prefetched={market}
-									href={
-										(
-											market[EntityMetaKey.Selector] != null && 'marketKind' in market[EntityMetaKey.Selector]
-											&& market[EntityMetaKey.Selector].marketKind != null
-											&& market[EntityMetaKey.Selector] != null && '$base' in market[EntityMetaKey.Selector]
-											&& market[EntityMetaKey.Selector].$base != null && 'assetKey' in market[EntityMetaKey.Selector].$base
-											&& market[EntityMetaKey.Selector].$base.assetKey != null
-											&& market[EntityMetaKey.Selector] != null && '$quote' in market[EntityMetaKey.Selector]
-											&& market[EntityMetaKey.Selector].$quote != null && 'assetKey' in market[EntityMetaKey.Selector].$quote
-											&& market[EntityMetaKey.Selector].$quote.assetKey != null
-											&& market[EntityMetaKey.Selector] != null && '$marketVenue' in market[EntityMetaKey.Selector]
-											&& market[EntityMetaKey.Selector].$marketVenue != null && 'marketVenueId' in market[EntityMetaKey.Selector].$marketVenue
-											&& market[EntityMetaKey.Selector].$marketVenue.marketVenueId != null
-											&& market[EntityMetaKey.Selector].$base != null && 'kind' in market[EntityMetaKey.Selector].$base
-											&& market[EntityMetaKey.Selector].$base.kind != null
-											&& market[EntityMetaKey.Selector].$quote != null && 'kind' in market[EntityMetaKey.Selector].$quote
-											&& market[EntityMetaKey.Selector].$quote.kind != null ?
-												resolve('/venue/[marketVenue=marketVenueId]/market/[baseKind=stringSegment]/[base=stringSegment]/[quoteKind=stringSegment]/[quote=stringSegment]/[marketKind=stringSegment]', {
-											marketKind: String(market[EntityMetaKey.Selector].marketKind ?? ''),
-											base: String(market[EntityMetaKey.Selector].$base.assetKey ?? ''),
-											quote: String(market[EntityMetaKey.Selector].$quote.assetKey ?? ''),
-											marketVenue: String(market[EntityMetaKey.Selector].$marketVenue.marketVenueId ?? ''),
-											baseKind: String(marketAssetRouteLabelByKind[String(market[EntityMetaKey.Selector].$base.kind)] ?? ''),
-											quoteKind: String(marketAssetRouteLabelByKind[String(market[EntityMetaKey.Selector].$quote.kind)] ?? ''),
-										})
-										:
-												undefined
-										)
-									}
-									layout={EntityLayout.Value}
-									open={false}
-								/>
-							{/if}
+							<MarketView
+								selection={select(EntityType.Market, market[EntityMetaKey.Selector])}
+								prefetched={market}
+								layout={EntityLayout.Value}
+								open={false}
+							/>
 						{/snippet}
 					</ResourceBoundary>
 				</dd>

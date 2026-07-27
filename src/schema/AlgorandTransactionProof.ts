@@ -1,15 +1,12 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { entity, facet } from '$/schema/$schema.ts'
+import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 import { type } from 'arktype'
 
-export enum AlgorandTransactionProofSelector {
-	TransactionRoundHashTypeSource = 'TransactionRoundHashTypeSource',
-}
-export const AlgorandTransactionProof = entity({
+export default entity({
 	entityType: EntityType.AlgorandTransactionProof,
 	labels: {
 		singular: 'algorand transaction proof',
@@ -50,7 +47,7 @@ export const AlgorandTransactionProof = entity({
 	stibHash: {
 		label: 'stib hash',
 		type: EntityFieldType.Primitive,
-		primitiveType: (ZeroExHex),
+		primitiveType: ZeroExHex,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	treeDepth: {

@@ -27,14 +27,14 @@ export const getUser = async (publicEnv: SourcePublicEnv, id: string) => (
 		publicEnv,
 		`/users/${encodeURIComponent(id)}?${(
 			new URLSearchParams({ 'user.fields': userFields }).toString()
-		)}` as const
+		)}`
 	)
 )
 
 export const getTweet = async (publicEnv: SourcePublicEnv, id: string) => (
 	xApiV2Get<XApiV2TweetResponse>(
 		publicEnv,
-		`/tweets/${encodeURIComponent(id)}?${tweetListQuery()}` as const
+		`/tweets/${encodeURIComponent(id)}?${tweetListQuery()}`
 	)
 )
 
@@ -51,7 +51,7 @@ export const listUserTweets = async (
 			...(paginationToken != null && {
 				pagination_token: paginationToken,
 			}),
-		})}` as const
+		})}`
 	)
 )
 
@@ -68,6 +68,6 @@ export const searchRecentTweets = async (
 			...(paginationToken != null && {
 				pagination_token: paginationToken,
 			}),
-		})}` as const
+		})}`
 	)
 )

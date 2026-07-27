@@ -28,16 +28,16 @@
 
 
 <ParentPageCollapsible
-	href={resolve('/swarm/access')}
+	href={resolve('/(swarm)/swarm/(swarmProtocol)/access')}
 >
 	{#snippet Summary()}
-		{@const DetailView = GlobalSwarmAccessView}
-
-		<DetailView
-			selection={select(EntityType._GlobalSwarmAccess, data.selector, { sources: [
-	Source.Constants_Internal,
-] })}
-			href={resolve('/swarm/access')}
+		<GlobalSwarmAccessView
+			selection={
+				select(EntityType._GlobalSwarmAccess, data.selector, { sources: [
+					Source.Constants_Internal,
+				] })
+			}
+			href={resolve('/(swarm)/swarm/(swarmProtocol)/access')}
 			layout={EntityLayout.SummaryInline}
 		/>
 	{/snippet}

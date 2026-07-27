@@ -1,15 +1,12 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { entity, facet } from '$/schema/$schema.ts'
+import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { EvmAddress } from '$/schema/ZeroExHex.ts'
 import { type } from 'arktype'
 
-export enum HederaContractResultSelector {
-	Transaction = 'Transaction',
-}
-export const HederaContractResult = entity({
+export default entity({
 	entityType: EntityType.HederaContractResult,
 	labels: {
 		singular: 'hedera contract result',
@@ -37,7 +34,7 @@ export const HederaContractResult = entity({
 	evmAddress: {
 		label: 'EVM address',
 		type: EntityFieldType.Primitive,
-		primitiveType: (EvmAddress),
+		primitiveType: EvmAddress,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	ethereumHash: {

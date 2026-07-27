@@ -1,18 +1,12 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { entity, facet } from '$/schema/$schema.ts'
+import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
-export enum FarcasterFeedSelector {
-	Variant = 'Variant',
-	ByUser = 'ByUser',
-	ByChannel = 'ByChannel',
-	Following = 'Following',
-}
-export const FarcasterFeed = entity({
+export default entity({
 	entityType: EntityType.FarcasterFeed,
 	labels: {
 		singular: 'Farcaster feed',
@@ -28,7 +22,7 @@ export const FarcasterFeed = entity({
 	fid: {
 		label: 'FID',
 		type: EntityFieldType.Primitive,
-		primitiveType: (type('number.integer >= 0')),
+		primitiveType: type('number.integer >= 0'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	channelId: {
@@ -40,7 +34,7 @@ export const FarcasterFeed = entity({
 	viewerFid: {
 		label: 'Viewer FID',
 		type: EntityFieldType.Primitive,
-		primitiveType: (type('number.integer >= 0')),
+		primitiveType: type('number.integer >= 0'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	label: {

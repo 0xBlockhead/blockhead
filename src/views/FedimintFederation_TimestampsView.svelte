@@ -2,69 +2,30 @@
 
 <script lang="ts">
 	// Types/constants
-	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
-	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
-	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
+	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-
-
 
 
 	// State
 	let {
 		selection,
-		countResource,
-		title = 'Fedimint federation observations',
-		typeAnnotationParagraphs = [],
-		placeholderText = undefined,
-		emptyText = undefined,
 		open = $bindable(true),
-		collapsible = true,
-		showTypeAnnotation = true,
-		id = 'FedimintFederation_Timestamps-list',
 		...EntitiesListProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyEntitiesSelection<EntityType.FedimintFederation_Timestamp>
-			countResource?: SvelteKitResource<number>
-			title?: string
-			typeAnnotationParagraphs?: string[]
-			placeholderText?: string
-			emptyText?: string
-			open?: boolean
-			collapsible?: boolean
-			showTypeAnnotation?: boolean
-			id?: string
-		},
-		EntitiesListForwardProps
-	> = $props()
+	}: EntityListViewProps<EntityType.FedimintFederation_Timestamp> = $props()
 
 
 	// Components
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView from '$/components/EntityView.svelte'
 </script>
 
-
-{#snippet TypeAnnotationParagraphs()}
-	{#each typeAnnotationParagraphs as paragraph (paragraph)}
-		<p>{paragraph}</p>
-	{/each}
-{/snippet}
 
 <EntitiesList
 	{...EntitiesListProps}
 	entityType={EntityType.FedimintFederation_Timestamp}
-	{id}
-	{title}
 	bind:open
-	{collapsible}
-	{showTypeAnnotation}
-	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
 	resource={
 		selection({
-			sources: selection.sources,
 			fields: {
 				timestampMs: true,
 				health: true,
@@ -73,38 +34,23 @@
 			},
 		})
 	}
-	{countResource}
-	getResourceItems={(fedimintFederationTimestamps) => [...new Map(fedimintFederationTimestamps.values.map((fedimintFederationTimestamp) => [fedimintFederationTimestamp[EntityMetaKey.SelectorKey], fedimintFederationTimestamp])).values()]}
-	getKey={(fedimintFederationTimestamp) => fedimintFederationTimestamp[EntityMetaKey.SelectorKey]}
-	{placeholderText}
 >
-	{#snippet Empty()}
-		{#if emptyText != null}
-			<p data-text="muted">{emptyText}</p>
-		{:else}
-			<p data-text="muted">No Fedimint federation observations yet.</p>
-		{/if}
-	{/snippet}
-
 	{#snippet Item({ item: fedimintFederationTimestamp })}
-		{@const fedimintFederationTimestampFields = { ...fedimintFederationTimestamp[EntityMetaKey.Selector], ...fedimintFederationTimestamp }}
+		{@const fedimintFederationTimestampSelector = fedimintFederationTimestamp[EntityMetaKey.Selector]}
 		<EntityView
 			entityType={EntityType.FedimintFederation_Timestamp}
-			entitySelector={fedimintFederationTimestamp[EntityMetaKey.Selector]}
-			layout={EntityLayout.Summary}
-			open={false}
-			showTypeAnnotation={false}
+			entitySelector={fedimintFederationTimestampSelector}
 		>
 			{#snippet Title()}
-				{[String((fedimintFederationTimestampFields.timestampMs) ?? '')].filter(Boolean).join(' ') || 'Fedimint federation timestamp'}
+				{String(fedimintFederationTimestampSelector.timestampMs) || 'Fedimint federation timestamp'}
 			{/snippet}
 
 			{#snippet Value()}
-				{[String((fedimintFederationTimestampFields.health) ?? ''), String((fedimintFederationTimestampFields.reachable) ?? '')].filter(Boolean).join(' ')}
+				{[(fedimintFederationTimestamp.health ?? ''), String(fedimintFederationTimestamp.reachable ?? '')].filter(Boolean).join(' ')}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{[String((fedimintFederationTimestampFields.source) ?? '')].filter(Boolean).join(' ')}</span>
+				<span data-text="annotation">{fedimintFederationTimestampSelector.source}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

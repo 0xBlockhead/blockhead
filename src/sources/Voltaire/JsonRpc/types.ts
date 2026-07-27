@@ -1,4 +1,4 @@
-import type { RpcBlockHeader, RpcLog, RpcReceipt, RpcTransaction } from '$/sources/Evm/JsonRpc/types.ts'
+import type { RpcBlockHeader, RpcLog, RpcReceipt, RpcTransaction } from '$/sources/_shared/interfaces/EvmExecutionJsonRpc/types.ts'
 import { isJsonObject, type JsonValue } from '$/typescript/JsonValue.ts'
 
 export type VoltaireBlockRpc = {

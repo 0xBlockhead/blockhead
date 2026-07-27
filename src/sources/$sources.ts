@@ -11,10 +11,8 @@ export type SourcePublicEnv = {
 }
 
 export type SourceDefinition<
-	_SourceProvider extends PropertyKey,
 	_Source extends PropertyKey,
 > = {
-	provider: _SourceProvider
 	source: _Source
 	label: string
 	env?: Type<SourcePublicEnv>
@@ -27,7 +25,7 @@ export type SourceProviderDefinition<
 	provider: _SourceProvider
 	label: string
 	env?: Type<SourcePublicEnv>
-	sources: readonly SourceDefinition<_SourceProvider, _Source>[]
+	sources: readonly SourceDefinition<_Source>[]
 	bindings?: readonly SourceBinding[]
 }
 

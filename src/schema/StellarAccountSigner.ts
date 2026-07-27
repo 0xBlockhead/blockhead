@@ -1,14 +1,11 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { entity, facet } from '$/schema/$schema.ts'
+import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { type } from 'arktype'
 
-export enum StellarAccountSignerSelector {
-	AccountSignerKeySignerType = 'AccountSignerKeySignerType',
-}
-export const StellarAccountSigner = entity({
+export default entity({
 	entityType: EntityType.StellarAccountSigner,
 	labels: {
 		singular: 'stellar account signer',

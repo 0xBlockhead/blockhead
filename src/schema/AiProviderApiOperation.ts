@@ -1,15 +1,12 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { entity, facet } from '$/schema/$schema.ts'
+import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { UrlString } from '$/schema/UrlString.ts'
 import { type } from 'arktype'
 
-export enum AiProviderApiOperationSelector {
-	ProviderOperationId = 'ProviderOperationId',
-}
-export const AiProviderApiOperation = entity({
+export default entity({
 	entityType: EntityType.AiProviderApiOperation,
 	labels: {
 		singular: 'AI provider API operation',
@@ -56,7 +53,7 @@ export const AiProviderApiOperation = entity({
 	documentUrl: {
 		label: 'document URL',
 		type: EntityFieldType.Primitive,
-		primitiveType: (UrlString),
+		primitiveType: UrlString,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$$timestamps: {

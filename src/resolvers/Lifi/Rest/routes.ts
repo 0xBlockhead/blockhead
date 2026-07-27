@@ -62,9 +62,8 @@ const bridgeRouteQuoteIdToRequest = (
 })
 
 export const fetchLifiQuoteStep = async (
-	params: LifiQuoteRequest,
-	options?: { baseUrl?: string }
-): Promise<LifiQuoteStep> => fetchQuote(params, options)
+	params: LifiQuoteRequest
+): Promise<LifiQuoteStep> => fetchQuote(params)
 
 const parseLifiQuoteAmountBigInt = (
 	value: string | undefined,
@@ -89,8 +88,8 @@ const usdSumFromCostRows = (
 )
 
 const estimatedCostUsdFromQuoteStep = (step: LifiQuoteStep) => (
-	usdSumFromCostRows(step.estimate?.gasCosts)
-	+ usdSumFromCostRows(step.estimate?.feeCosts)
+	usdSumFromCostRows(step.estimate.gasCosts)
+	+ usdSumFromCostRows(step.estimate.feeCosts)
 )
 
 const lifiQuoteStepsForRoute = (
@@ -112,14 +111,11 @@ const bridgeRouteBundleFromQuoteStep = (
 		String(quoteId.fromAmount)
 	)
 	const toAmount = parseLifiQuoteAmountBigInt(
-		step.estimate?.toAmount
-		?? step.action.toAmount,
+		step.estimate.toAmount,
 		'to'
 	)
 	const toAmountMin = parseLifiQuoteAmountBigInt(
-		step.estimate?.toAmountMin
-		?? step.estimate?.toAmount
-		?? step.action.toAmount,
+		step.estimate.toAmountMin,
 		'toAmountMin'
 	)
 
@@ -135,7 +131,7 @@ const bridgeRouteBundleFromQuoteStep = (
 			toAmount,
 			toAmountMin,
 			estimatedCostUsd: estimatedCostUsdFromQuoteStep(step),
-			estimatedDurationSeconds: step.estimate?.executionDuration ?? 0,
+			estimatedDurationSeconds: step.estimate.executionDuration,
 			tags: [],
 		},
 		steps: lifiQuoteStepsForRoute(step).map((routeStep, index) => (

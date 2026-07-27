@@ -16,20 +16,7 @@ import {
 	NetworkExecutionModel,
 	NetworkLedgerModel,
 } from '$/constants/Network.ts'
-import type {
-	BlockchairBitcoinLikeChain,
-	BlockchairBitcoinLikeBlock,
-	BlockchairBitcoinLikeStats,
-	BlockchairBitcoinLikeTransaction,
-} from '$/sources/Blockchair/Rest/types.ts'
-import { NetworkSelector } from '$/schema/Network.ts'
-import { Network_TimestampSelector } from '$/schema/Network_Timestamp.ts'
-import { UtxoBlockSelector } from '$/schema/UtxoBlock.ts'
-import { UtxoTransactionSelector } from '$/schema/UtxoTransaction.ts'
-import { UtxoInputSelector } from '$/schema/UtxoInput.ts'
-import { UtxoOutputSelector } from '$/schema/UtxoOutput.ts'
-import { UtxoAddressSelector } from '$/schema/UtxoAddress.ts'
-import { UtxoAddress_TimestampSelector } from '$/schema/UtxoAddress_Timestamp.ts'
+import type { BlockchairBitcoinLikeChain, BlockchairBitcoinLikeBlock, BlockchairBitcoinLikeTransaction } from '$/sources/Blockchair/Rest/types.ts'
 
 type NetworkId = EntitySelector<typeof schema, EntityType.Network>
 
@@ -54,19 +41,21 @@ const blockchairNetworkTimestampApplicability = blockchairNetworkSlugs.flatMap((
 	},
 ]))
 
-const blockchairNetworkSelectors = <const _Snapshot extends object>(
+const blockchairNetworkSelectors = <
+
+const _Snapshot extends object>(
 	resolve: (
 		network: NetworkId,
 		context: SourceResolverContext<Source.Blockchair_Rest>
 	) => Promise<_Snapshot>
 ) => ({
-	[NetworkSelector.Caip2]: {
+	Caip2: {
 		appliesTo: blockchairNetworkSlugs.map((slug) => ({
 			caip2: networkBySlug[slug].caip2,
 		})),
 		resolve,
 	},
-	[NetworkSelector.Slug]: {
+	Slug: {
 		appliesTo: blockchairNetworkSlugs.map((slug) => ({ slug })),
 		resolve,
 	},
@@ -174,7 +163,7 @@ export default {
 		defineResolver(Source.Blockchair_Rest, {
 			entityType: EntityType.UtxoBlock,
 				resolve: {
-					[UtxoBlockSelector.NetworkHeight]: {
+					NetworkHeight: {
 						resolve: async ({ $network, height }) => {
 							const { getBitcoinLikeBlockDashboard } = await import('$/sources/Blockchair/Rest/queries.ts')
 							const [hash, dashboard] = firstDashboardEntry(
@@ -200,7 +189,7 @@ export default {
 							}
 						},
 					},
-					[UtxoBlockSelector.NetworkHeightHash]: {
+					NetworkHeightHash: {
 						resolve: async ({ $network, hash }) => {
 							const { getBitcoinLikeBlockDashboard } = await import('$/sources/Blockchair/Rest/queries.ts')
 							const dashboard = firstDashboardRow(
@@ -241,7 +230,7 @@ export default {
 		defineResolver(Source.Blockchair_Rest, {
 			entityType: EntityType.UtxoTransaction,
 			resolve: {
-				[UtxoTransactionSelector.NetworkTxId]: {
+				NetworkTxId: {
 					resolve: async (entitySelector) => {
 						const transactionDashboard = await getTransactionDashboard(entitySelector)
 						return {
@@ -280,7 +269,7 @@ export default {
 		defineResolver(Source.Blockchair_Rest, {
 			entityType: EntityType.UtxoAddress,
 			resolve: {
-				[UtxoAddressSelector.NetworkAddress]: {
+				NetworkAddress: {
 					resolve: async ({ $network, address }) => ({
 						address,
 						$$timestamps: [
@@ -306,7 +295,7 @@ export default {
 		defineResolver(Source.Blockchair_Rest, {
 			entityType: EntityType.UtxoAddress_Timestamp,
 			resolve: {
-				[UtxoAddress_TimestampSelector.AddressTimestampMsSource]: {
+				AddressTimestampMsSource: {
 					resolve: async ({ $address }) => getAddressDashboard($address),
 				},
 			},
@@ -321,7 +310,7 @@ export default {
 		defineResolver(Source.Blockchair_Rest, {
 			entityType: EntityType.UtxoInput,
 			resolve: {
-				[UtxoInputSelector.TransactionIndexInTransaction]: {
+				TransactionIndexInTransaction: {
 					resolve: async ({ $transaction, indexInTransaction }) => {
 						const input = (await getTransactionDashboard($transaction)).inputs.at(indexInTransaction)
 						if (input == null)
@@ -368,7 +357,7 @@ export default {
 		defineResolver(Source.Blockchair_Rest, {
 			entityType: EntityType.UtxoOutput,
 			resolve: {
-				[UtxoOutputSelector.TransactionIndexInTransaction]: {
+				TransactionIndexInTransaction: {
 					resolve: async ({ $transaction, indexInTransaction }) => {
 						const output = (await getTransactionDashboard($transaction)).outputs.at(indexInTransaction)
 						if (output == null)
@@ -412,7 +401,7 @@ export default {
 		defineResolver(Source.Blockchair_Rest, {
 			entityType: EntityType.Network_Timestamp,
 			resolve: {
-				[Network_TimestampSelector.NetworkTimestampMsSource]: {
+				NetworkTimestampMsSource: {
 					appliesTo: blockchairNetworkTimestampApplicability,
 					resolve: async ({
 						$network,
@@ -660,7 +649,7 @@ export default {
 		defineResolver(Source.Blockchair_Rest, {
 			entityType: EntityType.UtxoBlock,
 				resolve: {
-					[UtxoBlockSelector.NetworkHeight]: {
+					NetworkHeight: {
 						resolve: async ({ $network, height }) => {
 							const { getBitcoinLikeBlockDashboard } = await import('$/sources/Blockchair/Rest/queries.ts')
 							const dashboard = firstDashboardRow(
@@ -680,7 +669,7 @@ export default {
 							}))
 						},
 					},
-					[UtxoBlockSelector.NetworkHeightHash]: {
+					NetworkHeightHash: {
 						resolve: async ({ $network, hash }) => {
 							const { getBitcoinLikeBlockDashboard } = await import('$/sources/Blockchair/Rest/queries.ts')
 							const dashboard = firstDashboardRow(
@@ -708,7 +697,7 @@ export default {
 		defineResolver(Source.Blockchair_Rest, {
 			entityType: EntityType.UtxoTransaction,
 			resolve: {
-				[UtxoTransactionSelector.NetworkTxId]: {
+				NetworkTxId: {
 					resolve: async (entitySelector) => {
 						const transactionDashboard = await getTransactionDashboard(entitySelector)
 						return transactionDashboard.inputs.map((input, indexInTransaction) => (
@@ -729,7 +718,7 @@ export default {
 		defineResolver(Source.Blockchair_Rest, {
 			entityType: EntityType.UtxoTransaction,
 			resolve: {
-				[UtxoTransactionSelector.NetworkTxId]: {
+				NetworkTxId: {
 					resolve: async (entitySelector) => {
 						const transactionDashboard = await getTransactionDashboard(entitySelector)
 						return transactionDashboard.outputs.map((output, indexInTransaction) => (

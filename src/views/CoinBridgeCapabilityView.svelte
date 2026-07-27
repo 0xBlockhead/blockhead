@@ -2,14 +2,9 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
 
 
 	// Context
@@ -25,36 +20,15 @@
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.CoinBridgeCapability>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.CoinBridgeCapability>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.CoinBridgeCapability> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const coinBridgeCapability = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {
-			railId: true,
-		},
-	} : {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const coinBridgeCapability = $derived(selection({
 		fields: {
 			railId: true,
 		},
 	}))
-	const titleFallback = $derived([String((pendingEntity.toolKey) ?? '')].filter(Boolean).join(' ') || 'Coin bridge capability')
-	const viewDomId = $derived('coin-bridge-capability-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const titleFallback = $derived((pendingEntity.toolKey ?? '') || 'Coin bridge capability')
 
 
 	// Components
@@ -65,33 +39,25 @@
 
 <EntityView
 	entityType={EntityType.CoinBridgeCapability}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
 	href={
 		href ?? (
-			selection.entitySelector != null && 'toolKey' in selection.entitySelector
-			&& selection.entitySelector.toolKey != null
-			&& selection.entitySelector != null && '$fromInstance' in selection.entitySelector
-			&& selection.entitySelector.$fromInstance != null && '$network' in selection.entitySelector.$fromInstance
-			&& selection.entitySelector.$fromInstance.$network != null && 'caip2' in selection.entitySelector.$fromInstance.$network
-			&& selection.entitySelector.$fromInstance.$network.caip2 != null && 'reference' in selection.entitySelector.$fromInstance.$network.caip2
-			&& selection.entitySelector.$fromInstance.$network.caip2.reference != null
-			&& (selection.entitySelector != null && '$fromInstance' in selection.entitySelector && selection.entitySelector.$fromInstance != null && 'type' in selection.entitySelector.$fromInstance && selection.entitySelector.$fromInstance.type != null && (selection.entitySelector.$fromInstance.type === 'NativeCurrency' ? true : selection.entitySelector.$fromInstance.type === 'Erc20Token' ? selection.entitySelector != null && '$fromInstance' in selection.entitySelector && selection.entitySelector.$fromInstance != null && '$contract' in selection.entitySelector.$fromInstance && selection.entitySelector.$fromInstance.$contract != null && 'address' in selection.entitySelector.$fromInstance.$contract && selection.entitySelector.$fromInstance.$contract.address != null : true))
-			&& selection.entitySelector != null && '$toInstance' in selection.entitySelector
-			&& selection.entitySelector.$toInstance != null && '$network' in selection.entitySelector.$toInstance
-			&& selection.entitySelector.$toInstance.$network != null && 'caip2' in selection.entitySelector.$toInstance.$network
-			&& selection.entitySelector.$toInstance.$network.caip2 != null && 'reference' in selection.entitySelector.$toInstance.$network.caip2
-			&& selection.entitySelector.$toInstance.$network.caip2.reference != null
-			&& (selection.entitySelector != null && '$toInstance' in selection.entitySelector && selection.entitySelector.$toInstance != null && 'type' in selection.entitySelector.$toInstance && selection.entitySelector.$toInstance.type != null && (selection.entitySelector.$toInstance.type === 'NativeCurrency' ? true : selection.entitySelector.$toInstance.type === 'Erc20Token' ? selection.entitySelector != null && '$toInstance' in selection.entitySelector && selection.entitySelector.$toInstance != null && '$contract' in selection.entitySelector.$toInstance && selection.entitySelector.$toInstance.$contract != null && 'address' in selection.entitySelector.$toInstance.$contract && selection.entitySelector.$toInstance.$contract.address != null : true)) ?
-				resolve('/bridge-capability/[fromChainId=eip155ChainId]/[fromCoinInstanceSlug=nativeCurrencySlugOrEvmAddress]/[toChainId=eip155ChainId]/[toCoinInstanceSlug=nativeCurrencySlugOrEvmAddress]/[toolKey=stringSegment]', {
-			toolKey: String(selection.entitySelector.toolKey ?? ''),
-			fromChainId: String(selection.entitySelector.$fromInstance.$network.caip2.reference ?? ''),
-			fromCoinInstanceSlug: String((selection.entitySelector.$fromInstance.type === 'NativeCurrency' ? 'native' : selection.entitySelector.$fromInstance.type === 'Erc20Token' ? selection.entitySelector.$fromInstance.$contract.address : '')),
-			toChainId: String(selection.entitySelector.$toInstance.$network.caip2.reference ?? ''),
-			toCoinInstanceSlug: String((selection.entitySelector.$toInstance.type === 'NativeCurrency' ? 'native' : selection.entitySelector.$toInstance.type === 'Erc20Token' ? selection.entitySelector.$toInstance.$contract.address : '')),
-		})
-		:
+			'caip2' in selection.entitySelector.$fromInstance.$network
+			&& (selection.entitySelector.$fromInstance.type === 'NativeCurrency' ? true : '$contract' in selection.entitySelector.$fromInstance)
+			&& 'caip2' in selection.entitySelector.$toInstance.$network
+			&& (selection.entitySelector.$toInstance.type === 'NativeCurrency' ? true : '$contract' in selection.entitySelector.$toInstance) ?
+				resolve(
+					'/(assets)/bridge-capability/[fromChainId=eip155ChainId]/[fromCoinInstanceSlug=nativeCurrencySlugOrEvmAddress]/[toChainId=eip155ChainId]/[toCoinInstanceSlug=nativeCurrencySlugOrEvmAddress]/[toolKey=stringSegment]',
+					{
+						fromChainId: String(selection.entitySelector.$fromInstance.$network.caip2.reference),
+						fromCoinInstanceSlug: String((selection.entitySelector.$fromInstance.type === 'NativeCurrency' ? 'native' : selection.entitySelector.$fromInstance.$contract.address)),
+						toChainId: String(selection.entitySelector.$toInstance.$network.caip2.reference),
+						toCoinInstanceSlug: String((selection.entitySelector.$toInstance.type === 'NativeCurrency' ? 'native' : selection.entitySelector.$toInstance.$contract.address)),
+						toolKey: String(selection.entitySelector.toolKey),
+					}
+				)
+			:
 				undefined
 		)
 	}
@@ -100,52 +66,21 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'railId')}
-			{[String((pendingEntity.toolKey) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-		{:else}
-			<ResourceBoundary resource={coinBridgeCapability}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.toolKey) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		{(pendingEntity.toolKey ?? '') || 'Coin bridge capability'}
 	{/snippet}
 
 	{#snippet Value()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'railId')}
-			{[String((pendingEntity.toolKey) ?? '')].filter(Boolean).join(' ') || titleFallback}
-		{:else}
-			<ResourceBoundary resource={coinBridgeCapability}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.toolKey) ?? '')].filter(Boolean).join(' ') || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		{(pendingEntity.toolKey ?? '') || titleFallback}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'railId')}
-			{@const railId0 = pendingEntity.railId}
-			{#if railId0 !== undefined && railId0 !== null}
+		<ResourceBoundary resource={coinBridgeCapability}>
+			{#snippet children(entity)}
 				<span data-text="muted">
-					{String((railId0) ?? '')}
+					{entity.railId}
 				</span>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={coinBridgeCapability}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const railId0 = resolvedEntity.railId}
-					{#if railId0 !== undefined && railId0 !== null}
-						<span data-text="muted">
-							{String((railId0) ?? '')}
-						</span>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet TypeAnnotationTooltip()}
@@ -159,24 +94,7 @@
 			<div>
 				<dt>Tool key</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									toolKey: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const toolKey = resolvedEntity.toolKey}
-							{#if toolKey !== undefined && toolKey !== null}
-								{String((toolKey) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{pendingEntity.toolKey}
 				</dd>
 			</div>
 
@@ -184,21 +102,10 @@
 				<dt>Rail ID</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									railId: true,
-								},
-							})
-						}
+						resource={coinBridgeCapability}
 					>
 						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const railId = resolvedEntity.railId}
-							{#if railId !== undefined && railId !== null}
-								{String((railId) ?? '')}
-							{/if}
+							{entity.railId}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -210,7 +117,6 @@
 					<ResourceBoundary
 						resource={
 							selection({
-								sources: selection.sources,
 								fields: {
 									settlementModel: true,
 								},
@@ -218,11 +124,7 @@
 						}
 					>
 						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const settlementModel = resolvedEntity.settlementModel}
-							{#if settlementModel !== undefined && settlementModel !== null}
-								{String((settlementModel) ?? '')}
-							{/if}
+							{entity.settlementModel}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -234,7 +136,6 @@
 					<ResourceBoundary
 						resource={
 							selection({
-								sources: selection.sources,
 								fields: {
 									verificationModel: true,
 								},
@@ -242,11 +143,7 @@
 						}
 					>
 						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const verificationModel = resolvedEntity.verificationModel}
-							{#if verificationModel !== undefined && verificationModel !== null}
-								{String((verificationModel) ?? '')}
-							{/if}
+							{entity.verificationModel}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -258,7 +155,6 @@
 					<ResourceBoundary
 						resource={
 							selection({
-								sources: selection.sources,
 								fields: {
 									assetOutcome: true,
 								},
@@ -266,11 +162,7 @@
 						}
 					>
 						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const assetOutcome = resolvedEntity.assetOutcome}
-							{#if assetOutcome !== undefined && assetOutcome !== null}
-								{String((assetOutcome) ?? '')}
-							{/if}
+							{entity.assetOutcome}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -283,34 +175,6 @@
 				<dd>
 					<EvmCoinInstanceView
 						selection={select(EntityType.EvmCoinInstance, selection.entitySelector.$fromInstance)}
-						href={
-							(
-								selection.entitySelector.$fromInstance.type === 'NativeCurrency' && selection.entitySelector.$fromInstance.type === 'NativeCurrency'
-								&& selection.entitySelector.$fromInstance != null && '$network' in selection.entitySelector.$fromInstance
-								&& selection.entitySelector.$fromInstance.$network != null && 'caip2' in selection.entitySelector.$fromInstance.$network
-								&& selection.entitySelector.$fromInstance.$network.caip2 != null && 'reference' in selection.entitySelector.$fromInstance.$network.caip2
-								&& selection.entitySelector.$fromInstance.$network.caip2.reference != null ?
-									resolve('/coin-instance/[chainId=eip155ChainId]/[coinInstanceSlug=nativeCurrencySlugOrEvmAddress]', {
-								chainId: String(selection.entitySelector.$fromInstance.$network.caip2.reference ?? ''),
-								coinInstanceSlug: String('native'),
-							})
-							:
-									selection.entitySelector.$fromInstance.type === 'Erc20Token' && selection.entitySelector.$fromInstance.type === 'Erc20Token'
-									&& selection.entitySelector.$fromInstance != null && '$contract' in selection.entitySelector.$fromInstance
-									&& selection.entitySelector.$fromInstance.$contract != null && 'address' in selection.entitySelector.$fromInstance.$contract
-									&& selection.entitySelector.$fromInstance.$contract.address != null
-									&& selection.entitySelector.$fromInstance != null && '$network' in selection.entitySelector.$fromInstance
-									&& selection.entitySelector.$fromInstance.$network != null && 'caip2' in selection.entitySelector.$fromInstance.$network
-									&& selection.entitySelector.$fromInstance.$network.caip2 != null && 'reference' in selection.entitySelector.$fromInstance.$network.caip2
-									&& selection.entitySelector.$fromInstance.$network.caip2.reference != null ?
-										resolve('/coin-instance/[chainId=eip155ChainId]/[coinInstanceSlug=nativeCurrencySlugOrEvmAddress]', {
-									coinInstanceSlug: String(selection.entitySelector.$fromInstance.$contract.address ?? ''),
-									chainId: String(selection.entitySelector.$fromInstance.$network.caip2.reference ?? ''),
-								})
-								:
-									undefined
-							)
-						}
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -322,34 +186,6 @@
 				<dd>
 					<EvmCoinInstanceView
 						selection={select(EntityType.EvmCoinInstance, selection.entitySelector.$toInstance)}
-						href={
-							(
-								selection.entitySelector.$toInstance.type === 'NativeCurrency' && selection.entitySelector.$toInstance.type === 'NativeCurrency'
-								&& selection.entitySelector.$toInstance != null && '$network' in selection.entitySelector.$toInstance
-								&& selection.entitySelector.$toInstance.$network != null && 'caip2' in selection.entitySelector.$toInstance.$network
-								&& selection.entitySelector.$toInstance.$network.caip2 != null && 'reference' in selection.entitySelector.$toInstance.$network.caip2
-								&& selection.entitySelector.$toInstance.$network.caip2.reference != null ?
-									resolve('/coin-instance/[chainId=eip155ChainId]/[coinInstanceSlug=nativeCurrencySlugOrEvmAddress]', {
-								chainId: String(selection.entitySelector.$toInstance.$network.caip2.reference ?? ''),
-								coinInstanceSlug: String('native'),
-							})
-							:
-									selection.entitySelector.$toInstance.type === 'Erc20Token' && selection.entitySelector.$toInstance.type === 'Erc20Token'
-									&& selection.entitySelector.$toInstance != null && '$contract' in selection.entitySelector.$toInstance
-									&& selection.entitySelector.$toInstance.$contract != null && 'address' in selection.entitySelector.$toInstance.$contract
-									&& selection.entitySelector.$toInstance.$contract.address != null
-									&& selection.entitySelector.$toInstance != null && '$network' in selection.entitySelector.$toInstance
-									&& selection.entitySelector.$toInstance.$network != null && 'caip2' in selection.entitySelector.$toInstance.$network
-									&& selection.entitySelector.$toInstance.$network.caip2 != null && 'reference' in selection.entitySelector.$toInstance.$network.caip2
-									&& selection.entitySelector.$toInstance.$network.caip2.reference != null ?
-										resolve('/coin-instance/[chainId=eip155ChainId]/[coinInstanceSlug=nativeCurrencySlugOrEvmAddress]', {
-									coinInstanceSlug: String(selection.entitySelector.$toInstance.$contract.address ?? ''),
-									chainId: String(selection.entitySelector.$toInstance.$network.caip2.reference ?? ''),
-								})
-								:
-									undefined
-							)
-						}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

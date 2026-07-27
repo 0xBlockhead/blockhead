@@ -7,7 +7,6 @@
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
@@ -56,31 +55,12 @@
 
 
 <svelte:head>
-	<title>{(data.title ?? (pageSelection.entity == null ? [String(({
-		$relay: data.selector,
-		timestampMs: Number(params.timestampMs),
-		source: params.source,
-	}.source) ?? '')].filter(Boolean).join(' ') || 'Nostr relay timestamp' : [String((({ ...{
-		$relay: data.selector,
-		timestampMs: Number(params.timestampMs),
-		source: params.source,
-	}, ...pageSelection.entity }).name) ?? ''), String((({ ...{
-		$relay: data.selector,
-		timestampMs: Number(params.timestampMs),
-		source: params.source,
-	}, ...pageSelection.entity }).source) ?? '')].filter(Boolean).join(' ') || 'Nostr relay timestamp'))} • Nostr relay timestamp • Blockhead</title>
+	<title>{(data.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.source ?? '') || 'Nostr relay timestamp' : [(pageSelection.entity.name ?? ''), pageSelection.entitySelector.source].filter(Boolean).join(' ') || 'Nostr relay timestamp'))} • Nostr relay timestamp • Blockhead</title>
 </svelte:head>
 
 
 <Page>
 	<NostrRelay_TimestampView
-		href={
-			resolve('/nostr/relay/[relayKey=stringSegment]/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
-				relayKey: params.relayKey,
-				timestampMs: params.timestampMs,
-				source: params.source,
-			})
-		}
 		selection={pageSelection}
 	/>
 </Page>

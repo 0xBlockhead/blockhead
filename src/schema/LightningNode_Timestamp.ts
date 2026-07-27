@@ -1,15 +1,12 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { entity, facet } from '$/schema/$schema.ts'
+import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
-export enum LightningNode_TimestampSelector {
-	NodeTimestampMsSource = 'NodeTimestampMsSource',
-}
-export const LightningNode_Timestamp = entity({
+export default entity({
 	entityType: EntityType.LightningNode_Timestamp,
 	labels: {
 		singular: 'Lightning node timestamp',
@@ -62,7 +59,6 @@ export const LightningNode_Timestamp = entity({
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
 			Source.LightningMempoolSpace_Rest,
-			Source.LightningLnd_Rest,
 		],
 	},
 	channelCount: {
@@ -91,7 +87,6 @@ export const LightningNode_Timestamp = entity({
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
 			Source.LightningMempoolSpace_Rest,
-			Source.LightningLnd_Rest,
 		],
 	},
 	countryCode: {

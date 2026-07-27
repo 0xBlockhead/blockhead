@@ -23,8 +23,6 @@ const satteriBrowserEntry = fileURLToPath(new URL(
 
 const referenceFolderTestExcludes = [
 	'src/schema_/**',
-	'src/views_/**',
-	'src/views__/**',
 	'src/routes_/**',
 	'src/sources_/**',
 	'src/resolvers_/**',

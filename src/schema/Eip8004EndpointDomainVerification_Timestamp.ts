@@ -1,14 +1,11 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { entity, facet } from '$/schema/$schema.ts'
+import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { type } from 'arktype'
 
-export enum Eip8004EndpointDomainVerification_TimestampSelector {
-	EndpointUrlTimestampMsSource = 'EndpointUrlTimestampMsSource',
-}
-export const Eip8004EndpointDomainVerification_Timestamp = entity({
+export default entity({
 	entityType: EntityType.Eip8004EndpointDomainVerification_Timestamp,
 	labels: {
 		singular: 'EIP-8004 endpoint domain verification timestamp',

@@ -2,15 +2,14 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
 	import EvmNftsView from '$/views/EvmNftsView.svelte'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
@@ -45,16 +44,13 @@
 		{#snippet SectionAgents()}
 			<EvmNftsView
 				href={resolve('/services/agents')}
-				selection={select(EntityType._Global, { scope: '$$eip8004Services' }).$$eip8004Services({
-					sources: [Source.Eip8004Scan_Rest],
-					limit: 100,
-				})}
-								id='agents'
-								open={true}
-								title='ERC-8004 Registrations'
-								data-column-item='flexible'
-								data-card
-								data-scroll-container
+				selection={select(EntityType._Global, { scope: '$$eip8004Services' }).$$eip8004Services}
+				id='agents'
+				open={true}
+				title='ERC-8004 Registrations'
+				data-column-item='flexible'
+				data-card
+				data-scroll-container
 			/>
 		{/snippet}
 	</CollapsibleTabs>

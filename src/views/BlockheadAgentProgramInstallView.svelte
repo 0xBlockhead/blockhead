@@ -2,15 +2,11 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
 	import { ZeroExHex } from '$/schema/ZeroExHex.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -22,42 +18,24 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.BlockheadAgentProgramInstall>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.BlockheadAgentProgramInstall>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.BlockheadAgentProgramInstall> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const blockheadAgentProgramInstall = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {
-			command: true,
-			updatedAt: true,
-		},
-	} : {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const viewSelection = $derived(selection({
+		sources: selection.sources ?? [
+			Source.Local_Internal,
+		],
+	}))
+	const blockheadAgentProgramInstall = $derived(viewSelection({
 		fields: {
 			command: true,
 			updatedAt: true,
 		},
 	}))
-	const titleFallback = $derived([String((pendingEntity.installId) ?? '')].filter(Boolean).join(' ') || 'blockhead agent program install')
-	const viewDomId = $derived('blockhead-agent-program-install-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const titleFallback = $derived((pendingEntity.installId ?? '') || 'blockhead agent program install')
 
 
 	// Components
@@ -71,61 +49,35 @@
 
 <EntityView
 	entityType={EntityType.BlockheadAgentProgramInstall}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'command') && Object.hasOwn(prefetched, 'updatedAt')}
-			{[String((pendingEntity.installId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-		{:else}
-			<ResourceBoundary resource={blockheadAgentProgramInstall}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.installId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		{(pendingEntity.installId ?? '') || 'blockhead agent program install'}
 	{/snippet}
 
 	{#snippet Value()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'command') && Object.hasOwn(prefetched, 'updatedAt')}
-			{[String((pendingEntity.command) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.installId) ?? '')].filter(Boolean).join(' ') || titleFallback}
-		{:else}
-			<ResourceBoundary resource={blockheadAgentProgramInstall}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.command) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.installId) ?? '')].filter(Boolean).join(' ') || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={blockheadAgentProgramInstall}>
+			{#snippet children(entity)}
+				{(entity.command ?? '') || pendingEntity.installId || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'command') && Object.hasOwn(prefetched, 'updatedAt')}
-			{@const updatedAt0 = pendingEntity.updatedAt}
-			{#if updatedAt0 !== undefined && updatedAt0 !== null}
-				<span data-text="muted">
-					<Timestamp timestamp={Number(updatedAt0)} />
-				</span>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={blockheadAgentProgramInstall}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const updatedAt0 = resolvedEntity.updatedAt}
-					{#if updatedAt0 !== undefined && updatedAt0 !== null}
-						<span data-text="muted">
-							<Timestamp timestamp={Number(updatedAt0)} />
-						</span>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={blockheadAgentProgramInstall}>
+			{#snippet children(entity)}
+				{@const updatedAt0 = entity.updatedAt}
+				{#if updatedAt0 != null}
+					<span data-text="muted">
+						<Timestamp timestamp={Number(updatedAt0)} />
+					</span>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -133,24 +85,7 @@
 			<div>
 				<dt>install ID</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									installId: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const installId = resolvedEntity.installId}
-							{#if installId !== undefined && installId !== null}
-								{String((installId) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{pendingEntity.installId}
 				</dd>
 			</div>
 
@@ -158,24 +93,13 @@
 				resource={selection.$source}
 			>
 				{#snippet children(blockheadSource)}
-					{#if blockheadSource != null && blockheadSource[EntityMetaKey.Selector] != null}
+					{#if blockheadSource != null}
 						<div>
 							<dt>Source</dt>
 							<dd>
 								<BlockheadSourceView
 									selection={select(EntityType.BlockheadSource, blockheadSource[EntityMetaKey.Selector])}
 									prefetched={blockheadSource}
-									href={
-										(
-											blockheadSource[EntityMetaKey.Selector] != null && 'id' in blockheadSource[EntityMetaKey.Selector]
-											&& blockheadSource[EntityMetaKey.Selector].id != null ?
-												resolve('/~/manage/source/[sourceId=stringSegment]', {
-											sourceId: String(blockheadSource[EntityMetaKey.Selector].id ?? ''),
-										})
-										:
-												undefined
-										)
-									}
 									layout={EntityLayout.Value}
 									open={false}
 								/>
@@ -187,8 +111,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							installPath: true,
 						},
@@ -196,13 +119,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const installPath = resolvedEntity.installPath}
-					{#if installPath !== undefined && installPath !== null}
+					{@const installPath = entity.installPath}
+					{#if installPath != null}
 						<div>
 							<dt>install path</dt>
 							<dd>
-								{String((installPath) ?? '')}
+								{installPath}
 							</dd>
 						</div>
 					{/if}
@@ -210,23 +132,15 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							command: true,
-						},
-					})
-				}
+				resource={blockheadAgentProgramInstall}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const command = resolvedEntity.command}
-					{#if command !== undefined && command !== null}
+					{@const command = entity.command}
+					{#if command != null}
 						<div>
 							<dt>command</dt>
 							<dd>
-								{String((command) ?? '')}
+								{command}
 							</dd>
 						</div>
 					{/if}
@@ -237,8 +151,7 @@
 		<dl data-column-item="center">
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							argsHashAlgorithm: true,
 						},
@@ -246,13 +159,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const argsHashAlgorithm = resolvedEntity.argsHashAlgorithm}
-					{#if argsHashAlgorithm !== undefined && argsHashAlgorithm !== null}
+					{@const argsHashAlgorithm = entity.argsHashAlgorithm}
+					{#if argsHashAlgorithm != null}
 						<div>
 							<dt>args hash algorithm</dt>
 							<dd>
-								<TruncatedValue value={String((argsHashAlgorithm) ?? '')} />
+								<TruncatedValue value={argsHashAlgorithm} />
 							</dd>
 						</div>
 					{/if}
@@ -261,8 +173,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							argsHash: true,
 						},
@@ -270,13 +181,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const argsHash = resolvedEntity.argsHash}
-					{#if argsHash !== undefined && argsHash !== null}
+					{@const argsHash = entity.argsHash}
+					{#if argsHash != null}
 						<div>
 							<dt>args hash</dt>
 							<dd>
-								<TruncatedValue value={String((argsHash) ?? '')} />
+								<TruncatedValue value={String(argsHash)} />
 							</dd>
 						</div>
 					{/if}
@@ -285,8 +195,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							environmentScope: true,
 						},
@@ -294,13 +203,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const environmentScope = resolvedEntity.environmentScope}
-					{#if environmentScope !== undefined && environmentScope !== null}
+					{@const environmentScope = entity.environmentScope}
+					{#if environmentScope != null}
 						<div>
 							<dt>environment scope</dt>
 							<dd>
-								{String((environmentScope) ?? '')}
+								{environmentScope}
 							</dd>
 						</div>
 					{/if}
@@ -311,8 +219,7 @@
 		<dl data-column-item="center">
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							createdAt: true,
 						},
@@ -320,9 +227,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const createdAt = resolvedEntity.createdAt}
-					{#if createdAt !== undefined && createdAt !== null}
+					{@const createdAt = entity.createdAt}
+					{#if createdAt != null}
 						<div>
 							<dt>Created</dt>
 							<dd>
@@ -334,19 +240,11 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							updatedAt: true,
-						},
-					})
-				}
+				resource={blockheadAgentProgramInstall}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const updatedAt = resolvedEntity.updatedAt}
-					{#if updatedAt !== undefined && updatedAt !== null}
+					{@const updatedAt = entity.updatedAt}
+					{#if updatedAt != null}
 						<div>
 							<dt>Updated</dt>
 							<dd>
@@ -366,12 +264,12 @@
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
-				<BlockheadAgentProgramInstall_TimestampsView
-					selection={blockheadAgentProgramInstallBlockheadAgentProgramInstallTimestampsViewTimestampsResource}
-					countResource={blockheadAgentProgramInstallBlockheadAgentProgramInstallTimestampsViewTimestampsResource.count}
-					title='timestamps'
-					id='BlockheadAgentProgramInstall_TimestampsView-timestamps'
-				/>
+					<BlockheadAgentProgramInstall_TimestampsView
+						selection={blockheadAgentProgramInstallBlockheadAgentProgramInstallTimestampsViewTimestampsResource}
+						countResource={blockheadAgentProgramInstallBlockheadAgentProgramInstallTimestampsViewTimestampsResource.count}
+						title='timestamps'
+						id='timestamps'
+					/>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>

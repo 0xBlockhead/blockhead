@@ -2,69 +2,32 @@
 
 <script lang="ts">
 	// Types/constants
-	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
-	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
-	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
+	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-
-
+	import { UrlString } from '$/schema/UrlString.ts'
+	import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 
 
 	// State
 	let {
 		selection,
-		countResource,
-		title = 'Blockhead Logos blockchain wallet key states',
-		typeAnnotationParagraphs = [],
-		placeholderText = undefined,
-		emptyText = undefined,
 		open = $bindable(true),
-		collapsible = true,
-		showTypeAnnotation = true,
-		id = 'BlockheadLogosBlockchainWalletKeyStates-list',
 		...EntitiesListProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyEntitiesSelection<EntityType.BlockheadLogosBlockchainWalletKeyState>
-			countResource?: SvelteKitResource<number>
-			title?: string
-			typeAnnotationParagraphs?: string[]
-			placeholderText?: string
-			emptyText?: string
-			open?: boolean
-			collapsible?: boolean
-			showTypeAnnotation?: boolean
-			id?: string
-		},
-		EntitiesListForwardProps
-	> = $props()
+	}: EntityListViewProps<EntityType.BlockheadLogosBlockchainWalletKeyState> = $props()
 
 
 	// Components
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView from '$/components/EntityView.svelte'
 </script>
 
-
-{#snippet TypeAnnotationParagraphs()}
-	{#each typeAnnotationParagraphs as paragraph (paragraph)}
-		<p>{paragraph}</p>
-	{/each}
-{/snippet}
 
 <EntitiesList
 	{...EntitiesListProps}
 	entityType={EntityType.BlockheadLogosBlockchainWalletKeyState}
-	{id}
-	{title}
 	bind:open
-	{collapsible}
-	{showTypeAnnotation}
-	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
 	resource={
 		selection({
-			sources: selection.sources,
 			fields: {
 				publicKey: true,
 				$nodeState: {
@@ -75,34 +38,19 @@
 			},
 		})
 	}
-	{countResource}
-	getResourceItems={(blockheadLogosBlockchainWalletKeyStates) => [...new Map(blockheadLogosBlockchainWalletKeyStates.values.map((blockheadLogosBlockchainWalletKeyState) => [blockheadLogosBlockchainWalletKeyState[EntityMetaKey.SelectorKey], blockheadLogosBlockchainWalletKeyState])).values()]}
-	getKey={(blockheadLogosBlockchainWalletKeyState) => blockheadLogosBlockchainWalletKeyState[EntityMetaKey.SelectorKey]}
-	{placeholderText}
 >
-	{#snippet Empty()}
-		{#if emptyText != null}
-			<p data-text="muted">{emptyText}</p>
-		{:else}
-			<p data-text="muted">No Blockhead Logos blockchain wallet key states yet.</p>
-		{/if}
-	{/snippet}
-
 	{#snippet Item({ item: blockheadLogosBlockchainWalletKeyState })}
-		{@const blockheadLogosBlockchainWalletKeyStateFields = { ...blockheadLogosBlockchainWalletKeyState[EntityMetaKey.Selector], ...blockheadLogosBlockchainWalletKeyState }}
+		{@const blockheadLogosBlockchainWalletKeyStateSelector = blockheadLogosBlockchainWalletKeyState[EntityMetaKey.Selector]}
 		<EntityView
 			entityType={EntityType.BlockheadLogosBlockchainWalletKeyState}
-			entitySelector={blockheadLogosBlockchainWalletKeyState[EntityMetaKey.Selector]}
-			layout={EntityLayout.Summary}
-			open={false}
-			showTypeAnnotation={false}
+			entitySelector={blockheadLogosBlockchainWalletKeyStateSelector}
 		>
 			{#snippet Title()}
-				{[String((blockheadLogosBlockchainWalletKeyStateFields.publicKey) ?? '')].filter(Boolean).join(' ') || 'blockhead Logos blockchain wallet key state'}
+				{String(blockheadLogosBlockchainWalletKeyStateSelector.publicKey) || 'blockhead Logos blockchain wallet key state'}
 			{/snippet}
 
 			{#snippet Value()}
-				{[[String((blockheadLogosBlockchainWalletKeyStateFields.$nodeState.peerId) ?? '')].filter(Boolean).join(' ') || 'blockhead Logos blockchain node state'].filter(Boolean).join(' ')}
+				{blockheadLogosBlockchainWalletKeyStateSelector.$nodeState.peerId || 'blockhead Logos blockchain node state'}
 			{/snippet}
 		</EntityView>
 	{/snippet}

@@ -7,14 +7,12 @@
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		data,
-		params,
 	}: PageProps = $props()
 
 	const pageSelection = $derived(select(EntityType.EvmNetwork_GasFee_Block, data.selector, {
@@ -37,18 +35,12 @@
 
 
 <svelte:head>
-	<title>{(data.title ?? (pageSelection.entity == null ? [(String((data.selector.blockNumber) ?? '') ? 'Block ' + String((data.selector.blockNumber) ?? '') : '')].filter(Boolean).join(' ') || 'EVM network gas fee block' : [(String((({ ...data.selector, ...pageSelection.entity }).blockNumber) ?? '') ? 'Block ' + String((({ ...data.selector, ...pageSelection.entity }).blockNumber) ?? '') : ''), (String((({ ...data.selector, ...pageSelection.entity }).baseFeePerGas) ?? '') ? String((({ ...data.selector, ...pageSelection.entity }).baseFeePerGas) ?? '') + ' wei' : '')].filter(Boolean).join(' ') || 'EVM network gas fee block'))} • EVM network gas fee block • Blockhead</title>
+	<title>{(data.title ?? (pageSelection.entity == null ? (String(pageSelection.entitySelector.blockNumber ?? '') ? 'Block ' + String(pageSelection.entitySelector.blockNumber ?? '') : '') || 'EVM network gas fee block' : ([(String(pageSelection.entitySelector.blockNumber) ? 'Block ' + String(pageSelection.entitySelector.blockNumber) : ''), (String(pageSelection.entity.baseFeePerGas ?? '') ? String(pageSelection.entity.baseFeePerGas ?? '') + ' wei' : '')].filter(Boolean).join(' ')) || 'EVM network gas fee block'))} • EVM network gas fee block • Blockhead</title>
 </svelte:head>
 
 
 <Page>
 	<EvmNetwork_GasFee_BlockView
-		href={
-			resolve('/network/[network=networkCaip2OrNetworkSlug]/fee-market/block/[blockNumber=nonNegativeBigInt]', {
-				network: params.network,
-				blockNumber: params.blockNumber,
-			})
-		}
 		selection={pageSelection}
 	/>
 </Page>

@@ -5,6 +5,8 @@ import {
 	WalletTransportKind,
 } from '$/constants/Wallet.ts'
 import { BlockheadConnectionStatus } from '$/schema/BlockheadWalletConnection.ts'
+import type { JsonValue } from '$/typescript/JsonValue.ts'
+import { type as arktype } from 'arktype'
 import type {
 	WalletAccount,
 	WalletAdapter,
@@ -92,6 +94,92 @@ export type WalletConnectV2Client = {
 	listen(listener: (event: WalletConnectV2ClientEvent) => void): () => void
 }
 
+interface WalletConnectV2SignClient {
+	connect(input: {
+		requiredNamespaces: Record<string, {
+			chains: string[]
+			methods: string[]
+			events: string[]
+		}>
+		optionalNamespaces: Record<string, {
+			chains: string[]
+			methods: string[]
+			events: string[]
+		}>
+	}): Promise<{
+		uri?: string
+		approval(): Promise<WalletConnectV2Session>
+	}>
+	disconnect(input: {
+		topic: string
+		reason: {
+			code: number
+			message: string
+		}
+	}): Promise<void>
+	session: {
+		keys: string[]
+		get(topic: string): WalletConnectV2Session
+		getAll(): readonly WalletConnectV2Session[]
+	}
+	on(
+		event: 'session_update',
+		listener: (event: {
+			topic: string
+			params: {
+				namespaces: Readonly<Record<string, WalletConnectV2Namespace>>
+			}
+		}) => void
+	): void
+	on(
+		event: 'session_extend' | 'session_delete' | 'session_expire',
+		listener: (event: {
+			topic: string
+		}) => void
+	): void
+	on(
+		event: 'session_event',
+		listener: (event: {
+			topic: string
+			params: {
+				chainId: string
+				event: {
+					name: string
+					data: JsonValue
+				}
+			}
+		}) => void
+	): void
+	off(
+		event: 'session_update',
+		listener: (event: {
+			topic: string
+			params: {
+				namespaces: Readonly<Record<string, WalletConnectV2Namespace>>
+			}
+		}) => void
+	): void
+	off(
+		event: 'session_extend' | 'session_delete' | 'session_expire',
+		listener: (event: {
+			topic: string
+		}) => void
+	): void
+	off(
+		event: 'session_event',
+		listener: (event: {
+			topic: string
+			params: {
+				chainId: string
+				event: {
+					name: string
+					data: JsonValue
+				}
+			}
+		}) => void
+	): void
+}
+
 type WalletConnectV2SessionState = {
 	topic: string
 	expiry: number
@@ -103,6 +191,8 @@ type WalletConnectV2SessionState = {
 
 const WALLET_ID = 'walletconnect-v2'
 const maximumTimerDelayMs = 2_147_483_647
+const walletConnectAccountAddresses = arktype('string[]')
+const walletConnectChainReference = arktype('string | number.integer & number.safe')
 
 const walletConnectCapabilities = [
 	WalletCapability.Connect,
@@ -151,8 +241,8 @@ const optionalNamespacesFromScopes = (
 ) => {
 	const scopesByNamespace = new Map<string, {
 		chains: string[]
-		methods: []
-		events: []
+		methods: string[]
+		events: string[]
 	}>()
 
 	for (const scope of requestedScopes) {
@@ -167,13 +257,19 @@ const optionalNamespacesFromScopes = (
 		if (namespace == null) {
 			scopesByNamespace.set(scope.namespace, {
 				chains: [chainId],
-				methods: [],
-				events: [],
+				methods: [...scope.methods],
+				events: [...scope.events],
 			})
 			continue
 		}
 		if (!namespace.chains.includes(chainId))
 			namespace.chains.push(chainId)
+		for (const method of scope.methods)
+			if (!namespace.methods.includes(method))
+				namespace.methods.push(method)
+		for (const event of scope.events)
+			if (!namespace.events.includes(event))
+				namespace.events.push(event)
 	}
 	if (!scopesByNamespace.size)
 		throw new Error('WalletConnect requires at least one explicit CAIP-2 scope')
@@ -184,7 +280,8 @@ const optionalNamespacesFromScopes = (
 const stateFromSession = (
 	session: WalletConnectV2Session,
 	connectedAt: number,
-	requestedChainIds: ReadonlySet<string>
+	requestedChainIds: ReadonlySet<string>,
+	optionalNamespaces: ReturnType<typeof optionalNamespacesFromScopes>
 ): WalletConnectV2SessionState => {
 	const scopes: WalletScope[] = []
 	const accounts: WalletAccount[] = []
@@ -198,6 +295,18 @@ const stateFromSession = (
 		if (namespaceName === 'bip122')
 			throw new Error(
 				'WalletConnect Bitcoin requires address-set session semantics'
+			)
+		if (!Object.hasOwn(optionalNamespaces, namespaceName))
+			throw new Error(
+				`WalletConnect namespace "${namespaceKey}" exceeded requested authority`
+			)
+		const requestedNamespace = optionalNamespaces[namespaceName]
+		if (
+			namespace.methods.some((method) => !requestedNamespace.methods.includes(method))
+			|| namespace.events.some((event) => !requestedNamespace.events.includes(event))
+		)
+			throw new Error(
+				`WalletConnect namespace "${namespaceKey}" exceeded requested authority`
 			)
 
 		for (const chainId of namespace.chains ?? []) {
@@ -267,6 +376,190 @@ const stateFromSession = (
 		connectedAt,
 	}
 }
+
+export const walletConnectV2ClientFromSignClient = (
+	signClient: WalletConnectV2SignClient
+): WalletConnectV2Client => ({
+	connect: async (input) => {
+		const proposal = await signClient.connect({
+			requiredNamespaces: Object.fromEntries(
+				Object.entries(input.requiredNamespaces).map(([namespace, values]) => [
+					namespace,
+					{
+						chains: [...values.chains],
+						methods: [...values.methods],
+						events: [...values.events],
+					},
+				])
+			),
+			optionalNamespaces: Object.fromEntries(
+				Object.entries(input.optionalNamespaces).map(([namespace, values]) => [
+					namespace,
+					{
+						chains: [...values.chains],
+						methods: [...values.methods],
+						events: [...values.events],
+					},
+				])
+			),
+		})
+
+		return {
+			...(proposal.uri != null && {
+				uri: proposal.uri,
+			}),
+			approval: async () => {
+				const {
+					topic,
+					expiry,
+					namespaces,
+				} = await proposal.approval()
+
+				return {
+					topic,
+					expiry,
+					namespaces,
+				}
+			},
+		}
+	},
+	disconnect: (input) => signClient.disconnect(input),
+	session: {
+		getAll: () => signClient.session.getAll().map(({
+			topic,
+			expiry,
+			namespaces,
+		}) => ({
+			topic,
+			expiry,
+			namespaces,
+		})),
+	},
+	listen: (listener) => {
+		const sessionUpdate = ({
+			topic,
+			params,
+		}: {
+			topic: string
+			params: {
+				namespaces: Readonly<Record<string, WalletConnectV2Namespace>>
+			}
+		}) => {
+			listener({
+				event: 'session_update',
+				topic,
+				namespaces: params.namespaces,
+			})
+		}
+		const sessionExtend = ({
+			topic,
+		}: {
+			topic: string
+		}) => {
+			if (!signClient.session.keys.includes(topic)) return
+
+			listener({
+				event: 'session_extend',
+				topic,
+				expiry: signClient.session.get(topic).expiry,
+			})
+		}
+		const sessionEvent = ({
+			topic,
+			params,
+		}: {
+			topic: string
+			params: {
+				chainId: string
+				event: {
+					name: string
+					data: JsonValue
+				}
+			}
+		}) => {
+			if (params.event.name === 'accountsChanged') {
+				const accountAddresses = walletConnectAccountAddresses(params.event.data)
+				if (accountAddresses instanceof arktype.errors) return
+
+				listener({
+					event: 'session_event',
+					topic,
+					chainId: params.chainId,
+					name: 'accountsChanged',
+					accountAddresses,
+				})
+				return
+			}
+			if (params.event.name !== 'chainChanged') return
+
+			const chainReference = walletConnectChainReference(params.event.data)
+			if (chainReference instanceof arktype.errors) return
+
+			const chain = parseCaip2(params.chainId)
+			let nextChainId: string
+			try {
+				if (String(chainReference).includes(':')) {
+					const nextChain = parseCaip2(String(chainReference))
+					if (nextChain.namespace !== chain.namespace) return
+
+					nextChainId = String(chainReference)
+				}
+				else {
+					nextChainId = `${chain.namespace}:${
+						chain.namespace === 'eip155' ?
+							BigInt(chainReference).toString()
+							:
+							chainReference
+					}`
+				}
+			}
+			catch {
+				return
+			}
+			listener({
+				event: 'session_event',
+				topic,
+				chainId: params.chainId,
+				name: 'chainChanged',
+				nextChainId,
+			})
+		}
+		const sessionDelete = ({
+			topic,
+		}: {
+			topic: string
+		}) => {
+			listener({
+				event: 'session_delete',
+				topic,
+			})
+		}
+		const sessionExpire = ({
+			topic,
+		}: {
+			topic: string
+		}) => {
+			listener({
+				event: 'session_expire',
+				topic,
+			})
+		}
+
+		signClient.on('session_update', sessionUpdate)
+		signClient.on('session_extend', sessionExtend)
+		signClient.on('session_event', sessionEvent)
+		signClient.on('session_delete', sessionDelete)
+		signClient.on('session_expire', sessionExpire)
+
+		return () => {
+			signClient.off('session_update', sessionUpdate)
+			signClient.off('session_extend', sessionExtend)
+			signClient.off('session_event', sessionEvent)
+			signClient.off('session_delete', sessionDelete)
+			signClient.off('session_expire', sessionExpire)
+		}
+	},
+})
 
 const connectedConnection = (
 	state: WalletConnectV2SessionState
@@ -339,6 +632,7 @@ export const createWalletConnectV2Adapter = ({
 	let started = false
 	let connectAttempt = 0
 	let displayUriAttempt: number | undefined
+	let updateWalletConnectCandidates: ((candidates: WalletCandidate[]) => void) | undefined
 
 	const clearExpiryTimer = (topic: string) => {
 		const timer = expiryTimerByTopic.get(topic)
@@ -407,6 +701,7 @@ export const createWalletConnectV2Adapter = ({
 
 		displayUriAttempt = undefined
 		onDisplayUri?.(undefined)
+		updateWalletConnectCandidates?.([walletConnectCandidate])
 	}
 
 	const disconnectRejectedSession = async (
@@ -429,6 +724,7 @@ export const createWalletConnectV2Adapter = ({
 		id: WALLET_ID,
 		start: (updateCandidates) => {
 			started = true
+			updateWalletConnectCandidates = updateCandidates
 
 			for (const session of client.session.getAll()) {
 				if (!validSessionExpiry(session.expiry))
@@ -438,7 +734,8 @@ export const createWalletConnectV2Adapter = ({
 					const state = stateFromSession(
 						session,
 						Date.now(),
-						requestedChainIds
+						requestedChainIds,
+						optionalNamespaces
 					)
 					sessionStateByTopic.set(session.topic, state)
 					scheduleExpiry(state)
@@ -461,7 +758,8 @@ export const createWalletConnectV2Adapter = ({
 								namespaces: event.namespaces,
 							},
 							state.connectedAt,
-							requestedChainIds
+							requestedChainIds,
+							optionalNamespaces
 						)
 					}
 					catch {
@@ -579,6 +877,7 @@ export const createWalletConnectV2Adapter = ({
 					clearExpiryTimer(topic)
 				sessionStateByTopic.clear()
 				subscribersByTopic.clear()
+				updateWalletConnectCandidates = undefined
 			}
 		},
 		connect: async (walletId) => {
@@ -596,6 +895,10 @@ export const createWalletConnectV2Adapter = ({
 			if (proposal.uri != null) {
 				displayUriAttempt = attempt
 				onDisplayUri?.(proposal.uri)
+				updateWalletConnectCandidates?.([{
+					...walletConnectCandidate,
+					connectionUri: proposal.uri,
+				}])
 			}
 
 			let session: WalletConnectV2Session
@@ -626,7 +929,8 @@ export const createWalletConnectV2Adapter = ({
 				state = stateFromSession(
 					session,
 					Date.now(),
-					requestedChainIds
+					requestedChainIds,
+					optionalNamespaces
 				)
 			}
 			catch (error) {
@@ -686,7 +990,6 @@ export const createWalletConnectV2Adapter = ({
 			const subscribers = subscribersByTopic.get(connectionKey) ?? new Set()
 			subscribers.add(updateConnection)
 			subscribersByTopic.set(connectionKey, subscribers)
-			updateConnection(connectedConnection(state))
 
 			return () => {
 				subscribers.delete(updateConnection)

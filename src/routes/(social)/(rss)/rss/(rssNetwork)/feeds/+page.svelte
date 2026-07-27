@@ -2,12 +2,11 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
@@ -23,29 +22,15 @@
 
 
 <Page>
+	{@const collectionSelection = select(EntityType.RssNetwork, {
+		scope: 'RssNetwork',
+	}).$$rssFeeds}
+
 	<RssFeedsView
-		href={resolve('/rss/feeds')}
+		href={resolve('/(social)/(rss)/rss/(rssNetwork)/feeds')}
 		title='RSS feeds'
-		selection={
-			select(EntityType.RssNetwork, {
-				scope: 'RssNetwork',
-			})
-				.$$rssFeeds({
-					sources: [
-						Source.Constants_Internal,
-					],
-				})
-		}
-		countResource={
-			select(EntityType.RssNetwork, {
-				scope: 'RssNetwork',
-			})
-				.$$rssFeeds({
-					sources: [
-						Source.Constants_Internal,
-					],
-				}).count
-		}
+		selection={collectionSelection}
+		countResource={collectionSelection.count}
 		id='rss-feeds'
 		data-column-item="flexible"
 		data-card

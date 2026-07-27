@@ -9,14 +9,12 @@
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		data,
-		params,
 	}: PageProps = $props()
 
 	const pageSelection = $derived(select(EntityType.EvmContract, data.selector, {
@@ -43,18 +41,12 @@
 
 
 <svelte:head>
-	<title>{(data.title ?? (pageSelection.entity == null ? [String((data.selector.address) ?? '')].filter(Boolean).join(' ') || 'EVM contract' : [String((({ ...data.selector, ...pageSelection.entity }).precompileName) ?? ''), String((({ ...data.selector, ...pageSelection.entity }).address) ?? '')].filter(Boolean).join(' ') || 'EVM contract'))} • EVM contract • Blockhead</title>
+	<title>{(data.title ?? (pageSelection.entity == null ? String(pageSelection.entitySelector.address ?? '') || 'EVM contract' : [(pageSelection.entity.precompileName ?? ''), String(pageSelection.entitySelector.address)].filter(Boolean).join(' ') || 'EVM contract'))} • EVM contract • Blockhead</title>
 </svelte:head>
 
 
 <Page>
 	<EvmContractView
-		href={
-			resolve('/network/[network=networkCaip2OrNetworkSlug]/contract/[address=evmAddress]', {
-				network: params.network,
-				address: params.address,
-			})
-		}
 		selection={pageSelection}
 	/>
 </Page>

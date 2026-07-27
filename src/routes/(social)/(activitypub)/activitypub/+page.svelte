@@ -8,7 +8,6 @@
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
@@ -32,13 +31,12 @@
 
 
 <svelte:head>
-	<title>{(data.title ?? (pageSelection.entity == null ? 'global ActivityPub network' : 'global ActivityPub network'))} • global ActivityPub network • Blockhead</title>
+	<title>{(data.title ?? ('global ActivityPub network'))} • global ActivityPub network • Blockhead</title>
 </svelte:head>
 
 
 <Page>
 	<GlobalActivityPubNetworkView
-		href={resolve('/activitypub')}
 		selection={pageSelection}
 	/>
 </Page>

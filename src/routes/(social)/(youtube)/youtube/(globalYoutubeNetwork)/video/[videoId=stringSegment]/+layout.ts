@@ -5,7 +5,7 @@ import { error } from '@sveltejs/kit'
 import { match as matchStringSegment } from '$/params/stringSegment.ts'
 import { parseEntitySelector } from '$/schema/$schema.ts'
 import { schema } from '$/schema/index.ts'
-import { YoutubeVideo as YoutubeVideoSchema } from '$/schema/YoutubeVideo.ts'
+import YoutubeVideoSchema from '$/schema/YoutubeVideo.ts'
 import { type as arktype } from 'arktype'
 
 export const load: LayoutLoad = ({ params }) => {

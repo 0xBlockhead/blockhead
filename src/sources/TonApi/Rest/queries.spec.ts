@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { sourceProviderDefinitions } from '$/sources/$sourceProviders.ts'
+import bindings from '$/sources/TonApi/bindings.ts'
 import { Source } from '$/sources/Source.ts'
 import type { TonApiAccountTransactionWire } from '$/sources/TonApi/Rest/types.ts'
 
@@ -8,18 +8,17 @@ const { getJson } = vi.hoisted(() => ({
 	getJson: vi.fn(),
 }))
 
+vi.mock('$/sources/_runtime/http.ts', () => ({
+	sourceGetJson: getJson,
+}))
+
 vi.mock('$/sources/_shared/wire/HttpRest/client.ts', () => ({
-	getJson,
+	httpUrl: (_binding: unknown, path: string) => path,
 }))
 
 const { getBlockchainAccountTransactions } = await import('$/sources/TonApi/Rest/queries.ts')
 
-const binding = sourceProviderDefinitions
-	.flatMap((provider) => provider.bindings)
-	.find((candidate) => candidate.source === Source.TonApi_Rest)
-
-if (binding == null)
-	throw new Error('TonApi Rest source spec missing binding')
+const binding = bindings[Source.TonApi_Rest]
 
 const accountId = '0:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef'
 const transaction = {
@@ -60,7 +59,6 @@ describe('TonAPI raw account transaction transport', () => {
 		})
 
 		await expect(getBlockchainAccountTransactions(
-			binding,
 			{
 				accountId,
 				limit: 2,
@@ -108,7 +106,7 @@ describe('TonAPI raw account transaction transport', () => {
 			transactions: [transaction],
 		})
 
-		await expect(getBlockchainAccountTransactions(binding, {
+		await expect(getBlockchainAccountTransactions({
 			accountId,
 			limit: 2,
 		})).resolves.toMatchObject({
@@ -116,7 +114,7 @@ describe('TonAPI raw account transaction transport', () => {
 				lt: BigInt(transaction.lt),
 			}],
 		})
-		await expect(getBlockchainAccountTransactions(binding, {
+		await expect(getBlockchainAccountTransactions({
 			accountId,
 			limit: 0,
 		})).resolves.toEqual({
@@ -135,7 +133,7 @@ describe('TonAPI raw account transaction transport', () => {
 				},
 			}],
 		})
-		await expect(getBlockchainAccountTransactions(binding, {
+		await expect(getBlockchainAccountTransactions({
 			accountId,
 			limit: 2,
 		})).rejects.toThrow('foreign account row')
@@ -146,7 +144,7 @@ describe('TonAPI raw account transaction transport', () => {
 				lt: Number.MAX_SAFE_INTEGER + 1,
 			}],
 		})
-		await expect(getBlockchainAccountTransactions(binding, {
+		await expect(getBlockchainAccountTransactions({
 			accountId,
 			limit: 2,
 		})).rejects.toThrow('lossless JSON bounds')
@@ -161,7 +159,7 @@ describe('TonAPI raw account transaction transport', () => {
 				},
 			],
 		})
-		await expect(getBlockchainAccountTransactions(binding, {
+		await expect(getBlockchainAccountTransactions({
 			accountId,
 			limit: 2,
 		})).rejects.toThrow('duplicate hash')
@@ -176,32 +174,22 @@ describe('TonAPI raw account transaction transport', () => {
 				},
 			],
 		})
-		await expect(getBlockchainAccountTransactions(binding, {
+		await expect(getBlockchainAccountTransactions({
 			accountId,
 			limit: 2,
 		})).rejects.toThrow('not strictly newest-first')
 	})
 
-	it('enforces canonical binding, raw identity, bounds, and advancing continuation before transport', async () => {
-		await expect(getBlockchainAccountTransactions(
-			{
-				...binding,
-				source: Source.TonCenter_V2_Rest,
-			},
-			{
-				accountId,
-				limit: 1,
-			}
-		)).rejects.toThrow('canonical TON mainnet binding')
-		await expect(getBlockchainAccountTransactions(binding, {
+	it('enforces raw identity and bounds before transport', async () => {
+		await expect(getBlockchainAccountTransactions({
 			accountId: 'EQ/a+b',
 			limit: 1,
 		})).rejects.toThrow('malformed raw account address')
-		await expect(getBlockchainAccountTransactions(binding, {
+		await expect(getBlockchainAccountTransactions({
 			accountId,
 			limit: 1_001,
 		})).rejects.toThrow('0 through 1000')
-		await expect(getBlockchainAccountTransactions(binding, {
+		await expect(getBlockchainAccountTransactions({
 			accountId,
 			limit: 1,
 			beforeLt: -1n,

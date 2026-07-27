@@ -1,20 +1,19 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { Source } from '$/sources/Source.ts'
-import { sourceProviderDefinitions } from '$/sources/$sourceProviders.ts'
+import bindings from '$/sources/NearBlocks/bindings.ts'
 import type {
 	NearBlocksV3AccountBalance,
 	NearBlocksV3Response,
 	NearBlocksV3Transaction,
 } from '$/sources/NearBlocks/Rest/types.ts'
 
-const { sourceGetJson } = vi.hoisted(() => ({
-	sourceGetJson: vi.fn(),
+const { getNearBlocksRestJson } = vi.hoisted(() => ({
+	getNearBlocksRestJson: vi.fn(),
 }))
 
-vi.mock('$/sources/_runtime/http.ts', async (importOriginal) => ({
-	...await importOriginal<typeof import('$/sources/_runtime/http.ts')>(),
-	sourceGetJson,
+vi.mock('$/sources/_shared/wire/HttpRest/client.ts', () => ({
+	getJson: getNearBlocksRestJson,
 }))
 
 const {
@@ -22,12 +21,7 @@ const {
 	getAccountTransactions,
 } = await import('$/sources/NearBlocks/Rest/queries.ts')
 
-const binding = sourceProviderDefinitions
-	.flatMap((provider) => provider.bindings)
-	.find((candidate) => candidate.source === Source.NearBlocks_Rest)
-
-if (binding == null)
-	throw new Error('NearBlocks_Rest spec missing source binding')
+const binding = bindings[Source.NearBlocks_Rest]
 
 const transaction = {
 	actions: [{
@@ -72,26 +66,26 @@ describe('NearBlocks v3 account portfolio transport', () => {
 			amount_staked: '20',
 			storage_usage: '30',
 		} satisfies NearBlocksV3AccountBalance
-		sourceGetJson.mockResolvedValueOnce({
+		getNearBlocksRestJson.mockResolvedValueOnce({
 			data: balance,
 		} satisfies NearBlocksV3Response<NearBlocksV3AccountBalance>)
 
-		await expect(getAccountBalance(binding, 'alice.near')).resolves.toEqual(balance)
-		expect(sourceGetJson).toHaveBeenCalledWith(
+		await expect(getAccountBalance('alice.near')).resolves.toEqual(balance)
+		expect(getNearBlocksRestJson).toHaveBeenCalledWith(
 			binding,
-			'https://api.nearblocks.io/v3/accounts/alice.near/balance'
+			'/v3/accounts/alice.near/balance'
 		)
 	})
 
 	it('walks opaque bounded account transaction cursors', async () => {
-		sourceGetJson.mockResolvedValueOnce({
+		getNearBlocksRestJson.mockResolvedValueOnce({
 			data: [transaction],
 			meta: {
 				next_page: 'opaque-next',
 			},
 		} satisfies NearBlocksV3Response<NearBlocksV3Transaction[]>)
 
-		await expect(getAccountTransactions(binding, {
+		await expect(getAccountTransactions({
 			accountId: 'alice.near',
 			limit: 25,
 			next: 'opaque+/=current',
@@ -99,36 +93,36 @@ describe('NearBlocks v3 account portfolio transport', () => {
 			transactions: [transaction],
 			continuationToken: 'opaque-next',
 		})
-		expect(sourceGetJson).toHaveBeenCalledWith(
+		expect(getNearBlocksRestJson).toHaveBeenCalledWith(
 			binding,
-			'https://api.nearblocks.io/v3/accounts/alice.near/txns?limit=25&next=opaque%2B%2F%3Dcurrent'
+			'/v3/accounts/alice.near/txns?limit=25&next=opaque%2B%2F%3Dcurrent'
 		)
 	})
 
 	it('fails closed on foreign, duplicate, oversized, and non-progress pages', async () => {
-		sourceGetJson.mockResolvedValueOnce({
+		getNearBlocksRestJson.mockResolvedValueOnce({
 			data: [{
 				...transaction,
 				receiver_account_id: 'carol.near',
 			}],
 		})
-		await expect(getAccountTransactions(binding, {
+		await expect(getAccountTransactions({
 			accountId: 'alice.near',
 			limit: 25,
 		})).rejects.toThrow('foreign account row')
 
-		sourceGetJson.mockResolvedValueOnce({
+		getNearBlocksRestJson.mockResolvedValueOnce({
 			data: [
 				transaction,
 				transaction,
 			],
 		})
-		await expect(getAccountTransactions(binding, {
+		await expect(getAccountTransactions({
 			accountId: 'alice.near',
 			limit: 25,
 		})).rejects.toThrow('invalid or duplicate hash')
 
-		sourceGetJson.mockResolvedValueOnce({
+		getNearBlocksRestJson.mockResolvedValueOnce({
 			data: [
 				transaction,
 				{
@@ -137,18 +131,18 @@ describe('NearBlocks v3 account portfolio transport', () => {
 				},
 			],
 		})
-		await expect(getAccountTransactions(binding, {
+		await expect(getAccountTransactions({
 			accountId: 'alice.near',
 			limit: 1,
 		})).rejects.toThrow('exceeds requested limit')
 
-		sourceGetJson.mockResolvedValueOnce({
+		getNearBlocksRestJson.mockResolvedValueOnce({
 			data: [transaction],
 			meta: {
 				next_page: 'same',
 			},
 		})
-		await expect(getAccountTransactions(binding, {
+		await expect(getAccountTransactions({
 			accountId: 'alice.near',
 			limit: 25,
 			next: 'same',
@@ -156,7 +150,7 @@ describe('NearBlocks v3 account portfolio transport', () => {
 	})
 
 	it('preserves newest-first order and rejects malformed lossless transaction context', async () => {
-		sourceGetJson.mockResolvedValueOnce({
+		getNearBlocksRestJson.mockResolvedValueOnce({
 			data: [
 				transaction,
 				{
@@ -170,7 +164,7 @@ describe('NearBlocks v3 account portfolio transport', () => {
 				},
 			],
 		})
-		await expect(getAccountTransactions(binding, {
+		await expect(getAccountTransactions({
 			accountId: 'alice.near',
 			limit: 25,
 		})).rejects.toThrow('not newest-first')
@@ -189,10 +183,10 @@ describe('NearBlocks v3 account portfolio transport', () => {
 				receipt_conversion_tokens_burnt: '-1',
 			},
 		]) {
-			sourceGetJson.mockResolvedValueOnce({
+			getNearBlocksRestJson.mockResolvedValueOnce({
 				data: [malformedTransaction],
 			})
-			await expect(getAccountTransactions(binding, {
+			await expect(getAccountTransactions({
 				accountId: 'alice.near',
 				limit: 25,
 			})).rejects.toThrow(/malformed identity|does not match|invalid receipt conversion/)
@@ -200,25 +194,25 @@ describe('NearBlocks v3 account portfolio transport', () => {
 	})
 
 	it('rejects invalid requests and malformed balances without transport ambiguity', async () => {
-		await expect(getAccountTransactions(binding, {
+		await expect(getAccountTransactions({
 			accountId: 'alice.near',
 			limit: 0,
 		})).resolves.toEqual({
 			transactions: [],
 			continuationToken: undefined,
 		})
-		await expect(getAccountTransactions(binding, {
+		await expect(getAccountTransactions({
 			accountId: 'alice.near',
 			limit: 101,
 		})).rejects.toThrow('integer from 0 through 100')
-		await expect(getAccountTransactions(binding, {
+		await expect(getAccountTransactions({
 			accountId: 'alice.near',
 			limit: 25,
 			next: '',
 		})).rejects.toThrow('must not be empty')
-		expect(sourceGetJson).not.toHaveBeenCalled()
+		expect(getNearBlocksRestJson).not.toHaveBeenCalled()
 
-		sourceGetJson.mockResolvedValueOnce({
+		getNearBlocksRestJson.mockResolvedValueOnce({
 			data: {
 				account_id: 'foreign.near',
 				amount: '100',
@@ -226,11 +220,11 @@ describe('NearBlocks v3 account portfolio transport', () => {
 				storage_usage: '30',
 			},
 		})
-		await expect(getAccountBalance(binding, 'alice.near')).rejects.toThrow(
+		await expect(getAccountBalance('alice.near')).rejects.toThrow(
 			'identity does not match'
 		)
 
-		sourceGetJson.mockResolvedValueOnce({
+		getNearBlocksRestJson.mockResolvedValueOnce({
 			data: {
 				account_id: 'alice.near',
 				amount: '-1',
@@ -238,22 +232,8 @@ describe('NearBlocks v3 account portfolio transport', () => {
 				storage_usage: '30',
 			},
 		})
-		await expect(getAccountBalance(binding, 'alice.near')).rejects.toThrow(
+		await expect(getAccountBalance('alice.near')).rejects.toThrow(
 			'invalid account amount'
 		)
-	})
-
-	it('rejects foreign source authority before transport', async () => {
-		const foreignBinding = sourceProviderDefinitions
-			.flatMap((provider) => provider.bindings)
-			.find((candidate) => candidate.source === Source.NearRpc_JsonRpc)
-		if (foreignBinding == null)
-			throw new Error('NearBlocks_Rest spec missing adversarial NEAR binding')
-
-		await expect(getAccountTransactions(foreignBinding, {
-			accountId: 'alice.near',
-			limit: 25,
-		})).rejects.toThrow('expected canonical NEAR mainnet binding')
-		expect(sourceGetJson).not.toHaveBeenCalled()
 	})
 })

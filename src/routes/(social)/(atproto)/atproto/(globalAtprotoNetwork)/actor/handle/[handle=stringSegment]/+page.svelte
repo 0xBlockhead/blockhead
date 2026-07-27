@@ -3,12 +3,12 @@
 <script lang="ts">
 	// Types/constants
 	import type { PageProps } from './$types.ts'
+	import { resolve } from '$app/paths'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
@@ -27,21 +27,6 @@
 			did: true,
 		},
 	}))
-	const canonicalEntityHref = $derived(pageSelection.entity == null ? undefined : (
-		({ ...pageSelection.entitySelector, ...pageSelection.entity }) != null && 'did' in ({ ...pageSelection.entitySelector, ...pageSelection.entity })
-		&& ({ ...pageSelection.entitySelector, ...pageSelection.entity }).did != null ?
-			resolve('/atproto/actor/[did=stringSegment]', {
-		did: encodeURIComponent(String(({ ...pageSelection.entitySelector, ...pageSelection.entity }).did ?? '')),
-	})
-	:
-			undefined
-	))
-
-	$effect(() => {
-		if (canonicalEntityHref == null) return
-
-		globalThis.location.replace(canonicalEntityHref)
-	})
 
 
 	// Components
@@ -51,16 +36,24 @@
 
 
 <svelte:head>
-	<title>{(pageSelection.entity == null ? 'AT Protocol account' : [String((({ ...{
-		handle: params.handle,
-	}, ...pageSelection.entity }).did) ?? '')].filter(Boolean).join(' ') || 'AT Protocol account')} • AT Protocol account • Blockhead</title>
+	<title>AT Protocol account • Blockhead</title>
 </svelte:head>
 
 
 <Page>
-	<ResourceBoundary resource={pageSelection}>
-		{#snippet children()}
-			<!-- The canonical alias navigation effect owns the resolved state. -->
+	<ResourceBoundary resource={pageSelection.did}>
+		{#snippet children(resolvedField)}
+			{#if typeof window !== 'undefined'}
+				{@const canonicalEntityHref = resolve(
+					'/(social)/(atproto)/atproto/(globalAtprotoNetwork)/actor/[did=stringSegment]',
+					{
+						did: encodeURIComponent(String({ ...pageSelection.entitySelector, did: resolvedField }.did)),
+					}
+				)}
+				{#if canonicalEntityHref != null}
+					{globalThis.location.replace(canonicalEntityHref)}
+				{/if}
+			{/if}
 		{/snippet}
 	</ResourceBoundary>
 </Page>

@@ -6,7 +6,7 @@ import { networkByCaip2, networkBySlug } from '$/constants/Network.ts'
 import { match as matchNonNegativeInteger } from '$/params/nonNegativeInteger.ts'
 import { parseEntitySelector } from '$/schema/$schema.ts'
 import { schema } from '$/schema/index.ts'
-import { Network_Activity_Day as Network_Activity_DaySchema } from '$/schema/Network_Activity_Day.ts'
+import Network_Activity_DaySchema from '$/schema/Network_Activity_Day.ts'
 import { type as arktype } from 'arktype'
 
 // Projection eligibility: facetPath=['Evm']

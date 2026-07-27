@@ -1,16 +1,13 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { entity, facet } from '$/schema/$schema.ts'
+import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { UrlString } from '$/schema/UrlString.ts'
 import { EvmAddress } from '$/schema/ZeroExHex.ts'
 import { type } from 'arktype'
 
-export enum ScalingDeploymentClaim_TimestampSelector {
-	ClaimTimestampMsSource = 'ClaimTimestampMsSource',
-}
-export const ScalingDeploymentClaim_Timestamp = entity({
+export default entity({
 	entityType: EntityType.ScalingDeploymentClaim_Timestamp,
 	labels: {
 		singular: 'scaling deployment claim timestamp',
@@ -106,31 +103,31 @@ export const ScalingDeploymentClaim_Timestamp = entity({
 	chainConfigUrl: {
 		label: 'Chain config URL',
 		type: EntityFieldType.Primitive,
-		primitiveType: (UrlString),
+		primitiveType: UrlString,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	derivationSpecUrl: {
 		label: 'Derivation spec URL',
 		type: EntityFieldType.Primitive,
-		primitiveType: (UrlString),
+		primitiveType: UrlString,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	publicRpcUrl: {
 		label: 'Public RPC URL',
 		type: EntityFieldType.Primitive,
-		primitiveType: (UrlString),
+		primitiveType: UrlString,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	sequencerRpcUrl: {
 		label: 'Sequencer RPC URL',
 		type: EntityFieldType.Primitive,
-		primitiveType: (UrlString),
+		primitiveType: UrlString,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	batchInboxAddress: {
 		label: 'Batch inbox address',
 		type: EntityFieldType.Primitive,
-		primitiveType: (EvmAddress),
+		primitiveType: EvmAddress,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	batchInboxSelector: {

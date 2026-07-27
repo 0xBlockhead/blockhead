@@ -3,6 +3,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { PageProps } from './$types.ts'
+	import { resolve } from '$app/paths'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { calldataExamples, type CalldataExample } from '$/constants/calldata-examples.ts'
 	import { decodeCalldataWithSignature, decodeEventDataWithSignature, formatDecodedParamValue } from '$/lib/calldata-decode.ts'
@@ -10,7 +11,6 @@
 	import { Source } from '$/sources/Source.ts'
 	import { normalizeEvmSelectorHex, normalizeEvmTopicHex } from '$/lib/signature-paths.ts'
 	import { afterNavigate } from '$app/navigation'
-	import { resolve } from '$app/paths'
 	import { page } from '$app/state'
 	import { untrack } from 'svelte'
 	import Collapsible from '$/components/Collapsible.svelte'
@@ -80,7 +80,7 @@
 		globalThis.history.replaceState(
 			globalThis.history.state,
 			'',
-									resolve('/evm/calldata-decoder') + (hex ? `?data=${encodeURIComponent(hex)}` : ''),
+			resolve('/evm/calldata-decoder') + (hex ? `?data=${encodeURIComponent(hex)}` : ''),
 		)
 	})
 
@@ -275,7 +275,14 @@
 								<EntityView
 									entityType={EntityType.EvmSelector}
 									entitySelector={{ hex: normalizedSelector }}
-													href={resolve(`/evm/selector/${normalizedSelector}`)}
+									href={
+										resolve(
+											'/(explore)/(protocols)/evm/(evmProtocol)/(selectors)/selector/[hex=zeroExHex]',
+											{
+												hex: String(normalizedSelector),
+											}
+										)
+									}
 								>
 									{#snippet Icon()}
 										<Icon
@@ -292,7 +299,16 @@
 										>
 											{#snippet children()}
 												<Heading>
-															<a href={resolve(`/evm/selector/${normalizedSelector}`)}>
+													<a
+														href={
+															resolve(
+																'/(explore)/(protocols)/evm/(evmProtocol)/(selectors)/selector/[hex=zeroExHex]',
+																{
+																	hex: String(normalizedSelector),
+																}
+															)
+														}
+													>
 														{functionSignatures[selectedSignatureIndex] ?? normalizedSelector}
 													</a>
 												</Heading>
@@ -372,7 +388,14 @@
 								<EntityView
 									entityType={EntityType.EvmTopic}
 									entitySelector={{ hex: normalizedTopic }}
-													href={resolve(`/evm/topic/${normalizedTopic}`)}
+									href={
+										resolve(
+											'/(explore)/(protocols)/evm/(evmProtocol)/(topics)/topic/[hex=evmTopicHash]',
+											{
+												hex: String(normalizedTopic),
+											}
+										)
+									}
 								>
 									{#snippet Icon()}
 										<Icon
@@ -389,7 +412,16 @@
 										>
 											{#snippet children()}
 												<Heading>
-															<a href={resolve(`/evm/topic/${normalizedTopic}`)}>
+													<a
+														href={
+															resolve(
+																'/(explore)/(protocols)/evm/(evmProtocol)/(topics)/topic/[hex=evmTopicHash]',
+																{
+																	hex: String(normalizedTopic),
+																}
+															)
+														}
+													>
 														{eventSignatures[selectedEventSignatureIndex] ?? normalizedTopic}
 													</a>
 												</Heading>

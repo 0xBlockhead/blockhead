@@ -3,69 +3,31 @@
 <script lang="ts">
 	// Types/constants
 	import { resolve } from '$app/paths'
-	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
-	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
-	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
+	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-
-
+	import { htmlToPlainText } from '$/lib/html.ts'
 
 
 	// State
 	let {
 		selection,
-		countResource,
-		title = 'ActivityPub note observations',
-		typeAnnotationParagraphs = [],
-		placeholderText = undefined,
-		emptyText = undefined,
 		open = $bindable(true),
-		collapsible = true,
-		showTypeAnnotation = true,
-		id = 'ActivityPubNote_Timestamps-list',
 		...EntitiesListProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyEntitiesSelection<EntityType.ActivityPubNote_Timestamp>
-			countResource?: SvelteKitResource<number>
-			title?: string
-			typeAnnotationParagraphs?: string[]
-			placeholderText?: string
-			emptyText?: string
-			open?: boolean
-			collapsible?: boolean
-			showTypeAnnotation?: boolean
-			id?: string
-		},
-		EntitiesListForwardProps
-	> = $props()
+	}: EntityListViewProps<EntityType.ActivityPubNote_Timestamp> = $props()
 
 
 	// Components
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView from '$/components/EntityView.svelte'
 </script>
 
-
-{#snippet TypeAnnotationParagraphs()}
-	{#each typeAnnotationParagraphs as paragraph (paragraph)}
-		<p>{paragraph}</p>
-	{/each}
-{/snippet}
 
 <EntitiesList
 	{...EntitiesListProps}
 	entityType={EntityType.ActivityPubNote_Timestamp}
-	{id}
-	{title}
 	bind:open
-	{collapsible}
-	{showTypeAnnotation}
-	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
 	resource={
 		selection({
-			sources: selection.sources,
 			fields: {
 				$note: {
 					fields: {
@@ -75,59 +37,39 @@
 					},
 				},
 				timestampMs: true,
-				source: true,
 			},
 		})
 	}
-	{countResource}
-	getResourceItems={(activityPubNoteTimestamps) => [...new Map(activityPubNoteTimestamps.values.map((activityPubNoteTimestamp) => [activityPubNoteTimestamp[EntityMetaKey.SelectorKey], activityPubNoteTimestamp])).values()]}
-	getKey={(activityPubNoteTimestamp) => activityPubNoteTimestamp[EntityMetaKey.SelectorKey]}
-	{placeholderText}
 >
-	{#snippet Empty()}
-		{#if emptyText != null}
-			<p data-text="muted">{emptyText}</p>
-		{:else}
-			<p data-text="muted">No ActivityPub note observations yet.</p>
-		{/if}
-	{/snippet}
-
 	{#snippet Item({ item: activityPubNoteTimestamp })}
-		{@const activityPubNoteTimestampFields = { ...activityPubNoteTimestamp[EntityMetaKey.Selector], ...activityPubNoteTimestamp }}
+		{@const activityPubNoteTimestampSelector = activityPubNoteTimestamp[EntityMetaKey.Selector]}
 		<EntityView
 			entityType={EntityType.ActivityPubNote_Timestamp}
-			entitySelector={activityPubNoteTimestamp[EntityMetaKey.Selector]}
+			entitySelector={activityPubNoteTimestampSelector}
 			href={
 				(
-					activityPubNoteTimestamp[EntityMetaKey.Selector] != null && 'timestampMs' in activityPubNoteTimestamp[EntityMetaKey.Selector]
-					&& activityPubNoteTimestamp[EntityMetaKey.Selector].timestampMs != null
-					&& activityPubNoteTimestamp[EntityMetaKey.Selector] != null && 'source' in activityPubNoteTimestamp[EntityMetaKey.Selector]
-					&& activityPubNoteTimestamp[EntityMetaKey.Selector].source != null
-					&& activityPubNoteTimestamp[EntityMetaKey.Selector] != null && '$note' in activityPubNoteTimestamp[EntityMetaKey.Selector]
-					&& activityPubNoteTimestamp[EntityMetaKey.Selector].$note != null && 'instanceOrigin' in activityPubNoteTimestamp[EntityMetaKey.Selector].$note
-					&& activityPubNoteTimestamp[EntityMetaKey.Selector].$note.instanceOrigin != null
-					&& activityPubNoteTimestamp[EntityMetaKey.Selector].$note != null && 'localStatusId' in activityPubNoteTimestamp[EntityMetaKey.Selector].$note
-					&& activityPubNoteTimestamp[EntityMetaKey.Selector].$note.localStatusId != null ?
-						resolve('/activitypub/note/[instanceOrigin=absoluteUrl]/[localStatusId=stringSegment]/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
-					timestampMs: String(activityPubNoteTimestamp[EntityMetaKey.Selector].timestampMs ?? ''),
-					source: String(activityPubNoteTimestamp[EntityMetaKey.Selector].source ?? ''),
-					instanceOrigin: encodeURIComponent(String(activityPubNoteTimestamp[EntityMetaKey.Selector].$note.instanceOrigin ?? '')),
-					localStatusId: String(activityPubNoteTimestamp[EntityMetaKey.Selector].$note.localStatusId ?? ''),
-				})
-				:
+					'instanceOrigin' in activityPubNoteTimestampSelector.$note
+					&& 'localStatusId' in activityPubNoteTimestampSelector.$note ?
+						resolve(
+							'/(social)/(activitypub)/activitypub/(globalActivityPubNetwork)/note/[instanceOrigin=absoluteUrl]/[localStatusId=stringSegment]/(activityPubNote)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
+							{
+								instanceOrigin: encodeURIComponent(String(activityPubNoteTimestampSelector.$note.instanceOrigin)),
+								localStatusId: String(activityPubNoteTimestampSelector.$note.localStatusId),
+								timestampMs: String(activityPubNoteTimestampSelector.timestampMs),
+								source: String(activityPubNoteTimestampSelector.source),
+							}
+						)
+					:
 						undefined
 				)
 			}
-			layout={EntityLayout.Summary}
-			open={false}
-			showTypeAnnotation={false}
 		>
 			{#snippet Title()}
-				{[[activityPubNoteTimestampFields.$note.content == null ? '' : String((htmlToPlainText((activityPubNoteTimestampFields.$note.content))) ?? ''), String((activityPubNoteTimestampFields.$note.localStatusId) ?? '')].filter(Boolean).join(' ') || 'ActivityPub note'].filter(Boolean).join(' ') || 'ActivityPub note observation'}
+				{(([activityPubNoteTimestamp.$note.content == null ? '' : String((htmlToPlainText(activityPubNoteTimestamp.$note.content)) ?? ''), activityPubNoteTimestampSelector.$note.localStatusId].filter(Boolean).join(' ')) || 'ActivityPub note')}
 			{/snippet}
 
 			{#snippet Value()}
-				{[String((activityPubNoteTimestampFields.timestampMs) ?? '')].filter(Boolean).join(' ')}
+				{String(activityPubNoteTimestampSelector.timestampMs)}
 			{/snippet}
 		</EntityView>
 	{/snippet}

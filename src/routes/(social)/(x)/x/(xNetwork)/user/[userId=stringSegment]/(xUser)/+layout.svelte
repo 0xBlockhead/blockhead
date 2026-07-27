@@ -30,23 +30,29 @@
 {#key params.userId}
 	<ParentPageCollapsible
 		href={
-			resolve('/x/user/[userId=stringSegment]', {
-				userId: params.userId,
-			})
+			resolve(
+				'/(social)/(x)/x/(xNetwork)/user/[userId=stringSegment]',
+				{
+					userId: String(params.userId),
+				}
+			)
 		}
 	>
 		{#snippet Summary()}
-			{@const DetailView = XUserView}
-
-			<DetailView
-				selection={select(EntityType.XUser, data.selector, { sources: [
-		Source.X_Rest,
-		Source.X_FxEmbed_Rest,
-	] })}
+			<XUserView
+				selection={
+					select(EntityType.XUser, data.selector, { sources: [
+						Source.X_Rest,
+						Source.X_FxEmbed_Rest,
+					] })
+				}
 				href={
-					resolve('/x/user/[userId=stringSegment]', {
-						userId: params.userId,
-					})
+					resolve(
+						'/(social)/(x)/x/(xNetwork)/user/[userId=stringSegment]',
+						{
+							userId: String(params.userId),
+						}
+					)
 				}
 				layout={EntityLayout.SummaryInline}
 			/>

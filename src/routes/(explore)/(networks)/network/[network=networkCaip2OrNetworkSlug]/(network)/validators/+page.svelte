@@ -4,7 +4,6 @@
 	// Types/constants
 	import type { PageProps } from './$types.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -17,12 +16,12 @@
 		data,
 		params,
 	}: PageProps = $props()
-
+	const collection0Selection = $derived(select(EntityType.Network, data.selector).Evm.$$beaconValidators)
+	const collection1Selection = $derived(select(EntityType.Network, data.selector).Solana.$$validators)
 
 
 	// Components
 	import Page from '$/components/Page.svelte'
-	import ProjectionBoundary from '$/components/ProjectionBoundary.svelte'
 	import BeaconValidatorsView from '$/views/BeaconValidatorsView.svelte'
 	import SolanaValidatorsView from '$/views/SolanaValidatorsView.svelte'
 </script>
@@ -34,71 +33,37 @@
 
 
 <Page>
-	<ProjectionBoundary
-		resource={
-			select(EntityType.Network, data.selector).Evm
-				.$$beaconValidators({
-					sources: [
-						Source.Beacon_Rest,
-					],
-				}).Evm
+	<BeaconValidatorsView
+		href={
+			resolve(
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/validators',
+				{
+					network: String(params.network),
+				}
+			)
 		}
-	>
-		{#snippet Applicable(projection)}
-			<BeaconValidatorsView
-				href={
-					resolve('/network/[network=networkCaip2OrNetworkSlug]/validators', {
-						network: params.network,
-					})
-				}
-				title='Beacon validators'
-				selection={
-					projection
-						.$$beaconValidators({
-							sources: [
-								Source.Beacon_Rest,
-							],
-						})
-				}
-				id='account-beacon-validator'
-				data-column-item="flexible"
-				data-card
-				data-scroll-container
-			/>
-		{/snippet}
-	</ProjectionBoundary>
+		title='Beacon validators'
+		selection={collection0Selection}
+		id='beacon-validators'
+		data-column-item="flexible"
+		data-card
+		data-scroll-container
+	/>
 
-	<ProjectionBoundary
-		resource={
-			select(EntityType.Network, data.selector).Solana
-				.$$validators({
-					sources: [
-						Source.Solana_JsonRpc,
-					],
-				}).Solana
+	<SolanaValidatorsView
+		href={
+			resolve(
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/validators',
+				{
+					network: String(params.network),
+				}
+			)
 		}
-	>
-		{#snippet Applicable(projection)}
-			<SolanaValidatorsView
-				href={
-					resolve('/network/[network=networkCaip2OrNetworkSlug]/validators', {
-						network: params.network,
-					})
-				}
-				title='Solana validators'
-				selection={
-					projection
-						.$$validators({
-							sources: [
-								Source.Solana_JsonRpc,
-							],
-						})
-				}
-				id='account-solana-validator'
-				data-column-item="flexible"
-				data-card
-				data-scroll-container
-			/>
-		{/snippet}
-	</ProjectionBoundary>
+		title='Solana validators'
+		selection={collection1Selection}
+		id='validators'
+		data-column-item="flexible"
+		data-card
+		data-scroll-container
+	/>
 </Page>

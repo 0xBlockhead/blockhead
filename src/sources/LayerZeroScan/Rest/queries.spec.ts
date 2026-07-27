@@ -7,7 +7,6 @@ import {
 } from 'vitest'
 
 import { Source } from '$/sources/Source.ts'
-import { SourceProvider } from '$/sources/SourceProvider.ts'
 import {
 	ApiFamily,
 	SourceCredentialScope,
@@ -34,7 +33,6 @@ const {
 } = await import('$/sources/LayerZeroScan/Rest/queries.ts')
 
 const binding = {
-	provider: SourceProvider.LayerZeroScan,
 	source: Source.LayerZeroScan_Rest,
 	target: {
 		kind: SourceTargetKind.Global,

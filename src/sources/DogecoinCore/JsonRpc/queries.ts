@@ -1,115 +1,65 @@
-import {
-	getBlock as getBitcoinCoreBlock,
-	getBlockHash as getBitcoinCoreBlockHash,
-	getMempoolInfo as getBitcoinCoreMempoolInfo,
-	getRawTransaction as getBitcoinCoreRawTransaction,
-} from '$/sources/BitcoinCore/JsonRpc/queries.ts'
-import { jsonRpcHeaders, jsonRpcVersion } from '$/sources/Evm/JsonRpc/constants.ts'
-import { corsFetch, throwHttpError } from '$/lib/http.ts'
-import { utxoJsonRpcOrigins } from '$/sources/_shared/interfaces/UtxoJsonRpc/localOrigins.ts'
+import type { SourceBinding } from '$/sources/SourceBinding.ts'
+import { jsonRpc2 } from '$/sources/_shared/wire/JsonRpc2/client.ts'
+import type {
+	BitcoinCoreMempoolInfo,
+	BitcoinCoreTransaction,
+} from '$/sources/BitcoinCore/JsonRpc/types.ts'
 import type { DogecoinCoreBlock } from '$/sources/DogecoinCore/JsonRpc/types.ts'
-import type { JsonValue } from '$/typescript/JsonValue.ts'
+import bindings from '$/sources/DogecoinCore/bindings.ts'
+import { Source } from '$/sources/Source.ts'
 
-type DogecoinCoreJsonRpcResponse<_Result> = {
-	jsonrpc: typeof jsonRpcVersion
-	id: number | string | null
-	result?: _Result
-	error?: {
-		code: number
-		message: string
-		data?: JsonValue
-	}
-}
-
-const dogecoinCoreJsonRpc = async <_Result>({
-	rpcUrl,
-	method,
-	params,
-}: {
-	rpcUrl: string
-	method: string
-	params: JsonValue[]
-}) => {
-	const response = await corsFetch(rpcUrl, {
-		origins: utxoJsonRpcOrigins,
-		init: {
-			method: 'POST',
-			headers: jsonRpcHeaders,
-			body: JSON.stringify({
-				jsonrpc: jsonRpcVersion,
-				id: 1,
-				method,
-				params,
-			}),
-		},
-	})
-	if (!response.ok)
-		await throwHttpError(`DogecoinCore ${method}`, response)
-
-	const json = await response.json<DogecoinCoreJsonRpcResponse<_Result>>()
-	if (json.error != null)
-		throw new Error(`DogecoinCore ${method}: ${json.error.message}`)
-	if (json.result === undefined)
-		throw new Error(`DogecoinCore ${method}: missing result`)
-
-	return json.result
-}
+const binding = bindings[Source.DogecoinCore_JsonRpc]
 
 export const getBlockHash = ({
-	rpcUrl,
 	height,
 }: {
-	rpcUrl: string
 	height: bigint
 }) => (
-	getBitcoinCoreBlockHash({
-		rpcUrl,
-		height,
-	})
+	jsonRpc2<string>(
+		binding,
+		'getblockhash',
+		[Number(height)]
+	)
 )
 
-export const getBlock = ({
-	rpcUrl,
+export const getBlock = <_Verbosity extends 0 | 1 | 2 = 2>({
 	blockHash,
-	verbosity = 2,
+	verbosity,
 }: {
-	rpcUrl: string
 	blockHash: string
-	verbosity?: 0 | 1 | 2
+	verbosity?: _Verbosity
 }) => (
-	verbosity === 0 ?
-		getBitcoinCoreBlock({
-			rpcUrl,
+	jsonRpc2<_Verbosity extends 0 ? string : DogecoinCoreBlock>(
+		binding,
+		'getblock',
+		[
 			blockHash,
-			verbosity,
-		})
-	:
-		dogecoinCoreJsonRpc<DogecoinCoreBlock>({
-			rpcUrl,
-			method: 'getblock',
-			params: [
-				blockHash,
-				verbosity,
-			],
-		})
+			verbosity ?? 2,
+		]
+	)
 )
 
-export const getRawTransaction = ({
-	rpcUrl,
+export const getRawTransaction = <_Verbose extends boolean = true>({
 	txId,
-	verbose = true,
+	verbose,
 }: {
-	rpcUrl: string
 	txId: string
-	verbose?: boolean
+	verbose?: _Verbose
 }) => (
-	getBitcoinCoreRawTransaction({
-		rpcUrl,
-		txId,
-		verbose,
-	})
+	jsonRpc2<_Verbose extends true ? BitcoinCoreTransaction : string>(
+		binding,
+		'getrawtransaction',
+		[
+			txId,
+			verbose ?? true,
+		]
+	)
 )
 
-export const getMempoolInfo = ({ rpcUrl }: { rpcUrl: string }) => (
-	getBitcoinCoreMempoolInfo({ rpcUrl })
+export const getMempoolInfo = () => (
+	jsonRpc2<BitcoinCoreMempoolInfo>(
+		binding,
+		'getmempoolinfo',
+		[]
+	)
 )

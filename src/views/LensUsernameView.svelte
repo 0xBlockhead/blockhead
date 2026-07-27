@@ -2,13 +2,8 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
 	import { EvmAddress } from '$/schema/ZeroExHex.ts'
 
 
@@ -17,42 +12,20 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.LensUsername>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.LensUsername>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.LensUsername> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const lensUsername = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const lensUsername = $derived(selection({
 		fields: {
 			value: true,
-			timestamp: true,
-		},
-	} : {
-		sources: selection.sources,
-		fields: {
-			value: true,
+			localName: true,
 			timestamp: true,
 		},
 	}))
-	const titleFallback = $derived([String((pendingEntity.value) ?? ''), String((pendingEntity.localName) ?? '')].filter(Boolean).join(' ') || 'Lens username')
-	const viewDomId = $derived('lens-username-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const titleFallback = $derived([(pendingEntity.value ?? ''), (pendingEntity.localName ?? '')].filter(Boolean).join(' ') || 'Lens username')
 
 
 	// Components
@@ -64,61 +37,39 @@
 
 <EntityView
 	entityType={EntityType.LensUsername}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'value') && Object.hasOwn(prefetched, 'localName') && Object.hasOwn(prefetched, 'timestamp')}
-			{[String((pendingEntity.value) ?? ''), String((pendingEntity.localName) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-		{:else}
-			<ResourceBoundary resource={lensUsername}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.value) ?? ''), String((resolvedEntity.localName) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={lensUsername}>
+			{#snippet children(entity)}
+				{[(entity.value ?? ''), entity.localName].filter(Boolean).join(' ') || title || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Value()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'value') && Object.hasOwn(prefetched, 'localName') && Object.hasOwn(prefetched, 'timestamp')}
-			{[String((pendingEntity.localName) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.value) ?? ''), String((pendingEntity.localName) ?? '')].filter(Boolean).join(' ') || titleFallback}
-		{:else}
-			<ResourceBoundary resource={lensUsername}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.localName) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.value) ?? ''), String((resolvedEntity.localName) ?? '')].filter(Boolean).join(' ') || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={lensUsername}>
+			{#snippet children(entity)}
+				{entity.localName || [(entity.value ?? ''), entity.localName].filter(Boolean).join(' ') || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'value') && Object.hasOwn(prefetched, 'localName') && Object.hasOwn(prefetched, 'timestamp')}
-			{@const timestamp0 = pendingEntity.timestamp}
-			{#if timestamp0 !== undefined && timestamp0 !== null}
-				<span data-text="muted">
-					<Timestamp timestamp={Number(timestamp0)} />
-				</span>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={lensUsername}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const timestamp0 = resolvedEntity.timestamp}
-					{#if timestamp0 !== undefined && timestamp0 !== null}
-						<span data-text="muted">
-							<Timestamp timestamp={Number(timestamp0)} />
-						</span>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={lensUsername}>
+			{#snippet children(entity)}
+				{@const timestamp0 = entity.timestamp}
+				{#if timestamp0 != null}
+					<span data-text="muted">
+						<Timestamp timestamp={Number(timestamp0)} />
+					</span>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -127,44 +78,25 @@
 				<dt>Local name</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									localName: true,
-								},
-							})
-						}
+						resource={lensUsername}
 					>
 						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const localName = resolvedEntity.localName}
-							{#if localName !== undefined && localName !== null}
-								{String((localName) ?? '')}
-							{/if}
+							{entity.localName}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
 			</div>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							value: true,
-						},
-					})
-				}
+				resource={lensUsername}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const value = resolvedEntity.value}
-					{#if value !== undefined && value !== null}
+					{@const value = entity.value}
+					{#if value != null}
 						<div>
 							<dt>Value</dt>
 							<dd>
-								{String((value) ?? '')}
+								{value}
 							</dd>
 						</div>
 					{/if}
@@ -177,7 +109,6 @@
 					<ResourceBoundary
 						resource={
 							selection({
-								sources: selection.sources,
 								fields: {
 									id: true,
 								},
@@ -185,30 +116,18 @@
 						}
 					>
 						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const id = resolvedEntity.id}
-							{#if id !== undefined && id !== null}
-								{String((id) ?? '')}
-							{/if}
+							{entity.id}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
 			</div>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							timestamp: true,
-						},
-					})
-				}
+				resource={lensUsername}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const timestamp = resolvedEntity.timestamp}
-					{#if timestamp !== undefined && timestamp !== null}
+					{@const timestamp = entity.timestamp}
+					{#if timestamp != null}
 						<div>
 							<dt>Timestamp</dt>
 							<dd>
@@ -227,7 +146,6 @@
 					<ResourceBoundary
 						resource={
 							selection({
-								sources: selection.sources,
 								fields: {
 									namespace: true,
 								},
@@ -235,11 +153,7 @@
 						}
 					>
 						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const namespace = resolvedEntity.namespace}
-							{#if namespace !== undefined && namespace !== null}
-								<TruncatedValue value={String((namespace) ?? '')} />
-							{/if}
+							<TruncatedValue value={String(entity.namespace)} />
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -251,7 +165,6 @@
 					<ResourceBoundary
 						resource={
 							selection({
-								sources: selection.sources,
 								fields: {
 									ownedBy: true,
 								},
@@ -259,11 +172,7 @@
 						}
 					>
 						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const ownedBy = resolvedEntity.ownedBy}
-							{#if ownedBy !== undefined && ownedBy !== null}
-								<TruncatedValue value={String((ownedBy) ?? '')} />
-							{/if}
+							<TruncatedValue value={String(entity.ownedBy)} />
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -272,7 +181,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							linkedTo: true,
 						},
@@ -280,13 +188,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const linkedTo = resolvedEntity.linkedTo}
-					{#if linkedTo !== undefined && linkedTo !== null}
+					{@const linkedTo = entity.linkedTo}
+					{#if linkedTo != null}
 						<div>
 							<dt>Linked to</dt>
 							<dd>
-								<TruncatedValue value={String((linkedTo) ?? '')} />
+								<TruncatedValue value={String(linkedTo)} />
 							</dd>
 						</div>
 					{/if}

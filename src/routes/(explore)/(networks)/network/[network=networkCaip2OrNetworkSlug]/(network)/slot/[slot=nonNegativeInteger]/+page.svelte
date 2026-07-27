@@ -7,14 +7,12 @@
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		data,
-		params,
 	}: PageProps = $props()
 
 	const pageSelection = $derived(select(EntityType.BeaconSlot, data.selector, {
@@ -38,18 +36,12 @@
 
 
 <svelte:head>
-	<title>{(data.title ?? (pageSelection.entity == null ? (String((data.selector.slot) ?? '') ? 'Slot #' + String((data.selector.slot) ?? '') : '') || 'beacon slot' : (String((({ ...data.selector, ...pageSelection.entity }).slot) ?? '') ? 'Slot #' + String((({ ...data.selector, ...pageSelection.entity }).slot) ?? '') : '') || 'beacon slot'))} • beacon slot • Blockhead</title>
+	<title>{(data.title ?? ((String(pageSelection.entitySelector.slot ?? '') ? 'Slot #' + String(pageSelection.entitySelector.slot ?? '') : '') || 'beacon slot'))} • beacon slot • Blockhead</title>
 </svelte:head>
 
 
 <Page>
 	<BeaconSlotView
-		href={
-			resolve('/network/[network=networkCaip2OrNetworkSlug]/slot/[slot=nonNegativeInteger]', {
-				network: params.network,
-				slot: params.slot,
-			})
-		}
 		selection={pageSelection}
 	/>
 </Page>

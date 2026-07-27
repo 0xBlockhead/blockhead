@@ -16,11 +16,6 @@ import { schema } from '$/schema/index.ts'
 import { MediaType } from '$/schema/Media.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
-import { FarcasterUserSelector } from '$/schema/FarcasterUser.ts'
-import { FarcasterVerifiedAddressSelector } from '$/schema/FarcasterVerifiedAddress.ts'
-import { FarcasterCastSelector } from '$/schema/FarcasterCast.ts'
-import { FarcasterFeedSelector } from '$/schema/FarcasterFeed.ts'
-import { FarcasterChannelSelector } from '$/schema/FarcasterChannel.ts'
 import type { NeynarCast } from '$/sources/Neynar/Rest/types.ts'
 
 type CastHash = `0x${string}`
@@ -52,10 +47,7 @@ const neynarCastSummaryReference = (cast: NeynarCast) => {
 	const text = optionalNonemptyString(cast.text)
 	const timestamp = optionalTimestampMs(cast.timestamp)
 	const username = optionalNonemptyString(cast.author.username)
-	const displayName = optionalNonemptyString(cast.author.display_name)
-	const authorIconUrl = neynarPfpHttpUrl(cast.author.pfp_url)
 	const channelId = optionalNonemptyString(cast.channel?.id)
-	const channelIconUrl = neynarPfpHttpUrl(cast.channel?.image_url)
 	return [{
 		[EntityMetaKey.Selector]: {
 			fid: cast.author.fid,
@@ -66,22 +58,6 @@ const neynarCastSummaryReference = (cast: NeynarCast) => {
 			[entityFieldAddressKey(EntityType.FarcasterCast, [], 'hash')]: hash,
 			[entityFieldAddressKey(EntityType.FarcasterCast, [], '$author')]: {
 				[EntityMetaKey.Selector]: { fid: cast.author.fid },
-				...(username != null || displayName != null || authorIconUrl != null ? {
-					[EntityMetaKey.Fields]: {
-						...(username != null && {
-							[entityFieldAddressKey(EntityType.FarcasterUser, [], 'username')]: username,
-						}),
-						...(displayName != null && {
-							[entityFieldAddressKey(EntityType.FarcasterUser, [], 'displayName')]: displayName,
-						}),
-						...(authorIconUrl != null && {
-							[entityFieldAddressKey(EntityType.FarcasterUser, [], 'iconUrl')]: authorIconUrl,
-							...((icon) => icon == null ? {} : {
-								[entityFieldAddressKey(EntityType.FarcasterUser, [], '$icon')]: icon,
-							})(mediaFromUrl(authorIconUrl, MediaType.Image)),
-						}),
-					},
-				} : {}),
 			},
 			...(text != null && {
 				[entityFieldAddressKey(EntityType.FarcasterCast, [], 'text')]: text,
@@ -95,21 +71,6 @@ const neynarCastSummaryReference = (cast: NeynarCast) => {
 			...(channelId != null && {
 				[entityFieldAddressKey(EntityType.FarcasterCast, [], '$channel')]: {
 					[EntityMetaKey.Selector]: { id: channelId },
-					...(optionalNonemptyString(cast.channel?.name) != null || channelIconUrl != null ? {
-						[EntityMetaKey.Fields]: {
-							...(optionalNonemptyString(cast.channel?.name) != null && {
-								[entityFieldAddressKey(EntityType.FarcasterChannel, [], 'name')]:
-									optionalNonemptyString(cast.channel?.name),
-							}),
-							...(channelIconUrl != null && {
-								[entityFieldAddressKey(EntityType.FarcasterChannel, [], 'iconUrl')]:
-									channelIconUrl,
-								...((icon) => icon == null ? {} : {
-									[entityFieldAddressKey(EntityType.FarcasterChannel, [], '$icon')]: icon,
-								})(mediaFromUrl(channelIconUrl, MediaType.Image)),
-							}),
-						},
-					} : {}),
 				},
 			}),
 		},
@@ -138,7 +99,7 @@ export default {
 		defineResolver(Source.Neynar_Rest, {
 			entityType: EntityType.FarcasterUser,
 			resolve: {
-				[FarcasterUserSelector.Fid]: {
+				Fid: {
 					resolve: async ({ fid }, context) => {
 						const { getBulkUsers } = await import('$/sources/Neynar/Rest/queries.ts')
 						const users = await getBulkUsers({
@@ -259,7 +220,7 @@ export default {
 			defineResolver(Source.Neynar_Rest, {
 				entityType: EntityType.FarcasterVerifiedAddress,
 				resolve: {
-					[FarcasterVerifiedAddressSelector.FidProtocolAddress]: {
+					FidProtocolAddress: {
 						resolve: async (verifiedAddress, context) => {
 							const { getBulkUsers } = await import('$/sources/Neynar/Rest/queries.ts')
 							const users = await getBulkUsers({
@@ -343,7 +304,7 @@ export default {
 		defineResolver(Source.Neynar_Rest, {
 			entityType: EntityType.FarcasterCast,
 			resolve: {
-				[FarcasterCastSelector.FidHash]: {
+				FidHash: {
 					resolve: async ({ fid, hash }, context) => {
 						const {
 							getCastByHash,
@@ -501,7 +462,7 @@ export default {
 						}
 					},
 				},
-				[FarcasterCastSelector.ClientUrl]: {
+				ClientUrl: {
 					resolve: async ({ clientUrl }, context) => {
 						const {
 							getCastByClientUrl,
@@ -652,7 +613,7 @@ export default {
 		defineResolver(Source.Neynar_Rest, {
 			entityType: EntityType.FarcasterCast,
 			resolve: {
-				[FarcasterCastSelector.FidHash]: {
+				FidHash: {
 					resolve: async ({ fid, hash }, context) => {
 						const { getCastConversation } = await import('$/sources/Neynar/Rest/queries.ts')
 						const parentHash = zeroXLowerHexCastHash(hash)
@@ -695,7 +656,7 @@ export default {
 						}
 					},
 				},
-				[FarcasterCastSelector.ClientUrl]: {
+				ClientUrl: {
 					resolve: async ({ clientUrl }, context) => {
 						const { getCastConversation } = await import('$/sources/Neynar/Rest/queries.ts')
 						const conversationCast = (
@@ -742,7 +703,7 @@ export default {
 		defineResolver(Source.Neynar_Rest, {
 			entityType: EntityType.FarcasterFeed,
 			resolve: {
-				[FarcasterFeedSelector.Variant]: {
+				Variant: {
 					resolve: async ({ variant }, context) => {
 						const { getFeed } = await import('$/sources/Neynar/Rest/queries.ts')
 						if (variant !== 'trending') throw new Error(`Neynar_Rest: unsupported feed variant ${variant}`)
@@ -760,7 +721,7 @@ export default {
 						return page
 					},
 				},
-				[FarcasterFeedSelector.ByUser]: {
+				ByUser: {
 					resolve: async ({ fid }, context) => {
 						const { getFeed } = await import('$/sources/Neynar/Rest/queries.ts')
 						const limit = resolverContextRowLimit(context)
@@ -778,7 +739,7 @@ export default {
 						return page
 					},
 				},
-				[FarcasterFeedSelector.ByChannel]: {
+				ByChannel: {
 					resolve: async ({ channelId }, context) => {
 						const { getFeed } = await import('$/sources/Neynar/Rest/queries.ts')
 						const limit = resolverContextRowLimit(context)
@@ -797,7 +758,7 @@ export default {
 						return page
 					},
 				},
-				[FarcasterFeedSelector.Following]: {
+				Following: {
 					resolve: async ({ viewerFid }, context) => {
 						const { getFeed } = await import('$/sources/Neynar/Rest/queries.ts')
 						const limit = resolverContextRowLimit(context)
@@ -855,7 +816,7 @@ export default {
 		defineResolver(Source.Neynar_Rest, {
 			entityType: EntityType.FarcasterUser,
 			resolve: {
-				[FarcasterUserSelector.Fid]: {
+				Fid: {
 					resolve: async ({ fid }, context) => {
 						const { getFeed } = await import('$/sources/Neynar/Rest/queries.ts')
 						const limit = resolverContextRowLimit(context)
@@ -902,7 +863,7 @@ export default {
 		defineResolver(Source.Neynar_Rest, {
 			entityType: EntityType.FarcasterChannel,
 			resolve: {
-				[FarcasterChannelSelector.Id]: {
+				Id: {
 					resolve: async ({ id }, context) => {
 						const { getFeed } = await import('$/sources/Neynar/Rest/queries.ts')
 						const limit = resolverContextRowLimit(context)

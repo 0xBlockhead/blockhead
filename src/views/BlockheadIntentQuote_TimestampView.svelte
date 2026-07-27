@@ -2,14 +2,10 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
 	import { ZeroExHex } from '$/schema/ZeroExHex.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -21,42 +17,24 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.BlockheadIntentQuote_Timestamp>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.BlockheadIntentQuote_Timestamp>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.BlockheadIntentQuote_Timestamp> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const blockheadIntentQuoteTimestamp = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {
-			quoteId: true,
-			solverId: true,
-		},
-	} : {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const viewSelection = $derived(selection({
+		sources: selection.sources ?? [
+			Source.Local_Internal,
+		],
+	}))
+	const blockheadIntentQuoteTimestamp = $derived(viewSelection({
 		fields: {
 			quoteId: true,
 			solverId: true,
 		},
 	}))
-	const titleFallback = $derived([String((pendingEntity.quoteId) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.source) ?? '')].filter(Boolean).join(' ') || 'blockhead intent quote timestamp')
-	const viewDomId = $derived('blockhead-intent-quote-timestamp-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const titleFallback = $derived((pendingEntity.quoteId ?? '') || (pendingEntity.source ?? '') || 'blockhead intent quote timestamp')
 
 
 	// Components
@@ -70,67 +48,35 @@
 
 <EntityView
 	entityType={EntityType.BlockheadIntentQuote_Timestamp}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'quoteId') && Object.hasOwn(prefetched, 'solverId')}
-			{[String((pendingEntity.quoteId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-		{:else}
-			<ResourceBoundary resource={blockheadIntentQuoteTimestamp}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.quoteId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={blockheadIntentQuoteTimestamp}>
+			{#snippet children(entity)}
+				{(entity.quoteId ?? '') || title || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Value()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'quoteId') && Object.hasOwn(prefetched, 'solverId')}
-			{@const timestampMs0 = pendingEntity.timestampMs}
-			{#if timestampMs0 !== undefined && timestampMs0 !== null}
-				<Timestamp timestamp={Number(timestampMs0)} />
-			{/if}
-		{:else}
-			<ResourceBoundary resource={blockheadIntentQuoteTimestamp}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const timestampMs0 = resolvedEntity.timestampMs}
-					{#if timestampMs0 !== undefined && timestampMs0 !== null}
-						<Timestamp timestamp={Number(timestampMs0)} />
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'quoteId') && Object.hasOwn(prefetched, 'solverId')}
-			{@const solverId0 = pendingEntity.solverId}
-			{#if solverId0 !== undefined && solverId0 !== null}
-				<span data-text="muted">
-					{String((solverId0) ?? '')}
-				</span>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={blockheadIntentQuoteTimestamp}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const solverId0 = resolvedEntity.solverId}
-					{#if solverId0 !== undefined && solverId0 !== null}
-						<span data-text="muted">
-							{String((solverId0) ?? '')}
-						</span>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={blockheadIntentQuoteTimestamp}>
+			{#snippet children(entity)}
+				{@const solverId0 = entity.solverId}
+				{#if solverId0 != null}
+					<span data-text="muted">
+						{solverId0}
+					</span>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -149,69 +95,27 @@
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									timestampMs: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const timestampMs = resolvedEntity.timestampMs}
-							{#if timestampMs !== undefined && timestampMs !== null}
-								<Timestamp timestamp={Number(timestampMs)} />
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									source: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const source = resolvedEntity.source}
-							{#if source !== undefined && source !== null}
-								{String((source) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{pendingEntity.source}
 				</dd>
 			</div>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							quoteId: true,
-						},
-					})
-				}
+				resource={blockheadIntentQuoteTimestamp}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const quoteId = resolvedEntity.quoteId}
-					{#if quoteId !== undefined && quoteId !== null}
+					{@const quoteId = entity.quoteId}
+					{#if quoteId != null}
 						<div>
 							<dt>quote ID</dt>
 							<dd>
-								{String((quoteId) ?? '')}
+								{quoteId}
 							</dd>
 						</div>
 					{/if}
@@ -219,23 +123,15 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							solverId: true,
-						},
-					})
-				}
+				resource={blockheadIntentQuoteTimestamp}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const solverId = resolvedEntity.solverId}
-					{#if solverId !== undefined && solverId !== null}
+					{@const solverId = entity.solverId}
+					{#if solverId != null}
 						<div>
 							<dt>solver ID</dt>
 							<dd>
-								{String((solverId) ?? '')}
+								{solverId}
 							</dd>
 						</div>
 					{/if}
@@ -246,8 +142,7 @@
 		<dl data-column-item="center">
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							validUntil: true,
 						},
@@ -255,9 +150,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const validUntil = resolvedEntity.validUntil}
-					{#if validUntil !== undefined && validUntil !== null}
+					{@const validUntil = entity.validUntil}
+					{#if validUntil != null}
 						<div>
 							<dt>valid until</dt>
 							<dd>
@@ -270,8 +164,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							estimatedFillSeconds: true,
 						},
@@ -279,9 +172,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const estimatedFillSeconds = resolvedEntity.estimatedFillSeconds}
-					{#if estimatedFillSeconds !== undefined && estimatedFillSeconds !== null}
+					{@const estimatedFillSeconds = entity.estimatedFillSeconds}
+					{#if estimatedFillSeconds != null}
 						<div>
 							<dt>estimated fill seconds</dt>
 							<dd>
@@ -296,8 +188,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							quotePayloadHash: true,
 						},
@@ -305,13 +196,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const quotePayloadHash = resolvedEntity.quotePayloadHash}
-					{#if quotePayloadHash !== undefined && quotePayloadHash !== null}
+					{@const quotePayloadHash = entity.quotePayloadHash}
+					{#if quotePayloadHash != null}
 						<div>
 							<dt>quote payload hash</dt>
 							<dd>
-								<TruncatedValue value={String((quotePayloadHash) ?? '')} />
+								<TruncatedValue value={String(quotePayloadHash)} />
 							</dd>
 						</div>
 					{/if}
@@ -320,8 +210,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							integrityChecksum: true,
 						},
@@ -329,13 +218,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const integrityChecksum = resolvedEntity.integrityChecksum}
-					{#if integrityChecksum !== undefined && integrityChecksum !== null}
+					{@const integrityChecksum = entity.integrityChecksum}
+					{#if integrityChecksum != null}
 						<div>
 							<dt>integrity checksum</dt>
 							<dd>
-								{String((integrityChecksum) ?? '')}
+								{integrityChecksum}
 							</dd>
 						</div>
 					{/if}
@@ -344,8 +232,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							error: true,
 						},
@@ -353,13 +240,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const error = resolvedEntity.error}
-					{#if error !== undefined && error !== null}
+					{@const error = entity.error}
+					{#if error != null}
 						<div>
 							<dt>error</dt>
 							<dd>
-								{String((error) ?? '')}
+								{error}
 							</dd>
 						</div>
 					{/if}

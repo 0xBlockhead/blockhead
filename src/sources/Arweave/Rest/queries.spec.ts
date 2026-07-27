@@ -1,8 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
-import { sourceProviderDefinitions } from '$/sources/$sourceProviders.ts'
-import { Source } from '$/sources/Source.ts'
-import { SourceTargetKind } from '$/sources/SourceBinding.ts'
+import bindings from '$/sources/Arweave/bindings.ts'
 import {
 	fetchBrowseResult,
 	getTransaction,
@@ -10,24 +8,9 @@ import {
 	getWalletBalance,
 } from '$/sources/Arweave/Rest/queries.ts'
 import * as httpRestClient from '$/sources/_shared/wire/HttpRest/client.ts'
+import { Source } from '$/sources/Source.ts'
 
-const binding = sourceProviderDefinitions
-	.flatMap((provider) => provider.bindings)
-	.find((candidate) => (
-		candidate.source === Source.Arweave_Rest
-		&& candidate.target.kind === SourceTargetKind.ContentAddressScheme
-		&& candidate.target.key === 'arweave'
-	))
-const swarmBinding = sourceProviderDefinitions
-	.flatMap((provider) => provider.bindings)
-	.find((candidate) => (
-		candidate.source === Source.Swarm_Rest
-		&& candidate.target.kind === SourceTargetKind.ContentAddressScheme
-		&& candidate.target.key === 'swarm'
-	))
-
-if (binding == null || swarmBinding == null)
-	throw new Error('Arweave or Swarm REST binding is not registered')
+const binding = bindings[Source.Arweave_Rest]
 
 const transactionId = 'A'.repeat(43)
 const recipientAddress = 'B'.repeat(43)
@@ -65,17 +48,6 @@ describe('Arweave public gateway metadata', () => {
 			quantity: '1000000000000',
 			reward: '12345678901234567',
 		})
-	})
-
-	it('rejects another provider binding before content transport', async () => {
-		const fetchMock = vi.fn<typeof fetch>()
-		vi.stubGlobal('fetch', fetchMock)
-
-		await expect(fetchBrowseResult({
-			binding: swarmBinding,
-			transactionId,
-		})).rejects.toThrow('expected canonical Arweave gateway binding')
-		expect(fetchMock).not.toHaveBeenCalled()
 	})
 
 	it('rejects substituted transaction and malformed confirmed block identity', async () => {

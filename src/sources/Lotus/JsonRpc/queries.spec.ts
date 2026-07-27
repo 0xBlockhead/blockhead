@@ -16,22 +16,7 @@ import {
 	getMinerSectorCount,
 	getMinerSectors,
 } from '$/sources/Lotus/JsonRpc/queries.ts'
-import { sourceProviderDefinitions } from '$/sources/$sourceProviders.ts'
-import { Source } from '$/sources/Source.ts'
-import { SourceTargetKind } from '$/sources/SourceBinding.ts'
-
 const fetchMock = vi.fn<typeof fetch>()
-
-const lotusMainnetBinding = sourceProviderDefinitions
-	.flatMap((provider) => provider.bindings)
-	.find((binding) => (
-		binding.source === Source.Lotus_JsonRpc
-		&& binding.target.kind === SourceTargetKind.Caip2Network
-		&& binding.target.key === 'fil:f'
-	))
-
-if (lotusMainnetBinding == null)
-	throw new Error('Lotus JSON-RPC spec requires the canonical Filecoin mainnet binding')
 
 const tipsetKey = [
 	{
@@ -63,37 +48,30 @@ describe('Lotus JSON-RPC state queries', () => {
 
 	it('uses one explicit tipset for actor, miner, sector, and count state', async () => {
 		await getActor({
-			binding: lotusMainnetBinding,
 			address: 'f01234',
 			tipsetKey,
 		})
 		await getIdAddress({
-			binding: lotusMainnetBinding,
 			address: 'f1robust',
 			tipsetKey,
 		})
 		await getMinerInfo({
-			binding: lotusMainnetBinding,
 			minerAddress: 'f01234',
 			tipsetKey,
 		})
 		await getMinerPower({
-			binding: lotusMainnetBinding,
 			minerAddress: 'f01234',
 			tipsetKey,
 		})
 		await getMinerSectors({
-			binding: lotusMainnetBinding,
 			minerAddress: 'f01234',
 			tipsetKey,
 		})
 		await getMinerActiveSectors({
-			binding: lotusMainnetBinding,
 			minerAddress: 'f01234',
 			tipsetKey,
 		})
 		await getMinerSectorCount({
-			binding: lotusMainnetBinding,
 			minerAddress: 'f01234',
 			tipsetKey,
 		})

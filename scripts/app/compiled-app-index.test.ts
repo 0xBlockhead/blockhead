@@ -40,6 +40,16 @@ test('exports only complete immutable generated-file IR', () => {
 			]
 		)
 		assert.equal(renderGeneratedFile(generatedFile).endsWith('\n'), true)
+		if (generatedFile.kind === 'svelte') {
+			const importModules = (generatedFile.ast.script ?? []).flatMap((line) => (
+				line.match(/ from '([^']+)'$/)?.[1] ?? []
+			))
+			assert.equal(
+				new Set(importModules).size,
+				importModules.length,
+				`${generatedFile.path} repeats a script import module`
+			)
+		}
 	}
 
 	assert.ok(compiledApp.generatedFiles.some((generatedFile) => generatedFile.path === 'SOURCES.md' && generatedFile.kind === 'text'))
@@ -69,9 +79,15 @@ test('keeps same-named facet fields source-precise in generated IR', () => {
 		?.flatMap((carousel) => carousel.sections)
 		.find((section) => section.id === sectionId)
 		?.selection?.sources ?? []
-	const generatedSources = (section: string) => [
-		...section.matchAll(/Source\.([A-Za-z0-9_]+)/g),
-	].map((match) => match[1])
+	const generatedSources = (section: string) => [...new Set([
+		...(
+			source.match(new RegExp(
+				`const ${
+					section.match(/sources: ([A-Za-z0-9_]+Sources),/)?.[1]
+				} = \\$derived\\([\\s\\S]*?networkApplicableSources\\(\\[([\\s\\S]*?)\\], pendingEntity\\)`
+			))?.[1] ?? ''
+		).matchAll(/Source\.([A-Za-z0-9_]+)/g),
+	].map((match) => match[1]))]
 
 	assert.ok(cardanoTransactions)
 	assert.deepEqual(
@@ -103,7 +119,12 @@ test('keeps every APP-authored Cardano carousel and section in generated IR', ()
 	)
 	for (const carousel of cardanoCarousels) {
 		const generatedCarousel = source.match(new RegExp(
-			`id=\\{viewDomId \\+ '-carousel-${carousel.id}'\\}[\\s\\S]*?<\\/CollapsibleTabs>`
+			`\\{@const ${carousel.id.split('-').map((part, index) => (
+				index === 0 ?
+					part
+				:
+					`${part[0]?.toUpperCase() ?? ''}${part.slice(1)}`
+			)).join('')}Sections = \\[[\\s\\S]*?<\\/CollapsibleTabs>`
 		))?.[0]
 		assert.ok(generatedCarousel, carousel.id)
 		for (const section of carousel.sections) {

@@ -2,15 +2,11 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
 	import { UrlString } from '$/schema/UrlString.ts'
 	import { ZeroExHex } from '$/schema/ZeroExHex.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -22,44 +18,25 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.McpResourceContent_Timestamp>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.McpResourceContent_Timestamp>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.McpResourceContent_Timestamp> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const mcpResourceContentTimestamp = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {
-			contentKind: true,
-			mimeType: true,
-			error: true,
-		},
-	} : {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const viewSelection = $derived(selection({
+		sources: selection.sources ?? [
+			Source.McpDeclared_Protocol,
+		],
+	}))
+	const mcpResourceContentTimestamp = $derived(viewSelection({
 		fields: {
 			contentKind: true,
 			mimeType: true,
 			error: true,
 		},
 	}))
-	const titleFallback = $derived([String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || 'mcp resource content timestamp')
-	const viewDomId = $derived('mcp-resource-content-timestamp-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const titleFallback = $derived(String(pendingEntity.timestampMs ?? '') || 'mcp resource content timestamp')
 
 
 	// Components
@@ -73,67 +50,35 @@
 
 <EntityView
 	entityType={EntityType.McpResourceContent_Timestamp}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'contentKind') && Object.hasOwn(prefetched, 'mimeType') && Object.hasOwn(prefetched, 'error')}
-			{@const timestampMs0 = pendingEntity.timestampMs}
-			{#if timestampMs0 !== undefined && timestampMs0 !== null}
-				<Timestamp timestamp={Number(timestampMs0)} />
-			{/if}
-		{:else}
-			<ResourceBoundary resource={mcpResourceContentTimestamp}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const timestampMs0 = resolvedEntity.timestampMs}
-					{#if timestampMs0 !== undefined && timestampMs0 !== null}
-						<Timestamp timestamp={Number(timestampMs0)} />
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
 	{/snippet}
 
 	{#snippet Value()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'contentKind') && Object.hasOwn(prefetched, 'mimeType') && Object.hasOwn(prefetched, 'error')}
-			{[String((pendingEntity.contentKind) ?? ''), String((pendingEntity.mimeType) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || titleFallback}
-		{:else}
-			<ResourceBoundary resource={mcpResourceContentTimestamp}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.contentKind) ?? ''), String((resolvedEntity.mimeType) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={mcpResourceContentTimestamp}>
+			{#snippet children(entity)}
+				{[(entity.contentKind ?? ''), (entity.mimeType ?? '')].filter(Boolean).join(' ') || String(pendingEntity.timestampMs) || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'contentKind') && Object.hasOwn(prefetched, 'mimeType') && Object.hasOwn(prefetched, 'error')}
-			{@const error0 = pendingEntity.error}
-			{#if error0 !== undefined && error0 !== null}
-				<span data-text="muted">
-					{String((error0) ?? '')}
-				</span>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={mcpResourceContentTimestamp}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const error0 = resolvedEntity.error}
-					{#if error0 !== undefined && error0 !== null}
-						<span data-text="muted">
-							{String((error0) ?? '')}
-						</span>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={mcpResourceContentTimestamp}>
+			{#snippet children(entity)}
+				{@const error0 = entity.error}
+				{#if error0 != null}
+					<span data-text="muted">
+						{error0}
+					</span>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -152,69 +97,27 @@
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									timestampMs: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const timestampMs = resolvedEntity.timestampMs}
-							{#if timestampMs !== undefined && timestampMs !== null}
-								<Timestamp timestamp={Number(timestampMs)} />
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									source: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const source = resolvedEntity.source}
-							{#if source !== undefined && source !== null}
-								{String((source) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{pendingEntity.source}
 				</dd>
 			</div>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							contentKind: true,
-						},
-					})
-				}
+				resource={mcpResourceContentTimestamp}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const contentKind = resolvedEntity.contentKind}
-					{#if contentKind !== undefined && contentKind !== null}
+					{@const contentKind = entity.contentKind}
+					{#if contentKind != null}
 						<div>
 							<dt>content kind</dt>
 							<dd>
-								{String((contentKind) ?? '')}
+								{contentKind}
 							</dd>
 						</div>
 					{/if}
@@ -225,8 +128,7 @@
 		<dl data-column-item="center">
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							uri: true,
 						},
@@ -234,20 +136,18 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const uri = resolvedEntity.uri}
-					{#if uri !== undefined && uri !== null}
+					{@const uri = entity.uri}
+					{#if uri != null}
 						<div>
 							<dt>URI</dt>
 							<dd>
-								<svelte:element
-									this={'a'}
+								<a
 									href={String(uri)}
 									target="_blank"
 									rel="noreferrer noopener"
 								>
 									<TruncatedValue value={String(uri)} />
-								</svelte:element>
+								</a>
 							</dd>
 						</div>
 					{/if}
@@ -255,23 +155,15 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							mimeType: true,
-						},
-					})
-				}
+				resource={mcpResourceContentTimestamp}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const mimeType = resolvedEntity.mimeType}
-					{#if mimeType !== undefined && mimeType !== null}
+					{@const mimeType = entity.mimeType}
+					{#if mimeType != null}
 						<div>
 							<dt>mime type</dt>
 							<dd>
-								{String((mimeType) ?? '')}
+								{mimeType}
 							</dd>
 						</div>
 					{/if}
@@ -280,8 +172,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							size: true,
 						},
@@ -289,9 +180,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const size = resolvedEntity.size}
-					{#if size !== undefined && size !== null}
+					{@const size = entity.size}
+					{#if size != null}
 						<div>
 							<dt>size</dt>
 							<dd>
@@ -306,8 +196,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							blobHashAlgorithm: true,
 						},
@@ -315,13 +204,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const blobHashAlgorithm = resolvedEntity.blobHashAlgorithm}
-					{#if blobHashAlgorithm !== undefined && blobHashAlgorithm !== null}
+					{@const blobHashAlgorithm = entity.blobHashAlgorithm}
+					{#if blobHashAlgorithm != null}
 						<div>
 							<dt>blob hash algorithm</dt>
 							<dd>
-								<TruncatedValue value={String((blobHashAlgorithm) ?? '')} />
+								<TruncatedValue value={blobHashAlgorithm} />
 							</dd>
 						</div>
 					{/if}
@@ -330,8 +218,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							blobHash: true,
 						},
@@ -339,13 +226,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const blobHash = resolvedEntity.blobHash}
-					{#if blobHash !== undefined && blobHash !== null}
+					{@const blobHash = entity.blobHash}
+					{#if blobHash != null}
 						<div>
 							<dt>blob hash</dt>
 							<dd>
-								<TruncatedValue value={String((blobHash) ?? '')} />
+								<TruncatedValue value={String(blobHash)} />
 							</dd>
 						</div>
 					{/if}
@@ -353,23 +239,15 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							error: true,
-						},
-					})
-				}
+				resource={mcpResourceContentTimestamp}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const error = resolvedEntity.error}
-					{#if error !== undefined && error !== null}
+					{@const error = entity.error}
+					{#if error != null}
 						<div>
 							<dt>error</dt>
 							<dd>
-								{String((error) ?? '')}
+								{error}
 							</dd>
 						</div>
 					{/if}

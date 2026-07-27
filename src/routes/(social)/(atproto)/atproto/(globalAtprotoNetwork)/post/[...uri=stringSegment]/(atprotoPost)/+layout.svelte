@@ -30,22 +30,28 @@
 {#key params.uri}
 	<ParentPageCollapsible
 		href={
-			resolve('/atproto/post/[...uri=stringSegment]', {
-				uri: params.uri,
-			})
+			resolve(
+				'/(social)/(atproto)/atproto/(globalAtprotoNetwork)/post/[...uri=stringSegment]',
+				{
+					uri: String(params.uri),
+				}
+			)
 		}
 	>
 		{#snippet Summary()}
-			{@const DetailView = AtprotoPostView}
-
-			<DetailView
-				selection={select(EntityType.AtprotoPost, data.selector, { sources: [
-		Source.Atproto_Xrpc,
-	] })}
+			<AtprotoPostView
+				selection={
+					select(EntityType.AtprotoPost, data.selector, { sources: [
+						Source.Atproto_Xrpc,
+					] })
+				}
 				href={
-					resolve('/atproto/post/[...uri=stringSegment]', {
-						uri: params.uri,
-					})
+					resolve(
+						'/(social)/(atproto)/atproto/(globalAtprotoNetwork)/post/[...uri=stringSegment]',
+						{
+							uri: String(params.uri),
+						}
+					)
 				}
 				layout={EntityLayout.SummaryInline}
 			/>

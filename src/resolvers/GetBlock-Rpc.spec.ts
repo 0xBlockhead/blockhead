@@ -9,7 +9,6 @@ import {
 
 import { EvmTransactionExecutionStatus } from '$/constants/Evm.ts'
 import { EntityMetaKey } from '$/schema/$schema.ts'
-import { EvmTransactionSelector } from '$/schema/EvmTransaction.ts'
 import { Source } from '$/sources/Source.ts'
 import {
 	ApiFamily,
@@ -21,7 +20,6 @@ import {
 	WireProtocol,
 	type SourceBinding,
 } from '$/sources/SourceBinding.ts'
-import { SourceProvider } from '$/sources/SourceProvider.ts'
 import {
 	getEvmTransactionByHash,
 	getEvmTransactionReceipt,
@@ -36,15 +34,33 @@ const resolverBinding = vi.hoisted(() => ({
 	},
 	endpoints: [{
 		endpointKind: 'HttpUrl',
-		locator: 'https://go.getblock.io/runtime-token/',
+		locator: 'https://go.getblock.io/{GETBLOCK_API_KEY}/',
+		origin: 'https://go.getblock.io',
+		corsEnabled: false,
 	}],
+	wireProtocol: 'JsonRpc2',
+	apiFamily: 'EvmExecutionJsonRpc',
+	operationGroups: ['EvmRpcCore'],
+	delivery: 'HttpProxy',
+	credentials: [{
+		scope: 'RuntimeSecret',
+	}],
+	proxyId: 'GetBlockRpc_JsonRpc-143',
+	serverCredentialId: 'GetBlockRpc_JsonRpc-143',
+	artifacts: [
+		{
+			kind: 'OpenRpcSpec',
+			path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src',
+			generated: false,
+		},
+		{
+			kind: 'GenerationManifest',
+			path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts',
+			generated: false,
+		},
+	],
 }))
 
-vi.mock('$/sources/$sourceProviders.ts', () => ({
-	sourceProviderDefinitions: [{
-		bindings: [resolverBinding],
-	}],
-}))
 vi.mock('$/sources/_runtime/http.ts', () => ({
 	firstHttpUrlForBinding: () => 'https://go.getblock.io/runtime-token/',
 	sourceFetch,
@@ -75,7 +91,6 @@ const context = {
 	publicEnv: {},
 }
 const queryBinding = {
-	provider: SourceProvider.GetBlock,
 	source: Source.GetBlockRpc_JsonRpc,
 	target: {
 		kind: SourceTargetKind.Eip155Chain,
@@ -99,10 +114,10 @@ describe('GetBlock RPC transaction source', () => {
 		sourceFetch
 			.mockResolvedValueOnce(new Response(transaction))
 			.mockResolvedValueOnce(new Response(receipt))
-		await expect(getEvmTransactionByHash(queryBinding, '0xaaaa')).resolves.toMatchObject({
+		await expect(getEvmTransactionByHash('0xaaaa')).resolves.toMatchObject({
 			hash: expect.any(String),
 		})
-		await expect(getEvmTransactionReceipt(queryBinding, '0xaaaa')).resolves.toMatchObject({
+		await expect(getEvmTransactionReceipt('0xaaaa')).resolves.toMatchObject({
 			status: '0x1',
 		})
 		expect(JSON.parse(sourceFetch.mock.calls[0][2].body)).toMatchObject({
@@ -119,7 +134,7 @@ describe('GetBlock RPC transaction source', () => {
 		sourceFetch
 			.mockResolvedValueOnce(new Response(transaction))
 			.mockResolvedValueOnce(new Response(receipt))
-		const resolved = await getBlockRpc.resolvers[0].resolve[EvmTransactionSelector.EvmNetworkTxHash].resolve({
+		const resolved = await getBlockRpc.resolvers[0].resolve['EvmNetworkTxHash'].resolve({
 			$network: network,
 			txHash: '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
 		}, context)
@@ -171,7 +186,7 @@ describe('GetBlock RPC transaction source', () => {
 				id: 2,
 				result: null,
 			})))
-		await expect(getBlockRpc.resolvers[0].resolve[EvmTransactionSelector.EvmNetworkTxHash].resolve({
+		await expect(getBlockRpc.resolvers[0].resolve['EvmNetworkTxHash'].resolve({
 			$network: network,
 			txHash: '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
 		}, context)).resolves.toMatchObject({
@@ -186,8 +201,8 @@ describe('GetBlock RPC transaction source', () => {
 			id: 1,
 			result: null,
 		})))
-		await expect(getEvmTransactionByHash(queryBinding, '0xmissing')).resolves.toBeNull()
+		await expect(getEvmTransactionByHash('0xmissing')).resolves.toBeNull()
 		sourceFetch.mockResolvedValueOnce(new Response('upstream failed', { status: 503 }))
-		await expect(getEvmTransactionByHash(queryBinding, '0xfailure')).rejects.toThrow()
+		await expect(getEvmTransactionByHash('0xfailure')).rejects.toThrow()
 	})
 })

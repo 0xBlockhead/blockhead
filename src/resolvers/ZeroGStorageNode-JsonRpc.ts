@@ -6,13 +6,7 @@ import {
 	EntityMetaKey,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import { sourceProviderDefinitions } from '$/sources/$sourceProviders.ts'
 import { Source } from '$/sources/Source.ts'
-import { SourceTargetKind } from '$/sources/SourceBinding.ts'
-import { firstHttpUrlForBinding } from '$/sources/_runtime/http.ts'
-import { ZeroGStorageNodeSelector } from '$/schema/ZeroGStorageNode.ts'
-import { ZeroGDataBlobSelector } from '$/schema/ZeroGDataBlob.ts'
-import { ZeroGDataChunkSelector } from '$/schema/ZeroGDataChunk.ts'
 
 type NetworkId = { caip2: {
 	namespace: string
@@ -24,22 +18,9 @@ const assertZeroGMainnet = (network: NetworkId) => {
 		throw new Error('ZeroGStorageNode_JsonRpc: unsupported network')
 }
 
-const zeroGStorageNodeBindings = sourceProviderDefinitions
-	.flatMap((provider) => provider.bindings)
-	.filter((binding) => (
-		binding.source === Source.ZeroGStorageNode_JsonRpc
-		&& binding.target.kind === SourceTargetKind.LocalDevice
-		&& binding.target.key === 'local-0g-storage-node'
-	))
-
-if (zeroGStorageNodeBindings.length !== 1)
-	throw new Error('ZeroGStorageNode_JsonRpc: canonical local storage-node binding is missing or ambiguous')
-
-const zeroGStorageNodeBinding = zeroGStorageNodeBindings[0]
-
 const localStorageNodeId = async () => {
 	const { getStatus } = await import('$/sources/ZeroG/StorageNode/JsonRpc/queries.ts')
-	return (await getStatus(zeroGStorageNodeBinding)).networkIdentity.flowAddress
+	return (await getStatus()).networkIdentity.flowAddress
 }
 
 const fileInfoForDataBlob = async ({ $network, dataRoot }: {
@@ -49,7 +30,6 @@ const fileInfoForDataBlob = async ({ $network, dataRoot }: {
 	assertZeroGMainnet($network)
 	const { getFileInfo } = await import('$/sources/ZeroG/StorageNode/JsonRpc/queries.ts')
 	const fileInfo = await getFileInfo({
-		binding: zeroGStorageNodeBinding,
 		root: dataRoot,
 		needAvailable: true,
 	})
@@ -64,11 +44,11 @@ export default {
 		defineResolver(Source.ZeroGStorageNode_JsonRpc, {
 			entityType: EntityType.ZeroGStorageNode,
 			resolve: {
-				[ZeroGStorageNodeSelector.NetworkNodeId]: {
+				NetworkNodeId: {
 					resolve: async ({ $network, nodeId }) => {
 						assertZeroGMainnet($network)
 						const { getStatus } = await import('$/sources/ZeroG/StorageNode/JsonRpc/queries.ts')
-						const status = await getStatus(zeroGStorageNodeBinding)
+						const status = await getStatus()
 						if (status.networkIdentity.flowAddress !== nodeId)
 							throw new Error(`ZeroGStorageNode_JsonRpc: local node ${status.networkIdentity.flowAddress} does not match ${nodeId}`)
 						return {
@@ -77,7 +57,9 @@ export default {
 									address: status.networkIdentity.flowAddress,
 								},
 							},
-							endpoint: firstHttpUrlForBinding(zeroGStorageNodeBinding),
+							endpoint: (
+								await import('$/sources/ZeroG/StorageNode/JsonRpc/queries.ts')
+							).endpoint,
 						}
 					},
 				}
@@ -90,7 +72,7 @@ export default {
 		defineResolver(Source.ZeroGStorageNode_JsonRpc, {
 			entityType: EntityType.ZeroGDataBlob,
 			resolve: {
-				[ZeroGDataBlobSelector.NetworkDataRoot]: {
+				NetworkDataRoot: {
 					resolve: async (entitySelector) => {
 						const fileInfo = await fileInfoForDataBlob(entitySelector)
 						return {
@@ -106,7 +88,7 @@ export default {
 		defineResolver(Source.ZeroGStorageNode_JsonRpc, {
 			entityType: EntityType.ZeroGDataChunk,
 			resolve: {
-				[ZeroGDataChunkSelector.ZeroGDataBlobChunkIndex]: {
+				ZeroGDataBlobChunkIndex: {
 					resolve: async ({ $dataBlob, chunkIndex }) => {
 						const fileInfo = await fileInfoForDataBlob($dataBlob)
 						const chunkRoot = fileInfo.tx.streamIds.at(chunkIndex)

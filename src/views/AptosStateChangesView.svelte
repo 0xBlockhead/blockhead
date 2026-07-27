@@ -2,69 +2,30 @@
 
 <script lang="ts">
 	// Types/constants
-	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
-	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
-	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
+	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-
-
 
 
 	// State
 	let {
 		selection,
-		countResource,
-		title = 'Aptos state changes',
-		typeAnnotationParagraphs = [],
-		placeholderText = undefined,
-		emptyText = undefined,
 		open = $bindable(true),
-		collapsible = true,
-		showTypeAnnotation = true,
-		id = 'AptosStateChanges-list',
 		...EntitiesListProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyEntitiesSelection<EntityType.AptosStateChange>
-			countResource?: SvelteKitResource<number>
-			title?: string
-			typeAnnotationParagraphs?: string[]
-			placeholderText?: string
-			emptyText?: string
-			open?: boolean
-			collapsible?: boolean
-			showTypeAnnotation?: boolean
-			id?: string
-		},
-		EntitiesListForwardProps
-	> = $props()
+	}: EntityListViewProps<EntityType.AptosStateChange> = $props()
 
 
 	// Components
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView from '$/components/EntityView.svelte'
 </script>
 
-
-{#snippet TypeAnnotationParagraphs()}
-	{#each typeAnnotationParagraphs as paragraph (paragraph)}
-		<p>{paragraph}</p>
-	{/each}
-{/snippet}
 
 <EntitiesList
 	{...EntitiesListProps}
 	entityType={EntityType.AptosStateChange}
-	{id}
-	{title}
 	bind:open
-	{collapsible}
-	{showTypeAnnotation}
-	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
 	resource={
 		selection({
-			sources: selection.sources,
 			fields: {
 				changeKind: true,
 				changeIndex: true,
@@ -79,38 +40,23 @@
 			},
 		})
 	}
-	{countResource}
-	getResourceItems={(aptosStateChanges) => [...new Map(aptosStateChanges.values.map((aptosStateChange) => [aptosStateChange[EntityMetaKey.SelectorKey], aptosStateChange])).values()]}
-	getKey={(aptosStateChange) => aptosStateChange[EntityMetaKey.SelectorKey]}
-	{placeholderText}
 >
-	{#snippet Empty()}
-		{#if emptyText != null}
-			<p data-text="muted">{emptyText}</p>
-		{:else}
-			<p data-text="muted">No Aptos state changes yet.</p>
-		{/if}
-	{/snippet}
-
 	{#snippet Item({ item: aptosStateChange })}
-		{@const aptosStateChangeFields = { ...aptosStateChange[EntityMetaKey.Selector], ...aptosStateChange }}
+		{@const aptosStateChangeSelector = aptosStateChange[EntityMetaKey.Selector]}
 		<EntityView
 			entityType={EntityType.AptosStateChange}
-			entitySelector={aptosStateChange[EntityMetaKey.Selector]}
-			layout={EntityLayout.Summary}
-			open={false}
-			showTypeAnnotation={false}
+			entitySelector={aptosStateChangeSelector}
 		>
 			{#snippet Title()}
-				{[String((aptosStateChangeFields.changeKind) ?? '')].filter(Boolean).join(' ') || 'aptos state change'}
+				{aptosStateChange.changeKind || 'aptos state change'}
 			{/snippet}
 
 			{#snippet Value()}
-				{[String((aptosStateChangeFields.changeIndex) ?? '')].filter(Boolean).join(' ')}
+				{String(aptosStateChangeSelector.changeIndex)}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{[[String((aptosStateChangeFields.$transaction.hash) ?? '')].filter(Boolean).join(' ') || [String((aptosStateChangeFields.$transaction.version) ?? '')].filter(Boolean).join(' ') || 'aptos transaction'].filter(Boolean).join(' ')}</span>
+				<span data-text="annotation">{aptosStateChangeSelector.$transaction.hash || String(aptosStateChangeSelector.$transaction.version) || 'aptos transaction'}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

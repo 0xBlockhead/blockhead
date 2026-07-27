@@ -1,7 +1,16 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { sourceProviderDefinitions } from '$/sources/$sourceProviders.ts'
+import bindings from '$/sources/Zebra/bindings.ts'
 import { Source } from '$/sources/Source.ts'
+import {
+	ApiFamily,
+	SourceCredentialScope,
+	SourceDelivery,
+	SourceEndpointKind,
+	SourceOperationGroup,
+	SourceTargetKind,
+	WireProtocol,
+} from '$/sources/SourceBinding.ts'
 
 const { jsonRpc2 } = vi.hoisted(() => ({
 	jsonRpc2: vi.fn(),
@@ -12,22 +21,82 @@ vi.mock('$/sources/_shared/wire/JsonRpc2/client.ts', () => ({
 }))
 
 const {
+	getBlock,
+	getRawTransaction,
 	getTransparentAddressTransactionIds,
 	getTransparentAddressUtxos,
 } = await import('$/sources/Zebra/JsonRpc/queries.ts')
 
-const binding = sourceProviderDefinitions
-	.flatMap((provider) => provider.bindings)
-	.find((candidate) => candidate.source === Source.Zebra_JsonRpc)
-
-if (binding == null)
-	throw new Error('Zebra_JsonRpc spec missing source binding')
+const binding = bindings[Source.Zebra_JsonRpc]
 
 const address = `t1${'A'.repeat(33)}`
 
 describe('Zebra transparent-address transport', () => {
 	beforeEach(() => {
 		vi.clearAllMocks()
+	})
+
+	it('selects the exact canonical Zcash mainnet binding', () => {
+		expect(binding).toEqual({
+			source: Source.Zebra_JsonRpc,
+			target: {
+				kind: SourceTargetKind.Caip2Network,
+				key: 'bip122:00040fe8ec8471911baa1db1266ea15',
+			},
+			endpoints: [{
+				endpointKind: SourceEndpointKind.HttpUrl,
+				locator: 'http://127.0.0.1:8232',
+				origin: 'http://127.0.0.1:8232',
+				corsEnabled: false,
+			}],
+			wireProtocol: WireProtocol.JsonRpc2,
+			apiFamily: ApiFamily.BitcoinJsonRpc,
+			operationGroups: [
+				SourceOperationGroup.GenericRead,
+			],
+			delivery: SourceDelivery.LocalOnly,
+			credentials: [{
+				scope: SourceCredentialScope.LocalSecret,
+			}],
+		})
+	})
+
+	it('threads the selected binding through neutral JSON-RPC block and transaction reads', async () => {
+		jsonRpc2
+			.mockResolvedValueOnce({
+				hash: 'a'.repeat(64),
+			})
+			.mockResolvedValueOnce({
+				txid: 'b'.repeat(64),
+			})
+
+		await getBlock({
+			binding,
+			blockHash: 'a'.repeat(64),
+		})
+		await getRawTransaction({
+			binding,
+			txId: 'b'.repeat(64),
+		})
+
+		expect(jsonRpc2.mock.calls).toEqual([
+			[
+				binding,
+				'getblock',
+				[
+					'a'.repeat(64),
+					2,
+				],
+			],
+			[
+				binding,
+				'getrawtransaction',
+				[
+					'b'.repeat(64),
+					true,
+				],
+			],
+		])
 	})
 
 	it('loads bounded, account-owned UTXOs with exact zatoshi integers', async () => {
@@ -44,7 +113,7 @@ describe('Zebra transparent-address transport', () => {
 			height: 2_800_001,
 		})
 
-		await expect(getTransparentAddressUtxos(binding, {
+		await expect(getTransparentAddressUtxos({
 			address,
 			maxResults: 25,
 		})).resolves.toMatchObject({
@@ -68,7 +137,7 @@ describe('Zebra transparent-address transport', () => {
 			'd'.repeat(64),
 		])
 
-		await expect(getTransparentAddressTransactionIds(binding, {
+		await expect(getTransparentAddressTransactionIds({
 			address,
 			startHeight: 2_790_000,
 			endHeight: 2_799_999,
@@ -98,7 +167,7 @@ describe('Zebra transparent-address transport', () => {
 			hash: 'b'.repeat(64),
 			height: 1,
 		})
-		await expect(getTransparentAddressUtxos(binding, {
+		await expect(getTransparentAddressUtxos({
 			address,
 			maxResults: 1,
 		})).rejects.toThrow('foreign address row')
@@ -107,14 +176,14 @@ describe('Zebra transparent-address transport', () => {
 			'c'.repeat(64),
 			'c'.repeat(64),
 		])
-		await expect(getTransparentAddressTransactionIds(binding, {
+		await expect(getTransparentAddressTransactionIds({
 			address,
 			startHeight: 1,
 			endHeight: 2,
 			maxResults: 2,
 		})).rejects.toThrow('duplicate transparent transaction ID')
 
-		await expect(getTransparentAddressTransactionIds(binding, {
+		await expect(getTransparentAddressTransactionIds({
 			address,
 			startHeight: 1,
 			endHeight: 10_001,
@@ -124,13 +193,13 @@ describe('Zebra transparent-address transport', () => {
 	})
 
 	it('does not transport zero-cardinality requests', async () => {
-		await expect(getTransparentAddressUtxos(binding, {
+		await expect(getTransparentAddressUtxos({
 			address,
 			maxResults: 0,
 		})).resolves.toMatchObject({
 			utxos: [],
 		})
-		await expect(getTransparentAddressTransactionIds(binding, {
+		await expect(getTransparentAddressTransactionIds({
 			address,
 			startHeight: 1,
 			endHeight: 1,

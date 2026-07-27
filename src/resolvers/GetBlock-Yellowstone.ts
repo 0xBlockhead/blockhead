@@ -2,9 +2,7 @@ import { networkBySlug } from '$/constants/Network.ts'
 import { defineResolver } from '$/resolvers/defineResolver.ts'
 import { EntityMetaKey } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import { SolanaAccount_TimestampSelector } from '$/schema/SolanaAccount_Timestamp.ts'
 import { Source } from '$/sources/Source.ts'
-import { sourceProviderDefinitions } from '$/sources/$sourceProviders.ts'
 
 export default {
 	source: Source.GetBlockYellowstone_Grpc,
@@ -13,26 +11,19 @@ export default {
 		defineResolver(Source.GetBlockYellowstone_Grpc, {
 			entityType: EntityType.SolanaAccount_Timestamp,
 			resolve: {
-				[SolanaAccount_TimestampSelector.AccountSlotSource]: {
+				AccountSlotSource: {
 					resolve: async ({ $account, slot, source }) => {
 						if (source !== Source.GetBlockYellowstone_Grpc)
 							throw new Error(`GetBlockYellowstone_Grpc: unsupported source ${source}`)
 
-						const binding = sourceProviderDefinitions
-							.flatMap((provider) => provider.bindings)
-							.find((candidate) => (
-								candidate.source === Source.GetBlockYellowstone_Grpc
-								&& candidate.target.key === `${$account.$network.caip2.namespace}:${$account.$network.caip2.reference}`
-							))
 						if (
 							$account.$network.caip2.namespace !== networkBySlug.solana.caip2.namespace
 							|| $account.$network.caip2.reference !== networkBySlug.solana.caip2.reference
-							|| binding == null
 						)
 							throw new Error('GetBlockYellowstone_Grpc: unsupported network')
 
 						const { subscribeSolanaAccountUpdates } = await import('$/sources/GetBlock/Yellowstone/queries.ts')
-						for await (const update of subscribeSolanaAccountUpdates(binding, {
+						for await (const update of subscribeSolanaAccountUpdates({
 							accounts: [$account.pubkey],
 							commitment: 'confirmed',
 						})) {
@@ -76,14 +67,14 @@ export default {
 						parentEntitySelector,
 						signal,
 					}) => {
-						const binding = sourceProviderDefinitions
-							.flatMap((provider) => provider.bindings)
-							.find((candidate) => candidate.source === Source.GetBlockYellowstone_Grpc)
-						if (binding == null)
-							throw new Error('GetBlockYellowstone_Grpc: missing live binding')
+						if (
+							parentEntitySelector.$account.$network.caip2.namespace !== networkBySlug.solana.caip2.namespace
+							|| parentEntitySelector.$account.$network.caip2.reference !== networkBySlug.solana.caip2.reference
+						)
+							throw new Error('GetBlockYellowstone_Grpc: unsupported live network')
 
 						const { subscribeSolanaAccountUpdates } = await import('$/sources/GetBlock/Yellowstone/queries.ts')
-						for await (const update of subscribeSolanaAccountUpdates(binding, {
+						for await (const update of subscribeSolanaAccountUpdates({
 							accounts: [parentEntitySelector.$account.pubkey],
 							commitment: 'confirmed',
 						}, signal)) {

@@ -8,14 +8,12 @@
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		data,
-		params,
 	}: PageProps = $props()
 
 	const pageSelection = $derived(select(EntityType.XPost, data.selector, {
@@ -41,17 +39,12 @@
 
 
 <svelte:head>
-	<title>{(data.title ?? (pageSelection.entity == null ? [String((data.selector.id) ?? '')].filter(Boolean).join(' ') || 'X post' : [String((({ ...data.selector, ...pageSelection.entity }).text) ?? ''), String((({ ...data.selector, ...pageSelection.entity }).id) ?? '')].filter(Boolean).join(' ') || 'X post'))} • X post • Blockhead</title>
+	<title>{(data.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.id ?? '') || 'X post' : [(pageSelection.entity.text ?? ''), pageSelection.entitySelector.id].filter(Boolean).join(' ') || 'X post'))} • X post • Blockhead</title>
 </svelte:head>
 
 
 <Page>
 	<XPostView
-		href={
-			resolve('/x/post/[postId=stringSegment]', {
-				postId: params.postId,
-			})
-		}
 		selection={pageSelection}
 	/>
 </Page>

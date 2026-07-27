@@ -1,15 +1,12 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { entity, facet } from '$/schema/$schema.ts'
+import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { UrlString } from '$/schema/UrlString.ts'
 import { type } from 'arktype'
 
-export enum NostrProfileMetadataEventSelector {
-	CanonicalEventId = 'CanonicalEventId',
-}
-export const NostrProfileMetadataEvent = entity({
+export default entity({
 	entityType: EntityType.NostrProfileMetadataEvent,
 	labels: {
 		singular: 'Nostr profile metadata event',
@@ -98,13 +95,13 @@ export const NostrProfileMetadataEvent = entity({
 	website: {
 		label: 'Website',
 		type: EntityFieldType.Primitive,
-		primitiveType: (UrlString),
+		primitiveType: UrlString,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	iconUrl: {
 		label: 'Icon URL',
 		type: EntityFieldType.Primitive,
-		primitiveType: (UrlString),
+		primitiveType: UrlString,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$icon: {
@@ -116,7 +113,7 @@ export const NostrProfileMetadataEvent = entity({
 	bannerUrl: {
 		label: 'Banner URL',
 		type: EntityFieldType.Primitive,
-		primitiveType: (UrlString),
+		primitiveType: UrlString,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$banner: {

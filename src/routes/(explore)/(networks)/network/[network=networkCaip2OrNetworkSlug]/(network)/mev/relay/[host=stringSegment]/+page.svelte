@@ -8,14 +8,12 @@
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		data,
-		params,
 	}: PageProps = $props()
 
 	const pageSelection = $derived(select(EntityType.MevRelay, data.selector, {
@@ -32,18 +30,12 @@
 
 
 <svelte:head>
-	<title>{(data.title ?? (pageSelection.entity == null ? [String((data.selector.host) ?? '')].filter(Boolean).join(' ') || 'MEV relay' : [String((({ ...data.selector, ...pageSelection.entity }).host) ?? '')].filter(Boolean).join(' ') || 'MEV relay'))} • MEV relay • Blockhead</title>
+	<title>{(data.title ?? (pageSelection.entitySelector.host || 'MEV relay'))} • MEV relay • Blockhead</title>
 </svelte:head>
 
 
 <Page>
 	<MevRelayView
-		href={
-			resolve('/network/[network=networkCaip2OrNetworkSlug]/mev/relay/[host=stringSegment]', {
-				network: params.network,
-				host: params.host,
-			})
-		}
 		selection={pageSelection}
 	/>
 </Page>

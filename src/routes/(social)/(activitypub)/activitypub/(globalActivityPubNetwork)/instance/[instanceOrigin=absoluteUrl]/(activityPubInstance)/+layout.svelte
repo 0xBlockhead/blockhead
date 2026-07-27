@@ -30,22 +30,28 @@
 {#key params.instanceOrigin}
 	<ParentPageCollapsible
 		href={
-			resolve('/activitypub/instance/[instanceOrigin=absoluteUrl]', {
-				instanceOrigin: params.instanceOrigin,
-			})
+			resolve(
+				'/(social)/(activitypub)/activitypub/(globalActivityPubNetwork)/instance/[instanceOrigin=absoluteUrl]',
+				{
+					instanceOrigin: String(params.instanceOrigin),
+				}
+			)
 		}
 	>
 		{#snippet Summary()}
-			{@const DetailView = ActivityPubInstanceView}
-
-			<DetailView
-				selection={select(EntityType.ActivityPubInstance, data.selector, { sources: [
-		Source.Mastodon_Rest,
-	] })}
+			<ActivityPubInstanceView
+				selection={
+					select(EntityType.ActivityPubInstance, data.selector, { sources: [
+						Source.Mastodon_Rest,
+					] })
+				}
 				href={
-					resolve('/activitypub/instance/[instanceOrigin=absoluteUrl]', {
-						instanceOrigin: params.instanceOrigin,
-					})
+					resolve(
+						'/(social)/(activitypub)/activitypub/(globalActivityPubNetwork)/instance/[instanceOrigin=absoluteUrl]',
+						{
+							instanceOrigin: String(params.instanceOrigin),
+						}
+					)
 				}
 				layout={EntityLayout.SummaryInline}
 			/>

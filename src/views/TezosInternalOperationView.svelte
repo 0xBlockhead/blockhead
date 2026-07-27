@@ -2,13 +2,8 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
 
 
 	// Context
@@ -20,35 +15,13 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.TezosInternalOperation>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.TezosInternalOperation>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.TezosInternalOperation> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const tezosInternalOperation = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {},
-	} : {
-		sources: selection.sources,
-	}))
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const titleFallback = 'tezos internal operation'
-	const viewDomId = $derived('tezos-internal-operation-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -60,24 +33,14 @@
 
 <EntityView
 	entityType={EntityType.TezosInternalOperation}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails}
-			{title || titleFallback}
-		{:else}
-			<ResourceBoundary resource={tezosInternalOperation}>
-				{#snippet children(entity)}
-					{title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		tezos internal operation
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -96,24 +59,7 @@
 			<div>
 				<dt>internal index</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									internalIndex: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const internalIndex = resolvedEntity.internalIndex}
-							{#if internalIndex !== undefined && internalIndex !== null}
-								{String((internalIndex) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{String(pendingEntity.internalIndex)}
 				</dd>
 			</div>
 
@@ -123,7 +69,6 @@
 					<ResourceBoundary
 						resource={
 							selection({
-								sources: selection.sources,
 								fields: {
 									operationKind: true,
 								},
@@ -131,11 +76,7 @@
 						}
 					>
 						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const operationKind = resolvedEntity.operationKind}
-							{#if operationKind !== undefined && operationKind !== null}
-								{String((operationKind) ?? '')}
-							{/if}
+							{entity.operationKind}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -144,7 +85,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							sourceAddress: true,
 						},
@@ -152,13 +92,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const sourceAddress = resolvedEntity.sourceAddress}
-					{#if sourceAddress !== undefined && sourceAddress !== null}
+					{@const sourceAddress = entity.sourceAddress}
+					{#if sourceAddress != null}
 						<div>
 							<dt>source address</dt>
 							<dd>
-								<TruncatedValue value={String((sourceAddress) ?? '')} />
+								<TruncatedValue value={sourceAddress} />
 							</dd>
 						</div>
 					{/if}
@@ -168,7 +107,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							destinationAddress: true,
 						},
@@ -176,13 +114,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const destinationAddress = resolvedEntity.destinationAddress}
-					{#if destinationAddress !== undefined && destinationAddress !== null}
+					{@const destinationAddress = entity.destinationAddress}
+					{#if destinationAddress != null}
 						<div>
 							<dt>destination address</dt>
 							<dd>
-								<TruncatedValue value={String((destinationAddress) ?? '')} />
+								<TruncatedValue value={destinationAddress} />
 							</dd>
 						</div>
 					{/if}
@@ -192,7 +129,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							amountMutez: true,
 						},
@@ -200,13 +136,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const amountMutez = resolvedEntity.amountMutez}
-					{#if amountMutez !== undefined && amountMutez !== null}
+					{@const amountMutez = entity.amountMutez}
+					{#if amountMutez != null}
 						<div>
 							<dt>amount mutez</dt>
 							<dd>
-								{String((amountMutez) ?? '')}
+								{String(amountMutez)}
 							</dd>
 						</div>
 					{/if}
@@ -216,7 +151,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							nonce: true,
 						},
@@ -224,13 +158,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const nonce = resolvedEntity.nonce}
-					{#if nonce !== undefined && nonce !== null}
+					{@const nonce = entity.nonce}
+					{#if nonce != null}
 						<div>
 							<dt>nonce</dt>
 							<dd>
-								{String((nonce) ?? '')}
+								{String(nonce)}
 							</dd>
 						</div>
 					{/if}
@@ -240,7 +173,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							resultStatus: true,
 						},
@@ -248,13 +180,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const resultStatus = resolvedEntity.resultStatus}
-					{#if resultStatus !== undefined && resultStatus !== null}
+					{@const resultStatus = entity.resultStatus}
+					{#if resultStatus != null}
 						<div>
 							<dt>result status</dt>
 							<dd>
-								{String((resultStatus) ?? '')}
+								{resultStatus}
 							</dd>
 						</div>
 					{/if}
@@ -264,7 +195,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							consumedGas: true,
 						},
@@ -272,13 +202,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const consumedGas = resolvedEntity.consumedGas}
-					{#if consumedGas !== undefined && consumedGas !== null}
+					{@const consumedGas = entity.consumedGas}
+					{#if consumedGas != null}
 						<div>
 							<dt>consumed gas</dt>
 							<dd>
-								{String((consumedGas) ?? '')}
+								{String(consumedGas)}
 							</dd>
 						</div>
 					{/if}

@@ -2,11 +2,11 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
@@ -22,19 +22,15 @@
 
 
 <Page>
+	{@const collectionSelection = select(EntityType._Global, {
+		scope: '$$actors',
+	}).$$actors}
+
 	<EvmAccountsView
-		href={resolve('/xmtp/accounts')}
+		href={resolve('/(social)/(xmtp)/xmtp/(xmtpNetwork)/accounts')}
 		title='XMTP accounts'
-		selection={
-			select(EntityType._Global, {
-				scope: '$$actors',
-			}).$$actors
-		}
-		countResource={
-			select(EntityType._Global, {
-				scope: '$$actors',
-			}).$$actors.count
-		}
+		selection={collectionSelection}
+		countResource={collectionSelection.count}
 		id='actors'
 		data-column-item="flexible"
 		data-card

@@ -1,7 +1,10 @@
-import { type as arktype, type Type } from 'arktype'
+import {
+	type as arktype,
+	type Type,
+} from 'arktype'
 
-import type { SourceBinding } from '$/sources/SourceBinding.ts'
-import { getJson } from '$/sources/_shared/wire/HttpRest/client.ts'
+import { sourceGetJson } from '$/sources/_runtime/http.ts'
+import { httpUrl } from '$/sources/_shared/wire/HttpRest/client.ts'
 import type {
 	TonApiAccount,
 	TonApiAccountTransactionWire,
@@ -9,8 +12,10 @@ import type {
 	TonApiAccountTransactionsWire,
 	TonApiMasterchainHead,
 } from '$/sources/TonApi/Rest/types.ts'
+import bindings from '$/sources/TonApi/bindings.ts'
 import { Source } from '$/sources/Source.ts'
-import { SourceTargetKind } from '$/sources/SourceBinding.ts'
+
+const binding = bindings[Source.TonApi_Rest]
 
 const tonApiAccount = arktype({
 	address: 'string',
@@ -57,21 +62,14 @@ const rawTonAddressCoordinates = (address: string) => {
 	return `${Number(coordinates[1])}:${coordinates[2].toLowerCase()}`
 }
 
-const assertTonApiBinding = (binding: SourceBinding) => {
-	if (
-		binding.source !== Source.TonApi_Rest
-		|| binding.target.kind !== SourceTargetKind.Caip2Network
-		|| binding.target.key !== 'ton:-239'
-	)
-		throw new Error('TonApi_Rest: expected canonical TON mainnet binding')
-}
+const getTonApiRestJson = <_Json>(
+	path: string
+) => sourceGetJson<_Json>(binding, httpUrl(binding, path))
 
 export const getAccount = (
-	binding: SourceBinding,
 	accountId: string
 ) => (
-	getJson<unknown>(
-		binding,
+	getTonApiRestJson<unknown>(
 		`/v2/accounts/${encodeURIComponent(accountId)}`
 	).then((wire) => {
 		const account = tonApiAccount.assert(wire)
@@ -82,9 +80,8 @@ export const getAccount = (
 	})
 )
 
-export const getBlockchainMasterchainHead = (binding: SourceBinding) => (
-	getJson<unknown>(
-		binding,
+export const getBlockchainMasterchainHead = () => (
+	getTonApiRestJson<unknown>(
 		'/v2/blockchain/masterchain-head'
 	).then((wire) => {
 		const masterchainHead = tonApiMasterchainHead.assert(wire)
@@ -99,7 +96,6 @@ export const getBlockchainMasterchainHead = (binding: SourceBinding) => (
 )
 
 export const getBlockchainAccountTransactions = async (
-	binding: SourceBinding,
 	{
 		accountId,
 		limit,
@@ -110,7 +106,6 @@ export const getBlockchainAccountTransactions = async (
 		beforeLt?: bigint
 	}
 ): Promise<TonApiAccountTransactionsPage> => {
-	assertTonApiBinding(binding)
 	const canonicalAccountId = rawTonAddressCoordinates(accountId)
 	if (!Number.isSafeInteger(limit) || limit < 0 || limit > 1_000)
 		throw new Error('TonApi_Rest: transaction limit must be an integer from 0 through 1000')
@@ -127,8 +122,7 @@ export const getBlockchainAccountTransactions = async (
 	})
 	if (beforeLt != null)
 		parameters.set('before_lt', beforeLt.toString())
-	const page = tonApiAccountTransactions.assert(await getJson<unknown>(
-		binding,
+	const page = tonApiAccountTransactions.assert(await getTonApiRestJson<unknown>(
 		`/v2/blockchain/accounts/${encodeURIComponent(accountId)}/transactions?${parameters.toString()}`
 	))
 	if (page.transactions.length > limit)

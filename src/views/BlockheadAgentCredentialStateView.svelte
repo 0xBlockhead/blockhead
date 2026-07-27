@@ -2,13 +2,10 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -20,42 +17,24 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.BlockheadAgentCredentialState>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.BlockheadAgentCredentialState>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.BlockheadAgentCredentialState> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const blockheadAgentCredentialState = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {
-			label: true,
-			credentialKind: true,
-		},
-	} : {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const viewSelection = $derived(selection({
+		sources: selection.sources ?? [
+			Source.Local_Internal,
+		],
+	}))
+	const blockheadAgentCredentialState = $derived(viewSelection({
 		fields: {
 			label: true,
 			credentialKind: true,
 		},
 	}))
-	const titleFallback = $derived([String((pendingEntity.label) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.credentialId) ?? '')].filter(Boolean).join(' ') || 'blockhead agent credential state')
-	const viewDomId = $derived('blockhead-agent-credential-state-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const titleFallback = $derived((pendingEntity.label ?? '') || (pendingEntity.credentialId ?? '') || 'blockhead agent credential state')
 
 
 	// Components
@@ -69,10 +48,8 @@
 
 <EntityView
 	entityType={EntityType.BlockheadAgentCredentialState}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -80,8 +57,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={blockheadAgentCredentialState}>
 			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.label) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+				{(entity.label ?? '') || title || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -89,32 +65,26 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={blockheadAgentCredentialState}>
 			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.credentialKind) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.label) ?? '')].filter(Boolean).join(' ') || titleFallback}
+				{(entity.credentialKind ?? '') || (entity.label ?? '') || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		<ResourceBoundary resource={blockheadAgentCredentialState}>
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				<ResourceBoundary
-					resource={selection.$connection}
-				>
-					{#snippet children(blockheadAgentConnection)}
-						{#if blockheadAgentConnection != null && blockheadAgentConnection[EntityMetaKey.Selector] != null}
-							<span data-text="muted">
-								<BlockheadAgentConnectionView
-									selection={select(EntityType.BlockheadAgentConnection, blockheadAgentConnection[EntityMetaKey.Selector])}
-									prefetched={blockheadAgentConnection}
-									layout={EntityLayout.Title}
-									open={false}
-								/>
-							</span>
-						{/if}
-					{/snippet}
-				</ResourceBoundary>
+		<ResourceBoundary
+			resource={selection.$connection}
+		>
+			{#snippet children(blockheadAgentConnection)}
+				{#if blockheadAgentConnection != null}
+					<span data-text="muted">
+						<BlockheadAgentConnectionView
+							selection={select(EntityType.BlockheadAgentConnection, blockheadAgentConnection[EntityMetaKey.Selector])}
+							prefetched={blockheadAgentConnection}
+							layout={EntityLayout.Title}
+							open={false}
+						/>
+					</span>
+				{/if}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -124,24 +94,7 @@
 			<div>
 				<dt>credential ID</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									credentialId: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const credentialId = resolvedEntity.credentialId}
-							{#if credentialId !== undefined && credentialId !== null}
-								<TruncatedValue value={String((credentialId) ?? '')} />
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					<TruncatedValue value={pendingEntity.credentialId} />
 				</dd>
 			</div>
 
@@ -149,7 +102,7 @@
 				resource={selection.$connection}
 			>
 				{#snippet children(blockheadAgentConnection)}
-					{#if blockheadAgentConnection != null && blockheadAgentConnection[EntityMetaKey.Selector] != null}
+					{#if blockheadAgentConnection != null}
 						<div>
 							<dt>connection</dt>
 							<dd>
@@ -166,23 +119,15 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							credentialKind: true,
-						},
-					})
-				}
+				resource={blockheadAgentCredentialState}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const credentialKind = resolvedEntity.credentialKind}
-					{#if credentialKind !== undefined && credentialKind !== null}
+					{@const credentialKind = entity.credentialKind}
+					{#if credentialKind != null}
 						<div>
 							<dt>credential kind</dt>
 							<dd>
-								<TruncatedValue value={String((credentialKind) ?? '')} />
+								<TruncatedValue value={credentialKind} />
 							</dd>
 						</div>
 					{/if}
@@ -190,23 +135,15 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							label: true,
-						},
-					})
-				}
+				resource={blockheadAgentCredentialState}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const label = resolvedEntity.label}
-					{#if label !== undefined && label !== null}
+					{@const label = entity.label}
+					{#if label != null}
 						<div>
 							<dt>Label</dt>
 							<dd>
-								{String((label) ?? '')}
+								{label}
 							</dd>
 						</div>
 					{/if}
@@ -217,8 +154,7 @@
 		<dl data-column-item="center">
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							createdAt: true,
 						},
@@ -226,9 +162,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const createdAt = resolvedEntity.createdAt}
-					{#if createdAt !== undefined && createdAt !== null}
+					{@const createdAt = entity.createdAt}
+					{#if createdAt != null}
 						<div>
 							<dt>Created</dt>
 							<dd>
@@ -241,8 +176,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							updatedAt: true,
 						},
@@ -250,9 +184,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const updatedAt = resolvedEntity.updatedAt}
-					{#if updatedAt !== undefined && updatedAt !== null}
+					{@const updatedAt = entity.updatedAt}
+					{#if updatedAt != null}
 						<div>
 							<dt>Updated</dt>
 							<dd>
@@ -272,12 +205,12 @@
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
-				<BlockheadAgentCredentialState_TimestampsView
-					selection={blockheadAgentCredentialStateBlockheadAgentCredentialStateTimestampsViewTimestampsResource}
-					countResource={blockheadAgentCredentialStateBlockheadAgentCredentialStateTimestampsViewTimestampsResource.count}
-					title='timestamps'
-					id='BlockheadAgentCredentialState_TimestampsView-timestamps'
-				/>
+					<BlockheadAgentCredentialState_TimestampsView
+						selection={blockheadAgentCredentialStateBlockheadAgentCredentialStateTimestampsViewTimestampsResource}
+						countResource={blockheadAgentCredentialStateBlockheadAgentCredentialStateTimestampsViewTimestampsResource.count}
+						title='timestamps'
+						id='timestamps'
+					/>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>

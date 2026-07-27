@@ -3,69 +3,30 @@
 <script lang="ts">
 	// Types/constants
 	import { resolve } from '$app/paths'
-	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
-	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
-	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
+	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-
-
 
 
 	// State
 	let {
 		selection,
-		countResource,
-		title = 'YouTube playlists',
-		typeAnnotationParagraphs = [],
-		placeholderText = undefined,
-		emptyText = undefined,
 		open = $bindable(true),
-		collapsible = true,
-		showTypeAnnotation = true,
-		id = 'YoutubePlaylists-list',
 		...EntitiesListProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyEntitiesSelection<EntityType.YoutubePlaylist>
-			countResource?: SvelteKitResource<number>
-			title?: string
-			typeAnnotationParagraphs?: string[]
-			placeholderText?: string
-			emptyText?: string
-			open?: boolean
-			collapsible?: boolean
-			showTypeAnnotation?: boolean
-			id?: string
-		},
-		EntitiesListForwardProps
-	> = $props()
+	}: EntityListViewProps<EntityType.YoutubePlaylist> = $props()
 
 
 	// Components
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView from '$/components/EntityView.svelte'
 </script>
 
-
-{#snippet TypeAnnotationParagraphs()}
-	{#each typeAnnotationParagraphs as paragraph (paragraph)}
-		<p>{paragraph}</p>
-	{/each}
-{/snippet}
 
 <EntitiesList
 	{...EntitiesListProps}
 	entityType={EntityType.YoutubePlaylist}
-	{id}
-	{title}
 	bind:open
-	{collapsible}
-	{showTypeAnnotation}
-	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
 	resource={
 		selection({
-			sources: selection.sources,
 			fields: {
 				title: true,
 				playlistId: true,
@@ -73,45 +34,27 @@
 			},
 		})
 	}
-	{countResource}
-	getResourceItems={(youtubePlaylists) => [...new Map(youtubePlaylists.values.map((youtubePlaylist) => [youtubePlaylist[EntityMetaKey.SelectorKey], youtubePlaylist])).values()]}
-	getKey={(youtubePlaylist) => youtubePlaylist[EntityMetaKey.SelectorKey]}
-	{placeholderText}
 >
-	{#snippet Empty()}
-		{#if emptyText != null}
-			<p data-text="muted">{emptyText}</p>
-		{:else}
-			<p data-text="muted">No YouTube playlists yet.</p>
-		{/if}
-	{/snippet}
-
 	{#snippet Item({ item: youtubePlaylist })}
-		{@const youtubePlaylistFields = { ...youtubePlaylist[EntityMetaKey.Selector], ...youtubePlaylist }}
+		{@const youtubePlaylistSelector = youtubePlaylist[EntityMetaKey.Selector]}
 		<EntityView
 			entityType={EntityType.YoutubePlaylist}
-			entitySelector={youtubePlaylist[EntityMetaKey.Selector]}
+			entitySelector={youtubePlaylistSelector}
 			href={
-				(
-					youtubePlaylist[EntityMetaKey.Selector] != null && 'playlistId' in youtubePlaylist[EntityMetaKey.Selector]
-					&& youtubePlaylist[EntityMetaKey.Selector].playlistId != null ?
-						resolve('/youtube/playlist/[playlistId=stringSegment]', {
-					playlistId: encodeURIComponent(String(youtubePlaylist[EntityMetaKey.Selector].playlistId ?? '')),
-				})
-				:
-						undefined
+				resolve(
+					'/(social)/(youtube)/youtube/(globalYoutubeNetwork)/playlist/[playlistId=stringSegment]',
+					{
+						playlistId: encodeURIComponent(String(youtubePlaylistSelector.playlistId)),
+					}
 				)
 			}
-			layout={EntityLayout.Summary}
-			open={false}
-			showTypeAnnotation={false}
 		>
 			{#snippet Title()}
-				{[String((youtubePlaylistFields.title) ?? '')].filter(Boolean).join(' ') || [String((youtubePlaylistFields.playlistId) ?? '')].filter(Boolean).join(' ') || 'YouTube playlist'}
+				{[(youtubePlaylist.title ?? ''), youtubePlaylistSelector.playlistId].filter(Boolean).join(' ') || youtubePlaylistSelector.playlistId || 'YouTube playlist'}
 			{/snippet}
 
 			{#snippet Value()}
-				{[[String((youtubePlaylistFields.$channel.title) ?? '')].filter(Boolean).join(' ') || [String((youtubePlaylistFields.$channel.channelId) ?? '')].filter(Boolean).join(' ') || 'YouTube channel'].filter(Boolean).join(' ')}
+				{youtubePlaylist.$channel == null ? '' : (youtubePlaylist.$channel.title ?? '') || youtubePlaylist.$channel.channelId || 'YouTube channel'}
 			{/snippet}
 		</EntityView>
 	{/snippet}

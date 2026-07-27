@@ -102,9 +102,14 @@ describe('MLflow resolver mappings', () => {
 		expect(mlflowResolvers[2].projections.$$documents(artifact)).toHaveLength(1)
 	})
 
-	it('fails closed when the MLflow endpoint is not configured', async () => {
+	it('passes public endpoint configuration to the MLflow source', async () => {
+		getRegisteredModel.mockResolvedValue({
+			registered_model: {
+				name: 'fraud-detector',
+			},
+		})
 		const { mlflowResolvers } = await import('$/resolvers/Mlflow-Rest.ts')
-		await expect(mlflowResolvers[0].resolve.ProviderModelId.resolve({
+		await mlflowResolvers[0].resolve.ProviderModelId.resolve({
 			$provider: {
 				providerId: 'mlflow',
 			},
@@ -112,6 +117,10 @@ describe('MLflow resolver mappings', () => {
 		}, {
 			...context,
 			publicEnv: {},
-		})).rejects.toThrow('Missing or empty source endpoint env: MLFLOW_TRACKING_URL')
+		})
+		expect(getRegisteredModel).toHaveBeenLastCalledWith({
+			name: 'fraud-detector',
+			publicEnv: {},
+		})
 	})
 })

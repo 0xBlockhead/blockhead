@@ -3,12 +3,11 @@
 <script lang="ts">
 	// Types/constants
 	import type { PageProps } from './$types.ts'
+	import { resolve } from '$app/paths'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
@@ -16,8 +15,6 @@
 	let {
 		params,
 	}: PageProps = $props()
-
-
 	// Components
 	import Page from '$/components/Page.svelte'
 	import AtprotoActor_TimestampsView from '$/views/AtprotoActor_TimestampsView.svelte'
@@ -30,33 +27,22 @@
 
 
 <Page>
+	{@const collectionSelection = select(EntityType.AtprotoActor, {
+		did: decodeURIComponent(params.did),
+	}).$$timestamps}
+
 	<AtprotoActor_TimestampsView
 		href={
-			resolve('/atproto/actor/[did=stringSegment]/observations', {
-				did: params.did,
-			})
+			resolve(
+				'/(social)/(atproto)/atproto/(globalAtprotoNetwork)/actor/[did=stringSegment]/(atprotoActor)/observations',
+				{
+					did: String(params.did),
+				}
+			)
 		}
 		title='Account observations'
-		selection={
-			select(EntityType.AtprotoActor, {
-				did: decodeURIComponent(params.did),
-			})
-				.$$timestamps({
-					sources: [
-						Source.Atproto_Xrpc,
-					],
-				})
-		}
-		countResource={
-			select(EntityType.AtprotoActor, {
-				did: decodeURIComponent(params.did),
-			})
-				.$$timestamps({
-					sources: [
-						Source.Atproto_Xrpc,
-					],
-				}).count
-		}
+		selection={collectionSelection}
+		countResource={collectionSelection.count}
 		id='timestamps'
 		data-column-item="flexible"
 		data-card

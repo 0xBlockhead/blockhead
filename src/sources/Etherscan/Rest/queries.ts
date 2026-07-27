@@ -17,12 +17,13 @@ import type {
 	EtherscanInternalTransaction,
 	EtherscanProxyJsonRpc,
 	EtherscanStringStatus,
+	EtherscanTokenTransferTagged,
 } from '$/sources/Etherscan/Rest/types.ts'
 import type {
 	RpcBlockHeader,
 	RpcReceipt,
 	RpcTransaction,
-} from '$/sources/Evm/JsonRpc/types.ts'
+} from '$/sources/_shared/interfaces/EvmExecutionJsonRpc/types.ts'
 import type { SourcePublicEnv } from '$/sources/$sources.ts'
 import {
 	etherscanV2GetJson,
@@ -485,20 +486,7 @@ export const getTokenTransfersByAddress = async ({
 	address: `0x${string}`
 	offset: number
 	options?: { apiKey?: string }
-}): Promise<(
-	| {
-		standard: 'erc20'
-		row: EtherscanErc20TokenTransfer
-	}
-	| {
-		standard: 'erc721'
-		row: EtherscanErc721TokenTransfer
-	}
-	| {
-		standard: 'erc1155'
-		row: EtherscanErc1155TokenTransfer
-	}
-)[] | null> => {
+}): Promise<EtherscanTokenTransferTagged[] | null> => {
 	const [
 		erc20Rows,
 		erc721Rows,
@@ -529,16 +517,16 @@ export const getTokenTransfersByAddress = async ({
 	if (erc20Rows == null || erc721Rows == null || erc1155Rows == null) return null
 	const seen = new Set<string>()
 	return [
-		...erc20Rows.map((row) => ({
-			standard: 'erc20' as const,
+		...erc20Rows.map<EtherscanTokenTransferTagged>((row) => ({
+			standard: 'erc20',
 			row,
 		})),
-		...erc721Rows.map((row) => ({
-			standard: 'erc721' as const,
+		...erc721Rows.map<EtherscanTokenTransferTagged>((row) => ({
+			standard: 'erc721',
 			row,
 		})),
-		...erc1155Rows.map((row) => ({
-			standard: 'erc1155' as const,
+		...erc1155Rows.map<EtherscanTokenTransferTagged>((row) => ({
+			standard: 'erc1155',
 			row,
 		})),
 	].filter(({ standard, row }) => {

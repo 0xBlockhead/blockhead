@@ -2,69 +2,30 @@
 
 <script lang="ts">
 	// Types/constants
-	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
-	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
-	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
+	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-
-
 
 
 	// State
 	let {
 		selection,
-		countResource,
-		title = 'Zero g networks',
-		typeAnnotationParagraphs = [],
-		placeholderText = undefined,
-		emptyText = undefined,
 		open = $bindable(true),
-		collapsible = true,
-		showTypeAnnotation = true,
-		id = 'ZeroGNetworks-list',
 		...EntitiesListProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyEntitiesSelection<EntityType.ZeroGNetwork>
-			countResource?: SvelteKitResource<number>
-			title?: string
-			typeAnnotationParagraphs?: string[]
-			placeholderText?: string
-			emptyText?: string
-			open?: boolean
-			collapsible?: boolean
-			showTypeAnnotation?: boolean
-			id?: string
-		},
-		EntitiesListForwardProps
-	> = $props()
+	}: EntityListViewProps<EntityType.ZeroGNetwork> = $props()
 
 
 	// Components
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView from '$/components/EntityView.svelte'
 </script>
 
-
-{#snippet TypeAnnotationParagraphs()}
-	{#each typeAnnotationParagraphs as paragraph (paragraph)}
-		<p>{paragraph}</p>
-	{/each}
-{/snippet}
 
 <EntitiesList
 	{...EntitiesListProps}
 	entityType={EntityType.ZeroGNetwork}
-	{id}
-	{title}
 	bind:open
-	{collapsible}
-	{showTypeAnnotation}
-	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
 	resource={
 		selection({
-			sources: selection.sources,
 			fields: {
 				name: true,
 				slug: true,
@@ -72,38 +33,23 @@
 			},
 		})
 	}
-	{countResource}
-	getResourceItems={(zeroGNetworks) => [...new Map(zeroGNetworks.values.map((zeroGNetwork) => [zeroGNetwork[EntityMetaKey.SelectorKey], zeroGNetwork])).values()]}
-	getKey={(zeroGNetwork) => zeroGNetwork[EntityMetaKey.SelectorKey]}
-	{placeholderText}
 >
-	{#snippet Empty()}
-		{#if emptyText != null}
-			<p data-text="muted">{emptyText}</p>
-		{:else}
-			<p data-text="muted">No Zero g networks yet.</p>
-		{/if}
-	{/snippet}
-
 	{#snippet Item({ item: zeroGNetwork })}
-		{@const zeroGNetworkFields = { ...zeroGNetwork[EntityMetaKey.Selector], ...zeroGNetwork }}
+		{@const zeroGNetworkSelector = zeroGNetwork[EntityMetaKey.Selector]}
 		<EntityView
 			entityType={EntityType.ZeroGNetwork}
-			entitySelector={zeroGNetwork[EntityMetaKey.Selector]}
-			layout={EntityLayout.Summary}
-			open={false}
-			showTypeAnnotation={false}
+			entitySelector={zeroGNetworkSelector}
 		>
 			{#snippet Title()}
-				{[String((zeroGNetworkFields.name) ?? '')].filter(Boolean).join(' ') || 'zero g network'}
+				{zeroGNetwork.name || 'zero g network'}
 			{/snippet}
 
 			{#snippet Value()}
-				{[String((zeroGNetworkFields.slug) ?? '')].filter(Boolean).join(' ')}
+				{zeroGNetworkSelector.slug}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{[String((zeroGNetworkFields.environment) ?? '')].filter(Boolean).join(' ')}</span>
+				<span data-text="annotation">{zeroGNetwork.environment}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

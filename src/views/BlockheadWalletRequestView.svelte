@@ -2,15 +2,11 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
 	import { EvmAddress, ZeroExHex } from '$/schema/ZeroExHex.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -22,44 +18,25 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.BlockheadWalletRequest>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.BlockheadWalletRequest>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.BlockheadWalletRequest> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const blockheadWalletRequest = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {
-			requestKind: true,
-			requestMethod: true,
-			requestedAt: true,
-		},
-	} : {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const viewSelection = $derived(selection({
+		sources: selection.sources ?? [
+			Source.Local_Internal,
+		],
+	}))
+	const blockheadWalletRequest = $derived(viewSelection({
 		fields: {
 			requestKind: true,
 			requestMethod: true,
 			requestedAt: true,
 		},
 	}))
-	const titleFallback = $derived([String((pendingEntity.requestKind) ?? '')].filter(Boolean).join(' ') || 'blockhead wallet request')
-	const viewDomId = $derived('blockhead-wallet-request-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const titleFallback = $derived((pendingEntity.requestKind ?? '') || 'blockhead wallet request')
 
 
 	// Components
@@ -77,61 +54,36 @@
 
 <EntityView
 	entityType={EntityType.BlockheadWalletRequest}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'requestKind') && Object.hasOwn(prefetched, 'requestMethod') && Object.hasOwn(prefetched, 'requestedAt')}
-			{[String((pendingEntity.requestKind) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-		{:else}
-			<ResourceBoundary resource={blockheadWalletRequest}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.requestKind) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={blockheadWalletRequest}>
+			{#snippet children(entity)}
+				{entity.requestKind || title || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Value()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'requestKind') && Object.hasOwn(prefetched, 'requestMethod') && Object.hasOwn(prefetched, 'requestedAt')}
-			{[String((pendingEntity.requestMethod) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.requestKind) ?? '')].filter(Boolean).join(' ') || titleFallback}
-		{:else}
-			<ResourceBoundary resource={blockheadWalletRequest}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.requestMethod) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.requestKind) ?? '')].filter(Boolean).join(' ') || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={blockheadWalletRequest}>
+			{#snippet children(entity)}
+				{entity.requestMethod || entity.requestKind || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'requestKind') && Object.hasOwn(prefetched, 'requestMethod') && Object.hasOwn(prefetched, 'requestedAt')}
-			{@const requestedAt0 = pendingEntity.requestedAt}
-			{#if requestedAt0 !== undefined && requestedAt0 !== null}
+		<ResourceBoundary resource={blockheadWalletRequest}>
+			{#snippet children(entity)}
 				<span data-text="muted">
-					<Timestamp timestamp={Number(requestedAt0)} />
+					<Timestamp timestamp={Number(entity.requestedAt)} />
 				</span>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={blockheadWalletRequest}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const requestedAt0 = resolvedEntity.requestedAt}
-					{#if requestedAt0 !== undefined && requestedAt0 !== null}
-						<span data-text="muted">
-							<Timestamp timestamp={Number(requestedAt0)} />
-						</span>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -139,24 +91,7 @@
 			<div>
 				<dt>ID</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									id: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const id = resolvedEntity.id}
-							{#if id !== undefined && id !== null}
-								{String((id) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{pendingEntity.id}
 				</dd>
 			</div>
 
@@ -164,7 +99,7 @@
 				resource={selection.$sessionAction}
 			>
 				{#snippet children(blockheadSessionAction)}
-					{#if blockheadSessionAction != null && blockheadSessionAction[EntityMetaKey.Selector] != null}
+					{#if blockheadSessionAction != null}
 						<div>
 							<dt>session action</dt>
 							<dd>
@@ -184,7 +119,7 @@
 				resource={selection.$intentOrder}
 			>
 				{#snippet children(blockheadIntentOrder)}
-					{#if blockheadIntentOrder != null && blockheadIntentOrder[EntityMetaKey.Selector] != null}
+					{#if blockheadIntentOrder != null}
 						<div>
 							<dt>intent order</dt>
 							<dd>
@@ -204,24 +139,13 @@
 				resource={selection.$walletConnection}
 			>
 				{#snippet children(blockheadWalletConnection)}
-					{#if blockheadWalletConnection != null && blockheadWalletConnection[EntityMetaKey.Selector] != null}
+					{#if blockheadWalletConnection != null}
 						<div>
 							<dt>wallet connection</dt>
 							<dd>
 								<BlockheadWalletConnectionView
 									selection={select(EntityType.BlockheadWalletConnection, blockheadWalletConnection[EntityMetaKey.Selector])}
 									prefetched={blockheadWalletConnection}
-									href={
-										(
-											blockheadWalletConnection[EntityMetaKey.Selector] != null && 'connectionKey' in blockheadWalletConnection[EntityMetaKey.Selector]
-											&& blockheadWalletConnection[EntityMetaKey.Selector].connectionKey != null ?
-												resolve('/~/accounts/connections/[connectionKey=stringSegment]', {
-											connectionKey: String(blockheadWalletConnection[EntityMetaKey.Selector].connectionKey ?? ''),
-										})
-										:
-												undefined
-										)
-									}
 									layout={EntityLayout.Value}
 									open={false}
 								/>
@@ -233,8 +157,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							walletProtocol: true,
 						},
@@ -242,13 +165,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const walletProtocol = resolvedEntity.walletProtocol}
-					{#if walletProtocol !== undefined && walletProtocol !== null}
+					{@const walletProtocol = entity.walletProtocol}
+					{#if walletProtocol != null}
 						<div>
 							<dt>wallet protocol</dt>
 							<dd>
-								{String((walletProtocol) ?? '')}
+								{walletProtocol}
 							</dd>
 						</div>
 					{/if}
@@ -257,8 +179,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							caip10: true,
 						},
@@ -266,13 +187,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const caip10 = resolvedEntity.caip10}
-					{#if caip10 !== undefined && caip10 !== null}
+					{@const caip10 = entity.caip10}
+					{#if caip10 != null}
 						<div>
 							<dt>CAIP-10</dt>
 							<dd>
-								<TruncatedValue value={caip10 == null ? '' : String(`${(caip10).namespace}:${(caip10).reference}:${(caip10).accountAddress}`)} />
+								<TruncatedValue value={`${caip10.namespace}:${caip10.reference}:${caip10.accountAddress}`} />
 							</dd>
 						</div>
 					{/if}
@@ -285,21 +205,10 @@
 				<dt>request kind</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									requestKind: true,
-								},
-							})
-						}
+						resource={blockheadWalletRequest}
 					>
 						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const requestKind = resolvedEntity.requestKind}
-							{#if requestKind !== undefined && requestKind !== null}
-								{String((requestKind) ?? '')}
-							{/if}
+							{entity.requestKind}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -309,21 +218,10 @@
 				<dt>request method</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									requestMethod: true,
-								},
-							})
-						}
+						resource={blockheadWalletRequest}
 					>
 						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const requestMethod = resolvedEntity.requestMethod}
-							{#if requestMethod !== undefined && requestMethod !== null}
-								{String((requestMethod) ?? '')}
-							{/if}
+							{entity.requestMethod}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -331,8 +229,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							chainId: true,
 						},
@@ -340,9 +237,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const chainId = resolvedEntity.chainId}
-					{#if chainId !== undefined && chainId !== null}
+					{@const chainId = entity.chainId}
+					{#if chainId != null}
 						<div>
 							<dt>Chain ID</dt>
 							<dd>
@@ -357,8 +253,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							fromAddress: true,
 						},
@@ -366,13 +261,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const fromAddress = resolvedEntity.fromAddress}
-					{#if fromAddress !== undefined && fromAddress !== null}
+					{@const fromAddress = entity.fromAddress}
+					{#if fromAddress != null}
 						<div>
 							<dt>from address</dt>
 							<dd>
-								<TruncatedValue value={String((fromAddress) ?? '')} />
+								<TruncatedValue value={String(fromAddress)} />
 							</dd>
 						</div>
 					{/if}
@@ -381,8 +275,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							toAddress: true,
 						},
@@ -390,13 +283,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const toAddress = resolvedEntity.toAddress}
-					{#if toAddress !== undefined && toAddress !== null}
+					{@const toAddress = entity.toAddress}
+					{#if toAddress != null}
 						<div>
 							<dt>to address</dt>
 							<dd>
-								<TruncatedValue value={String((toAddress) ?? '')} />
+								<TruncatedValue value={String(toAddress)} />
 							</dd>
 						</div>
 					{/if}
@@ -405,8 +297,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							value: true,
 						},
@@ -414,9 +305,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const value = resolvedEntity.value}
-					{#if value !== undefined && value !== null}
+					{@const value = entity.value}
+					{#if value != null}
 						<div>
 							<dt>Value</dt>
 							<dd>
@@ -433,8 +323,7 @@
 		<dl data-column-item="center">
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							callCount: true,
 						},
@@ -442,9 +331,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const callCount = resolvedEntity.callCount}
-					{#if callCount !== undefined && callCount !== null}
+					{@const callCount = entity.callCount}
+					{#if callCount != null}
 						<div>
 							<dt>call count</dt>
 							<dd>
@@ -459,8 +347,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							atomicRequired: true,
 						},
@@ -468,9 +355,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const atomicRequired = resolvedEntity.atomicRequired}
-					{#if atomicRequired !== undefined && atomicRequired !== null}
+					{@const atomicRequired = entity.atomicRequired}
+					{#if atomicRequired != null}
 						<div>
 							<dt>atomic required</dt>
 							<dd>
@@ -483,8 +369,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							requestPayloadHash: true,
 						},
@@ -492,13 +377,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const requestPayloadHash = resolvedEntity.requestPayloadHash}
-					{#if requestPayloadHash !== undefined && requestPayloadHash !== null}
+					{@const requestPayloadHash = entity.requestPayloadHash}
+					{#if requestPayloadHash != null}
 						<div>
 							<dt>request payload hash</dt>
 							<dd>
-								<TruncatedValue value={String((requestPayloadHash) ?? '')} />
+								<TruncatedValue value={String(requestPayloadHash)} />
 							</dd>
 						</div>
 					{/if}
@@ -507,8 +391,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							walletCallBundleId: true,
 						},
@@ -516,13 +399,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const walletCallBundleId = resolvedEntity.walletCallBundleId}
-					{#if walletCallBundleId !== undefined && walletCallBundleId !== null}
+					{@const walletCallBundleId = entity.walletCallBundleId}
+					{#if walletCallBundleId != null}
 						<div>
 							<dt>wallet call bundle ID</dt>
 							<dd>
-								{String((walletCallBundleId) ?? '')}
+								{walletCallBundleId}
 							</dd>
 						</div>
 					{/if}
@@ -533,21 +415,10 @@
 				<dt>requested AT</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									requestedAt: true,
-								},
-							})
-						}
+						resource={blockheadWalletRequest}
 					>
 						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const requestedAt = resolvedEntity.requestedAt}
-							{#if requestedAt !== undefined && requestedAt !== null}
-								<Timestamp timestamp={Number(requestedAt)} />
-							{/if}
+							<Timestamp timestamp={Number(entity.requestedAt)} />
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -555,8 +426,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							submittedAt: true,
 						},
@@ -564,9 +434,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const submittedAt = resolvedEntity.submittedAt}
-					{#if submittedAt !== undefined && submittedAt !== null}
+					{@const submittedAt = entity.submittedAt}
+					{#if submittedAt != null}
 						<div>
 							<dt>submitted AT</dt>
 							<dd>
@@ -586,12 +455,12 @@
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
-				<BlockheadWalletRequestCallsView
-					selection={blockheadWalletRequestBlockheadWalletRequestCallsViewCallsResource}
-					countResource={blockheadWalletRequestBlockheadWalletRequestCallsViewCallsResource.count}
-					title='calls'
-					id='BlockheadWalletRequestCallsView-calls'
-				/>
+					<BlockheadWalletRequestCallsView
+						selection={blockheadWalletRequestBlockheadWalletRequestCallsViewCallsResource}
+						countResource={blockheadWalletRequestBlockheadWalletRequestCallsViewCallsResource.count}
+						title='calls'
+						id='calls'
+					/>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>
@@ -601,12 +470,12 @@
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
-				<BlockheadWalletRequest_TimestampsView
-					selection={blockheadWalletRequestBlockheadWalletRequestTimestampsViewTimestampsResource}
-					countResource={blockheadWalletRequestBlockheadWalletRequestTimestampsViewTimestampsResource.count}
-					title='timestamps'
-					id='BlockheadWalletRequest_TimestampsView-timestamps'
-				/>
+					<BlockheadWalletRequest_TimestampsView
+						selection={blockheadWalletRequestBlockheadWalletRequestTimestampsViewTimestampsResource}
+						countResource={blockheadWalletRequestBlockheadWalletRequestTimestampsViewTimestampsResource.count}
+						title='timestamps'
+						id='timestamps'
+					/>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>

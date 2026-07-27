@@ -2,15 +2,12 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
 	import { UrlString } from '$/schema/UrlString.ts'
 	import { ZeroExHex } from '$/schema/ZeroExHex.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -22,44 +19,33 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.AiArtifact>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.AiArtifact>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.AiArtifact> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const aiArtifact = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const viewSelection = $derived(selection({
+		sources: selection.sources ?? [
+			Source.HuggingFaceHub_Rest,
+			Source.Ipfs_Rest,
+			Source.Mlflow_Rest,
+		],
+	}))
+	const aiArtifact = $derived(viewSelection({
 		fields: {
+			providerArtifactId: true,
 			artifactType: true,
 			mediaType: true,
-			size: true,
-		},
-	} : {
-		sources: selection.sources,
-		fields: {
-			artifactType: true,
-			mediaType: true,
+			ociDigest: true,
+			ipfsCid: true,
+			arweaveId: true,
+			gitObject: true,
+			digest: true,
 			size: true,
 		},
 	}))
-	const titleFallback = $derived([String((pendingEntity.artifactType) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.providerArtifactId) ?? ''), String((pendingEntity.ociDigest) ?? ''), String((pendingEntity.ipfsCid) ?? ''), String((pendingEntity.arweaveId) ?? ''), String((pendingEntity.gitObject) ?? ''), String((pendingEntity.digest) ?? '')].filter(Boolean).join(' ') || 'AI artifact')
-	const viewDomId = $derived('ai-artifact-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const titleFallback = $derived((pendingEntity.artifactType ?? '') || [(pendingEntity.providerArtifactId ?? ''), (pendingEntity.ociDigest ?? ''), (pendingEntity.ipfsCid ?? ''), (pendingEntity.arweaveId ?? ''), (pendingEntity.gitObject ?? ''), String(pendingEntity.digest ?? '')].filter(Boolean).join(' ') || 'AI artifact')
 
 
 	// Components
@@ -74,65 +60,41 @@
 
 <EntityView
 	entityType={EntityType.AiArtifact}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'artifactType') && Object.hasOwn(prefetched, 'mediaType') && Object.hasOwn(prefetched, 'providerArtifactId') && Object.hasOwn(prefetched, 'ociDigest') && Object.hasOwn(prefetched, 'ipfsCid') && Object.hasOwn(prefetched, 'arweaveId') && Object.hasOwn(prefetched, 'gitObject') && Object.hasOwn(prefetched, 'digest') && Object.hasOwn(prefetched, 'size')}
-			{[String((pendingEntity.artifactType) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-		{:else}
-			<ResourceBoundary resource={aiArtifact}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.artifactType) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={aiArtifact}>
+			{#snippet children(entity)}
+				{(entity.artifactType ?? '') || title || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Value()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'artifactType') && Object.hasOwn(prefetched, 'mediaType') && Object.hasOwn(prefetched, 'providerArtifactId') && Object.hasOwn(prefetched, 'ociDigest') && Object.hasOwn(prefetched, 'ipfsCid') && Object.hasOwn(prefetched, 'arweaveId') && Object.hasOwn(prefetched, 'gitObject') && Object.hasOwn(prefetched, 'digest') && Object.hasOwn(prefetched, 'size')}
-			{[String((pendingEntity.mediaType) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.artifactType) ?? '')].filter(Boolean).join(' ') || titleFallback}
-		{:else}
-			<ResourceBoundary resource={aiArtifact}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.mediaType) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.artifactType) ?? '')].filter(Boolean).join(' ') || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={aiArtifact}>
+			{#snippet children(entity)}
+				{(entity.mediaType ?? '') || (entity.artifactType ?? '') || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'artifactType') && Object.hasOwn(prefetched, 'mediaType') && Object.hasOwn(prefetched, 'providerArtifactId') && Object.hasOwn(prefetched, 'ociDigest') && Object.hasOwn(prefetched, 'ipfsCid') && Object.hasOwn(prefetched, 'arweaveId') && Object.hasOwn(prefetched, 'gitObject') && Object.hasOwn(prefetched, 'digest') && Object.hasOwn(prefetched, 'size')}
-			{@const size0 = pendingEntity.size}
-			{#if size0 !== undefined && size0 !== null}
-				<span data-text="muted">
-					<NumberValue
-						value={size0}
-					/>
-				</span>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={aiArtifact}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const size0 = resolvedEntity.size}
-					{#if size0 !== undefined && size0 !== null}
-						<span data-text="muted">
-							<NumberValue
-								value={size0}
-							/>
-						</span>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={aiArtifact}>
+			{#snippet children(entity)}
+				{@const size0 = entity.size}
+				{#if size0 != null}
+					<span data-text="muted">
+						<NumberValue
+							value={size0}
+						/>
+					</span>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -141,7 +103,7 @@
 				resource={selection.$provider}
 			>
 				{#snippet children(aiModelProvider)}
-					{#if aiModelProvider != null && aiModelProvider[EntityMetaKey.Selector] != null}
+					{#if aiModelProvider != null}
 						<div>
 							<dt>provider</dt>
 							<dd>
@@ -158,23 +120,15 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							providerArtifactId: true,
-						},
-					})
-				}
+				resource={aiArtifact}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const providerArtifactId = resolvedEntity.providerArtifactId}
-					{#if providerArtifactId !== undefined && providerArtifactId !== null}
+					{@const providerArtifactId = entity.providerArtifactId}
+					{#if providerArtifactId != null}
 						<div>
 							<dt>provider artifact ID</dt>
 							<dd>
-								{String((providerArtifactId) ?? '')}
+								{providerArtifactId}
 							</dd>
 						</div>
 					{/if}
@@ -183,8 +137,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							digestAlgorithm: true,
 						},
@@ -192,13 +145,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const digestAlgorithm = resolvedEntity.digestAlgorithm}
-					{#if digestAlgorithm !== undefined && digestAlgorithm !== null}
+					{@const digestAlgorithm = entity.digestAlgorithm}
+					{#if digestAlgorithm != null}
 						<div>
 							<dt>digest algorithm</dt>
 							<dd>
-								<TruncatedValue value={String((digestAlgorithm) ?? '')} />
+								<TruncatedValue value={digestAlgorithm} />
 							</dd>
 						</div>
 					{/if}
@@ -206,23 +158,15 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							digest: true,
-						},
-					})
-				}
+				resource={aiArtifact}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const digest = resolvedEntity.digest}
-					{#if digest !== undefined && digest !== null}
+					{@const digest = entity.digest}
+					{#if digest != null}
 						<div>
 							<dt>digest</dt>
 							<dd>
-								<TruncatedValue value={String((digest) ?? '')} />
+								<TruncatedValue value={String(digest)} />
 							</dd>
 						</div>
 					{/if}
@@ -230,23 +174,15 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							ociDigest: true,
-						},
-					})
-				}
+				resource={aiArtifact}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const ociDigest = resolvedEntity.ociDigest}
-					{#if ociDigest !== undefined && ociDigest !== null}
+					{@const ociDigest = entity.ociDigest}
+					{#if ociDigest != null}
 						<div>
 							<dt>OCI digest</dt>
 							<dd>
-								<TruncatedValue value={String((ociDigest) ?? '')} />
+								<TruncatedValue value={ociDigest} />
 							</dd>
 						</div>
 					{/if}
@@ -254,23 +190,15 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							ipfsCid: true,
-						},
-					})
-				}
+				resource={aiArtifact}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const ipfsCid = resolvedEntity.ipfsCid}
-					{#if ipfsCid !== undefined && ipfsCid !== null}
+					{@const ipfsCid = entity.ipfsCid}
+					{#if ipfsCid != null}
 						<div>
 							<dt>IPFS CID</dt>
 							<dd>
-								{String((ipfsCid) ?? '')}
+								{ipfsCid}
 							</dd>
 						</div>
 					{/if}
@@ -278,23 +206,15 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							arweaveId: true,
-						},
-					})
-				}
+				resource={aiArtifact}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const arweaveId = resolvedEntity.arweaveId}
-					{#if arweaveId !== undefined && arweaveId !== null}
+					{@const arweaveId = entity.arweaveId}
+					{#if arweaveId != null}
 						<div>
 							<dt>Arweave ID</dt>
 							<dd>
-								{String((arweaveId) ?? '')}
+								{arweaveId}
 							</dd>
 						</div>
 					{/if}
@@ -302,23 +222,15 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							gitObject: true,
-						},
-					})
-				}
+				resource={aiArtifact}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const gitObject = resolvedEntity.gitObject}
-					{#if gitObject !== undefined && gitObject !== null}
+					{@const gitObject = entity.gitObject}
+					{#if gitObject != null}
 						<div>
 							<dt>Git object</dt>
 							<dd>
-								{String((gitObject) ?? '')}
+								{gitObject}
 							</dd>
 						</div>
 					{/if}
@@ -329,8 +241,7 @@
 		<dl data-column-item="center">
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							uri: true,
 						},
@@ -338,20 +249,18 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const uri = resolvedEntity.uri}
-					{#if uri !== undefined && uri !== null}
+					{@const uri = entity.uri}
+					{#if uri != null}
 						<div>
 							<dt>URI</dt>
 							<dd>
-								<svelte:element
-									this={'a'}
+								<a
 									href={String(uri)}
 									target="_blank"
 									rel="noreferrer noopener"
 								>
 									<TruncatedValue value={String(uri)} />
-								</svelte:element>
+								</a>
 							</dd>
 						</div>
 					{/if}
@@ -359,23 +268,15 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							mediaType: true,
-						},
-					})
-				}
+				resource={aiArtifact}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const mediaType = resolvedEntity.mediaType}
-					{#if mediaType !== undefined && mediaType !== null}
+					{@const mediaType = entity.mediaType}
+					{#if mediaType != null}
 						<div>
 							<dt>media type</dt>
 							<dd>
-								{String((mediaType) ?? '')}
+								{mediaType}
 							</dd>
 						</div>
 					{/if}
@@ -383,23 +284,15 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							artifactType: true,
-						},
-					})
-				}
+				resource={aiArtifact}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const artifactType = resolvedEntity.artifactType}
-					{#if artifactType !== undefined && artifactType !== null}
+					{@const artifactType = entity.artifactType}
+					{#if artifactType != null}
 						<div>
 							<dt>artifact type</dt>
 							<dd>
-								{String((artifactType) ?? '')}
+								{artifactType}
 							</dd>
 						</div>
 					{/if}
@@ -407,19 +300,11 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							size: true,
-						},
-					})
-				}
+				resource={aiArtifact}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const size = resolvedEntity.size}
-					{#if size !== undefined && size !== null}
+					{@const size = entity.size}
+					{#if size != null}
 						<div>
 							<dt>size</dt>
 							<dd>
@@ -441,12 +326,12 @@
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
-				<AiDocumentsView
-					selection={aiArtifactAiDocumentsViewDocumentsResource}
-					countResource={aiArtifactAiDocumentsViewDocumentsResource.count}
-					title='documents'
-					id='AiDocumentsView-documents'
-				/>
+					<AiDocumentsView
+						selection={aiArtifactAiDocumentsViewDocumentsResource}
+						countResource={aiArtifactAiDocumentsViewDocumentsResource.count}
+						title='documents'
+						id='documents'
+					/>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>
@@ -456,12 +341,12 @@
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
-				<AiArtifactAttestationsView
-					selection={aiArtifactAiArtifactAttestationsViewAttestationsResource}
-					countResource={aiArtifactAiArtifactAttestationsViewAttestationsResource.count}
-					title='attestations'
-					id='AiArtifactAttestationsView-attestations'
-				/>
+					<AiArtifactAttestationsView
+						selection={aiArtifactAiArtifactAttestationsViewAttestationsResource}
+						countResource={aiArtifactAiArtifactAttestationsViewAttestationsResource.count}
+						title='attestations'
+						id='attestations'
+					/>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>

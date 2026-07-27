@@ -1,21 +1,7 @@
 import { defineResolver } from '$/resolvers/defineResolver.ts'
 import { EntityMetaKey } from '$/schema/$schema.ts'
-import { AiArtifactSelector } from '$/schema/AiArtifact.ts'
-import { AiDocumentSelector } from '$/schema/AiDocument.ts'
-import { AiModelSelector } from '$/schema/AiModel.ts'
-import { AiModelVersionSelector } from '$/schema/AiModelVersion.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import { sourceProviderDefinitions } from '$/sources/$sourceProviders.ts'
-import { resolveEnvLocator } from '$/sources/$sources.ts'
 import { Source } from '$/sources/Source.ts'
-import { SourceEndpointKind } from '$/sources/SourceBinding.ts'
-
-const mlflowBindingDefinition = sourceProviderDefinitions
-	.flatMap((provider) => provider.bindings)
-	.find((binding) => binding.source === Source.Mlflow_Rest)
-
-if (mlflowBindingDefinition == null)
-	throw new Error('Mlflow_Rest: source binding is missing')
 
 const providerSelector = {
 	providerId: 'mlflow',
@@ -29,19 +15,6 @@ const assertProvider = ($provider: { domain?: string, providerId?: string }) => 
 const providerReference = {
 	[EntityMetaKey.Selector]: providerSelector,
 } as const
-
-const bindingWithEndpoint = (publicEnv: Record<string, string>) => ({
-	...mlflowBindingDefinition,
-	endpoints: mlflowBindingDefinition.endpoints.map((endpoint) => (
-		endpoint.endpointKind === SourceEndpointKind.HttpUrl ?
-			{
-				...endpoint,
-				locator: resolveEnvLocator(endpoint.locator, publicEnv),
-			}
-		:
-			endpoint
-	)),
-})
 
 const artifactReference = (
 	runId: string,
@@ -68,13 +41,13 @@ export const mlflowResolvers = [
 		defineResolver(Source.Mlflow_Rest, {
 			entityType: EntityType.AiModel,
 			resolve: {
-				[AiModelSelector.ProviderModelId]: {
+				ProviderModelId: {
 					resolve: async ({ $provider, providerModelId }, context) => {
 						assertProvider($provider)
 						const { getRegisteredModel } = await import('$/sources/Mlflow/Rest/queries.ts')
 						return (await getRegisteredModel({
-							binding: bindingWithEndpoint(context.publicEnv),
 							name: providerModelId,
+							publicEnv: context.publicEnv,
 						})).registered_model
 					},
 				},
@@ -98,13 +71,13 @@ export const mlflowResolvers = [
 		defineResolver(Source.Mlflow_Rest, {
 			entityType: EntityType.AiModelVersion,
 			resolve: {
-				[AiModelVersionSelector.ModelVersionId]: {
+				ModelVersionId: {
 					resolve: async ({ $model, versionId }, context) => {
 						assertProvider($model.$provider)
 						const { getModelVersion } = await import('$/sources/Mlflow/Rest/queries.ts')
 						return (await getModelVersion({
-							binding: bindingWithEndpoint(context.publicEnv),
 							name: $model.providerModelId,
+							publicEnv: context.publicEnv,
 							version: versionId,
 						})).model_version
 					},
@@ -133,7 +106,7 @@ export const mlflowResolvers = [
 		defineResolver(Source.Mlflow_Rest, {
 			entityType: EntityType.AiArtifact,
 			resolve: {
-				[AiArtifactSelector.ProviderArtifactId]: {
+				ProviderArtifactId: {
 					resolve: async ({ $provider, providerArtifactId }, context) => {
 						assertProvider($provider)
 						const artifact = parseArtifactId(providerArtifactId)
@@ -141,9 +114,9 @@ export const mlflowResolvers = [
 						return {
 							...artifact,
 							listing: await listArtifacts({
-								binding: bindingWithEndpoint(context.publicEnv),
-								runId: artifact.runId,
 								path: artifact.path,
+								publicEnv: context.publicEnv,
+								runId: artifact.runId,
 							}),
 						}
 					},
@@ -169,15 +142,15 @@ export const mlflowResolvers = [
 		defineResolver(Source.Mlflow_Rest, {
 			entityType: EntityType.AiDocument,
 			resolve: {
-				[AiDocumentSelector.KindArtifact]: {
+				KindArtifact: {
 					resolve: async ({ documentKind, $artifact }, context) => {
 						assertProvider($artifact.$provider)
 						const artifact = parseArtifactId($artifact.providerArtifactId)
 						const { listArtifacts } = await import('$/sources/Mlflow/Rest/queries.ts')
 						await listArtifacts({
-							binding: bindingWithEndpoint(context.publicEnv),
-							runId: artifact.runId,
 							path: artifact.path,
+							publicEnv: context.publicEnv,
+							runId: artifact.runId,
 						})
 						return {
 							documentKind,

@@ -1,18 +1,13 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { entity, facet } from '$/schema/$schema.ts'
+import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { UrlString } from '$/schema/UrlString.ts'
 import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 import { type } from 'arktype'
 
-export enum AiDocumentSelector {
-	KindContentHash = 'KindContentHash',
-	KindArtifact = 'KindArtifact',
-	DocumentUrl = 'DocumentUrl',
-}
-export const AiDocument = entity({
+export default entity({
 	entityType: EntityType.AiDocument,
 	labels: {
 		singular: 'AI document',
@@ -34,7 +29,7 @@ export const AiDocument = entity({
 	contentHash: {
 		label: 'content hash',
 		type: EntityFieldType.Primitive,
-		primitiveType: (ZeroExHex),
+		primitiveType: ZeroExHex,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$artifact: {
@@ -46,7 +41,7 @@ export const AiDocument = entity({
 	documentUrl: {
 		label: 'document URL',
 		type: EntityFieldType.Primitive,
-		primitiveType: (UrlString),
+		primitiveType: UrlString,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	mediaType: {
@@ -64,7 +59,7 @@ export const AiDocument = entity({
 	conformsTo: {
 		label: 'conforms to',
 		type: EntityFieldType.Primitive,
-		primitiveType: (UrlString),
+		primitiveType: UrlString,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	sourceFormat: {

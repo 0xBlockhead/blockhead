@@ -12,11 +12,6 @@ import {
 import { MediaType } from '$/schema/Media.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
-import { AtprotoActorSelector } from '$/schema/AtprotoActor.ts'
-import { AtprotoPostSelector } from '$/schema/AtprotoPost.ts'
-import { AtprotoActor_TimestampSelector } from '$/schema/AtprotoActor_Timestamp.ts'
-import { AtprotoPost_TimestampSelector } from '$/schema/AtprotoPost_Timestamp.ts'
-import { _GlobalAtprotoNetworkSelector } from '$/schema/_GlobalAtprotoNetwork.ts'
 import type { BskyAppViewPostView } from '$/sources/AtprotoBsky/Rest/types.ts'
 
 const atprotoPostFieldsFromPostView = (postView: BskyAppViewPostView) => {
@@ -84,7 +79,7 @@ export default {
 		defineResolver(Source.Atproto_BskySocial_Xrpc, {
 			entityType: EntityType.AtprotoActor,
 			resolve: {
-				[AtprotoActorSelector.Did]: {
+				Did: {
 					resolve: async ({ did }) => ({
 						did,
 					}),
@@ -97,7 +92,7 @@ export default {
 		defineResolver(Source.Atproto_BskySocial_Xrpc, {
 			entityType: EntityType.AtprotoActor,
 			resolve: {
-				[AtprotoActorSelector.Handle]: {
+				Handle: {
 					resolve: async ({ handle }) => {
 						const { resolveHandle } = await import('$/sources/AtprotoBskySocial/Rest/queries.ts')
 						return {
@@ -115,7 +110,7 @@ export default {
 		defineResolver(Source.Atproto_BskySocial_Xrpc, {
 			entityType: EntityType.AtprotoPost,
 			resolve: {
-				[AtprotoPostSelector.Uri]: {
+				Uri: {
 					resolve: async ({ uri }) => {
 						const { getPosts } = await import('$/sources/AtprotoBskySocial/Rest/queries.ts')
 						const postView = (await getPosts([uri])).posts.at(0)
@@ -139,7 +134,7 @@ export default {
 		defineResolver(Source.Atproto_BskySocial_Xrpc, {
 			entityType: EntityType.AtprotoActor_Timestamp,
 			resolve: {
-				[AtprotoActor_TimestampSelector.AtprotoActorTimestampMsSource]: {
+				AtprotoActorTimestampMsSource: {
 					resolve: async ({ source }): Promise<{
 						source: string
 						handle: string
@@ -175,7 +170,7 @@ export default {
 		defineResolver(Source.Atproto_BskySocial_Xrpc, {
 			entityType: EntityType.AtprotoPost_Timestamp,
 			resolve: {
-				[AtprotoPost_TimestampSelector.AtprotoPostTimestampMs]: {
+				AtprotoPostTimestampMs: {
 					resolve: async ({ $post }) => {
 						const { getPosts } = await import('$/sources/AtprotoBskySocial/Rest/queries.ts')
 						const postView = (await getPosts([$post.uri])).posts.at(0)
@@ -199,7 +194,7 @@ export default {
 		defineResolver(Source.Atproto_BskySocial_Xrpc, {
 			entityType: EntityType._GlobalAtprotoNetwork,
 			resolve: {
-				[_GlobalAtprotoNetworkSelector.Scope]: {
+				Scope: {
 					resolve: async (_entitySelector, context) => {
 						const { searchActorsTypeahead } = await import('$/sources/AtprotoBskySocial/Rest/queries.ts')
 						const limit = resolverContextRowLimit(context)
@@ -227,7 +222,7 @@ export default {
 		defineResolver(Source.Atproto_BskySocial_Xrpc, {
 			entityType: EntityType._GlobalAtprotoNetwork,
 			resolve: {
-				[_GlobalAtprotoNetworkSelector.Scope]: {
+				Scope: {
 					resolve: async (_entitySelector, context) => {
 						const { searchPosts } = await import('$/sources/AtprotoBskySocial/Rest/queries.ts')
 						const limit = resolverContextRowLimit(context)
@@ -254,7 +249,7 @@ export default {
 		defineResolver(Source.Atproto_BskySocial_Xrpc, {
 			entityType: EntityType.AtprotoActor,
 			resolve: {
-				[AtprotoActorSelector.Did]: {
+				Did: {
 					resolve: async ({ did }) => {
 						const { getProfile } = await import('$/sources/AtprotoBskySocial/Rest/queries.ts')
 						const profile = await getProfile(did)
@@ -296,7 +291,7 @@ export default {
 		defineResolver(Source.Atproto_BskySocial_Xrpc, {
 			entityType: EntityType.AtprotoActor,
 			resolve: {
-				[AtprotoActorSelector.Did]: {
+				Did: {
 					resolve: async ({ did }, context) => {
 						const { getAuthorFeed } = await import('$/sources/AtprotoBskySocial/Rest/queries.ts')
 						const limit = resolverContextRowLimit(context)
@@ -322,7 +317,7 @@ export default {
 		defineResolver(Source.Atproto_BskySocial_Xrpc, {
 			entityType: EntityType.AtprotoPost,
 			resolve: {
-				[AtprotoPostSelector.Uri]: {
+				Uri: {
 					resolve: async ({ uri }) => {
 						const { getPosts } = await import('$/sources/AtprotoBskySocial/Rest/queries.ts')
 						const postView = (await getPosts([uri])).posts.at(0)
@@ -345,7 +340,7 @@ export default {
 		defineResolver(Source.Atproto_BskySocial_Xrpc, {
 			entityType: EntityType.AtprotoPost,
 			resolve: {
-				[AtprotoPostSelector.Uri]: {
+				Uri: {
 					resolve: async ({ uri }, context) => {
 						const { getPostThread } = await import('$/sources/AtprotoBskySocial/Rest/queries.ts')
 						const limit = resolverContextRowLimit(context)

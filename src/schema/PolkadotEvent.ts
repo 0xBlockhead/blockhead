@@ -1,14 +1,11 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { entity, facet } from '$/schema/$schema.ts'
+import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { type } from 'arktype'
 
-export enum PolkadotEventSelector {
-	BlockIndexInBlock = 'BlockIndexInBlock',
-}
-export const PolkadotEvent = entity({
+export default entity({
 	entityType: EntityType.PolkadotEvent,
 	labels: {
 		singular: 'Polkadot event',
@@ -24,7 +21,7 @@ export const PolkadotEvent = entity({
 	indexInBlock: {
 		label: 'Index in block',
 		type: EntityFieldType.Primitive,
-		primitiveType: (type('number.integer >= 0')),
+		primitiveType: type('number.integer >= 0'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	$extrinsic: {

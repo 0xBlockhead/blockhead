@@ -2,13 +2,9 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
 
 
 	// Context
@@ -20,40 +16,18 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.AptosEvent>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.AptosEvent>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.AptosEvent> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const aptosEvent = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {
-			eventType: true,
-		},
-	} : {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const aptosEvent = $derived(selection({
 		fields: {
 			eventType: true,
 		},
 	}))
-	const titleFallback = $derived([String((pendingEntity.eventType) ?? '')].filter(Boolean).join(' ') || 'aptos event')
-	const viewDomId = $derived('aptos-event-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const titleFallback = $derived((pendingEntity.eventType ?? '') || 'aptos event')
 
 
 	// Components
@@ -67,38 +41,22 @@
 
 <EntityView
 	entityType={EntityType.AptosEvent}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'eventType')}
-			{[String((pendingEntity.eventType) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-		{:else}
-			<ResourceBoundary resource={aptosEvent}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.eventType) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={aptosEvent}>
+			{#snippet children(entity)}
+				{entity.eventType || title || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Value()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'eventType')}
-			{[String((pendingEntity.transactionVersion) ?? ''), String((pendingEntity.eventIndex) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.eventType) ?? '')].filter(Boolean).join(' ') || titleFallback}
-		{:else}
-			<ResourceBoundary resource={aptosEvent}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.transactionVersion) ?? ''), String((resolvedEntity.eventIndex) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.eventType) ?? '')].filter(Boolean).join(' ') || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		{[String(pendingEntity.transactionVersion ?? ''), String(pendingEntity.eventIndex ?? '')].filter(Boolean).join(' ') || (pendingEntity.eventType ?? '') || titleFallback}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -121,14 +79,12 @@
 						resource={selection.$transaction}
 					>
 						{#snippet children(aptosTransaction)}
-							{#if aptosTransaction != null && aptosTransaction[EntityMetaKey.Selector] != null}
-								<AptosTransactionView
-									selection={select(EntityType.AptosTransaction, aptosTransaction[EntityMetaKey.Selector])}
-									prefetched={aptosTransaction}
-									layout={EntityLayout.Value}
-									open={false}
-								/>
-							{/if}
+							<AptosTransactionView
+								selection={select(EntityType.AptosTransaction, aptosTransaction[EntityMetaKey.Selector])}
+								prefetched={aptosTransaction}
+								layout={EntityLayout.Value}
+								open={false}
+							/>
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -138,21 +94,10 @@
 				<dt>event type</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									eventType: true,
-								},
-							})
-						}
+						resource={aptosEvent}
 					>
 						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const eventType = resolvedEntity.eventType}
-							{#if eventType !== undefined && eventType !== null}
-								{String((eventType) ?? '')}
-							{/if}
+							{entity.eventType}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -161,52 +106,18 @@
 			<div>
 				<dt>transaction version</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									transactionVersion: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const transactionVersion = resolvedEntity.transactionVersion}
-							{#if transactionVersion !== undefined && transactionVersion !== null}
-								<NumberValue
-									value={transactionVersion}
-								/>
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					<NumberValue
+						value={pendingEntity.transactionVersion}
+					/>
 				</dd>
 			</div>
 
 			<div>
 				<dt>event index</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									eventIndex: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const eventIndex = resolvedEntity.eventIndex}
-							{#if eventIndex !== undefined && eventIndex !== null}
-								<NumberValue
-									value={eventIndex}
-								/>
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					<NumberValue
+						value={pendingEntity.eventIndex}
+					/>
 				</dd>
 			</div>
 		</dl>
@@ -218,7 +129,6 @@
 					<ResourceBoundary
 						resource={
 							selection({
-								sources: selection.sources,
 								fields: {
 									accountAddress: true,
 								},
@@ -226,11 +136,7 @@
 						}
 					>
 						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const accountAddress = resolvedEntity.accountAddress}
-							{#if accountAddress !== undefined && accountAddress !== null}
-								<TruncatedValue value={String((accountAddress) ?? '')} />
-							{/if}
+							<TruncatedValue value={entity.accountAddress} />
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -242,7 +148,6 @@
 					<ResourceBoundary
 						resource={
 							selection({
-								sources: selection.sources,
 								fields: {
 									creationNumber: true,
 								},
@@ -250,13 +155,9 @@
 						}
 					>
 						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const creationNumber = resolvedEntity.creationNumber}
-							{#if creationNumber !== undefined && creationNumber !== null}
-								<NumberValue
-									value={creationNumber}
-								/>
-							{/if}
+							<NumberValue
+								value={entity.creationNumber}
+							/>
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -268,7 +169,6 @@
 					<ResourceBoundary
 						resource={
 							selection({
-								sources: selection.sources,
 								fields: {
 									sequenceNumber: true,
 								},
@@ -276,13 +176,9 @@
 						}
 					>
 						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const sequenceNumber = resolvedEntity.sequenceNumber}
-							{#if sequenceNumber !== undefined && sequenceNumber !== null}
-								<NumberValue
-									value={sequenceNumber}
-								/>
-							{/if}
+							<NumberValue
+								value={entity.sequenceNumber}
+							/>
 						{/snippet}
 					</ResourceBoundary>
 				</dd>

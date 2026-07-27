@@ -2,13 +2,8 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
 	import { UrlString } from '$/schema/UrlString.ts'
 
 
@@ -21,42 +16,22 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.A2aPushNotificationConfig>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.A2aPushNotificationConfig>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.A2aPushNotificationConfig> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const a2aPushNotificationConfig = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {
-			status: true,
-			url: true,
-		},
-	} : {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const viewSelection = $derived(selection({
+		sources: selection.sources ?? [],
+	}))
+	const a2aPushNotificationConfig = $derived(viewSelection({
 		fields: {
 			status: true,
 			url: true,
 		},
 	}))
-	const titleFallback = $derived([String((pendingEntity.configId) ?? '')].filter(Boolean).join(' ') || 'A2A push notification config')
-	const viewDomId = $derived('a2a-push-notification-config-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const titleFallback = $derived((pendingEntity.configId ?? '') || 'A2A push notification config')
 
 
 	// Components
@@ -69,75 +44,41 @@
 
 <EntityView
 	entityType={EntityType.A2aPushNotificationConfig}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'status') && Object.hasOwn(prefetched, 'url')}
-			{[String((pendingEntity.configId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-		{:else}
-			<ResourceBoundary resource={a2aPushNotificationConfig}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.configId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		{(pendingEntity.configId ?? '') || 'A2A push notification config'}
 	{/snippet}
 
 	{#snippet Value()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'status') && Object.hasOwn(prefetched, 'url')}
-			{[String((pendingEntity.status) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.configId) ?? '')].filter(Boolean).join(' ') || titleFallback}
-		{:else}
-			<ResourceBoundary resource={a2aPushNotificationConfig}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.status) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.configId) ?? '')].filter(Boolean).join(' ') || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={a2aPushNotificationConfig}>
+			{#snippet children(entity)}
+				{(entity.status ?? '') || pendingEntity.configId || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'status') && Object.hasOwn(prefetched, 'url')}
-			{@const url0 = pendingEntity.url}
-			{#if url0 !== undefined && url0 !== null}
-				<span data-text="muted">
-					<svelte:element
-						this={'a'}
-						href={String(url0)}
-						target="_blank"
-						rel="noreferrer noopener"
-					>
-						<TruncatedValue value={String(url0)} />
-					</svelte:element>
-				</span>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={a2aPushNotificationConfig}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const url0 = resolvedEntity.url}
-					{#if url0 !== undefined && url0 !== null}
-						<span data-text="muted">
-							<svelte:element
-								this={'a'}
-								href={String(url0)}
-								target="_blank"
-								rel="noreferrer noopener"
-							>
-								<TruncatedValue value={String(url0)} />
-							</svelte:element>
-						</span>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={a2aPushNotificationConfig}>
+			{#snippet children(entity)}
+				{@const url0 = entity.url}
+				{#if url0 != null}
+					<span data-text="muted">
+						<a
+							href={String(url0)}
+							target="_blank"
+							rel="noreferrer noopener"
+						>
+							<TruncatedValue value={String(url0)} />
+						</a>
+					</span>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -156,52 +97,26 @@
 			<div>
 				<dt>config ID</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									configId: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const configId = resolvedEntity.configId}
-							{#if configId !== undefined && configId !== null}
-								{String((configId) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{pendingEntity.configId}
 				</dd>
 			</div>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							url: true,
-						},
-					})
-				}
+				resource={a2aPushNotificationConfig}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const url = resolvedEntity.url}
-					{#if url !== undefined && url !== null}
+					{@const url = entity.url}
+					{#if url != null}
 						<div>
 							<dt>URL</dt>
 							<dd>
-								<svelte:element
-									this={'a'}
+								<a
 									href={String(url)}
 									target="_blank"
 									rel="noreferrer noopener"
 								>
 									<TruncatedValue value={String(url)} />
-								</svelte:element>
+								</a>
 							</dd>
 						</div>
 					{/if}
@@ -210,8 +125,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							authKind: true,
 						},
@@ -219,13 +133,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const authKind = resolvedEntity.authKind}
-					{#if authKind !== undefined && authKind !== null}
+					{@const authKind = entity.authKind}
+					{#if authKind != null}
 						<div>
 							<dt>auth kind</dt>
 							<dd>
-								{String((authKind) ?? '')}
+								{authKind}
 							</dd>
 						</div>
 					{/if}
@@ -234,8 +147,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							createdAt: true,
 						},
@@ -243,9 +155,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const createdAt = resolvedEntity.createdAt}
-					{#if createdAt !== undefined && createdAt !== null}
+					{@const createdAt = entity.createdAt}
+					{#if createdAt != null}
 						<div>
 							<dt>Created</dt>
 							<dd>
@@ -258,8 +169,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							deletedAt: true,
 						},
@@ -267,9 +177,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const deletedAt = resolvedEntity.deletedAt}
-					{#if deletedAt !== undefined && deletedAt !== null}
+					{@const deletedAt = entity.deletedAt}
+					{#if deletedAt != null}
 						<div>
 							<dt>deleted AT</dt>
 							<dd>
@@ -281,23 +190,15 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							status: true,
-						},
-					})
-				}
+				resource={a2aPushNotificationConfig}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const status = resolvedEntity.status}
-					{#if status !== undefined && status !== null}
+					{@const status = entity.status}
+					{#if status != null}
 						<div>
 							<dt>status</dt>
 							<dd>
-								{String((status) ?? '')}
+								{status}
 							</dd>
 						</div>
 					{/if}

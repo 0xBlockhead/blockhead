@@ -2,15 +2,11 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
 	import { UrlString } from '$/schema/UrlString.ts'
 	import { ZeroExHex } from '$/schema/ZeroExHex.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -22,35 +18,18 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.Eip8004CrossRegistration>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.Eip8004CrossRegistration>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.Eip8004CrossRegistration> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const eip8004CrossRegistration = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {},
-	} : {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const viewSelection = $derived(selection({
+		sources: selection.sources ?? [
+			Source.Eip8004Scan_Rest,
+		],
 	}))
-	const titleFallback = $derived([String((pendingEntity.targetKind) ?? '')].filter(Boolean).join(' ') || 'EIP-8004 cross registration')
-	const viewDomId = $derived('eip8004cross-registration-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const titleFallback = $derived((pendingEntity.targetKind ?? '') || 'EIP-8004 cross registration')
 
 
 	// Components
@@ -62,61 +41,24 @@
 
 <EntityView
 	entityType={EntityType.Eip8004CrossRegistration}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails}
-			{[String((pendingEntity.targetKind) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-		{:else}
-			<ResourceBoundary resource={eip8004CrossRegistration}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.targetKind) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		{(pendingEntity.targetKind ?? '') || 'EIP-8004 cross registration'}
 	{/snippet}
 
 	{#snippet Value()}
-		{#if layout !== EntityLayout.SummaryDetails}
-			{[String((pendingEntity.targetSelectorHash) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.targetKind) ?? '')].filter(Boolean).join(' ') || titleFallback}
-		{:else}
-			<ResourceBoundary resource={eip8004CrossRegistration}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.targetSelectorHash) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.targetKind) ?? '')].filter(Boolean).join(' ') || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		{String(pendingEntity.targetSelectorHash ?? '') || (pendingEntity.targetKind ?? '') || titleFallback}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if layout !== EntityLayout.SummaryDetails}
-			{@const targetSelectorHashAlgorithm0 = pendingEntity.targetSelectorHashAlgorithm}
-			{#if targetSelectorHashAlgorithm0 !== undefined && targetSelectorHashAlgorithm0 !== null}
-				<span data-text="muted">
-					<TruncatedValue value={String((targetSelectorHashAlgorithm0) ?? '')} />
-				</span>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={eip8004CrossRegistration}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const targetSelectorHashAlgorithm0 = resolvedEntity.targetSelectorHashAlgorithm}
-					{#if targetSelectorHashAlgorithm0 !== undefined && targetSelectorHashAlgorithm0 !== null}
-						<span data-text="muted">
-							<TruncatedValue value={String((targetSelectorHashAlgorithm0) ?? '')} />
-						</span>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<span data-text="muted">
+			<TruncatedValue value={pendingEntity.targetSelectorHashAlgorithm} />
+		</span>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -135,72 +77,21 @@
 			<div>
 				<dt>Target kind</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									targetKind: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const targetKind = resolvedEntity.targetKind}
-							{#if targetKind !== undefined && targetKind !== null}
-								{String((targetKind) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{pendingEntity.targetKind}
 				</dd>
 			</div>
 
 			<div>
 				<dt>Target selector hash algorithm</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									targetSelectorHashAlgorithm: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const targetSelectorHashAlgorithm = resolvedEntity.targetSelectorHashAlgorithm}
-							{#if targetSelectorHashAlgorithm !== undefined && targetSelectorHashAlgorithm !== null}
-								<TruncatedValue value={String((targetSelectorHashAlgorithm) ?? '')} />
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					<TruncatedValue value={pendingEntity.targetSelectorHashAlgorithm} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Target selector hash</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									targetSelectorHash: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const targetSelectorHash = resolvedEntity.targetSelectorHash}
-							{#if targetSelectorHash !== undefined && targetSelectorHash !== null}
-								<TruncatedValue value={String((targetSelectorHash) ?? '')} />
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					<TruncatedValue value={String(pendingEntity.targetSelectorHash)} />
 				</dd>
 			</div>
 		</dl>
@@ -208,8 +99,7 @@
 		<dl data-column-item="center">
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							evidenceUri: true,
 						},
@@ -217,20 +107,18 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const evidenceUri = resolvedEntity.evidenceUri}
-					{#if evidenceUri !== undefined && evidenceUri !== null}
+					{@const evidenceUri = entity.evidenceUri}
+					{#if evidenceUri != null}
 						<div>
 							<dt>Evidence URI</dt>
 							<dd>
-								<svelte:element
-									this={'a'}
+								<a
 									href={String(evidenceUri)}
 									target="_blank"
 									rel="noreferrer noopener"
 								>
 									<TruncatedValue value={String(evidenceUri)} />
-								</svelte:element>
+								</a>
 							</dd>
 						</div>
 					{/if}

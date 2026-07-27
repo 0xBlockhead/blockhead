@@ -1,14 +1,11 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { entity, facet } from '$/schema/$schema.ts'
+import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { type } from 'arktype'
 
-export enum A2aAgentSkillSelector {
-	CardSnapshotSkillId = 'CardSnapshotSkillId',
-}
-export const A2aAgentSkill = entity({
+export default entity({
 	entityType: EntityType.A2aAgentSkill,
 	labels: {
 		singular: 'a2a agent skill',

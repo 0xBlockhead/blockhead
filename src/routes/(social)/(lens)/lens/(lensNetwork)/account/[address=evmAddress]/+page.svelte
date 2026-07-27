@@ -9,14 +9,12 @@
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		data,
-		params,
 	}: PageProps = $props()
 
 	const pageSelection = $derived(select(EntityType.LensAccount, data.selector, {
@@ -24,10 +22,10 @@
 			Source.Lens_Graphql,
 		],
 		fields: {
-			localName: true,
-			legacyProfileId: true,
 			$icon: true,
 			displayName: true,
+			localName: true,
+			legacyProfileId: true,
 			createdAt: true,
 			owner: true,
 			score: true,
@@ -44,17 +42,12 @@
 
 
 <svelte:head>
-	<title>{(data.title ?? (pageSelection.entity == null ? [String((data.selector.address) ?? '')].filter(Boolean).join(' ') || 'Lens account' : [String((({ ...data.selector, ...pageSelection.entity }).displayName) ?? ''), String((({ ...data.selector, ...pageSelection.entity }).localName) ?? ''), String((({ ...data.selector, ...pageSelection.entity }).address) ?? ''), String((({ ...data.selector, ...pageSelection.entity }).legacyProfileId) ?? '')].filter(Boolean).join(' ') || 'Lens account'))} • Lens account • Blockhead</title>
+	<title>{(data.title ?? (pageSelection.entity == null ? String(pageSelection.entitySelector.address ?? '') || 'Lens account' : [(pageSelection.entity.displayName ?? ''), (pageSelection.entity.localName ?? ''), String(pageSelection.entitySelector.address), (pageSelection.entity.legacyProfileId ?? '')].filter(Boolean).join(' ') || 'Lens account'))} • Lens account • Blockhead</title>
 </svelte:head>
 
 
 <Page>
 	<LensAccountView
-		href={
-			resolve('/lens/account/[address=evmAddress]', {
-				address: params.address,
-			})
-		}
 		selection={pageSelection}
 	/>
 </Page>

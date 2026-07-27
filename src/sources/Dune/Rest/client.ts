@@ -3,13 +3,17 @@
 	* @see https://docs.dune.com/api-reference/overview/authentication.md
 	*/
 
-import { corsFetch, throwHttpError } from '$/lib/http.ts'
+import { throwHttpError } from '$/lib/http.ts'
 import { requiredPublicEnvString } from '$/sources/$sources.ts'
 import type { SourcePublicEnv } from '$/sources/$sources.ts'
+import bindings from '$/sources/Dune/bindings.ts'
+import { Source } from '$/sources/Source.ts'
 import {
-	baseUrl,
-	duneOrigins,
-} from '$/sources/Dune/Rest/constants.ts'
+	firstHttpUrlForBinding,
+	sourceFetch,
+} from '$/sources/_runtime/http.ts'
+
+const binding = bindings[Source.Dune_Rest]
 
 export const duneRequestHeaders = (
 	publicEnv: SourcePublicEnv
@@ -24,17 +28,18 @@ export async function duneFetch<T>(
 	path: string,
 	init?: RequestInit
 ): Promise<T> {
-	const url = `${baseUrl}${path}`
-	const res = await corsFetch(url, {
-		origins: duneOrigins,
-		init: {
+	const url = new URL(path, firstHttpUrlForBinding(binding)).toString()
+	const res = await sourceFetch(
+		binding,
+		url,
+		{
 			...init,
 			headers: {
 				...duneRequestHeaders(publicEnv),
 				...init?.headers,
 			},
-		},
-	})
+		}
+	)
 	if (!res.ok) await throwHttpError('Dune API', res)
 	return res.json<T>()
 }

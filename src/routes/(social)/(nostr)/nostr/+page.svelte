@@ -9,7 +9,6 @@
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
@@ -39,13 +38,12 @@
 
 
 <svelte:head>
-	<title>{(data.title ?? (pageSelection.entity == null ? ['Nostr'].filter(Boolean).join(' ') || 'Nostr' : ['Nostr'].filter(Boolean).join(' ') || 'Nostr'))} • Nostr • Blockhead</title>
+	<title>{(data.title ?? ('Nostr'))} • Nostr • Blockhead</title>
 </svelte:head>
 
 
 <Page>
 	<GlobalNostrNetworkView
-		href={resolve('/nostr')}
 		selection={pageSelection}
 	/>
 </Page>

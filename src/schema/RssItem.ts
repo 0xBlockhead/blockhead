@@ -1,15 +1,12 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { entity, facet } from '$/schema/$schema.ts'
+import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { UrlString } from '$/schema/UrlString.ts'
 import { type } from 'arktype'
 
-export enum RssItemSelector {
-	FeedIdentity = 'FeedIdentity',
-}
-export const RssItem = entity({
+export default entity({
 	entityType: EntityType.RssItem,
 	labels: {
 		singular: 'RSS item',
@@ -20,7 +17,7 @@ export const RssItem = entity({
 		label: 'Identity kind',
 		description: 'GUID when the publisher supplies one; otherwise link.',
 		type: EntityFieldType.Primitive,
-		primitiveType: (type.enumerated('Guid', 'Link')),
+		primitiveType: type.enumerated('Guid', 'Link'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	itemIdentity: {
@@ -45,7 +42,7 @@ export const RssItem = entity({
 	link: {
 		label: 'Link',
 		type: EntityFieldType.Primitive,
-		primitiveType: (UrlString),
+		primitiveType: UrlString,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	description: {
@@ -87,13 +84,13 @@ export const RssItem = entity({
 	enclosureUrl: {
 		label: 'Enclosure URL',
 		type: EntityFieldType.Primitive,
-		primitiveType: (UrlString),
+		primitiveType: UrlString,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	commentsUrl: {
 		label: 'Comments URL',
 		type: EntityFieldType.Primitive,
-		primitiveType: (UrlString),
+		primitiveType: UrlString,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$feed: {

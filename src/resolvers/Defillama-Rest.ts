@@ -7,8 +7,6 @@ import {
 	EntityMetaKey,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import { Market_TimestampSelector } from '$/schema/Market_Timestamp.ts'
-import { MarketPriceSelector } from '$/schema/MarketPrice.ts'
 import { Source } from '$/sources/Source.ts'
 
 /**
@@ -22,7 +20,7 @@ export default {
 		defineResolver(Source.Defillama_Rest, {
 			entityType: EntityType.Market_Timestamp,
 			resolve: {
-				[Market_TimestampSelector.MarketTimestampMsFeedKey]: {
+				MarketTimestampMsFeedKey: {
 					resolve: async ({ $market, feedKey, timestampMs: timestampMsSelector }, context) => {
 						if ($market.marketKind !== MarketKind.Spot)
 							throw new Error('Defillama_Rest: Market_Timestamp is spot-only')
@@ -65,7 +63,7 @@ export default {
 		defineResolver(Source.Defillama_Rest, {
 			entityType: EntityType.MarketPrice,
 			resolve: {
-				[MarketPriceSelector.Market]: {
+				Market: {
 					resolve: async ({ $market }, context) => {
 						if ($market.marketKind !== MarketKind.Spot)
 							throw new Error('Defillama_Rest: MarketPrice $$quotes is spot-only')
@@ -109,7 +107,7 @@ export default {
 		defineResolver(Source.Defillama_Rest, {
 			entityType: EntityType.MarketPrice,
 			resolve: {
-				[MarketPriceSelector.Market]: {
+				Market: {
 					resolve: async ({ $market }) => ({
 						[EntityMetaKey.Selector]: $market,
 					}),

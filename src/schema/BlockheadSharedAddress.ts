@@ -1,14 +1,11 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { entity, facet } from '$/schema/$schema.ts'
+import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { type } from 'arktype'
 
-export enum BlockheadSharedAddressSelector {
-	Id = 'Id',
-}
-export const BlockheadSharedAddress = entity({
+export default entity({
 	entityType: EntityType.BlockheadSharedAddress,
 	labels: {
 		singular: 'blockhead shared address',
@@ -49,7 +46,7 @@ export const BlockheadSharedAddress = entity({
 	targetPeerIds: {
 		label: 'target peer ids',
 		type: EntityFieldType.Primitive,
-		primitiveType: (type("string[] | null")),
+		primitiveType: type("string[] | null"),
 		cardinality: EntityFieldCardinality.One,
 	},
 	sharedAt: {

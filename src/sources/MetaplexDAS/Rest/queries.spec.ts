@@ -7,7 +7,7 @@ import {
 	vi,
 } from 'vitest'
 
-import { sourceProviderDefinitions } from '$/sources/$sourceProviders.ts'
+import bindings from '$/sources/MetaplexDAS/bindings.ts'
 import { Source } from '$/sources/Source.ts'
 import { SourceTargetKind } from '$/sources/SourceBinding.ts'
 import { sourceFetch } from '$/sources/_runtime/http.ts'
@@ -22,11 +22,7 @@ vi.mock('$/sources/_runtime/http.ts', async (importOriginal) => ({
 	sourceFetch: vi.fn(),
 }))
 
-const placeholderBinding = sourceProviderDefinitions
-	.flatMap((provider) => provider.bindings)
-	.find((binding) => binding.source === Source.MetaplexDAS_Rest)
-if (placeholderBinding == null)
-	throw new Error('MetaplexDAS_Rest test binding is missing')
+const placeholderBinding = bindings[Source.MetaplexDAS_Rest]
 
 const network = 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp' as const
 const binding = {

@@ -1,0 +1,31 @@
+// Generated from APP.ts. Do not edit by hand.
+
+import { Source } from '$/sources/Source.ts'
+import { ApiFamily, SourceCredentialScope, SourceDelivery, SourceEndpointKind, SourceOperationGroup, SourceTargetKind, WireProtocol, type SourceBindingIndex } from '$/sources/SourceBinding.ts'
+
+export default {
+	[Source.RadicleCli_Local]: {
+		source: Source.RadicleCli_Local,
+		target: {
+			kind: SourceTargetKind.LocalDevice,
+			key: 'radicle-cli',
+		},
+		endpoints: [
+			{
+				endpointKind: SourceEndpointKind.LocalProcess,
+				locator: 'rad',
+			},
+		],
+		wireProtocol: WireProtocol.InProcess,
+		apiFamily: ApiFamily.LocalParser,
+		operationGroups: [
+			SourceOperationGroup.RepositoryMetadata,
+		],
+		delivery: SourceDelivery.LocalOnly,
+		credentials: [
+			{
+				scope: SourceCredentialScope.LocalSecret,
+			},
+		],
+	},
+} as const satisfies SourceBindingIndex

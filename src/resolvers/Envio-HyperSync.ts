@@ -1,9 +1,7 @@
 import { hexLowerOfByteSize } from '$/lib/hexLowerOfByteSize.ts'
 import { defineResolver } from '$/resolvers/defineResolver.ts'
 import { EntityMetaKey } from '$/schema/$schema.ts'
-import { EvmBlockSelector } from '$/schema/EvmBlock.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import { sourceProviderDefinitions } from '$/sources/$sourceProviders.ts'
 import { Source } from '$/sources/Source.ts'
 import { EnvioHyperSyncResolution } from '$/sources/Envio/HyperSync/types.ts'
 
@@ -32,20 +30,16 @@ export default {
 		defineResolver(Source.EnvioHyperSync_RawHttp, {
 			entityType: EntityType.EvmBlock,
 			resolve: {
-				[EvmBlockSelector.EvmNetworkBlockNumber]: {
+				EvmNetworkBlockNumber: {
 					resolve: async ({ $network, blockNumber }) => {
-						const binding = sourceProviderDefinitions
-							.flatMap((provider) => provider.bindings)
-							.find((candidate) => (
-								candidate.source === Source.EnvioHyperSync_RawHttp
-								&& candidate.target.key === $network.caip2.reference
-							))
-						if ($network.caip2.namespace !== 'eip155' || binding == null)
+						if (
+							$network.caip2.namespace !== 'eip155'
+							|| $network.caip2.reference !== networkBySlug.ethereum.caip2.reference
+						)
 							throw new Error(`EnvioHyperSync_RawHttp: unsupported network ${$network.caip2.namespace}:${$network.caip2.reference}`)
 
 						const { getEvmBlockRangePage } = await import('$/sources/Envio/HyperSync/queries.ts')
 						const result = await getEvmBlockRangePage({
-							binding,
 							fromBlock: blockNumber,
 							toBlock: blockNumber + 1n,
 						})
@@ -105,3 +99,4 @@ export default {
 		}),
 	],
 }
+import { networkBySlug } from '$/constants/Network.ts'

@@ -2,12 +2,12 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
@@ -23,30 +23,21 @@
 
 
 <Page>
+	{@const collectionSelection = select(EntityType._Global, {
+		scope: '$$blockheadWalletConnections',
+	})
+		.$$blockheadWalletConnections({
+			sources: [
+				Source.Local_Internal,
+			],
+		})}
+
 	<BlockheadWalletConnectionsView
 		href={resolve('/~/accounts/connections')}
 		title='Wallet connections'
-		selection={
-			select(EntityType._Global, {
-				scope: '$$blockheadWalletConnections',
-			})
-				.$$blockheadWalletConnections({
-					sources: [
-						Source.Local_Internal,
-					],
-				})
-		}
-		countResource={
-			select(EntityType._Global, {
-				scope: '$$blockheadWalletConnections',
-			})
-				.$$blockheadWalletConnections({
-					sources: [
-						Source.Local_Internal,
-					],
-				}).count
-		}
-		id='blockhead-wallet-connections'
+		selection={collectionSelection}
+		countResource={collectionSelection.count}
+		id='account-blockhead-wallet-connection'
 		data-column-item="flexible"
 		data-card
 		data-scroll-container

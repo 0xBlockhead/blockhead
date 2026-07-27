@@ -2,15 +2,11 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
 	import { specificationRealmById } from '$/constants/SpecificationProposal.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// State
@@ -22,38 +18,22 @@
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.SpecificationRealm>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.SpecificationRealm>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.SpecificationRealm> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const specificationRealm = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {
-			label: true,
-		},
-	} : {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const viewSelection = $derived(selection({
+		sources: selection.sources ?? [
+			Source.Constants_Internal,
+		],
+	}))
+	const specificationRealm = $derived(viewSelection({
 		fields: {
 			label: true,
 			labelPlural: true,
 			slug: true,
 		},
 	}))
-	const titleFallback = $derived([String((pendingEntity.label) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.realm) ?? '')].filter(Boolean).join(' ') || 'Specification realm')
-	const viewDomId = $derived('specification-realm-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const titleFallback = $derived((pendingEntity.label ?? '') || (pendingEntity.realm ?? '') || 'Specification realm')
 
 
 	// Components
@@ -64,18 +44,14 @@
 
 <EntityView
 	entityType={EntityType.SpecificationRealm}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
 	href={
-		href ?? (
-			selection.entitySelector != null && 'realm' in selection.entitySelector
-			&& selection.entitySelector.realm != null ?
-				resolve('/proposals/[specificationRealmSlug=specificationRealmSlug]', {
-			specificationRealmSlug: String(specificationRealmById[String(selection.entitySelector.realm)].slug ?? ''),
-		})
-		:
-				undefined
+		href ?? resolve(
+			'/(proposals)/proposals/[specificationRealmSlug=specificationRealmSlug]',
+			{
+				specificationRealmSlug: String(specificationRealmById[String(selection.entitySelector.realm)].slug),
+			}
 		)
 	}
 	{layout}
@@ -83,29 +59,15 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'label')}
-			{[String((pendingEntity.label) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-		{:else}
-			<ResourceBoundary resource={specificationRealm}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.label) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={specificationRealm}>
+			{#snippet children(entity)}
+				{entity.label || title || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Value()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'label')}
-			{[String((pendingEntity.realm) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.label) ?? '')].filter(Boolean).join(' ') || titleFallback}
-		{:else}
-			<ResourceBoundary resource={specificationRealm}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.realm) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.label) ?? '')].filter(Boolean).join(' ') || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		{(pendingEntity.realm ?? '') || (pendingEntity.label ?? '') || titleFallback}
 	{/snippet}
 
 	{#snippet TypeAnnotationTooltip()}
@@ -117,23 +79,15 @@
 	{#snippet Content({ open: contentOpen })}
 		<dl data-column-item="center">
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							labelPlural: true,
-						},
-					})
-				}
+				resource={specificationRealm}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const labelPlural = resolvedEntity.labelPlural}
-					{#if labelPlural !== undefined && labelPlural !== null}
+					{@const labelPlural = entity.labelPlural}
+					{#if labelPlural != null}
 						<div>
 							<dt>Label plural</dt>
 							<dd>
-								{String((labelPlural) ?? '')}
+								{labelPlural}
 							</dd>
 						</div>
 					{/if}
@@ -144,21 +98,10 @@
 				<dt>Slug</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									slug: true,
-								},
-							})
-						}
+						resource={specificationRealm}
 					>
 						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const slug = resolvedEntity.slug}
-							{#if slug !== undefined && slug !== null}
-								{String((slug) ?? '')}
-							{/if}
+							{entity.slug}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -173,13 +116,13 @@
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
-				<SpecificationProposalKindsView
-					selection={specificationRealmSpecificationProposalKindsViewProposalKindsResource}
-					countResource={specificationRealmSpecificationProposalKindsViewProposalKindsResource.count}
-					title='Proposal kinds'
-					href='/proposals'
-					id='SpecificationProposalKindsView-proposal-kinds'
-				/>
+					<SpecificationProposalKindsView
+						selection={specificationRealmSpecificationProposalKindsViewProposalKindsResource}
+						countResource={specificationRealmSpecificationProposalKindsViewProposalKindsResource.count}
+						title='Proposal kinds'
+						href='/proposals'
+						id='proposal-kinds'
+					/>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>

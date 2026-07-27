@@ -2,14 +2,11 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
 	import { ZeroExHex } from '$/schema/ZeroExHex.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -21,40 +18,26 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.CctpMessage>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.CctpMessage>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.CctpMessage> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const cctpMessage = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {
-			messageHash: true,
-		},
-	} : {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const viewSelection = $derived(selection({
+		sources: selection.sources ?? [
+			Source.CircleCctpContracts_Evm,
+			Source.CircleCctpContracts_Solana,
+			Source.CircleCctpContracts_Stellar,
+			Source.CircleCctp_IrisApi,
+		],
+	}))
+	const cctpMessage = $derived(viewSelection({
 		fields: {
 			messageHash: true,
 		},
 	}))
-	const titleFallback = $derived([String((pendingEntity.nonce) ?? '')].filter(Boolean).join(' ') || 'CCTP message')
-	const viewDomId = $derived('cctp-message-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const titleFallback = $derived((pendingEntity.nonce ?? '') || 'CCTP message')
 
 
 	// Components
@@ -68,61 +51,31 @@
 
 <EntityView
 	entityType={EntityType.CctpMessage}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'messageHash')}
-			{[String((pendingEntity.nonce) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-		{:else}
-			<ResourceBoundary resource={cctpMessage}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.nonce) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		{(pendingEntity.nonce ?? '') || 'CCTP message'}
 	{/snippet}
 
 	{#snippet Value()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'messageHash')}
-			{[String((pendingEntity.sourceDomain) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.nonce) ?? '')].filter(Boolean).join(' ') || titleFallback}
-		{:else}
-			<ResourceBoundary resource={cctpMessage}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.sourceDomain) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.nonce) ?? '')].filter(Boolean).join(' ') || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		{String(pendingEntity.sourceDomain ?? '') || (pendingEntity.nonce ?? '') || titleFallback}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'messageHash')}
-			{@const messageHash0 = pendingEntity.messageHash}
-			{#if messageHash0 !== undefined && messageHash0 !== null}
-				<span data-text="muted">
-					<TruncatedValue value={String((messageHash0) ?? '')} />
-				</span>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={cctpMessage}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const messageHash0 = resolvedEntity.messageHash}
-					{#if messageHash0 !== undefined && messageHash0 !== null}
-						<span data-text="muted">
-							<TruncatedValue value={String((messageHash0) ?? '')} />
-						</span>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={cctpMessage}>
+			{#snippet children(entity)}
+				{@const messageHash0 = entity.messageHash}
+				{#if messageHash0 != null}
+					<span data-text="muted">
+						<TruncatedValue value={String(messageHash0)} />
+					</span>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -130,55 +83,20 @@
 			<div>
 				<dt>Source domain</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									sourceDomain: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const sourceDomain = resolvedEntity.sourceDomain}
-							{#if sourceDomain !== undefined && sourceDomain !== null}
-								{String((sourceDomain) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{String(pendingEntity.sourceDomain)}
 				</dd>
 			</div>
 
 			<div>
 				<dt>Nonce</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									nonce: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const nonce = resolvedEntity.nonce}
-							{#if nonce !== undefined && nonce !== null}
-								{String((nonce) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{pendingEntity.nonce}
 				</dd>
 			</div>
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							cctpVersion: true,
 						},
@@ -186,13 +104,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const cctpVersion = resolvedEntity.cctpVersion}
-					{#if cctpVersion !== undefined && cctpVersion !== null}
+					{@const cctpVersion = entity.cctpVersion}
+					{#if cctpVersion != null}
 						<div>
 							<dt>CCTP version</dt>
 							<dd>
-								{String((cctpVersion) ?? '')}
+								{String(cctpVersion)}
 							</dd>
 						</div>
 					{/if}
@@ -200,23 +117,15 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							messageHash: true,
-						},
-					})
-				}
+				resource={cctpMessage}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const messageHash = resolvedEntity.messageHash}
-					{#if messageHash !== undefined && messageHash !== null}
+					{@const messageHash = entity.messageHash}
+					{#if messageHash != null}
 						<div>
 							<dt>Message hash</dt>
 							<dd>
-								<TruncatedValue value={String((messageHash) ?? '')} />
+								<TruncatedValue value={String(messageHash)} />
 							</dd>
 						</div>
 					{/if}
@@ -225,8 +134,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							messageBytes: true,
 						},
@@ -234,13 +142,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const messageBytes = resolvedEntity.messageBytes}
-					{#if messageBytes !== undefined && messageBytes !== null}
+					{@const messageBytes = entity.messageBytes}
+					{#if messageBytes != null}
 						<div>
 							<dt>Message bytes</dt>
 							<dd>
-								{String((messageBytes) ?? '')}
+								{String(messageBytes)}
 							</dd>
 						</div>
 					{/if}
@@ -251,8 +158,7 @@
 		<dl data-column-item="center">
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							sourceTransactionHash: true,
 						},
@@ -260,13 +166,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const sourceTransactionHash = resolvedEntity.sourceTransactionHash}
-					{#if sourceTransactionHash !== undefined && sourceTransactionHash !== null}
+					{@const sourceTransactionHash = entity.sourceTransactionHash}
+					{#if sourceTransactionHash != null}
 						<div>
 							<dt>Source transaction hash</dt>
 							<dd>
-								<TruncatedValue value={String((sourceTransactionHash) ?? '')} />
+								<TruncatedValue value={String(sourceTransactionHash)} />
 							</dd>
 						</div>
 					{/if}
@@ -275,8 +180,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							sourceLogIndex: true,
 						},
@@ -284,13 +188,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const sourceLogIndex = resolvedEntity.sourceLogIndex}
-					{#if sourceLogIndex !== undefined && sourceLogIndex !== null}
+					{@const sourceLogIndex = entity.sourceLogIndex}
+					{#if sourceLogIndex != null}
 						<div>
 							<dt>Source log index</dt>
 							<dd>
-								{String((sourceLogIndex) ?? '')}
+								{String(sourceLogIndex)}
 							</dd>
 						</div>
 					{/if}
@@ -301,7 +204,7 @@
 				resource={selection.$sourceDomain}
 			>
 				{#snippet children(cctpDomainSupport)}
-					{#if cctpDomainSupport != null && cctpDomainSupport[EntityMetaKey.Selector] != null}
+					{#if cctpDomainSupport != null}
 						<div>
 							<dt>Source domain</dt>
 							<dd>
@@ -321,7 +224,7 @@
 				resource={selection.$destinationDomain}
 			>
 				{#snippet children(cctpDomainSupport)}
-					{#if cctpDomainSupport != null && cctpDomainSupport[EntityMetaKey.Selector] != null}
+					{#if cctpDomainSupport != null}
 						<div>
 							<dt>Destination domain</dt>
 							<dd>
@@ -339,8 +242,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							destinationDomain: true,
 						},
@@ -348,13 +250,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const destinationDomain = resolvedEntity.destinationDomain}
-					{#if destinationDomain !== undefined && destinationDomain !== null}
+					{@const destinationDomain = entity.destinationDomain}
+					{#if destinationDomain != null}
 						<div>
 							<dt>Destination domain</dt>
 							<dd>
-								{String((destinationDomain) ?? '')}
+								{String(destinationDomain)}
 							</dd>
 						</div>
 					{/if}
@@ -365,8 +266,7 @@
 		<dl data-column-item="center">
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							sender: true,
 						},
@@ -374,13 +274,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const sender = resolvedEntity.sender}
-					{#if sender !== undefined && sender !== null}
+					{@const sender = entity.sender}
+					{#if sender != null}
 						<div>
 							<dt>Sender</dt>
 							<dd>
-								{String((sender) ?? '')}
+								{sender}
 							</dd>
 						</div>
 					{/if}
@@ -389,8 +288,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							recipient: true,
 						},
@@ -398,13 +296,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const recipient = resolvedEntity.recipient}
-					{#if recipient !== undefined && recipient !== null}
+					{@const recipient = entity.recipient}
+					{#if recipient != null}
 						<div>
 							<dt>Recipient</dt>
 							<dd>
-								{String((recipient) ?? '')}
+								{recipient}
 							</dd>
 						</div>
 					{/if}
@@ -413,8 +310,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							destinationCaller: true,
 						},
@@ -422,13 +318,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const destinationCaller = resolvedEntity.destinationCaller}
-					{#if destinationCaller !== undefined && destinationCaller !== null}
+					{@const destinationCaller = entity.destinationCaller}
+					{#if destinationCaller != null}
 						<div>
 							<dt>Destination caller</dt>
 							<dd>
-								{String((destinationCaller) ?? '')}
+								{destinationCaller}
 							</dd>
 						</div>
 					{/if}
@@ -437,8 +332,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							burnToken: true,
 						},
@@ -446,13 +340,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const burnToken = resolvedEntity.burnToken}
-					{#if burnToken !== undefined && burnToken !== null}
+					{@const burnToken = entity.burnToken}
+					{#if burnToken != null}
 						<div>
 							<dt>Burn token</dt>
 							<dd>
-								{String((burnToken) ?? '')}
+								{burnToken}
 							</dd>
 						</div>
 					{/if}
@@ -461,8 +354,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							mintRecipient: true,
 						},
@@ -470,13 +362,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const mintRecipient = resolvedEntity.mintRecipient}
-					{#if mintRecipient !== undefined && mintRecipient !== null}
+					{@const mintRecipient = entity.mintRecipient}
+					{#if mintRecipient != null}
 						<div>
 							<dt>Mint recipient</dt>
 							<dd>
-								{String((mintRecipient) ?? '')}
+								{mintRecipient}
 							</dd>
 						</div>
 					{/if}
@@ -487,8 +378,7 @@
 		<dl data-column-item="center">
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							amount: true,
 						},
@@ -496,9 +386,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const amount = resolvedEntity.amount}
-					{#if amount !== undefined && amount !== null}
+					{@const amount = entity.amount}
+					{#if amount != null}
 						<div>
 							<dt>Amount</dt>
 							<dd>
@@ -513,8 +402,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							messageSender: true,
 						},
@@ -522,13 +410,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const messageSender = resolvedEntity.messageSender}
-					{#if messageSender !== undefined && messageSender !== null}
+					{@const messageSender = entity.messageSender}
+					{#if messageSender != null}
 						<div>
 							<dt>Message sender</dt>
 							<dd>
-								{String((messageSender) ?? '')}
+								{messageSender}
 							</dd>
 						</div>
 					{/if}
@@ -537,8 +424,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							maxFee: true,
 						},
@@ -546,9 +432,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const maxFee = resolvedEntity.maxFee}
-					{#if maxFee !== undefined && maxFee !== null}
+					{@const maxFee = entity.maxFee}
+					{#if maxFee != null}
 						<div>
 							<dt>Max fee</dt>
 							<dd>
@@ -563,8 +448,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							feeExecuted: true,
 						},
@@ -572,9 +456,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const feeExecuted = resolvedEntity.feeExecuted}
-					{#if feeExecuted !== undefined && feeExecuted !== null}
+					{@const feeExecuted = entity.feeExecuted}
+					{#if feeExecuted != null}
 						<div>
 							<dt>Fee executed</dt>
 							<dd>
@@ -589,8 +472,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							expirationBlock: true,
 						},
@@ -598,9 +480,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const expirationBlock = resolvedEntity.expirationBlock}
-					{#if expirationBlock !== undefined && expirationBlock !== null}
+					{@const expirationBlock = entity.expirationBlock}
+					{#if expirationBlock != null}
 						<div>
 							<dt>Expiration block</dt>
 							<dd>
@@ -617,8 +498,7 @@
 		<dl data-column-item="center">
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							hookData: true,
 						},
@@ -626,13 +506,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const hookData = resolvedEntity.hookData}
-					{#if hookData !== undefined && hookData !== null}
+					{@const hookData = entity.hookData}
+					{#if hookData != null}
 						<div>
 							<dt>Hook data</dt>
 							<dd>
-								{String((hookData) ?? '')}
+								{String(hookData)}
 							</dd>
 						</div>
 					{/if}
@@ -641,8 +520,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							minFinalityThreshold: true,
 						},
@@ -650,13 +528,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const minFinalityThreshold = resolvedEntity.minFinalityThreshold}
-					{#if minFinalityThreshold !== undefined && minFinalityThreshold !== null}
+					{@const minFinalityThreshold = entity.minFinalityThreshold}
+					{#if minFinalityThreshold != null}
 						<div>
 							<dt>Minimum finality threshold</dt>
 							<dd>
-								{String((minFinalityThreshold) ?? '')}
+								{String(minFinalityThreshold)}
 							</dd>
 						</div>
 					{/if}
@@ -665,8 +542,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							finalityThresholdExecuted: true,
 						},
@@ -674,13 +550,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const finalityThresholdExecuted = resolvedEntity.finalityThresholdExecuted}
-					{#if finalityThresholdExecuted !== undefined && finalityThresholdExecuted !== null}
+					{@const finalityThresholdExecuted = entity.finalityThresholdExecuted}
+					{#if finalityThresholdExecuted != null}
 						<div>
 							<dt>Finality threshold executed</dt>
 							<dd>
-								{String((finalityThresholdExecuted) ?? '')}
+								{String(finalityThresholdExecuted)}
 							</dd>
 						</div>
 					{/if}
@@ -696,12 +571,12 @@
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
-				<CctpAttestation_TimestampsView
-					selection={cctpMessageCctpAttestationTimestampsViewAttestationTimestampsResource}
-					countResource={cctpMessageCctpAttestationTimestampsViewAttestationTimestampsResource.count}
-					title='Attestation timestamps'
-					id='CctpAttestation_TimestampsView-attestation-timestamps'
-				/>
+					<CctpAttestation_TimestampsView
+						selection={cctpMessageCctpAttestationTimestampsViewAttestationTimestampsResource}
+						countResource={cctpMessageCctpAttestationTimestampsViewAttestationTimestampsResource.count}
+						title='Attestation timestamps'
+						id='attestation-timestamps'
+					/>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>

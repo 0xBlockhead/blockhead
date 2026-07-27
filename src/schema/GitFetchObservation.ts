@@ -1,15 +1,12 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { entity, facet } from '$/schema/$schema.ts'
+import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 import { type } from 'arktype'
 
-export enum GitFetchObservationSelector {
-	RepositoryRemoteNameTimestampSource = 'RepositoryRemoteNameTimestampSource',
-}
-export const GitFetchObservation = entity({
+export default entity({
 	entityType: EntityType.GitFetchObservation,
 	labels: {
 		singular: 'Git fetch observation',
@@ -69,7 +66,7 @@ export const GitFetchObservation = entity({
 	packfileHash: {
 		label: 'packfile hash',
 		type: EntityFieldType.Primitive,
-		primitiveType: (ZeroExHex),
+		primitiveType: ZeroExHex,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	status: {

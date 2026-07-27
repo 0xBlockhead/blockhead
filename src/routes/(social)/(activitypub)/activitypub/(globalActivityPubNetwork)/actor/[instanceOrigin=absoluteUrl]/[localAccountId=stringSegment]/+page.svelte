@@ -8,14 +8,12 @@
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		data,
-		params,
 	}: PageProps = $props()
 
 	const pageSelection = $derived(select(EntityType.ActivityPubActor, data.selector, {
@@ -23,12 +21,12 @@
 			Source.Mastodon_Rest,
 		],
 		fields: {
-			activityStreamsUri: true,
-			acct: true,
 			$icon: true,
 			displayName: true,
+			acct: true,
 			username: true,
 			profileUrl: true,
+			activityStreamsUri: true,
 			createdAt: true,
 			note: true,
 		},
@@ -42,18 +40,12 @@
 
 
 <svelte:head>
-	<title>{(data.title ?? (pageSelection.entity == null ? [String((data.selector.localAccountId) ?? '')].filter(Boolean).join(' ') || 'ActivityPub actor' : [String((({ ...data.selector, ...pageSelection.entity }).displayName) ?? ''), String((({ ...data.selector, ...pageSelection.entity }).acct) ?? ''), String((({ ...data.selector, ...pageSelection.entity }).username) ?? ''), String((({ ...data.selector, ...pageSelection.entity }).localAccountId) ?? '')].filter(Boolean).join(' ') || 'ActivityPub actor'))} • ActivityPub actor • Blockhead</title>
+	<title>{(data.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.localAccountId ?? '') || 'ActivityPub actor' : [(pageSelection.entity.displayName ?? ''), pageSelection.entity.acct, (pageSelection.entity.username ?? ''), pageSelection.entitySelector.localAccountId].filter(Boolean).join(' ') || 'ActivityPub actor'))} • ActivityPub actor • Blockhead</title>
 </svelte:head>
 
 
 <Page>
 	<ActivityPubActorView
-		href={
-			resolve('/activitypub/actor/[instanceOrigin=absoluteUrl]/[localAccountId=stringSegment]', {
-				instanceOrigin: params.instanceOrigin,
-				localAccountId: params.localAccountId,
-			})
-		}
 		selection={pageSelection}
 	/>
 </Page>

@@ -30,22 +30,28 @@
 {#key params.address}
 	<ParentPageCollapsible
 		href={
-			resolve('/lens/account/[address=evmAddress]', {
-				address: params.address,
-			})
+			resolve(
+				'/(social)/(lens)/lens/(lensNetwork)/account/[address=evmAddress]',
+				{
+					address: String(params.address),
+				}
+			)
 		}
 	>
 		{#snippet Summary()}
-			{@const DetailView = LensAccountView}
-
-			<DetailView
-				selection={select(EntityType.LensAccount, data.selector, { sources: [
-		Source.Lens_Graphql,
-	] })}
+			<LensAccountView
+				selection={
+					select(EntityType.LensAccount, data.selector, { sources: [
+						Source.Lens_Graphql,
+					] })
+				}
 				href={
-					resolve('/lens/account/[address=evmAddress]', {
-						address: params.address,
-					})
+					resolve(
+						'/(social)/(lens)/lens/(lensNetwork)/account/[address=evmAddress]',
+						{
+							address: String(params.address),
+						}
+					)
 				}
 				layout={EntityLayout.SummaryInline}
 			/>

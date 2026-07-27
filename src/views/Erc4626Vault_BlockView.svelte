@@ -2,13 +2,9 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -20,35 +16,19 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.Erc4626Vault_Block>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.Erc4626Vault_Block>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.Erc4626Vault_Block> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const erc4626VaultBlock = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {},
-	} : {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const viewSelection = $derived(selection({
+		sources: selection.sources ?? [
+			Source.SqdPortal_RawHttp,
+			Source.Voltaire_JsonRpc,
+		],
 	}))
-	const titleFallback = $derived([String((pendingEntity.blockNumber) ?? '')].filter(Boolean).join(' ') || 'erc4626 vault block')
-	const viewDomId = $derived('erc4626vault-block-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const titleFallback = $derived(String(pendingEntity.blockNumber ?? '') || 'erc4626 vault block')
 
 
 	// Components
@@ -60,48 +40,20 @@
 
 <EntityView
 	entityType={EntityType.Erc4626Vault_Block}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails}
-			{@const blockNumber0 = pendingEntity.blockNumber}
-			{#if blockNumber0 !== undefined && blockNumber0 !== null}
-				<NumberValue
-					value={blockNumber0}
-				/>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={erc4626VaultBlock}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const blockNumber0 = resolvedEntity.blockNumber}
-					{#if blockNumber0 !== undefined && blockNumber0 !== null}
-						<NumberValue
-							value={blockNumber0}
-						/>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<NumberValue
+			value={pendingEntity.blockNumber}
+		/>
 	{/snippet}
 
 	{#snippet Value()}
-		{#if layout !== EntityLayout.SummaryDetails}
-			{[String((pendingEntity.source) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.blockNumber) ?? '')].filter(Boolean).join(' ') || titleFallback}
-		{:else}
-			<ResourceBoundary resource={erc4626VaultBlock}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.source) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.blockNumber) ?? '')].filter(Boolean).join(' ') || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		{(pendingEntity.source ?? '') || String(pendingEntity.blockNumber ?? '') || titleFallback}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -120,50 +72,16 @@
 			<div>
 				<dt>Block number</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									blockNumber: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const blockNumber = resolvedEntity.blockNumber}
-							{#if blockNumber !== undefined && blockNumber !== null}
-								<NumberValue
-									value={blockNumber}
-								/>
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					<NumberValue
+						value={pendingEntity.blockNumber}
+					/>
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									source: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const source = resolvedEntity.source}
-							{#if source !== undefined && source !== null}
-								{String((source) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{pendingEntity.source}
 				</dd>
 			</div>
 		</dl>
@@ -171,8 +89,7 @@
 		<dl data-column-item="center">
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							totalAssets: true,
 						},
@@ -180,9 +97,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const totalAssets = resolvedEntity.totalAssets}
-					{#if totalAssets !== undefined && totalAssets !== null}
+					{@const totalAssets = entity.totalAssets}
+					{#if totalAssets != null}
 						<div>
 							<dt>Total assets</dt>
 							<dd>
@@ -197,8 +113,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							totalSupply: true,
 						},
@@ -206,9 +121,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const totalSupply = resolvedEntity.totalSupply}
-					{#if totalSupply !== undefined && totalSupply !== null}
+					{@const totalSupply = entity.totalSupply}
+					{#if totalSupply != null}
 						<div>
 							<dt>Total supply</dt>
 							<dd>
@@ -223,8 +137,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							assetsPerShare: true,
 						},
@@ -232,9 +145,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const assetsPerShare = resolvedEntity.assetsPerShare}
-					{#if assetsPerShare !== undefined && assetsPerShare !== null}
+					{@const assetsPerShare = entity.assetsPerShare}
+					{#if assetsPerShare != null}
 						<div>
 							<dt>Assets per share</dt>
 							<dd>
@@ -249,8 +161,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							sharesPerAsset: true,
 						},
@@ -258,9 +169,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const sharesPerAsset = resolvedEntity.sharesPerAsset}
-					{#if sharesPerAsset !== undefined && sharesPerAsset !== null}
+					{@const sharesPerAsset = entity.sharesPerAsset}
+					{#if sharesPerAsset != null}
 						<div>
 							<dt>Shares per asset</dt>
 							<dd>
@@ -277,8 +187,7 @@
 		<dl data-column-item="center">
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							maxDepositAssets: true,
 						},
@@ -286,9 +195,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const maxDepositAssets = resolvedEntity.maxDepositAssets}
-					{#if maxDepositAssets !== undefined && maxDepositAssets !== null}
+					{@const maxDepositAssets = entity.maxDepositAssets}
+					{#if maxDepositAssets != null}
 						<div>
 							<dt>Max deposit assets</dt>
 							<dd>
@@ -303,8 +211,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							maxMintShares: true,
 						},
@@ -312,9 +219,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const maxMintShares = resolvedEntity.maxMintShares}
-					{#if maxMintShares !== undefined && maxMintShares !== null}
+					{@const maxMintShares = entity.maxMintShares}
+					{#if maxMintShares != null}
 						<div>
 							<dt>Max mint shares</dt>
 							<dd>
@@ -329,8 +235,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							maxWithdrawAssets: true,
 						},
@@ -338,9 +243,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const maxWithdrawAssets = resolvedEntity.maxWithdrawAssets}
-					{#if maxWithdrawAssets !== undefined && maxWithdrawAssets !== null}
+					{@const maxWithdrawAssets = entity.maxWithdrawAssets}
+					{#if maxWithdrawAssets != null}
 						<div>
 							<dt>Max withdraw assets</dt>
 							<dd>
@@ -355,8 +259,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							maxRedeemShares: true,
 						},
@@ -364,9 +267,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const maxRedeemShares = resolvedEntity.maxRedeemShares}
-					{#if maxRedeemShares !== undefined && maxRedeemShares !== null}
+					{@const maxRedeemShares = entity.maxRedeemShares}
+					{#if maxRedeemShares != null}
 						<div>
 							<dt>Max redeem shares</dt>
 							<dd>
@@ -383,8 +285,7 @@
 		<dl data-column-item="center">
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							previewDepositShares: true,
 						},
@@ -392,9 +293,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const previewDepositShares = resolvedEntity.previewDepositShares}
-					{#if previewDepositShares !== undefined && previewDepositShares !== null}
+					{@const previewDepositShares = entity.previewDepositShares}
+					{#if previewDepositShares != null}
 						<div>
 							<dt>Preview deposit shares</dt>
 							<dd>
@@ -409,8 +309,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							previewMintAssets: true,
 						},
@@ -418,9 +317,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const previewMintAssets = resolvedEntity.previewMintAssets}
-					{#if previewMintAssets !== undefined && previewMintAssets !== null}
+					{@const previewMintAssets = entity.previewMintAssets}
+					{#if previewMintAssets != null}
 						<div>
 							<dt>Preview mint assets</dt>
 							<dd>
@@ -435,8 +333,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							previewWithdrawShares: true,
 						},
@@ -444,9 +341,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const previewWithdrawShares = resolvedEntity.previewWithdrawShares}
-					{#if previewWithdrawShares !== undefined && previewWithdrawShares !== null}
+					{@const previewWithdrawShares = entity.previewWithdrawShares}
+					{#if previewWithdrawShares != null}
 						<div>
 							<dt>Preview withdraw shares</dt>
 							<dd>
@@ -461,8 +357,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							previewRedeemAssets: true,
 						},
@@ -470,9 +365,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const previewRedeemAssets = resolvedEntity.previewRedeemAssets}
-					{#if previewRedeemAssets !== undefined && previewRedeemAssets !== null}
+					{@const previewRedeemAssets = entity.previewRedeemAssets}
+					{#if previewRedeemAssets != null}
 						<div>
 							<dt>Preview redeem assets</dt>
 							<dd>

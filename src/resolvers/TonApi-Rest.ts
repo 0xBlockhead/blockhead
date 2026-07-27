@@ -9,30 +9,12 @@ import {
 	EntityMetaKey,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import { NetworkSelector } from '$/schema/Network.ts'
-import { TonAccountSelector } from '$/schema/TonAccount.ts'
-import { TonJettonSelector } from '$/schema/TonJetton.ts'
-import { sourceProviderDefinitions } from '$/sources/$sourceProviders.ts'
 import { Source } from '$/sources/Source.ts'
-import { SourceTargetKind } from '$/sources/SourceBinding.ts'
 
 const tonMainnetCaip2 = {
 	namespace: Caip2Namespace.Ton,
 	reference: Caip2Reference.TonMainnet,
 } as const
-
-const tonApiBindings = sourceProviderDefinitions
-	.flatMap((provider) => provider.bindings)
-	.filter((binding) => (
-		binding.source === Source.TonApi_Rest
-		&& binding.target.kind === SourceTargetKind.Caip2Network
-		&& binding.target.key === `${tonMainnetCaip2.namespace}:${tonMainnetCaip2.reference}`
-	))
-
-if (tonApiBindings.length !== 1)
-	throw new Error('TonApi_Rest: canonical TON mainnet source binding is missing or ambiguous')
-
-const tonApiBinding = tonApiBindings[0]
 
 const tonNetworkApplicability = [
 	{
@@ -83,7 +65,7 @@ const tonRawAddressCoordinates = (address: string) => {
 const tonNetworkTimestamps = async (network: Parameters<typeof assertTonNetwork>[0]) => {
 	assertTonNetwork(network)
 	const { getBlockchainMasterchainHead } = await import('$/sources/TonApi/Rest/queries.ts')
-	const masterchainHead = await getBlockchainMasterchainHead(tonApiBinding)
+	const masterchainHead = await getBlockchainMasterchainHead()
 	const timestampMs = Date.now()
 
 	return [{
@@ -107,11 +89,11 @@ export default {
 		defineResolver(Source.TonApi_Rest, {
 			entityType: EntityType.Network,
 			resolve: {
-				[NetworkSelector.Caip2]: {
+				Caip2: {
 					appliesTo: [tonNetworkApplicability[0]],
 					resolve: tonNetworkTimestamps,
 				},
-				[NetworkSelector.Slug]: {
+				Slug: {
 					appliesTo: [tonNetworkApplicability[1]],
 					resolve: tonNetworkTimestamps,
 				},
@@ -125,12 +107,12 @@ export default {
 		defineResolver(Source.TonApi_Rest, {
 			entityType: EntityType.TonAccount,
 			resolve: {
-				[TonAccountSelector.NetworkAddress]: {
+				NetworkAddress: {
 					resolve: async ({ $network, address }) => {
 						assertTonNetwork($network)
 
 						const { getAccount } = await import('$/sources/TonApi/Rest/queries.ts')
-						const account = await getAccount(tonApiBinding, address)
+						const account = await getAccount(address)
 
 						return {
 							...tonRawAddressCoordinates(account.address),
@@ -164,12 +146,12 @@ export default {
 		defineResolver(Source.TonApi_Rest, {
 			entityType: EntityType.TonJetton,
 			resolve: {
-				[TonJettonSelector.NetworkMasterAddress]: {
+				NetworkMasterAddress: {
 					resolve: async ({ $network, masterAddress }) => {
 						assertTonNetwork($network)
 
 						const { getAccount } = await import('$/sources/TonApi/Rest/queries.ts')
-						const account = await getAccount(tonApiBinding, masterAddress)
+						const account = await getAccount(masterAddress)
 						tonRawAddressCoordinates(account.address)
 
 						return {

@@ -28,16 +28,16 @@
 
 
 <ParentPageCollapsible
-	href={resolve('/nostr')}
+	href={resolve('/(social)/(nostr)/nostr')}
 >
 	{#snippet Summary()}
-		{@const DetailView = GlobalNostrNetworkView}
-
-		<DetailView
-			selection={select(EntityType._GlobalNostrNetwork, data.selector, { sources: [
-	Source.Constants_Internal,
-] })}
-			href={resolve('/nostr')}
+		<GlobalNostrNetworkView
+			selection={
+				select(EntityType._GlobalNostrNetwork, data.selector, { sources: [
+					Source.Constants_Internal,
+				] })
+			}
+			href={resolve('/(social)/(nostr)/nostr')}
 			layout={EntityLayout.SummaryInline}
 		/>
 	{/snippet}

@@ -1,16 +1,13 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { entity, facet } from '$/schema/$schema.ts'
+import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { UrlString } from '$/schema/UrlString.ts'
 import { EvmAddress } from '$/schema/ZeroExHex.ts'
 import { type } from 'arktype'
 
-export enum EigenLayerAvsSelector {
-	NetworkAvsAddress = 'NetworkAvsAddress',
-}
-export const EigenLayerAvs = entity({
+export default entity({
 	entityType: EntityType.EigenLayerAvs,
 	labels: {
 		singular: 'eigen layer avs',
@@ -26,7 +23,7 @@ export const EigenLayerAvs = entity({
 	avsAddress: {
 		label: 'AVS address',
 		type: EntityFieldType.Primitive,
-		primitiveType: (EvmAddress),
+		primitiveType: EvmAddress,
 		cardinality: EntityFieldCardinality.One,
 	},
 	$avsAccount: {
@@ -38,7 +35,7 @@ export const EigenLayerAvs = entity({
 	metadataUri: {
 		label: 'metadata URI',
 		type: EntityFieldType.Primitive,
-		primitiveType: (UrlString),
+		primitiveType: UrlString,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	name: {
@@ -51,7 +48,7 @@ export const EigenLayerAvs = entity({
 	website: {
 		label: 'website',
 		type: EntityFieldType.Primitive,
-		primitiveType: (UrlString),
+		primitiveType: UrlString,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	description: {

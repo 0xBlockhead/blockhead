@@ -16,12 +16,6 @@ import { schema } from '$/schema/index.ts'
 import { MediaType } from '$/schema/Media.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
-import { FarcasterUserSelector } from '$/schema/FarcasterUser.ts'
-import { FarcasterChannelSelector } from '$/schema/FarcasterChannel.ts'
-import { FarcasterChannel_TimestampSelector } from '$/schema/FarcasterChannel_Timestamp.ts'
-import { FarcasterFeedSelector } from '$/schema/FarcasterFeed.ts'
-import { FarcasterCastSelector } from '$/schema/FarcasterCast.ts'
-import { FarcasterNetworkSelector } from '$/schema/FarcasterNetwork.ts'
 
 
 type CastHash = `0x${string}`
@@ -63,7 +57,7 @@ export default {
 		defineResolver(Source.Farcaster_Rest, {
 			entityType: EntityType.FarcasterUser,
 			resolve: {
-				[FarcasterUserSelector.Fid]: {
+				Fid: {
 					resolve: async ({ fid }) => {
 						const { getPrimaryAddress } = await import('$/sources/Farcaster/Rest/queries.ts')
 						const ethRaw = await getPrimaryAddress({ fid })
@@ -148,7 +142,7 @@ export default {
 		defineResolver(Source.Farcaster_Rest, {
 			entityType: EntityType.FarcasterChannel,
 			resolve: {
-				[FarcasterChannelSelector.Id]: {
+				Id: {
 					resolve: async ({ id }) => {
 						const { getChannel } = await import('$/sources/Farcaster/Rest/queries.ts')
 						const channel = await getChannel(id)
@@ -242,7 +236,7 @@ export default {
 		defineResolver(Source.Farcaster_Rest, {
 			entityType: EntityType.FarcasterChannel_Timestamp,
 			resolve: {
-				[FarcasterChannel_TimestampSelector.FarcasterChannelTimestampMs]: {
+				FarcasterChannelTimestampMs: {
 					resolve: async ({ $channel }) => {
 						const {
 							getChannelFollowersCount,
@@ -271,7 +265,7 @@ export default {
 		defineResolver(Source.Farcaster_Rest, {
 			entityType: EntityType.FarcasterCast,
 			resolve: {
-				[FarcasterCastSelector.UsernameHashPrefix]: {
+				UsernameHashPrefix: {
 					resolve: async ({ username, hashPrefix }) => {
 						const { getCastAndDirectRepliesByUsernameAndHashPrefix } = await import('$/sources/Farcaster/Rest/queries.ts')
 						const { cast, directReplies } = await getCastAndDirectRepliesByUsernameAndHashPrefix({
@@ -310,11 +304,6 @@ export default {
 								[EntityMetaKey.Selector]: {
 									fid: cast.author.fid,
 								},
-								...(optionalNonemptyString(cast.author.username) != null && {
-									[EntityMetaKey.Fields]: {
-										[entityFieldAddressKey(EntityType.FarcasterUser, [], 'username')]: optionalNonemptyString(cast.author.username),
-									},
-								}),
 							} satisfies Entity<typeof schema, EntityType.FarcasterUser>,
 							text: optionalNonemptyString(cast.text) ?? '',
 							$parentCast: (
@@ -359,11 +348,6 @@ export default {
 										[entityFieldAddressKey(EntityType.FarcasterCast, [], 'hash')]: zeroXLowerHexCastHash(replyHash),
 										[entityFieldAddressKey(EntityType.FarcasterCast, [], '$author')]: {
 											[EntityMetaKey.Selector]: { fid: reply.author.fid },
-											...(replyUsername != null && {
-												[EntityMetaKey.Fields]: {
-													[entityFieldAddressKey(EntityType.FarcasterUser, [], 'username')]: replyUsername,
-												},
-											}),
 										},
 										[entityFieldAddressKey(EntityType.FarcasterCast, [], 'text')]: optionalNonemptyString(reply.text),
 										[entityFieldAddressKey(EntityType.FarcasterCast, [], '$parentCast')]: {
@@ -412,22 +396,22 @@ export default {
 		defineResolver(Source.Farcaster_Rest, {
 			entityType: EntityType.FarcasterFeed,
 			resolve: {
-				[FarcasterFeedSelector.Variant]: {
+				Variant: {
 					resolve: async ({ variant }) => ({
 						label: variant === 'trending' ? 'Trending' : variant,
 					}),
 				},
-				[FarcasterFeedSelector.ByUser]: {
+				ByUser: {
 					resolve: async ({ fid }) => ({
 						label: `FID ${String(fid)}`,
 					}),
 				},
-				[FarcasterFeedSelector.ByChannel]: {
+				ByChannel: {
 					resolve: async ({ channelId }) => ({
 						label: channelId,
 					}),
 				},
-				[FarcasterFeedSelector.Following]: {
+				Following: {
 					resolve: async () => ({
 						label: 'Following',
 					}),
@@ -440,7 +424,7 @@ export default {
 		defineResolver(Source.Farcaster_Rest, {
 			entityType: EntityType.FarcasterChannel,
 			resolve: {
-				[FarcasterChannelSelector.Id]: {
+				Id: {
 					resolve: async ({ id }) => {
 						const {
 							getChannelFollowersCount,
@@ -460,8 +444,12 @@ export default {
 									$channel: { id },
 									timestampMs: Date.now(),
 								},
-								followerCount,
-								memberCount,
+								[EntityMetaKey.Fields]: {
+									[entityFieldAddressKey(EntityType.FarcasterChannel_Timestamp, [], 'followerCount')]:
+										followerCount,
+									[entityFieldAddressKey(EntityType.FarcasterChannel_Timestamp, [], 'memberCount')]:
+										memberCount,
+								},
 							},
 						]
 					},
@@ -474,7 +462,7 @@ export default {
 		defineResolver(Source.Farcaster_Rest, {
 			entityType: EntityType.FarcasterNetwork,
 			resolve: {
-				[FarcasterNetworkSelector.Scope]: {
+				Scope: {
 					resolve: async () => (
 						[
 							{
@@ -493,7 +481,7 @@ export default {
 		defineResolver(Source.Farcaster_Rest, {
 			entityType: EntityType.FarcasterNetwork,
 			resolve: {
-				[FarcasterNetworkSelector.Scope]: {
+				Scope: {
 					resolve: async (_selector, context) => {
 						const { getAllChannels } = await import('$/sources/Farcaster/Rest/queries.ts')
 						return (await getAllChannels())

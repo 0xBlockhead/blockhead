@@ -8,11 +8,6 @@ import {
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
-import { RssFeedSelector } from '$/schema/RssFeed.ts'
-import { RssFeed_TimestampSelector } from '$/schema/RssFeed_Timestamp.ts'
-import { RssItemSelector } from '$/schema/RssItem.ts'
-import { RssItem_TimestampSelector } from '$/schema/RssItem_Timestamp.ts'
-
 
 export default {
 	source: Source.Rss2Json_Rest,
@@ -21,7 +16,7 @@ export default {
 		defineResolver(Source.Rss2Json_Rest, {
 			entityType: EntityType.RssFeed,
 			resolve: {
-				[RssFeedSelector.FeedUrl]: {
+				FeedUrl: {
 					resolve: async ({ feedUrl: feedUrlSelector }, context) => {
 					const { normalizeRssFeedUrl } = await import('$/sources/Rss/Rest/constants.ts')
 					const { getFeed } = await import('$/sources/Rss2Json/Rest/queries.ts')
@@ -59,7 +54,7 @@ export default {
 		defineResolver(Source.Rss2Json_Rest, {
 			entityType: EntityType.RssItem,
 			resolve: {
-				[RssItemSelector.FeedIdentity]: {
+				FeedIdentity: {
 					resolve: async ({
 						$feed,
 						itemIdentityKind,
@@ -127,7 +122,7 @@ export default {
 		defineResolver(Source.Rss2Json_Rest, {
 			entityType: EntityType.RssFeed,
 			resolve: {
-				[RssFeedSelector.FeedUrl]: {
+				FeedUrl: {
 					resolve: async ({ feedUrl: feedUrlSelector }, context) => {
 					const {
 						normalizeRssFeedUrl,
@@ -158,7 +153,7 @@ export default {
 		defineResolver(Source.Rss2Json_Rest, {
 			entityType: EntityType.RssFeed_Timestamp,
 			resolve: {
-				[RssFeed_TimestampSelector.FeedTimestampMsSource]: {
+				FeedTimestampMsSource: {
 					resolve: async ({
 						$feed,
 						timestampMs,
@@ -210,7 +205,7 @@ export default {
 		defineResolver(Source.Rss2Json_Rest, {
 			entityType: EntityType.RssItem_Timestamp,
 			resolve: {
-				[RssItem_TimestampSelector.ItemTimestampMsSource]: {
+				ItemTimestampMsSource: {
 					resolve: async ({
 						$item,
 						timestampMs,

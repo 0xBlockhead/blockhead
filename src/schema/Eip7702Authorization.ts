@@ -1,15 +1,12 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { entity, facet } from '$/schema/$schema.ts'
+import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { EvmAddress, ZeroExHex } from '$/schema/ZeroExHex.ts'
 import { type } from 'arktype'
 
-export enum Eip7702AuthorizationSelector {
-	TransactionAuthorizationIndex = 'TransactionAuthorizationIndex',
-}
-export const Eip7702Authorization = entity({
+export default entity({
 	entityType: EntityType.Eip7702Authorization,
 	labels: {
 		singular: 'eip7702 authorization',
@@ -38,13 +35,13 @@ export const Eip7702Authorization = entity({
 	delegationAddress: {
 		label: 'delegation address',
 		type: EntityFieldType.Primitive,
-		primitiveType: (EvmAddress),
+		primitiveType: EvmAddress,
 		cardinality: EntityFieldCardinality.One,
 	},
 	authority: {
 		label: 'authority',
 		type: EntityFieldType.Primitive,
-		primitiveType: (EvmAddress),
+		primitiveType: EvmAddress,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	nonce: {
@@ -62,13 +59,13 @@ export const Eip7702Authorization = entity({
 	r: {
 		label: 'r',
 		type: EntityFieldType.Primitive,
-		primitiveType: (ZeroExHex),
+		primitiveType: ZeroExHex,
 		cardinality: EntityFieldCardinality.One,
 	},
 	s: {
 		label: 's',
 		type: EntityFieldType.Primitive,
-		primitiveType: (ZeroExHex),
+		primitiveType: ZeroExHex,
 		cardinality: EntityFieldCardinality.One,
 	},
 	verificationStatus: {

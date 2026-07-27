@@ -1,15 +1,12 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { entity, facet } from '$/schema/$schema.ts'
+import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 import { type } from 'arktype'
 
-export enum CctpMessageSelector {
-	SourceDomainNonce = 'SourceDomainNonce',
-}
-export const CctpMessage = entity({
+export default entity({
 	entityType: EntityType.CctpMessage,
 	labels: {
 		singular: 'CCTP message',
@@ -37,19 +34,19 @@ export const CctpMessage = entity({
 	messageHash: {
 		label: 'Message hash',
 		type: EntityFieldType.Primitive,
-		primitiveType: (ZeroExHex),
+		primitiveType: ZeroExHex,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	messageBytes: {
 		label: 'Message bytes',
 		type: EntityFieldType.Primitive,
-		primitiveType: (ZeroExHex),
+		primitiveType: ZeroExHex,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	sourceTransactionHash: {
 		label: 'Source transaction hash',
 		type: EntityFieldType.Primitive,
-		primitiveType: (ZeroExHex),
+		primitiveType: ZeroExHex,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	sourceLogIndex: {
@@ -139,7 +136,7 @@ export const CctpMessage = entity({
 	hookData: {
 		label: 'Hook data',
 		type: EntityFieldType.Primitive,
-		primitiveType: (ZeroExHex),
+		primitiveType: ZeroExHex,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	minFinalityThreshold: {

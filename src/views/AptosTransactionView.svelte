@@ -2,11 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { stringify } from 'devalue'
 
@@ -20,42 +16,22 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.AptosTransaction>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.AptosTransaction>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.AptosTransaction> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const aptosTransaction = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const aptosTransaction = $derived(selection({
 		fields: {
+			hash: true,
 			transactionKind: true,
-			sender: true,
-		},
-	} : {
-		sources: selection.sources,
-		fields: {
-			transactionKind: true,
+			version: true,
 			sender: true,
 		},
 	}))
-	const titleFallback = $derived([String((pendingEntity.hash) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.version) ?? '')].filter(Boolean).join(' ') || 'aptos transaction')
-	const viewDomId = $derived('aptos-transaction-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const titleFallback = $derived((pendingEntity.hash ?? '') || String(pendingEntity.version ?? '') || 'aptos transaction')
+	const viewDomId = $derived('aptos-transaction-' + encodeURIComponent(stringify(selection.entitySelector)))
 
 
 	// Components
@@ -73,67 +49,40 @@
 
 <EntityView
 	entityType={EntityType.AptosTransaction}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
+	entitySelector={selection.entitySelector}
 	id={viewDomId}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'hash') && Object.hasOwn(prefetched, 'transactionKind') && Object.hasOwn(prefetched, 'version') && Object.hasOwn(prefetched, 'sender')}
-			{@const hash0 = pendingEntity.hash}
-			{#if hash0 !== undefined && hash0 !== null}
-				<TruncatedValue value={String((hash0) ?? '')} />
-			{/if}
-		{:else}
-			<ResourceBoundary resource={aptosTransaction}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const hash0 = resolvedEntity.hash}
-					{#if hash0 !== undefined && hash0 !== null}
-						<TruncatedValue value={String((hash0) ?? '')} />
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={aptosTransaction}>
+			{#snippet children(entity)}
+				<TruncatedValue value={entity.hash} />
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Value()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'hash') && Object.hasOwn(prefetched, 'transactionKind') && Object.hasOwn(prefetched, 'version') && Object.hasOwn(prefetched, 'sender')}
-			{[String((pendingEntity.transactionKind) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.hash) ?? '')].filter(Boolean).join(' ') || titleFallback}
-		{:else}
-			<ResourceBoundary resource={aptosTransaction}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.transactionKind) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.hash) ?? '')].filter(Boolean).join(' ') || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={aptosTransaction}>
+			{#snippet children(entity)}
+				{(entity.transactionKind ?? '') || entity.hash || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'hash') && Object.hasOwn(prefetched, 'transactionKind') && Object.hasOwn(prefetched, 'version') && Object.hasOwn(prefetched, 'sender')}
-			{@const sender0 = pendingEntity.sender}
-			{#if sender0 !== undefined && sender0 !== null}
-				<span data-text="muted">
-					{String((sender0) ?? '')}
-				</span>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={aptosTransaction}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const sender0 = resolvedEntity.sender}
-					{#if sender0 !== undefined && sender0 !== null}
-						<span data-text="muted">
-							{String((sender0) ?? '')}
-						</span>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={aptosTransaction}>
+			{#snippet children(entity)}
+				{@const sender0 = entity.sender}
+				{#if sender0 != null}
+					<span data-text="muted">
+						{sender0}
+					</span>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -153,23 +102,12 @@
 				<dt>version</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									version: true,
-								},
-							})
-						}
+						resource={aptosTransaction}
 					>
 						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const version = resolvedEntity.version}
-							{#if version !== undefined && version !== null}
-								<NumberValue
-									value={version}
-								/>
-							{/if}
+							<NumberValue
+								value={entity.version}
+							/>
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -179,21 +117,10 @@
 				<dt>Hash</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									hash: true,
-								},
-							})
-						}
+						resource={aptosTransaction}
 					>
 						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const hash = resolvedEntity.hash}
-							{#if hash !== undefined && hash !== null}
-								<TruncatedValue value={String((hash) ?? '')} />
-							{/if}
+							<TruncatedValue value={entity.hash} />
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -202,23 +129,15 @@
 
 		<dl data-column-item="center">
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							transactionKind: true,
-						},
-					})
-				}
+				resource={aptosTransaction}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const transactionKind = resolvedEntity.transactionKind}
-					{#if transactionKind !== undefined && transactionKind !== null}
+					{@const transactionKind = entity.transactionKind}
+					{#if transactionKind != null}
 						<div>
 							<dt>transaction kind</dt>
 							<dd>
-								{String((transactionKind) ?? '')}
+								{transactionKind}
 							</dd>
 						</div>
 					{/if}
@@ -226,23 +145,15 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							sender: true,
-						},
-					})
-				}
+				resource={aptosTransaction}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const sender = resolvedEntity.sender}
-					{#if sender !== undefined && sender !== null}
+					{@const sender = entity.sender}
+					{#if sender != null}
 						<div>
 							<dt>sender</dt>
 							<dd>
-								{String((sender) ?? '')}
+								{sender}
 							</dd>
 						</div>
 					{/if}
@@ -260,12 +171,10 @@
 					{
 						id: 'aptos-tx-state-changes',
 						label: 'State changes',
-						ownsSection: true,
 					},
 					{
 						id: 'aptos-tx-events',
 						label: 'Events',
-						ownsSection: true,
 					},
 				]
 			}
@@ -278,136 +187,34 @@
 				</header>
 			{/snippet}
 
-			{#snippet MarkerAptosTxStateChanges(_context, Content)}
-				{@const aptosTxEffectsAptosTxStateChangesResource = selection.$$stateChanges}
-				<ResourceBoundary
-					resource={aptosTxEffectsAptosTxStateChangesResource}
-				>
-					{#snippet children(_resolved)}
-						{@render Content()}
-					{/snippet}
-
-					{#snippet PendingContent()}
-						{@render Content()}
-					{/snippet}
-
-					{#snippet FailedContent(_error, _retry)}
-						{@render Content()}
-					{/snippet}
-				</ResourceBoundary>
+			{#snippet SectionAptosTxStateChanges({ id, label, open })}
+				<AptosStateChangesView
+					selection={selection.$$stateChanges}
+					CollapsibleProps={{ canToggle: false }}
+					collapsible={false}
+					data-column-item="flexible"
+					data-card
+					data-scroll-container
+					open={open}
+					title={label}
+					emptyText='No state changes found.'
+					id={`${id}-list`}
+				/>
 			{/snippet}
 
-			{#snippet SectionAptosTxStateChanges({ id, label, open, active })}
-				{@const aptosTxEffectsAptosTxStateChangesResource = selection.$$stateChanges}
-				<ResourceBoundary
-					resource={aptosTxEffectsAptosTxStateChangesResource}
-				>
-					{#snippet children(aptosStateChange)}
-						<section
-							id={id}
-							aria-labelledby={`${id}:marker`}
-							data-scroll-marker-label={label}
-							data-column-item="flexible"
-							data-column
-							data-active={active}
-						>
-							<AptosStateChangesView
-								selection={aptosTxEffectsAptosTxStateChangesResource}
-								CollapsibleProps={{ canToggle: false }}
-								collapsible={false}
-								data-column-item="flexible"
-								data-card
-								data-scroll-container
-								open={open}
-								title={label}
-								emptyText='No state changes found.'
-								id={`${id}-list`}
-							/>
-						</section>
-					{/snippet}
-
-					{#snippet Pending()}
-						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
-							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
-								<span data-tag data-text="muted" data-resource-state="pending" class="loading inline-placeholder" aria-busy="true" aria-label="Loading…">•••</span>
-							</article>
-						</section>
-					{/snippet}
-
-					{#snippet Failed(_error, _retry)}
-						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
-							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
-								<span data-tag data-resource-state="failed" class="inline-placeholder" aria-label="Failed to load">•••</span>
-							</article>
-						</section>
-					{/snippet}
-				</ResourceBoundary>
-			{/snippet}
-
-			{#snippet MarkerAptosTxEvents(_context, Content)}
-				{@const aptosTxEffectsAptosTxEventsResource = selection.$$events}
-				<ResourceBoundary
-					resource={aptosTxEffectsAptosTxEventsResource}
-				>
-					{#snippet children(_resolved)}
-						{@render Content()}
-					{/snippet}
-
-					{#snippet PendingContent()}
-						{@render Content()}
-					{/snippet}
-
-					{#snippet FailedContent(_error, _retry)}
-						{@render Content()}
-					{/snippet}
-				</ResourceBoundary>
-			{/snippet}
-
-			{#snippet SectionAptosTxEvents({ id, label, open, active })}
-				{@const aptosTxEffectsAptosTxEventsResource = selection.$$events}
-				<ResourceBoundary
-					resource={aptosTxEffectsAptosTxEventsResource}
-				>
-					{#snippet children(aptosEvent)}
-						<section
-							id={id}
-							aria-labelledby={`${id}:marker`}
-							data-scroll-marker-label={label}
-							data-column-item="flexible"
-							data-column
-							data-active={active}
-						>
-							<AptosEventsView
-								selection={aptosTxEffectsAptosTxEventsResource}
-								CollapsibleProps={{ canToggle: false }}
-								collapsible={false}
-								data-column-item="flexible"
-								data-card
-								data-scroll-container
-								open={open}
-								title={label}
-								emptyText='No events found.'
-								id={`${id}-list`}
-							/>
-						</section>
-					{/snippet}
-
-					{#snippet Pending()}
-						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
-							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
-								<span data-tag data-text="muted" data-resource-state="pending" class="loading inline-placeholder" aria-busy="true" aria-label="Loading…">•••</span>
-							</article>
-						</section>
-					{/snippet}
-
-					{#snippet Failed(_error, _retry)}
-						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
-							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
-								<span data-tag data-resource-state="failed" class="inline-placeholder" aria-label="Failed to load">•••</span>
-							</article>
-						</section>
-					{/snippet}
-				</ResourceBoundary>
+			{#snippet SectionAptosTxEvents({ id, label, open })}
+				<AptosEventsView
+					selection={selection.$$events}
+					CollapsibleProps={{ canToggle: false }}
+					collapsible={false}
+					data-column-item="flexible"
+					data-card
+					data-scroll-container
+					open={open}
+					title={label}
+					emptyText='No events found.'
+					id={`${id}-list`}
+				/>
 			{/snippet}
 
 		</CollapsibleTabs>
@@ -420,7 +227,6 @@
 					{
 						id: 'aptos-tx-timestamps',
 						label: 'Observations',
-						ownsSection: true,
 					},
 				]
 			}
@@ -433,70 +239,19 @@
 				</header>
 			{/snippet}
 
-			{#snippet MarkerAptosTxTimestamps(_context, Content)}
-				{@const aptosTxObservationsAptosTxTimestampsResource = selection.$$timestamps}
-				<ResourceBoundary
-					resource={aptosTxObservationsAptosTxTimestampsResource}
-				>
-					{#snippet children(_resolved)}
-						{@render Content()}
-					{/snippet}
-
-					{#snippet PendingContent()}
-						{@render Content()}
-					{/snippet}
-
-					{#snippet FailedContent(_error, _retry)}
-						{@render Content()}
-					{/snippet}
-				</ResourceBoundary>
-			{/snippet}
-
-			{#snippet SectionAptosTxTimestamps({ id, label, open, active })}
-				{@const aptosTxObservationsAptosTxTimestampsResource = selection.$$timestamps}
-				<ResourceBoundary
-					resource={aptosTxObservationsAptosTxTimestampsResource}
-				>
-					{#snippet children(aptosTransactionTimestamp)}
-						<section
-							id={id}
-							aria-labelledby={`${id}:marker`}
-							data-scroll-marker-label={label}
-							data-column-item="flexible"
-							data-column
-							data-active={active}
-						>
-							<AptosTransaction_TimestampsView
-								selection={aptosTxObservationsAptosTxTimestampsResource}
-								CollapsibleProps={{ canToggle: false }}
-								collapsible={false}
-								data-column-item="flexible"
-								data-card
-								data-scroll-container
-								open={open}
-								title={label}
-								emptyText='No observations yet.'
-								id={`${id}-list`}
-							/>
-						</section>
-					{/snippet}
-
-					{#snippet Pending()}
-						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
-							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
-								<span data-tag data-text="muted" data-resource-state="pending" class="loading inline-placeholder" aria-busy="true" aria-label="Loading…">•••</span>
-							</article>
-						</section>
-					{/snippet}
-
-					{#snippet Failed(_error, _retry)}
-						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
-							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
-								<span data-tag data-resource-state="failed" class="inline-placeholder" aria-label="Failed to load">•••</span>
-							</article>
-						</section>
-					{/snippet}
-				</ResourceBoundary>
+			{#snippet SectionAptosTxTimestamps({ id, label, open })}
+				<AptosTransaction_TimestampsView
+					selection={selection.$$timestamps}
+					CollapsibleProps={{ canToggle: false }}
+					collapsible={false}
+					data-column-item="flexible"
+					data-card
+					data-scroll-container
+					open={open}
+					title={label}
+					emptyText='No observations yet.'
+					id={`${id}-list`}
+				/>
 			{/snippet}
 
 		</CollapsibleTabs>

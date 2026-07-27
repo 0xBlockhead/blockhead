@@ -24,14 +24,12 @@ import {
 	SourceTargetKind,
 	WireProtocol,
 } from '$/sources/SourceBinding.ts'
-import { sourceProviders } from '$/sources/$sourceProviders.ts'
+import sourceProviders from '$/sources/$sourceProviders.ts'
 import { auditSourceProviders } from '$/sources/auditSourceProviders.ts'
-import { officialSourceArtifacts } from '$/sources/officialArtifacts.ts'
-import { validateSourceBindings } from '$/sources/validateSourceBindings.ts'
+import officialSourceArtifacts from '$/sources/officialArtifacts.ts'
 
-const sourceBindings = validateSourceBindings(sourceProviders.flatMap((provider) => provider.bindings))
-const browserSourceBindings = validateSourceBindings(
-	sourceBindings.filter((binding) => (
+const sourceBindings = sourceProviders.flatMap((provider) => provider.bindings)
+const browserSourceBindings = sourceBindings.filter((binding) => (
 		(
 			binding.delivery === SourceDelivery.BrowserDirect
 			|| binding.delivery === SourceDelivery.HttpProxy
@@ -44,12 +42,10 @@ const browserSourceBindings = validateSourceBindings(
 			|| credential.scope === SourceCredentialScope.UserDelegated
 		))
 	))
-)
 const remoteLiveBindings = sourceBindings.filter((binding) => binding.delivery === SourceDelivery.RemoteLive)
 const sourceFiles = globSync('src/sources/**/*.ts').filter((file) => (
 	!file.endsWith('.spec.ts')
 	&& file !== 'src/sources/validateSourceRegistry.ts'
-	&& file !== 'src/sources/validateSourceBindings.ts'
 	&& file !== 'src/sources/auditSourceProviders.ts'
 ))
 const sourceRuntimeFiles = sourceFiles.filter((file) => !(

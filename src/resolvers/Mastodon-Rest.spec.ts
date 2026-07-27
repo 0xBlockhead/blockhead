@@ -1,16 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { EntityMetaKey, entityFieldAddressKey } from '$/schema/$schema.ts'
-import { ActivityPubActor_TimestampSelector } from '$/schema/ActivityPubActor_Timestamp.ts'
-import { ActivityPubActorSelector } from '$/schema/ActivityPubActor.ts'
-import { ActivityPubInstanceSelector } from '$/schema/ActivityPubInstance.ts'
-import { ActivityPubInstance_TimestampSelector } from '$/schema/ActivityPubInstance_Timestamp.ts'
-import { ActivityPubNetworkSelector } from '$/schema/ActivityPubNetwork.ts'
-import { ActivityPubNoteSelector } from '$/schema/ActivityPubNote.ts'
-import { ActivityPubNote_TimestampSelector } from '$/schema/ActivityPubNote_Timestamp.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import { _GlobalActivityPubNetworkSelector } from '$/schema/_GlobalActivityPubNetwork.ts'
-import { _GlobalActivityPubNetwork_TimestampSelector } from '$/schema/_GlobalActivityPubNetwork_Timestamp.ts'
 import { Source } from '$/sources/Source.ts'
 
 const {
@@ -52,16 +43,6 @@ vi.mock('$/sources/Mastodon/Rest/queries.ts', () => ({
 	listInstanceModeratedDomains,
 	listInstancePeerDomains,
 	listPublicTimeline,
-}))
-
-vi.mock('$/sources/Mastodon/Rest/client.ts', () => ({
-	mastodonInstanceOrigins: [
-		'https://mastodon.social',
-		'https://fosstodon.org',
-	],
-	mastodonPublicTimelineOrigins: [
-		'https://fosstodon.org',
-	],
 }))
 
 const { default: mastodon } = await import('$/resolvers/Mastodon-Rest.ts')
@@ -111,7 +92,7 @@ describe('Mastodon ActivityPub observations', () => {
 		const notes = await resolver(
 			EntityType.ActivityPubNetwork,
 			'$$activityPubNotes'
-		).resolve[ActivityPubNetworkSelector.Scope].resolve({ scope: 'ActivityPubNetwork' }, {
+		).resolve['Scope'].resolve({ scope: 'ActivityPubNetwork' }, {
 			...context,
 			pagination: { limit: 25 },
 		})
@@ -173,7 +154,7 @@ describe('Mastodon ActivityPub observations', () => {
 			EntityType._GlobalActivityPubNetwork,
 			'$$observedNotes'
 		)
-		const timeline = await definition.resolve[_GlobalActivityPubNetworkSelector.Scope].resolve({
+		const timeline = await definition.resolve['Scope'].resolve({
 			scope: '_GlobalActivityPubNetwork',
 		}, {
 			...context,
@@ -259,7 +240,7 @@ describe('Mastodon ActivityPub observations', () => {
 		if (typeof notes !== 'function' || typeof actors !== 'function')
 			throw new Error('Mastodon-Rest spec missing shared global timeline projections')
 
-		const limitedTimeline = await definition.resolve[_GlobalActivityPubNetworkSelector.Scope].resolve({
+		const limitedTimeline = await definition.resolve['Scope'].resolve({
 			scope: '_GlobalActivityPubNetwork',
 		}, {
 			...context,
@@ -270,7 +251,7 @@ describe('Mastodon ActivityPub observations', () => {
 		expect(listPublicTimeline).toHaveBeenCalledTimes(1)
 
 		listPublicTimeline.mockClear()
-		const emptyTimeline = await definition.resolve[_GlobalActivityPubNetworkSelector.Scope].resolve({
+		const emptyTimeline = await definition.resolve['Scope'].resolve({
 			scope: '_GlobalActivityPubNetwork',
 		}, {
 			...context,
@@ -313,7 +294,7 @@ describe('Mastodon ActivityPub observations', () => {
 		]) {
 			listPublicTimeline.mockResolvedValueOnce([status])
 
-			const timeline = await definition.resolve[_GlobalActivityPubNetworkSelector.Scope].resolve({
+			const timeline = await definition.resolve['Scope'].resolve({
 				scope: '_GlobalActivityPubNetwork',
 			}, context)
 			expect(actors(timeline)).toEqual([])
@@ -331,7 +312,7 @@ describe('Mastodon ActivityPub observations', () => {
 		const observations = await resolver(
 			EntityType._GlobalActivityPubNetwork,
 			'$$timestamps'
-		).resolve[_GlobalActivityPubNetworkSelector.Scope].resolve({
+		).resolve['Scope'].resolve({
 			scope: '_GlobalActivityPubNetwork',
 		}, context)
 
@@ -361,7 +342,7 @@ describe('Mastodon ActivityPub observations', () => {
 		const observations = await resolver(
 			EntityType._GlobalActivityPubNetwork,
 			'$$timestamps'
-		).resolve[_GlobalActivityPubNetworkSelector.Scope].resolve({
+		).resolve['Scope'].resolve({
 			scope: '_GlobalActivityPubNetwork',
 		}, context)
 
@@ -376,7 +357,7 @@ describe('Mastodon ActivityPub observations', () => {
 		const observation = resolver(EntityType._GlobalActivityPubNetwork_Timestamp)
 
 		await expect(observation.resolve[
-			_GlobalActivityPubNetwork_TimestampSelector.HubTimestampMsSource
+			'HubTimestampMsSource'
 		].resolve({
 			$hub: {
 				scope: '_GlobalActivityPubNetwork',
@@ -394,7 +375,7 @@ describe('Mastodon ActivityPub observations', () => {
 		})
 		expect(getInstance).not.toHaveBeenCalled()
 		await expect(observation.resolve[
-			_GlobalActivityPubNetwork_TimestampSelector.HubTimestampMsSource
+			'HubTimestampMsSource'
 		].resolve({
 			$hub: {
 				scope: '_GlobalActivityPubNetwork',
@@ -423,8 +404,8 @@ describe('Mastodon ActivityPub observations', () => {
 		const observations = await resolver(
 			EntityType.ActivityPubInstance,
 			'$$timestamps'
-		).resolve[ActivityPubInstanceSelector.InstanceOrigin].resolve({
-			instanceOrigin: 'https://instance-one.example',
+		).resolve['InstanceOrigin'].resolve({
+			instanceOrigin: 'https://mastodon.social',
 		}, context)
 
 		expect(getInstance).toHaveBeenCalledTimes(1)
@@ -433,7 +414,7 @@ describe('Mastodon ActivityPub observations', () => {
 		expect(observations).toHaveLength(1)
 		expect(observations[0][EntityMetaKey.Selector]).toEqual({
 			$instance: {
-				instanceOrigin: 'https://instance-one.example',
+				instanceOrigin: 'https://mastodon.social',
 			},
 			timestampMs: 1_700_000_000_000,
 			source: Source.Mastodon_Rest,
@@ -467,8 +448,8 @@ describe('Mastodon ActivityPub observations', () => {
 		await expect(resolver(
 			EntityType.ActivityPubInstance,
 			'$$timestamps'
-		).resolve[ActivityPubInstanceSelector.InstanceOrigin].resolve({
-			instanceOrigin: 'https://metadata.example',
+		).resolve['InstanceOrigin'].resolve({
+			instanceOrigin: 'https://mastodon.social',
 		}, context)).rejects.toThrow('peers unavailable')
 
 		expect(getInstance).toHaveBeenCalledTimes(1)
@@ -484,26 +465,26 @@ describe('Mastodon ActivityPub observations', () => {
 		await expect(resolver(
 			EntityType.ActivityPubInstance,
 			'$$timestamps'
-		).resolve[ActivityPubInstanceSelector.InstanceOrigin].resolve({
-			instanceOrigin: 'https://required.example',
+		).resolve['InstanceOrigin'].resolve({
+			instanceOrigin: 'https://mastodon.social',
 		}, context)).rejects.toThrow('instance metadata unavailable')
 	})
 
 	it('converges local, acct, and ActivityStreams actor selectors on one source-shaped identity', async () => {
 		const account = {
 			id: 'actor-17',
-			uri: 'https://actor-origin.example/users/alice',
+			uri: 'https://mastodon.social/users/alice',
 			username: 'alice',
 			acct: 'alice@federation.example',
 			display_name: 'Alice',
 		}
 		getAccountByLocalAccountId.mockImplementation(async (_publicEnv, instanceOrigin, localAccountId) => {
-			if (instanceOrigin !== 'https://actor-origin.example' || localAccountId !== 'actor-17')
+			if (instanceOrigin !== 'https://mastodon.social' || localAccountId !== 'actor-17')
 				throw new Error('unknown local actor request')
 			return account
 		})
 		getAccountByAcct.mockImplementation(async (_publicEnv, instanceOrigin, acct) => {
-			if (instanceOrigin !== 'https://actor-origin.example' || acct !== 'alice@federation.example')
+			if (instanceOrigin !== 'https://mastodon.social' || acct !== 'alice@federation.example')
 				throw new Error('unknown acct actor request')
 			return account
 		})
@@ -514,42 +495,42 @@ describe('Mastodon ActivityPub observations', () => {
 		})
 		const actor = resolver(EntityType.ActivityPubActor, 'activityStreamsUri')
 
-		const local = await actor.resolve[ActivityPubActorSelector.LocalAccountId].resolve({
-			instanceOrigin: 'https://actor-origin.example',
+		const local = await actor.resolve['LocalAccountId'].resolve({
+			instanceOrigin: 'https://mastodon.social',
 			localAccountId: 'actor-17',
 		}, context)
-		const acct = await actor.resolve[ActivityPubActorSelector.Acct].resolve({
-			instanceOrigin: 'https://actor-origin.example',
+		const acct = await actor.resolve['Acct'].resolve({
+			instanceOrigin: 'https://mastodon.social',
 			acct: 'alice@federation.example',
 		}, context)
-		const activityStreams = await actor.resolve[ActivityPubActorSelector.ActivityStreamsUri].resolve({
+		const activityStreams = await actor.resolve['ActivityStreamsUri'].resolve({
 			activityStreamsUri: account.uri,
 		}, context)
 
 		expect(local).toEqual(acct)
 		expect(acct).toEqual(activityStreams)
 		expect(local).toMatchObject({
-			instanceOrigin: 'https://actor-origin.example',
+			instanceOrigin: 'https://mastodon.social',
 			localAccountId: 'actor-17',
 			activityStreamsUri: account.uri,
 		})
 		expect(getAccountByLocalAccountId).toHaveBeenCalledTimes(1)
 		expect(getAccountByAcct).toHaveBeenCalledTimes(1)
 		expect(getAccountByActivityStreamsUri).toHaveBeenCalledTimes(1)
-		await expect(actor.resolve[ActivityPubActorSelector.ActivityStreamsUri].resolve({
-			activityStreamsUri: 'https://unknown-actor.example/users/mallory',
+		await expect(actor.resolve['ActivityStreamsUri'].resolve({
+			activityStreamsUri: 'https://mastodon.social/users/mallory',
 		}, context)).rejects.toThrow('unknown ActivityStreams actor request')
 	})
 
 	it('maps source-shaped note author, reply, boost, and media relations to typed entity references', async () => {
 		const status = {
 			id: 'note-9',
-			uri: 'https://note-origin.example/users/alice/statuses/note-9',
+			uri: 'https://fosstodon.org/users/alice/statuses/note-9',
 			content: '<p>Hello federation</p>',
 			created_at: '2026-07-16T12:00:00.000Z',
 			account: {
 				id: 'actor-17',
-				uri: 'https://actor-origin.example/users/alice',
+				uri: 'https://mastodon.social/users/alice',
 				username: 'alice',
 				acct: 'alice@federation.example',
 				display_name: 'Alice Example',
@@ -570,7 +551,7 @@ describe('Mastodon ActivityPub observations', () => {
 			}],
 		}
 		getStatus.mockImplementation(async (_publicEnv, instanceOrigin, localStatusId) => {
-			if (instanceOrigin !== 'https://note-origin.example' || localStatusId !== 'note-9')
+			if (instanceOrigin !== 'https://fosstodon.org' || localStatusId !== 'note-9')
 				throw new Error('unknown local note request')
 			return status
 		})
@@ -581,21 +562,21 @@ describe('Mastodon ActivityPub observations', () => {
 		})
 		const note = resolver(EntityType.ActivityPubNote, 'content')
 
-		const local = await note.resolve[ActivityPubNoteSelector.InstanceOriginLocalStatusId].resolve({
-			instanceOrigin: 'https://note-origin.example',
+		const local = await note.resolve['InstanceOriginLocalStatusId'].resolve({
+			instanceOrigin: 'https://fosstodon.org',
 			localStatusId: 'note-9',
 		}, context)
-		const activityStreams = await note.resolve[ActivityPubNoteSelector.ActivityStreamsUri].resolve({
+		const activityStreams = await note.resolve['ActivityStreamsUri'].resolve({
 			activityStreamsUri: status.uri,
 		}, context)
 
 		expect(local).toEqual(activityStreams)
 		expect(local.$author).toMatchObject({
 			[EntityMetaKey.Selector]: {
-				activityStreamsUri: 'https://actor-origin.example/users/alice',
+				activityStreamsUri: 'https://mastodon.social/users/alice',
 			},
 			[EntityMetaKey.Fields]: {
-				[entityFieldAddressKey(EntityType.ActivityPubActor, [], 'instanceOrigin')]: 'https://note-origin.example',
+				[entityFieldAddressKey(EntityType.ActivityPubActor, [], 'instanceOrigin')]: 'https://fosstodon.org',
 				[entityFieldAddressKey(EntityType.ActivityPubActor, [], 'localAccountId')]: 'actor-17',
 				[entityFieldAddressKey(EntityType.ActivityPubActor, [], 'username')]: 'alice',
 				[entityFieldAddressKey(EntityType.ActivityPubActor, [], 'acct')]: 'alice@federation.example',
@@ -605,7 +586,7 @@ describe('Mastodon ActivityPub observations', () => {
 		})
 		expect(local.$inReplyTo).toEqual({
 			[EntityMetaKey.Selector]: {
-				instanceOrigin: 'https://note-origin.example',
+				instanceOrigin: 'https://fosstodon.org',
 				localStatusId: 'note-8',
 			},
 		})
@@ -617,55 +598,55 @@ describe('Mastodon ActivityPub observations', () => {
 		expect(local.$$media).toHaveLength(1)
 		expect(getStatus).toHaveBeenCalledTimes(1)
 		expect(getStatusByActivityStreamsUri).toHaveBeenCalledTimes(1)
-		await expect(note.resolve[ActivityPubNoteSelector.ActivityStreamsUri].resolve({
-			activityStreamsUri: 'https://unknown-note.example/users/mallory/statuses/1',
+		await expect(note.resolve['ActivityStreamsUri'].resolve({
+			activityStreamsUri: 'https://fosstodon.org/users/mallory/statuses/1',
 		}, context)).rejects.toThrow('unknown ActivityStreams note request')
 	})
 
 	it('rejects source payloads whose actor or note identity differs from the requested subject', async () => {
 		getAccountByLocalAccountId.mockResolvedValueOnce({
 			id: 'different',
-			uri: 'https://actor-origin.example/users/alice',
+			uri: 'https://mastodon.social/users/alice',
 			acct: 'alice',
 		})
 		getAccountByAcct.mockResolvedValueOnce({
 			id: 'actor-17',
-			uri: 'https://actor-origin.example/users/alice',
+			uri: 'https://mastodon.social/users/alice',
 			acct: 'different',
 		})
 		getAccountByActivityStreamsUri.mockResolvedValueOnce({
 			id: 'actor-17',
-			uri: 'https://actor-origin.example/users/different',
+			uri: 'https://mastodon.social/users/different',
 			acct: 'alice',
 		})
 		getStatus.mockResolvedValueOnce({
 			id: 'different',
-			uri: 'https://note-origin.example/users/alice/statuses/note-9',
+			uri: 'https://fosstodon.org/users/alice/statuses/note-9',
 		})
 		getStatusByActivityStreamsUri.mockResolvedValueOnce({
 			id: 'note-9',
-			uri: 'https://note-origin.example/users/alice/statuses/different',
+			uri: 'https://fosstodon.org/users/alice/statuses/different',
 		})
 		const actor = resolver(EntityType.ActivityPubActor, 'activityStreamsUri')
 		const note = resolver(EntityType.ActivityPubNote, 'activityStreamsUri')
 
-		await expect(actor.resolve[ActivityPubActorSelector.LocalAccountId].resolve({
-			instanceOrigin: 'https://actor-origin.example',
+		await expect(actor.resolve['LocalAccountId'].resolve({
+			instanceOrigin: 'https://mastodon.social',
 			localAccountId: 'actor-17',
 		}, context)).rejects.toThrow('local account subject')
-		await expect(actor.resolve[ActivityPubActorSelector.Acct].resolve({
-			instanceOrigin: 'https://actor-origin.example',
+		await expect(actor.resolve['Acct'].resolve({
+			instanceOrigin: 'https://mastodon.social',
 			acct: 'alice',
 		}, context)).rejects.toThrow('acct subject')
-		await expect(actor.resolve[ActivityPubActorSelector.ActivityStreamsUri].resolve({
-			activityStreamsUri: 'https://actor-origin.example/users/alice',
+		await expect(actor.resolve['ActivityStreamsUri'].resolve({
+			activityStreamsUri: 'https://mastodon.social/users/alice',
 		}, context)).rejects.toThrow('ActivityStreams subject')
-		await expect(note.resolve[ActivityPubNoteSelector.InstanceOriginLocalStatusId].resolve({
-			instanceOrigin: 'https://note-origin.example',
+		await expect(note.resolve['InstanceOriginLocalStatusId'].resolve({
+			instanceOrigin: 'https://fosstodon.org',
 			localStatusId: 'note-9',
 		}, context)).rejects.toThrow('local status subject')
-		await expect(note.resolve[ActivityPubNoteSelector.ActivityStreamsUri].resolve({
-			activityStreamsUri: 'https://note-origin.example/users/alice/statuses/note-9',
+		await expect(note.resolve['ActivityStreamsUri'].resolve({
+			activityStreamsUri: 'https://fosstodon.org/users/alice/statuses/note-9',
 		}, context)).rejects.toThrow('ActivityStreams subject')
 	})
 
@@ -696,7 +677,7 @@ describe('Mastodon ActivityPub observations', () => {
 
 		const definition = resolver(EntityType.ActivityPubActor, '$$notes')
 		const page = await definition.resolve[
-			ActivityPubActorSelector.LocalAccountId
+			'LocalAccountId'
 		].resolve({
 			instanceOrigin: 'https://mastodon.social',
 			localAccountId: '13179',
@@ -713,7 +694,7 @@ describe('Mastodon ActivityPub observations', () => {
 			'https://mastodon.social',
 			'13179',
 			3,
-			'https://mastodon.social/api/v1/accounts/13179/statuses?max_id=previous%2B%2F%3D',
+			'https://mastodon.social/api/v1/accounts/13179/statuses?max_id=previous%2B%2F%3D'
 		)
 		if (typeof definition.projections.$$notes === 'function')
 			throw new Error('Mastodon spec missing authored notes continuation')
@@ -795,13 +776,13 @@ describe('Mastodon ActivityPub observations', () => {
 		const resolveObservation = resolver(
 			EntityType.ActivityPubInstance,
 			'$$timestamps'
-		).resolve[ActivityPubInstanceSelector.InstanceOrigin].resolve
+		).resolve['InstanceOrigin'].resolve
 
 		const first = (await resolveObservation({
-			instanceOrigin: 'https://history.example',
+			instanceOrigin: 'https://mastodon.social',
 		}, context))[0]
 		const second = (await resolveObservation({
-			instanceOrigin: 'https://history.example',
+			instanceOrigin: 'https://mastodon.social',
 		}, context))[0]
 
 		expect(first[EntityMetaKey.Selector]).toMatchObject({
@@ -847,7 +828,7 @@ describe('Mastodon ActivityPub observations', () => {
 		const instance = resolver(EntityType.ActivityPubInstance_Timestamp)
 
 		expect(actor.resolve[
-			ActivityPubActor_TimestampSelector.ActivityPubActorTimestampMsSource
+			'ActivityPubActorTimestampMsSource'
 		].resolve({
 			$actor: {
 				activityStreamsUri: 'https://actor.example/users/alice',
@@ -858,7 +839,7 @@ describe('Mastodon ActivityPub observations', () => {
 			timestampMs: 1,
 		})
 		expect(note.resolve[
-			ActivityPubNote_TimestampSelector.ActivityPubNoteTimestampMsSource
+			'ActivityPubNoteTimestampMsSource'
 		].resolve({
 			$note: {
 				activityStreamsUri: 'https://note.example/users/alice/statuses/1',
@@ -869,7 +850,7 @@ describe('Mastodon ActivityPub observations', () => {
 			timestampMs: 1,
 		})
 		expect(instance.resolve[
-			ActivityPubInstance_TimestampSelector.InstanceTimestampMsSource
+			'InstanceTimestampMsSource'
 		].resolve({
 			$instance: {
 				instanceOrigin: 'https://instance.example',
@@ -899,7 +880,7 @@ describe('Mastodon ActivityPub observations', () => {
 			source: Source.Constants_Internal,
 		})
 		expect(() => resolver(EntityType.ActivityPubInstance_Timestamp).resolve[
-			ActivityPubInstance_TimestampSelector.InstanceTimestampMsSource
+			'InstanceTimestampMsSource'
 		].resolve({
 			...selector,
 			source: Source.Constants_Internal,

@@ -5,10 +5,10 @@ import { error } from '@sveltejs/kit'
 import { networkByCaip2, networkBySlug } from '$/constants/Network.ts'
 import { match as matchNonNegativeInteger } from '$/params/nonNegativeInteger.ts'
 import { parseEntitySelector, type EntitySelectorForSelectorName } from '$/schema/$schema.ts'
-import { CardanoTxInput as CardanoTxInputSchema } from '$/schema/CardanoTxInput.ts'
+import CardanoTxInputSchema from '$/schema/CardanoTxInput.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { schema } from '$/schema/index.ts'
-import { UtxoInput as UtxoInputSchema } from '$/schema/UtxoInput.ts'
+import UtxoInputSchema from '$/schema/UtxoInput.ts'
 import { type as arktype } from 'arktype'
 
 export const load: PageLoad = async ({ params, parent }) => {

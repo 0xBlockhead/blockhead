@@ -8,14 +8,12 @@
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		data,
-		params,
 	}: PageProps = $props()
 
 	const pageSelection = $derived(select(EntityType.MevRelay_ProposerPayloadDelivered, data.selector, {
@@ -36,20 +34,12 @@
 
 
 <svelte:head>
-	<title>{(data.title ?? (pageSelection.entity == null ? [(String((data.selector.slot) ?? '') ? 'Slot ' + String((data.selector.slot) ?? '') : '')].filter(Boolean).join(' ') || 'MEV relay proposer payload delivered' : [(String((({ ...data.selector, ...pageSelection.entity }).slot) ?? '') ? 'Slot ' + String((({ ...data.selector, ...pageSelection.entity }).slot) ?? '') : ''), (String((({ ...data.selector, ...pageSelection.entity }).value) ?? '') ? String((({ ...data.selector, ...pageSelection.entity }).value) ?? '') + ' wei' : '')].filter(Boolean).join(' ') || 'MEV relay proposer payload delivered'))} • MEV relay proposer payload delivered • Blockhead</title>
+	<title>{(data.title ?? (pageSelection.entity == null ? (String(pageSelection.entitySelector.slot ?? '') ? 'Slot ' + String(pageSelection.entitySelector.slot ?? '') : '') || 'MEV relay proposer payload delivered' : ([(String(pageSelection.entitySelector.slot) ? 'Slot ' + String(pageSelection.entitySelector.slot) : ''), (String(pageSelection.entity.value ?? '') ? String(pageSelection.entity.value ?? '') + ' wei' : '')].filter(Boolean).join(' ')) || 'MEV relay proposer payload delivered'))} • MEV relay proposer payload delivered • Blockhead</title>
 </svelte:head>
 
 
 <Page>
 	<MevRelay_ProposerPayloadDeliveredView
-		href={
-			resolve('/network/[network=networkCaip2OrNetworkSlug]/mev/payload/[relayHost=stringSegment]/[slot=nonNegativeInteger]/[blockHash=zeroExHex]', {
-				network: params.network,
-				relayHost: params.relayHost,
-				slot: params.slot,
-				blockHash: params.blockHash,
-			})
-		}
 		selection={pageSelection}
 	/>
 </Page>

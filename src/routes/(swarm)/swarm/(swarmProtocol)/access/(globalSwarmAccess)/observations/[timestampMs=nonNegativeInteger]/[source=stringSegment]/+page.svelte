@@ -4,11 +4,9 @@
 	// Types/constants
 	import type { PageProps } from './$types.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
@@ -48,18 +46,12 @@
 
 
 <svelte:head>
-	<title>{(pageSelection.entity == null ? 'global Swarm access timestamp' : 'global Swarm access timestamp')} • global Swarm access timestamp • Blockhead</title>
+	<title>{('global Swarm access timestamp')} • global Swarm access timestamp • Blockhead</title>
 </svelte:head>
 
 
 <Page>
 	<GlobalSwarmAccess_TimestampView
-		href={
-			resolve('/swarm/access/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
-				timestampMs: params.timestampMs,
-				source: params.source,
-			})
-		}
 		selection={pageSelection}
 	/>
 </Page>

@@ -8,7 +8,6 @@
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
@@ -43,23 +42,12 @@
 
 
 <svelte:head>
-	<title>{(pageSelection.entity == null ? [String(({
-		eventId: params.eventId,
-	}.eventId) ?? '')].filter(Boolean).join(' ') || 'Nostr reaction' : [String((({ ...{
-		eventId: params.eventId,
-	}, ...pageSelection.entity }).content) ?? '')].filter(Boolean).join(' ') || [String((({ ...{
-		eventId: params.eventId,
-	}, ...pageSelection.entity }).eventId) ?? '')].filter(Boolean).join(' ') || 'Nostr reaction')} • Nostr reaction • Blockhead</title>
+	<title>{(pageSelection.entity == null ? (pageSelection.entitySelector.eventId ?? '') || 'Nostr reaction' : (pageSelection.entity.content ?? '') || pageSelection.entitySelector.eventId || 'Nostr reaction')} • Nostr reaction • Blockhead</title>
 </svelte:head>
 
 
 <Page>
 	<NostrReactionView
-		href={
-			resolve('/nostr/reaction/[eventId=stringSegment]', {
-				eventId: params.eventId,
-			})
-		}
 		selection={pageSelection}
 	/>
 </Page>

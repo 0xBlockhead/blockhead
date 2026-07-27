@@ -3,7 +3,6 @@ import {
 } from '$/resolvers/defineResolver.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
-import { BeaconEpochSelector } from '$/schema/BeaconEpoch.ts'
 
 export default {
 	source: Source.BeaconchaIn_Rest,
@@ -12,18 +11,15 @@ export default {
 		defineResolver(Source.BeaconchaIn_Rest, {
 			entityType: EntityType.BeaconEpoch,
 			resolve: {
-				[BeaconEpochSelector.EvmNetworkEpoch]: {
+				EvmNetworkEpoch: {
 					resolve: async ({ $network, epoch: epochSelector }, context) => {
-					const {
-						beaconchaInApiBaseByExecutionChainId,
-					} = await import('$/sources/BeaconchaIn/Rest/constants.ts')
 					const {
 						getEpoch,
 					} = await import('$/sources/BeaconchaIn/Rest/queries.ts')
 					const epoch = await getEpoch(
 						context.publicEnv,
 						{
-							apiBase: beaconchaInApiBaseByExecutionChainId[Number($network.caip2.reference)],
+							chainId: Number($network.caip2.reference),
 							epoch: epochSelector,
 						}
 					)

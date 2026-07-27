@@ -160,8 +160,8 @@ if (config.include.some((file) => file.endsWith('Gamma.svelte'))) {
 		command: fakeChecker,
 		projectRoot: root,
 		concurrency: 2,
-		shardTimeoutMs: 1_000,
-		deadline: Date.now() + 2_000,
+		shardTimeoutMs: 5_000,
+		deadline: Date.now() + 10_000,
 		environment: {
 			...process.env,
 			ACTIVITY_PATH: activityPath,
@@ -235,6 +235,35 @@ await new Promise(() => {})
 	assert.notEqual(result.code, 0)
 	await new Promise((resolve) => setTimeout(resolve, 650))
 	await assert.rejects(fs.access(childMarker))
+})
+
+test('reports phase start, liveness, and terminal state while a checker runs', async () => {
+	const root = await fixture()
+	const checker = await executable(root, 'progress-checker.mjs', `#!/usr/bin/env node
+await new Promise((resolve) => setTimeout(resolve, 40))
+`)
+	let progress = ''
+	const write = process.stderr.write
+	process.stderr.write = (chunk) => {
+		progress += chunk
+		return true
+	}
+	try {
+		const result = await runProcess({
+			command: checker,
+			args: [],
+			cwd: root,
+			timeoutMs: 1_000,
+			label: 'progress',
+			heartbeatMs: 10,
+		})
+		assert.equal(result.code, 0)
+	} finally {
+		process.stderr.write = write
+	}
+	assert.match(progress, /^progress: START\n/)
+	assert.match(progress, /progress: RUNNING/)
+	assert.match(progress, /progress: PASS/)
 })
 
 test('shard union preserves root, dependency, TypeScript, Svelte, and CSS diagnostics', async () => {

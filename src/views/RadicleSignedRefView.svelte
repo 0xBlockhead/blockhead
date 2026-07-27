@@ -2,13 +2,9 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
 
 
 	// Context
@@ -20,35 +16,13 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.RadicleSignedRef>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.RadicleSignedRef>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.RadicleSignedRef> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const radicleSignedRef = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {},
-	} : {
-		sources: selection.sources,
-	}))
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const titleFallback = 'radicle signed ref'
-	const viewDomId = $derived('radicle-signed-ref-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -62,24 +36,14 @@
 
 <EntityView
 	entityType={EntityType.RadicleSignedRef}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails}
-			{title || titleFallback}
-		{:else}
-			<ResourceBoundary resource={radicleSignedRef}>
-				{#snippet children(entity)}
-					{title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		radicle signed ref
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -98,48 +62,14 @@
 			<div>
 				<dt>node ID</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									nodeId: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const nodeId = resolvedEntity.nodeId}
-							{#if nodeId !== undefined && nodeId !== null}
-								{String((nodeId) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{pendingEntity.nodeId}
 				</dd>
 			</div>
 
 			<div>
 				<dt>ref name</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									refName: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const refName = resolvedEntity.refName}
-							{#if refName !== undefined && refName !== null}
-								{String((refName) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{pendingEntity.refName}
 				</dd>
 			</div>
 
@@ -149,7 +79,6 @@
 					<ResourceBoundary
 						resource={
 							selection({
-								sources: selection.sources,
 								fields: {
 									targetObjectId: true,
 								},
@@ -157,11 +86,7 @@
 						}
 					>
 						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const targetObjectId = resolvedEntity.targetObjectId}
-							{#if targetObjectId !== undefined && targetObjectId !== null}
-								{String((targetObjectId) ?? '')}
-							{/if}
+							{entity.targetObjectId}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -170,7 +95,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							signature: true,
 						},
@@ -178,13 +102,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const signature = resolvedEntity.signature}
-					{#if signature !== undefined && signature !== null}
+					{@const signature = entity.signature}
+					{#if signature != null}
 						<div>
 							<dt>signature</dt>
 							<dd>
-								<TruncatedValue value={String((signature) ?? '')} />
+								<TruncatedValue value={signature} />
 							</dd>
 						</div>
 					{/if}
@@ -195,7 +118,7 @@
 				resource={selection.$gitRef}
 			>
 				{#snippet children(gitRef)}
-					{#if gitRef != null && gitRef[EntityMetaKey.Selector] != null}
+					{#if gitRef != null}
 						<div>
 							<dt>Git ref</dt>
 							<dd>
@@ -215,7 +138,7 @@
 				resource={selection.$refObservation}
 			>
 				{#snippet children(gitRefObservationTimestamp)}
-					{#if gitRefObservationTimestamp != null && gitRefObservationTimestamp[EntityMetaKey.Selector] != null}
+					{#if gitRefObservationTimestamp != null}
 						<div>
 							<dt>ref observation</dt>
 							<dd>

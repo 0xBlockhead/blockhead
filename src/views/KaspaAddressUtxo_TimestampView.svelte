@@ -2,15 +2,10 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
-	import { caip2StringFromValue } from '$/lib/caip2.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -22,35 +17,21 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.KaspaAddressUtxo_Timestamp>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.KaspaAddressUtxo_Timestamp>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.KaspaAddressUtxo_Timestamp> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const kaspaAddressUtxoTimestamp = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {},
-	} : {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const viewSelection = $derived(selection({
+		sources: selection.sources ?? [
+			Source.KaspaExplorer_Rest,
+			Source.KaspaNode_Grpc,
+			Source.KaspaNode_Rest,
+			Source.KaspaNode_Wrpc,
+		],
 	}))
 	const titleFallback = 'kaspa address UTXO timestamp'
-	const viewDomId = $derived('kaspa-address-utxo-timestamp-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -66,24 +47,14 @@
 
 <EntityView
 	entityType={EntityType.KaspaAddressUtxo_Timestamp}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails}
-			{title || titleFallback}
-		{:else}
-			<ResourceBoundary resource={kaspaAddressUtxoTimestamp}>
-				{#snippet children(entity)}
-					{title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		kaspa address UTXO timestamp
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -102,105 +73,36 @@
 			<div>
 				<dt>outpoint transaction ID</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									outpointTransactionId: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const outpointTransactionId = resolvedEntity.outpointTransactionId}
-							{#if outpointTransactionId !== undefined && outpointTransactionId !== null}
-								{String((outpointTransactionId) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{pendingEntity.outpointTransactionId}
 				</dd>
 			</div>
 
 			<div>
 				<dt>outpoint index</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									outpointIndex: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const outpointIndex = resolvedEntity.outpointIndex}
-							{#if outpointIndex !== undefined && outpointIndex !== null}
-								<NumberValue
-									value={outpointIndex}
-								/>
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					<NumberValue
+						value={pendingEntity.outpointIndex}
+					/>
 				</dd>
 			</div>
 
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									timestampMs: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const timestampMs = resolvedEntity.timestampMs}
-							{#if timestampMs !== undefined && timestampMs !== null}
-								<Timestamp timestamp={Number(timestampMs)} />
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									source: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const source = resolvedEntity.source}
-							{#if source !== undefined && source !== null}
-								{String((source) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{pendingEntity.source}
 				</dd>
 			</div>
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							amountSompi: true,
 						},
@@ -208,9 +110,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const amountSompi = resolvedEntity.amountSompi}
-					{#if amountSompi !== undefined && amountSompi !== null}
+					{@const amountSompi = entity.amountSompi}
+					{#if amountSompi != null}
 						<div>
 							<dt>amount sompi</dt>
 							<dd>
@@ -227,8 +128,7 @@
 		<dl data-column-item="center">
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							blockDaaScore: true,
 						},
@@ -236,9 +136,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const blockDaaScore = resolvedEntity.blockDaaScore}
-					{#if blockDaaScore !== undefined && blockDaaScore !== null}
+					{@const blockDaaScore = entity.blockDaaScore}
+					{#if blockDaaScore != null}
 						<div>
 							<dt>block daa score</dt>
 							<dd>
@@ -253,8 +152,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							isCoinbase: true,
 						},
@@ -262,9 +160,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const isCoinbase = resolvedEntity.isCoinbase}
-					{#if isCoinbase !== undefined && isCoinbase !== null}
+					{@const isCoinbase = entity.isCoinbase}
+					{#if isCoinbase != null}
 						<div>
 							<dt>is coinbase</dt>
 							<dd>
@@ -279,42 +176,13 @@
 				resource={selection.$output}
 			>
 				{#snippet children(utxoOutput)}
-					{#if utxoOutput != null && utxoOutput[EntityMetaKey.Selector] != null}
+					{#if utxoOutput != null}
 						<div>
 							<dt>output</dt>
 							<dd>
 								<UtxoOutputView
 									selection={select(EntityType.UtxoOutput, utxoOutput[EntityMetaKey.Selector])}
 									prefetched={utxoOutput}
-									href={
-										(
-											utxoOutput[EntityMetaKey.Selector] != null && 'indexInTransaction' in utxoOutput[EntityMetaKey.Selector]
-											&& utxoOutput[EntityMetaKey.Selector].indexInTransaction != null
-											&& utxoOutput[EntityMetaKey.Selector] != null && '$transaction' in utxoOutput[EntityMetaKey.Selector]
-											&& utxoOutput[EntityMetaKey.Selector].$transaction != null && 'txId' in utxoOutput[EntityMetaKey.Selector].$transaction
-											&& utxoOutput[EntityMetaKey.Selector].$transaction.txId != null
-											&& utxoOutput[EntityMetaKey.Selector].$transaction != null && '$network' in utxoOutput[EntityMetaKey.Selector].$transaction ?
-												utxoOutput[EntityMetaKey.Selector].$transaction.$network != null && 'caip2' in utxoOutput[EntityMetaKey.Selector].$transaction.$network
-												&& utxoOutput[EntityMetaKey.Selector].$transaction.$network.caip2 != null ?
-													resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/output/[outputIndex=nonNegativeInteger]', {
-												outputIndex: String(utxoOutput[EntityMetaKey.Selector].indexInTransaction ?? ''),
-												transactionId: String(utxoOutput[EntityMetaKey.Selector].$transaction.txId ?? ''),
-												network: String(caip2StringFromValue(utxoOutput[EntityMetaKey.Selector].$transaction.$network.caip2) ?? ''),
-											})
-											:
-													utxoOutput[EntityMetaKey.Selector].$transaction.$network != null && 'slug' in utxoOutput[EntityMetaKey.Selector].$transaction.$network
-													&& utxoOutput[EntityMetaKey.Selector].$transaction.$network.slug != null ?
-														resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/output/[outputIndex=nonNegativeInteger]', {
-													outputIndex: String(utxoOutput[EntityMetaKey.Selector].indexInTransaction ?? ''),
-													transactionId: String(utxoOutput[EntityMetaKey.Selector].$transaction.txId ?? ''),
-													network: String(utxoOutput[EntityMetaKey.Selector].$transaction.$network.slug ?? ''),
-												})
-												:
-													undefined
-										:
-												undefined
-										)
-									}
 									layout={EntityLayout.Value}
 									open={false}
 								/>
@@ -328,7 +196,7 @@
 				resource={selection.$spendingTransaction}
 			>
 				{#snippet children(kaspaTransaction)}
-					{#if kaspaTransaction != null && kaspaTransaction[EntityMetaKey.Selector] != null}
+					{#if kaspaTransaction != null}
 						<div>
 							<dt>spending transaction</dt>
 							<dd>

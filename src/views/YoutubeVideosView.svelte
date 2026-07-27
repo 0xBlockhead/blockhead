@@ -3,69 +3,30 @@
 <script lang="ts">
 	// Types/constants
 	import { resolve } from '$app/paths'
-	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
-	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
-	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
+	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-
-
 
 
 	// State
 	let {
 		selection,
-		countResource,
-		title = 'YouTube Videos',
-		typeAnnotationParagraphs = [],
-		placeholderText = undefined,
-		emptyText = undefined,
 		open = $bindable(true),
-		collapsible = true,
-		showTypeAnnotation = true,
-		id = 'YoutubeVideos-list',
 		...EntitiesListProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyEntitiesSelection<EntityType.YoutubeVideo>
-			countResource?: SvelteKitResource<number>
-			title?: string
-			typeAnnotationParagraphs?: string[]
-			placeholderText?: string
-			emptyText?: string
-			open?: boolean
-			collapsible?: boolean
-			showTypeAnnotation?: boolean
-			id?: string
-		},
-		EntitiesListForwardProps
-	> = $props()
+	}: EntityListViewProps<EntityType.YoutubeVideo> = $props()
 
 
 	// Components
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView from '$/components/EntityView.svelte'
 </script>
 
-
-{#snippet TypeAnnotationParagraphs()}
-	{#each typeAnnotationParagraphs as paragraph (paragraph)}
-		<p>{paragraph}</p>
-	{/each}
-{/snippet}
 
 <EntitiesList
 	{...EntitiesListProps}
 	entityType={EntityType.YoutubeVideo}
-	{id}
-	{title}
 	bind:open
-	{collapsible}
-	{showTypeAnnotation}
-	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
 	resource={
 		selection({
-			sources: selection.sources,
 			fields: {
 				title: true,
 				videoId: true,
@@ -74,49 +35,31 @@
 			},
 		})
 	}
-	{countResource}
-	getResourceItems={(youtubeVideos) => [...new Map(youtubeVideos.values.map((youtubeVideo) => [youtubeVideo[EntityMetaKey.SelectorKey], youtubeVideo])).values()]}
-	getKey={(youtubeVideo) => youtubeVideo[EntityMetaKey.SelectorKey]}
-	{placeholderText}
 >
-	{#snippet Empty()}
-		{#if emptyText != null}
-			<p data-text="muted">{emptyText}</p>
-		{:else}
-			<p data-text="muted">No YouTube Videos yet.</p>
-		{/if}
-	{/snippet}
-
 	{#snippet Item({ item: youtubeVideo })}
-		{@const youtubeVideoFields = { ...youtubeVideo[EntityMetaKey.Selector], ...youtubeVideo }}
+		{@const youtubeVideoSelector = youtubeVideo[EntityMetaKey.Selector]}
 		<EntityView
 			entityType={EntityType.YoutubeVideo}
-			entitySelector={youtubeVideo[EntityMetaKey.Selector]}
+			entitySelector={youtubeVideoSelector}
 			href={
-				(
-					youtubeVideo[EntityMetaKey.Selector] != null && 'videoId' in youtubeVideo[EntityMetaKey.Selector]
-					&& youtubeVideo[EntityMetaKey.Selector].videoId != null ?
-						resolve('/youtube/video/[videoId=stringSegment]', {
-					videoId: encodeURIComponent(String(youtubeVideo[EntityMetaKey.Selector].videoId ?? '')),
-				})
-				:
-						undefined
+				resolve(
+					'/(social)/(youtube)/youtube/(globalYoutubeNetwork)/video/[videoId=stringSegment]',
+					{
+						videoId: encodeURIComponent(String(youtubeVideoSelector.videoId)),
+					}
 				)
 			}
-			layout={EntityLayout.Summary}
-			open={false}
-			showTypeAnnotation={false}
 		>
 			{#snippet Title()}
-				{[String((youtubeVideoFields.title) ?? '')].filter(Boolean).join(' ') || [String((youtubeVideoFields.videoId) ?? '')].filter(Boolean).join(' ') || 'YouTube video'}
+				{[(youtubeVideo.title ?? ''), youtubeVideoSelector.videoId].filter(Boolean).join(' ') || youtubeVideoSelector.videoId || 'YouTube video'}
 			{/snippet}
 
 			{#snippet Value()}
-				{[[String((youtubeVideoFields.$author.title) ?? '')].filter(Boolean).join(' ') || [String((youtubeVideoFields.$author.channelId) ?? '')].filter(Boolean).join(' ') || 'YouTube channel'].filter(Boolean).join(' ')}
+				{youtubeVideo.$author == null ? '' : (youtubeVideo.$author.title ?? '') || youtubeVideo.$author.channelId || 'YouTube channel'}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{[String((youtubeVideoFields.publishedAtMs) ?? '')].filter(Boolean).join(' ')}</span>
+				<span data-text="annotation">{String(youtubeVideo.publishedAtMs ?? '')}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

@@ -2,13 +2,8 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
 
 
 	// Context
@@ -20,42 +15,19 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.BnbBeaconNetwork_Timestamp>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.BnbBeaconNetwork_Timestamp>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.BnbBeaconNetwork_Timestamp> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const bnbBeaconNetworkTimestamp = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {
-			latestArchivedHeight: true,
-			archiveCoverageStatus: true,
-		},
-	} : {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const bnbBeaconNetworkTimestamp = $derived(selection({
 		fields: {
 			latestArchivedHeight: true,
 			archiveCoverageStatus: true,
 		},
 	}))
-	const titleFallback = $derived([String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || 'bnb beacon network timestamp')
-	const viewDomId = $derived('bnb-beacon-network-timestamp-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const titleFallback = $derived(String(pendingEntity.timestampMs ?? '') || 'bnb beacon network timestamp')
 
 
 	// Components
@@ -68,67 +40,28 @@
 
 <EntityView
 	entityType={EntityType.BnbBeaconNetwork_Timestamp}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'latestArchivedHeight') && Object.hasOwn(prefetched, 'archiveCoverageStatus')}
-			{@const timestampMs0 = pendingEntity.timestampMs}
-			{#if timestampMs0 !== undefined && timestampMs0 !== null}
-				<Timestamp timestamp={Number(timestampMs0)} />
-			{/if}
-		{:else}
-			<ResourceBoundary resource={bnbBeaconNetworkTimestamp}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const timestampMs0 = resolvedEntity.timestampMs}
-					{#if timestampMs0 !== undefined && timestampMs0 !== null}
-						<Timestamp timestamp={Number(timestampMs0)} />
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
 	{/snippet}
 
 	{#snippet Value()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'latestArchivedHeight') && Object.hasOwn(prefetched, 'archiveCoverageStatus')}
-			{[String((pendingEntity.latestArchivedHeight) ?? ''), String((pendingEntity.archiveCoverageStatus) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || titleFallback}
-		{:else}
-			<ResourceBoundary resource={bnbBeaconNetworkTimestamp}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.latestArchivedHeight) ?? ''), String((resolvedEntity.archiveCoverageStatus) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={bnbBeaconNetworkTimestamp}>
+			{#snippet children(entity)}
+				{[String(entity.latestArchivedHeight ?? ''), (entity.archiveCoverageStatus ?? '')].filter(Boolean).join(' ') || String(pendingEntity.timestampMs) || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'latestArchivedHeight') && Object.hasOwn(prefetched, 'archiveCoverageStatus')}
-			{@const source0 = pendingEntity.source}
-			{#if source0 !== undefined && source0 !== null}
-				<span data-text="muted">
-					{String((source0) ?? '')}
-				</span>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={bnbBeaconNetworkTimestamp}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const source0 = resolvedEntity.source}
-					{#if source0 !== undefined && source0 !== null}
-						<span data-text="muted">
-							{String((source0) ?? '')}
-						</span>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<span data-text="muted">
+			{pendingEntity.source}
+		</span>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -147,69 +80,27 @@
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									timestampMs: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const timestampMs = resolvedEntity.timestampMs}
-							{#if timestampMs !== undefined && timestampMs !== null}
-								<Timestamp timestamp={Number(timestampMs)} />
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									source: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const source = resolvedEntity.source}
-							{#if source !== undefined && source !== null}
-								{String((source) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{pendingEntity.source}
 				</dd>
 			</div>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							archiveCoverageStatus: true,
-						},
-					})
-				}
+				resource={bnbBeaconNetworkTimestamp}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const archiveCoverageStatus = resolvedEntity.archiveCoverageStatus}
-					{#if archiveCoverageStatus !== undefined && archiveCoverageStatus !== null}
+					{@const archiveCoverageStatus = entity.archiveCoverageStatus}
+					{#if archiveCoverageStatus != null}
 						<div>
 							<dt>archive coverage status</dt>
 							<dd>
-								{String((archiveCoverageStatus) ?? '')}
+								{archiveCoverageStatus}
 							</dd>
 						</div>
 					{/if}
@@ -219,19 +110,11 @@
 
 		<dl data-column-item="center">
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							latestArchivedHeight: true,
-						},
-					})
-				}
+				resource={bnbBeaconNetworkTimestamp}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const latestArchivedHeight = resolvedEntity.latestArchivedHeight}
-					{#if latestArchivedHeight !== undefined && latestArchivedHeight !== null}
+					{@const latestArchivedHeight = entity.latestArchivedHeight}
+					{#if latestArchivedHeight != null}
 						<div>
 							<dt>latest archived height</dt>
 							<dd>
@@ -247,7 +130,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							latestArchivedBlockTimeMs: true,
 						},
@@ -255,9 +137,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const latestArchivedBlockTimeMs = resolvedEntity.latestArchivedBlockTimeMs}
-					{#if latestArchivedBlockTimeMs !== undefined && latestArchivedBlockTimeMs !== null}
+					{@const latestArchivedBlockTimeMs = entity.latestArchivedBlockTimeMs}
+					{#if latestArchivedBlockTimeMs != null}
 						<div>
 							<dt>latest archived block time ms</dt>
 							<dd>
@@ -273,7 +154,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							validatorCount: true,
 						},
@@ -281,9 +161,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const validatorCount = resolvedEntity.validatorCount}
-					{#if validatorCount !== undefined && validatorCount !== null}
+					{@const validatorCount = entity.validatorCount}
+					{#if validatorCount != null}
 						<div>
 							<dt>validator count</dt>
 							<dd>
@@ -299,7 +178,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							tokenCount: true,
 						},
@@ -307,9 +185,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const tokenCount = resolvedEntity.tokenCount}
-					{#if tokenCount !== undefined && tokenCount !== null}
+					{@const tokenCount = entity.tokenCount}
+					{#if tokenCount != null}
 						<div>
 							<dt>token count</dt>
 							<dd>
@@ -325,7 +202,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							migrationRecordCount: true,
 						},
@@ -333,9 +209,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const migrationRecordCount = resolvedEntity.migrationRecordCount}
-					{#if migrationRecordCount !== undefined && migrationRecordCount !== null}
+					{@const migrationRecordCount = entity.migrationRecordCount}
+					{#if migrationRecordCount != null}
 						<div>
 							<dt>migration record count</dt>
 							<dd>

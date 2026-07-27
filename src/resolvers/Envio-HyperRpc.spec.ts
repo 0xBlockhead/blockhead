@@ -6,7 +6,6 @@ import {
 	EvmTransactionKind,
 } from '$/constants/Evm.ts'
 import { EntityMetaKey } from '$/schema/$schema.ts'
-import { EvmTransactionSelector } from '$/schema/EvmTransaction.ts'
 import transaction from '$/sources/Envio/HyperRpc/fixtures/transaction.json'
 import transactionReceipt from '$/sources/Envio/HyperRpc/fixtures/transaction-receipt.json'
 import {
@@ -14,8 +13,45 @@ import {
 	getEvmTransactionReceipt,
 } from '$/sources/Envio/HyperRpc/queries.ts'
 
-const { jsonRpc2 } = vi.hoisted(() => ({
+const {
+	jsonRpc2,
+	resolverBinding,
+} = vi.hoisted(() => ({
 	jsonRpc2: vi.fn(),
+	resolverBinding: {
+		source: 'EnvioHyperRpc_JsonRpc',
+		target: {
+			kind: 'Eip155Chain',
+			key: '1',
+		},
+		endpoints: [{
+			endpointKind: 'HttpUrl',
+			locator: 'https://eth.rpc.hypersync.xyz/{ENVIO_API_TOKEN}',
+			origin: 'https://eth.rpc.hypersync.xyz',
+			corsEnabled: false,
+		}],
+		wireProtocol: 'JsonRpc2',
+		apiFamily: 'EvmExecutionJsonRpc',
+		operationGroups: ['EvmRpcCore'],
+		delivery: 'HttpProxy',
+		credentials: [{
+			scope: 'RuntimeSecret',
+		}],
+		proxyId: '["EnvioHyperRpc_JsonRpc","Eip155Chain","1","HttpProxy","EvmExecutionJsonRpc"]',
+		serverCredentialId: '["EnvioHyperRpc_JsonRpc","Eip155Chain","1","HttpProxy","EvmExecutionJsonRpc"]',
+		artifacts: [
+			{
+				kind: 'OpenRpcSpec',
+				path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src',
+				generated: false,
+			},
+			{
+				kind: 'GenerationManifest',
+				path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts',
+				generated: false,
+			},
+		],
+	},
 }))
 
 vi.mock('$/sources/Source.ts', async (importOriginal) => {
@@ -33,22 +69,8 @@ vi.mock('$/sources/_shared/wire/JsonRpc2/client.ts', () => ({
 	jsonRpc2,
 }))
 
-vi.mock('$/sources/$sourceProviders.ts', () => ({
-	sourceProviderDefinitions: [{
-		bindings: [{
-			source: 'EnvioHyperRpc_JsonRpc',
-			target: {
-				key: '1',
-			},
-		}],
-	}],
-}))
-
 const { default: envioHyperRpc } = await import('$/resolvers/Envio-HyperRpc.ts')
 
-const binding = {
-	source: 'EnvioHyperRpc_JsonRpc',
-}
 const network = {
 	caip2: {
 		namespace: 'eip155',
@@ -75,16 +97,16 @@ describe('Envio HyperRPC query boundary', () => {
 			.mockResolvedValueOnce(transaction)
 			.mockResolvedValueOnce(transactionReceipt)
 
-		await expect(getEvmTransactionByHash(binding, transaction.hash)).resolves.toEqual(transaction)
-		await expect(getEvmTransactionReceipt(binding, transaction.hash)).resolves.toEqual(transactionReceipt)
+		await expect(getEvmTransactionByHash(transaction.hash)).resolves.toEqual(transaction)
+		await expect(getEvmTransactionReceipt(transaction.hash)).resolves.toEqual(transactionReceipt)
 		expect(jsonRpc2.mock.calls).toEqual([
 			[
-				binding,
+				resolverBinding,
 				'eth_getTransactionByHash',
 				[transaction.hash],
 			],
 			[
-				binding,
+				resolverBinding,
 				'eth_getTransactionReceipt',
 				[transaction.hash],
 			],
@@ -93,10 +115,10 @@ describe('Envio HyperRPC query boundary', () => {
 
 	it('preserves complete-empty and transport failure outcomes', async () => {
 		jsonRpc2.mockResolvedValueOnce(null)
-		await expect(getEvmTransactionByHash(binding, transaction.hash)).resolves.toBeNull()
+		await expect(getEvmTransactionByHash(transaction.hash)).resolves.toBeNull()
 
 		jsonRpc2.mockRejectedValueOnce(new Error('JSON-RPC rate limited'))
-		await expect(getEvmTransactionReceipt(binding, transaction.hash)).rejects.toThrow('rate limited')
+		await expect(getEvmTransactionReceipt(transaction.hash)).rejects.toThrow('rate limited')
 	})
 })
 
@@ -110,7 +132,7 @@ describe('Envio HyperRPC resolver', () => {
 			.mockResolvedValueOnce(transaction)
 			.mockResolvedValueOnce(transactionReceipt)
 		const resolver = envioHyperRpc.resolvers[0]
-		const resolved = await resolver.resolve[EvmTransactionSelector.EvmNetworkTxHash].resolve({
+		const resolved = await resolver.resolve['EvmNetworkTxHash'].resolve({
 			$network: network,
 			txHash: transaction.hash,
 		}, context)
@@ -181,14 +203,22 @@ describe('Envio HyperRPC resolver', () => {
 				},
 			}],
 		})
+		expect(jsonRpc2.mock.calls.every(([binding]) => (
+			binding.source === resolverBinding.source
+			&& binding.target.kind === resolverBinding.target.kind
+			&& binding.target.key === resolverBinding.target.key
+		))).toBe(true)
 	})
 
-	it('rejects unsupported networks before either RPC call', async () => {
-		await expect(envioHyperRpc.resolvers[0].resolve[EvmTransactionSelector.EvmNetworkTxHash].resolve({
+	it.each([
+		['eip155', '137'],
+		['solana', '1'],
+	])('rejects unsupported %s:%s before either RPC call', async (namespace, reference) => {
+		await expect(envioHyperRpc.resolvers[0].resolve['EvmNetworkTxHash'].resolve({
 			$network: {
 				caip2: {
-					namespace: 'eip155',
-					reference: '137',
+					namespace,
+					reference,
 				},
 			},
 			txHash: transaction.hash,

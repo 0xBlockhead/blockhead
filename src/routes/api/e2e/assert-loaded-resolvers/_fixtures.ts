@@ -36,7 +36,7 @@ import { ZcashShieldedActionKind } from '$/schema/ZcashShieldedAction.ts'
 import { ZcashShieldedPoolKind } from '$/schema/ZcashShieldedPool.ts'
 import { Source } from '$/sources/Source.ts'
 import { SourceCredentialScope } from '$/sources/SourceBinding.ts'
-import { sourceProviderDefinitions } from '$/sources/$sourceProviders.ts'
+import sourceProviderDefinitions from '$/sources/$sourceProviders.ts'
 import { SolanaInstructionKind } from '$/schema/SolanaInstruction.ts'
 
 const { entityDefinitionByType } = indexSchema(schema)
@@ -456,7 +456,7 @@ const probeEntitySelectorByType = defineProbeEntitySelectors({
 	[EntityType.A2aAgentService_Timestamp]: {
 		$service: a2aAgentService,
 		timestampMs: 0,
-		source: Source.A2aService_Http,
+		source: Source.Constants_Internal,
 	},
 	[EntityType.A2aAgentSkill]: {
 		$cardSnapshot: a2aAgentCardSnapshot,
@@ -476,7 +476,7 @@ const probeEntitySelectorByType = defineProbeEntitySelectors({
 	[EntityType.A2aTask_Timestamp]: {
 		$task: a2aTask,
 		timestampMs: 0,
-		source: Source.A2aService_Http,
+		source: Source.Constants_Internal,
 	},
 	[EntityType.A2aTaskEvent]: {
 		$task: a2aTask,

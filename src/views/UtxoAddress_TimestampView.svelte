@@ -2,14 +2,9 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
@@ -26,36 +21,15 @@
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.UtxoAddress_Timestamp>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.UtxoAddress_Timestamp>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.UtxoAddress_Timestamp> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const utxoAddressTimestamp = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {
-			balanceSats: true,
-		},
-	} : {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const utxoAddressTimestamp = $derived(selection({
 		fields: {
 			balanceSats: true,
 		},
 	}))
-	const titleFallback = $derived([String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || 'UTXO address timestamp')
-	const viewDomId = $derived('utxo-address-timestamp-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const titleFallback = $derived(String(pendingEntity.timestampMs ?? '') || 'UTXO address timestamp')
 
 
 	// Components
@@ -69,40 +43,22 @@
 
 <EntityView
 	entityType={EntityType.UtxoAddress_Timestamp}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
 	href={
-		href ?? (
-			selection.entitySelector != null && 'timestampMs' in selection.entitySelector
-			&& selection.entitySelector.timestampMs != null
-			&& selection.entitySelector != null && 'source' in selection.entitySelector
-			&& selection.entitySelector.source != null
-			&& selection.entitySelector != null && '$address' in selection.entitySelector
-			&& selection.entitySelector.$address != null && 'address' in selection.entitySelector.$address
-			&& selection.entitySelector.$address.address != null
-			&& selection.entitySelector.$address != null && '$network' in selection.entitySelector.$address ?
-				selection.entitySelector.$address.$network != null && 'caip2' in selection.entitySelector.$address.$network
-				&& selection.entitySelector.$address.$network.caip2 != null ?
-					resolve('/network/[network=networkCaip2OrNetworkSlug]/address/[address=stringSegment]/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
-				timestampMs: String(selection.entitySelector.timestampMs ?? ''),
-				source: String(selection.entitySelector.source ?? ''),
-				address: String(selection.entitySelector.$address.address ?? ''),
-				network: String(caip2StringFromValue(selection.entitySelector.$address.$network.caip2) ?? ''),
-			})
-			:
-					selection.entitySelector.$address.$network != null && 'slug' in selection.entitySelector.$address.$network
-					&& selection.entitySelector.$address.$network.slug != null ?
-						resolve('/network/[network=networkCaip2OrNetworkSlug]/address/[address=stringSegment]/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
-					timestampMs: String(selection.entitySelector.timestampMs ?? ''),
-					source: String(selection.entitySelector.source ?? ''),
-					address: String(selection.entitySelector.$address.address ?? ''),
-					network: String(selection.entitySelector.$address.$network.slug ?? ''),
-				})
-				:
-					undefined
-		:
-				undefined
+		href ?? resolve(
+			'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/address/[address=stringSegment]/(utxoAddress)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
+			{
+				network: (
+					'caip2' in selection.entitySelector.$address.$network ?
+						String(caip2StringFromValue(selection.entitySelector.$address.$network.caip2))
+					:
+						String(selection.entitySelector.$address.$network.slug)
+				),
+				address: String(selection.entitySelector.$address.address),
+				timestampMs: String(selection.entitySelector.timestampMs),
+				source: String(selection.entitySelector.source),
+			}
 		)
 	}
 	{layout}
@@ -110,86 +66,36 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'balanceSats')}
-			{@const timestampMs0 = pendingEntity.timestampMs}
-			{#if timestampMs0 !== undefined && timestampMs0 !== null}
-				<Timestamp timestamp={Number(timestampMs0)} />
-			{/if}
-		{:else}
-			<ResourceBoundary resource={utxoAddressTimestamp}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const timestampMs0 = resolvedEntity.timestampMs}
-					{#if timestampMs0 !== undefined && timestampMs0 !== null}
-						<Timestamp timestamp={Number(timestampMs0)} />
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
 	{/snippet}
 
 	{#snippet Value()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'balanceSats')}
-			{@const balanceSats0 = pendingEntity.balanceSats}
-			{#if balanceSats0 !== undefined && balanceSats0 !== null}
-				<NumberValue
-					value={balanceSats0}
-				/>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={utxoAddressTimestamp}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const balanceSats0 = resolvedEntity.balanceSats}
-					{#if balanceSats0 !== undefined && balanceSats0 !== null}
-						<NumberValue
-							value={balanceSats0}
-						/>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={utxoAddressTimestamp}>
+			{#snippet children(entity)}
+				{@const balanceSats0 = entity.balanceSats}
+				{#if balanceSats0 != null}
+					<NumberValue
+						value={balanceSats0}
+					/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'balanceSats')}
-			{@const source0 = pendingEntity.source}
-			{#if source0 !== undefined && source0 !== null}
-				<span data-text="muted">
-					{String((source0) ?? '')}
-				</span>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={utxoAddressTimestamp}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const source0 = resolvedEntity.source}
-					{#if source0 !== undefined && source0 !== null}
-						<span data-text="muted">
-							{String((source0) ?? '')}
-						</span>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<span data-text="muted">
+			{pendingEntity.source}
+		</span>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
 		<dl data-column-item="center">
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							balanceSats: true,
-						},
-					})
-				}
+				resource={utxoAddressTimestamp}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const balanceSats = resolvedEntity.balanceSats}
-					{#if balanceSats !== undefined && balanceSats !== null}
+					{@const balanceSats = entity.balanceSats}
+					{#if balanceSats != null}
 						<div>
 							<dt>Balance</dt>
 							<dd>
@@ -205,7 +111,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							transactionCount: true,
 						},
@@ -213,13 +118,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const transactionCount = resolvedEntity.transactionCount}
-					{#if transactionCount !== undefined && transactionCount !== null}
+					{@const transactionCount = entity.transactionCount}
+					{#if transactionCount != null}
 						<div>
 							<dt>Transaction count</dt>
 							<dd>
-								{String((transactionCount) ?? '')}
+								{String(transactionCount)}
 							</dd>
 						</div>
 					{/if}
@@ -229,7 +133,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							fundedOutputCount: true,
 						},
@@ -237,13 +140,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const fundedOutputCount = resolvedEntity.fundedOutputCount}
-					{#if fundedOutputCount !== undefined && fundedOutputCount !== null}
+					{@const fundedOutputCount = entity.fundedOutputCount}
+					{#if fundedOutputCount != null}
 						<div>
 							<dt>Funded output count</dt>
 							<dd>
-								{String((fundedOutputCount) ?? '')}
+								{String(fundedOutputCount)}
 							</dd>
 						</div>
 					{/if}
@@ -253,7 +155,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							fundedValueSats: true,
 						},
@@ -261,9 +162,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const fundedValueSats = resolvedEntity.fundedValueSats}
-					{#if fundedValueSats !== undefined && fundedValueSats !== null}
+					{@const fundedValueSats = entity.fundedValueSats}
+					{#if fundedValueSats != null}
 						<div>
 							<dt>Funded value</dt>
 							<dd>
@@ -281,7 +181,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							spentOutputCount: true,
 						},
@@ -289,13 +188,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const spentOutputCount = resolvedEntity.spentOutputCount}
-					{#if spentOutputCount !== undefined && spentOutputCount !== null}
+					{@const spentOutputCount = entity.spentOutputCount}
+					{#if spentOutputCount != null}
 						<div>
 							<dt>Spent output count</dt>
 							<dd>
-								{String((spentOutputCount) ?? '')}
+								{String(spentOutputCount)}
 							</dd>
 						</div>
 					{/if}
@@ -305,7 +203,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							spentValueSats: true,
 						},
@@ -313,9 +210,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const spentValueSats = resolvedEntity.spentValueSats}
-					{#if spentValueSats !== undefined && spentValueSats !== null}
+					{@const spentValueSats = entity.spentValueSats}
+					{#if spentValueSats != null}
 						<div>
 							<dt>Spent value</dt>
 							<dd>
@@ -331,7 +227,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							unspentOutputCount: true,
 						},
@@ -339,13 +234,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const unspentOutputCount = resolvedEntity.unspentOutputCount}
-					{#if unspentOutputCount !== undefined && unspentOutputCount !== null}
+					{@const unspentOutputCount = entity.unspentOutputCount}
+					{#if unspentOutputCount != null}
 						<div>
 							<dt>Unspent output count</dt>
 							<dd>
-								{String((unspentOutputCount) ?? '')}
+								{String(unspentOutputCount)}
 							</dd>
 						</div>
 					{/if}
@@ -355,7 +249,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							mempoolTransactionCount: true,
 						},
@@ -363,13 +256,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const mempoolTransactionCount = resolvedEntity.mempoolTransactionCount}
-					{#if mempoolTransactionCount !== undefined && mempoolTransactionCount !== null}
+					{@const mempoolTransactionCount = entity.mempoolTransactionCount}
+					{#if mempoolTransactionCount != null}
 						<div>
 							<dt>Mempool transaction count</dt>
 							<dd>
-								{String((mempoolTransactionCount) ?? '')}
+								{String(mempoolTransactionCount)}
 							</dd>
 						</div>
 					{/if}
@@ -381,48 +273,14 @@
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									timestampMs: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const timestampMs = resolvedEntity.timestampMs}
-							{#if timestampMs !== undefined && timestampMs !== null}
-								<Timestamp timestamp={Number(timestampMs)} />
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									source: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const source = resolvedEntity.source}
-							{#if source !== undefined && source !== null}
-								{String((source) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{pendingEntity.source}
 				</dd>
 			</div>
 
@@ -431,30 +289,6 @@
 				<dd>
 					<UtxoAddressView
 						selection={select(EntityType.UtxoAddress, selection.entitySelector.$address)}
-						href={
-							(
-								selection.entitySelector.$address != null && 'address' in selection.entitySelector.$address
-								&& selection.entitySelector.$address.address != null
-								&& selection.entitySelector.$address != null && '$network' in selection.entitySelector.$address ?
-									selection.entitySelector.$address.$network != null && 'caip2' in selection.entitySelector.$address.$network
-									&& selection.entitySelector.$address.$network.caip2 != null ?
-										resolve('/network/[network=networkCaip2OrNetworkSlug]/address/[address=stringSegment]', {
-									address: String(selection.entitySelector.$address.address ?? ''),
-									network: String(caip2StringFromValue(selection.entitySelector.$address.$network.caip2) ?? ''),
-								})
-								:
-										selection.entitySelector.$address.$network != null && 'slug' in selection.entitySelector.$address.$network
-										&& selection.entitySelector.$address.$network.slug != null ?
-											resolve('/network/[network=networkCaip2OrNetworkSlug]/address/[address=stringSegment]', {
-										address: String(selection.entitySelector.$address.address ?? ''),
-										network: String(selection.entitySelector.$address.$network.slug ?? ''),
-									})
-									:
-										undefined
-							:
-									undefined
-							)
-						}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

@@ -3,7 +3,7 @@
  */
 
 import { coinBridgeCapabilityEntityRowsFromInstancesAndTools } from '$/resolvers/Lifi/Rest/coinBridgeCapabilityEntityRows.ts'
-import type { CoinInstanceEntitySelector } from '$/resolvers/Coingecko/Rest/coinInstances.ts'
+import type { CoinInstanceEntitySelector } from '$/sources/Coingecko/Rest/coinInstances.ts'
 import { EntityMetaKey } from '$/schema/$schema.ts'
 import type { LifiToolsResponse } from '$/sources/Lifi/Rest/types.ts'
 

@@ -24,9 +24,12 @@
 <ParentPageCollapsible
 	title='Blocks'
 	href={
-		resolve('/network/[network=networkCaip2OrNetworkSlug]/blocks', {
-			network: params.network,
-		})
+		resolve(
+			'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/blocks',
+			{
+				network: String(params.network),
+			}
+		)
 	}
 >
 	{@render children()}

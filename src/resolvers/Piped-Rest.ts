@@ -14,11 +14,6 @@ import { EntityType } from '$/schema/EntityType.ts'
 import { UrlString } from '$/schema/UrlString.ts'
 import { type } from 'arktype'
 import { Source } from '$/sources/Source.ts'
-import { YoutubeChannelSelector } from '$/schema/YoutubeChannel.ts'
-import { YoutubeVideoSelector } from '$/schema/YoutubeVideo.ts'
-import { YoutubePlaylistSelector } from '$/schema/YoutubePlaylist.ts'
-import { YoutubeCommentSelector } from '$/schema/YoutubeComment.ts'
-import { _GlobalYoutubeNetworkSelector } from '$/schema/_GlobalYoutubeNetwork.ts'
 import type {
 	PipedComment,
 	PipedPlaylistSummary,
@@ -152,7 +147,7 @@ export default {
 		defineResolver(Source.Piped_Rest, {
 			entityType: EntityType.YoutubeChannel,
 			resolve: {
-				[YoutubeChannelSelector.ChannelId]: {
+				ChannelId: {
 					resolve: async ({ channelId }, context) => {
 						const { getChannel } = await import('$/sources/Piped/Rest/queries.ts')
 						const d = await getChannel(context.publicEnv, channelId)
@@ -177,7 +172,7 @@ export default {
 		defineResolver(Source.Piped_Rest, {
 			entityType: EntityType.YoutubePlaylist,
 			resolve: {
-				[YoutubePlaylistSelector.PlaylistId]: {
+				PlaylistId: {
 					resolve: async ({ playlistId }, context) => {
 						const { getChannelIdFromUploaderUrl, getPlaylist } = await import('$/sources/Piped/Rest/queries.ts')
 						const d = await getPlaylist(context.publicEnv, playlistId)
@@ -208,7 +203,7 @@ export default {
 		defineResolver(Source.Piped_Rest, {
 			entityType: EntityType.YoutubeVideo,
 			resolve: {
-				[YoutubeVideoSelector.VideoId]: {
+				VideoId: {
 					resolve: async ({ videoId }, context) => {
 						const { getChannelIdFromUploaderUrl, getStream } = await import('$/sources/Piped/Rest/queries.ts')
 						const d = await getStream(context.publicEnv, videoId)
@@ -255,7 +250,7 @@ export default {
 		defineResolver(Source.Piped_Rest, {
 			entityType: EntityType.YoutubeComment,
 			resolve: {
-				[YoutubeCommentSelector.VideoIdCommentId]: {
+				VideoIdCommentId: {
 					resolve: async ({ commentId, videoId }, context) => {
 						const { listComments } = await import('$/sources/Piped/Rest/queries.ts')
 						const publicEnv = context.publicEnv
@@ -296,7 +291,7 @@ export default {
 		defineResolver(Source.Piped_Rest, {
 			entityType: EntityType.YoutubeChannel,
 			resolve: {
-				[YoutubeChannelSelector.ChannelId]: {
+				ChannelId: {
 					resolve: async (entitySelector, context) => {
 						const { getChannel } = await import('$/sources/Piped/Rest/queries.ts')
 						const channel = await getChannel(context.publicEnv, entitySelector.channelId)
@@ -325,7 +320,7 @@ export default {
 		defineResolver(Source.Piped_Rest, {
 			entityType: EntityType.YoutubeChannel,
 			resolve: {
-					[YoutubeChannelSelector.ChannelId]: {
+					ChannelId: {
 						resolve: async ({ channelId }, context) => {
 							const { listChannelVideos } = await import('$/sources/Piped/Rest/queries.ts')
 							return listChannelVideos(
@@ -372,7 +367,7 @@ export default {
 		defineResolver(Source.Piped_Rest, {
 			entityType: EntityType.YoutubeChannel,
 			resolve: {
-					[YoutubeChannelSelector.ChannelId]: {
+					ChannelId: {
 						resolve: async ({ channelId }, context) => {
 							const {
 								listChannelPlaylists,
@@ -421,7 +416,7 @@ export default {
 		defineResolver(Source.Piped_Rest, {
 			entityType: EntityType.YoutubePlaylist,
 			resolve: {
-				[YoutubePlaylistSelector.PlaylistId]: {
+				PlaylistId: {
 					resolve: async (entitySelector, context) => {
 						const { getPlaylist } = await import('$/sources/Piped/Rest/queries.ts')
 						const playlist = await getPlaylist(context.publicEnv, entitySelector.playlistId)
@@ -450,7 +445,7 @@ export default {
 		defineResolver(Source.Piped_Rest, {
 			entityType: EntityType.YoutubePlaylist,
 			resolve: {
-					[YoutubePlaylistSelector.PlaylistId]: {
+					PlaylistId: {
 						resolve: async ({ playlistId }, context) => {
 							const { listPlaylistVideos } = await import('$/sources/Piped/Rest/queries.ts')
 							return listPlaylistVideos(
@@ -497,7 +492,7 @@ export default {
 		defineResolver(Source.Piped_Rest, {
 			entityType: EntityType.YoutubeVideo,
 			resolve: {
-					[YoutubeVideoSelector.VideoId]: {
+					VideoId: {
 						resolve: async ({ videoId }, context) => {
 							const { listComments } = await import('$/sources/Piped/Rest/queries.ts')
 							const page = await listComments(
@@ -546,7 +541,7 @@ export default {
 		defineResolver(Source.Piped_Rest, {
 			entityType: EntityType.YoutubeComment,
 			resolve: {
-				[YoutubeCommentSelector.VideoIdCommentId]: {
+				VideoIdCommentId: {
 					resolve: async (entitySelector, context) => {
 						const { listComments } = await import('$/sources/Piped/Rest/queries.ts')
 						const publicEnv = context.publicEnv
@@ -582,7 +577,7 @@ export default {
 		defineResolver(Source.Piped_Rest, {
 			entityType: EntityType._GlobalYoutubeNetwork,
 			resolve: {
-				[_GlobalYoutubeNetworkSelector.Scope]: {
+				Scope: {
 					resolve: async (_entitySelector, context) => {
 						const { getChannelIdFromUploaderUrl, listTrending } = await import('$/sources/Piped/Rest/queries.ts')
 						const publicEnv = context.publicEnv
@@ -607,7 +602,7 @@ export default {
 		defineResolver(Source.Piped_Rest, {
 			entityType: EntityType._GlobalYoutubeNetwork,
 			resolve: {
-				[_GlobalYoutubeNetworkSelector.Scope]: {
+				Scope: {
 					resolve: async (_entitySelector, context) => {
 						const { listTrending, getVideoIdFromUrl } = await import('$/sources/Piped/Rest/queries.ts')
 						const publicEnv = context.publicEnv

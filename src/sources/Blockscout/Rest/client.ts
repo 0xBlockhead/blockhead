@@ -4,44 +4,87 @@
 	*/
 
 import { throwIfHttpNotOk } from '$/lib/http.ts'
-import { sourceProviderDefinitions } from '$/sources/$sourceProviders.ts'
+import bindings from '$/sources/Blockscout/bindings.ts'
 import { restPath } from '$/sources/Blockscout/Rest/constants.ts'
-import { sourceFetch } from '$/sources/_runtime/http.ts'
-import { ApiFamily, SourceEndpointKind } from '$/sources/SourceBinding.ts'
+import {
+	firstHttpUrlForBinding,
+	sourceFetch,
+} from '$/sources/_runtime/http.ts'
 import { Source } from '$/sources/Source.ts'
+import {
+	ApiFamily,
+	SourceOperationGroup,
+	type SourceBinding,
+} from '$/sources/SourceBinding.ts'
 import type { JsonValue } from '$/typescript/JsonValue.ts'
 
-const blockscoutRestBindingByOrigin = Object.fromEntries(
-	sourceProviderDefinitions
-		.flatMap((provider) => provider.bindings)
-		.filter((binding) => (
-			binding.source === Source.Blockscout_Rest
-			&& binding.apiFamily === ApiFamily.BlockscoutRestV2
-		))
-		.flatMap((binding) => binding.endpoints.flatMap((endpoint) => (
-			endpoint.endpointKind === SourceEndpointKind.HttpUrl ?
-				[[endpoint.origin, binding] as const]
-			:
-				[]
-		)))
-)
+const blockscoutClient = (binding: SourceBinding) => ({
+	query: <
+		_Arguments extends object,
+		_Result
+	>(
+		query: (_arguments: _Arguments & {
+			binding: SourceBinding
+		}) => _Result,
+		arguments_: _Arguments
+	) => query({
+		...arguments_,
+		binding,
+	}),
+})
 
-const blockscoutRestBindingForExplorerOrigin = (explorerOrigin: string) => {
-	const binding = blockscoutRestBindingByOrigin[new URL(explorerOrigin).origin]
+const requireBlockscoutBinding = ({
+	chainId,
+	apiFamily,
+	requiredOperationGroup,
+}: {
+	chainId: number
+	apiFamily: ApiFamily
+	requiredOperationGroup: SourceOperationGroup
+}) => {
+	const binding = bindings[Source.Blockscout_Rest].find((candidate) => (
+		candidate.target.key === String(chainId)
+		&& candidate.apiFamily === apiFamily
+		&& candidate.operationGroups.includes(requiredOperationGroup)
+	))
 	if (binding == null)
-		throw new Error(`Blockscout_Rest: no REST v2 binding for ${explorerOrigin}`)
+		throw new Error(`Blockscout_Rest: no ${apiFamily} binding for chain ${chainId}`)
 
 	return binding
 }
 
+export const blockscoutRestClient = (
+	chainId: number,
+	requiredOperationGroup = SourceOperationGroup.GenericRead
+) => blockscoutClient(requireBlockscoutBinding({
+	chainId,
+	apiFamily: ApiFamily.BlockscoutRestV2,
+	requiredOperationGroup,
+}))
+
+export const blockscoutAccountAbstractionClient = (
+	chainId: number
+) => blockscoutRestClient(
+	chainId,
+	SourceOperationGroup.BlockscoutAccountAbstraction
+)
+
+export const blockscoutEtherscanClient = (
+	chainId: number
+) => blockscoutClient(requireBlockscoutBinding({
+	chainId,
+	apiFamily: ApiFamily.EtherscanModuleAction,
+	requiredOperationGroup: SourceOperationGroup.EtherscanAccountModule,
+}))
+
 const blockscoutLegacyApiUrl = ({
-	explorerOrigin,
+	binding,
 	query,
 }: {
-	explorerOrigin: string
+	binding: SourceBinding
 	query: Record<string, string>
 }) => {
-	const url = new URL(explorerOrigin)
+	const url = new URL(firstHttpUrlForBinding(binding))
 	url.pathname = `${url.pathname.replace(/\/$/, '')}/api`
 	for (const [key, value] of Object.entries(query)) {
 		url.searchParams.set(key, value)
@@ -49,22 +92,22 @@ const blockscoutLegacyApiUrl = ({
 	return url.toString()
 }
 
-const blockscoutEthRpcUrl = (explorerOrigin: string) => {
-	const url = new URL(explorerOrigin)
+const blockscoutEthRpcUrl = (binding: SourceBinding) => {
+	const url = new URL(firstHttpUrlForBinding(binding))
 	url.pathname = `${url.pathname.replace(/\/$/, '')}/api/eth-rpc`
 	return url.toString()
 }
 
 const blockscoutApiUrl = ({
-	explorerOrigin,
+	binding,
 	path,
 	searchParams,
 }: {
-	explorerOrigin: string
+	binding: SourceBinding
 	path: string
 	searchParams?: Record<string, string | number | undefined>
 }) => {
-	const url = new URL(explorerOrigin)
+	const url = new URL(firstHttpUrlForBinding(binding))
 	url.pathname = `${url.pathname.replace(/\/$/, '')}${restPath}${path}`
 	for (const [key, value] of Object.entries(searchParams ?? {})) {
 		if (value != null) url.searchParams.set(key, String(value))
@@ -73,18 +116,18 @@ const blockscoutApiUrl = ({
 }
 
 export const getBlockscoutLegacyJson = async <T>({
-	explorerOrigin,
+	binding,
 	query,
 }: {
-	explorerOrigin: string
+	binding: SourceBinding
 	query: Record<string, string>
 }): Promise<T> => {
 	const url = blockscoutLegacyApiUrl({
-		explorerOrigin,
+		binding,
 		query,
 	})
 	const res = await sourceFetch(
-		blockscoutRestBindingForExplorerOrigin(explorerOrigin),
+		binding,
 		url,
 		{ headers: { accept: 'application/json' } }
 	)
@@ -93,17 +136,17 @@ export const getBlockscoutLegacyJson = async <T>({
 }
 
 export const postBlockscoutEthRpc = async <T>({
-	explorerOrigin,
+	binding,
 	method,
 	params,
 }: {
-	explorerOrigin: string
+	binding: SourceBinding
 	method: string
 	params: readonly JsonValue[]
 }): Promise<T | null> => {
-	const url = blockscoutEthRpcUrl(explorerOrigin)
+	const url = blockscoutEthRpcUrl(binding)
 	const res = await sourceFetch(
-		blockscoutRestBindingForExplorerOrigin(explorerOrigin),
+		binding,
 		url,
 		{
 			method: 'POST',
@@ -128,22 +171,22 @@ export const postBlockscoutEthRpc = async <T>({
 	return wire.result ?? null
 }
 
-export const getJson = async <T>({
-	explorerOrigin,
+export const getBlockscoutJson = async <T>({
+	binding,
 	path,
 	searchParams,
 }: {
-	explorerOrigin: string
+	binding: SourceBinding
 	path: string
 	searchParams?: Record<string, string | number | undefined>
 }): Promise<T> => {
 	const url = blockscoutApiUrl({
-		explorerOrigin,
+		binding,
 		path,
 		searchParams,
 	})
 	const res = await sourceFetch(
-		blockscoutRestBindingForExplorerOrigin(explorerOrigin),
+		binding,
 		url,
 		{ headers: { accept: 'application/json' } }
 	)

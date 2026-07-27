@@ -3,12 +3,11 @@
 <script lang="ts">
 	// Types/constants
 	import type { PageProps } from './$types.ts'
+	import { resolve } from '$app/paths'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
@@ -17,11 +16,8 @@
 		data,
 		params,
 	}: PageProps = $props()
-
-
 	// Components
 	import Page from '$/components/Page.svelte'
-	import ProjectionBoundary from '$/components/ProjectionBoundary.svelte'
 	import EthereumNetworkUpgradesView from '$/views/EthereumNetworkUpgradesView.svelte'
 </script>
 
@@ -32,30 +28,20 @@
 
 
 <Page>
-	<ProjectionBoundary
-		resource={select(EntityType.Network, data.selector).Evm}
-	>
-		{#snippet Applicable(projection)}
-			<EthereumNetworkUpgradesView
-				href={
-					resolve('/network/[network=networkCaip2OrNetworkSlug]/upgrades', {
-						network: params.network,
-					})
+	<EthereumNetworkUpgradesView
+		href={
+			resolve(
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/upgrades',
+				{
+					network: String(params.network),
 				}
-				title='Upgrades'
-				selection={
-					projection
-						.$$upgrades({
-							sources: [
-								Source.Constants_Internal,
-							],
-						})
-				}
-				id='account-ethereum-network-upgrade'
-				data-column-item="flexible"
-				data-card
-				data-scroll-container
-			/>
-		{/snippet}
-	</ProjectionBoundary>
+			)
+		}
+		title='Upgrades'
+		selection={select(EntityType.Network, data.selector).Evm.$$upgrades}
+		id='upgrades'
+		data-column-item="flexible"
+		data-card
+		data-scroll-container
+	/>
 </Page>

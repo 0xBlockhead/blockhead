@@ -30,24 +30,30 @@
 {#key [params.namespace, params.target].join(':')}
 	<ParentPageCollapsible
 		href={
-			resolve('/[namespace=ipfsNamespace]/[target=stringSegment]', {
-				namespace: params.namespace,
-				target: params.target,
-			})
+			resolve(
+				'/(explore)/(ipfs)/[namespace=ipfsNamespace]/[target=stringSegment]',
+				{
+					namespace: String(params.namespace),
+					target: String(params.target),
+				}
+			)
 		}
 	>
 		{#snippet Summary()}
-			{@const DetailView = IpfsResourceView}
-
-			<DetailView
-				selection={select(EntityType.IpfsResource, data.selector, { sources: [
-		Source.Ipfs_Rest,
-	] })}
+			<IpfsResourceView
+				selection={
+					select(EntityType.IpfsResource, data.selector, { sources: [
+						Source.Ipfs_Rest,
+					] })
+				}
 				href={
-					resolve('/[namespace=ipfsNamespace]/[target=stringSegment]', {
-						namespace: params.namespace,
-						target: params.target,
-					})
+					resolve(
+						'/(explore)/(ipfs)/[namespace=ipfsNamespace]/[target=stringSegment]',
+						{
+							namespace: String(params.namespace),
+							target: String(params.target),
+						}
+					)
 				}
 				layout={EntityLayout.SummaryInline}
 			/>

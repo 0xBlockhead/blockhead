@@ -16,16 +16,6 @@ import type {
 	LndInvoice,
 	LndPayment,
 } from '$/sources/LightningLnd/Rest/types.ts'
-import { LightningNetworkSelector } from '$/schema/LightningNetwork.ts'
-import { LightningNodeSelector } from '$/schema/LightningNode.ts'
-import { LightningNode_TimestampSelector } from '$/schema/LightningNode_Timestamp.ts'
-import { LightningChannelSelector } from '$/schema/LightningChannel.ts'
-import { LightningChannel_TimestampSelector } from '$/schema/LightningChannel_Timestamp.ts'
-import { BlockheadLightningInvoiceSelector } from '$/schema/BlockheadLightningInvoice.ts'
-import { BlockheadLightningInvoice_TimestampSelector } from '$/schema/BlockheadLightningInvoice_Timestamp.ts'
-import { BlockheadLightningPaymentSelector } from '$/schema/BlockheadLightningPayment.ts'
-import { BlockheadLightningPayment_TimestampSelector } from '$/schema/BlockheadLightningPayment_Timestamp.ts'
-import { BlockheadLightningNodeStateSelector } from '$/schema/BlockheadLightningNodeState.ts'
 
 type NetworkId = { caip2: {
 	namespace: string
@@ -303,13 +293,17 @@ const paymentFieldsFromLndPayment = (
 
 const lndChannels = async (context: SourceResolverContext<Source.LightningLnd_Rest>) => {
 	const { listChannels } = await import('$/sources/LightningLnd/Rest/queries.ts')
-	return ((await listChannels(context.publicEnv)).channels ?? [])
+	return ((await listChannels({
+		publicEnv: context.publicEnv,
+	})).channels ?? [])
 		.filter((channel) => channel.private === false)
 }
 
 const lndInfo = async (context: SourceResolverContext<Source.LightningLnd_Rest>) => {
 	const { getInfo } = await import('$/sources/LightningLnd/Rest/queries.ts')
-	return getInfo(context.publicEnv)
+	return getInfo({
+		publicEnv: context.publicEnv,
+	})
 }
 
 export default {
@@ -319,7 +313,7 @@ export default {
 		defineResolver(Source.LightningLnd_Rest, {
 			entityType: EntityType.LightningNetwork,
 			resolve: {
-				[LightningNetworkSelector.Network]: {
+				Network: {
 					resolve: async ({ $network }) => {
 						assertLightningNetwork($network)
 						return {
@@ -341,7 +335,7 @@ export default {
 		defineResolver(Source.LightningLnd_Rest, {
 			entityType: EntityType.BlockheadLightningNodeState,
 			resolve: {
-				[BlockheadLightningNodeStateSelector.ConnectionIdNetwork]: {
+				ConnectionIdNetwork: {
 					resolve: async ({ connectionId, $network }, context) => {
 						assertLightningNetwork($network.$network)
 						const info = await lndInfo(context)
@@ -373,7 +367,7 @@ export default {
 		defineResolver(Source.LightningLnd_Rest, {
 			entityType: EntityType.LightningNode,
 			resolve: {
-				[LightningNodeSelector.NetworkPublicKey]: {
+				NetworkPublicKey: {
 					resolve: async ({ $network, publicKey }, context) => {
 						assertLightningNetwork($network)
 						const info = await lndInfo(context)
@@ -420,7 +414,7 @@ export default {
 		defineResolver(Source.LightningLnd_Rest, {
 			entityType: EntityType.LightningNode_Timestamp,
 			resolve: {
-				[LightningNode_TimestampSelector.NodeTimestampMsSource]: {
+				NodeTimestampMsSource: {
 					resolve: async ({ $node, timestampMs, source }, context) => {
 						if (source !== Source.LightningLnd_Rest) throw new Error(`LightningLnd_Rest: unsupported source ${source}`)
 						assertLightningNetwork($node.$network)
@@ -458,7 +452,7 @@ export default {
 		defineResolver(Source.LightningLnd_Rest, {
 			entityType: EntityType.LightningChannel,
 			resolve: {
-				[LightningChannelSelector.NetworkChannelId]: {
+				NetworkChannelId: {
 					resolve: async ({ $network, channelId }, context) => {
 						assertLightningNetwork($network)
 						const channel = (await lndChannels(context)).find((channel) => channel.chan_id === channelId)
@@ -480,7 +474,7 @@ export default {
 		defineResolver(Source.LightningLnd_Rest, {
 			entityType: EntityType.LightningChannel_Timestamp,
 			resolve: {
-				[LightningChannel_TimestampSelector.ChannelTimestampMsSource]: {
+				ChannelTimestampMsSource: {
 					resolve: async ({ $channel, timestampMs, source }, context) => {
 						if (source !== Source.LightningLnd_Rest) throw new Error(`LightningLnd_Rest: unsupported source ${source}`)
 						assertLightningNetwork($channel.$network)
@@ -502,7 +496,7 @@ export default {
 		defineResolver(Source.LightningLnd_Rest, {
 			entityType: EntityType.BlockheadLightningInvoice,
 			resolve: {
-				[BlockheadLightningInvoiceSelector.NetworkPaymentHash]: {
+				NetworkPaymentHash: {
 					resolve: async ({ $network, paymentHash }, context) => {
 						assertLightningNetwork($network)
 						const { listInvoices } = await import('$/sources/LightningLnd/Rest/queries.ts')
@@ -533,7 +527,7 @@ export default {
 		defineResolver(Source.LightningLnd_Rest, {
 			entityType: EntityType.BlockheadLightningInvoice_Timestamp,
 			resolve: {
-				[BlockheadLightningInvoice_TimestampSelector.InvoiceTimestampMsSource]: {
+				InvoiceTimestampMsSource: {
 					resolve: async ({ $invoice, timestampMs, source }, context) => {
 						if (source !== Source.LightningLnd_Rest) throw new Error(`LightningLnd_Rest: unsupported source ${source}`)
 						assertLightningNetwork($invoice.$network)
@@ -562,7 +556,7 @@ export default {
 		defineResolver(Source.LightningLnd_Rest, {
 			entityType: EntityType.BlockheadLightningPayment,
 			resolve: {
-				[BlockheadLightningPaymentSelector.NetworkPaymentHash]: {
+				NetworkPaymentHash: {
 					resolve: async ({ $network, paymentHash }, context) => {
 						assertLightningNetwork($network)
 						const { listPayments } = await import('$/sources/LightningLnd/Rest/queries.ts')
@@ -590,7 +584,7 @@ export default {
 		defineResolver(Source.LightningLnd_Rest, {
 			entityType: EntityType.BlockheadLightningPayment_Timestamp,
 			resolve: {
-				[BlockheadLightningPayment_TimestampSelector.PaymentTimestampMsSource]: {
+				PaymentTimestampMsSource: {
 					resolve: async ({ $payment, timestampMs, source }, context) => {
 						if (source !== Source.LightningLnd_Rest) throw new Error(`LightningLnd_Rest: unsupported source ${source}`)
 						assertLightningNetwork($payment.$network)
@@ -619,7 +613,7 @@ export default {
 		defineResolver(Source.LightningLnd_Rest, {
 			entityType: EntityType.LightningNetwork,
 			resolve: {
-				[LightningNetworkSelector.Network]: {
+				Network: {
 					resolve: async ({ $network }, context) => {
 						assertLightningNetwork($network)
 						const info = await lndInfo(context)
@@ -649,7 +643,7 @@ export default {
 		defineResolver(Source.LightningLnd_Rest, {
 			entityType: EntityType.LightningNetwork,
 			resolve: {
-				[LightningNetworkSelector.Network]: {
+				Network: {
 					resolve: async ({ $network }, context) => {
 						assertLightningNetwork($network)
 						const info = await lndInfo(context)
@@ -668,7 +662,7 @@ export default {
 		defineResolver(Source.LightningLnd_Rest, {
 			entityType: EntityType.LightningNetwork,
 			resolve: {
-				[LightningNetworkSelector.Network]: {
+				Network: {
 					resolve: async ({ $network }, context) => {
 						assertLightningNetwork($network)
 						const { listInvoices } = await import('$/sources/LightningLnd/Rest/queries.ts')
@@ -695,7 +689,7 @@ export default {
 		defineResolver(Source.LightningLnd_Rest, {
 			entityType: EntityType.LightningNetwork,
 			resolve: {
-				[LightningNetworkSelector.Network]: {
+				Network: {
 					resolve: async ({ $network }, context) => {
 						assertLightningNetwork($network)
 						const { listPayments } = await import('$/sources/LightningLnd/Rest/queries.ts')
@@ -717,7 +711,7 @@ export default {
 		defineResolver(Source.LightningLnd_Rest, {
 			entityType: EntityType.LightningNode,
 			resolve: {
-				[LightningNodeSelector.NetworkPublicKey]: {
+				NetworkPublicKey: {
 					resolve: async ({ $network, publicKey }, context) => {
 						assertLightningNetwork($network)
 						const info = await lndInfo(context)

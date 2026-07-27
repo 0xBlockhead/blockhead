@@ -11,8 +11,6 @@ import {
 	EntityMetaKey,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import { LensAccountSelector } from '$/schema/LensAccount.ts'
-import { LensPostSelector } from '$/schema/LensPost.ts'
 import { Source } from '$/sources/Source.ts'
 
 const {
@@ -167,19 +165,26 @@ describe('Lens_Graphql reading relationships', () => {
 		await expect(lensGraphql.resolvers[0].resolve.Scope.resolve({
 			scope: 'LensNetwork',
 		}, context)).resolves.toEqual([expectedReference])
-		await expect(lensGraphql.resolvers[8].resolve[LensAccountSelector.Address].resolve({
+		await expect(lensGraphql.resolvers[8].resolve['Address'].resolve({
 			address: '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd',
 		}, context)).resolves.toEqual([expectedReference])
-		await expect(lensGraphql.resolvers[6].resolve[LensPostSelector.Id].resolve({
+		await expect(lensGraphql.resolvers[6].resolve['Id'].resolve({
 			id: 'parent-post',
 		}, context)).resolves.toEqual([expectedReference])
-		expect(queryLatestPosts).toHaveBeenCalledWith({}, 64)
+		expect(queryLatestPosts).toHaveBeenCalledWith(
+			{},
+			64
+		)
 		expect(queryPostsByAuthor).toHaveBeenCalledWith(
 			{},
 			'0xabcdefabcdefabcdefabcdefabcdefabcdefabcd',
 			64
 		)
-		expect(queryPostComments).toHaveBeenCalledWith({}, 'parent-post', 64)
+		expect(queryPostComments).toHaveBeenCalledWith(
+			{},
+			'parent-post',
+			64
+		)
 		expect(queryPost).not.toHaveBeenCalled()
 		expect(lensGraphql.source).toBe(Source.Lens_Graphql)
 	})
@@ -209,7 +214,7 @@ describe('Lens_Graphql reading relationships', () => {
 			},
 		})
 
-		await expect(lensGraphql.resolvers[1].resolve[LensAccountSelector.Address].resolve({
+		await expect(lensGraphql.resolvers[1].resolve['Address'].resolve({
 			address: '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd',
 		}, context)).resolves.toMatchObject({
 			address: '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd',
@@ -219,7 +224,7 @@ describe('Lens_Graphql reading relationships', () => {
 			owner: '0x1111111111111111111111111111111111111111',
 			score: 73,
 		})
-		await expect(lensGraphql.resolvers[7].resolve[LensAccountSelector.Address].resolve({
+		await expect(lensGraphql.resolvers[7].resolve['Address'].resolve({
 			address: '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd',
 		}, context)).resolves.toEqual([{
 			[EntityMetaKey.Selector]: {
@@ -269,7 +274,7 @@ describe('Lens_Graphql reading relationships', () => {
 			},
 		})
 
-		await expect(lensGraphql.resolvers[2].resolve[LensPostSelector.Id].resolve({
+		await expect(lensGraphql.resolvers[2].resolve['Id'].resolve({
 			id: 'post-one',
 		}, context)).resolves.toMatchObject({
 			text: 'Readable Lens post',
@@ -286,7 +291,7 @@ describe('Lens_Graphql reading relationships', () => {
 				[EntityMetaKey.Selector]: { id: 'root' },
 			},
 		})
-		await expect(lensGraphql.resolvers[5].resolve[LensPostSelector.Id].resolve({
+		await expect(lensGraphql.resolvers[5].resolve['Id'].resolve({
 			id: 'post-one',
 		}, context)).resolves.toEqual([{
 			[EntityMetaKey.Selector]: {
@@ -341,7 +346,10 @@ describe('Lens_Graphql reading relationships', () => {
 				[entityFieldAddressKey(EntityType.LensAccount, [], 'displayName')]: 'Alice',
 			},
 		}])
-		expect(queryAccounts).toHaveBeenCalledWith({}, 64)
+		expect(queryAccounts).toHaveBeenCalledWith(
+			{},
+			64
+		)
 		await expect(lensGraphql.resolvers[10].resolve.Address.resolve({
 			address: '0x2222222222222222222222222222222222222222',
 		}, context)).resolves.toEqual({
@@ -385,7 +393,7 @@ describe('Lens_Graphql reading relationships', () => {
 				createdAt: '2025-01-02T03:04:05.000Z',
 			},
 		})
-		await expect(lensGraphql.resolvers[1].resolve[LensAccountSelector.Address].resolve({
+		await expect(lensGraphql.resolvers[1].resolve['Address'].resolve({
 			address: '0x1111111111111111111111111111111111111111',
 		}, context)).rejects.toThrow('account response does not match request')
 

@@ -7,7 +7,11 @@ import {
 } from 'vitest'
 
 import { Source } from '$/sources/Source.ts'
-import { sourceProviderDefinitions } from '$/sources/$sourceProviders.ts'
+import bindings from '$/sources/CardanoKoios/bindings.ts'
+import {
+	SourceDelivery,
+	type SourceBinding,
+} from '$/sources/SourceBinding.ts'
 import type { CardanoKoiosTransactionInfo } from '$/sources/CardanoKoios/Rest/types.ts'
 
 const {
@@ -37,12 +41,7 @@ const {
 	listStakePools,
 } = await import('$/sources/CardanoKoios/Rest/queries.ts')
 
-const binding = sourceProviderDefinitions
-	.flatMap((provider) => provider.bindings)
-	.find((candidate) => candidate.source === Source.CardanoKoios_Rest)
-
-if (binding == null)
-	throw new Error('CardanoKoios_Rest spec missing source binding')
+const binding = bindings[Source.CardanoKoios_Rest]
 
 const transactionInfo = {
 	tx_hash: 'transaction-hash',
@@ -61,10 +60,18 @@ const transactionInfo = {
 		meta_hash: '9f01cafe',
 		description: {
 			tag: 'TreasuryWithdrawals',
-			contents: [{
-				rewardAccount: 'stake1u8example',
-				coin: 42_000_000,
-			}],
+			contents: [
+				[[
+					{
+						network: 'Mainnet',
+						credential: {
+							keyHash: 'treasury-key-hash',
+						},
+					},
+					42_000_000,
+				]],
+				'treasury-policy-hash',
+			],
 		},
 		return_address: 'stake1u8return',
 	}],
@@ -78,7 +85,7 @@ describe('Cardano Koios REST transaction transport', () => {
 	it('requests one decoded transaction snapshot with only relationship payloads enabled', async () => {
 		sourceFetch.mockResolvedValueOnce(Response.json([transactionInfo]))
 
-		await expect(getTransactionInfo(binding, transactionInfo.tx_hash)).resolves.toEqual(transactionInfo)
+		await expect(getTransactionInfo(transactionInfo.tx_hash)).resolves.toEqual(transactionInfo)
 		expect(sourceFetch).toHaveBeenCalledWith(
 			binding,
 			'https://api.koios.rest/api/v1/tx_info',
@@ -102,10 +109,167 @@ describe('Cardano Koios REST transaction transport', () => {
 		)
 	})
 
+	it.each([
+		['ParameterChange', {
+			tag: 'ParameterChange',
+			contents: [
+				{
+					txId: 'parameter-change-parent',
+					govActionIx: 0,
+				},
+				{
+					minPoolCost: 75_000_000,
+					maxBlockExecutionUnits: {
+						steps: 20_000_000_000,
+						memory: 77_500_000,
+					},
+				},
+				'parameter-policy-hash',
+			],
+		}],
+		['HardForkInitiation', {
+			tag: 'HardForkInitiation',
+			contents: [
+				{
+					txId: 'hard-fork-parent',
+					govActionIx: 1,
+				},
+				{
+					major: 11,
+					minor: 0,
+				},
+			],
+		}],
+		['TreasuryWithdrawals', {
+			tag: 'TreasuryWithdrawals',
+			contents: [
+				[[
+					{
+						network: 'Testnet',
+						credential: {
+							keyHash: 'treasury-key-hash',
+						},
+					},
+					10_000_000,
+				]],
+				'treasury-policy-hash',
+			],
+		}],
+		['NoConfidence', {
+			tag: 'NoConfidence',
+			contents: {
+				txId: 'committee-parent',
+				govActionIx: 2,
+			},
+		}],
+		['UpdateCommittee', {
+			tag: 'UpdateCommittee',
+			contents: [
+				{
+					txId: 'committee-parent',
+					govActionIx: 3,
+				},
+				[{
+					scriptHash: 'retiring-committee-script',
+				}],
+				{
+					'keyHash-new-committee-key': 1720,
+				},
+				{
+					numerator: 2,
+					denominator: 3,
+				},
+			],
+		}],
+		['NewConstitution', {
+			tag: 'NewConstitution',
+			contents: [
+				null,
+				{
+					anchor: {
+						url: 'https://example.com/constitution.txt',
+						dataHash: 'constitution-data-hash',
+					},
+					script: null,
+				},
+			],
+		}],
+		['InfoAction', {
+			tag: 'InfoAction',
+		}],
+	] as const)('validates the %s governance action outer wire shape', async (proposalType, description) => {
+		sourceFetch.mockResolvedValueOnce(Response.json([{
+			...transactionInfo,
+			proposal_procedures: [{
+				...transactionInfo.proposal_procedures[0],
+				type: proposalType,
+				description,
+			}],
+		}]))
+
+		await expect(getTransactionInfo(transactionInfo.tx_hash)).resolves.toMatchObject({
+			proposal_procedures: [{
+				type: proposalType,
+				description,
+			}],
+		})
+	})
+
+	it.each([
+		['mismatched type and tag', {
+			type: 'InfoAction',
+			description: {
+				tag: 'NoConfidence',
+				contents: null,
+			},
+		}],
+		['unknown constructor tag', {
+			type: 'InfoAction',
+			description: {
+				tag: 'UnknownAction',
+			},
+		}],
+		['malformed constructor arity', {
+			type: 'HardForkInitiation',
+			description: {
+				tag: 'HardForkInitiation',
+				contents: [null],
+			},
+		}],
+		['malformed constructor component', {
+			type: 'TreasuryWithdrawals',
+			description: {
+				tag: 'TreasuryWithdrawals',
+				contents: [
+					[[
+						{
+							network: 'Mainnet',
+							credential: {
+								keyHash: 'treasury-key-hash',
+							},
+						},
+						-1,
+					]],
+					null,
+				],
+			},
+		}],
+	])('rejects a governance action with %s', async (_case, proposal) => {
+		sourceFetch.mockResolvedValueOnce(Response.json([{
+			...transactionInfo,
+			proposal_procedures: [{
+				...transactionInfo.proposal_procedures[0],
+				...proposal,
+			}],
+		}]))
+
+		await expect(getTransactionInfo(transactionInfo.tx_hash)).rejects.toThrow()
+	})
+
 	it('rejects an absent transaction instead of resolving authoritative emptiness', async () => {
 		sourceFetch.mockResolvedValueOnce(Response.json([]))
 
-		await expect(getTransactionInfo(binding, transactionInfo.tx_hash)).rejects.toThrow(
+		await expect(getTransactionInfo(transactionInfo.tx_hash)).rejects.toThrow(
 			'CardanoKoios_Rest: transaction response is missing'
 		)
 	})
@@ -131,7 +295,7 @@ describe('Cardano Koios REST transaction transport', () => {
 			proposal_procedures: [proposal],
 		}]))
 
-		await expect(getTransactionInfo(binding, transactionInfo.tx_hash)).rejects.toThrow()
+		await expect(getTransactionInfo(transactionInfo.tx_hash)).rejects.toThrow()
 	})
 
 	it('retains pool ticker identity from the list response', async () => {
@@ -149,7 +313,7 @@ describe('Cardano Koios REST transaction transport', () => {
 			},
 		])
 
-		await expect(listStakePools(binding, 3)).resolves.toEqual([
+		await expect(listStakePools(3)).resolves.toEqual([
 			{
 				pool_id_bech32: 'pool1example',
 				ticker: 'EXAMPLE',
@@ -202,7 +366,7 @@ describe('Cardano Koios REST network tip, block, and transaction wire validation
 			.mockResolvedValueOnce(blocks)
 
 		await expect(getTip(binding)).resolves.toEqual([tip])
-		await expect(listBlocks(binding, 2)).resolves.toEqual(blocks)
+		await expect(listBlocks(2)).resolves.toEqual(blocks)
 	})
 
 	it.each([
@@ -238,7 +402,7 @@ describe('Cardano Koios REST network tip, block, and transaction wire validation
 		},
 		{
 			label: 'missing block field',
-			load: () => listBlocks(binding, 1),
+			load: () => listBlocks(1),
 			response: [{
 				...blocks[0],
 				tx_count: undefined,
@@ -247,7 +411,7 @@ describe('Cardano Koios REST network tip, block, and transaction wire validation
 		},
 		{
 			label: 'duplicate block identity',
-			load: () => listBlocks(binding, 2),
+			load: () => listBlocks(2),
 			response: [
 				blocks[0],
 				{
@@ -259,7 +423,7 @@ describe('Cardano Koios REST network tip, block, and transaction wire validation
 		},
 		{
 			label: 'unsafe block number',
-			load: () => listBlocks(binding, 1),
+			load: () => listBlocks(1),
 			response: [{
 				...blocks[0],
 				tx_count: Number.MAX_SAFE_INTEGER + 1,
@@ -268,7 +432,7 @@ describe('Cardano Koios REST network tip, block, and transaction wire validation
 		},
 		{
 			label: 'non-descending block height',
-			load: () => listBlocks(binding, 2),
+			load: () => listBlocks(2),
 			response: [
 				blocks[0],
 				{
@@ -280,7 +444,7 @@ describe('Cardano Koios REST network tip, block, and transaction wire validation
 		},
 		{
 			label: 'non-descending block slot',
-			load: () => listBlocks(binding, 2),
+			load: () => listBlocks(2),
 			response: [
 				blocks[0],
 				{
@@ -308,7 +472,7 @@ describe('Cardano Koios REST network tip, block, and transaction wire validation
 			{ tx_hash: 'transaction-2' },
 		]))
 
-		await expect(listLatestBlockTransactions(binding, 2)).resolves.toEqual([
+		await expect(listLatestBlockTransactions(2)).resolves.toEqual([
 			{ tx_hash: 'transaction-0' },
 			{ tx_hash: 'transaction-1' },
 		])
@@ -338,13 +502,12 @@ describe('Cardano Koios REST network tip, block, and transaction wire validation
 				{ tx_hash: 'transaction-0' },
 			]))
 
-		await expect(listLatestBlockTransactions(binding, 1)).rejects.toThrow('tx_hash')
-		await expect(listLatestBlockTransactions(binding, 2)).rejects.toThrow('duplicate identities')
+		await expect(listLatestBlockTransactions(1)).rejects.toThrow('tx_hash')
+		await expect(listLatestBlockTransactions(2)).rejects.toThrow('duplicate identities')
 	})
 
 	it('validates the latest-block limit before reading a tip', async () => {
 		await expect(listLatestBlockTransactions(
-			binding,
 			Number.MAX_SAFE_INTEGER + 1
 		)).rejects.toThrow('list count must be an integer from 0 through 100')
 		expect(sourceGetJson).not.toHaveBeenCalled()
@@ -391,7 +554,7 @@ describe('Cardano Koios REST stake-pool wire validation', () => {
 	}) => {
 		sourceGetJson.mockResolvedValueOnce(response)
 
-		await expect(listStakePools(binding, response.length)).rejects.toThrow(message)
+		await expect(listStakePools(response.length)).rejects.toThrow(message)
 	})
 })
 
@@ -407,12 +570,12 @@ describe('Cardano Koios governance proposal pagination', () => {
 			proposal_type: 'InfoAction',
 		}])
 
-		await expect(listGovernanceProposals(binding, 16, 32)).resolves.toHaveLength(1)
+		await expect(listGovernanceProposals(16, 32)).resolves.toHaveLength(1)
 		expect(sourceGetJson).toHaveBeenCalledWith(
 			binding,
 			'https://api.koios.rest/api/v1/proposal_list?limit=16&offset=32'
 		)
-		expect(() => listGovernanceProposals(binding, 16, -1)).toThrow(
+		expect(() => listGovernanceProposals(16, -1)).toThrow(
 			'list offset must be a nonnegative integer'
 		)
 		expect(sourceGetJson).toHaveBeenCalledOnce()
@@ -577,20 +740,20 @@ describe('Cardano Koios REST network collection wire validation', () => {
 			.mockResolvedValueOnce(dReps)
 			.mockResolvedValueOnce(assets)
 
-		await expect(listDReps(binding, 1)).resolves.toEqual(dReps)
-		await expect(listAssets(binding, 1)).resolves.toEqual(assets)
+		await expect(listDReps(1)).resolves.toEqual(dReps)
+		await expect(listAssets(1)).resolves.toEqual(assets)
 	})
 
 	it.each([
 		{
 			label: 'missing DRep field',
-			load: () => listDReps(binding, 1),
+			load: () => listDReps(1),
 			response: [{ drep_id: 'drep1fixture' }],
 			message: 'has_script',
 		},
 		{
 			label: 'duplicate DRep identity',
-			load: () => listDReps(binding, 2),
+			load: () => listDReps(2),
 			response: [
 				{
 					drep_id: 'drep1fixture',
@@ -605,7 +768,7 @@ describe('Cardano Koios REST network collection wire validation', () => {
 		},
 		{
 			label: 'malformed asset field',
-			load: () => listAssets(binding, 1),
+			load: () => listAssets(1),
 			response: [{
 				policy_id: 'policy-fixture',
 				asset_name: 42,
@@ -614,7 +777,7 @@ describe('Cardano Koios REST network collection wire validation', () => {
 		},
 		{
 			label: 'duplicate asset identity',
-			load: () => listAssets(binding, 2),
+			load: () => listAssets(2),
 			response: [
 				{
 					policy_id: 'policy-fixture',

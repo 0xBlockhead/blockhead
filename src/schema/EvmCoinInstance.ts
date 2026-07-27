@@ -11,11 +11,8 @@ export enum CoinInstanceType {
 	NativeCurrency = 'NativeCurrency',
 	Erc20Token = 'Erc20Token',
 }
-export enum EvmCoinInstanceSelector {
-	NetworkType = 'NetworkType',
-	NetworkTypeContract = 'NetworkTypeContract',
-}
-export const EvmCoinInstance = entity({
+
+export default entity({
 	entityType: EntityType.EvmCoinInstance,
 	labels: {
 		singular: 'EVM coin instance',
@@ -103,7 +100,7 @@ export const EvmCoinInstance = entity({
 			iconUrl: {
 				label: 'Icon URL',
 				type: EntityFieldType.Primitive,
-				primitiveType: (UrlString),
+				primitiveType: UrlString,
 				cardinality: EntityFieldCardinality.ZeroOrOne,
 			},
 			$icon: {
@@ -223,7 +220,7 @@ export const EvmCoinInstance = entity({
 			iconUrl: {
 				label: 'Icon URL',
 				type: EntityFieldType.Primitive,
-				primitiveType: (UrlString),
+				primitiveType: UrlString,
 				cardinality: EntityFieldCardinality.ZeroOrOne,
 				defaultSources: [
 					Source.Blockscout_Rest,

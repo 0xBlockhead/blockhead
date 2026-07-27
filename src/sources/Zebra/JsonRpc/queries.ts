@@ -1,67 +1,14 @@
-import { corsFetch, throwHttpError } from '$/lib/http.ts'
-import { jsonRpcHeaders, jsonRpcVersion } from '$/sources/Evm/JsonRpc/constants.ts'
-import { Source } from '$/sources/Source.ts'
-import {
-	SourceTargetKind,
-	type SourceBinding,
-} from '$/sources/SourceBinding.ts'
-import { utxoJsonRpcOrigins } from '$/sources/_shared/interfaces/UtxoJsonRpc/localOrigins.ts'
 import { jsonRpc2 } from '$/sources/_shared/wire/JsonRpc2/client.ts'
-import type { JsonValue } from '$/typescript/JsonValue.ts'
+import type { SourceBinding } from '$/sources/SourceBinding.ts'
 import type {
 	ZebraBlock,
 	ZebraTransaction,
 	ZebraTransparentAddressUtxos,
 } from '$/sources/Zebra/JsonRpc/types.ts'
+import bindings from '$/sources/Zebra/bindings.ts'
+import { Source } from '$/sources/Source.ts'
 
-type JsonRpcResponse<_Result> = {
-	jsonrpc: typeof jsonRpcVersion
-	id: number | string | null
-	result?: _Result
-	error?: {
-		code: number
-		message: string
-		data?: JsonValue
-	}
-}
-
-const zebraJsonRpc = async <_Result>({
-	rpcUrl,
-	method,
-	params,
-}: {
-	rpcUrl: string
-	method: string
-	params: JsonValue[]
-}) => {
-	const response = await corsFetch(rpcUrl, {
-		origins: utxoJsonRpcOrigins,
-		init: {
-			method: 'POST',
-			headers: jsonRpcHeaders,
-			body: JSON.stringify({
-				jsonrpc: jsonRpcVersion,
-				id: 1,
-				method,
-				params,
-			}),
-		},
-	})
-	if (!response.ok) await throwHttpError(`Zebra ${method}`, response)
-	const json = await response.json<JsonRpcResponse<_Result>>()
-	if (json.error != null) throw new Error(`Zebra ${method}: ${json.error.message}`)
-	if (json.result === undefined) throw new Error(`Zebra ${method}: missing result`)
-	return json.result
-}
-
-const assertBinding = (binding: SourceBinding) => {
-	if (
-		binding.source !== Source.Zebra_JsonRpc
-		|| binding.target.kind !== SourceTargetKind.Caip2Network
-		|| binding.target.key !== 'bip122:00040fe8ec8471911baa1db1266ea15'
-	)
-		throw new Error('Zebra_JsonRpc: expected canonical Zcash mainnet binding')
-}
+const binding = bindings[Source.Zebra_JsonRpc]
 
 const assertTransparentAddress = (address: string) => {
 	if (!/^t[13][1-9A-HJ-NP-Za-km-z]{33}$/.test(address))
@@ -85,55 +32,44 @@ const assertHash = (
 }
 
 export const getBlockHash = ({
-	rpcUrl,
 	height,
 }: {
-	rpcUrl: string
 	height: bigint
-}) => (
-	zebraJsonRpc<string>({
-		rpcUrl,
-		method: 'getblockhash',
-		params: [Number(height)],
-	})
-)
+}) => {
+	return jsonRpc2<string>(binding, 'getblockhash', [Number(height)])
+}
 
 export const getBlock = ({
-	rpcUrl,
 	blockHash,
 }: {
-	rpcUrl: string
 	blockHash: string
-}) => (
-	zebraJsonRpc<ZebraBlock>({
-		rpcUrl,
-		method: 'getblock',
-		params: [
+}) => {
+	return jsonRpc2<ZebraBlock>(
+		binding,
+		'getblock',
+		[
 			blockHash,
 			2,
-		],
-	})
-)
+		]
+	)
+}
 
 export const getRawTransaction = ({
-	rpcUrl,
 	txId,
 }: {
-	rpcUrl: string
 	txId: string
-}) => (
-	zebraJsonRpc<ZebraTransaction>({
-		rpcUrl,
-		method: 'getrawtransaction',
-		params: [
+}) => {
+	return jsonRpc2<ZebraTransaction>(
+		binding,
+		'getrawtransaction',
+		[
 			txId,
 			true,
-		],
-	})
-)
+		]
+	)
+}
 
 export const getTransparentAddressUtxos = async (
-	binding: SourceBinding,
 	{
 		address,
 		maxResults,
@@ -142,7 +78,6 @@ export const getTransparentAddressUtxos = async (
 		maxResults: number
 	}
 ) => {
-	assertBinding(binding)
 	assertTransparentAddress(address)
 	if (!Number.isSafeInteger(maxResults) || maxResults < 0 || maxResults > 10_000)
 		throw new Error('Zebra_JsonRpc: UTXO result limit must be an integer from 0 through 10000')
@@ -184,7 +119,6 @@ export const getTransparentAddressUtxos = async (
 }
 
 export const getTransparentAddressTransactionIds = async (
-	binding: SourceBinding,
 	{
 		address,
 		startHeight,
@@ -197,7 +131,6 @@ export const getTransparentAddressTransactionIds = async (
 		maxResults: number
 	}
 ) => {
-	assertBinding(binding)
 	assertTransparentAddress(address)
 	assertSafeUnsignedInteger(startHeight, 'start height')
 	assertSafeUnsignedInteger(endHeight, 'end height')

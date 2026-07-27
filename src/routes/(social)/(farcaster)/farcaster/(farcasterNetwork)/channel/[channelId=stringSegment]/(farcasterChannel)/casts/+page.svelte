@@ -3,12 +3,12 @@
 <script lang="ts">
 	// Types/constants
 	import type { PageProps } from './$types.ts'
+	import { resolve } from '$app/paths'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
@@ -16,8 +16,6 @@
 	let {
 		params,
 	}: PageProps = $props()
-
-
 	// Components
 	import Page from '$/components/Page.svelte'
 	import FarcasterCastsView from '$/views/FarcasterCastsView.svelte'
@@ -30,37 +28,29 @@
 
 
 <Page>
+	{@const collectionSelection = select(EntityType.FarcasterChannel, {
+		id: params.channelId,
+	})
+		.$$casts({
+			sources: [
+				Source.Farcaster_Rest,
+				Source.Neynar_Rest,
+				Source.Snapchain_Rest,
+			],
+		})}
+
 	<FarcasterCastsView
 		href={
-			resolve('/farcaster/channel/[channelId=stringSegment]/casts', {
-				channelId: params.channelId,
-			})
+			resolve(
+				'/(social)/(farcaster)/farcaster/(farcasterNetwork)/channel/[channelId=stringSegment]/(farcasterChannel)/casts',
+				{
+					channelId: String(params.channelId),
+				}
+			)
 		}
 		title='Farcaster channel casts'
-		selection={
-			select(EntityType.FarcasterChannel, {
-				id: params.channelId,
-			})
-				.$$casts({
-					sources: [
-						Source.Farcaster_Rest,
-						Source.Neynar_Rest,
-						Source.Snapchain_Rest,
-					],
-				})
-		}
-		countResource={
-			select(EntityType.FarcasterChannel, {
-				id: params.channelId,
-			})
-				.$$casts({
-					sources: [
-						Source.Farcaster_Rest,
-						Source.Neynar_Rest,
-						Source.Snapchain_Rest,
-					],
-				}).count
-		}
+		selection={collectionSelection}
+		countResource={collectionSelection.count}
 		id='casts'
 		data-column-item="flexible"
 		data-card

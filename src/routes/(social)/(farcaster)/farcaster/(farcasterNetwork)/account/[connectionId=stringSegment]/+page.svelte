@@ -8,7 +8,6 @@
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
@@ -42,17 +41,12 @@
 
 
 <svelte:head>
-	<title>{(pageSelection.entity == null ? 'Blockhead Farcaster account connection' : 'Blockhead Farcaster account connection')} • Blockhead Farcaster account connection • Blockhead</title>
+	<title>{('Blockhead Farcaster account connection')} • Blockhead Farcaster account connection • Blockhead</title>
 </svelte:head>
 
 
 <Page>
 	<BlockheadFarcasterAccountConnectionView
-		href={
-			resolve('/farcaster/account/[connectionId=stringSegment]', {
-				connectionId: params.connectionId,
-			})
-		}
 		selection={pageSelection}
 	/>
 </Page>

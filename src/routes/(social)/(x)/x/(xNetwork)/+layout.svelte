@@ -28,16 +28,16 @@
 
 
 <ParentPageCollapsible
-	href={resolve('/x')}
+	href={resolve('/(social)/(x)/x')}
 >
 	{#snippet Summary()}
-		{@const DetailView = XNetworkView}
-
-		<DetailView
-			selection={select(EntityType.XNetwork, data.selector, { sources: [
-	Source.Constants_Internal,
-] })}
-			href={resolve('/x')}
+		<XNetworkView
+			selection={
+				select(EntityType.XNetwork, data.selector, { sources: [
+					Source.Constants_Internal,
+				] })
+			}
+			href={resolve('/(social)/(x)/x')}
 			layout={EntityLayout.SummaryInline}
 		/>
 	{/snippet}

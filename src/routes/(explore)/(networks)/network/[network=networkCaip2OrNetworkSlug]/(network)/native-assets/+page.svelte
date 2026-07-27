@@ -3,11 +3,11 @@
 <script lang="ts">
 	// Types/constants
 	import type { PageProps } from './$types.ts'
+	import { resolve } from '$app/paths'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
@@ -16,8 +16,6 @@
 		data,
 		params,
 	}: PageProps = $props()
-
-
 	// Components
 	import Page from '$/components/Page.svelte'
 	import AssetInstancesView from '$/views/AssetInstancesView.svelte'
@@ -30,15 +28,20 @@
 
 
 <Page>
+	{@const collectionSelection = select(EntityType.Network, data.selector).$$nativeAssets}
+
 	<AssetInstancesView
 		href={
-			resolve('/network/[network=networkCaip2OrNetworkSlug]/native-assets', {
-				network: params.network,
-			})
+			resolve(
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/native-assets',
+				{
+					network: String(params.network),
+				}
+			)
 		}
 		title='Native assets'
-		selection={select(EntityType.Network, data.selector).$$nativeAssets}
-		countResource={select(EntityType.Network, data.selector).$$nativeAssets.count}
+		selection={collectionSelection}
+		countResource={collectionSelection.count}
 		id='native-assets'
 		data-column-item="flexible"
 		data-card

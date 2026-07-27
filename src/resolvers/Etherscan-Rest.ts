@@ -21,17 +21,9 @@ import type {
 	EtherscanInternalTransaction,
 	EtherscanTokenTransferTagged,
 } from '$/sources/Etherscan/Rest/types.ts'
-import { NetworkSelector } from '$/schema/Network.ts'
-import { EvmNetwork_GasEstimate_TimestampSelector } from '$/schema/EvmNetwork_GasEstimate_Timestamp.ts'
-import { EvmTokenTransferSelector } from '$/schema/EvmTokenTransfer.ts'
-import { EvmInternalTransferSelector } from '$/schema/EvmInternalTransfer.ts'
-import { EvmContractSelector } from '$/schema/EvmContract.ts'
-import { EvmNetworkAccountSelector } from '$/schema/EvmNetworkAccount.ts'
-import { EvmLogSelector } from '$/schema/EvmLog.ts'
-import { EvmTransactionSelector } from '$/schema/EvmTransaction.ts'
 
-type EvmNetworkId = EntitySelectorForSelectorName<typeof schema, EntityType.Network, NetworkSelector.Caip2>
-type NetworkId = EntitySelectorForSelectorName<typeof schema, EntityType.Network, NetworkSelector.Caip2>
+type EvmNetworkId = EntitySelectorForSelectorName<typeof schema, EntityType.Network, 'Caip2'>
+type NetworkId = EntitySelectorForSelectorName<typeof schema, EntityType.Network, 'Caip2'>
 
 const evmNetworkIdFromChainId = (chainId: number): EvmNetworkId => ({
 	caip2: {
@@ -467,7 +459,9 @@ const gweiFromDecimalString = (
 }
 
 const throwIfEtherscanRestUnsupportedChainId = async (chainId: number) => {
-	await import('$/sources/Etherscan/Rest/constants.ts')
+	const { supportedByChainId } = await import('$/sources/Etherscan/Rest/constants.ts')
+	if (!Object.hasOwn(supportedByChainId, chainId))
+		throw new Error(`Etherscan_Rest: unsupported chain ${String(chainId)}`)
 }
 
 
@@ -478,7 +472,7 @@ export default {
 		defineResolver(Source.Etherscan_Rest, {
 				entityType: EntityType.EvmNetwork_GasEstimate_Timestamp,
 				resolve: {
-					[EvmNetwork_GasEstimate_TimestampSelector.NetworkTimestampMsSource]: {
+					NetworkTimestampMsSource: {
 						resolve: async ({ $network, source }, context) => {
 							if (source !== Source.Etherscan_Rest)
 								throw new Error('Etherscan_Rest: EvmNetwork_GasEstimate_Timestamp selector source mismatch')
@@ -516,7 +510,7 @@ export default {
 		defineResolver(Source.Etherscan_Rest, {
 			entityType: EntityType.EvmTokenTransfer,
 			resolve: {
-				[EvmTokenTransferSelector.LogIndexInLog]: {
+				LogIndexInLog: {
 					resolve: async (entitySelector, context) => {
 						const {
 							getTokenTransfersByTransaction,
@@ -587,7 +581,7 @@ export default {
 		defineResolver(Source.Etherscan_Rest, {
 			entityType: EntityType.EvmInternalTransfer,
 			resolve: {
-				[EvmInternalTransferSelector.TransactionIndexInTransaction]: {
+				TransactionIndexInTransaction: {
 					resolve: async (entitySelector, context) => {
 						const { getInternalTransactionsByTxHash } = await import('$/sources/Etherscan/Rest/queries.ts')
 						const chainId = chainIdFromEvmNetworkId(entitySelector.$transaction.$network)
@@ -627,7 +621,7 @@ export default {
 		defineResolver(Source.Etherscan_Rest, {
 			entityType: EntityType.EvmContract,
 			resolve: {
-				[EvmContractSelector.EvmNetworkAddress]: {
+				EvmNetworkAddress: {
 					resolve: async ({ $network, address }, context) => {
 						const { getContractAbiJsonString } = await import('$/sources/Etherscan/Rest/queries.ts')
 						const chainId = chainIdFromEvmNetworkId($network)
@@ -648,7 +642,7 @@ export default {
 		defineResolver(Source.Etherscan_Rest, {
 			entityType: EntityType.EvmContract,
 			resolve: {
-				[EvmContractSelector.EvmNetworkAddress]: {
+				EvmNetworkAddress: {
 					resolve: async ({ $network, address }, context) => {
 						const { getContractCreation } = await import('$/sources/Etherscan/Rest/queries.ts')
 						const chainId = chainIdFromEvmNetworkId($network)
@@ -677,7 +671,7 @@ export default {
 		defineResolver(Source.Etherscan_Rest, {
 			entityType: EntityType.EvmContract,
 			resolve: {
-				[EvmContractSelector.EvmNetworkAddress]: {
+				EvmNetworkAddress: {
 					resolve: async ({ $network, address }, context) => {
 						const { getContractCreation } = await import('$/sources/Etherscan/Rest/queries.ts')
 						const chainId = chainIdFromEvmNetworkId($network)
@@ -707,7 +701,7 @@ export default {
 		defineResolver(Source.Etherscan_Rest, {
 			entityType: EntityType.EvmContract,
 			resolve: {
-				[EvmContractSelector.EvmNetworkAddress]: {
+				EvmNetworkAddress: {
 					resolve: async ({ $network, address }, context) => {
 						const { getContractSourceCode } = await import('$/sources/Etherscan/Rest/queries.ts')
 						const chainId = chainIdFromEvmNetworkId($network)
@@ -737,7 +731,7 @@ export default {
 		defineResolver(Source.Etherscan_Rest, {
 			entityType: EntityType.EvmContract,
 			resolve: {
-				[EvmContractSelector.EvmNetworkAddress]: {
+				EvmNetworkAddress: {
 					resolve: async ({ $network, address }, context) => {
 						const { getCode } = await import('$/sources/Etherscan/Rest/queries.ts')
 						const chainId = chainIdFromEvmNetworkId($network)
@@ -759,7 +753,7 @@ export default {
 		defineResolver(Source.Etherscan_Rest, {
 			entityType: EntityType.EvmContract,
 			resolve: {
-				[EvmContractSelector.EvmNetworkAddress]: {
+				EvmNetworkAddress: {
 					resolve: async ({ $network, address }, context) => {
 						const { getCode } = await import('$/sources/Etherscan/Rest/queries.ts')
 						const chainId = chainIdFromEvmNetworkId($network)
@@ -781,7 +775,7 @@ export default {
 		defineResolver(Source.Etherscan_Rest, {
 			entityType: EntityType.EvmContract,
 			resolve: {
-				[EvmContractSelector.EvmNetworkAddress]: {
+				EvmNetworkAddress: {
 					resolve: async ({ $network, address }, context) => {
 						const { getStorageAt } = await import('$/sources/Etherscan/Rest/queries.ts')
 						const chainId = chainIdFromEvmNetworkId($network)
@@ -812,7 +806,7 @@ export default {
 		defineResolver(Source.Etherscan_Rest, {
 			entityType: EntityType.Network,
 			resolve: {
-				[NetworkSelector.Caip2]: {
+				Caip2: {
 					resolve: async (entitySelector) => {
 						await throwIfEtherscanRestUnsupportedChainId(chainIdFromEvmNetworkId(entitySelector))
 						return [
@@ -836,7 +830,7 @@ export default {
 		defineResolver(Source.Etherscan_Rest, {
 			entityType: EntityType.EvmNetworkAccount,
 			resolve: {
-				[EvmNetworkAccountSelector.EvmNetworkEvmAccount]: {
+				EvmNetworkEvmAccount: {
 					resolve: async ({ $actor, $network }, context) => {
 						const {
 							getTokenTransfersByAddress,
@@ -878,7 +872,7 @@ export default {
 		defineResolver(Source.Etherscan_Rest, {
 			entityType: EntityType.EvmNetworkAccount,
 			resolve: {
-				[EvmNetworkAccountSelector.EvmNetworkEvmAccount]: {
+				EvmNetworkEvmAccount: {
 					resolve: async ({ $actor, $network }, context) => {
 						const {
 							getInternalTransactionsByAddress,
@@ -920,7 +914,7 @@ export default {
 		defineResolver(Source.Etherscan_Rest, {
 			entityType: EntityType.EvmLog,
 			resolve: {
-				[EvmLogSelector.TransactionIndexInTransaction]: {
+				TransactionIndexInTransaction: {
 					resolve: async ({ $transaction, indexInTransaction }, context) => {
 						const {
 							getTokenTransfersByTransaction,
@@ -967,7 +961,7 @@ export default {
 		defineResolver(Source.Etherscan_Rest, {
 			entityType: EntityType.EvmTransaction,
 			resolve: {
-				[EvmTransactionSelector.EvmNetworkTxHash]: {
+				EvmNetworkTxHash: {
 					resolve: async ({ $network, txHash }, context) => {
 						const {
 							getTokenTransfersByTransaction,
@@ -1007,7 +1001,7 @@ export default {
 		defineResolver(Source.Etherscan_Rest, {
 			entityType: EntityType.EvmTransaction,
 			resolve: {
-				[EvmTransactionSelector.EvmNetworkTxHash]: {
+				EvmNetworkTxHash: {
 					resolve: async ({ $network, txHash }, context) => {
 						const { getInternalTransactionsByTxHash } = await import('$/sources/Etherscan/Rest/queries.ts')
 						const chainId = chainIdFromEvmNetworkId($network)

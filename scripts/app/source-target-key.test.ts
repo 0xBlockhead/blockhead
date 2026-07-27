@@ -9,7 +9,7 @@ import {
 	app,
 } from '../../APP.ts'
 import { compileApp } from './generate.ts'
-import { networks } from './inputs/Network.ts'
+import { networks } from '../../src/constants/Network.ts'
 import { renderGeneratedFile } from './render.ts'
 
 const bindings = app.sources.sources.flatMap((source) => [

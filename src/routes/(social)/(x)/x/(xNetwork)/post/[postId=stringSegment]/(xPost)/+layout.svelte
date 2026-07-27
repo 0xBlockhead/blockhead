@@ -30,23 +30,29 @@
 {#key params.postId}
 	<ParentPageCollapsible
 		href={
-			resolve('/x/post/[postId=stringSegment]', {
-				postId: params.postId,
-			})
+			resolve(
+				'/(social)/(x)/x/(xNetwork)/post/[postId=stringSegment]',
+				{
+					postId: String(params.postId),
+				}
+			)
 		}
 	>
 		{#snippet Summary()}
-			{@const DetailView = XPostView}
-
-			<DetailView
-				selection={select(EntityType.XPost, data.selector, { sources: [
-		Source.X_Rest,
-		Source.X_FxEmbed_Rest,
-	] })}
+			<XPostView
+				selection={
+					select(EntityType.XPost, data.selector, { sources: [
+						Source.X_Rest,
+						Source.X_FxEmbed_Rest,
+					] })
+				}
 				href={
-					resolve('/x/post/[postId=stringSegment]', {
-						postId: params.postId,
-					})
+					resolve(
+						'/(social)/(x)/x/(xNetwork)/post/[postId=stringSegment]',
+						{
+							postId: String(params.postId),
+						}
+					)
 				}
 				layout={EntityLayout.SummaryInline}
 			/>

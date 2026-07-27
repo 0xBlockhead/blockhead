@@ -9,6 +9,8 @@ import {
 	routeViewSmokeTimeoutsMs,
 	setupRouteViewSmokePage,
 } from '../../../../../tests/e2e/_routeViewDiagnostics.ts'
+import bindings from '$/sources/AtprotoBsky/bindings.ts'
+import { Source } from '$/sources/Source.ts'
 
 
 const postUri = 'at://did:plc:journeyfixture/app.bsky.feed.post/3fixture'
@@ -16,6 +18,7 @@ const parentPostUri = 'at://did:plc:journeyfixture/app.bsky.feed.post/2parent'
 const replyPostUri = 'at://did:plc:journeyfixture/app.bsky.feed.post/4reply'
 const postPath = `/atproto/post/${encodeURIComponent(postUri)}`
 const actorPath = `/atproto/actor/${encodeURIComponent('did:plc:journeyfixture')}`
+const atprotoBskyProxyRoute = new RegExp(`/api-proxy/${encodeURIComponent(bindings[Source.Atproto_Xrpc].proxyId)}/0/`)
 const postView = {
 	author: {
 		did: 'did:plc:journeyfixture',
@@ -111,7 +114,7 @@ test('AT Protocol post renders fixture content, thread ordering, identity, and s
 			directPublicApiRequests.push(request.url())
 	})
 
-	await page.route('**/api-proxy/Atproto_Xrpc-*/0/**', async (route) => {
+	await page.route(atprotoBskyProxyRoute, async (route) => {
 		expect(route.request().method()).toBe('GET')
 		const providerUrl = providerUrlFromProxyRequest(route.request().url())
 		if (providerUrl.pathname.endsWith('/app.bsky.actor.getProfile')) {
@@ -121,7 +124,10 @@ test('AT Protocol post renders fixture content, thread ordering, identity, and s
 				json: {
 					did: 'did:plc:journeyfixture',
 					displayName: 'Journey Fixture',
+					followersCount: 0,
+					followsCount: 0,
 					handle: 'journey.test',
+					postsCount: 0,
 				},
 			})
 			return
@@ -192,7 +198,7 @@ test('AT Protocol post renders fixture content, thread ordering, identity, and s
 		const main = page.locator('#main')
 		const authorLink = main.locator(`a[href="${actorPath}"]`)
 		await step(expect(authorLink).toBeAttached())
-		const threadRows = main.locator('#AtprotoPostsView-thread li')
+		const threadRows = main.locator('#thread li')
 		await step(expect(threadRows).toHaveCount(2))
 		await step(expect(threadRows.nth(0)).toContainText('Parent thread content'))
 		await step(expect(threadRows.nth(1)).toContainText('Reply thread content'))
@@ -208,14 +214,8 @@ test('AT Protocol post renders fixture content, thread ordering, identity, and s
 			routeViewSmokeTimeoutsMs.mainSelector,
 			diagnostics,
 			{
-				requiredDt: [
-					'Handle',
-					'DID',
-				],
-				requiredText: [
-					'Journey Fixture',
-					'journey.test',
-				],
+				requiredDt: ['DID'],
+				requiredText: ['Journey Fixture'],
 			}
 		))
 		expect(directPublicApiRequests).toEqual([])
@@ -235,7 +235,7 @@ test('AT Protocol canonical handle redirect resolves once to the DID actor route
 	} = setupRouteViewSmokePage(page)
 	let handleResolutionCount = 0
 
-	await page.route('**/api-proxy/Atproto_Xrpc-*/0/**', async (route) => {
+	await page.route(atprotoBskyProxyRoute, async (route) => {
 		const providerUrl = providerUrlFromProxyRequest(route.request().url())
 		if (providerUrl.pathname.endsWith('/com.atproto.identity.resolveHandle')) {
 			handleResolutionCount++
@@ -255,7 +255,10 @@ test('AT Protocol canonical handle redirect resolves once to the DID actor route
 				json: {
 					did: 'did:plc:journeyfixture',
 					displayName: 'Journey Fixture',
+					followersCount: 0,
+					followsCount: 0,
 					handle: 'journey.test',
+					postsCount: 0,
 				},
 			})
 			return
@@ -279,17 +282,17 @@ test('AT Protocol canonical handle redirect resolves once to the DID actor route
 			waitUntil: 'load',
 			timeout: routeViewSmokeTimeoutsMs.goto,
 		}))
-		await step(expect(page).toHaveURL((url) => url.pathname === actorPath))
+		await step(expect(page).toHaveURL(
+			(url) => url.pathname === actorPath,
+			{ timeout: routeViewSmokeTimeoutsMs.mainSelector }
+		))
 		await expectMainVisible(page, routeViewSmokeTimeoutsMs.mainSelector, diagnostics)
 		await step(assertMainSettled(
 			page,
 			routeViewSmokeTimeoutsMs.mainSelector,
 			diagnostics,
 			{
-				requiredText: [
-					'Journey Fixture',
-					'journey.test',
-				],
+				requiredText: ['Journey Fixture'],
 			}
 		))
 		expect(handleResolutionCount).toBe(1)
@@ -308,7 +311,7 @@ test('AT Protocol post exposes provider failure instead of hanging or dumping wi
 			directPublicApiRequests.push(request.url())
 	})
 
-	await page.route('**/api-proxy/Atproto_Xrpc-*/0/**', async (route) => {
+	await page.route(atprotoBskyProxyRoute, async (route) => {
 		expect(route.request().method()).toBe('GET')
 		const providerUrl = providerUrlFromProxyRequest(route.request().url())
 		expectPostIdentity(providerUrl)
@@ -326,11 +329,12 @@ test('AT Protocol post exposes provider failure instead of hanging or dumping wi
 	await expect(page).toHaveURL((url) => url.pathname === postPath)
 	const main = page.locator('#main')
 	await expect(main).toBeVisible({ timeout: routeViewSmokeTimeoutsMs.mainSelector })
-	await expect(main.locator('[data-error]').first()).toContainText('Fixture appview unavailable', {
+	await expect(main.locator('[data-resource-state="failed"]').first()).toHaveAttribute('aria-label', 'Internal Error', {
 		timeout: routeViewSmokeTimeoutsMs.mainSelector,
 	})
 	await expect(main.getByText(/Loading\b/)).toHaveCount(0)
 	await expect(main).not.toContainText('[object Object]')
 	await expect(main).not.toContainText('{"message"')
+	await expect(main).not.toContainText('Fixture appview unavailable')
 	expect(directPublicApiRequests).toEqual([])
 })

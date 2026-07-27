@@ -1,15 +1,12 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { entity, facet } from '$/schema/$schema.ts'
+import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { EvmAddress } from '$/schema/ZeroExHex.ts'
 import { type } from 'arktype'
 
-export enum LensAccountManagerSelector {
-	AccountManager = 'AccountManager',
-}
-export const LensAccountManager = entity({
+export default entity({
 	entityType: EntityType.LensAccountManager,
 	labels: {
 		singular: 'Lens account manager',
@@ -25,7 +22,7 @@ export const LensAccountManager = entity({
 	manager: {
 		label: 'Manager',
 		type: EntityFieldType.Primitive,
-		primitiveType: (EvmAddress),
+		primitiveType: EvmAddress,
 		cardinality: EntityFieldCardinality.One,
 	},
 	addedAt: {

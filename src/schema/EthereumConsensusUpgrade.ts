@@ -1,16 +1,12 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { entity, facet } from '$/schema/$schema.ts'
+import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { ConsensusProtocol } from '$/schema/NetworkUpgradeProtocols.ts'
 import { type } from 'arktype'
 
-export enum EthereumConsensusUpgradeSelector {
-	EvmNetworkUpgradeId = 'EvmNetworkUpgradeId',
-	EvmNetworkSlug = 'EvmNetworkSlug',
-}
-export const EthereumConsensusUpgrade = entity({
+export default entity({
 	entityType: EntityType.EthereumConsensusUpgrade,
 	labels: {
 		singular: 'Ethereum consensus upgrade',

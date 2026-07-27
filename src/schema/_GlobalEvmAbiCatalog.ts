@@ -1,15 +1,12 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { entity, facet } from '$/schema/$schema.ts'
+import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
-export enum _GlobalEvmAbiCatalogSelector {
-	Scope = 'Scope',
-}
-export const _GlobalEvmAbiCatalog = entity({
+export default entity({
 	entityType: EntityType._GlobalEvmAbiCatalog,
 	labels: {
 		singular: 'global EVM ABI catalog',

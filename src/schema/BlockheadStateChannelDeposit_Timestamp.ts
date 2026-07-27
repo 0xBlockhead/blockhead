@@ -1,14 +1,11 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { entity, facet } from '$/schema/$schema.ts'
+import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { type } from 'arktype'
 
-export enum BlockheadStateChannelDeposit_TimestampSelector {
-	DepositTimestampMsSource = 'DepositTimestampMsSource',
-}
-export const BlockheadStateChannelDeposit_Timestamp = entity({
+export default entity({
 	entityType: EntityType.BlockheadStateChannelDeposit_Timestamp,
 	labels: {
 		singular: 'blockhead state channel deposit timestamp',

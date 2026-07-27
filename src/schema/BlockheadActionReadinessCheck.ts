@@ -1,15 +1,12 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { entity, facet } from '$/schema/$schema.ts'
+import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { EvmAddress } from '$/schema/ZeroExHex.ts'
 import { type } from 'arktype'
 
-export enum BlockheadActionReadinessCheckSelector {
-	SessionIdActionIdCheckId = 'SessionIdActionIdCheckId',
-}
-export const BlockheadActionReadinessCheck = entity({
+export default entity({
 	entityType: EntityType.BlockheadActionReadinessCheck,
 	labels: {
 		singular: 'blockhead action readiness check',
@@ -73,19 +70,19 @@ export const BlockheadActionReadinessCheck = entity({
 	accountAddress: {
 		label: 'account address',
 		type: EntityFieldType.Primitive,
-		primitiveType: (EvmAddress),
+		primitiveType: EvmAddress,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	tokenAddress: {
 		label: 'token address',
 		type: EntityFieldType.Primitive,
-		primitiveType: (EvmAddress),
+		primitiveType: EvmAddress,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	spenderAddress: {
 		label: 'spender address',
 		type: EntityFieldType.Primitive,
-		primitiveType: (EvmAddress),
+		primitiveType: EvmAddress,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	capabilityKey: {

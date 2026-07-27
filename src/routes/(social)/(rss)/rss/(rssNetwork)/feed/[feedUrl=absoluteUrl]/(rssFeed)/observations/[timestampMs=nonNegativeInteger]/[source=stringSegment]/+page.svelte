@@ -4,11 +4,9 @@
 	// Types/constants
 	import type { PageProps } from './$types.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
@@ -44,19 +42,12 @@
 
 
 <svelte:head>
-	<title>{(data.title ?? (pageSelection.entity == null ? 'RSS feed observation' : 'RSS feed observation'))} • RSS feed observation • Blockhead</title>
+	<title>{(data.title ?? ('RSS feed observation'))} • RSS feed observation • Blockhead</title>
 </svelte:head>
 
 
 <Page>
 	<RssFeed_TimestampView
-		href={
-			resolve('/rss/feed/[feedUrl=absoluteUrl]/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
-				feedUrl: params.feedUrl,
-				timestampMs: params.timestampMs,
-				source: params.source,
-			})
-		}
 		selection={pageSelection}
 	/>
 </Page>

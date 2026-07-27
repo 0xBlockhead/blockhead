@@ -3,7 +3,7 @@ import { sourceFetch, firstHttpUrlForBinding } from '$/sources/_runtime/http.ts'
 import { throwHttpError } from '$/lib/http.ts'
 import type { CohereJson } from '$/sources/Cohere/Rest/types.ts'
 
-const getJson = async ({
+const requestCohereJson = async ({
 	binding,
 	path,
 	credential,
@@ -30,7 +30,7 @@ export const listModels = ({
 }: {
 	binding: SourceBinding
 	credential: string
-}) => getJson({
+}) => requestCohereJson({
 	binding,
 	path: '/v1/models',
 	credential,

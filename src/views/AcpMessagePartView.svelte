@@ -2,14 +2,11 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
 	import { UrlString } from '$/schema/UrlString.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -21,42 +18,24 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.AcpMessagePart>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.AcpMessagePart>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.AcpMessagePart> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const acpMessagePart = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {
-			partKind: true,
-			mimeType: true,
-		},
-	} : {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const viewSelection = $derived(selection({
+		sources: selection.sources ?? [
+			Source.AcpLocal_JsonRpc,
+		],
+	}))
+	const acpMessagePart = $derived(viewSelection({
 		fields: {
 			partKind: true,
 			mimeType: true,
 		},
 	}))
-	const titleFallback = $derived([String((pendingEntity.partKind) ?? '')].filter(Boolean).join(' ') || 'ACP message part')
-	const viewDomId = $derived('acp-message-part-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const titleFallback = $derived((pendingEntity.partKind ?? '') || 'ACP message part')
 
 
 	// Components
@@ -70,71 +49,37 @@
 
 <EntityView
 	entityType={EntityType.AcpMessagePart}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'partKind') && Object.hasOwn(prefetched, 'mimeType')}
-			{[String((pendingEntity.partKind) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-		{:else}
-			<ResourceBoundary resource={acpMessagePart}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.partKind) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={acpMessagePart}>
+			{#snippet children(entity)}
+				{entity.partKind || title || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Value()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'partKind') && Object.hasOwn(prefetched, 'mimeType')}
-			{@const partIndex0 = pendingEntity.partIndex}
-			{#if partIndex0 !== undefined && partIndex0 !== null}
-				<NumberValue
-					value={partIndex0}
-				/>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={acpMessagePart}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const partIndex0 = resolvedEntity.partIndex}
-					{#if partIndex0 !== undefined && partIndex0 !== null}
-						<NumberValue
-							value={partIndex0}
-						/>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<NumberValue
+			value={pendingEntity.partIndex}
+		/>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'partKind') && Object.hasOwn(prefetched, 'mimeType')}
-			{@const mimeType0 = pendingEntity.mimeType}
-			{#if mimeType0 !== undefined && mimeType0 !== null}
-				<span data-text="muted">
-					{String((mimeType0) ?? '')}
-				</span>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={acpMessagePart}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const mimeType0 = resolvedEntity.mimeType}
-					{#if mimeType0 !== undefined && mimeType0 !== null}
-						<span data-text="muted">
-							{String((mimeType0) ?? '')}
-						</span>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={acpMessagePart}>
+			{#snippet children(entity)}
+				{@const mimeType0 = entity.mimeType}
+				{#if mimeType0 != null}
+					<span data-text="muted">
+						{mimeType0}
+					</span>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -153,26 +98,9 @@
 			<div>
 				<dt>part index</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									partIndex: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const partIndex = resolvedEntity.partIndex}
-							{#if partIndex !== undefined && partIndex !== null}
-								<NumberValue
-									value={partIndex}
-								/>
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					<NumberValue
+						value={pendingEntity.partIndex}
+					/>
 				</dd>
 			</div>
 
@@ -180,44 +108,25 @@
 				<dt>part kind</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									partKind: true,
-								},
-							})
-						}
+						resource={acpMessagePart}
 					>
 						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const partKind = resolvedEntity.partKind}
-							{#if partKind !== undefined && partKind !== null}
-								{String((partKind) ?? '')}
-							{/if}
+							{entity.partKind}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
 			</div>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							mimeType: true,
-						},
-					})
-				}
+				resource={acpMessagePart}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const mimeType = resolvedEntity.mimeType}
-					{#if mimeType !== undefined && mimeType !== null}
+					{@const mimeType = entity.mimeType}
+					{#if mimeType != null}
 						<div>
 							<dt>mime type</dt>
 							<dd>
-								{String((mimeType) ?? '')}
+								{mimeType}
 							</dd>
 						</div>
 					{/if}
@@ -226,8 +135,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							uri: true,
 						},
@@ -235,20 +143,18 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const uri = resolvedEntity.uri}
-					{#if uri !== undefined && uri !== null}
+					{@const uri = entity.uri}
+					{#if uri != null}
 						<div>
 							<dt>URI</dt>
 							<dd>
-								<svelte:element
-									this={'a'}
+								<a
 									href={String(uri)}
 									target="_blank"
 									rel="noreferrer noopener"
 								>
 									<TruncatedValue value={String(uri)} />
-								</svelte:element>
+								</a>
 							</dd>
 						</div>
 					{/if}
@@ -259,7 +165,7 @@
 				resource={selection.$artifact}
 			>
 				{#snippet children(aiArtifact)}
-					{#if aiArtifact != null && aiArtifact[EntityMetaKey.Selector] != null}
+					{#if aiArtifact != null}
 						<div>
 							<dt>artifact</dt>
 							<dd>

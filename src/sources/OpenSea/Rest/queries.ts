@@ -15,7 +15,7 @@ const evmAddressPattern = /^0x[0-9a-f]{40}$/i
 const transactionHashPattern = /^0x[0-9a-f]{64}$/i
 const unsignedIntegerPattern = /^(0|[1-9][0-9]*)$/
 
-const getJson = async <_Response>({
+const requestOpenSeaJson = async <_Response>({
 	binding,
 	path,
 	credential,
@@ -107,7 +107,7 @@ export const getAccountNfts = async ({
 }) => {
 	assertAddress(address, 'account address')
 
-	const response = await getJson<OpenSeaNftPage>({
+	const response = await requestOpenSeaJson<OpenSeaNftPage>({
 		binding,
 		credential,
 		path: `/api/v2/chain/${encodeURIComponent(chain)}/account/${encodeURIComponent(address)}/nfts?${pagination({
@@ -172,7 +172,7 @@ export const getAccountEvents = async ({
 	for (const type of types)
 		searchParameters.append('event_type', type)
 
-	const response = await getJson<OpenSeaAccountEventPage>({
+	const response = await requestOpenSeaJson<OpenSeaAccountEventPage>({
 		binding,
 		credential,
 		path: `/api/v2/events/accounts/${encodeURIComponent(address)}?${searchParameters}`,

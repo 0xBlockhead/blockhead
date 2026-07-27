@@ -1,6 +1,5 @@
 import { defineResolver } from '$/resolvers/defineResolver.ts'
 import { EntityMetaKey } from '$/schema/$schema.ts'
-import { AcpAgentProgramVersionSelector } from '$/schema/AcpAgentProgramVersion.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 import { fetchRegistry } from '$/sources/Acp/Rest/queries.ts'
@@ -12,7 +11,7 @@ export default {
 		defineResolver(Source.AcpRegistry_Rest, {
 			entityType: EntityType.AcpAgentProgramVersion,
 			resolve: {
-				[AcpAgentProgramVersionSelector.ProgramVersion]: {
+				ProgramVersion: {
 					resolve: async ({
 						$program,
 						version,

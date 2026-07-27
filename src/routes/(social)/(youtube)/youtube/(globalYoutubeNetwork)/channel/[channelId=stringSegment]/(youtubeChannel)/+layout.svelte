@@ -30,24 +30,30 @@
 {#key params.channelId}
 	<ParentPageCollapsible
 		href={
-			resolve('/youtube/channel/[channelId=stringSegment]', {
-				channelId: params.channelId,
-			})
+			resolve(
+				'/(social)/(youtube)/youtube/(globalYoutubeNetwork)/channel/[channelId=stringSegment]',
+				{
+					channelId: String(params.channelId),
+				}
+			)
 		}
 	>
 		{#snippet Summary()}
-			{@const DetailView = YoutubeChannelView}
-
-			<DetailView
-				selection={select(EntityType.YoutubeChannel, data.selector, { sources: [
-		Source.Youtube_Rest,
-		Source.Piped_Rest,
-		Source.Constants_Internal,
-	] })}
+			<YoutubeChannelView
+				selection={
+					select(EntityType.YoutubeChannel, data.selector, { sources: [
+						Source.Youtube_Rest,
+						Source.Piped_Rest,
+						Source.Constants_Internal,
+					] })
+				}
 				href={
-					resolve('/youtube/channel/[channelId=stringSegment]', {
-						channelId: params.channelId,
-					})
+					resolve(
+						'/(social)/(youtube)/youtube/(globalYoutubeNetwork)/channel/[channelId=stringSegment]',
+						{
+							channelId: String(params.channelId),
+						}
+					)
 				}
 				layout={EntityLayout.SummaryInline}
 			/>

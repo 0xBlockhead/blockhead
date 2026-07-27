@@ -2,13 +2,9 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
 
 
 	// Context
@@ -20,35 +16,13 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.HederaSchedule_Timestamp>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.HederaSchedule_Timestamp>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.HederaSchedule_Timestamp> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const hederaScheduleTimestamp = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {},
-	} : {
-		sources: selection.sources,
-	}))
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const titleFallback = 'hedera schedule timestamp'
-	const viewDomId = $derived('hedera-schedule-timestamp-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -62,24 +36,14 @@
 
 <EntityView
 	entityType={EntityType.HederaSchedule_Timestamp}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails}
-			{title || titleFallback}
-		{:else}
-			<ResourceBoundary resource={hederaScheduleTimestamp}>
-				{#snippet children(entity)}
-					{title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		hedera schedule timestamp
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -98,55 +62,20 @@
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									timestampMs: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const timestampMs = resolvedEntity.timestampMs}
-							{#if timestampMs !== undefined && timestampMs !== null}
-								<Timestamp timestamp={Number(timestampMs)} />
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									source: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const source = resolvedEntity.source}
-							{#if source !== undefined && source !== null}
-								{String((source) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{pendingEntity.source}
 				</dd>
 			</div>
 
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							executedTimestamp: true,
 						},
@@ -154,13 +83,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const executedTimestamp = resolvedEntity.executedTimestamp}
-					{#if executedTimestamp !== undefined && executedTimestamp !== null}
+					{@const executedTimestamp = entity.executedTimestamp}
+					{#if executedTimestamp != null}
 						<div>
 							<dt>executed timestamp</dt>
 							<dd>
-								{String((executedTimestamp) ?? '')}
+								{executedTimestamp}
 							</dd>
 						</div>
 					{/if}
@@ -170,7 +98,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							deleted: true,
 						},
@@ -178,9 +105,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const deleted = resolvedEntity.deleted}
-					{#if deleted !== undefined && deleted !== null}
+					{@const deleted = entity.deleted}
+					{#if deleted != null}
 						<div>
 							<dt>deleted</dt>
 							<dd>
@@ -194,7 +120,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							expirationTime: true,
 						},
@@ -202,13 +127,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const expirationTime = resolvedEntity.expirationTime}
-					{#if expirationTime !== undefined && expirationTime !== null}
+					{@const expirationTime = entity.expirationTime}
+					{#if expirationTime != null}
 						<div>
 							<dt>expiration time</dt>
 							<dd>
-								{String((expirationTime) ?? '')}
+								{expirationTime}
 							</dd>
 						</div>
 					{/if}
@@ -218,7 +142,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							waitForExpiry: true,
 						},
@@ -226,9 +149,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const waitForExpiry = resolvedEntity.waitForExpiry}
-					{#if waitForExpiry !== undefined && waitForExpiry !== null}
+					{@const waitForExpiry = entity.waitForExpiry}
+					{#if waitForExpiry != null}
 						<div>
 							<dt>wait for expiry</dt>
 							<dd>
@@ -242,7 +164,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							signatureCount: true,
 						},
@@ -250,13 +171,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const signatureCount = resolvedEntity.signatureCount}
-					{#if signatureCount !== undefined && signatureCount !== null}
+					{@const signatureCount = entity.signatureCount}
+					{#if signatureCount != null}
 						<div>
 							<dt>signature count</dt>
 							<dd>
-								<TruncatedValue value={String((signatureCount) ?? '')} />
+								<TruncatedValue value={String(signatureCount)} />
 							</dd>
 						</div>
 					{/if}
@@ -267,7 +187,7 @@
 				resource={selection.$executionTransaction}
 			>
 				{#snippet children(hederaTransaction)}
-					{#if hederaTransaction != null && hederaTransaction[EntityMetaKey.Selector] != null}
+					{#if hederaTransaction != null}
 						<div>
 							<dt>execution transaction</dt>
 							<dd>

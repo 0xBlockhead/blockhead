@@ -1,11 +1,33 @@
 import { beforeEach, expect, it, vi } from 'vitest'
 
-import { SourceDelivery } from '$/sources/SourceBinding.ts'
+import bindings from '$/sources/FxEmbed/bindings.ts'
 import { Source } from '$/sources/Source.ts'
+import {
+	ApiFamily,
+	SourceArtifactKind,
+	SourceCredentialScope,
+	SourceDelivery,
+	SourceEndpointKind,
+	SourceOperationGroup,
+	SourceTargetKind,
+	type SourceBinding,
+	WireProtocol,
+} from '$/sources/SourceBinding.ts'
 
-const sourceGetJson = vi.hoisted(() => vi.fn())
+const {
+	firstHttpUrlForBinding,
+	sourceGetJson,
+} = vi.hoisted(() => ({
+	firstHttpUrlForBinding: vi.fn(
+		(binding: SourceBinding) => binding.endpoints[0]?.locator
+	),
+	sourceGetJson: vi.fn(),
+}))
 
-vi.mock('$/sources/_runtime/http.ts', () => ({ sourceGetJson }))
+vi.mock('$/sources/_runtime/http.ts', () => ({
+	firstHttpUrlForBinding,
+	sourceGetJson,
+}))
 
 const {
 	getUser,
@@ -13,20 +35,56 @@ const {
 	searchStatuses,
 } = await import('$/sources/FxEmbed/Rest/queries.ts')
 
+const fxEmbedRestBinding = bindings[Source.X_FxEmbed_Rest]
+
 beforeEach(() => {
+	firstHttpUrlForBinding.mockClear()
 	sourceGetJson.mockReset()
 	sourceGetJson.mockResolvedValue({ results: [] })
+})
+
+it('pins the canonical FxEmbed binding fingerprint', () => {
+	expect(fxEmbedRestBinding).toEqual({
+		source: Source.X_FxEmbed_Rest,
+		target: {
+			kind: SourceTargetKind.Global,
+			key: 'fxembed-api',
+		},
+		endpoints: [
+			{
+				endpointKind: SourceEndpointKind.HttpUrl,
+				locator: 'https://api.fxtwitter.com',
+				origin: 'https://api.fxtwitter.com',
+				corsEnabled: false,
+			},
+		],
+		wireProtocol: WireProtocol.HttpRest,
+		apiFamily: ApiFamily.RestJson,
+		operationGroups: [
+			SourceOperationGroup.GenericRead,
+		],
+		delivery: SourceDelivery.HttpProxy,
+		credentials: [
+			{
+				scope: SourceCredentialScope.None,
+			},
+		],
+		proxyId: '["X_FxEmbed_Rest","Global","fxembed-api","HttpProxy","RestJson"]',
+		artifacts: [
+			{
+				kind: SourceArtifactKind.HandwrittenTypes,
+				path: 'src/sources/FxEmbed/Rest/types.ts',
+				generated: false,
+			},
+		],
+	})
 })
 
 it('uses the proxied FxEmbed origin and preserves profile identity encoding', async () => {
 	await getUser('123')
 	await getUser('@alice/example')
 
-	expect(sourceGetJson.mock.calls[0][0]).toMatchObject({
-		source: Source.X_FxEmbed_Rest,
-		delivery: SourceDelivery.HttpProxy,
-		proxyId: expect.stringMatching(/^X_FxEmbed_Rest-/),
-	})
+	expect(sourceGetJson.mock.calls[0][0]).toBe(fxEmbedRestBinding)
 	expect(sourceGetJson.mock.calls[0][1]).toBe(
 		'https://api.fxtwitter.com/2/profile/id%3A123'
 	)

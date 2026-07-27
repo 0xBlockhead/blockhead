@@ -5,9 +5,6 @@ import {
 	EntityMetaKey,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import { YoutubeChannelSelector } from '$/schema/YoutubeChannel.ts'
-import { YoutubeVideoSelector } from '$/schema/YoutubeVideo.ts'
-import { _GlobalYoutubeNetworkSelector } from '$/schema/_GlobalYoutubeNetwork.ts'
 import { Source } from '$/sources/Source.ts'
 
 const youtubeQueries = vi.hoisted(() => ({
@@ -54,15 +51,15 @@ describe.each([
 		label: 'YouTube',
 		continuationToken: 'youtube-next',
 		resolveRows: async () => {
-			const videoSnapshot = await youtubeResolvers.resolvers[5].resolve[YoutubeChannelSelector.ChannelId].resolve(
+			const videoSnapshot = await youtubeResolvers.resolvers[5].resolve['ChannelId'].resolve(
 				{ channelId: 'channel-1' },
 				resolverContext
 			)
-			const playlistSnapshot = await youtubeResolvers.resolvers[7].resolve[YoutubeChannelSelector.ChannelId].resolve(
+			const playlistSnapshot = await youtubeResolvers.resolvers[7].resolve['ChannelId'].resolve(
 				{ channelId: 'channel-1' },
 				resolverContext
 			)
-			const commentSnapshot = await youtubeResolvers.resolvers[12].resolve[YoutubeVideoSelector.VideoId].resolve(
+			const commentSnapshot = await youtubeResolvers.resolvers[12].resolve['VideoId'].resolve(
 				{ videoId: 'video-1' },
 				resolverContext
 			)
@@ -88,7 +85,7 @@ describe.each([
 					resolverContext
 				),
 				channel: (
-					await youtubeResolvers.resolvers[17].resolve[_GlobalYoutubeNetworkSelector.Scope].resolve(
+					await youtubeResolvers.resolvers[17].resolve['Scope'].resolve(
 						{ scope: '_GlobalYoutubeNetwork' },
 						resolverContext
 					)
@@ -156,15 +153,15 @@ describe.each([
 		label: 'Piped',
 		continuationToken: 'piped-next',
 		resolveRows: async () => {
-			const videoSnapshot = await pipedResolvers.resolvers[5].resolve[YoutubeChannelSelector.ChannelId].resolve(
+			const videoSnapshot = await pipedResolvers.resolvers[5].resolve['ChannelId'].resolve(
 				{ channelId: 'channel-1' },
 				resolverContext
 			)
-			const playlistSnapshot = await pipedResolvers.resolvers[6].resolve[YoutubeChannelSelector.ChannelId].resolve(
+			const playlistSnapshot = await pipedResolvers.resolvers[6].resolve['ChannelId'].resolve(
 				{ channelId: 'channel-1' },
 				resolverContext
 			)
-			const commentSnapshot = await pipedResolvers.resolvers[9].resolve[YoutubeVideoSelector.VideoId].resolve(
+			const commentSnapshot = await pipedResolvers.resolvers[9].resolve['VideoId'].resolve(
 				{ videoId: 'video-1' },
 				resolverContext
 			)
@@ -190,7 +187,7 @@ describe.each([
 					resolverContext
 				),
 				channel: (
-					await pipedResolvers.resolvers[11].resolve[_GlobalYoutubeNetworkSelector.Scope].resolve(
+					await pipedResolvers.resolvers[11].resolve['Scope'].resolve(
 						{ scope: '_GlobalYoutubeNetwork' },
 						resolverContext
 					)
@@ -341,7 +338,7 @@ describe('YouTube observation provenance', () => {
 		})
 
 		const playlists = await youtubeResolvers.resolvers[19]
-			.resolve[_GlobalYoutubeNetworkSelector.Scope]
+			.resolve['Scope']
 			.resolve(
 				{ scope: '_GlobalYoutubeNetwork' },
 				resolverContext
@@ -365,7 +362,7 @@ describe('YouTube observation provenance', () => {
 			label: 'YouTube',
 			source: Source.Youtube_Rest,
 			resolveObservation: async () => (
-				await youtubeResolvers.resolvers[4].resolve[YoutubeChannelSelector.ChannelId].resolve(
+				await youtubeResolvers.resolvers[4].resolve['ChannelId'].resolve(
 					{ channelId: 'channel-1' },
 					resolverContext
 				)
@@ -385,7 +382,7 @@ describe('YouTube observation provenance', () => {
 			label: 'Piped',
 			source: Source.Piped_Rest,
 			resolveObservation: async () => (
-				await pipedResolvers.resolvers[4].resolve[YoutubeChannelSelector.ChannelId].resolve(
+				await pipedResolvers.resolvers[4].resolve['ChannelId'].resolve(
 					{ channelId: 'channel-1' },
 					resolverContext
 				)

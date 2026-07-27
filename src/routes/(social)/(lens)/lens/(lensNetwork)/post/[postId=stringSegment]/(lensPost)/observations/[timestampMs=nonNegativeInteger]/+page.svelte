@@ -8,7 +8,6 @@
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
@@ -44,18 +43,12 @@
 
 
 <svelte:head>
-	<title>{(pageSelection.entity == null ? 'Lens post observation' : 'Lens post observation')} • Lens post observation • Blockhead</title>
+	<title>{('Lens post observation')} • Lens post observation • Blockhead</title>
 </svelte:head>
 
 
 <Page>
 	<LensPost_TimestampView
-		href={
-			resolve('/lens/post/[postId=stringSegment]/observations/[timestampMs=nonNegativeInteger]', {
-				postId: params.postId,
-				timestampMs: params.timestampMs,
-			})
-		}
 		selection={pageSelection}
 	/>
 </Page>

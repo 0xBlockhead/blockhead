@@ -12,9 +12,6 @@ import {
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 import type { DogecoinDipsGithubContents } from '$/sources/DogecoinDips/Github/types.ts'
-import { _GlobalSelector } from '$/schema/_Global.ts'
-import { SpecificationProposalSelector } from '$/schema/SpecificationProposal.ts'
-
 const dipMetadataValue = (text: string, key: string) => (
 	new RegExp(`^\\s*${key}:\\s*(.+?)\\s*$`, 'im').exec(text)?.[1]?.trim()
 )
@@ -43,7 +40,7 @@ export default {
 		defineResolver(Source.DogecoinDips_Github, {
 			entityType: EntityType.SpecificationProposal,
 			resolve: {
-				[SpecificationProposalSelector.RealmCategoryNumber]: {
+				RealmCategoryNumber: {
 					appliesTo: [
 						{
 							realm: OwnedSpecificationRealm.Dogecoin,
@@ -56,7 +53,9 @@ export default {
 					if (realm !== SpecificationRealm.Dogecoin || category !== ProposalCategory.Dip) {
 						throw new Error('DogecoinDips_Github: proposal resolver only supports Dogecoin DIPs')
 					}
-					const text = await getMediaWikiText({ number: number })
+					const text = await getMediaWikiText({
+						number: number,
+					})
 					if (text.trim() === '') throw new Error('DogecoinDips_Github: empty proposal text')
 					return {
 						documentCategory: dipMetadataValue(text, 'Type'),
@@ -77,7 +76,7 @@ export default {
 		defineResolver(Source.DogecoinDips_Github, {
 			entityType: EntityType._Global,
 			resolve: {
-				[_GlobalSelector.Scope]: {
+				Scope: {
 					resolve: async () => {
 						const { getContents } = await import('$/sources/DogecoinDips/Github/queries.ts')
 						return dogecoinDipProposalRows(await getContents())

@@ -8,7 +8,6 @@
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
@@ -38,13 +37,12 @@
 
 
 <svelte:head>
-	<title>{(data.title ?? (pageSelection.entity == null ? 'XMTP' : [String((({ ...data.selector, ...pageSelection.entity }).protocolName) ?? '')].filter(Boolean).join(' ') || 'XMTP'))} • XMTP • Blockhead</title>
+	<title>{(data.title ?? (pageSelection.entity == null ? 'XMTP' : pageSelection.entity.protocolName || 'XMTP'))} • XMTP • Blockhead</title>
 </svelte:head>
 
 
 <Page>
 	<XmtpNetworkView
-		href={resolve('/xmtp')}
 		selection={pageSelection}
 	/>
 </Page>

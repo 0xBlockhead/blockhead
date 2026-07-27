@@ -2,13 +2,9 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
 
 
 	// Context
@@ -20,35 +16,13 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.TezosOperationGroup>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.TezosOperationGroup>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.TezosOperationGroup> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const tezosOperationGroup = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {},
-	} : {
-		sources: selection.sources,
-	}))
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const titleFallback = 'tezos operation group'
-	const viewDomId = $derived('tezos-operation-group-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -61,24 +35,14 @@
 
 <EntityView
 	entityType={EntityType.TezosOperationGroup}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails}
-			{title || titleFallback}
-		{:else}
-			<ResourceBoundary resource={tezosOperationGroup}>
-				{#snippet children(entity)}
-					{title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		tezos operation group
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -97,24 +61,7 @@
 			<div>
 				<dt>operation hash</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									operationHash: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const operationHash = resolvedEntity.operationHash}
-							{#if operationHash !== undefined && operationHash !== null}
-								<TruncatedValue value={String((operationHash) ?? '')} />
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					<TruncatedValue value={pendingEntity.operationHash} />
 				</dd>
 			</div>
 
@@ -122,7 +69,7 @@
 				resource={selection.$block}
 			>
 				{#snippet children(tezosBlock)}
-					{#if tezosBlock != null && tezosBlock[EntityMetaKey.Selector] != null}
+					{#if tezosBlock != null}
 						<div>
 							<dt>block</dt>
 							<dd>
@@ -141,7 +88,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							branch: true,
 						},
@@ -149,13 +95,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const branch = resolvedEntity.branch}
-					{#if branch !== undefined && branch !== null}
+					{@const branch = entity.branch}
+					{#if branch != null}
 						<div>
 							<dt>branch</dt>
 							<dd>
-								{String((branch) ?? '')}
+								{branch}
 							</dd>
 						</div>
 					{/if}
@@ -165,7 +110,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							signature: true,
 						},
@@ -173,13 +117,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const signature = resolvedEntity.signature}
-					{#if signature !== undefined && signature !== null}
+					{@const signature = entity.signature}
+					{#if signature != null}
 						<div>
 							<dt>signature</dt>
 							<dd>
-								<TruncatedValue value={String((signature) ?? '')} />
+								<TruncatedValue value={signature} />
 							</dd>
 						</div>
 					{/if}
@@ -189,7 +132,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							validationPass: true,
 						},
@@ -197,13 +139,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const validationPass = resolvedEntity.validationPass}
-					{#if validationPass !== undefined && validationPass !== null}
+					{@const validationPass = entity.validationPass}
+					{#if validationPass != null}
 						<div>
 							<dt>validation pass</dt>
 							<dd>
-								{String((validationPass) ?? '')}
+								{String(validationPass)}
 							</dd>
 						</div>
 					{/if}
@@ -213,7 +154,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							operationCount: true,
 						},
@@ -221,13 +161,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const operationCount = resolvedEntity.operationCount}
-					{#if operationCount !== undefined && operationCount !== null}
+					{@const operationCount = entity.operationCount}
+					{#if operationCount != null}
 						<div>
 							<dt>operation count</dt>
 							<dd>
-								{String((operationCount) ?? '')}
+								{String(operationCount)}
 							</dd>
 						</div>
 					{/if}

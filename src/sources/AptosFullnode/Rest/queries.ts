@@ -1,10 +1,8 @@
 import { throwHttpError } from '$/lib/http.ts'
-import { firstHttpUrlForBinding, sourceFetch } from '$/sources/_runtime/http.ts'
-import { Source } from '$/sources/Source.ts'
 import {
-	SourceTargetKind,
-	type SourceBinding,
-} from '$/sources/SourceBinding.ts'
+	firstHttpUrlForBinding,
+	sourceFetch,
+} from '$/sources/_runtime/http.ts'
 import type {
 	AptosAccount,
 	AptosBlock,
@@ -16,6 +14,10 @@ import type {
 	AptosTableItemRequest,
 	AptosTransaction,
 } from '$/sources/AptosFullnode/Rest/types.ts'
+import bindings from '$/sources/AptosFullnode/bindings.ts'
+import { Source } from '$/sources/Source.ts'
+
+const binding = bindings[Source.AptosFullnode_Rest]
 
 const requiredHeader = (
 	response: Response,
@@ -40,21 +42,10 @@ const assertNonnegativeIntegerString = (
 	}
 }
 
-const assertMainnetBinding = (binding: SourceBinding) => {
-	if (
-		binding.source !== Source.AptosFullnode_Rest
-		|| binding.target.kind !== SourceTargetKind.Caip2Network
-		|| binding.target.key !== 'aptos:1'
-	)
-		throw new Error('AptosFullnode_Rest: expected canonical Aptos mainnet binding')
-}
-
 const request = async <_Body>(
-	binding: SourceBinding,
 	path = '',
 	init?: RequestInit
 ): Promise<AptosResponse<_Body>> => {
-	assertMainnetBinding(binding)
 	const response = await sourceFetch(
 		binding,
 		new URL(path, firstHttpUrlForBinding(binding)).toString(),
@@ -99,12 +90,11 @@ const ledgerVersionQuery = (ledgerVersion?: bigint) => (
 	ledgerVersion == null ? '' : `?ledger_version=${ledgerVersion.toString()}`
 )
 
-export const getLedgerInfo = (binding: SourceBinding) => (
-	request<AptosLedgerInfo>(binding)
+export const getLedgerInfo = () => (
+	request<AptosLedgerInfo>()
 )
 
 export const getAccount = (
-	binding: SourceBinding,
 	address: string,
 	ledgerVersion?: bigint
 ) => {
@@ -112,13 +102,11 @@ export const getAccount = (
 		throw new Error('AptosFullnode_Rest: account address must not be empty')
 
 	return request<AptosAccount>(
-		binding,
 		`accounts/${encodeURIComponent(address)}${ledgerVersionQuery(ledgerVersion)}`
 	)
 }
 
 export const getAccountResources = (
-	binding: SourceBinding,
 	address: string,
 	ledgerVersion?: bigint,
 	start?: string,
@@ -140,7 +128,6 @@ export const getAccountResources = (
 		parameters.set('limit', limit.toString())
 
 	return request<AptosMoveResource[]>(
-		binding,
 		`accounts/${encodeURIComponent(address)}/resources${parameters.size === 0 ? '' : `?${parameters.toString()}`}`
 	).then((response) => {
 		if (start != null && response.metadata.cursor === start)
@@ -150,31 +137,27 @@ export const getAccountResources = (
 }
 
 export const getAccountModules = (
-	binding: SourceBinding,
 	address: string,
 	ledgerVersion?: bigint
 ) => (
-	request<AptosMoveModule[]>(binding, `accounts/${encodeURIComponent(address)}/modules${ledgerVersionQuery(ledgerVersion)}`)
+	request<AptosMoveModule[]>(`accounts/${encodeURIComponent(address)}/modules${ledgerVersionQuery(ledgerVersion)}`)
 )
 
 export const getBlockByHeight = (
-	binding: SourceBinding,
 	height: bigint,
 	withTransactions = true
 ) => (
-	request<AptosBlock>(binding, `blocks/by_height/${height.toString()}?with_transactions=${String(withTransactions)}`)
+	request<AptosBlock>(`blocks/by_height/${height.toString()}?with_transactions=${String(withTransactions)}`)
 )
 
 export const getBlockByVersion = (
-	binding: SourceBinding,
 	version: bigint,
 	withTransactions = true
 ) => (
-	request<AptosBlock>(binding, `blocks/by_version/${version.toString()}?with_transactions=${String(withTransactions)}`)
+	request<AptosBlock>(`blocks/by_version/${version.toString()}?with_transactions=${String(withTransactions)}`)
 )
 
 export const getEventsByEventHandle = (
-	binding: SourceBinding,
 	address: string,
 	eventHandle: string,
 	fieldName: string,
@@ -188,19 +171,16 @@ export const getEventsByEventHandle = (
 		parameters.set('limit', String(limit))
 
 	return request<AptosEvent[]>(
-		binding,
 		`accounts/${encodeURIComponent(address)}/events/${encodeURIComponent(eventHandle)}/${encodeURIComponent(fieldName)}${parameters.size === 0 ? '' : `?${parameters.toString()}`}`
 	)
 }
 
 export const getTableItem = <_Value>(
-	binding: SourceBinding,
 	tableHandle: string,
 	requestBody: AptosTableItemRequest,
 	ledgerVersion?: bigint
 ) => (
 	request<_Value>(
-		binding,
 		`tables/${encodeURIComponent(tableHandle)}/item${ledgerVersionQuery(ledgerVersion)}`,
 		{
 			method: 'POST',
@@ -213,15 +193,13 @@ export const getTableItem = <_Value>(
 )
 
 export const getTransactionByHash = (
-	binding: SourceBinding,
 	hash: string
 ) => (
-	request<AptosTransaction>(binding, `transactions/by_hash/${encodeURIComponent(hash)}`)
+	request<AptosTransaction>(`transactions/by_hash/${encodeURIComponent(hash)}`)
 )
 
 export const getTransactionByVersion = (
-	binding: SourceBinding,
 	version: bigint
 ) => (
-	request<AptosTransaction>(binding, `transactions/by_version/${version.toString()}`)
+	request<AptosTransaction>(`transactions/by_version/${version.toString()}`)
 )

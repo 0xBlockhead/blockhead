@@ -3,12 +3,12 @@
 <script lang="ts">
 	// Types/constants
 	import type { PageProps } from './$types.ts'
+	import { resolve } from '$app/paths'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
@@ -16,8 +16,6 @@
 	let {
 		params,
 	}: PageProps = $props()
-
-
 	// Components
 	import Page from '$/components/Page.svelte'
 	import LensPostsView from '$/views/LensPostsView.svelte'
@@ -30,33 +28,27 @@
 
 
 <Page>
+	{@const collectionSelection = select(EntityType.LensPost, {
+		id: params.postId,
+	})
+		.$$comments({
+			sources: [
+				Source.Lens_Graphql,
+			],
+		})}
+
 	<LensPostsView
 		href={
-			resolve('/lens/post/[postId=stringSegment]/comments', {
-				postId: params.postId,
-			})
+			resolve(
+				'/(social)/(lens)/lens/(lensNetwork)/post/[postId=stringSegment]/(lensPost)/comments',
+				{
+					postId: String(params.postId),
+				}
+			)
 		}
 		title='Lens post comments'
-		selection={
-			select(EntityType.LensPost, {
-				id: params.postId,
-			})
-				.$$comments({
-					sources: [
-						Source.Lens_Graphql,
-					],
-				})
-		}
-		countResource={
-			select(EntityType.LensPost, {
-				id: params.postId,
-			})
-				.$$comments({
-					sources: [
-						Source.Lens_Graphql,
-					],
-				}).count
-		}
+		selection={collectionSelection}
+		countResource={collectionSelection.count}
 		id='comments'
 		data-column-item="flexible"
 		data-card

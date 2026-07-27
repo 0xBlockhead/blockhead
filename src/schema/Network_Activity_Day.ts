@@ -1,6 +1,6 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { entity, facet } from '$/schema/$schema.ts'
+import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
@@ -9,10 +9,8 @@ import { type } from 'arktype'
 export enum OptimisticProviderResult {
 	OptimisticProviderResult = 'OptimisticProviderResult',
 }
-export enum Network_Activity_DaySelector {
-	NetworkDayStartTimestampMsSource = 'NetworkDayStartTimestampMsSource',
-}
-export const Network_Activity_Day = entity({
+
+export default entity({
 	entityType: EntityType.Network_Activity_Day,
 	labels: {
 		singular: 'network activity day',
@@ -29,7 +27,7 @@ export const Network_Activity_Day = entity({
 	dayStartTimestampMs: {
 		label: 'Day start',
 		type: EntityFieldType.Primitive,
-		primitiveType: (type('number.integer >= 0')),
+		primitiveType: type('number.integer >= 0'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	source: {
@@ -68,7 +66,7 @@ export const Network_Activity_Day = entity({
 	indexedThroughTimestampMs: {
 		label: 'Indexed through',
 		type: EntityFieldType.Primitive,
-		primitiveType: (type('number.integer >= 0')),
+		primitiveType: type('number.integer >= 0'),
 		cardinality: EntityFieldCardinality.One,
 		defaultSources: [
 			Source.SpaceAndTime_MakeInfinite,
@@ -77,7 +75,7 @@ export const Network_Activity_Day = entity({
 	resolvedAtMs: {
 		label: 'Resolved at',
 		type: EntityFieldType.Primitive,
-		primitiveType: (type('number.integer >= 0')),
+		primitiveType: type('number.integer >= 0'),
 		cardinality: EntityFieldCardinality.One,
 		defaultSources: [
 			Source.SpaceAndTime_MakeInfinite,

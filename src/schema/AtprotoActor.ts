@@ -1,16 +1,12 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { entity, facet } from '$/schema/$schema.ts'
+import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
-export enum AtprotoActorSelector {
-	Did = 'Did',
-	Handle = 'Handle',
-}
-export const AtprotoActor = entity({
+export default entity({
 	entityType: EntityType.AtprotoActor,
 	labels: {
 		singular: 'AT Protocol account',

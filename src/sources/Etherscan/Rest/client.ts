@@ -12,14 +12,17 @@ import type {
 	EtherscanProxyJsonRpc,
 } from '$/sources/Etherscan/Rest/types.ts'
 import type { SourcePublicEnv } from '$/sources/$sources.ts'
-import { getJson } from '$/lib/http.ts'
 import {
 	optionalPublicEnvString,
 } from '$/sources/$sources.ts'
 import {
-	etherscanOrigins,
-	restBaseUrl,
-} from '$/sources/Etherscan/Rest/constants.ts'
+	firstHttpUrlForBinding,
+	sourceGetJson,
+} from '$/sources/_runtime/http.ts'
+import { Source } from '$/sources/Source.ts'
+import bindings from '$/sources/Etherscan/bindings.ts'
+
+const binding = bindings[Source.Etherscan_Rest]
 
 /**
 	* Etherscan proxy wire: JSON-RPC `result`, or treat **`status: "0"`** / **`error`** as failure (not RPC data).
@@ -95,5 +98,5 @@ export const etherscanV2GetJson = async <T>({
 	}
 	const apiKey = etherscanResolvedApiKey(chainId, publicEnv, options)
 	if (apiKey !== undefined) search.set('apikey', apiKey)
-	return getJson<T>(`${restBaseUrl}?${search}`, { origins: etherscanOrigins })
+	return sourceGetJson<T>(binding, `${firstHttpUrlForBinding(binding)}?${search}`)
 }

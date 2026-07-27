@@ -2,12 +2,11 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
@@ -23,31 +22,15 @@
 
 
 <Page>
+	{@const collectionSelection = select(EntityType._GlobalNostrNetwork, {
+		scope: '_GlobalNostrNetwork',
+	}).$$observedReactions}
+
 	<NostrReactionsView
-		href={resolve('/nostr/reactions')}
+		href={resolve('/(social)/(nostr)/nostr/(globalNostrNetwork)/reactions')}
 		title='Nostr reactions'
-		selection={
-			select(EntityType._GlobalNostrNetwork, {
-				scope: '_GlobalNostrNetwork',
-			})
-				.$$observedReactions({
-					sources: [
-						Source.NostrBand_Rest,
-						Source.Primal_Rest,
-					],
-				})
-		}
-		countResource={
-			select(EntityType._GlobalNostrNetwork, {
-				scope: '_GlobalNostrNetwork',
-			})
-				.$$observedReactions({
-					sources: [
-						Source.NostrBand_Rest,
-						Source.Primal_Rest,
-					],
-				}).count
-		}
+		selection={collectionSelection}
+		countResource={collectionSelection.count}
 		id='observed-reactions'
 		data-column-item="flexible"
 		data-card

@@ -1,15 +1,12 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { entity, facet } from '$/schema/$schema.ts'
+import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 import { type } from 'arktype'
 
-export enum GitTreePathResolutionSelector {
-	RepositoryCommitObjectIdPath = 'RepositoryCommitObjectIdPath',
-}
-export const GitTreePathResolution = entity({
+export default entity({
 	entityType: EntityType.GitTreePathResolution,
 	labels: {
 		singular: 'Git tree path resolution',
@@ -25,7 +22,7 @@ export const GitTreePathResolution = entity({
 	commitObjectId: {
 		label: 'commit object ID',
 		type: EntityFieldType.Primitive,
-		primitiveType: (ZeroExHex),
+		primitiveType: ZeroExHex,
 		cardinality: EntityFieldCardinality.One,
 	},
 	path: {
@@ -37,19 +34,19 @@ export const GitTreePathResolution = entity({
 	treeObjectIds: {
 		label: 'tree object ids',
 		type: EntityFieldType.Primitive,
-		primitiveType: (ZeroExHex),
+		primitiveType: ZeroExHex,
 		cardinality: EntityFieldCardinality.Many,
 	},
 	blobObjectId: {
 		label: 'blob object ID',
 		type: EntityFieldType.Primitive,
-		primitiveType: (ZeroExHex),
+		primitiveType: ZeroExHex,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	submoduleCommitId: {
 		label: 'submodule commit ID',
 		type: EntityFieldType.Primitive,
-		primitiveType: (ZeroExHex),
+		primitiveType: ZeroExHex,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	status: {

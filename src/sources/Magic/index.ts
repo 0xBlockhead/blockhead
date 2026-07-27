@@ -1,0 +1,17 @@
+// Generated from APP.ts. Do not edit by hand.
+
+import bindings from '$/sources/Magic/bindings.ts'
+import { Source } from '$/sources/Source.ts'
+import { SourceProvider, type SourceProviderDefinition } from '$/sources/SourceProvider.ts'
+
+export default {
+	provider: SourceProvider.Magic,
+	label: 'Magic',
+	sources: [
+		{
+			source: Source.Magic_HederaWalletApi,
+			label: 'Magic Hedera wallet API',
+		},
+	],
+	bindings: [bindings[Source.Magic_HederaWalletApi]],
+} satisfies SourceProviderDefinition

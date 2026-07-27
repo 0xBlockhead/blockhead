@@ -1,16 +1,12 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { entity, facet } from '$/schema/$schema.ts'
+import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 import { type } from 'arktype'
 
-export enum EvmBlockSelector {
-	EvmNetworkBlockNumber = 'EvmNetworkBlockNumber',
-	EvmNetworkBlockHash = 'EvmNetworkBlockHash',
-}
-export const EvmBlock = entity({
+export default entity({
 	entityType: EntityType.EvmBlock,
 	labels: {
 		singular: 'EVM block',
@@ -28,20 +24,20 @@ export const EvmBlock = entity({
 		label: 'Block',
 		description: 'The block height or number in its network.',
 		type: EntityFieldType.Primitive,
-		primitiveType: (type('bigint').narrow((value) => value >= 0n)),
+		primitiveType: type('bigint').narrow((value) => value >= 0n),
 		cardinality: EntityFieldCardinality.One,
 	},
 	hash: {
 		label: 'Hash',
 		description: 'The hash that identifies this object in its protocol.',
 		type: EntityFieldType.Primitive,
-		primitiveType: (ZeroExHex),
+		primitiveType: ZeroExHex,
 		cardinality: EntityFieldCardinality.One,
 	},
 	parentHash: {
 		label: 'Parent hash',
 		type: EntityFieldType.Primitive,
-		primitiveType: (ZeroExHex),
+		primitiveType: ZeroExHex,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$parent: {

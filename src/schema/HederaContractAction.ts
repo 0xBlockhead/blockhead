@@ -1,15 +1,12 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { entity, facet } from '$/schema/$schema.ts'
+import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { EvmAddress } from '$/schema/ZeroExHex.ts'
 import { type } from 'arktype'
 
-export enum HederaContractActionSelector {
-	ResultCallDepthCallIndex = 'ResultCallDepthCallIndex',
-}
-export const HederaContractAction = entity({
+export default entity({
 	entityType: EntityType.HederaContractAction,
 	labels: {
 		singular: 'hedera contract action',
@@ -43,13 +40,13 @@ export const HederaContractAction = entity({
 	fromAddress: {
 		label: 'from address',
 		type: EntityFieldType.Primitive,
-		primitiveType: (EvmAddress),
+		primitiveType: EvmAddress,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	toAddress: {
 		label: 'to address',
 		type: EntityFieldType.Primitive,
-		primitiveType: (EvmAddress),
+		primitiveType: EvmAddress,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	gas: {

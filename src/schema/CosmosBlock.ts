@@ -1,15 +1,11 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { entity, facet } from '$/schema/$schema.ts'
+import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { type } from 'arktype'
 
-export enum CosmosBlockSelector {
-	NetworkHeight = 'NetworkHeight',
-	NetworkHash = 'NetworkHash',
-}
-export const CosmosBlock = entity({
+export default entity({
 	entityType: EntityType.CosmosBlock,
 	labels: {
 		singular: 'Cosmos block',
@@ -26,7 +22,7 @@ export const CosmosBlock = entity({
 		label: 'Height',
 		description: 'The block or ledger height in its network.',
 		type: EntityFieldType.Primitive,
-		primitiveType: (type('bigint').narrow((value) => value >= 0n)),
+		primitiveType: type('bigint').narrow((value) => value >= 0n),
 		cardinality: EntityFieldCardinality.One,
 	},
 	hash: {

@@ -8,14 +8,12 @@
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		data,
-		params,
 	}: PageProps = $props()
 
 	const pageSelection = $derived(select(EntityType.CardanoDRep, data.selector, {
@@ -38,18 +36,12 @@
 
 
 <svelte:head>
-	<title>{(data.title ?? (pageSelection.entity == null ? [String((data.selector.drepCredential) ?? '')].filter(Boolean).join(' ') || 'Cardano DRep' : [String((({ ...data.selector, ...pageSelection.entity }).displayName) ?? ''), String((({ ...data.selector, ...pageSelection.entity }).drepCredential) ?? '')].filter(Boolean).join(' ') || 'Cardano DRep'))} • Cardano DRep • Blockhead</title>
+	<title>{(data.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.drepCredential ?? '') || 'Cardano DRep' : [(pageSelection.entity.displayName ?? ''), pageSelection.entitySelector.drepCredential].filter(Boolean).join(' ') || 'Cardano DRep'))} • Cardano DRep • Blockhead</title>
 </svelte:head>
 
 
 <Page>
 	<CardanoDRepView
-		href={
-			resolve('/network/[network=networkCaip2OrNetworkSlug]/drep/[drepCredential=stringSegment]', {
-				network: params.network,
-				drepCredential: params.drepCredential,
-			})
-		}
 		selection={pageSelection}
 	/>
 </Page>

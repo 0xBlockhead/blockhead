@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { sourceProviderDefinitions } from '$/sources/$sourceProviders.ts'
+import bindings from '$/sources/Mlflow/bindings.ts'
 import { Source } from '$/sources/Source.ts'
 import {
 	getModelVersion,
@@ -15,12 +15,7 @@ vi.mock('$/sources/_runtime/http.ts', async (importOriginal) => ({
 	sourceFetch,
 }))
 
-const bindingDefinition = sourceProviderDefinitions
-	.flatMap((provider) => provider.bindings)
-	.find((candidate) => candidate.source === Source.Mlflow_Rest)
-
-if (bindingDefinition == null)
-	throw new Error('MLflow test binding is missing')
+const bindingDefinition = bindings[Source.Mlflow_Rest]
 
 const binding = {
 	...bindingDefinition,
@@ -28,6 +23,9 @@ const binding = {
 		...endpoint,
 		locator: 'https://mlflow.example',
 	})),
+}
+const publicEnv = {
+	MLFLOW_TRACKING_URL: 'https://mlflow.example',
 }
 
 describe('MLflow typed queries', () => {
@@ -41,8 +39,8 @@ describe('MLflow typed queries', () => {
 
 	it('addresses registered models and versions with typed response envelopes', async () => {
 		await getRegisteredModel({
-			binding,
 			name: 'fraud-detector',
+			publicEnv,
 		})
 		expect(sourceFetch).toHaveBeenLastCalledWith(
 			binding,
@@ -51,8 +49,8 @@ describe('MLflow typed queries', () => {
 		)
 
 		await getModelVersion({
-			binding,
 			name: 'fraud-detector',
+			publicEnv,
 			version: '7',
 		})
 		expect(sourceFetch).toHaveBeenLastCalledWith(
@@ -64,14 +62,21 @@ describe('MLflow typed queries', () => {
 
 	it('addresses artifacts by run and provider path', async () => {
 		await listArtifacts({
-			binding,
-			runId: 'run-123',
 			path: 'model/MLmodel',
+			publicEnv,
+			runId: 'run-123',
 		})
 		expect(sourceFetch).toHaveBeenLastCalledWith(
 			binding,
 			'https://mlflow.example/api/2.0/mlflow/artifacts/list?run_id=run-123&path=model%2FMLmodel',
 			{}
 		)
+	})
+
+	it('fails closed when the tracking endpoint is not configured', async () => {
+		await expect(getRegisteredModel({
+			name: 'fraud-detector',
+			publicEnv: {},
+		})).rejects.toThrow('Missing or empty source endpoint env: MLFLOW_TRACKING_URL')
 	})
 })

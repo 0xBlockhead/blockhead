@@ -5,7 +5,7 @@ import {
 	vi,
 } from 'vitest'
 
-import { sourceProviderDefinitions } from '$/sources/$sourceProviders.ts'
+import bindings from '$/sources/AvalanchePlatformVm/bindings.ts'
 import { Source } from '$/sources/Source.ts'
 
 const jsonRpc2 = vi.hoisted(() => vi.fn())
@@ -22,12 +22,7 @@ const {
 	getUtxos,
 } = await import('$/sources/AvalanchePlatformVm/JsonRpc/queries.ts')
 
-const binding = sourceProviderDefinitions
-	.flatMap((provider) => provider.bindings)
-	.find((candidate) => candidate.source === Source.AvalanchePlatformVm_JsonRpc)
-
-if (binding == null)
-	throw new Error('Avalanche PlatformVM binding is not registered')
+const binding = bindings[Source.AvalanchePlatformVm_JsonRpc]
 
 beforeEach(() => {
 	jsonRpc2.mockReset()

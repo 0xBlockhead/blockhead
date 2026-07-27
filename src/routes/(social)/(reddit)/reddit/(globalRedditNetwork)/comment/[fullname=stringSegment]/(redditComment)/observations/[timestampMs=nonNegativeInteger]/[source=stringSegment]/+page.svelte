@@ -7,7 +7,6 @@
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
@@ -43,31 +42,12 @@
 
 
 <svelte:head>
-	<title>{(pageSelection.entity == null ? [String(({
-		$comment: {
-			fullname: decodeURIComponent(params.fullname),
-		},
-		timestampMs: Number(params.timestampMs),
-		source: params.source,
-	}.timestampMs) ?? '')].filter(Boolean).join(' ') || 'Reddit comment timestamp' : [String((({ ...{
-		$comment: {
-			fullname: decodeURIComponent(params.fullname),
-		},
-		timestampMs: Number(params.timestampMs),
-		source: params.source,
-	}, ...pageSelection.entity }).timestampMs) ?? '')].filter(Boolean).join(' ') || 'Reddit comment timestamp')} • Reddit comment timestamp • Blockhead</title>
+	<title>{(String(pageSelection.entitySelector.timestampMs) || 'Reddit comment timestamp')} • Reddit comment timestamp • Blockhead</title>
 </svelte:head>
 
 
 <Page>
 	<RedditComment_TimestampView
-		href={
-			resolve('/reddit/comment/[fullname=stringSegment]/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
-				fullname: params.fullname,
-				timestampMs: params.timestampMs,
-				source: params.source,
-			})
-		}
 		selection={pageSelection}
 	/>
 </Page>

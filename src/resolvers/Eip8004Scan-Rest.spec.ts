@@ -1,9 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { EntityMetaKey } from '$/schema/$schema.ts'
-import { Eip8004AgentRegistrationSelector } from '$/schema/Eip8004AgentRegistration.ts'
-import { Eip8004AgentServiceEndpointSelector } from '$/schema/Eip8004AgentServiceEndpoint.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { Source } from '$/sources/Source.ts'
+import { SourceTargetKind } from '$/sources/SourceBinding.ts'
 
 const fetchAgentDetail = vi.hoisted(() => vi.fn())
 
@@ -58,7 +58,7 @@ describe('EIP-8004 Scan registration ownership', () => {
 		})
 
 		await expect(eip8004Scan.resolvers[0].resolve[
-			Eip8004AgentRegistrationSelector.NamespaceChainIdIdentityRegistryAgentId
+			'NamespaceChainIdIdentityRegistryAgentId'
 		].resolve({
 			namespace: 'eip155',
 			chainId: 1,
@@ -84,10 +84,12 @@ describe('EIP-8004 Scan registration ownership', () => {
 				},
 			},
 		})
-		expect(fetchAgentDetail).toHaveBeenCalledWith({
-			chainId: 1,
-			tokenId: '42',
-		})
+		expect(fetchAgentDetail).toHaveBeenCalledWith(
+			{
+				chainId: 1,
+				tokenId: '42',
+			}
+		)
 		expect(Object.keys(eip8004Scan.resolvers[0].projections).sort()).toEqual([
 			'$evmNft',
 			'agentId',
@@ -99,7 +101,7 @@ describe('EIP-8004 Scan registration ownership', () => {
 
 	it('rejects unsupported namespaces and invalid chain IDs before transport', async () => {
 		await expect(eip8004Scan.resolvers[0].resolve[
-			Eip8004AgentRegistrationSelector.NamespaceChainIdIdentityRegistryAgentId
+			'NamespaceChainIdIdentityRegistryAgentId'
 		].resolve({
 			namespace: 'solana',
 			chainId: 1,
@@ -107,7 +109,7 @@ describe('EIP-8004 Scan registration ownership', () => {
 			agentId: '42',
 		}, context)).rejects.toThrow('unsupported registration namespace')
 		await expect(eip8004Scan.resolvers[0].resolve[
-			Eip8004AgentRegistrationSelector.NamespaceChainIdIdentityRegistryAgentId
+			'NamespaceChainIdIdentityRegistryAgentId'
 		].resolve({
 			namespace: 'eip155',
 			chainId: 0,
@@ -120,7 +122,7 @@ describe('EIP-8004 Scan registration ownership', () => {
 	it('rejects absent and mismatched provider registrations', async () => {
 		fetchAgentDetail.mockResolvedValueOnce(undefined)
 		await expect(eip8004Scan.resolvers[0].resolve[
-			Eip8004AgentRegistrationSelector.NamespaceChainIdIdentityRegistryAgentId
+			'NamespaceChainIdIdentityRegistryAgentId'
 		].resolve({
 			namespace: 'eip155',
 			chainId: 1,
@@ -151,7 +153,7 @@ describe('EIP-8004 Scan registration ownership', () => {
 				fetchedAt: 1_720_000_000_000,
 			})
 			await expect(eip8004Scan.resolvers[0].resolve[
-				Eip8004AgentRegistrationSelector.NamespaceChainIdIdentityRegistryAgentId
+				'NamespaceChainIdIdentityRegistryAgentId'
 			].resolve({
 				namespace: 'eip155',
 				chainId: 1,
@@ -186,7 +188,7 @@ describe('EIP-8004 Scan service endpoint ownership', () => {
 		const endpointResolver = resolver(EntityType.Eip8004AgentServiceEndpoint)
 
 		await expect(endpointResolver.resolve[
-			Eip8004AgentServiceEndpointSelector.RegistrationFileEndpointKindEndpointUrl
+			'RegistrationFileEndpointKindEndpointUrl'
 		].resolve({
 			$registrationFile: registrationFile,
 			endpointKind: 'a2a',
@@ -200,10 +202,12 @@ describe('EIP-8004 Scan service endpoint ownership', () => {
 			protocolKind: 'https',
 			active: true,
 		})
-		expect(fetchAgentDetail).toHaveBeenCalledWith({
-			chainId: 1,
-			tokenId: '42',
-		})
+		expect(fetchAgentDetail).toHaveBeenCalledWith(
+			{
+				chainId: 1,
+				tokenId: '42',
+			}
+		)
 		expect(Object.keys(endpointResolver.projections).sort()).toEqual([
 			'$registrationFile',
 			'active',
@@ -217,7 +221,7 @@ describe('EIP-8004 Scan service endpoint ownership', () => {
 
 	it('rejects unsupported registration identity before transport', async () => {
 		const resolve = resolver(EntityType.Eip8004AgentServiceEndpoint).resolve[
-			Eip8004AgentServiceEndpointSelector.RegistrationFileEndpointKindEndpointUrl
+			'RegistrationFileEndpointKindEndpointUrl'
 		].resolve
 
 		await expect(resolve({
@@ -247,7 +251,7 @@ describe('EIP-8004 Scan service endpoint ownership', () => {
 
 	it('rejects absent, mismatched, and undeclared provider endpoints', async () => {
 		const resolve = resolver(EntityType.Eip8004AgentServiceEndpoint).resolve[
-			Eip8004AgentServiceEndpointSelector.RegistrationFileEndpointKindEndpointUrl
+			'RegistrationFileEndpointKindEndpointUrl'
 		].resolve
 		const selector = {
 			$registrationFile: registrationFile,

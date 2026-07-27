@@ -10,9 +10,17 @@ import {
 	EntityMetaKey,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import { NetworkSelector } from '$/schema/Network.ts'
 
 vi.mock('$/sources/Solana/JsonRpc/queries.ts', () => ({
+	solanaRpcEndpoints: [{
+		url: 'https://solana-rpc.publicnode.com',
+		transportType: 'Http',
+		providerName: 'PublicNode',
+	}, {
+		url: 'wss://solana-rpc.publicnode.com',
+		transportType: 'WebSocket',
+		providerName: 'PublicNode',
+	}],
 	getSlot: vi.fn().mockResolvedValue(100),
 	getVoteAccounts: vi.fn().mockResolvedValue({
 		current: [{
@@ -116,7 +124,7 @@ describe('Solana JSON-RPC network state lists', () => {
 		))
 		if (resolver == null) throw new Error('Solana RPC endpoint resolver is missing')
 
-		const rpcEndpoints = await resolver.resolve[NetworkSelector.Caip2].resolve(
+		const rpcEndpoints = await resolver.resolve['Caip2'].resolve(
 			networkSelector,
 			context
 		)
@@ -145,7 +153,7 @@ describe('Solana JSON-RPC network state lists', () => {
 
 		vi.mocked(getBlocks).mockResolvedValueOnce([99, 100])
 		vi.mocked(getBlock).mockRejectedValueOnce(new Error('pruned slot'))
-		await expect(resolver.resolve[NetworkSelector.Caip2].resolve(
+		await expect(resolver.resolve['Caip2'].resolve(
 			networkSelector,
 			context
 		)).rejects.toThrow('pruned slot')
@@ -163,7 +171,7 @@ describe('Solana JSON-RPC network state lists', () => {
 		if (resolver == null) throw new Error('Solana validator resolver is missing')
 
 		const validators = resolver.projections.Solana.$$validators(
-			await resolver.resolve[NetworkSelector.Caip2].resolve(networkSelector, context)
+			await resolver.resolve['Caip2'].resolve(networkSelector, context)
 		)
 		expect(validators).toHaveLength(1)
 		expect(Object.keys(validators[0])).toEqual([

@@ -5,7 +5,7 @@ import { error } from '@sveltejs/kit'
 import { networkByCaip2, networkBySlug } from '$/constants/Network.ts'
 import { match as matchNonNegativeInteger } from '$/params/nonNegativeInteger.ts'
 import { parseEntitySelector } from '$/schema/$schema.ts'
-import { EvmLog as EvmLogSchema } from '$/schema/EvmLog.ts'
+import EvmLogSchema from '$/schema/EvmLog.ts'
 import { schema } from '$/schema/index.ts'
 import { type as arktype } from 'arktype'
 

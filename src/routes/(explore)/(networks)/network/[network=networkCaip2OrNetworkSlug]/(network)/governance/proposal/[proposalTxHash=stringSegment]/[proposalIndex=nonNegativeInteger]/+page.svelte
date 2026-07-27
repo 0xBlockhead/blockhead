@@ -7,14 +7,12 @@
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		data,
-		params,
 	}: PageProps = $props()
 
 	const pageSelection = $derived(select(EntityType.CardanoGovernanceProposal, data.selector, {
@@ -22,11 +20,22 @@
 			proposalKind: true,
 			governanceActionId: true,
 			$transaction: true,
+			$previousAction: true,
 			depositLovelace: true,
 			returnAddress: true,
 			anchorUrl: true,
 			anchorHash: true,
-			proposalPayload: true,
+			policyHash: true,
+			hardForkMajor: true,
+			hardForkMinor: true,
+			treasuryWithdrawals: true,
+			committeeRemovedCredentials: true,
+			committeeAdditions: true,
+			committeeQuorumNumerator: true,
+			committeeQuorumDenominator: true,
+			constitutionAnchorUrl: true,
+			constitutionAnchorHash: true,
+			constitutionScript: true,
 		},
 	}))
 
@@ -38,19 +47,12 @@
 
 
 <svelte:head>
-	<title>{(data.title ?? (pageSelection.entity == null ? 'Cardano governance proposal' : [String((({ ...data.selector, ...pageSelection.entity }).proposalKind) ?? ''), String((({ ...data.selector, ...pageSelection.entity }).governanceActionId) ?? '')].filter(Boolean).join(' ') || 'Cardano governance proposal'))} • Cardano governance proposal • Blockhead</title>
+	<title>{(data.title ?? (pageSelection.entity == null ? 'Cardano governance proposal' : [pageSelection.entity.proposalKind, (pageSelection.entity.governanceActionId ?? '')].filter(Boolean).join(' ') || 'Cardano governance proposal'))} • Cardano governance proposal • Blockhead</title>
 </svelte:head>
 
 
 <Page>
 	<CardanoGovernanceProposalView
-		href={
-			resolve('/network/[network=networkCaip2OrNetworkSlug]/governance/proposal/[proposalTxHash=stringSegment]/[proposalIndex=nonNegativeInteger]', {
-				network: params.network,
-				proposalTxHash: params.proposalTxHash,
-				proposalIndex: params.proposalIndex,
-			})
-		}
 		selection={pageSelection}
 	/>
 </Page>

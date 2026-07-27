@@ -1,16 +1,12 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { entity, facet } from '$/schema/$schema.ts'
+import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
-export enum MoneroBlockSelector {
-	NetworkHeight = 'NetworkHeight',
-	NetworkHeightHash = 'NetworkHeightHash',
-}
-export const MoneroBlock = entity({
+export default entity({
 	entityType: EntityType.MoneroBlock,
 	labels: {
 		singular: 'monero block',
@@ -44,7 +40,6 @@ export const MoneroBlock = entity({
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
 			Source.MoneroDaemonRpc_JsonRpc,
-			Source.ThreeXpl_Rest,
 		],
 	},
 	timestampMs: {

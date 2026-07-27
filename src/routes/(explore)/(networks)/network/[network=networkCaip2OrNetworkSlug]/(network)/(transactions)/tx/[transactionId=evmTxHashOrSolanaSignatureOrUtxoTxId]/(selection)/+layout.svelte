@@ -32,10 +32,13 @@
 {#key [params.network, params.transactionId].join(':')}
 	<ParentPageCollapsible
 		href={
-			resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]', {
-				network: params.network,
-				transactionId: params.transactionId,
-			})
+			resolve(
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(transactions)/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]',
+				{
+					network: String(params.network),
+					transactionId: String(params.transactionId),
+				}
+			)
 		}
 	>
 		{#snippet Summary()}
@@ -44,10 +47,13 @@
 			<DetailView
 				selection={select(data.entityType, data.selector)}
 				href={
-					resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]', {
-						network: params.network,
-						transactionId: params.transactionId,
-					})
+					resolve(
+						'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(transactions)/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]',
+						{
+							network: String(params.network),
+							transactionId: String(params.transactionId),
+						}
+					)
 				}
 				layout={EntityLayout.SummaryInline}
 			/>

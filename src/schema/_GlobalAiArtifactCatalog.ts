@@ -1,14 +1,11 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { entity, facet } from '$/schema/$schema.ts'
+import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { type } from 'arktype'
 
-export enum _GlobalAiArtifactCatalogSelector {
-	CatalogId = 'CatalogId',
-}
-export const _GlobalAiArtifactCatalog = entity({
+export default entity({
 	entityType: EntityType._GlobalAiArtifactCatalog,
 	labels: {
 		singular: 'global AI artifact catalog',

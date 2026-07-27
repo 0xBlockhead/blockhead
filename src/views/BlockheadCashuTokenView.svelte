@@ -2,13 +2,9 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
 
 
 	// Context
@@ -20,44 +16,20 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.BlockheadCashuToken>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.BlockheadCashuToken>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.BlockheadCashuToken> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const blockheadCashuToken = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {
-			status: true,
-			totalAmount: true,
-			unit: true,
-		},
-	} : {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const blockheadCashuToken = $derived(selection({
 		fields: {
 			status: true,
 			totalAmount: true,
 			unit: true,
 		},
 	}))
-	const titleFallback = $derived([String((pendingEntity.id) ?? '')].filter(Boolean).join(' ') || 'blockhead Cashu token')
-	const viewDomId = $derived('blockhead-cashu-token-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const titleFallback = $derived((pendingEntity.id ?? '') || 'blockhead Cashu token')
 
 
 	// Components
@@ -72,60 +44,30 @@
 
 <EntityView
 	entityType={EntityType.BlockheadCashuToken}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'status') && Object.hasOwn(prefetched, 'totalAmount') && Object.hasOwn(prefetched, 'unit')}
-			{[String((pendingEntity.id) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-		{:else}
-			<ResourceBoundary resource={blockheadCashuToken}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.id) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		{(pendingEntity.id ?? '') || 'blockhead Cashu token'}
 	{/snippet}
 
 	{#snippet Value()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'status') && Object.hasOwn(prefetched, 'totalAmount') && Object.hasOwn(prefetched, 'unit')}
-			{@const status0 = pendingEntity.status}
-			{#if status0 !== undefined && status0 !== null}
-				{String((status0) ?? '')}
-			{/if}
-			{@const totalAmount1 = pendingEntity.totalAmount}
-			{#if totalAmount1 !== undefined && totalAmount1 !== null}
-				<NumberValue
-					value={totalAmount1}
-				/>
+		<ResourceBoundary resource={blockheadCashuToken}>
+			{#snippet children(entity)}
+				{entity.status}
+				{@const totalAmount1 = entity.totalAmount}
+				{#if totalAmount1 != null}
+					<NumberValue
+						value={totalAmount1}
+					/>
 
-				<span>{pendingEntity.unit == null ? '' : ` ${String(pendingEntity.unit)}`}</span>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={blockheadCashuToken}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const status0 = resolvedEntity.status}
-					{#if status0 !== undefined && status0 !== null}
-						{String((status0) ?? '')}
-					{/if}
-					{@const totalAmount1 = resolvedEntity.totalAmount}
-					{#if totalAmount1 !== undefined && totalAmount1 !== null}
-						<NumberValue
-							value={totalAmount1}
-						/>
-
-						<span>{resolvedEntity.unit == null ? '' : ` ${String(resolvedEntity.unit)}`}</span>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+					<span>{entity.unit == null ? '' : ` ${String(entity.unit)}`}</span>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -133,24 +75,7 @@
 			<div>
 				<dt>ID</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									id: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const id = resolvedEntity.id}
-							{#if id !== undefined && id !== null}
-								{String((id) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{pendingEntity.id}
 				</dd>
 			</div>
 
@@ -160,7 +85,6 @@
 					<ResourceBoundary
 						resource={
 							selection({
-								sources: selection.sources,
 								fields: {
 									tokenVersion: true,
 								},
@@ -168,11 +92,7 @@
 						}
 					>
 						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const tokenVersion = resolvedEntity.tokenVersion}
-							{#if tokenVersion !== undefined && tokenVersion !== null}
-								{String((tokenVersion) ?? '')}
-							{/if}
+							{entity.tokenVersion}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -182,44 +102,25 @@
 				<dt>status</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									status: true,
-								},
-							})
-						}
+						resource={blockheadCashuToken}
 					>
 						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const status = resolvedEntity.status}
-							{#if status !== undefined && status !== null}
-								{String((status) ?? '')}
-							{/if}
+							{entity.status}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
 			</div>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							unit: true,
-						},
-					})
-				}
+				resource={blockheadCashuToken}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const unit = resolvedEntity.unit}
-					{#if unit !== undefined && unit !== null}
+					{@const unit = entity.unit}
+					{#if unit != null}
 						<div>
 							<dt>unit</dt>
 							<dd>
-								{String((unit) ?? '')}
+								{unit}
 							</dd>
 						</div>
 					{/if}
@@ -229,7 +130,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							memo: true,
 						},
@@ -237,13 +137,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const memo = resolvedEntity.memo}
-					{#if memo !== undefined && memo !== null}
+					{@const memo = entity.memo}
+					{#if memo != null}
 						<div>
 							<dt>memo</dt>
 							<dd>
-								{String((memo) ?? '')}
+								{memo}
 							</dd>
 						</div>
 					{/if}
@@ -255,7 +154,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							mintUrl: true,
 						},
@@ -263,20 +161,18 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const mintUrl = resolvedEntity.mintUrl}
-					{#if mintUrl !== undefined && mintUrl !== null}
+					{@const mintUrl = entity.mintUrl}
+					{#if mintUrl != null}
 						<div>
 							<dt>mint URL</dt>
 							<dd>
-								<svelte:element
-									this={'a'}
+								<a
 									href={String(mintUrl)}
 									target="_blank"
 									rel="noreferrer noopener"
 								>
 									<TruncatedValue value={String(mintUrl)} />
-								</svelte:element>
+								</a>
 							</dd>
 						</div>
 					{/if}
@@ -287,7 +183,7 @@
 				resource={selection.$mint}
 			>
 				{#snippet children(cashuMint)}
-					{#if cashuMint != null && cashuMint[EntityMetaKey.Selector] != null}
+					{#if cashuMint != null}
 						<div>
 							<dt>mint</dt>
 							<dd>
@@ -306,7 +202,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							proofCount: true,
 						},
@@ -314,9 +209,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const proofCount = resolvedEntity.proofCount}
-					{#if proofCount !== undefined && proofCount !== null}
+					{@const proofCount = entity.proofCount}
+					{#if proofCount != null}
 						<div>
 							<dt>proof count</dt>
 							<dd>
@@ -330,20 +224,11 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							totalAmount: true,
-							unit: true,
-						},
-					})
-				}
+				resource={blockheadCashuToken}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const totalAmount = resolvedEntity.totalAmount}
-					{#if totalAmount !== undefined && totalAmount !== null}
+					{@const totalAmount = entity.totalAmount}
+					{#if totalAmount != null}
 						<div>
 							<dt>total amount</dt>
 							<dd>
@@ -351,7 +236,7 @@
 									value={totalAmount}
 								/>
 
-								<span>{({ value: totalAmount, ...resolvedEntity }).unit == null ? '' : ` ${String(({ value: totalAmount, ...resolvedEntity }).unit)}`}</span>
+								<span>{entity.unit == null ? '' : ` ${String(entity.unit)}`}</span>
 							</dd>
 						</div>
 					{/if}
@@ -366,7 +251,6 @@
 					<ResourceBoundary
 						resource={
 							selection({
-								sources: selection.sources,
 								fields: {
 									importedAt: true,
 								},
@@ -374,11 +258,7 @@
 						}
 					>
 						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const importedAt = resolvedEntity.importedAt}
-							{#if importedAt !== undefined && importedAt !== null}
-								<Timestamp timestamp={Number(importedAt)} />
-							{/if}
+							<Timestamp timestamp={Number(entity.importedAt)} />
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -387,7 +267,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							redeemedAt: true,
 						},
@@ -395,9 +274,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const redeemedAt = resolvedEntity.redeemedAt}
-					{#if redeemedAt !== undefined && redeemedAt !== null}
+					{@const redeemedAt = entity.redeemedAt}
+					{#if redeemedAt != null}
 						<div>
 							<dt>redeemed AT</dt>
 							<dd>
@@ -412,7 +290,6 @@
 		<ResourceBoundary
 			resource={
 				selection({
-					sources: selection.sources,
 					fields: {
 						encodedToken: true,
 					},
@@ -420,10 +297,9 @@
 			}
 		>
 			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const encodedToken = resolvedEntity.encodedToken}
-				{#if encodedToken !== undefined && encodedToken !== null && encodedToken !== ''}
-					<code>{String((encodedToken) ?? '')}</code>
+				{@const encodedToken = entity.encodedToken}
+				{#if encodedToken != null && encodedToken !== ''}
+					<code>{encodedToken}</code>
 				{:else}
 					<p data-text="muted">No encoded token available.</p>
 				{/if}
@@ -438,12 +314,12 @@
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
-				<BlockheadCashuProofsView
-					selection={blockheadCashuTokenBlockheadCashuProofsViewProofsResource}
-					countResource={blockheadCashuTokenBlockheadCashuProofsViewProofsResource.count}
-					title='proofs'
-					id='BlockheadCashuProofsView-proofs'
-				/>
+					<BlockheadCashuProofsView
+						selection={blockheadCashuTokenBlockheadCashuProofsViewProofsResource}
+						countResource={blockheadCashuTokenBlockheadCashuProofsViewProofsResource.count}
+						title='proofs'
+						id='proofs'
+					/>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>

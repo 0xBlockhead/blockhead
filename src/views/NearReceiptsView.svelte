@@ -2,69 +2,30 @@
 
 <script lang="ts">
 	// Types/constants
-	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
-	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
-	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
+	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-
-
 
 
 	// State
 	let {
 		selection,
-		countResource,
-		title = 'Near receipts',
-		typeAnnotationParagraphs = [],
-		placeholderText = undefined,
-		emptyText = undefined,
 		open = $bindable(true),
-		collapsible = true,
-		showTypeAnnotation = true,
-		id = 'NearReceipts-list',
 		...EntitiesListProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyEntitiesSelection<EntityType.NearReceipt>
-			countResource?: SvelteKitResource<number>
-			title?: string
-			typeAnnotationParagraphs?: string[]
-			placeholderText?: string
-			emptyText?: string
-			open?: boolean
-			collapsible?: boolean
-			showTypeAnnotation?: boolean
-			id?: string
-		},
-		EntitiesListForwardProps
-	> = $props()
+	}: EntityListViewProps<EntityType.NearReceipt> = $props()
 
 
 	// Components
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView from '$/components/EntityView.svelte'
 </script>
 
-
-{#snippet TypeAnnotationParagraphs()}
-	{#each typeAnnotationParagraphs as paragraph (paragraph)}
-		<p>{paragraph}</p>
-	{/each}
-{/snippet}
 
 <EntitiesList
 	{...EntitiesListProps}
 	entityType={EntityType.NearReceipt}
-	{id}
-	{title}
 	bind:open
-	{collapsible}
-	{showTypeAnnotation}
-	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
 	resource={
 		selection({
-			sources: selection.sources,
 			fields: {
 				receiptId: true,
 				$receiver: true,
@@ -72,38 +33,23 @@
 			},
 		})
 	}
-	{countResource}
-	getResourceItems={(nearReceipts) => [...new Map(nearReceipts.values.map((nearReceipt) => [nearReceipt[EntityMetaKey.SelectorKey], nearReceipt])).values()]}
-	getKey={(nearReceipt) => nearReceipt[EntityMetaKey.SelectorKey]}
-	{placeholderText}
 >
-	{#snippet Empty()}
-		{#if emptyText != null}
-			<p data-text="muted">{emptyText}</p>
-		{:else}
-			<p data-text="muted">No Near receipts yet.</p>
-		{/if}
-	{/snippet}
-
 	{#snippet Item({ item: nearReceipt })}
-		{@const nearReceiptFields = { ...nearReceipt[EntityMetaKey.Selector], ...nearReceipt }}
+		{@const nearReceiptSelector = nearReceipt[EntityMetaKey.Selector]}
 		<EntityView
 			entityType={EntityType.NearReceipt}
-			entitySelector={nearReceipt[EntityMetaKey.Selector]}
-			layout={EntityLayout.Summary}
-			open={false}
-			showTypeAnnotation={false}
+			entitySelector={nearReceiptSelector}
 		>
 			{#snippet Title()}
-				{[String((nearReceiptFields.receiptId) ?? '')].filter(Boolean).join(' ') || 'near receipt'}
+				{nearReceiptSelector.receiptId || 'near receipt'}
 			{/snippet}
 
 			{#snippet Value()}
-				{[[String((nearReceiptFields.$receiver.accountId) ?? '')].filter(Boolean).join(' ') || 'near account'].filter(Boolean).join(' ')}
+				{nearReceipt.$receiver == null ? '' : nearReceipt.$receiver.accountId || 'near account'}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{[[String((nearReceiptFields.$predecessor.accountId) ?? '')].filter(Boolean).join(' ') || 'near account'].filter(Boolean).join(' ')}</span>
+				<span data-text="annotation">{nearReceipt.$predecessor == null ? '' : nearReceipt.$predecessor.accountId || 'near account'}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

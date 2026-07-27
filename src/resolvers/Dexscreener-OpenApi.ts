@@ -9,25 +9,6 @@ import {
 import { EvmAddress } from '$/schema/ZeroExHex.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
-import { sourceProviderDefinitions } from '$/sources/$sourceProviders.ts'
-import { SourceTargetKind } from '$/sources/SourceBinding.ts'
-import { _GlobalSelector } from '$/schema/_Global.ts'
-import { LiquidityPoolSelector } from '$/schema/LiquidityPool.ts'
-import { LiquidityPool_BlockSelector } from '$/schema/LiquidityPool_Block.ts'
-import { LiquidityPool_TimestampSelector } from '$/schema/LiquidityPool_Timestamp.ts'
-
-const dexscreenerBindings = sourceProviderDefinitions
-	.flatMap((provider) => provider.bindings)
-	.filter((binding) => (
-		binding.source === Source.Dexscreener_OpenApi
-		&& binding.target.kind === SourceTargetKind.Global
-		&& binding.target.key === 'dexscreener-openapi'
-	))
-
-if (dexscreenerBindings.length !== 1)
-	throw new Error('Dexscreener_OpenApi: canonical global source binding is missing or ambiguous')
-
-const dexscreenerBinding = dexscreenerBindings[0]
 
 export default {
 	source: Source.Dexscreener_OpenApi,
@@ -36,7 +17,7 @@ export default {
 		defineResolver(Source.Dexscreener_OpenApi, {
 			entityType: EntityType.LiquidityPool,
 			resolve: {
-				[LiquidityPoolSelector.EvmNetworkId]: {
+				EvmNetworkId: {
 					resolve: async ({ $network, id }) => {
 						const { apiChainIdByChainId } = await import('$/sources/Dexscreener/OpenApi/constants.ts')
 						const { getLatestPairs } = await import('$/sources/Dexscreener/OpenApi/queries.ts')
@@ -48,7 +29,6 @@ export default {
 
 						const latestDexPair = (
 							await getLatestPairs({
-								binding: dexscreenerBinding,
 								chainId: apiChainId,
 								pairId: id,
 							})
@@ -92,7 +72,7 @@ export default {
 		defineResolver(Source.Dexscreener_OpenApi, {
 			entityType: EntityType.LiquidityPool_Timestamp,
 			resolve: {
-				[LiquidityPool_TimestampSelector.LiquidityPoolTimestampMsFeedKey]: {
+				LiquidityPoolTimestampMsFeedKey: {
 					resolve: async ({ $liquidityPool }) => {
 						const { apiChainIdByChainId } = await import('$/sources/Dexscreener/OpenApi/constants.ts')
 						const { getLatestPairs } = await import('$/sources/Dexscreener/OpenApi/queries.ts')
@@ -104,7 +84,6 @@ export default {
 
 						const latestDexPair = (
 							await getLatestPairs({
-								binding: dexscreenerBinding,
 								chainId: apiChainId,
 								pairId: $liquidityPool.id,
 							})
@@ -156,7 +135,7 @@ export default {
 		defineResolver(Source.Dexscreener_OpenApi, {
 			entityType: EntityType._Global,
 			resolve: {
-				[_GlobalSelector.Scope]: {
+				Scope: {
 					resolve: async (_entitySelector, context) => {
 						const { numericChainIdByDexscreenerApiChainLabel } = await import(
 							'$/sources/Dexscreener/OpenApi/constants.ts'
@@ -164,7 +143,6 @@ export default {
 						const { getPairSearch } = await import('$/sources/Dexscreener/OpenApi/queries.ts')
 						const liquidityPools = (
 							(await getPairSearch({
-								binding: dexscreenerBinding,
 								q: 'WETH USDC uniswap',
 							})).pairs
 								.flatMap((pair) => {
@@ -208,7 +186,7 @@ export default {
 		defineResolver(Source.Dexscreener_OpenApi, {
 			entityType: EntityType.LiquidityPool,
 			resolve: {
-				[LiquidityPoolSelector.EvmNetworkId]: {
+				EvmNetworkId: {
 					resolve: async (entitySelector) => {
 						const { apiChainIdByChainId } = await import('$/sources/Dexscreener/OpenApi/constants.ts')
 						const { getLatestPairs } = await import('$/sources/Dexscreener/OpenApi/queries.ts')
@@ -217,7 +195,6 @@ export default {
 							throw new Error('Dexscreener_OpenApi: unsupported liquidity pool chain')
 						const pair = (
 							await getLatestPairs({
-								binding: dexscreenerBinding,
 								chainId: apiChainId,
 								pairId: entitySelector.id,
 							})
@@ -241,7 +218,7 @@ export default {
 		defineResolver(Source.Dexscreener_OpenApi, {
 			entityType: EntityType.LiquidityPool_Timestamp,
 			resolve: {
-				[LiquidityPool_TimestampSelector.LiquidityPoolTimestampMsFeedKey]: {
+				LiquidityPoolTimestampMsFeedKey: {
 					resolve: async ({ $liquidityPool }) => ({
 						[EntityMetaKey.Selector]: $liquidityPool,
 					}),
@@ -254,7 +231,7 @@ export default {
 		defineResolver(Source.Dexscreener_OpenApi, {
 			entityType: EntityType.LiquidityPool_Block,
 			resolve: {
-				[LiquidityPool_BlockSelector.LiquidityPoolBlockNumber]: {
+				LiquidityPoolBlockNumber: {
 					resolve: async ({ $liquidityPool }) => ({
 						[EntityMetaKey.Selector]: $liquidityPool,
 					}),

@@ -4,11 +4,9 @@
 	// Types/constants
 	import type { PageProps } from './$types.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
@@ -47,19 +45,12 @@
 
 
 <svelte:head>
-	<title>{(pageSelection.entity == null ? 'EVM topic observation' : 'EVM topic observation')} • EVM topic observation • Blockhead</title>
+	<title>{(pageSelection.entity == null ? 'EVM topic observation' : pageSelection.entity.signatures.values.join(', ') || 'EVM topic observation')} • EVM topic observation • Blockhead</title>
 </svelte:head>
 
 
 <Page>
 	<EvmTopic_TimestampView
-		href={
-			resolve('/evm/topic/[hex=evmTopicHash]/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
-				hex: params.hex,
-				timestampMs: params.timestampMs,
-				source: params.source,
-			})
-		}
 		selection={pageSelection}
 	/>
 </Page>

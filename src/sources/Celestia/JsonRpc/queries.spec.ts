@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { sourceProviderDefinitions } from '$/sources/$sourceProviders.ts'
+import bindings from '$/sources/Celestia/bindings.ts'
 import { Source } from '$/sources/Source.ts'
 import {
 	getBlobProof,
@@ -15,12 +15,7 @@ vi.mock('$/sources/_shared/wire/JsonRpc2/client.ts', () => ({
 	jsonRpc2: vi.fn(),
 }))
 
-const binding = sourceProviderDefinitions
-	.flatMap((provider) => provider.bindings)
-	.find((candidate) => candidate.source === Source.Celestia_JsonRpc)
-
-if (binding == null)
-	throw new Error('Celestia JSON-RPC binding is not registered')
+const binding = bindings[Source.Celestia_JsonRpc]
 
 const jsonRpc2Mock = vi.mocked(jsonRpc2)
 const hash = 'a'.repeat(64)

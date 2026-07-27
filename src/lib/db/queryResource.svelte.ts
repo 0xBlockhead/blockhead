@@ -200,8 +200,18 @@ export class TanStackLiveQueryResource<Data> implements SvelteKitResource<Data> 
 		update: () => void
 	) {
 		this.#start()
-		return this.#subscribeToSource(() => {
-			queueMicrotask(update)
+		if (typeof window === 'undefined')
+			return this.#subscribeToSource(() => {
+				queueMicrotask(update)
+			})
+
+		return $effect.root(() => {
+			$effect(() => {
+				this.#current
+				this.#loading
+				this.#error
+				queueMicrotask(update)
+			})
 		})
 	}
 

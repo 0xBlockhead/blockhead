@@ -2,69 +2,30 @@
 
 <script lang="ts">
 	// Types/constants
-	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
-	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
-	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
+	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-
-
 
 
 	// State
 	let {
 		selection,
-		countResource,
-		title = 'Blockhead Lightning channel states',
-		typeAnnotationParagraphs = [],
-		placeholderText = undefined,
-		emptyText = undefined,
 		open = $bindable(true),
-		collapsible = true,
-		showTypeAnnotation = true,
-		id = 'BlockheadLightningChannelStates-list',
 		...EntitiesListProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyEntitiesSelection<EntityType.BlockheadLightningChannelState>
-			countResource?: SvelteKitResource<number>
-			title?: string
-			typeAnnotationParagraphs?: string[]
-			placeholderText?: string
-			emptyText?: string
-			open?: boolean
-			collapsible?: boolean
-			showTypeAnnotation?: boolean
-			id?: string
-		},
-		EntitiesListForwardProps
-	> = $props()
+	}: EntityListViewProps<EntityType.BlockheadLightningChannelState> = $props()
 
 
 	// Components
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView from '$/components/EntityView.svelte'
 </script>
 
-
-{#snippet TypeAnnotationParagraphs()}
-	{#each typeAnnotationParagraphs as paragraph (paragraph)}
-		<p>{paragraph}</p>
-	{/each}
-{/snippet}
 
 <EntitiesList
 	{...EntitiesListProps}
 	entityType={EntityType.BlockheadLightningChannelState}
-	{id}
-	{title}
 	bind:open
-	{collapsible}
-	{showTypeAnnotation}
-	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
 	resource={
 		selection({
-			sources: selection.sources,
 			fields: {
 				$channel: true,
 				$localNodeState: true,
@@ -72,38 +33,23 @@
 			},
 		})
 	}
-	{countResource}
-	getResourceItems={(blockheadLightningChannelStates) => [...new Map(blockheadLightningChannelStates.values.map((blockheadLightningChannelState) => [blockheadLightningChannelState[EntityMetaKey.SelectorKey], blockheadLightningChannelState])).values()]}
-	getKey={(blockheadLightningChannelState) => blockheadLightningChannelState[EntityMetaKey.SelectorKey]}
-	{placeholderText}
 >
-	{#snippet Empty()}
-		{#if emptyText != null}
-			<p data-text="muted">{emptyText}</p>
-		{:else}
-			<p data-text="muted">No Blockhead Lightning channel states yet.</p>
-		{/if}
-	{/snippet}
-
 	{#snippet Item({ item: blockheadLightningChannelState })}
-		{@const blockheadLightningChannelStateFields = { ...blockheadLightningChannelState[EntityMetaKey.Selector], ...blockheadLightningChannelState }}
+		{@const blockheadLightningChannelStateSelector = blockheadLightningChannelState[EntityMetaKey.Selector]}
 		<EntityView
 			entityType={EntityType.BlockheadLightningChannelState}
-			entitySelector={blockheadLightningChannelState[EntityMetaKey.Selector]}
-			layout={EntityLayout.Summary}
-			open={false}
-			showTypeAnnotation={false}
+			entitySelector={blockheadLightningChannelStateSelector}
 		>
 			{#snippet Title()}
-				{[[String((blockheadLightningChannelStateFields.$channel.shortChannelId) ?? '')].filter(Boolean).join(' ') || [String((blockheadLightningChannelStateFields.$channel.channelId) ?? '')].filter(Boolean).join(' ') || 'Lightning channel'].filter(Boolean).join(' ') || 'blockhead Lightning channel state'}
+				{(blockheadLightningChannelState.$channel.shortChannelId ?? '') || blockheadLightningChannelStateSelector.$channel.channelId || 'Lightning channel'}
 			{/snippet}
 
 			{#snippet Value()}
-				{[[String((blockheadLightningChannelStateFields.$localNodeState.alias) ?? '')].filter(Boolean).join(' ') || [String((blockheadLightningChannelStateFields.$localNodeState.connectionId) ?? '')].filter(Boolean).join(' ') || 'blockhead Lightning node state'].filter(Boolean).join(' ')}
+				{(blockheadLightningChannelState.$localNodeState.alias ?? '') || blockheadLightningChannelStateSelector.$localNodeState.connectionId || 'blockhead Lightning node state'}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{[String((blockheadLightningChannelStateFields.private) ?? '')].filter(Boolean).join(' ')}</span>
+				<span data-text="annotation">{String(blockheadLightningChannelState.private ?? '')}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

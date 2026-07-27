@@ -1,7 +1,8 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
-import { sourceProviderDefinitions } from '$/sources/$sourceProviders.ts'
+import bindings from '$/sources/Celenium/bindings.ts'
 import { Source } from '$/sources/Source.ts'
+import type { SourceBinding } from '$/sources/SourceBinding.ts'
 import {
 	getAddress,
 	getBlock,
@@ -11,14 +12,9 @@ import {
 	listBlocks,
 	listNamespaces,
 } from '$/sources/Celenium/Rest/queries.ts'
-import * as httpRestClient from '$/sources/_shared/wire/HttpRest/client.ts'
+import * as sourceHttp from '$/sources/_runtime/http.ts'
 
-const binding = sourceProviderDefinitions
-	.flatMap((provider) => provider.bindings)
-	.find((candidate) => candidate.source === Source.Celenium_Rest)
-
-if (binding == null)
-	throw new Error('Celenium REST binding is not registered')
+const binding = bindings[Source.Celenium_Rest]
 
 const hash = 'a'.repeat(64)
 const parentHash = 'b'.repeat(64)
@@ -52,7 +48,7 @@ describe('Celenium mainnet public indexer contracts', () => {
 	})
 
 	it('preserves head heights, aggregate sizes, fees, and supply losslessly', async () => {
-		vi.spyOn(httpRestClient, 'getJson').mockResolvedValue({
+		vi.spyOn(sourceHttp, 'sourceGetJson').mockResolvedValue({
 			chain_id: 'celestia',
 			last_height: 12_424_720,
 			hash,
@@ -74,8 +70,8 @@ describe('Celenium mainnet public indexer contracts', () => {
 	})
 
 	it('rejects foreign head and substituted block identities', async () => {
-		const getJson = vi.spyOn(httpRestClient, 'getJson')
-		getJson.mockResolvedValueOnce({
+		const sourceGetJson = vi.spyOn(sourceHttp, 'sourceGetJson')
+		sourceGetJson.mockResolvedValueOnce({
 			chain_id: 'mocha-4',
 			last_height: 1,
 			hash,
@@ -89,7 +85,7 @@ describe('Celenium mainnet public indexer contracts', () => {
 		})
 		await expect(getHead(binding)).rejects.toThrow('foreign chain head')
 
-		getJson.mockResolvedValueOnce(blockWire)
+		sourceGetJson.mockResolvedValueOnce(blockWire)
 		await expect(getBlock(
 			binding,
 			1n
@@ -97,15 +93,15 @@ describe('Celenium mainnet public indexer contracts', () => {
 	})
 
 	it('enforces bounded block and namespace pages', async () => {
-		const getJson = vi.spyOn(httpRestClient, 'getJson')
+		const sourceGetJson = vi.spyOn(sourceHttp, 'sourceGetJson')
 		await expect(listBlocks({
 			binding,
 			limit: 101,
 			offset: 0,
 		})).rejects.toThrow('limit must be from 1 through 100')
-		expect(getJson).not.toHaveBeenCalled()
+		expect(sourceGetJson).not.toHaveBeenCalled()
 
-		getJson.mockResolvedValueOnce([
+		sourceGetJson.mockResolvedValueOnce([
 			{
 				size: 9_007_199_254_740_991,
 				blobs_count: 2,
@@ -130,7 +126,7 @@ describe('Celenium mainnet public indexer contracts', () => {
 	})
 
 	it('returns bounded blob metadata without downloading blob bodies', async () => {
-		const getJson = vi.spyOn(httpRestClient, 'getJson').mockResolvedValue([
+		const sourceGetJson = vi.spyOn(sourceHttp, 'sourceGetJson').mockResolvedValue([
 			{
 				commitment,
 				size: 24_857,
@@ -160,15 +156,15 @@ describe('Celenium mainnet public indexer contracts', () => {
 			}),
 		])
 		expect(result[0]).not.toHaveProperty('data')
-		expect(getJson).toHaveBeenCalledWith(
+		expect(sourceGetJson).toHaveBeenCalledWith(
 			binding,
-			'/v1/blob?limit=1&offset=0&sort=desc&joins=true'
+			'https://api.celenium.io/v1/blob?limit=1&offset=0&sort=desc&joins=true'
 		)
 	})
 
 	it('rejects malformed namespace, blob, account, and transaction subjects', async () => {
-		const getJson = vi.spyOn(httpRestClient, 'getJson')
-		getJson.mockResolvedValueOnce([
+		const sourceGetJson = vi.spyOn(sourceHttp, 'sourceGetJson')
+		sourceGetJson.mockResolvedValueOnce([
 			{
 				size: 1,
 				blobs_count: 1,
@@ -193,12 +189,12 @@ describe('Celenium mainnet public indexer contracts', () => {
 			binding,
 			'short'
 		)).rejects.toThrow('invalid transaction hash')
-		expect(getJson).toHaveBeenCalledTimes(1)
+		expect(sourceGetJson).toHaveBeenCalledTimes(1)
 	})
 
 	it('preserves account balances and transaction fees as integer units', async () => {
-		const getJson = vi.spyOn(httpRestClient, 'getJson')
-		getJson.mockResolvedValueOnce({
+		const sourceGetJson = vi.spyOn(sourceHttp, 'sourceGetJson')
+		sourceGetJson.mockResolvedValueOnce({
 			first_height: 10_143_589,
 			last_height: 12_424_748,
 			hash: address,
@@ -217,7 +213,7 @@ describe('Celenium mainnet public indexer contracts', () => {
 			spendableAmount: 900_719_925_474_099_312_345n,
 		})
 
-		getJson.mockResolvedValueOnce({
+		sourceGetJson.mockResolvedValueOnce({
 			height: 12_424_743,
 			position: 3,
 			gas_wanted: 289_167,

@@ -1,14 +1,11 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { entity, facet } from '$/schema/$schema.ts'
+import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { type } from 'arktype'
 
-export enum DogecoinAuxPowMerkleBranchSelector {
-	AuxPowBranchKind = 'AuxPowBranchKind',
-}
-export const DogecoinAuxPowMerkleBranch = entity({
+export default entity({
 	entityType: EntityType.DogecoinAuxPowMerkleBranch,
 	labels: {
 		singular: 'dogecoin aux pow merkle branch',

@@ -7,7 +7,7 @@ import { match as matchNonNegativeInteger } from '$/params/nonNegativeInteger.ts
 import { match as matchStringSegment } from '$/params/stringSegment.ts'
 import { parseEntitySelector } from '$/schema/$schema.ts'
 import { schema } from '$/schema/index.ts'
-import { SolanaInstruction as SolanaInstructionSchema } from '$/schema/SolanaInstruction.ts'
+import SolanaInstructionSchema from '$/schema/SolanaInstruction.ts'
 import { type as arktype } from 'arktype'
 
 // Projection eligibility: facetPath=['Solana']

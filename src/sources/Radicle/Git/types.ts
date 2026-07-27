@@ -1,7 +1,7 @@
 import type {
 	GitObjectRequest,
 	GitRepositoryLocator,
-} from '$/sources/Git/Git/types.ts'
+} from '$/sources/_shared/wire/Git/types.ts'
 
 export type RadicleRepositoryLocator = GitRepositoryLocator
 

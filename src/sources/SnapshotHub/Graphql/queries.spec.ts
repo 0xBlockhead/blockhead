@@ -7,9 +7,9 @@ import {
 } from 'vitest'
 
 import { Source } from '$/sources/Source.ts'
-import { SourceProvider } from '$/sources/SourceProvider.ts'
 import {
 	ApiFamily,
+	SourceArtifactKind,
 	SourceCredentialScope,
 	SourceDelivery,
 	SourceEndpointKind,
@@ -30,8 +30,7 @@ import {
 import * as runtimeHttp from '$/sources/_runtime/http.ts'
 
 const binding = {
-	provider: SourceProvider._Constants,
-	source: Source.Constants_Internal,
+	source: Source.SnapshotHub_Graphql,
 	target: {
 		kind: SourceTargetKind.Global,
 		key: 'snapshot-hub',
@@ -50,6 +49,11 @@ const binding = {
 	delivery: SourceDelivery.BrowserDirect,
 	credentials: [{
 		scope: SourceCredentialScope.None,
+	}],
+	artifacts: [{
+		kind: SourceArtifactKind.HandwrittenTypes,
+		path: 'src/sources/SnapshotHub/Graphql/types.ts',
+		generated: false,
 	}],
 } as const satisfies SourceBinding
 
@@ -228,6 +232,12 @@ describe('Snapshot Hub public governance reads', () => {
 				nextOffset: 41,
 			},
 		})
+		expect(sourceFetch).toHaveBeenNthCalledWith(
+			1,
+			binding,
+			binding.endpoints[0].locator,
+			expect.any(Object)
+		)
 	})
 
 	it.each([

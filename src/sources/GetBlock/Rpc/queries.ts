@@ -3,15 +3,17 @@ import {
 	firstHttpUrlForBinding,
 	sourceFetch,
 } from '$/sources/_runtime/http.ts'
-import type { SourceBinding } from '$/sources/SourceBinding.ts'
+import bindings from '$/sources/GetBlock/bindings.ts'
+import { Source } from '$/sources/Source.ts'
 import type {
 	GetBlockEvmTransaction,
 	GetBlockEvmTransactionReceipt,
 	GetBlockJsonRpcResponse,
 } from '$/sources/GetBlock/Rpc/types.ts'
 
+const binding = bindings[Source.GetBlockRpc_JsonRpc]
+
 const request = async <_Result>(
-	binding: SourceBinding,
 	method: string,
 	parameters: string[],
 	id: number
@@ -43,11 +45,9 @@ const request = async <_Result>(
 }
 
 export const getEvmTransactionByHash = (
-	binding: SourceBinding,
 	txHash: string
-) => request<GetBlockEvmTransaction | null>(binding, 'eth_getTransactionByHash', [txHash], 1)
+) => request<GetBlockEvmTransaction | null>('eth_getTransactionByHash', [txHash], 1)
 
 export const getEvmTransactionReceipt = (
-	binding: SourceBinding,
 	txHash: string
-) => request<GetBlockEvmTransactionReceipt | null>(binding, 'eth_getTransactionReceipt', [txHash], 2)
+) => request<GetBlockEvmTransactionReceipt | null>('eth_getTransactionReceipt', [txHash], 2)

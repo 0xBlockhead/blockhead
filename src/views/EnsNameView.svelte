@@ -2,15 +2,12 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { stringify } from 'devalue'
-	import { caip2StringFromValue } from '$/lib/caip2.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -26,28 +23,16 @@
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.EnsName>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.EnsName>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.EnsName> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const ensName = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {},
-	} : {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const viewSelection = $derived(selection({
+		sources: selection.sources ?? [
+			Source.TheGraph_Graphql,
+			Source.Voltaire_JsonRpc,
+		],
+	}))
+	const ensName = $derived(viewSelection({
 		fields: {
 			normalizedName: true,
 			node: true,
@@ -55,8 +40,8 @@
 			labelhash: true,
 		},
 	}))
-	const titleFallback = $derived([String((pendingEntity.name) ?? '')].filter(Boolean).join(' ') || 'ENS name')
-	const viewDomId = $derived('ens-name-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const titleFallback = $derived((pendingEntity.name ?? '') || 'ENS name')
+	const viewDomId = $derived('ens-name-' + encodeURIComponent(stringify(selection.entitySelector)))
 
 
 	// Components
@@ -75,18 +60,15 @@
 
 <EntityView
 	entityType={EntityType.EnsName}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
+	entitySelector={selection.entitySelector}
 	id={viewDomId}
 	title={title ?? titleFallback}
 	href={
-		href ?? (
-			selection.entitySelector != null && 'name' in selection.entitySelector
-			&& selection.entitySelector.name != null ?
-				resolve('/ens/name/[ensName=stringSegment]', {
-			ensName: encodeURIComponent(String(selection.entitySelector.name ?? '')),
-		})
-		:
-				undefined
+		href ?? resolve(
+			'/(explore)/(ens)/ens/(globalEnsNetwork)/name/[ensName=stringSegment]',
+			{
+				ensName: encodeURIComponent(String(selection.entitySelector.name)),
+			}
 		)
 	}
 	{layout}
@@ -94,29 +76,11 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails}
-			{[String((pendingEntity.name) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-		{:else}
-			<ResourceBoundary resource={ensName}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.name) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		{(pendingEntity.name ?? '') || 'ENS name'}
 	{/snippet}
 
 	{#snippet Value()}
-		{#if layout !== EntityLayout.SummaryDetails}
-			{[String((pendingEntity.name) ?? '')].filter(Boolean).join(' ') || titleFallback}
-		{:else}
-			<ResourceBoundary resource={ensName}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.name) ?? '')].filter(Boolean).join(' ') || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		{(pendingEntity.name ?? '') || titleFallback}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -124,45 +88,20 @@
 			<div>
 				<dt>Name</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									name: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const name = resolvedEntity.name}
-							{#if name !== undefined && name !== null}
-								{String((name) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{pendingEntity.name}
 				</dd>
 			</div>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							normalizedName: true,
-						},
-					})
-				}
+				resource={ensName}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const normalizedName = resolvedEntity.normalizedName}
-					{#if normalizedName !== undefined && normalizedName !== null}
+					{@const normalizedName = entity.normalizedName}
+					{#if normalizedName != null}
 						<div>
 							<dt>Normalized name</dt>
 							<dd>
-								{String((normalizedName) ?? '')}
+								{normalizedName}
 							</dd>
 						</div>
 					{/if}
@@ -170,23 +109,15 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							node: true,
-						},
-					})
-				}
+				resource={ensName}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const node = resolvedEntity.node}
-					{#if node !== undefined && node !== null}
+					{@const node = entity.node}
+					{#if node != null}
 						<div>
 							<dt>Node</dt>
 							<dd>
-								{String((node) ?? '')}
+								{node}
 							</dd>
 						</div>
 					{/if}
@@ -194,23 +125,15 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							labelName: true,
-						},
-					})
-				}
+				resource={ensName}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const labelName = resolvedEntity.labelName}
-					{#if labelName !== undefined && labelName !== null}
+					{@const labelName = entity.labelName}
+					{#if labelName != null}
 						<div>
 							<dt>Label name</dt>
 							<dd>
-								{String((labelName) ?? '')}
+								{labelName}
 							</dd>
 						</div>
 					{/if}
@@ -218,23 +141,15 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							labelhash: true,
-						},
-					})
-				}
+				resource={ensName}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const labelhash = resolvedEntity.labelhash}
-					{#if labelhash !== undefined && labelhash !== null}
+					{@const labelhash = entity.labelhash}
+					{#if labelhash != null}
 						<div>
 							<dt>Label hash</dt>
 							<dd>
-								<TruncatedValue value={String((labelhash) ?? '')} />
+								<TruncatedValue value={labelhash} />
 							</dd>
 						</div>
 					{/if}
@@ -247,24 +162,13 @@
 				resource={selection.$parent}
 			>
 				{#snippet children(ensName)}
-					{#if ensName != null && ensName[EntityMetaKey.Selector] != null}
+					{#if ensName != null}
 						<div>
 							<dt>Parent</dt>
 							<dd>
 								<EnsNameView
 									selection={select(EntityType.EnsName, ensName[EntityMetaKey.Selector])}
 									prefetched={ensName}
-									href={
-										(
-											ensName[EntityMetaKey.Selector] != null && 'name' in ensName[EntityMetaKey.Selector]
-											&& ensName[EntityMetaKey.Selector].name != null ?
-												resolve('/ens/name/[ensName=stringSegment]', {
-											ensName: encodeURIComponent(String(ensName[EntityMetaKey.Selector].name ?? '')),
-										})
-										:
-												undefined
-										)
-									}
 									layout={EntityLayout.Value}
 									open={false}
 								/>
@@ -278,37 +182,13 @@
 				resource={selection.$resolverContract}
 			>
 				{#snippet children(evmContract)}
-					{#if evmContract != null && evmContract[EntityMetaKey.Selector] != null}
+					{#if evmContract != null}
 						<div>
 							<dt>Resolver contract</dt>
 							<dd>
 								<EvmContractView
 									selection={select(EntityType.EvmContract, evmContract[EntityMetaKey.Selector])}
 									prefetched={evmContract}
-									href={
-										(
-											evmContract[EntityMetaKey.Selector] != null && 'address' in evmContract[EntityMetaKey.Selector]
-											&& evmContract[EntityMetaKey.Selector].address != null
-											&& evmContract[EntityMetaKey.Selector] != null && '$network' in evmContract[EntityMetaKey.Selector] ?
-												evmContract[EntityMetaKey.Selector].$network != null && 'caip2' in evmContract[EntityMetaKey.Selector].$network
-												&& evmContract[EntityMetaKey.Selector].$network.caip2 != null ?
-													resolve('/network/[network=networkCaip2OrNetworkSlug]/contract/[address=evmAddress]', {
-												address: String(evmContract[EntityMetaKey.Selector].address ?? ''),
-												network: String(caip2StringFromValue(evmContract[EntityMetaKey.Selector].$network.caip2) ?? ''),
-											})
-											:
-													evmContract[EntityMetaKey.Selector].$network != null && 'slug' in evmContract[EntityMetaKey.Selector].$network
-													&& evmContract[EntityMetaKey.Selector].$network.slug != null ?
-														resolve('/network/[network=networkCaip2OrNetworkSlug]/contract/[address=evmAddress]', {
-													address: String(evmContract[EntityMetaKey.Selector].address ?? ''),
-													network: String(evmContract[EntityMetaKey.Selector].$network.slug ?? ''),
-												})
-												:
-													undefined
-										:
-												undefined
-										)
-									}
 									layout={EntityLayout.Value}
 									open={false}
 								/>
@@ -322,24 +202,13 @@
 				resource={selection.$subgraphResolvedActor}
 			>
 				{#snippet children(evmAccount)}
-					{#if evmAccount != null && evmAccount[EntityMetaKey.Selector] != null}
+					{#if evmAccount != null}
 						<div>
 							<dt>Resolved actor</dt>
 							<dd>
 								<EvmAccountView
 									selection={select(EntityType.EvmAccount, evmAccount[EntityMetaKey.Selector])}
 									prefetched={evmAccount}
-									href={
-										(
-											evmAccount[EntityMetaKey.Selector] != null && 'address' in evmAccount[EntityMetaKey.Selector]
-											&& evmAccount[EntityMetaKey.Selector].address != null ?
-												resolve('/account/[address=evmAddress]', {
-											address: String(evmAccount[EntityMetaKey.Selector].address ?? ''),
-										})
-										:
-												undefined
-										)
-									}
 									layout={EntityLayout.Value}
 									open={false}
 								/>
@@ -353,24 +222,13 @@
 				resource={selection.$ownerActor}
 			>
 				{#snippet children(evmAccount)}
-					{#if evmAccount != null && evmAccount[EntityMetaKey.Selector] != null}
+					{#if evmAccount != null}
 						<div>
 							<dt>Owner</dt>
 							<dd>
 								<EvmAccountView
 									selection={select(EntityType.EvmAccount, evmAccount[EntityMetaKey.Selector])}
 									prefetched={evmAccount}
-									href={
-										(
-											evmAccount[EntityMetaKey.Selector] != null && 'address' in evmAccount[EntityMetaKey.Selector]
-											&& evmAccount[EntityMetaKey.Selector].address != null ?
-												resolve('/account/[address=evmAddress]', {
-											address: String(evmAccount[EntityMetaKey.Selector].address ?? ''),
-										})
-										:
-												undefined
-										)
-									}
 									layout={EntityLayout.Value}
 									open={false}
 								/>
@@ -391,12 +249,10 @@
 					{
 						id: 'ens-name-subdomains',
 						label: 'Subdomains',
-						ownsSection: true,
 					},
 					{
 						id: 'ens-name-record-list',
 						label: 'Records',
-						ownsSection: true,
 					},
 				]
 			}
@@ -409,141 +265,42 @@
 				</header>
 			{/snippet}
 
-			{#snippet MarkerEnsNameSubdomains(_context, Content)}
-				{@const ensNameRecordsEnsNameSubdomainsResource = selection.$$subdomains}
-				<ResourceBoundary
-					resource={ensNameRecordsEnsNameSubdomainsResource}
-				>
-					{#snippet children(_resolved)}
-						{@render Content()}
-					{/snippet}
-
-					{#snippet PendingContent()}
-						{@render Content()}
-					{/snippet}
-
-					{#snippet FailedContent(_error, _retry)}
-						{@render Content()}
-					{/snippet}
-				</ResourceBoundary>
+			{#snippet SectionEnsNameSubdomains({ id, label, open })}
+				<EnsNamesView
+					selection={selection.$$subdomains}
+					CollapsibleProps={{ canToggle: false }}
+					collapsible={false}
+					data-column-item="flexible"
+					data-card
+					data-scroll-container
+					open={open}
+					title={label}
+					emptyText='No subdomains for this ENS name yet.'
+					id={`${id}-list`}
+				/>
 			{/snippet}
 
-			{#snippet SectionEnsNameSubdomains({ id, label, open, active })}
-				{@const ensNameRecordsEnsNameSubdomainsResource = selection.$$subdomains}
-				<ResourceBoundary
-					resource={ensNameRecordsEnsNameSubdomainsResource}
-				>
-					{#snippet children(ensName)}
-						<section
-							id={id}
-							aria-labelledby={`${id}:marker`}
-							data-scroll-marker-label={label}
-							data-column-item="flexible"
-							data-column
-							data-active={active}
-						>
-							<EnsNamesView
-								selection={ensNameRecordsEnsNameSubdomainsResource}
-								CollapsibleProps={{ canToggle: false }}
-								collapsible={false}
-								data-column-item="flexible"
-								data-card
-								data-scroll-container
-								open={open}
-								title={label}
-								emptyText='No subdomains for this ENS name yet.'
-								id={`${id}-list`}
-							/>
-						</section>
-					{/snippet}
-
-					{#snippet Pending()}
-						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
-							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
-								<span data-tag data-text="muted" data-resource-state="pending" class="loading inline-placeholder" aria-busy="true" aria-label="Loading…">•••</span>
-							</article>
-						</section>
-					{/snippet}
-
-					{#snippet Failed(_error, _retry)}
-						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
-							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
-								<span data-tag data-resource-state="failed" class="inline-placeholder" aria-label="Failed to load">•••</span>
-							</article>
-						</section>
-					{/snippet}
-				</ResourceBoundary>
-			{/snippet}
-
-			{#snippet MarkerEnsNameRecordList(_context, Content)}
-				{@const ensNameRecordsEnsNameRecordListResource = selection.$$records}
-				<ResourceBoundary
-					resource={ensNameRecordsEnsNameRecordListResource}
-				>
-					{#snippet children(_resolved)}
-						{@render Content()}
-					{/snippet}
-
-					{#snippet PendingContent()}
-						{@render Content()}
-					{/snippet}
-
-					{#snippet FailedContent(_error, _retry)}
-						{@render Content()}
-					{/snippet}
-				</ResourceBoundary>
-			{/snippet}
-
-			{#snippet SectionEnsNameRecordList({ id, label, open, active })}
-				{@const ensNameRecordsEnsNameRecordListResource = selection.$$records}
-				<ResourceBoundary
-					resource={ensNameRecordsEnsNameRecordListResource}
-				>
-					{#snippet children(ensRecord)}
-						<section
-							id={id}
-							aria-labelledby={`${id}:marker`}
-							data-scroll-marker-label={label}
-							data-column-item="flexible"
-							data-column
-							data-active={active}
-						>
-							<EnsRecordsView
-								selection={ensNameRecordsEnsNameRecordListResource}
-								href={
-									(selection.entitySelector != null && 'name' in selection.entitySelector && selection.entitySelector.name != null ? resolve('/ens/name/[ensName=stringSegment]/records', {
-										ensName: encodeURIComponent(String(selection.entitySelector.name ?? '')),
-									}) : undefined)
-								}
-								CollapsibleProps={{ canToggle: false }}
-								collapsible={false}
-								data-column-item="flexible"
-								data-card
-								data-scroll-container
-								open={open}
-								title={label}
-								emptyText='No ENS records for this name yet.'
-								id={`${id}-list`}
-							/>
-						</section>
-					{/snippet}
-
-					{#snippet Pending()}
-						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
-							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
-								<span data-tag data-text="muted" data-resource-state="pending" class="loading inline-placeholder" aria-busy="true" aria-label="Loading…">•••</span>
-							</article>
-						</section>
-					{/snippet}
-
-					{#snippet Failed(_error, _retry)}
-						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
-							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
-								<span data-tag data-resource-state="failed" class="inline-placeholder" aria-label="Failed to load">•••</span>
-							</article>
-						</section>
-					{/snippet}
-				</ResourceBoundary>
+			{#snippet SectionEnsNameRecordList({ id, label, open })}
+				<EnsRecordsView
+					selection={selection.$$records}
+					href={
+						resolve(
+							'/(explore)/(ens)/ens/(globalEnsNetwork)/name/[ensName=stringSegment]/(ensName)/records',
+							{
+								ensName: encodeURIComponent(String(selection.entitySelector.name)),
+							}
+						)
+					}
+					CollapsibleProps={{ canToggle: false }}
+					collapsible={false}
+					data-column-item="flexible"
+					data-card
+					data-scroll-container
+					open={open}
+					title={label}
+					emptyText='No ENS records for this name yet.'
+					id={`${id}-list`}
+				/>
 			{/snippet}
 
 		</CollapsibleTabs>
@@ -556,7 +313,6 @@
 					{
 						id: 'ens-name-timestamps',
 						label: 'Observations',
-						ownsSection: true,
 					},
 				]
 			}
@@ -569,70 +325,19 @@
 				</header>
 			{/snippet}
 
-			{#snippet MarkerEnsNameTimestamps(_context, Content)}
-				{@const ensNameObservationsEnsNameTimestampsResource = selection.$$timestamps}
-				<ResourceBoundary
-					resource={ensNameObservationsEnsNameTimestampsResource}
-				>
-					{#snippet children(_resolved)}
-						{@render Content()}
-					{/snippet}
-
-					{#snippet PendingContent()}
-						{@render Content()}
-					{/snippet}
-
-					{#snippet FailedContent(_error, _retry)}
-						{@render Content()}
-					{/snippet}
-				</ResourceBoundary>
-			{/snippet}
-
-			{#snippet SectionEnsNameTimestamps({ id, label, open, active })}
-				{@const ensNameObservationsEnsNameTimestampsResource = selection.$$timestamps}
-				<ResourceBoundary
-					resource={ensNameObservationsEnsNameTimestampsResource}
-				>
-					{#snippet children(ensNameTimestamp)}
-						<section
-							id={id}
-							aria-labelledby={`${id}:marker`}
-							data-scroll-marker-label={label}
-							data-column-item="flexible"
-							data-column
-							data-active={active}
-						>
-							<EnsName_TimestampsView
-								selection={ensNameObservationsEnsNameTimestampsResource}
-								CollapsibleProps={{ canToggle: false }}
-								collapsible={false}
-								data-column-item="flexible"
-								data-card
-								data-scroll-container
-								open={open}
-								title={label}
-								emptyText='No ENS name observations yet.'
-								id={`${id}-list`}
-							/>
-						</section>
-					{/snippet}
-
-					{#snippet Pending()}
-						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
-							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
-								<span data-tag data-text="muted" data-resource-state="pending" class="loading inline-placeholder" aria-busy="true" aria-label="Loading…">•••</span>
-							</article>
-						</section>
-					{/snippet}
-
-					{#snippet Failed(_error, _retry)}
-						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
-							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
-								<span data-tag data-resource-state="failed" class="inline-placeholder" aria-label="Failed to load">•••</span>
-							</article>
-						</section>
-					{/snippet}
-				</ResourceBoundary>
+			{#snippet SectionEnsNameTimestamps({ id, label, open })}
+				<EnsName_TimestampsView
+					selection={selection.$$timestamps}
+					CollapsibleProps={{ canToggle: false }}
+					collapsible={false}
+					data-column-item="flexible"
+					data-card
+					data-scroll-container
+					open={open}
+					title={label}
+					emptyText='No ENS name observations yet.'
+					id={`${id}-list`}
+				/>
 			{/snippet}
 
 		</CollapsibleTabs>

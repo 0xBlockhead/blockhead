@@ -7,7 +7,6 @@ import {
 } from 'vitest'
 
 import { Source } from '$/sources/Source.ts'
-import { SourceProvider } from '$/sources/SourceProvider.ts'
 import {
 	ApiFamily,
 	SourceCredentialScope,
@@ -31,7 +30,6 @@ vi.mock('$/sources/_shared/wire/Graphql/client.ts', () => ({
 }))
 
 const binding = {
-	provider: SourceProvider.EasScan,
 	source: Source.EasScan_Graphql,
 	target: {
 		kind: SourceTargetKind.Caip2Network,

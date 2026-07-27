@@ -2,69 +2,32 @@
 
 <script lang="ts">
 	// Types/constants
-	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
-	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
-	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
+	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-
-
 
 
 	// State
 	let {
 		selection,
-		countResource,
 		title = 'Validator eras',
-		typeAnnotationParagraphs = [],
-		placeholderText = undefined,
-		emptyText = undefined,
 		open = $bindable(true),
-		collapsible = true,
-		showTypeAnnotation = true,
-		id = 'PolkadotValidator_Eras-list',
 		...EntitiesListProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyEntitiesSelection<EntityType.PolkadotValidator_Era>
-			countResource?: SvelteKitResource<number>
-			title?: string
-			typeAnnotationParagraphs?: string[]
-			placeholderText?: string
-			emptyText?: string
-			open?: boolean
-			collapsible?: boolean
-			showTypeAnnotation?: boolean
-			id?: string
-		},
-		EntitiesListForwardProps
-	> = $props()
+	}: EntityListViewProps<EntityType.PolkadotValidator_Era> = $props()
 
 
 	// Components
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView from '$/components/EntityView.svelte'
 </script>
 
-
-{#snippet TypeAnnotationParagraphs()}
-	{#each typeAnnotationParagraphs as paragraph (paragraph)}
-		<p>{paragraph}</p>
-	{/each}
-{/snippet}
 
 <EntitiesList
 	{...EntitiesListProps}
 	entityType={EntityType.PolkadotValidator_Era}
-	{id}
 	{title}
 	bind:open
-	{collapsible}
-	{showTypeAnnotation}
-	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
 	resource={
 		selection({
-			sources: selection.sources,
 			fields: {
 				eraIndex: true,
 				active: true,
@@ -72,38 +35,23 @@
 			},
 		})
 	}
-	{countResource}
-	getResourceItems={(polkadotValidatorEras) => [...new Map(polkadotValidatorEras.values.map((polkadotValidatorEra) => [polkadotValidatorEra[EntityMetaKey.SelectorKey], polkadotValidatorEra])).values()]}
-	getKey={(polkadotValidatorEra) => polkadotValidatorEra[EntityMetaKey.SelectorKey]}
-	{placeholderText}
 >
-	{#snippet Empty()}
-		{#if emptyText != null}
-			<p data-text="muted">{emptyText}</p>
-		{:else}
-			<p data-text="muted">No Polkadot validator eras yet.</p>
-		{/if}
-	{/snippet}
-
 	{#snippet Item({ item: polkadotValidatorEra })}
-		{@const polkadotValidatorEraFields = { ...polkadotValidatorEra[EntityMetaKey.Selector], ...polkadotValidatorEra }}
+		{@const polkadotValidatorEraSelector = polkadotValidatorEra[EntityMetaKey.Selector]}
 		<EntityView
 			entityType={EntityType.PolkadotValidator_Era}
-			entitySelector={polkadotValidatorEra[EntityMetaKey.Selector]}
-			layout={EntityLayout.Summary}
-			open={false}
-			showTypeAnnotation={false}
+			entitySelector={polkadotValidatorEraSelector}
 		>
 			{#snippet Title()}
-				{[String((polkadotValidatorEraFields.eraIndex) ?? '')].filter(Boolean).join(' ') || 'polkadot validator era'}
+				{String(polkadotValidatorEraSelector.eraIndex) || 'polkadot validator era'}
 			{/snippet}
 
 			{#snippet Value()}
-				{[String((polkadotValidatorEraFields.active) ?? '')].filter(Boolean).join(' ')}
+				{String(polkadotValidatorEra.active ?? '')}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{[String((polkadotValidatorEraFields.source) ?? '')].filter(Boolean).join(' ')}</span>
+				<span data-text="annotation">{polkadotValidatorEraSelector.source}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

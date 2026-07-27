@@ -1,11 +1,4 @@
 import {
-	ApiFamily,
-	SourceDelivery,
-	SourceTargetKind,
-	WireProtocol,
-	type SourceBinding,
-} from '$/sources/SourceBinding.ts'
-import {
 	firstHttpUrlForBinding,
 	sourceFetch,
 } from '$/sources/_runtime/http.ts'
@@ -19,13 +12,13 @@ import type {
 	SnapshotHubStrategy,
 	SnapshotHubVote,
 } from '$/sources/SnapshotHub/Graphql/types.ts'
+import type { SourceBinding } from '$/sources/SourceBinding.ts'
+import type { JsonValue } from '$/typescript/JsonValue.ts'
 import {
 	isJsonArray,
 	isJsonNumber,
 } from '$/typescript/JsonValue.ts'
-import type { JsonValue } from '$/typescript/JsonValue.ts'
 
-export const snapshotHubGraphqlEndpoint = 'https://hub.snapshot.org/graphql' as const
 export const maximumSnapshotHubGraphqlResponseBytes = 2_000_000
 
 const proposalFields = `
@@ -105,18 +98,6 @@ const voteFields = `
 	vp_by_strategy
 	vp_state
 `
-
-const assertBinding = (binding: SourceBinding) => {
-	if (
-		binding.target.kind !== SourceTargetKind.Global
-		|| binding.target.key !== 'snapshot-hub'
-		|| binding.wireProtocol !== WireProtocol.Graphql
-		|| binding.apiFamily !== ApiFamily.GraphqlHttp
-		|| binding.delivery !== SourceDelivery.BrowserDirect
-		|| firstHttpUrlForBinding(binding) !== snapshotHubGraphqlEndpoint
-	)
-		throw new Error('SnapshotHub_Graphql: expected canonical public Hub binding')
-}
 
 const assertOpaqueIdentity = (
 	value: string,
@@ -218,10 +199,9 @@ const graphql = async <_Data>({
 	query: string
 	variables: JsonValue
 }) => {
-	assertBinding(binding)
 	const response = await sourceFetch(
 		binding,
-		snapshotHubGraphqlEndpoint,
+		firstHttpUrlForBinding(binding),
 		{
 			method: 'POST',
 			headers: {
@@ -248,11 +228,12 @@ const graphql = async <_Data>({
 }
 
 const observation = <_Value>(
+	binding: SourceBinding,
 	value: _Value
 ): SnapshotHubObservation<_Value> => ({
 	value,
 	observedBy: 'SnapshotHub_Graphql',
-	endpoint: snapshotHubGraphqlEndpoint,
+	endpoint: firstHttpUrlForBinding(binding),
 	resolvedAtMs: Date.now(),
 })
 
@@ -420,11 +401,11 @@ export const getSpace = async ({
 		},
 	})
 	if (space == null)
-		return observation(null)
+		return observation(binding, null)
 	assertSpace(space)
 	if (space.id !== spaceId)
 		throw new Error('SnapshotHub_Graphql: returned a foreign space')
-	return observation(space)
+	return observation(binding, space)
 }
 
 export const getSpacesPage = async ({
@@ -468,7 +449,7 @@ export const getSpacesPage = async ({
 			throw new Error('SnapshotHub_Graphql: duplicate space in page')
 		spaceIds.add(space.id)
 	}
-	return observation(page(
+	return observation(binding, page(
 		spaces,
 		limit,
 		offset
@@ -497,11 +478,11 @@ export const getProposal = async ({
 		},
 	})
 	if (proposal == null)
-		return observation(null)
+		return observation(binding, null)
 	assertProposal(proposal)
 	if (proposal.id !== proposalId)
 		throw new Error('SnapshotHub_Graphql: returned a foreign proposal')
-	return observation(proposal)
+	return observation(binding, proposal)
 }
 
 export const getProposalsPage = async ({
@@ -565,7 +546,7 @@ export const getProposalsPage = async ({
 			throw new Error('SnapshotHub_Graphql: duplicate proposal in page')
 		proposalIds.add(proposal.id)
 	}
-	return observation(page(
+	return observation(binding, page(
 		proposals,
 		limit,
 		offset
@@ -594,11 +575,11 @@ export const getVote = async ({
 		},
 	})
 	if (vote == null)
-		return observation(null)
+		return observation(binding, null)
 	assertVote(vote)
 	if (vote.id !== voteId)
 		throw new Error('SnapshotHub_Graphql: returned a foreign vote')
-	return observation(vote)
+	return observation(binding, vote)
 }
 
 export const getVotesPage = async ({
@@ -655,7 +636,7 @@ export const getVotesPage = async ({
 			throw new Error('SnapshotHub_Graphql: duplicate vote in page')
 		voteIds.add(vote.id)
 	}
-	return observation(page(
+	return observation(binding, page(
 		votes,
 		limit,
 		offset

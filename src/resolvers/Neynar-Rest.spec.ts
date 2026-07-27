@@ -7,9 +7,6 @@ import {
 
 import { EntityMetaKey, entityFieldAddressKey } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import { FarcasterCastSelector } from '$/schema/FarcasterCast.ts'
-import { FarcasterFeedSelector } from '$/schema/FarcasterFeed.ts'
-
 const getCastByHash = vi.hoisted(() => vi.fn())
 const getCastByClientUrl = vi.hoisted(() => vi.fn())
 const getFeed = vi.hoisted(() => vi.fn())
@@ -84,7 +81,7 @@ describe('Neynar Farcaster feed resolver', () => {
 		}
 		getFeed.mockResolvedValueOnce(page)
 
-		await expect(feedResolver.resolve[FarcasterFeedSelector.Variant].resolve({
+		await expect(feedResolver.resolve['Variant'].resolve({
 			variant: 'trending',
 		}, resolverContext)).resolves.toEqual(page)
 		if (
@@ -109,9 +106,6 @@ describe('Neynar Farcaster feed resolver', () => {
 					[entityFieldAddressKey(EntityType.FarcasterCast, [], 'hash')]: '0xabcdef',
 					[entityFieldAddressKey(EntityType.FarcasterCast, [], '$author')]: {
 						[EntityMetaKey.Selector]: { fid: 42 },
-						[EntityMetaKey.Fields]: {
-							[entityFieldAddressKey(EntityType.FarcasterUser, [], 'username')]: 'alice',
-						},
 					},
 					[entityFieldAddressKey(EntityType.FarcasterCast, [], 'text')]: 'A live cast from the feed',
 					[entityFieldAddressKey(EntityType.FarcasterCast, [], 'timestamp')]: Date.parse('2026-07-15T12:34:56.000Z'),
@@ -153,7 +147,7 @@ describe('Neynar Farcaster feed resolver', () => {
 			],
 		}
 		getFeed.mockResolvedValueOnce(page)
-		await expect(feedResolver.resolve[FarcasterFeedSelector.Variant].resolve({
+		await expect(feedResolver.resolve['Variant'].resolve({
 			variant: 'trending',
 		}, resolverContext)).resolves.toEqual(page)
 		if (
@@ -177,7 +171,7 @@ describe('Neynar Farcaster feed resolver', () => {
 		}
 		getFeed.mockResolvedValueOnce(page)
 
-		await expect(feedResolver.resolve[FarcasterFeedSelector.Following].resolve({
+		await expect(feedResolver.resolve['Following'].resolve({
 			variant: 'following',
 			viewerFid: 42,
 		}, {
@@ -228,7 +222,7 @@ describe('Neynar Farcaster feed resolver', () => {
 		}
 		getFeed.mockResolvedValueOnce(page)
 
-		await expect(feedResolver.resolve[FarcasterFeedSelector.ByChannel].resolve({
+		await expect(feedResolver.resolve['ByChannel'].resolve({
 			variant: 'channel',
 			channelId: 'design',
 		}, {
@@ -360,7 +354,7 @@ describe('Neynar Farcaster cast resolver', () => {
 	it('preserves selector identity when Neynar has no cast so another source can resolve detail', async () => {
 		getCastByHash.mockResolvedValueOnce(undefined)
 
-		await expect(castResolver.resolve[FarcasterCastSelector.FidHash].resolve({
+		await expect(castResolver.resolve['FidHash'].resolve({
 			fid: 42,
 			hash: '0xABCDEF',
 		}, resolverContext)).resolves.toEqual(expect.objectContaining({
@@ -434,14 +428,14 @@ describe('Neynar Farcaster cast resolver', () => {
 						fid: 42,
 						hash: '0xabcdef',
 					},
-					resolve: castResolver.resolve[FarcasterCastSelector.FidHash].resolve,
+					resolve: castResolver.resolve['FidHash'].resolve,
 				},
 				{
 					getCast: getCastByClientUrl,
 					selector: {
 						clientUrl: 'https://warpcast.com/alice/0xabcdef',
 					},
-					resolve: castResolver.resolve[FarcasterCastSelector.ClientUrl].resolve,
+					resolve: castResolver.resolve['ClientUrl'].resolve,
 				},
 			]) {
 				getCast.mockResolvedValueOnce({

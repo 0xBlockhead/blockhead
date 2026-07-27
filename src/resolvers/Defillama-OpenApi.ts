@@ -3,11 +3,7 @@ import {
 	MarketAssetKind,
 	MarketKind,
 } from '$/constants/Market.ts'
-import {
-	seededCoinSpotUsdMarkets,
-	seededCoinSpotUsdMarketByCoinId,
-	type CatalogCoinCurrencyMarket,
-} from '$/constants/MarketCatalog.ts'
+import { seededCoinSpotUsdMarkets, type CatalogCoinCurrencyMarket } from '$/constants/MarketCatalog.ts'
 import {
 	defineResolver,
 } from '$/resolvers/defineResolver.ts'
@@ -20,12 +16,6 @@ import { schema } from '$/schema/index.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { MediaType } from '$/schema/Media.ts'
 import { Source } from '$/sources/Source.ts'
-import { NetworkSelector } from '$/schema/Network.ts'
-import { _GlobalSelector } from '$/schema/_Global.ts'
-import { Market_TimestampSelector } from '$/schema/Market_Timestamp.ts'
-import { CoinSelector } from '$/schema/Coin.ts'
-import { MarketSelector } from '$/schema/Market.ts'
-import { MarketPriceSelector } from '$/schema/MarketPrice.ts'
 
 /** Coin prices use `$/sources/Defillama/OpenApi` + checked-in `openapi.d.ts` (`GET /prices/current/{coins}`). */
 const marketSelectorFromCatalogCoinCurrencyMarket = (catalogMarket: CatalogCoinCurrencyMarket) => ({
@@ -71,7 +61,7 @@ export default {
 		defineResolver(Source.Defillama_OpenApi, {
 			entityType: EntityType.Market_Timestamp,
 			resolve: {
-				[Market_TimestampSelector.MarketTimestampMsFeedKey]: {
+				MarketTimestampMsFeedKey: {
 					resolve: async ({ $market, feedKey, timestampMs: timestampMsSelector }) => {
 						if ($market.marketKind !== MarketKind.Spot)
 							throw new Error('Defillama_OpenApi: Market_Timestamp is spot-only')
@@ -85,7 +75,11 @@ export default {
 						const llamaId = defillamaCurrentPriceIdByCoinId[coinId]
 						if (llamaId == null || llamaId !== feedKey)
 							throw new Error('Defillama_OpenApi: Market_Timestamp feedKey does not match catalog coin')
-						const priceRow = (await getCurrentPrices([llamaId])).coins[llamaId]
+						const priceRow = (
+							await getCurrentPrices(
+								[llamaId]
+							)
+						).coins[llamaId]
 						const timestampMs = priceRow.timestamp * 1000
 						if (timestampMs !== timestampMsSelector)
 							throw new Error('Defillama_OpenApi: Market_Timestamp id does not match price clock')
@@ -106,7 +100,7 @@ export default {
 		defineResolver(Source.Defillama_OpenApi, {
 			entityType: EntityType.MarketPrice,
 			resolve: {
-				[MarketPriceSelector.Market]: {
+				Market: {
 					resolve: async ({ $market }) => {
 						if ($market.marketKind !== MarketKind.Spot)
 							return []
@@ -121,7 +115,11 @@ export default {
 						if (llamaId == null)
 							return []
 
-						const priceRow = (await getCurrentPrices([llamaId])).coins[llamaId]
+						const priceRow = (
+							await getCurrentPrices(
+								[llamaId]
+							)
+						).coins[llamaId]
 						return [
 							{
 								[EntityMetaKey.Selector]: {
@@ -143,7 +141,7 @@ export default {
 		defineResolver(Source.Defillama_OpenApi, {
 			entityType: EntityType.MarketPrice,
 			resolve: {
-				[MarketPriceSelector.Market]: {
+				Market: {
 					resolve: async ({ $market }: EntitySelector<typeof schema, EntityType.MarketPrice>) => (
 						{
 							[EntityMetaKey.Selector]: $market,
@@ -158,12 +156,17 @@ export default {
 		defineResolver(Source.Defillama_OpenApi, {
 			entityType: EntityType.Network,
 			resolve: {
-				[NetworkSelector.Caip2]: {
+				Caip2: {
 					resolve: async ({ caip2 }) => {
 						const { getChainSlugByChainId, getChainIconUrl } = await import('$/sources/Defillama/OpenApi/queries.ts')
 						const slug = getChainSlugByChainId[Number(caip2.reference)]
 						if (slug == null) throw new Error(`Defillama_OpenApi: no chain icon slug for chain ${caip2.reference}`)
-						const iconMedia = mediaFromUrl(getChainIconUrl(slug), MediaType.Image)
+						const iconMedia = mediaFromUrl(
+							getChainIconUrl(
+								slug
+							),
+							MediaType.Image
+						)
 						if (iconMedia == null) throw new Error(`Defillama_OpenApi: invalid icon URL for chain ${caip2.reference}`)
 						return iconMedia
 					},

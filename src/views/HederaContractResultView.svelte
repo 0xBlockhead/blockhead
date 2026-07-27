@@ -2,13 +2,9 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
 
 
 	// Context
@@ -20,35 +16,12 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.HederaContractResult>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.HederaContractResult>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.HederaContractResult> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const hederaContractResult = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {},
-	} : {
-		sources: selection.sources,
-	}))
 	const titleFallback = 'hedera contract result'
-	const viewDomId = $derived('hedera-contract-result-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -61,24 +34,14 @@
 
 <EntityView
 	entityType={EntityType.HederaContractResult}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails}
-			{title || titleFallback}
-		{:else}
-			<ResourceBoundary resource={hederaContractResult}>
-				{#snippet children(entity)}
-					{title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		hedera contract result
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -98,7 +61,7 @@
 				resource={selection.$contract}
 			>
 				{#snippet children(hederaContract)}
-					{#if hederaContract != null && hederaContract[EntityMetaKey.Selector] != null}
+					{#if hederaContract != null}
 						<div>
 							<dt>contract</dt>
 							<dd>
@@ -117,7 +80,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							contractId: true,
 						},
@@ -125,13 +87,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const contractId = resolvedEntity.contractId}
-					{#if contractId !== undefined && contractId !== null}
+					{@const contractId = entity.contractId}
+					{#if contractId != null}
 						<div>
 							<dt>contract ID</dt>
 							<dd>
-								{String((contractId) ?? '')}
+								{contractId}
 							</dd>
 						</div>
 					{/if}
@@ -141,7 +102,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							evmAddress: true,
 						},
@@ -149,13 +109,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const evmAddress = resolvedEntity.evmAddress}
-					{#if evmAddress !== undefined && evmAddress !== null}
+					{@const evmAddress = entity.evmAddress}
+					{#if evmAddress != null}
 						<div>
 							<dt>EVM address</dt>
 							<dd>
-								<TruncatedValue value={String((evmAddress) ?? '')} />
+								<TruncatedValue value={String(evmAddress)} />
 							</dd>
 						</div>
 					{/if}
@@ -165,7 +124,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							ethereumHash: true,
 						},
@@ -173,13 +131,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const ethereumHash = resolvedEntity.ethereumHash}
-					{#if ethereumHash !== undefined && ethereumHash !== null}
+					{@const ethereumHash = entity.ethereumHash}
+					{#if ethereumHash != null}
 						<div>
 							<dt>ethereum hash</dt>
 							<dd>
-								<TruncatedValue value={String((ethereumHash) ?? '')} />
+								<TruncatedValue value={ethereumHash} />
 							</dd>
 						</div>
 					{/if}
@@ -189,7 +146,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							functionParameters: true,
 						},
@@ -197,13 +153,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const functionParameters = resolvedEntity.functionParameters}
-					{#if functionParameters !== undefined && functionParameters !== null}
+					{@const functionParameters = entity.functionParameters}
+					{#if functionParameters != null}
 						<div>
 							<dt>function parameters</dt>
 							<dd>
-								{String((functionParameters) ?? '')}
+								{functionParameters}
 							</dd>
 						</div>
 					{/if}
@@ -213,7 +168,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							gasLimit: true,
 						},
@@ -221,13 +175,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const gasLimit = resolvedEntity.gasLimit}
-					{#if gasLimit !== undefined && gasLimit !== null}
+					{@const gasLimit = entity.gasLimit}
+					{#if gasLimit != null}
 						<div>
 							<dt>gas limit</dt>
 							<dd>
-								{String((gasLimit) ?? '')}
+								{String(gasLimit)}
 							</dd>
 						</div>
 					{/if}
@@ -237,7 +190,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							gasUsed: true,
 						},
@@ -245,13 +197,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const gasUsed = resolvedEntity.gasUsed}
-					{#if gasUsed !== undefined && gasUsed !== null}
+					{@const gasUsed = entity.gasUsed}
+					{#if gasUsed != null}
 						<div>
 							<dt>gas used</dt>
 							<dd>
-								{String((gasUsed) ?? '')}
+								{String(gasUsed)}
 							</dd>
 						</div>
 					{/if}
@@ -261,7 +212,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							amountTinybar: true,
 						},
@@ -269,13 +219,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const amountTinybar = resolvedEntity.amountTinybar}
-					{#if amountTinybar !== undefined && amountTinybar !== null}
+					{@const amountTinybar = entity.amountTinybar}
+					{#if amountTinybar != null}
 						<div>
 							<dt>amount tinybar</dt>
 							<dd>
-								{String((amountTinybar) ?? '')}
+								{String(amountTinybar)}
 							</dd>
 						</div>
 					{/if}
@@ -285,7 +234,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							status: true,
 						},
@@ -293,13 +241,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const status = resolvedEntity.status}
-					{#if status !== undefined && status !== null}
+					{@const status = entity.status}
+					{#if status != null}
 						<div>
 							<dt>status</dt>
 							<dd>
-								{String((status) ?? '')}
+								{status}
 							</dd>
 						</div>
 					{/if}
@@ -309,7 +256,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							errorMessage: true,
 						},
@@ -317,13 +263,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const errorMessage = resolvedEntity.errorMessage}
-					{#if errorMessage !== undefined && errorMessage !== null}
+					{@const errorMessage = entity.errorMessage}
+					{#if errorMessage != null}
 						<div>
 							<dt>error message</dt>
 							<dd>
-								{String((errorMessage) ?? '')}
+								{errorMessage}
 							</dd>
 						</div>
 					{/if}
@@ -333,7 +278,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							bloom: true,
 						},
@@ -341,13 +285,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const bloom = resolvedEntity.bloom}
-					{#if bloom !== undefined && bloom !== null}
+					{@const bloom = entity.bloom}
+					{#if bloom != null}
 						<div>
 							<dt>bloom</dt>
 							<dd>
-								{String((bloom) ?? '')}
+								{bloom}
 							</dd>
 						</div>
 					{/if}

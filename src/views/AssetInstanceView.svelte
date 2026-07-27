@@ -2,17 +2,14 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
 	import { CoinId } from '$/constants/Coin.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
 	import { AssetInstanceKind } from '$/schema/AssetInstance.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -28,38 +25,21 @@
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.AssetInstance>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.AssetInstance>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.AssetInstance> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const assetInstance = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {
-			symbol: true,
-			name: true,
-		},
-	} : {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const viewSelection = $derived(selection({
+		sources: selection.sources ?? [
+			Source.Constants_Internal,
+		],
+	}))
+	const assetInstance = $derived(viewSelection({
 		fields: {
 			symbol: true,
 			name: true,
 		},
 	}))
-	const titleFallback = $derived([String((pendingEntity.symbol) ?? ''), String((pendingEntity.name) ?? '')].filter(Boolean).join(' ') || 'Asset instance')
-	const viewDomId = $derived('asset-instance-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const titleFallback = $derived([(pendingEntity.symbol ?? ''), (pendingEntity.name ?? '')].filter(Boolean).join(' ') || 'Asset instance')
 
 
 	// Components
@@ -77,35 +57,21 @@
 
 <EntityView
 	entityType={EntityType.AssetInstance}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
 	href={
-		href ?? (
-			selection.entitySelector != null && 'kind' in selection.entitySelector
-			&& selection.entitySelector.kind != null
-			&& selection.entitySelector != null && 'assetKey' in selection.entitySelector
-			&& selection.entitySelector.assetKey != null
-			&& selection.entitySelector != null && '$network' in selection.entitySelector ?
-				selection.entitySelector.$network != null && 'caip2' in selection.entitySelector.$network
-				&& selection.entitySelector.$network.caip2 != null ?
-					resolve('/network/[network=networkCaip2OrNetworkSlug]/asset/[kind=stringSegment]/[assetKey=stringSegment]', {
-				kind: String(selection.entitySelector.kind ?? ''),
-				assetKey: String(selection.entitySelector.assetKey ?? ''),
-				network: String(caip2StringFromValue(selection.entitySelector.$network.caip2) ?? ''),
-			})
-			:
-					selection.entitySelector.$network != null && 'slug' in selection.entitySelector.$network
-					&& selection.entitySelector.$network.slug != null ?
-						resolve('/network/[network=networkCaip2OrNetworkSlug]/asset/[kind=stringSegment]/[assetKey=stringSegment]', {
-					kind: String(selection.entitySelector.kind ?? ''),
-					assetKey: String(selection.entitySelector.assetKey ?? ''),
-					network: String(selection.entitySelector.$network.slug ?? ''),
-				})
-				:
-					undefined
-		:
-				undefined
+		href ?? resolve(
+			'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/asset/[kind=stringSegment]/[assetKey=stringSegment]',
+			{
+				network: (
+					'caip2' in selection.entitySelector.$network ?
+						String(caip2StringFromValue(selection.entitySelector.$network.caip2))
+					:
+						String(selection.entitySelector.$network.slug)
+				),
+				kind: String(selection.entitySelector.kind),
+				assetKey: String(selection.entitySelector.assetKey),
+			}
 		)
 	}
 	{layout}
@@ -113,29 +79,19 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'symbol') && Object.hasOwn(prefetched, 'name')}
-			{[String((pendingEntity.symbol) ?? ''), String((pendingEntity.name) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-		{:else}
-			<ResourceBoundary resource={assetInstance}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.symbol) ?? ''), String((resolvedEntity.name) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={assetInstance}>
+			{#snippet children(entity)}
+				{[entity.symbol, entity.name].filter(Boolean).join(' ') || title || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Value()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'symbol') && Object.hasOwn(prefetched, 'name')}
-			{[String((pendingEntity.symbol) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.symbol) ?? ''), String((pendingEntity.name) ?? '')].filter(Boolean).join(' ') || titleFallback}
-		{:else}
-			<ResourceBoundary resource={assetInstance}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.symbol) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.symbol) ?? ''), String((resolvedEntity.name) ?? '')].filter(Boolean).join(' ') || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={assetInstance}>
+			{#snippet children(entity)}
+				{entity.symbol || [entity.symbol, entity.name].filter(Boolean).join(' ') || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet TypeAnnotationTooltip()}
@@ -149,55 +105,20 @@
 			<div>
 				<dt>Kind</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									kind: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const kind = resolvedEntity.kind}
-							{#if kind !== undefined && kind !== null}
-								{String((kind) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{pendingEntity.kind}
 				</dd>
 			</div>
 
 			<div>
 				<dt>Asset key</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									assetKey: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const assetKey = resolvedEntity.assetKey}
-							{#if assetKey !== undefined && assetKey !== null}
-								{String((assetKey) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{pendingEntity.assetKey}
 				</dd>
 			</div>
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							coinId: true,
 						},
@@ -205,13 +126,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const coinId = resolvedEntity.coinId}
-					{#if coinId !== undefined && coinId !== null}
+					{@const coinId = entity.coinId}
+					{#if coinId != null}
 						<div>
 							<dt>Coin ID</dt>
 							<dd>
-								{String((coinId) ?? '')}
+								{coinId}
 							</dd>
 						</div>
 					{/if}
@@ -222,21 +142,10 @@
 				<dt>Name</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									name: true,
-								},
-							})
-						}
+						resource={assetInstance}
 					>
 						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const name = resolvedEntity.name}
-							{#if name !== undefined && name !== null}
-								{String((name) ?? '')}
-							{/if}
+							{entity.name}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -248,21 +157,10 @@
 				<dt>Symbol</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									symbol: true,
-								},
-							})
-						}
+						resource={assetInstance}
 					>
 						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const symbol = resolvedEntity.symbol}
-							{#if symbol !== undefined && symbol !== null}
-								{String((symbol) ?? '')}
-							{/if}
+							{entity.symbol}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -270,8 +168,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							decimals: true,
 						},
@@ -279,13 +176,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const decimals = resolvedEntity.decimals}
-					{#if decimals !== undefined && decimals !== null}
+					{@const decimals = entity.decimals}
+					{#if decimals != null}
 						<div>
 							<dt>Decimals</dt>
 							<dd>
-								{String((decimals) ?? '')}
+								{String(decimals)}
 							</dd>
 						</div>
 					{/if}
@@ -297,23 +193,6 @@
 				<dd>
 					<NetworkView
 						selection={select(EntityType.Network, selection.entitySelector.$network)}
-						href={
-							(
-								selection.entitySelector.$network != null && 'caip2' in selection.entitySelector.$network
-								&& selection.entitySelector.$network.caip2 != null ?
-									resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-								network: String(caip2StringFromValue(selection.entitySelector.$network.caip2) ?? ''),
-							})
-							:
-									selection.entitySelector.$network != null && 'slug' in selection.entitySelector.$network
-									&& selection.entitySelector.$network.slug != null ?
-										resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-									network: String(selection.entitySelector.$network.slug ?? ''),
-								})
-								:
-									undefined
-							)
-						}
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -324,24 +203,13 @@
 				resource={selection.$icon}
 			>
 				{#snippet children(media)}
-					{#if media != null && media[EntityMetaKey.Selector] != null}
+					{#if media != null}
 						<div>
 							<dt>Icon</dt>
 							<dd>
 								<MediaView
 									selection={select(EntityType.Media, media[EntityMetaKey.Selector])}
 									prefetched={media}
-									href={
-										(
-											media[EntityMetaKey.Selector] != null && 'url' in media[EntityMetaKey.Selector]
-											&& media[EntityMetaKey.Selector].url != null ?
-												resolve('/media/[url=absoluteUrl]', {
-											url: encodeURIComponent(String(media[EntityMetaKey.Selector].url ?? '')),
-										})
-										:
-												undefined
-										)
-									}
 									layout={EntityLayout.Value}
 									open={false}
 								/>
@@ -360,12 +228,12 @@
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
-				<TokenMetadataDocumentsView
-					selection={assetInstanceTokenMetadataDocumentsViewMetadataResource}
-					countResource={assetInstanceTokenMetadataDocumentsViewMetadataResource.count}
-					title='Metadata'
-					id='TokenMetadataDocumentsView-metadata'
-				/>
+					<TokenMetadataDocumentsView
+						selection={assetInstanceTokenMetadataDocumentsViewMetadataResource}
+						countResource={assetInstanceTokenMetadataDocumentsViewMetadataResource.count}
+						title='Metadata'
+						id='metadata'
+					/>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>
@@ -375,12 +243,12 @@
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
-				<TokenProgramExtension_TimestampsView
-					selection={assetInstanceTokenProgramExtensionTimestampsViewTokenProgramExtensionsResource}
-					countResource={assetInstanceTokenProgramExtensionTimestampsViewTokenProgramExtensionsResource.count}
-					title='Token program extensions'
-					id='TokenProgramExtension_TimestampsView-token-program-extensions'
-				/>
+					<TokenProgramExtension_TimestampsView
+						selection={assetInstanceTokenProgramExtensionTimestampsViewTokenProgramExtensionsResource}
+						countResource={assetInstanceTokenProgramExtensionTimestampsViewTokenProgramExtensionsResource.count}
+						title='Token program extensions'
+						id='token-program-extensions'
+					/>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>
@@ -390,12 +258,12 @@
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
-				<RegulatedAssetProfilesView
-					selection={assetInstanceRegulatedAssetProfilesViewRegulatedProfilesResource}
-					countResource={assetInstanceRegulatedAssetProfilesViewRegulatedProfilesResource.count}
-					title='Regulated profiles'
-					id='RegulatedAssetProfilesView-regulated-profiles'
-				/>
+					<RegulatedAssetProfilesView
+						selection={assetInstanceRegulatedAssetProfilesViewRegulatedProfilesResource}
+						countResource={assetInstanceRegulatedAssetProfilesViewRegulatedProfilesResource.count}
+						title='Regulated profiles'
+						id='regulated-profiles'
+					/>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>
@@ -405,12 +273,12 @@
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
-				<TransferRestrictionsView
-					selection={assetInstanceTransferRestrictionsViewTransferRestrictionsResource}
-					countResource={assetInstanceTransferRestrictionsViewTransferRestrictionsResource.count}
-					title='Transfer restrictions'
-					id='TransferRestrictionsView-transfer-restrictions'
-				/>
+					<TransferRestrictionsView
+						selection={assetInstanceTransferRestrictionsViewTransferRestrictionsResource}
+						countResource={assetInstanceTransferRestrictionsViewTransferRestrictionsResource.count}
+						title='Transfer restrictions'
+						id='transfer-restrictions'
+					/>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>
@@ -420,12 +288,12 @@
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
-				<NftCollectionsView
-					selection={assetInstanceNftCollectionsViewNftCollectionsResource}
-					countResource={assetInstanceNftCollectionsViewNftCollectionsResource.count}
-					title='NFT collections'
-					id='NftCollectionsView-nft-collections'
-				/>
+					<NftCollectionsView
+						selection={assetInstanceNftCollectionsViewNftCollectionsResource}
+						countResource={assetInstanceNftCollectionsViewNftCollectionsResource.count}
+						title='NFT collections'
+						id='nft-collections'
+					/>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>
@@ -435,12 +303,12 @@
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
-				<PayoutsView
-					selection={assetInstancePayoutsViewPayoutsResource}
-					countResource={assetInstancePayoutsViewPayoutsResource.count}
-					title='Payouts'
-					id='PayoutsView-payouts'
-				/>
+					<PayoutsView
+						selection={assetInstancePayoutsViewPayoutsResource}
+						countResource={assetInstancePayoutsViewPayoutsResource.count}
+						title='Payouts'
+						id='payouts'
+					/>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>

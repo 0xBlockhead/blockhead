@@ -1,15 +1,12 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { entity, facet } from '$/schema/$schema.ts'
+import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 import { type } from 'arktype'
 
-export enum _GlobalAiArtifactCatalog_TimestampSelector {
-	CatalogTimestampMsSource = 'CatalogTimestampMsSource',
-}
-export const _GlobalAiArtifactCatalog_Timestamp = entity({
+export default entity({
 	entityType: EntityType._GlobalAiArtifactCatalog_Timestamp,
 	labels: {
 		singular: 'global AI artifact catalog timestamp',
@@ -117,7 +114,7 @@ export const _GlobalAiArtifactCatalog_Timestamp = entity({
 	queryHash: {
 		label: 'query hash',
 		type: EntityFieldType.Primitive,
-		primitiveType: (ZeroExHex),
+		primitiveType: ZeroExHex,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	lastCursor: {

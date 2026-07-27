@@ -1,14 +1,11 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { entity, facet } from '$/schema/$schema.ts'
+import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { type } from 'arktype'
 
-export enum BitTorrentSwarmObservation_TimestampSelector {
-	TorrentTimestampMsSource = 'TorrentTimestampMsSource',
-}
-export const BitTorrentSwarmObservation_Timestamp = entity({
+export default entity({
 	entityType: EntityType.BitTorrentSwarmObservation_Timestamp,
 	labels: {
 		singular: 'bit torrent swarm observation timestamp',

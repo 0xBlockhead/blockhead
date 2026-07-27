@@ -1,14 +1,13 @@
 import { hexLowerOfByteSize } from '$/lib/hexLowerOfByteSize.ts'
+import { networkBySlug } from '$/constants/Network.ts'
 import { defineResolver } from '$/resolvers/defineResolver.ts'
 import { EntityMetaKey } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import { EvmBlockSelector } from '$/schema/EvmBlock.ts'
 import { Source } from '$/sources/Source.ts'
-import { sourceProviderDefinitions } from '$/sources/$sourceProviders.ts'
 import { SqdPortalResolution } from '$/sources/Sqd/Portal/types.ts'
 
 const quantity = (
-	value: string | undefined,
+	value: string | null | undefined,
 	fieldName: string
 ) => {
 	if (value == null)
@@ -32,19 +31,16 @@ export default {
 		defineResolver(Source.SqdPortal_RawHttp, {
 			entityType: EntityType.EvmBlock,
 			resolve: {
-				[EvmBlockSelector.EvmNetworkBlockNumber]: {
+				EvmNetworkBlockNumber: {
 					resolve: async ({ $network, blockNumber }) => {
-						const binding = sourceProviderDefinitions
-							.flatMap((provider) => provider.bindings)
-							.find((candidate) => (
-								candidate.source === Source.SqdPortal_RawHttp
-								&& candidate.target.key === $network.caip2.reference
-							))
-						if ($network.caip2.namespace !== 'eip155' || binding == null)
+						if (
+							$network.caip2.namespace !== 'eip155'
+							|| $network.caip2.reference !== networkBySlug.ethereum.caip2.reference
+						)
 							throw new Error(`SqdPortal_RawHttp: unsupported network ${$network.caip2.namespace}:${$network.caip2.reference}`)
 
 						const { getEvmBlock } = await import('$/sources/Sqd/Portal/queries.ts')
-						const result = await getEvmBlock(binding, blockNumber)
+						const result = await getEvmBlock(blockNumber)
 						if (result.resolution !== SqdPortalResolution.Complete)
 							throw new Error(`SqdPortal_RawHttp: ${result.resolution} block ${blockNumber.toString()}`)
 

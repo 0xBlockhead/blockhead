@@ -1,16 +1,13 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { entity, facet } from '$/schema/$schema.ts'
+import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { UrlString } from '$/schema/UrlString.ts'
 import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 import { type } from 'arktype'
 
-export enum McpResourceContent_TimestampSelector {
-	ResourceTimestampMsSource = 'ResourceTimestampMsSource',
-}
-export const McpResourceContent_Timestamp = entity({
+export default entity({
 	entityType: EntityType.McpResourceContent_Timestamp,
 	labels: {
 		singular: 'mcp resource content timestamp',
@@ -58,13 +55,13 @@ export const McpResourceContent_Timestamp = entity({
 	blobHash: {
 		label: 'blob hash',
 		type: EntityFieldType.Primitive,
-		primitiveType: (ZeroExHex),
+		primitiveType: ZeroExHex,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	uri: {
 		label: 'URI',
 		type: EntityFieldType.Primitive,
-		primitiveType: (UrlString),
+		primitiveType: UrlString,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	mimeType: {

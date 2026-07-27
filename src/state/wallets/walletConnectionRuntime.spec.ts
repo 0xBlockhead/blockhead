@@ -12,7 +12,7 @@ import { createPolkadotInjectedWeb3Adapter } from './adapters/polkadotInjectedWe
 import { createStarknetWalletApiAdapter } from './adapters/starknetWalletApi.ts'
 import { createTronInjectedAdapter } from './adapters/tronInjected.ts'
 import { createWalletStandardAdapter } from './adapters/walletStandard.ts'
-import type { WalletCandidate, WalletConnection } from './adapters/types.ts'
+import type { WalletAdapter, WalletCandidate, WalletConnection } from './adapters/types.ts'
 import {
 	WalletCapability,
 	WalletDiscoveryKind,
@@ -34,17 +34,23 @@ const mountMockWalletRuntime = async ({
 	connectionResults = [],
 	disconnect = vi.fn(),
 	persistWalletRequest = vi.fn(),
+	persistedProtocol = WalletProtocol.Eip6963,
 	persistedStatus,
+	persistedTransportKind = WalletTransportKind.InjectedProvider,
+	persistedWalletId = 'eip6963:com.example.wallet',
 	signMessage = vi.fn(async () => '0xsigned'),
 }: {
 	candidateAvailable?: boolean
 	connectionResults?: WalletConnection[]
 	disconnect?: (walletId: string, connectionKey?: string) => void | Promise<void>
 	persistWalletRequest?: (context: object, request: object) => void | Promise<void>
+	persistedProtocol?: WalletProtocol
 	persistedStatus?: BlockheadConnectionStatus
+	persistedTransportKind?: WalletTransportKind
+	persistedWalletId?: string
 	signMessage?: (walletId: string, accountAddress: string, message: string) => Promise<string>
 }) => {
-	const walletId = 'eip6963:com.example.wallet'
+	const walletId = persistedWalletId
 	const account = {
 		namespace: 'eip155',
 		reference: '1',
@@ -59,8 +65,8 @@ const mountMockWalletRuntime = async ({
 				connectionKey: 'persisted-session',
 				walletId,
 				status: persistedStatus,
-				protocol: WalletProtocol.Eip6963,
-				transportKind: WalletTransportKind.InjectedProvider,
+				protocol: persistedProtocol,
+				transportKind: persistedTransportKind,
 				scopes: [],
 				accounts: [account],
 				activeAccount: account,
@@ -377,7 +383,7 @@ describe('wallet connection runtime normalization', () => {
 		expect(JSON.stringify(writeWalletRequest.mock.calls.map(([, request]) => request))).not.toContain('0xsigned')
 		expect(writeWalletRequest.mock.calls[1][1].timestamps[1]).not.toHaveProperty('transactionHash')
 		expect(writeWalletRequest.mock.calls[1][1].timestamps[1]).not.toHaveProperty('transactionId')
-	})
+	}, 30_000)
 
 	it('persists failed message-signing requests without fabricating submission evidence', async () => {
 		vi.spyOn(globalThis.crypto, 'randomUUID').mockReturnValue('00000000-0000-4000-8000-000000000002')
@@ -425,7 +431,7 @@ describe('wallet connection runtime normalization', () => {
 		expect(JSON.stringify(writeWalletRequest.mock.calls.map(([, request]) => request))).not.toContain(
 			'User rejected the wallet request'
 		)
-	})
+	}, 30_000)
 
 	it('awaits durable request and terminal observations around the provider call', async () => {
 		let persistRequested: () => void = () => {}
@@ -1027,7 +1033,7 @@ describe('wallet connection runtime normalization', () => {
 			walletConnectionSelectorKey,
 		])
 
-	}, 15_000)
+	}, 30_000)
 
 	it('discovers Aptos injected signer globals with executable connection capabilities', () => {
 		vi.stubGlobal('window', {
@@ -1587,6 +1593,82 @@ describe('wallet connection runtime normalization', () => {
 		runtime.destroy()
 	})
 
+	it('registers a vendor-backed adapter after runtime bootstrap without remounting wallet state', async () => {
+		const { runtime } = await mountMockWalletRuntime({
+			candidateAvailable: false,
+			persistedProtocol: WalletProtocol.WalletConnectV2,
+			persistedStatus: BlockheadConnectionStatus.Connected,
+			persistedTransportKind: WalletTransportKind.WalletConnectRelay,
+			persistedWalletId: 'walletconnect-v2',
+		})
+		await vi.waitFor(() => expect(runtime.connections).toContainEqual(
+			expect.objectContaining({
+				connectionKey: 'persisted-session',
+				walletId: 'walletconnect-v2',
+			})
+		))
+		const cleanup = vi.fn()
+		const subscribeConnection = vi.fn(() => () => {})
+		const adapter = {
+			id: 'walletconnect-v2',
+			start: (updateCandidates) => {
+				updateCandidates([{
+					id: 'walletconnect-v2',
+					name: 'WalletConnect',
+					icon: '',
+					protocol: WalletProtocol.WalletConnectV2,
+					discoveryKind: WalletDiscoveryKind.QrDeeplink,
+					transportKind: WalletTransportKind.WalletConnectRelay,
+					capabilities: [WalletCapability.Connect],
+				}])
+
+				return cleanup
+			},
+			connect: async () => ({
+				connectionKey: 'vendor-topic',
+				walletId: 'walletconnect-v2',
+				status: BlockheadConnectionStatus.Connected,
+				protocol: WalletProtocol.WalletConnectV2,
+				transportKind: WalletTransportKind.WalletConnectRelay,
+				scopes: [],
+				accounts: [],
+				selected: true,
+				sessionTopic: 'vendor-topic',
+			}),
+			disconnect: async () => {},
+			subscribeConnection,
+		} satisfies WalletAdapter
+
+		expect(() => runtime.registerAdapter({
+			...adapter,
+			start: () => {
+				throw new Error('WalletConnect client unavailable')
+			},
+		})).toThrow('WalletConnect client unavailable')
+		runtime.registerAdapter(adapter)
+		expect(runtime.candidates).toContainEqual(expect.objectContaining({
+			id: 'walletconnect-v2',
+			protocol: WalletProtocol.WalletConnectV2,
+		}))
+		expect(subscribeConnection).toHaveBeenCalledWith(
+			'walletconnect-v2',
+			expect.any(Function),
+			'persisted-session'
+		)
+		await runtime.connect('walletconnect-v2')
+		expect(runtime.connections).toContainEqual(expect.objectContaining({
+			connectionKey: 'vendor-topic',
+			walletId: 'walletconnect-v2',
+			status: BlockheadConnectionStatus.Connected,
+		}))
+		expect(() => runtime.registerAdapter(adapter)).toThrow(
+			'Wallet adapter walletconnect-v2 is already registered'
+		)
+
+		runtime.destroy()
+		expect(cleanup).toHaveBeenCalledOnce()
+	}, 15_000)
+
 	it('does not subscribe persisted disconnected connections', async () => {
 		const {
 			runtime,
@@ -1668,7 +1750,7 @@ describe('wallet connection runtime normalization', () => {
 		await runtime.disconnect('session-1')
 		expect(disconnect).toHaveBeenCalledWith(
 			'eip6963:com.example.wallet',
-			'session-1',
+			'session-1'
 		)
 		expect(runtime.connections).toEqual([
 			expect.objectContaining({

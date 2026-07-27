@@ -9,9 +9,7 @@ import {
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 import type { HeliusEnhancedTransaction } from '$/sources/Helius/Rest/types.ts'
-import { SolanaTransactionSelector } from '$/schema/SolanaTransaction.ts'
-import { SolanaTransaction_TimestampSelector } from '$/schema/SolanaTransaction_Timestamp.ts'
-import { SolanaInstructionKind, SolanaInstructionSelector } from '$/schema/SolanaInstruction.ts'
+import { SolanaInstructionKind } from '$/schema/SolanaInstruction.ts'
 
 const assertSolanaMainnet = (network: { caip2: { namespace: string; reference: string } } | { slug: string }) => {
 	if (
@@ -129,7 +127,7 @@ export default {
 		defineResolver(Source.Helius_Rest, {
 			entityType: EntityType.SolanaTransaction,
 			resolve: {
-				[SolanaTransactionSelector.NetworkSignature]: {
+				NetworkSignature: {
 					resolve: async (entitySelector, context) => {
 						const transaction = await getTransaction(
 							entitySelector,
@@ -185,7 +183,7 @@ export default {
 		defineResolver(Source.Helius_Rest, {
 			entityType: EntityType.SolanaTransaction_Timestamp,
 			resolve: {
-				[SolanaTransaction_TimestampSelector.TransactionSlotSource]: {
+				TransactionSlotSource: {
 					resolve: async ({ $transaction, slot, source }, context) => {
 						if (source !== Source.Helius_Rest) throw new Error(`Helius_Rest: unsupported source ${source}`)
 						const transaction = await getTransaction(
@@ -213,7 +211,7 @@ export default {
 		defineResolver(Source.Helius_Rest, {
 			entityType: EntityType.SolanaInstruction,
 			resolve: {
-				[SolanaInstructionSelector.SolanaTransactionIndexInTransaction]: {
+				SolanaTransactionIndexInTransaction: {
 					resolve: async ({ $transaction, indexInTransaction }, context) => {
 						const transaction = await getTransaction(
 							$transaction,
@@ -240,7 +238,7 @@ export default {
 		defineResolver(Source.Helius_Rest, {
 			entityType: EntityType.SolanaTransaction,
 			resolve: {
-				[SolanaTransactionSelector.NetworkSignature]: {
+				NetworkSignature: {
 					resolve: async (entitySelector, context) => (
 						heliusInstructionRows(
 							entitySelector,

@@ -1,15 +1,12 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { entity, facet } from '$/schema/$schema.ts'
+import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 import { type } from 'arktype'
 
-export enum GitPackedObjectSelector {
-	PackHashObjectIdObjectFormat = 'PackHashObjectIdObjectFormat',
-}
-export const GitPackedObject = entity({
+export default entity({
 	entityType: EntityType.GitPackedObject,
 	labels: {
 		singular: 'Git packed object',
@@ -19,13 +16,13 @@ export const GitPackedObject = entity({
 	packHash: {
 		label: 'pack hash',
 		type: EntityFieldType.Primitive,
-		primitiveType: (ZeroExHex),
+		primitiveType: ZeroExHex,
 		cardinality: EntityFieldCardinality.One,
 	},
 	objectId: {
 		label: 'object ID',
 		type: EntityFieldType.Primitive,
-		primitiveType: (ZeroExHex),
+		primitiveType: ZeroExHex,
 		cardinality: EntityFieldCardinality.One,
 	},
 	objectFormat: {
@@ -43,7 +40,7 @@ export const GitPackedObject = entity({
 	deltaBaseObjectId: {
 		label: 'delta base object ID',
 		type: EntityFieldType.Primitive,
-		primitiveType: (ZeroExHex),
+		primitiveType: ZeroExHex,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	storedKind: {

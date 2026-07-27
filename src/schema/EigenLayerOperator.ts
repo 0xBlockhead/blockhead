@@ -1,16 +1,13 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { entity, facet } from '$/schema/$schema.ts'
+import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { UrlString } from '$/schema/UrlString.ts'
 import { EvmAddress } from '$/schema/ZeroExHex.ts'
 import { type } from 'arktype'
 
-export enum EigenLayerOperatorSelector {
-	NetworkOperatorAddress = 'NetworkOperatorAddress',
-}
-export const EigenLayerOperator = entity({
+export default entity({
 	entityType: EntityType.EigenLayerOperator,
 	labels: {
 		singular: 'eigen layer operator',
@@ -26,7 +23,7 @@ export const EigenLayerOperator = entity({
 	operatorAddress: {
 		label: 'operator address',
 		type: EntityFieldType.Primitive,
-		primitiveType: (EvmAddress),
+		primitiveType: EvmAddress,
 		cardinality: EntityFieldCardinality.One,
 	},
 	$operatorAccount: {
@@ -38,13 +35,13 @@ export const EigenLayerOperator = entity({
 	earningsReceiver: {
 		label: 'earnings receiver',
 		type: EntityFieldType.Primitive,
-		primitiveType: (EvmAddress),
+		primitiveType: EvmAddress,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	delegationApprover: {
 		label: 'delegation approver',
 		type: EntityFieldType.Primitive,
-		primitiveType: (EvmAddress),
+		primitiveType: EvmAddress,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	stakerOptOutWindowBlocks: {
@@ -56,7 +53,7 @@ export const EigenLayerOperator = entity({
 	metadataUri: {
 		label: 'metadata URI',
 		type: EntityFieldType.Primitive,
-		primitiveType: (UrlString),
+		primitiveType: UrlString,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	name: {
@@ -69,7 +66,7 @@ export const EigenLayerOperator = entity({
 	website: {
 		label: 'website',
 		type: EntityFieldType.Primitive,
-		primitiveType: (UrlString),
+		primitiveType: UrlString,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	description: {

@@ -6,23 +6,7 @@ import {
 	EntityMetaKey,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import { StellarAccountSelector } from '$/schema/StellarAccount.ts'
-import { sourceProviderDefinitions } from '$/sources/$sourceProviders.ts'
 import { Source } from '$/sources/Source.ts'
-import { SourceTargetKind } from '$/sources/SourceBinding.ts'
-
-const stellarHorizonBindings = sourceProviderDefinitions
-	.flatMap((provider) => provider.bindings)
-	.filter((binding) => (
-		binding.source === Source.StellarHorizon_Rest
-		&& binding.target.kind === SourceTargetKind.Global
-		&& binding.target.key === 'stellar-public-horizon'
-	))
-
-if (stellarHorizonBindings.length !== 1)
-	throw new Error('StellarHorizon_Rest: canonical public-network binding is missing or ambiguous')
-
-const [stellarHorizonBinding] = stellarHorizonBindings
 
 const assertStellarPublicNetwork = ($network: {
 	$network: {
@@ -51,11 +35,11 @@ export default {
 		defineResolver(Source.StellarHorizon_Rest, {
 			entityType: EntityType.StellarAccount,
 			resolve: {
-				[StellarAccountSelector.NetworkAccountId]: {
+				NetworkAccountId: {
 					resolve: async (account) => {
 						assertStellarPublicNetwork(account.$network)
 						const { getAccount } = await import('$/sources/StellarHorizon/Rest/queries.ts')
-						const snapshot = await getAccount(stellarHorizonBinding, account.accountId)
+						const snapshot = await getAccount(account.accountId)
 						const nativeBalances = snapshot.balances.filter((balance) => balance.asset_type === 'native')
 						if (nativeBalances.length !== 1)
 							throw new Error('StellarHorizon_Rest: account must have exactly one native balance')
@@ -84,7 +68,7 @@ export default {
 		defineResolver(Source.StellarHorizon_Rest, {
 			entityType: EntityType.StellarAccount,
 			resolve: {
-				[StellarAccountSelector.NetworkAccountId]: {
+				NetworkAccountId: {
 					resolve: async (account, context) => {
 						assertStellarPublicNetwork(account.$network)
 						const limit = Math.min(resolverContextRowLimit(context), 200)
@@ -92,7 +76,6 @@ export default {
 						return {
 							limit,
 							page: await getAccountTransactions(
-								stellarHorizonBinding,
 								account.accountId,
 								limit,
 								context.providerContinuationToken

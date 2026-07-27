@@ -2,14 +2,9 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -21,42 +16,24 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.BlockheadStateChannelTransfer>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.BlockheadStateChannelTransfer>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.BlockheadStateChannelTransfer> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const blockheadStateChannelTransfer = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {
-			timestamp: true,
-			status: true,
-		},
-	} : {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const viewSelection = $derived(selection({
+		sources: selection.sources ?? [
+			Source.Local_Internal,
+		],
+	}))
+	const blockheadStateChannelTransfer = $derived(viewSelection({
 		fields: {
 			timestamp: true,
 			status: true,
 		},
 	}))
-	const titleFallback = $derived([String((pendingEntity.amount) ?? '')].filter(Boolean).join(' ') || 'blockhead state channel transfer')
-	const viewDomId = $derived('blockhead-state-channel-transfer-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const titleFallback = $derived(String(pendingEntity.amount ?? '') || 'blockhead state channel transfer')
 
 
 	// Components
@@ -69,61 +46,32 @@
 
 <EntityView
 	entityType={EntityType.BlockheadStateChannelTransfer}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'status') && Object.hasOwn(prefetched, 'timestamp')}
-			{[String((pendingEntity.amount) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-		{:else}
-			<ResourceBoundary resource={blockheadStateChannelTransfer}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.amount) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		{String(pendingEntity.amount ?? '') || 'blockhead state channel transfer'}
 	{/snippet}
 
 	{#snippet Value()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'status') && Object.hasOwn(prefetched, 'timestamp')}
-			{[String((pendingEntity.status) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.amount) ?? '')].filter(Boolean).join(' ') || titleFallback}
-		{:else}
-			<ResourceBoundary resource={blockheadStateChannelTransfer}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.status) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.amount) ?? '')].filter(Boolean).join(' ') || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={blockheadStateChannelTransfer}>
+			{#snippet children(entity)}
+				{entity.status || String(pendingEntity.amount) || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'status') && Object.hasOwn(prefetched, 'timestamp')}
-			{@const timestamp0 = pendingEntity.timestamp}
-			{#if timestamp0 !== undefined && timestamp0 !== null}
+		<ResourceBoundary resource={blockheadStateChannelTransfer}>
+			{#snippet children(entity)}
 				<span data-text="muted">
-					<Timestamp timestamp={Number(timestamp0)} />
+					<Timestamp timestamp={Number(entity.timestamp)} />
 				</span>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={blockheadStateChannelTransfer}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const timestamp0 = resolvedEntity.timestamp}
-					{#if timestamp0 !== undefined && timestamp0 !== null}
-						<span data-text="muted">
-							<Timestamp timestamp={Number(timestamp0)} />
-						</span>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -133,17 +81,6 @@
 				<dd>
 					<BlockheadStateChannelView
 						selection={select(EntityType.BlockheadStateChannel, selection.entitySelector.$channel)}
-						href={
-							(
-								selection.entitySelector.$channel != null && 'id' in selection.entitySelector.$channel
-								&& selection.entitySelector.$channel.id != null ?
-									resolve('/channel/[channelId=stringSegment]', {
-								channelId: String(selection.entitySelector.$channel.id ?? ''),
-							})
-							:
-									undefined
-							)
-						}
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -153,24 +90,7 @@
 			<div>
 				<dt>turn num</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									turnNum: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const turnNum = resolvedEntity.turnNum}
-							{#if turnNum !== undefined && turnNum !== null}
-								{String((turnNum) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{String(pendingEntity.turnNum)}
 				</dd>
 			</div>
 
@@ -179,17 +99,6 @@
 				<dd>
 					<EvmAccountView
 						selection={select(EntityType.EvmAccount, selection.entitySelector.$from)}
-						href={
-							(
-								selection.entitySelector.$from != null && 'address' in selection.entitySelector.$from
-								&& selection.entitySelector.$from.address != null ?
-									resolve('/account/[address=evmAddress]', {
-								address: String(selection.entitySelector.$from.address ?? ''),
-							})
-							:
-									undefined
-							)
-						}
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -201,17 +110,6 @@
 				<dd>
 					<EvmAccountView
 						selection={select(EntityType.EvmAccount, selection.entitySelector.$to)}
-						href={
-							(
-								selection.entitySelector.$to != null && 'address' in selection.entitySelector.$to
-								&& selection.entitySelector.$to.address != null ?
-									resolve('/account/[address=evmAddress]', {
-								address: String(selection.entitySelector.$to.address ?? ''),
-							})
-							:
-									undefined
-							)
-						}
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -221,24 +119,7 @@
 			<div>
 				<dt>amount</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									amount: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const amount = resolvedEntity.amount}
-							{#if amount !== undefined && amount !== null}
-								{String((amount) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{String(pendingEntity.amount)}
 				</dd>
 			</div>
 
@@ -246,21 +127,10 @@
 				<dt>status</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									status: true,
-								},
-							})
-						}
+						resource={blockheadStateChannelTransfer}
 					>
 						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const status = resolvedEntity.status}
-							{#if status !== undefined && status !== null}
-								{String((status) ?? '')}
-							{/if}
+							{entity.status}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -270,21 +140,10 @@
 				<dt>timestamp</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									timestamp: true,
-								},
-							})
-						}
+						resource={blockheadStateChannelTransfer}
 					>
 						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const timestamp = resolvedEntity.timestamp}
-							{#if timestamp !== undefined && timestamp !== null}
-								<Timestamp timestamp={Number(timestamp)} />
-							{/if}
+							<Timestamp timestamp={Number(entity.timestamp)} />
 						{/snippet}
 					</ResourceBoundary>
 				</dd>

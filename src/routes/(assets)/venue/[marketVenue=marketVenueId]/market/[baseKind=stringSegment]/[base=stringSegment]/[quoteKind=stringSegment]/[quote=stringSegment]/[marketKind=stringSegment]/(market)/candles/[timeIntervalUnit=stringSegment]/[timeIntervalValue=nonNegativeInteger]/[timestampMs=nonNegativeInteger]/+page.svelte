@@ -7,7 +7,6 @@
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
@@ -43,67 +42,12 @@
 
 
 <svelte:head>
-	<title>{(data.title ?? (pageSelection.entity == null ? [{
-		$market: data.selector,
-		timeInterval: {
-			unit: params.timeIntervalUnit,
-			value: params.timeIntervalValue,
-		},
-		timestampMs: Number(params.timestampMs),
-	}.timeInterval == null ? '' : String(`${({
-		$market: data.selector,
-		timeInterval: {
-			unit: params.timeIntervalUnit,
-			value: params.timeIntervalValue,
-		},
-		timestampMs: Number(params.timestampMs),
-	}.timeInterval).value}${({
-		$market: data.selector,
-		timeInterval: {
-			unit: params.timeIntervalUnit,
-			value: params.timeIntervalValue,
-		},
-		timestampMs: Number(params.timestampMs),
-	}.timeInterval).unit}`)].filter(Boolean).join(' ') || 'OHLC candle' : [({ ...{
-		$market: data.selector,
-		timeInterval: {
-			unit: params.timeIntervalUnit,
-			value: params.timeIntervalValue,
-		},
-		timestampMs: Number(params.timestampMs),
-	}, ...pageSelection.entity }).timeInterval == null ? '' : String(`${(({ ...{
-		$market: data.selector,
-		timeInterval: {
-			unit: params.timeIntervalUnit,
-			value: params.timeIntervalValue,
-		},
-		timestampMs: Number(params.timestampMs),
-	}, ...pageSelection.entity }).timeInterval).value}${(({ ...{
-		$market: data.selector,
-		timeInterval: {
-			unit: params.timeIntervalUnit,
-			value: params.timeIntervalValue,
-		},
-		timestampMs: Number(params.timestampMs),
-	}, ...pageSelection.entity }).timeInterval).unit}`)].filter(Boolean).join(' ') || 'OHLC candle'))} • OHLC candle • Blockhead</title>
+	<title>{(data.title ?? (`${pageSelection.entitySelector.timeInterval.value}${pageSelection.entitySelector.timeInterval.unit}` || 'OHLC candle'))} • OHLC candle • Blockhead</title>
 </svelte:head>
 
 
 <Page>
 	<Market_TimeInterval_TimestampView
-		href={
-			resolve('/venue/[marketVenue=marketVenueId]/market/[baseKind=stringSegment]/[base=stringSegment]/[quoteKind=stringSegment]/[quote=stringSegment]/[marketKind=stringSegment]/candles/[timeIntervalUnit=stringSegment]/[timeIntervalValue=nonNegativeInteger]/[timestampMs=nonNegativeInteger]', {
-				marketVenue: params.marketVenue,
-				baseKind: params.baseKind,
-				base: params.base,
-				quoteKind: params.quoteKind,
-				quote: params.quote,
-				marketKind: params.marketKind,
-				timeIntervalUnit: params.timeIntervalUnit,
-				timeIntervalValue: params.timeIntervalValue,
-				timestampMs: params.timestampMs,
-			})
-		}
 		selection={pageSelection}
 	/>
 </Page>

@@ -24,9 +24,12 @@
 <ParentPageCollapsible
 	title='Upgrades'
 	href={
-		resolve('/network/[network=networkCaip2OrNetworkSlug]/upgrades', {
-			network: params.network,
-		})
+		resolve(
+			'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/upgrades',
+			{
+				network: String(params.network),
+			}
+		)
 	}
 >
 	{@render children()}

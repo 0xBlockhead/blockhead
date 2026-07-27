@@ -5,8 +5,6 @@ import {
 	EntityMetaKey,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import { XNetworkSelector } from '$/schema/XNetwork.ts'
-import { XUserSelector } from '$/schema/XUser.ts'
 
 const fxEmbedQueries = vi.hoisted(() => ({
 	getStatus: vi.fn(),
@@ -46,11 +44,11 @@ describe('X FxEmbed reading materialization', () => {
 			}],
 		})
 
-		const users = await fxEmbedResolvers.resolvers[2].resolve[XNetworkSelector.Scope].resolve(
+		const users = await fxEmbedResolvers.resolvers[2].resolve['Scope'].resolve(
 			{ scope: 'XNetwork' },
 			resolverContext
 		)
-		const posts = await fxEmbedResolvers.resolvers[3].resolve[XNetworkSelector.Scope].resolve(
+		const posts = await fxEmbedResolvers.resolvers[3].resolve['Scope'].resolve(
 			{ scope: 'XNetwork' },
 			resolverContext
 		)
@@ -78,6 +76,14 @@ describe('X FxEmbed reading materialization', () => {
 				},
 			},
 		}])
+		expect(fxEmbedQueries.searchStatuses).toHaveBeenNthCalledWith(
+			1,
+			64
+		)
+		expect(fxEmbedQueries.searchStatuses).toHaveBeenNthCalledWith(
+			2,
+			64
+		)
 	})
 
 	it('prefills profile posts without leaking tombstones into the reading list', async () => {
@@ -106,7 +112,7 @@ describe('X FxEmbed reading materialization', () => {
 			],
 		})
 
-		const posts = await fxEmbedResolvers.resolvers[6].resolve[XUserSelector.Id].resolve(
+		const posts = await fxEmbedResolvers.resolvers[6].resolve['Id'].resolve(
 			{ id: 'user-1' },
 			resolverContext
 		)
@@ -120,8 +126,13 @@ describe('X FxEmbed reading materialization', () => {
 					'https://x.com/i/web/status/post-2',
 				[entityFieldAddressKey(EntityType.XPost, [], '$author')]: {
 					[EntityMetaKey.Selector]: { id: 'user-1' },
+					[EntityMetaKey.Fields]: {},
 				},
 			},
 		}])
+		expect(fxEmbedQueries.getUserStatuses).toHaveBeenCalledWith(
+			'user-1',
+			64
+		)
 	})
 })

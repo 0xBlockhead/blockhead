@@ -1,15 +1,17 @@
-import { getJson } from '$/lib/http.ts'
-import { openchainGetJson } from '$/sources/Openchain/Rest/client.ts'
+import bindings from '$/sources/Openchain/bindings.ts'
 import {
-	directoryBaseUrl,
-	openchainOrigins,
-} from '$/sources/Openchain/Rest/constants.ts'
+	firstHttpUrlForBinding,
+	sourceGetJson,
+} from '$/sources/_runtime/http.ts'
 import {
 	type FourbyteSignaturesList,
 	type OpenchainLookupResponse,
 	type OpenchainSignatureEntry,
 	looksLikeSolidityErrorName,
 } from '$/sources/Openchain/Rest/types.ts'
+import { Source } from '$/sources/Source.ts'
+
+const binding = bindings[Source.Openchain_Rest]
 
 const normalizeHex4 = (hex: `0x${string}`): `0x${string}` => {
 	const digits = (
@@ -39,20 +41,24 @@ const fourbyteHex32Query = (hex: `0x${string}`) => (
 	normalizeHex32(hex).slice(2).toLowerCase()
 )
 
-const fourbyteFunctionEntries = async (hex: `0x${string}`): Promise<OpenchainSignatureEntry[]> => {
+const fourbyteFunctionEntries = async (
+	hex: `0x${string}`
+): Promise<OpenchainSignatureEntry[]> => {
 	const searchParams = new URLSearchParams({ hex_signature: fourbyteHex4Query(hex) })
-	const json = await getJson<FourbyteSignaturesList>(
-		`${directoryBaseUrl}/signatures/?${searchParams}`,
-		{ origins: openchainOrigins }
+	const json = await sourceGetJson<FourbyteSignaturesList>(
+		binding,
+		`${binding.endpoints[1].locator}/signatures/?${searchParams}`
 	)
 	return (json.results ?? []).map((row) => ({ name: row.text_signature }))
 }
 
-const fourbyteEventEntries = async (hex: `0x${string}`): Promise<OpenchainSignatureEntry[]> => {
+const fourbyteEventEntries = async (
+	hex: `0x${string}`
+): Promise<OpenchainSignatureEntry[]> => {
 	const searchParams = new URLSearchParams({ hex_signature: fourbyteHex32Query(hex) })
-	const json = await getJson<FourbyteSignaturesList>(
-		`${directoryBaseUrl}/event-signatures/?${searchParams}`,
-		{ origins: openchainOrigins }
+	const json = await sourceGetJson<FourbyteSignaturesList>(
+		binding,
+		`${binding.endpoints[1].locator}/event-signatures/?${searchParams}`
 	)
 	return (json.results ?? []).map((row) => ({ name: row.text_signature }))
 }
@@ -85,9 +91,10 @@ export const getFunctionEntries = async ({
 	filter?: boolean
 }): Promise<OpenchainSignatureEntry[]> => {
 	const key = normalizeHex4(hex)
-	const json = await openchainGetJson<OpenchainLookupResponse>({
-		path: lookupPath({ function: key, filter }),
-	})
+	const json = await sourceGetJson<OpenchainLookupResponse>(
+		binding,
+		`${firstHttpUrlForBinding(binding)}${lookupPath({ function: key, filter })}`
+	)
 	assertOpenchainOk(json)
 	const openchainEntries = json.result?.function?.[key] ?? []
 	return openchainEntries.length > 0 ? openchainEntries : fourbyteFunctionEntries(hex)
@@ -104,9 +111,10 @@ export const getEventEntries = async ({
 	filter?: boolean
 }): Promise<OpenchainSignatureEntry[]> => {
 	const key = normalizeHex32(hex)
-	const json = await openchainGetJson<OpenchainLookupResponse>({
-		path: lookupPath({ event: key, filter }),
-	})
+	const json = await sourceGetJson<OpenchainLookupResponse>(
+		binding,
+		`${firstHttpUrlForBinding(binding)}${lookupPath({ event: key, filter })}`
+	)
 	assertOpenchainOk(json)
 	const openchainEntries = json.result?.event?.[key] ?? []
 	return openchainEntries.length > 0 ?
@@ -125,6 +133,9 @@ export const getErrorEntries = async ({
 	hex: `0x${string}`
 	filter?: boolean
 }): Promise<OpenchainSignatureEntry[]> => {
-	const all = await getFunctionEntries({ hex, filter })
+	const all = await getFunctionEntries({
+		hex,
+		filter,
+	})
 	return all.filter((e) => looksLikeSolidityErrorName(e.name))
 }

@@ -3,19 +3,14 @@
  * @see https://snapchain.farcaster.xyz/reference/httpapi/httpapi
  */
 
-import { sourceProviderDefinitions } from '$/sources/$sourceProviders.ts'
-import { sourceGetJson } from '$/sources/_runtime/http.ts'
-import { Source } from '$/sources/Source.ts'
 import {
-	nodeEndpoints,
-} from '$/sources/Snapchain/Rest/constants.ts'
+	firstHttpUrlForBinding,
+	sourceGetJson,
+} from '$/sources/_runtime/http.ts'
+import { Source } from '$/sources/Source.ts'
+import bindings from '$/sources/Snapchain/bindings.ts'
 
-const snapchainBinding = sourceProviderDefinitions
-	.flatMap((provider) => provider.bindings)
-	.find((binding) => binding.source === Source.Snapchain_Rest)
-
-if (snapchainBinding == null)
-	throw new Error('Snapchain_Rest: missing source binding')
+const snapchainBinding = bindings[Source.Snapchain_Rest]
 
 const toQueryString = (params?: Record<string, string | number | boolean | undefined>) => {
 	const searchParams = new URLSearchParams()
@@ -33,21 +28,8 @@ export async function snapchainGet<T>(
 	path: string,
 	params?: Record<string, string | number | boolean | undefined>
 ): Promise<T> {
-	let lastError: Error | undefined
-	for (const endpoint of nodeEndpoints) {
-		try {
-			return await sourceGetJson<T>(
-				snapchainBinding,
-				`${endpoint.url}${path}${toQueryString(params)}`
-			)
-		} catch (error) {
-			lastError = (
-				error instanceof Error ?
-					new Error(`Snapchain ${endpoint.id}: ${error.message}`)
-				:
-					new Error(`Snapchain ${endpoint.id}: ${String(error)}`)
-			)
-		}
-	}
-	throw lastError ?? new Error('Snapchain node request failed')
+	return sourceGetJson<T>(
+		snapchainBinding,
+		`${firstHttpUrlForBinding(snapchainBinding)}${path}${toQueryString(params)}`
+	)
 }

@@ -6,10 +6,7 @@ import {
 	EntityMetaKey,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import { NostrRelaySelector } from '$/schema/NostrRelay.ts'
-import { NostrRelay_TimestampSelector } from '$/schema/NostrRelay_Timestamp.ts'
 import { Source } from '$/sources/Source.ts'
-
 const normalizeRelayUrl = (relayUrl: string) => {
 	const url = new URL(relayUrl.includes('://') ? relayUrl : `wss://${relayUrl}`)
 	if (url.protocol !== 'wss:' && url.protocol !== 'ws:')
@@ -25,7 +22,7 @@ export default {
 		defineResolver(Source.NostrRelay_Nip11_Http, {
 			entityType: EntityType.NostrRelay,
 			resolve: {
-				[NostrRelaySelector.RelayUrl]: {
+				RelayUrl: {
 					resolve: async ({ relayUrl }) => {
 						const normalizedRelayUrl = normalizeRelayUrl(relayUrl)
 						return {
@@ -49,7 +46,7 @@ export default {
 		defineResolver(Source.NostrRelay_Nip11_Http, {
 			entityType: EntityType.NostrRelay_Timestamp,
 			resolve: {
-				[NostrRelay_TimestampSelector.RelayTimestampMsSource]: {
+				RelayTimestampMsSource: {
 					appliesTo: [{
 						source: Source.NostrRelay_Nip11_Http,
 					}],
@@ -110,6 +107,20 @@ export default {
 								source,
 								reachable: false,
 								error: error instanceof Error ? error.message : String(error),
+								name: undefined,
+								description: undefined,
+								software: undefined,
+								version: undefined,
+								supportedNips: undefined,
+								limitation: undefined,
+								fees: undefined,
+								paymentsUrl: undefined,
+								termsOfServiceUrl: undefined,
+								iconUrl: undefined,
+								bannerUrl: undefined,
+								pubkey: undefined,
+								contact: undefined,
+								isPaid: undefined,
 							}
 						}
 					},

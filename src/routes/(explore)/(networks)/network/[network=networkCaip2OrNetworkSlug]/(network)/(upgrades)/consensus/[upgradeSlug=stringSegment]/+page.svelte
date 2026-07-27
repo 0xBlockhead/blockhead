@@ -9,14 +9,12 @@
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		data,
-		params,
 	}: PageProps = $props()
 
 	const pageSelection = $derived(select(EntityType.EthereumConsensusUpgrade, data.selector, {
@@ -43,18 +41,12 @@
 
 
 <svelte:head>
-	<title>{(data.title ?? (pageSelection.entity == null ? 'Ethereum consensus upgrade' : [String((({ ...data.selector, ...pageSelection.entity }).upgradeId) ?? '')].filter(Boolean).join(' ') || [String((({ ...data.selector, ...pageSelection.entity }).name) ?? '')].filter(Boolean).join(' ') || 'Ethereum consensus upgrade'))} • Ethereum consensus upgrade • Blockhead</title>
+	<title>{(data.title ?? (pageSelection.entity == null ? 'Ethereum consensus upgrade' : pageSelection.entity.upgradeId || pageSelection.entity.name || 'Ethereum consensus upgrade'))} • Ethereum consensus upgrade • Blockhead</title>
 </svelte:head>
 
 
 <Page>
 	<EthereumConsensusUpgradeView
-		href={
-			resolve('/network/[network=networkCaip2OrNetworkSlug]/consensus/[upgradeSlug=stringSegment]', {
-				network: params.network,
-				upgradeSlug: params.upgradeSlug,
-			})
-		}
 		selection={pageSelection}
 	/>
 </Page>

@@ -2,15 +2,9 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
-	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -22,44 +16,20 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.BlockheadPayjoinSession>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.BlockheadPayjoinSession>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.BlockheadPayjoinSession> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const blockheadPayjoinSession = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {
-			status: true,
-			role: true,
-			amountSats: true,
-		},
-	} : {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const blockheadPayjoinSession = $derived(selection({
 		fields: {
 			status: true,
 			role: true,
 			amountSats: true,
 		},
 	}))
-	const titleFallback = $derived([String((pendingEntity.sessionId) ?? '')].filter(Boolean).join(' ') || 'blockhead payjoin session')
-	const viewDomId = $derived('blockhead-payjoin-session-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const titleFallback = $derived((pendingEntity.sessionId ?? '') || 'blockhead payjoin session')
 
 
 	// Components
@@ -76,65 +46,37 @@
 
 <EntityView
 	entityType={EntityType.BlockheadPayjoinSession}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'status') && Object.hasOwn(prefetched, 'role') && Object.hasOwn(prefetched, 'amountSats')}
-			{[String((pendingEntity.sessionId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-		{:else}
-			<ResourceBoundary resource={blockheadPayjoinSession}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.sessionId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		{(pendingEntity.sessionId ?? '') || 'blockhead payjoin session'}
 	{/snippet}
 
 	{#snippet Value()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'status') && Object.hasOwn(prefetched, 'role') && Object.hasOwn(prefetched, 'amountSats')}
-			{[String((pendingEntity.status) ?? ''), String((pendingEntity.role) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.sessionId) ?? '')].filter(Boolean).join(' ') || titleFallback}
-		{:else}
-			<ResourceBoundary resource={blockheadPayjoinSession}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.status) ?? ''), String((resolvedEntity.role) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.sessionId) ?? '')].filter(Boolean).join(' ') || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={blockheadPayjoinSession}>
+			{#snippet children(entity)}
+				{[entity.status, entity.role].filter(Boolean).join(' ') || pendingEntity.sessionId || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'status') && Object.hasOwn(prefetched, 'role') && Object.hasOwn(prefetched, 'amountSats')}
-			{@const amountSats0 = pendingEntity.amountSats}
-			{#if amountSats0 !== undefined && amountSats0 !== null}
-				<span data-text="muted">
-					<NumberValue
-						value={amountSats0}
-					/>
-				</span>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={blockheadPayjoinSession}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const amountSats0 = resolvedEntity.amountSats}
-					{#if amountSats0 !== undefined && amountSats0 !== null}
-						<span data-text="muted">
-							<NumberValue
-								value={amountSats0}
-							/>
-						</span>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={blockheadPayjoinSession}>
+			{#snippet children(entity)}
+				{@const amountSats0 = entity.amountSats}
+				{#if amountSats0 != null}
+					<span data-text="muted">
+						<NumberValue
+							value={amountSats0}
+						/>
+					</span>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -142,24 +84,7 @@
 			<div>
 				<dt>session ID</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									sessionId: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const sessionId = resolvedEntity.sessionId}
-							{#if sessionId !== undefined && sessionId !== null}
-								{String((sessionId) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{pendingEntity.sessionId}
 				</dd>
 			</div>
 
@@ -167,21 +92,10 @@
 				<dt>role</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									role: true,
-								},
-							})
-						}
+						resource={blockheadPayjoinSession}
 					>
 						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const role = resolvedEntity.role}
-							{#if role !== undefined && role !== null}
-								{String((role) ?? '')}
-							{/if}
+							{entity.role}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -191,21 +105,10 @@
 				<dt>status</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									status: true,
-								},
-							})
-						}
+						resource={blockheadPayjoinSession}
 					>
 						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const status = resolvedEntity.status}
-							{#if status !== undefined && status !== null}
-								{String((status) ?? '')}
-							{/if}
+							{entity.status}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -218,31 +121,12 @@
 						resource={selection.$network}
 					>
 						{#snippet children(network)}
-							{#if network != null && network[EntityMetaKey.Selector] != null}
-								<NetworkView
-									selection={select(EntityType.Network, network[EntityMetaKey.Selector])}
-									prefetched={network}
-									href={
-										(
-											network[EntityMetaKey.Selector] != null && 'caip2' in network[EntityMetaKey.Selector]
-											&& network[EntityMetaKey.Selector].caip2 != null ?
-												resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-											network: String(caip2StringFromValue(network[EntityMetaKey.Selector].caip2) ?? ''),
-										})
-										:
-												network[EntityMetaKey.Selector] != null && 'slug' in network[EntityMetaKey.Selector]
-												&& network[EntityMetaKey.Selector].slug != null ?
-													resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-												network: String(network[EntityMetaKey.Selector].slug ?? ''),
-											})
-											:
-												undefined
-										)
-									}
-									layout={EntityLayout.Value}
-									open={false}
-								/>
-							{/if}
+							<NetworkView
+								selection={select(EntityType.Network, network[EntityMetaKey.Selector])}
+								prefetched={network}
+								layout={EntityLayout.Value}
+								open={false}
+							/>
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -254,7 +138,7 @@
 				resource={selection.$directory}
 			>
 				{#snippet children(payjoinDirectory)}
-					{#if payjoinDirectory != null && payjoinDirectory[EntityMetaKey.Selector] != null}
+					{#if payjoinDirectory != null}
 						<div>
 							<dt>directory</dt>
 							<dd>
@@ -274,7 +158,7 @@
 				resource={selection.$endpoint}
 			>
 				{#snippet children(payjoinEndpoint)}
-					{#if payjoinEndpoint != null && payjoinEndpoint[EntityMetaKey.Selector] != null}
+					{#if payjoinEndpoint != null}
 						<div>
 							<dt>endpoint</dt>
 							<dd>
@@ -293,7 +177,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							endpointUrl: true,
 						},
@@ -301,20 +184,18 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const endpointUrl = resolvedEntity.endpointUrl}
-					{#if endpointUrl !== undefined && endpointUrl !== null}
+					{@const endpointUrl = entity.endpointUrl}
+					{#if endpointUrl != null}
 						<div>
 							<dt>endpoint URL</dt>
 							<dd>
-								<svelte:element
-									this={'a'}
+								<a
 									href={String(endpointUrl)}
 									target="_blank"
 									rel="noreferrer noopener"
 								>
 									<TruncatedValue value={String(endpointUrl)} />
-								</svelte:element>
+								</a>
 							</dd>
 						</div>
 					{/if}
@@ -324,7 +205,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							bip21Uri: true,
 						},
@@ -332,20 +212,18 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const bip21Uri = resolvedEntity.bip21Uri}
-					{#if bip21Uri !== undefined && bip21Uri !== null}
+					{@const bip21Uri = entity.bip21Uri}
+					{#if bip21Uri != null}
 						<div>
 							<dt>bip21 URI</dt>
 							<dd>
-								<svelte:element
-									this={'a'}
+								<a
 									href={String(bip21Uri)}
 									target="_blank"
 									rel="noreferrer noopener"
 								>
 									<TruncatedValue value={String(bip21Uri)} />
-								</svelte:element>
+								</a>
 							</dd>
 						</div>
 					{/if}
@@ -357,7 +235,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							receiverAddress: true,
 						},
@@ -365,13 +242,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const receiverAddress = resolvedEntity.receiverAddress}
-					{#if receiverAddress !== undefined && receiverAddress !== null}
+					{@const receiverAddress = entity.receiverAddress}
+					{#if receiverAddress != null}
 						<div>
 							<dt>receiver address</dt>
 							<dd>
-								<TruncatedValue value={String((receiverAddress) ?? '')} />
+								<TruncatedValue value={receiverAddress} />
 							</dd>
 						</div>
 					{/if}
@@ -379,19 +255,11 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							amountSats: true,
-						},
-					})
-				}
+				resource={blockheadPayjoinSession}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const amountSats = resolvedEntity.amountSats}
-					{#if amountSats !== undefined && amountSats !== null}
+					{@const amountSats = entity.amountSats}
+					{#if amountSats != null}
 						<div>
 							<dt>amount sats</dt>
 							<dd>
@@ -407,7 +275,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							disableOutputSubstitution: true,
 						},
@@ -415,9 +282,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const disableOutputSubstitution = resolvedEntity.disableOutputSubstitution}
-					{#if disableOutputSubstitution !== undefined && disableOutputSubstitution !== null}
+					{@const disableOutputSubstitution = entity.disableOutputSubstitution}
+					{#if disableOutputSubstitution != null}
 						<div>
 							<dt>disable output substitution</dt>
 							<dd>
@@ -431,7 +297,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							minFeeRateSatPerVbyte: true,
 						},
@@ -439,9 +304,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const minFeeRateSatPerVbyte = resolvedEntity.minFeeRateSatPerVbyte}
-					{#if minFeeRateSatPerVbyte !== undefined && minFeeRateSatPerVbyte !== null}
+					{@const minFeeRateSatPerVbyte = entity.minFeeRateSatPerVbyte}
+					{#if minFeeRateSatPerVbyte != null}
 						<div>
 							<dt>min fee rate sat per vbyte</dt>
 							<dd>
@@ -459,7 +323,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							additionalFeeOutputIndex: true,
 						},
@@ -467,9 +330,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const additionalFeeOutputIndex = resolvedEntity.additionalFeeOutputIndex}
-					{#if additionalFeeOutputIndex !== undefined && additionalFeeOutputIndex !== null}
+					{@const additionalFeeOutputIndex = entity.additionalFeeOutputIndex}
+					{#if additionalFeeOutputIndex != null}
 						<div>
 							<dt>additional fee output index</dt>
 							<dd>
@@ -485,7 +347,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							maxAdditionalFeeContributionSats: true,
 						},
@@ -493,9 +354,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const maxAdditionalFeeContributionSats = resolvedEntity.maxAdditionalFeeContributionSats}
-					{#if maxAdditionalFeeContributionSats !== undefined && maxAdditionalFeeContributionSats !== null}
+					{@const maxAdditionalFeeContributionSats = entity.maxAdditionalFeeContributionSats}
+					{#if maxAdditionalFeeContributionSats != null}
 						<div>
 							<dt>max additional fee contribution sats</dt>
 							<dd>
@@ -513,7 +373,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							originalPsbtHash: true,
 						},
@@ -521,13 +380,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const originalPsbtHash = resolvedEntity.originalPsbtHash}
-					{#if originalPsbtHash !== undefined && originalPsbtHash !== null}
+					{@const originalPsbtHash = entity.originalPsbtHash}
+					{#if originalPsbtHash != null}
 						<div>
 							<dt>original psbt hash</dt>
 							<dd>
-								<TruncatedValue value={String((originalPsbtHash) ?? '')} />
+								<TruncatedValue value={originalPsbtHash} />
 							</dd>
 						</div>
 					{/if}
@@ -537,7 +395,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							proposalPsbtHash: true,
 						},
@@ -545,13 +402,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const proposalPsbtHash = resolvedEntity.proposalPsbtHash}
-					{#if proposalPsbtHash !== undefined && proposalPsbtHash !== null}
+					{@const proposalPsbtHash = entity.proposalPsbtHash}
+					{#if proposalPsbtHash != null}
 						<div>
 							<dt>proposal psbt hash</dt>
 							<dd>
-								<TruncatedValue value={String((proposalPsbtHash) ?? '')} />
+								<TruncatedValue value={proposalPsbtHash} />
 							</dd>
 						</div>
 					{/if}
@@ -561,7 +417,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							finalTransactionId: true,
 						},
@@ -569,13 +424,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const finalTransactionId = resolvedEntity.finalTransactionId}
-					{#if finalTransactionId !== undefined && finalTransactionId !== null}
+					{@const finalTransactionId = entity.finalTransactionId}
+					{#if finalTransactionId != null}
 						<div>
 							<dt>final transaction ID</dt>
 							<dd>
-								<TruncatedValue value={String((finalTransactionId) ?? '')} />
+								<TruncatedValue value={finalTransactionId} />
 							</dd>
 						</div>
 					{/if}
@@ -586,37 +440,13 @@
 				resource={selection.$finalTransaction}
 			>
 				{#snippet children(utxoTransaction)}
-					{#if utxoTransaction != null && utxoTransaction[EntityMetaKey.Selector] != null}
+					{#if utxoTransaction != null}
 						<div>
 							<dt>final transaction</dt>
 							<dd>
 								<UtxoTransactionView
 									selection={select(EntityType.UtxoTransaction, utxoTransaction[EntityMetaKey.Selector])}
 									prefetched={utxoTransaction}
-									href={
-										(
-											utxoTransaction[EntityMetaKey.Selector] != null && 'txId' in utxoTransaction[EntityMetaKey.Selector]
-											&& utxoTransaction[EntityMetaKey.Selector].txId != null
-											&& utxoTransaction[EntityMetaKey.Selector] != null && '$network' in utxoTransaction[EntityMetaKey.Selector] ?
-												utxoTransaction[EntityMetaKey.Selector].$network != null && 'caip2' in utxoTransaction[EntityMetaKey.Selector].$network
-												&& utxoTransaction[EntityMetaKey.Selector].$network.caip2 != null ?
-													resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]', {
-												transactionId: String(utxoTransaction[EntityMetaKey.Selector].txId ?? ''),
-												network: String(caip2StringFromValue(utxoTransaction[EntityMetaKey.Selector].$network.caip2) ?? ''),
-											})
-											:
-													utxoTransaction[EntityMetaKey.Selector].$network != null && 'slug' in utxoTransaction[EntityMetaKey.Selector].$network
-													&& utxoTransaction[EntityMetaKey.Selector].$network.slug != null ?
-														resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]', {
-													transactionId: String(utxoTransaction[EntityMetaKey.Selector].txId ?? ''),
-													network: String(utxoTransaction[EntityMetaKey.Selector].$network.slug ?? ''),
-												})
-												:
-													undefined
-										:
-												undefined
-										)
-									}
 									layout={EntityLayout.Value}
 									open={false}
 								/>
@@ -631,7 +461,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							errorCode: true,
 						},
@@ -639,13 +468,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const errorCode = resolvedEntity.errorCode}
-					{#if errorCode !== undefined && errorCode !== null}
+					{@const errorCode = entity.errorCode}
+					{#if errorCode != null}
 						<div>
 							<dt>error code</dt>
 							<dd>
-								{String((errorCode) ?? '')}
+								{errorCode}
 							</dd>
 						</div>
 					{/if}
@@ -658,7 +486,6 @@
 					<ResourceBoundary
 						resource={
 							selection({
-								sources: selection.sources,
 								fields: {
 									createdAt: true,
 								},
@@ -666,11 +493,7 @@
 						}
 					>
 						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const createdAt = resolvedEntity.createdAt}
-							{#if createdAt !== undefined && createdAt !== null}
-								<Timestamp timestamp={Number(createdAt)} />
-							{/if}
+							<Timestamp timestamp={Number(entity.createdAt)} />
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -679,7 +502,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							updatedAt: true,
 						},
@@ -687,9 +509,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const updatedAt = resolvedEntity.updatedAt}
-					{#if updatedAt !== undefined && updatedAt !== null}
+					{@const updatedAt = entity.updatedAt}
+					{#if updatedAt != null}
 						<div>
 							<dt>Updated</dt>
 							<dd>
@@ -703,7 +524,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							completedAt: true,
 						},
@@ -711,9 +531,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const completedAt = resolvedEntity.completedAt}
-					{#if completedAt !== undefined && completedAt !== null}
+					{@const completedAt = entity.completedAt}
+					{#if completedAt != null}
 						<div>
 							<dt>completed AT</dt>
 							<dd>

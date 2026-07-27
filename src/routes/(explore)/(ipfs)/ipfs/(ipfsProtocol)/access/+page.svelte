@@ -7,7 +7,6 @@
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 	const pageSelection = $derived(select(EntityType._GlobalIpfsAccess, {
@@ -26,13 +25,12 @@
 
 
 <svelte:head>
-	<title>{(pageSelection.entity == null ? 'global IPFS access' : 'global IPFS access')} • global IPFS access • Blockhead</title>
+	<title>{('global IPFS access')} • global IPFS access • Blockhead</title>
 </svelte:head>
 
 
 <Page>
 	<GlobalIpfsAccessView
-		href={resolve('/ipfs/access')}
 		selection={pageSelection}
 	/>
 </Page>

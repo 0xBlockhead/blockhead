@@ -8,9 +8,6 @@ import {
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
-import { NearAccountSelector } from '$/schema/NearAccount.ts'
-import { NearBlockSelector } from '$/schema/NearBlock.ts'
-import { NearTransactionSelector } from '$/schema/NearTransaction.ts'
 
 const assertNearMainnet = (network: { caip2: {
 	namespace: string
@@ -20,9 +17,6 @@ const assertNearMainnet = (network: { caip2: {
 		throw new Error('NearBlocks_Rest: unsupported network')
 }
 
-const nearBlocksMainnetRestBaseUrl = async () =>
-	(await import('$/sources/NearBlocks/Rest/queries.ts')).nearBlocksMainnetRestEndpoints[0].url
-
 export default {
 	source: Source.NearBlocks_Rest,
 
@@ -30,12 +24,11 @@ export default {
 		defineResolver(Source.NearBlocks_Rest, {
 			entityType: EntityType.NearAccount,
 			resolve: {
-				[NearAccountSelector.NetworkAccountId]: {
+				NetworkAccountId: {
 					resolve: async ({ $network, accountId }) => {
 						assertNearMainnet($network)
 						const { getAccount } = await import('$/sources/NearBlocks/Rest/queries.ts')
 						const account = (await getAccount({
-							restBaseUrl: await nearBlocksMainnetRestBaseUrl(),
 							accountId: accountId,
 						})).account?.[0]
 						if (account == null) throw new Error(`NearBlocks_Rest: account ${accountId} not found`)
@@ -58,12 +51,11 @@ export default {
 		defineResolver(Source.NearBlocks_Rest, {
 			entityType: EntityType.NearBlock,
 			resolve: {
-				[NearBlockSelector.NetworkHeightHash]: {
+				NetworkHeightHash: {
 					resolve: async ({ $network, hash, height }) => {
 						assertNearMainnet($network)
 						const { getBlock } = await import('$/sources/NearBlocks/Rest/queries.ts')
 						const block = (await getBlock({
-							restBaseUrl: await nearBlocksMainnetRestBaseUrl(),
 							block: hash,
 						})).blocks?.[0]
 						if (block == null) throw new Error(`NearBlocks_Rest: block ${hash} not found`)
@@ -97,12 +89,11 @@ export default {
 		defineResolver(Source.NearBlocks_Rest, {
 			entityType: EntityType.NearTransaction,
 			resolve: {
-				[NearTransactionSelector.NetworkHashSignerAccountId]: {
+				NetworkHashSignerAccountId: {
 					resolve: async ({ $network, hash }) => {
 						assertNearMainnet($network)
 						const { getTransaction } = await import('$/sources/NearBlocks/Rest/queries.ts')
 						const transaction = (await getTransaction({
-							restBaseUrl: await nearBlocksMainnetRestBaseUrl(),
 							transactionHash: hash,
 						})).txns?.[0]
 						if (transaction == null) throw new Error(`NearBlocks_Rest: transaction ${hash} not found`)

@@ -2,15 +2,9 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
-	import { caip2StringFromValue } from '$/lib/caip2.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -22,40 +16,23 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.QuilibriumProver>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.QuilibriumProver>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.QuilibriumProver> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const quilibriumProver = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {
-			version: true,
-		},
-	} : {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const viewSelection = $derived(selection({
+		sources: selection.sources ?? [
+			Source.QuilibriumNode_Grpc,
+		],
+	}))
+	const quilibriumProver = $derived(viewSelection({
 		fields: {
 			version: true,
 		},
 	}))
-	const titleFallback = $derived([String((pendingEntity.proverPeerId) ?? '')].filter(Boolean).join(' ') || 'quilibrium prover')
-	const viewDomId = $derived('quilibrium-prover-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const titleFallback = $derived((pendingEntity.proverPeerId ?? '') || 'quilibrium prover')
 
 
 	// Components
@@ -68,44 +45,32 @@
 
 <EntityView
 	entityType={EntityType.QuilibriumProver}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={quilibriumProver}>
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.proverPeerId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{(pendingEntity.proverPeerId ?? '') || 'quilibrium prover'}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={quilibriumProver}>
-			{#snippet children(entity)}
-				<NetworkView
-					selection={select(EntityType.Network, selection.entitySelector.$network)}
-					href=""
-					layout={EntityLayout.Value}
-					open={false}
-				/>
-			{/snippet}
-		</ResourceBoundary>
+		<NetworkView
+			selection={select(EntityType.Network, selection.entitySelector.$network)}
+			href=""
+			layout={EntityLayout.Value}
+			open={false}
+		/>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={quilibriumProver}>
 			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const version0 = resolvedEntity.version}
-				{#if version0 !== undefined && version0 !== null}
+				{@const version0 = entity.version}
+				{#if version0 != null}
 					<span data-text="muted">
-						{String((version0) ?? '')}
+						{version0}
 					</span>
 				{/if}
 			{/snippet}
@@ -119,23 +84,6 @@
 				<dd>
 					<NetworkView
 						selection={select(EntityType.Network, selection.entitySelector.$network)}
-						href={
-							(
-								selection.entitySelector.$network != null && 'caip2' in selection.entitySelector.$network
-								&& selection.entitySelector.$network.caip2 != null ?
-									resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-								network: String(caip2StringFromValue(selection.entitySelector.$network.caip2) ?? ''),
-							})
-							:
-									selection.entitySelector.$network != null && 'slug' in selection.entitySelector.$network
-									&& selection.entitySelector.$network.slug != null ?
-										resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-									network: String(selection.entitySelector.$network.slug ?? ''),
-								})
-								:
-									undefined
-							)
-						}
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -145,31 +93,13 @@
 			<div>
 				<dt>prover peer ID</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									proverPeerId: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const proverPeerId = resolvedEntity.proverPeerId}
-							{#if proverPeerId !== undefined && proverPeerId !== null}
-								{String((proverPeerId) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{pendingEntity.proverPeerId}
 				</dd>
 			</div>
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							publicKey: true,
 						},
@@ -177,13 +107,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const publicKey = resolvedEntity.publicKey}
-					{#if publicKey !== undefined && publicKey !== null}
+					{@const publicKey = entity.publicKey}
+					{#if publicKey != null}
 						<div>
 							<dt>public key</dt>
 							<dd>
-								{String((publicKey) ?? '')}
+								{publicKey}
 							</dd>
 						</div>
 					{/if}
@@ -191,23 +120,15 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							version: true,
-						},
-					})
-				}
+				resource={quilibriumProver}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const version = resolvedEntity.version}
-					{#if version !== undefined && version !== null}
+					{@const version = entity.version}
+					{#if version != null}
 						<div>
 							<dt>version</dt>
 							<dd>
-								{String((version) ?? '')}
+								{version}
 							</dd>
 						</div>
 					{/if}
@@ -216,8 +137,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							lastSeenAt: true,
 						},
@@ -225,9 +145,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const lastSeenAt = resolvedEntity.lastSeenAt}
-					{#if lastSeenAt !== undefined && lastSeenAt !== null}
+					{@const lastSeenAt = entity.lastSeenAt}
+					{#if lastSeenAt != null}
 						<div>
 							<dt>last seen AT</dt>
 							<dd>
@@ -247,12 +166,12 @@
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
-				<QuilibriumFramesView
-					selection={quilibriumProverQuilibriumFramesViewFramesResource}
-					countResource={quilibriumProverQuilibriumFramesViewFramesResource.count}
-					title='frames'
-					id='QuilibriumFramesView-frames'
-				/>
+					<QuilibriumFramesView
+						selection={quilibriumProverQuilibriumFramesViewFramesResource}
+						countResource={quilibriumProverQuilibriumFramesViewFramesResource.count}
+						title='frames'
+						id='frames'
+					/>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>

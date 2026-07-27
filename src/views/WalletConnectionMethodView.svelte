@@ -2,13 +2,9 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// State
@@ -16,36 +12,18 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.WalletConnectionMethod>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.WalletConnectionMethod>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.WalletConnectionMethod> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const walletConnectionMethod = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {
-			label: true,
-			protocol: true,
-			implementationStatus: true,
-		},
-	} : {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const viewSelection = $derived(selection({
+		sources: selection.sources ?? [
+			Source.Local_Internal,
+		],
+	}))
+	const walletConnectionMethod = $derived(viewSelection({
 		fields: {
 			label: true,
 			protocol: true,
@@ -54,8 +32,7 @@
 			implementationStatus: true,
 		},
 	}))
-	const titleFallback = $derived([String((pendingEntity.label) ?? '')].filter(Boolean).join(' ') || 'wallet connection method')
-	const viewDomId = $derived('wallet-connection-method-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const titleFallback = $derived((pendingEntity.label ?? '') || 'wallet connection method')
 
 
 	// Components
@@ -66,38 +43,26 @@
 
 <EntityView
 	entityType={EntityType.WalletConnectionMethod}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'label') && Object.hasOwn(prefetched, 'protocol') && Object.hasOwn(prefetched, 'implementationStatus')}
-			{[String((pendingEntity.label) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-		{:else}
-			<ResourceBoundary resource={walletConnectionMethod}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.label) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={walletConnectionMethod}>
+			{#snippet children(entity)}
+				{entity.label || title || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Value()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'label') && Object.hasOwn(prefetched, 'protocol') && Object.hasOwn(prefetched, 'implementationStatus')}
-			{[String((pendingEntity.protocol) ?? ''), String((pendingEntity.implementationStatus) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.label) ?? '')].filter(Boolean).join(' ') || titleFallback}
-		{:else}
-			<ResourceBoundary resource={walletConnectionMethod}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.protocol) ?? ''), String((resolvedEntity.implementationStatus) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.label) ?? '')].filter(Boolean).join(' ') || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={walletConnectionMethod}>
+			{#snippet children(entity)}
+				{[entity.protocol, entity.implementationStatus].filter(Boolean).join(' ') || entity.label || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -105,24 +70,7 @@
 			<div>
 				<dt>ID</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									id: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const id = resolvedEntity.id}
-							{#if id !== undefined && id !== null}
-								{String((id) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{pendingEntity.id}
 				</dd>
 			</div>
 
@@ -130,21 +78,10 @@
 				<dt>protocol</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									protocol: true,
-								},
-							})
-						}
+						resource={walletConnectionMethod}
 					>
 						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const protocol = resolvedEntity.protocol}
-							{#if protocol !== undefined && protocol !== null}
-								{String((protocol) ?? '')}
-							{/if}
+							{entity.protocol}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -154,21 +91,10 @@
 				<dt>discovery kind</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									discoveryKind: true,
-								},
-							})
-						}
+						resource={walletConnectionMethod}
 					>
 						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const discoveryKind = resolvedEntity.discoveryKind}
-							{#if discoveryKind !== undefined && discoveryKind !== null}
-								{String((discoveryKind) ?? '')}
-							{/if}
+							{entity.discoveryKind}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -178,21 +104,10 @@
 				<dt>transport kind</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									transportKind: true,
-								},
-							})
-						}
+						resource={walletConnectionMethod}
 					>
 						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const transportKind = resolvedEntity.transportKind}
-							{#if transportKind !== undefined && transportKind !== null}
-								{String((transportKind) ?? '')}
-							{/if}
+							{entity.transportKind}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -202,21 +117,10 @@
 				<dt>implementation status</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									implementationStatus: true,
-								},
-							})
-						}
+						resource={walletConnectionMethod}
 					>
 						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const implementationStatus = resolvedEntity.implementationStatus}
-							{#if implementationStatus !== undefined && implementationStatus !== null}
-								{String((implementationStatus) ?? '')}
-							{/if}
+							{entity.implementationStatus}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -227,8 +131,7 @@
 				<dd>
 					<ResourceBoundary
 						resource={
-							selection({
-								sources: selection.sources,
+							viewSelection({
 								fields: {
 									dependencyPolicy: true,
 								},
@@ -236,11 +139,7 @@
 						}
 					>
 						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const dependencyPolicy = resolvedEntity.dependencyPolicy}
-							{#if dependencyPolicy !== undefined && dependencyPolicy !== null}
-								{String((dependencyPolicy) ?? '')}
-							{/if}
+							{entity.dependencyPolicy}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -250,8 +149,7 @@
 		<dl data-column-item="center">
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							apiSurfaceKind: true,
 						},
@@ -259,13 +157,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const apiSurfaceKind = resolvedEntity.apiSurfaceKind}
-					{#if apiSurfaceKind !== undefined && apiSurfaceKind !== null}
+					{@const apiSurfaceKind = entity.apiSurfaceKind}
+					{#if apiSurfaceKind != null}
 						<div>
 							<dt>API surface kind</dt>
 							<dd>
-								{String((apiSurfaceKind) ?? '')}
+								{apiSurfaceKind}
 							</dd>
 						</div>
 					{/if}
@@ -274,8 +171,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							sessionKind: true,
 						},
@@ -283,13 +179,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const sessionKind = resolvedEntity.sessionKind}
-					{#if sessionKind !== undefined && sessionKind !== null}
+					{@const sessionKind = entity.sessionKind}
+					{#if sessionKind != null}
 						<div>
 							<dt>session kind</dt>
 							<dd>
-								{String((sessionKind) ?? '')}
+								{sessionKind}
 							</dd>
 						</div>
 					{/if}
@@ -298,8 +193,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							authorizationKind: true,
 						},
@@ -307,13 +201,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const authorizationKind = resolvedEntity.authorizationKind}
-					{#if authorizationKind !== undefined && authorizationKind !== null}
+					{@const authorizationKind = entity.authorizationKind}
+					{#if authorizationKind != null}
 						<div>
 							<dt>authorization kind</dt>
 							<dd>
-								{String((authorizationKind) ?? '')}
+								{authorizationKind}
 							</dd>
 						</div>
 					{/if}
@@ -322,8 +215,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							accountExposureKind: true,
 						},
@@ -331,13 +223,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const accountExposureKind = resolvedEntity.accountExposureKind}
-					{#if accountExposureKind !== undefined && accountExposureKind !== null}
+					{@const accountExposureKind = entity.accountExposureKind}
+					{#if accountExposureKind != null}
 						<div>
 							<dt>account exposure kind</dt>
 							<dd>
-								<TruncatedValue value={String((accountExposureKind) ?? '')} />
+								<TruncatedValue value={accountExposureKind} />
 							</dd>
 						</div>
 					{/if}
@@ -346,8 +237,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							requestExecutionKind: true,
 						},
@@ -355,13 +245,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const requestExecutionKind = resolvedEntity.requestExecutionKind}
-					{#if requestExecutionKind !== undefined && requestExecutionKind !== null}
+					{@const requestExecutionKind = entity.requestExecutionKind}
+					{#if requestExecutionKind != null}
 						<div>
 							<dt>request execution kind</dt>
 							<dd>
-								{String((requestExecutionKind) ?? '')}
+								{requestExecutionKind}
 							</dd>
 						</div>
 					{/if}
@@ -370,8 +259,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							discoveryTrustKind: true,
 						},
@@ -379,13 +267,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const discoveryTrustKind = resolvedEntity.discoveryTrustKind}
-					{#if discoveryTrustKind !== undefined && discoveryTrustKind !== null}
+					{@const discoveryTrustKind = entity.discoveryTrustKind}
+					{#if discoveryTrustKind != null}
 						<div>
 							<dt>discovery trust kind</dt>
 							<dd>
-								{String((discoveryTrustKind) ?? '')}
+								{discoveryTrustKind}
 							</dd>
 						</div>
 					{/if}
@@ -399,8 +286,7 @@
 				<dd>
 					<ResourceBoundary
 						resource={
-							selection({
-								sources: selection.sources,
+							viewSelection({
 								fields: {
 									formFactors: true,
 								},
@@ -408,11 +294,7 @@
 						}
 					>
 						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const formFactors = resolvedEntity.formFactors}
-							{#if formFactors !== undefined && formFactors !== null}
-								{formFactors == null ? '' : String(((formFactors).join(', ')) ?? '')}
-							{/if}
+							{entity.formFactors.join(', ')}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -423,8 +305,7 @@
 				<dd>
 					<ResourceBoundary
 						resource={
-							selection({
-								sources: selection.sources,
+							viewSelection({
 								fields: {
 									networkNamespaces: true,
 								},
@@ -432,11 +313,7 @@
 						}
 					>
 						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const networkNamespaces = resolvedEntity.networkNamespaces}
-							{#if networkNamespaces !== undefined && networkNamespaces !== null}
-								{networkNamespaces == null ? '' : String(((networkNamespaces).join(', ')) ?? '')}
-							{/if}
+							{entity.networkNamespaces.join(', ')}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -447,8 +324,7 @@
 				<dd>
 					<ResourceBoundary
 						resource={
-							selection({
-								sources: selection.sources,
+							viewSelection({
 								fields: {
 									caipNamespaces: true,
 								},
@@ -456,11 +332,7 @@
 						}
 					>
 						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const caipNamespaces = resolvedEntity.caipNamespaces}
-							{#if caipNamespaces !== undefined && caipNamespaces !== null}
-								{caipNamespaces == null ? '' : String(((caipNamespaces).join(', ')) ?? '')}
-							{/if}
+							{entity.caipNamespaces.join(', ')}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -471,8 +343,7 @@
 				<dd>
 					<ResourceBoundary
 						resource={
-							selection({
-								sources: selection.sources,
+							viewSelection({
 								fields: {
 									capabilities: true,
 								},
@@ -480,11 +351,7 @@
 						}
 					>
 						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const capabilities = resolvedEntity.capabilities}
-							{#if capabilities !== undefined && capabilities !== null}
-								{capabilities == null ? '' : String(((capabilities).join(', ')) ?? '')}
-							{/if}
+							{entity.capabilities.join(', ')}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -492,8 +359,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							sourceCapabilities: true,
 						},
@@ -501,13 +367,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const sourceCapabilities = resolvedEntity.sourceCapabilities}
-					{#if sourceCapabilities !== undefined && sourceCapabilities !== null}
+					{@const sourceCapabilities = entity.sourceCapabilities}
+					{#if sourceCapabilities != null}
 						<div>
 							<dt>source capabilities</dt>
 							<dd>
-								{sourceCapabilities == null ? '' : String(((sourceCapabilities).join(', ')) ?? '')}
+								{sourceCapabilities.join(', ')}
 							</dd>
 						</div>
 					{/if}
@@ -516,8 +381,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							runtimeCapabilities: true,
 						},
@@ -525,13 +389,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const runtimeCapabilities = resolvedEntity.runtimeCapabilities}
-					{#if runtimeCapabilities !== undefined && runtimeCapabilities !== null}
+					{@const runtimeCapabilities = entity.runtimeCapabilities}
+					{#if runtimeCapabilities != null}
 						<div>
 							<dt>runtime capabilities</dt>
 							<dd>
-								{runtimeCapabilities == null ? '' : String(((runtimeCapabilities).join(', ')) ?? '')}
+								{runtimeCapabilities.join(', ')}
 							</dd>
 						</div>
 					{/if}

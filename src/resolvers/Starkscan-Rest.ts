@@ -8,25 +8,9 @@ import {
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { schema } from '$/schema/index.ts'
-import { StarknetContractSelector } from '$/schema/StarknetContract.ts'
-import { sourceProviderDefinitions } from '$/sources/$sourceProviders.ts'
 import { Source } from '$/sources/Source.ts'
-import { SourceTargetKind } from '$/sources/SourceBinding.ts'
 
 type NetworkIdentity = EntitySelector<typeof schema, EntityType.Network>
-
-const starkscanBindings = sourceProviderDefinitions
-	.flatMap((provider) => provider.bindings)
-	.filter((binding) => (
-		binding.source === Source.Starkscan_Rest
-		&& binding.target.kind === SourceTargetKind.Global
-		&& binding.target.key === 'starkscan-api'
-	))
-
-if (starkscanBindings.length !== 1)
-	throw new Error('Starkscan_Rest: canonical Starkscan API binding is missing or ambiguous')
-
-const [starkscanBinding] = starkscanBindings
 
 const starknetContractApplicability = [
 	{
@@ -79,7 +63,7 @@ export default {
 		defineResolver(Source.Starkscan_Rest, {
 			entityType: EntityType.StarknetContract,
 			resolve: {
-				[StarknetContractSelector.NetworkAddress]: {
+				NetworkAddress: {
 					appliesTo: starknetContractApplicability,
 					resolve: async (contract, context) => {
 						assertStarknetMainnet(contract.$network.$network)
@@ -89,7 +73,6 @@ export default {
 						return {
 							limit,
 							page: await getAddressTransactions(
-								starkscanBinding,
 								{
 									address: canonicalFelt(contract.address, 'contract address'),
 									limit,

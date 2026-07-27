@@ -1,6 +1,6 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { entity, facet } from '$/schema/$schema.ts'
+import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { UrlString } from '$/schema/UrlString.ts'
@@ -12,10 +12,8 @@ export enum YoutubeLiveBroadcastContent {
 	Live = 'live',
 	Upcoming = 'upcoming',
 }
-export enum YoutubeVideoSelector {
-	VideoId = 'VideoId',
-}
-export const YoutubeVideo = entity({
+
+export default entity({
 	entityType: EntityType.YoutubeVideo,
 	labels: {
 		singular: 'YouTube video',
@@ -79,7 +77,7 @@ export const YoutubeVideo = entity({
 	thumbnailUrl: {
 		label: 'Thumbnail',
 		type: EntityFieldType.Primitive,
-		primitiveType: (UrlString),
+		primitiveType: UrlString,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$author: {

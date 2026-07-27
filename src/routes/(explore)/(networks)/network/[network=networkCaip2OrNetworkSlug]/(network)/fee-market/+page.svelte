@@ -3,12 +3,11 @@
 <script lang="ts">
 	// Types/constants
 	import type { PageProps } from './$types.ts'
+	import { resolve } from '$app/paths'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
@@ -17,11 +16,8 @@
 		data,
 		params,
 	}: PageProps = $props()
-
-
 	// Components
 	import Page from '$/components/Page.svelte'
-	import ProjectionBoundary from '$/components/ProjectionBoundary.svelte'
 	import EvmNetwork_GasFee_BlocksView from '$/views/EvmNetwork_GasFee_BlocksView.svelte'
 </script>
 
@@ -32,30 +28,20 @@
 
 
 <Page>
-	<ProjectionBoundary
-		resource={select(EntityType.Network, data.selector).Evm}
-	>
-		{#snippet Applicable(projection)}
-			<EvmNetwork_GasFee_BlocksView
-				href={
-					resolve('/network/[network=networkCaip2OrNetworkSlug]/fee-market', {
-						network: params.network,
-					})
+	<EvmNetwork_GasFee_BlocksView
+		href={
+			resolve(
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/fee-market',
+				{
+					network: String(params.network),
 				}
-				title='Fee market'
-				selection={
-					projection
-						.$$gasFeeBlocks({
-							sources: [
-								Source.Voltaire_JsonRpc,
-							],
-						})
-				}
-				id='account-evm-network-gas-fee-block'
-				data-column-item="flexible"
-				data-card
-				data-scroll-container
-			/>
-		{/snippet}
-	</ProjectionBoundary>
+			)
+		}
+		title='Fee market'
+		selection={select(EntityType.Network, data.selector).Evm.$$gasFeeBlocks}
+		id='gas-fee-blocks'
+		data-column-item="flexible"
+		data-card
+		data-scroll-container
+	/>
 </Page>

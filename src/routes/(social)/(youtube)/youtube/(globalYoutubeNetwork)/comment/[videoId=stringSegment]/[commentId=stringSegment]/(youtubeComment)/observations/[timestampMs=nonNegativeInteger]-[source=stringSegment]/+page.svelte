@@ -7,7 +7,6 @@
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
@@ -42,48 +41,12 @@
 
 
 <svelte:head>
-	<title>{(pageSelection.entity == null ? [String(({
-		$comment: {
-			videoId: decodeURIComponent(params.videoId),
-			commentId: decodeURIComponent(params.commentId),
-		},
-		timestampMs: Number(params.timestampMs),
-		source: params.source,
-	}.timestampMs) ?? ''), String(({
-		$comment: {
-			videoId: decodeURIComponent(params.videoId),
-			commentId: decodeURIComponent(params.commentId),
-		},
-		timestampMs: Number(params.timestampMs),
-		source: params.source,
-	}.source) ?? '')].filter(Boolean).join(' ') || 'YouTube comment observation' : [String((({ ...{
-		$comment: {
-			videoId: decodeURIComponent(params.videoId),
-			commentId: decodeURIComponent(params.commentId),
-		},
-		timestampMs: Number(params.timestampMs),
-		source: params.source,
-	}, ...pageSelection.entity }).timestampMs) ?? ''), String((({ ...{
-		$comment: {
-			videoId: decodeURIComponent(params.videoId),
-			commentId: decodeURIComponent(params.commentId),
-		},
-		timestampMs: Number(params.timestampMs),
-		source: params.source,
-	}, ...pageSelection.entity }).source) ?? '')].filter(Boolean).join(' ') || 'YouTube comment observation')} • YouTube comment observation • Blockhead</title>
+	<title>{([String(pageSelection.entitySelector.timestampMs), pageSelection.entitySelector.source].filter(Boolean).join(' ') || 'YouTube comment observation')} • YouTube comment observation • Blockhead</title>
 </svelte:head>
 
 
 <Page>
 	<YoutubeComment_TimestampView
-		href={
-			resolve('/youtube/comment/[videoId=stringSegment]/[commentId=stringSegment]/observations/[timestampMs=nonNegativeInteger]-[source=stringSegment]', {
-				videoId: params.videoId,
-				commentId: params.commentId,
-				timestampMs: params.timestampMs,
-				source: params.source,
-			})
-		}
 		selection={pageSelection}
 	/>
 </Page>

@@ -2,10 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { stringify } from 'devalue'
@@ -20,35 +17,14 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.TezosContract>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.TezosContract>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.TezosContract> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const tezosContract = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {},
-	} : {
-		sources: selection.sources,
-	}))
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const titleFallback = 'tezos contract'
-	const viewDomId = $derived('tezos-contract-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const viewDomId = $derived('tezos-contract-' + encodeURIComponent(stringify(selection.entitySelector)))
 
 
 	// Components
@@ -68,24 +44,15 @@
 
 <EntityView
 	entityType={EntityType.TezosContract}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
+	entitySelector={selection.entitySelector}
 	id={viewDomId}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails}
-			{title || titleFallback}
-		{:else}
-			<ResourceBoundary resource={tezosContract}>
-				{#snippet children(entity)}
-					{title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		tezos contract
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -104,31 +71,13 @@
 			<div>
 				<dt>Address</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									address: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const address = resolvedEntity.address}
-							{#if address !== undefined && address !== null}
-								<TruncatedValue value={String((address) ?? '')} />
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					<TruncatedValue value={pendingEntity.address} />
 				</dd>
 			</div>
 
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							scriptHash: true,
 						},
@@ -136,13 +85,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const scriptHash = resolvedEntity.scriptHash}
-					{#if scriptHash !== undefined && scriptHash !== null}
+					{@const scriptHash = entity.scriptHash}
+					{#if scriptHash != null}
 						<div>
 							<dt>script hash</dt>
 							<dd>
-								<TruncatedValue value={String((scriptHash) ?? '')} />
+								<TruncatedValue value={scriptHash} />
 							</dd>
 						</div>
 					{/if}
@@ -152,7 +100,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							codeHash: true,
 						},
@@ -160,13 +107,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const codeHash = resolvedEntity.codeHash}
-					{#if codeHash !== undefined && codeHash !== null}
+					{@const codeHash = entity.codeHash}
+					{#if codeHash != null}
 						<div>
 							<dt>code hash</dt>
 							<dd>
-								<TruncatedValue value={String((codeHash) ?? '')} />
+								<TruncatedValue value={codeHash} />
 							</dd>
 						</div>
 					{/if}
@@ -177,7 +123,7 @@
 				resource={selection.$account}
 			>
 				{#snippet children(tezosAccount)}
-					{#if tezosAccount != null && tezosAccount[EntityMetaKey.Selector] != null}
+					{#if tezosAccount != null}
 						<div>
 							<dt>account</dt>
 							<dd>
@@ -197,7 +143,7 @@
 				resource={selection.$script}
 			>
 				{#snippet children(tezosMichelsonScript)}
-					{#if tezosMichelsonScript != null && tezosMichelsonScript[EntityMetaKey.Selector] != null}
+					{#if tezosMichelsonScript != null}
 						<div>
 							<dt>script</dt>
 							<dd>
@@ -224,17 +170,14 @@
 					{
 						id: 'tezos-contract-entrypoints',
 						label: 'Entrypoints',
-						ownsSection: true,
 					},
 					{
 						id: 'tezos-contract-big-maps',
 						label: 'Big Maps',
-						ownsSection: true,
 					},
 					{
 						id: 'tezos-contract-operations',
 						label: 'Operations',
-						ownsSection: true,
 					},
 				]
 			}
@@ -247,202 +190,49 @@
 				</header>
 			{/snippet}
 
-			{#snippet MarkerTezosContractEntrypoints(_context, Content)}
-				{@const tezosContractActivityTezosContractEntrypointsResource = selection.$$entrypoints}
-				<ResourceBoundary
-					resource={tezosContractActivityTezosContractEntrypointsResource}
-				>
-					{#snippet children(_resolved)}
-						{@render Content()}
-					{/snippet}
-
-					{#snippet PendingContent()}
-						{@render Content()}
-					{/snippet}
-
-					{#snippet FailedContent(_error, _retry)}
-						{@render Content()}
-					{/snippet}
-				</ResourceBoundary>
+			{#snippet SectionTezosContractEntrypoints({ id, label, open })}
+				<TezosEntrypointsView
+					selection={selection.$$entrypoints}
+					CollapsibleProps={{ canToggle: false }}
+					collapsible={false}
+					data-column-item="flexible"
+					data-card
+					data-scroll-container
+					open={open}
+					title={label}
+					emptyText='No entrypoints.'
+					id={`${id}-list`}
+				/>
 			{/snippet}
 
-			{#snippet SectionTezosContractEntrypoints({ id, label, open, active })}
-				{@const tezosContractActivityTezosContractEntrypointsResource = selection.$$entrypoints}
-				<ResourceBoundary
-					resource={tezosContractActivityTezosContractEntrypointsResource}
-				>
-					{#snippet children(tezosEntrypoint)}
-						<section
-							id={id}
-							aria-labelledby={`${id}:marker`}
-							data-scroll-marker-label={label}
-							data-column-item="flexible"
-							data-column
-							data-active={active}
-						>
-							<TezosEntrypointsView
-								selection={tezosContractActivityTezosContractEntrypointsResource}
-								CollapsibleProps={{ canToggle: false }}
-								collapsible={false}
-								data-column-item="flexible"
-								data-card
-								data-scroll-container
-								open={open}
-								title={label}
-								emptyText='No entrypoints.'
-								id={`${id}-list`}
-							/>
-						</section>
-					{/snippet}
-
-					{#snippet Pending()}
-						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
-							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
-								<span data-tag data-text="muted" data-resource-state="pending" class="loading inline-placeholder" aria-busy="true" aria-label="Loading…">•••</span>
-							</article>
-						</section>
-					{/snippet}
-
-					{#snippet Failed(_error, _retry)}
-						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
-							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
-								<span data-tag data-resource-state="failed" class="inline-placeholder" aria-label="Failed to load">•••</span>
-							</article>
-						</section>
-					{/snippet}
-				</ResourceBoundary>
+			{#snippet SectionTezosContractBigMaps({ id, label, open })}
+				<TezosBigMapsView
+					selection={selection.$$bigMaps}
+					CollapsibleProps={{ canToggle: false }}
+					collapsible={false}
+					data-column-item="flexible"
+					data-card
+					data-scroll-container
+					open={open}
+					title={label}
+					emptyText='No big maps.'
+					id={`${id}-list`}
+				/>
 			{/snippet}
 
-			{#snippet MarkerTezosContractBigMaps(_context, Content)}
-				{@const tezosContractActivityTezosContractBigMapsResource = selection.$$bigMaps}
-				<ResourceBoundary
-					resource={tezosContractActivityTezosContractBigMapsResource}
-				>
-					{#snippet children(_resolved)}
-						{@render Content()}
-					{/snippet}
-
-					{#snippet PendingContent()}
-						{@render Content()}
-					{/snippet}
-
-					{#snippet FailedContent(_error, _retry)}
-						{@render Content()}
-					{/snippet}
-				</ResourceBoundary>
-			{/snippet}
-
-			{#snippet SectionTezosContractBigMaps({ id, label, open, active })}
-				{@const tezosContractActivityTezosContractBigMapsResource = selection.$$bigMaps}
-				<ResourceBoundary
-					resource={tezosContractActivityTezosContractBigMapsResource}
-				>
-					{#snippet children(tezosBigMap)}
-						<section
-							id={id}
-							aria-labelledby={`${id}:marker`}
-							data-scroll-marker-label={label}
-							data-column-item="flexible"
-							data-column
-							data-active={active}
-						>
-							<TezosBigMapsView
-								selection={tezosContractActivityTezosContractBigMapsResource}
-								CollapsibleProps={{ canToggle: false }}
-								collapsible={false}
-								data-column-item="flexible"
-								data-card
-								data-scroll-container
-								open={open}
-								title={label}
-								emptyText='No big maps.'
-								id={`${id}-list`}
-							/>
-						</section>
-					{/snippet}
-
-					{#snippet Pending()}
-						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
-							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
-								<span data-tag data-text="muted" data-resource-state="pending" class="loading inline-placeholder" aria-busy="true" aria-label="Loading…">•••</span>
-							</article>
-						</section>
-					{/snippet}
-
-					{#snippet Failed(_error, _retry)}
-						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
-							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
-								<span data-tag data-resource-state="failed" class="inline-placeholder" aria-label="Failed to load">•••</span>
-							</article>
-						</section>
-					{/snippet}
-				</ResourceBoundary>
-			{/snippet}
-
-			{#snippet MarkerTezosContractOperations(_context, Content)}
-				{@const tezosContractActivityTezosContractOperationsResource = selection.$$operations}
-				<ResourceBoundary
-					resource={tezosContractActivityTezosContractOperationsResource}
-				>
-					{#snippet children(_resolved)}
-						{@render Content()}
-					{/snippet}
-
-					{#snippet PendingContent()}
-						{@render Content()}
-					{/snippet}
-
-					{#snippet FailedContent(_error, _retry)}
-						{@render Content()}
-					{/snippet}
-				</ResourceBoundary>
-			{/snippet}
-
-			{#snippet SectionTezosContractOperations({ id, label, open, active })}
-				{@const tezosContractActivityTezosContractOperationsResource = selection.$$operations}
-				<ResourceBoundary
-					resource={tezosContractActivityTezosContractOperationsResource}
-				>
-					{#snippet children(tezosOperation)}
-						<section
-							id={id}
-							aria-labelledby={`${id}:marker`}
-							data-scroll-marker-label={label}
-							data-column-item="flexible"
-							data-column
-							data-active={active}
-						>
-							<TezosOperationsView
-								selection={tezosContractActivityTezosContractOperationsResource}
-								CollapsibleProps={{ canToggle: false }}
-								collapsible={false}
-								data-column-item="flexible"
-								data-card
-								data-scroll-container
-								open={open}
-								title={label}
-								emptyText='No operations.'
-								id={`${id}-list`}
-							/>
-						</section>
-					{/snippet}
-
-					{#snippet Pending()}
-						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
-							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
-								<span data-tag data-text="muted" data-resource-state="pending" class="loading inline-placeholder" aria-busy="true" aria-label="Loading…">•••</span>
-							</article>
-						</section>
-					{/snippet}
-
-					{#snippet Failed(_error, _retry)}
-						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
-							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
-								<span data-tag data-resource-state="failed" class="inline-placeholder" aria-label="Failed to load">•••</span>
-							</article>
-						</section>
-					{/snippet}
-				</ResourceBoundary>
+			{#snippet SectionTezosContractOperations({ id, label, open })}
+				<TezosOperationsView
+					selection={selection.$$operations}
+					CollapsibleProps={{ canToggle: false }}
+					collapsible={false}
+					data-column-item="flexible"
+					data-card
+					data-scroll-container
+					open={open}
+					title={label}
+					emptyText='No operations.'
+					id={`${id}-list`}
+				/>
 			{/snippet}
 
 		</CollapsibleTabs>
@@ -455,7 +245,6 @@
 					{
 						id: 'tezos-contract-timestamps',
 						label: 'Timestamps',
-						ownsSection: true,
 					},
 				]
 			}
@@ -468,70 +257,19 @@
 				</header>
 			{/snippet}
 
-			{#snippet MarkerTezosContractTimestamps(_context, Content)}
-				{@const tezosContractObservationsTezosContractTimestampsResource = selection.$$timestamps}
-				<ResourceBoundary
-					resource={tezosContractObservationsTezosContractTimestampsResource}
-				>
-					{#snippet children(_resolved)}
-						{@render Content()}
-					{/snippet}
-
-					{#snippet PendingContent()}
-						{@render Content()}
-					{/snippet}
-
-					{#snippet FailedContent(_error, _retry)}
-						{@render Content()}
-					{/snippet}
-				</ResourceBoundary>
-			{/snippet}
-
-			{#snippet SectionTezosContractTimestamps({ id, label, open, active })}
-				{@const tezosContractObservationsTezosContractTimestampsResource = selection.$$timestamps}
-				<ResourceBoundary
-					resource={tezosContractObservationsTezosContractTimestampsResource}
-				>
-					{#snippet children(tezosContractTimestamp)}
-						<section
-							id={id}
-							aria-labelledby={`${id}:marker`}
-							data-scroll-marker-label={label}
-							data-column-item="flexible"
-							data-column
-							data-active={active}
-						>
-							<TezosContract_TimestampsView
-								selection={tezosContractObservationsTezosContractTimestampsResource}
-								CollapsibleProps={{ canToggle: false }}
-								collapsible={false}
-								data-column-item="flexible"
-								data-card
-								data-scroll-container
-								open={open}
-								title={label}
-								emptyText='No timestamps.'
-								id={`${id}-list`}
-							/>
-						</section>
-					{/snippet}
-
-					{#snippet Pending()}
-						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
-							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
-								<span data-tag data-text="muted" data-resource-state="pending" class="loading inline-placeholder" aria-busy="true" aria-label="Loading…">•••</span>
-							</article>
-						</section>
-					{/snippet}
-
-					{#snippet Failed(_error, _retry)}
-						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
-							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
-								<span data-tag data-resource-state="failed" class="inline-placeholder" aria-label="Failed to load">•••</span>
-							</article>
-						</section>
-					{/snippet}
-				</ResourceBoundary>
+			{#snippet SectionTezosContractTimestamps({ id, label, open })}
+				<TezosContract_TimestampsView
+					selection={selection.$$timestamps}
+					CollapsibleProps={{ canToggle: false }}
+					collapsible={false}
+					data-column-item="flexible"
+					data-card
+					data-scroll-container
+					open={open}
+					title={label}
+					emptyText='No timestamps.'
+					id={`${id}-list`}
+				/>
 			{/snippet}
 
 		</CollapsibleTabs>

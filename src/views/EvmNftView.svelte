@@ -2,19 +2,15 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
 	import ProjectionBoundary from '$/components/ProjectionBoundary.svelte'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
 	import IconComponent from '$/components/Icon.svelte'
 	import { EvmNftFormat, EvmNftStandard } from '$/constants/Evm.ts'
-	import { caip2StringFromValue } from '$/lib/caip2.ts'
 	import { UrlString } from '$/schema/UrlString.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -30,33 +26,22 @@
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.EvmNft>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.EvmNft>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.EvmNft> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const evmNft = $derived(selection({
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const viewSelection = $derived(selection({
+		sources: selection.sources ?? [
+			Source.Eip8004Scan_Rest,
+		],
+	}))
+	const evmNft = $derived(viewSelection({
 		fields: {
 			format: true,
 			name: true,
 			image: true,
 		},
 	}))
-	const titleFallback = $derived([String((pendingEntity.name) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.tokenId) ?? '')].filter(Boolean).join(' ') || 'EVM NFT')
-	const viewDomId = $derived('evm-nft-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const titleFallback = $derived((pendingEntity.name ?? '') || (pendingEntity.tokenId ?? '') || 'EVM NFT')
 
 
 	// Components
@@ -70,26 +55,20 @@
 
 <EntityView
 	entityType={EntityType.EvmNft}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
 	href={
 		href ?? (
-			selection.entitySelector != null && 'tokenId' in selection.entitySelector
-			&& selection.entitySelector.tokenId != null
-			&& selection.entitySelector != null && '$contract' in selection.entitySelector
-			&& selection.entitySelector.$contract != null && '$network' in selection.entitySelector.$contract
-			&& selection.entitySelector.$contract.$network != null && 'caip2' in selection.entitySelector.$contract.$network
-			&& selection.entitySelector.$contract.$network.caip2 != null && 'reference' in selection.entitySelector.$contract.$network.caip2
-			&& selection.entitySelector.$contract.$network.caip2.reference != null
-			&& selection.entitySelector.$contract != null && 'address' in selection.entitySelector.$contract
-			&& selection.entitySelector.$contract.address != null ?
-				resolve('/services/agent/[chainId=eip155ChainId]/[contractAddress=evmAddress]/[tokenId=stringSegment]', {
-			tokenId: String(selection.entitySelector.tokenId ?? ''),
-			chainId: String(selection.entitySelector.$contract.$network.caip2.reference ?? ''),
-			contractAddress: String(selection.entitySelector.$contract.address ?? ''),
-		})
-		:
+			'caip2' in selection.entitySelector.$contract.$network ?
+				resolve(
+					'/services/agent/[chainId=eip155ChainId]/[contractAddress=evmAddress]/[tokenId=stringSegment]',
+					{
+						chainId: String(selection.entitySelector.$contract.$network.caip2.reference),
+						contractAddress: String(selection.entitySelector.$contract.address),
+						tokenId: String(selection.entitySelector.tokenId),
+					}
+				)
+			:
 				undefined
 		)
 	}
@@ -115,8 +94,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={evmNft}>
 			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.name) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+				{(entity.name ?? '') || title || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -140,30 +118,6 @@
 				<dd>
 					<EvmContractView
 						selection={select(EntityType.EvmContract, selection.entitySelector.$contract)}
-						href={
-							(
-								selection.entitySelector.$contract != null && 'address' in selection.entitySelector.$contract
-								&& selection.entitySelector.$contract.address != null
-								&& selection.entitySelector.$contract != null && '$network' in selection.entitySelector.$contract ?
-									selection.entitySelector.$contract.$network != null && 'caip2' in selection.entitySelector.$contract.$network
-									&& selection.entitySelector.$contract.$network.caip2 != null ?
-										resolve('/network/[network=networkCaip2OrNetworkSlug]/contract/[address=evmAddress]', {
-									address: String(selection.entitySelector.$contract.address ?? ''),
-									network: String(caip2StringFromValue(selection.entitySelector.$contract.$network.caip2) ?? ''),
-								})
-								:
-										selection.entitySelector.$contract.$network != null && 'slug' in selection.entitySelector.$contract.$network
-										&& selection.entitySelector.$contract.$network.slug != null ?
-											resolve('/network/[network=networkCaip2OrNetworkSlug]/contract/[address=evmAddress]', {
-										address: String(selection.entitySelector.$contract.address ?? ''),
-										network: String(selection.entitySelector.$contract.$network.slug ?? ''),
-									})
-									:
-										undefined
-							:
-									undefined
-							)
-						}
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -173,24 +127,7 @@
 			<div>
 				<dt>Token ID</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									tokenId: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const tokenId = resolvedEntity.tokenId}
-							{#if tokenId !== undefined && tokenId !== null}
-								{String((tokenId) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{pendingEntity.tokenId}
 				</dd>
 			</div>
 
@@ -199,8 +136,7 @@
 				<dd>
 					<ResourceBoundary
 						resource={
-							selection({
-								sources: selection.sources,
+							viewSelection({
 								fields: {
 									standard: true,
 								},
@@ -208,11 +144,7 @@
 						}
 					>
 						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const standard = resolvedEntity.standard}
-							{#if standard !== undefined && standard !== null}
-								{String((standard) ?? '')}
-							{/if}
+							{entity.standard}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -222,21 +154,10 @@
 				<dt>Format</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									format: true,
-								},
-							})
-						}
+						resource={evmNft}
 					>
 						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const format = resolvedEntity.format}
-							{#if format !== undefined && format !== null}
-								{String((format) ?? '')}
-							{/if}
+							{entity.format}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -255,9 +176,7 @@
 								resource={projection.agentRegistry}
 							>
 								{#snippet children(agentRegistry)}
-									{#if agentRegistry !== undefined && agentRegistry !== null}
-										{String((agentRegistry) ?? '')}
-									{/if}
+									{String(agentRegistry)}
 								{/snippet}
 							</ResourceBoundary>
 						</dd>
@@ -270,9 +189,7 @@
 								resource={projection.agentId}
 							>
 								{#snippet children(agentId)}
-									{#if agentId !== undefined && agentId !== null}
-										{String((agentId) ?? '')}
-									{/if}
+									{String(agentId)}
 								{/snippet}
 							</ResourceBoundary>
 						</dd>
@@ -282,18 +199,17 @@
 						resource={projection.agentUri}
 					>
 						{#snippet children(agentUri)}
-							{#if agentUri !== undefined && agentUri !== null}
+							{#if agentUri != null}
 								<div>
 									<dt>Agent URI</dt>
 									<dd>
-										<svelte:element
-											this={'a'}
+										<a
 											href={String(agentUri)}
 											target="_blank"
 											rel="noreferrer noopener"
 										>
 											<TruncatedValue value={String(agentUri)} />
-										</svelte:element>
+										</a>
 									</dd>
 								</div>
 							{/if}
@@ -304,11 +220,11 @@
 						resource={projection.contactEndpoint}
 					>
 						{#snippet children(contactEndpoint)}
-							{#if contactEndpoint !== undefined && contactEndpoint !== null}
+							{#if contactEndpoint != null}
 								<div>
 									<dt>Contact endpoint</dt>
 									<dd>
-										{String((contactEndpoint) ?? '')}
+										{String(contactEndpoint)}
 									</dd>
 								</div>
 							{/if}
@@ -319,24 +235,13 @@
 						resource={projection.$agentWallet}
 					>
 						{#snippet children(evmAccount)}
-							{#if evmAccount != null && evmAccount[EntityMetaKey.Selector] != null}
+							{#if evmAccount != null}
 								<div>
 									<dt>Agent wallet</dt>
 									<dd>
 										<EvmAccountView
 											selection={select(EntityType.EvmAccount, evmAccount[EntityMetaKey.Selector])}
 											prefetched={evmAccount}
-											href={
-												(
-													evmAccount[EntityMetaKey.Selector] != null && 'address' in evmAccount[EntityMetaKey.Selector]
-													&& evmAccount[EntityMetaKey.Selector].address != null ?
-														resolve('/account/[address=evmAddress]', {
-													address: String(evmAccount[EntityMetaKey.Selector].address ?? ''),
-												})
-												:
-														undefined
-												)
-											}
 											layout={EntityLayout.Value}
 											open={false}
 										/>
@@ -358,7 +263,7 @@
 						resource={projection.x402Support}
 					>
 						{#snippet children(x402Support)}
-							{#if x402Support !== undefined && x402Support !== null}
+							{#if x402Support != null}
 								<div>
 									<dt>x402 support</dt>
 									<dd>
@@ -373,8 +278,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							active: true,
 						},
@@ -382,9 +286,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const active = resolvedEntity.active}
-					{#if active !== undefined && active !== null}
+					{@const active = entity.active}
+					{#if active != null}
 						<div>
 							<dt>Active</dt>
 							<dd>
@@ -403,11 +306,11 @@
 						resource={projection.supportedTrust}
 					>
 						{#snippet children(supportedTrust)}
-							{#if supportedTrust !== undefined && supportedTrust !== null}
+							{#if supportedTrust != null}
 								<div>
 									<dt>Supported trust</dt>
 									<dd>
-										{supportedTrust == null ? '' : String(((supportedTrust).join(', ')) ?? '')}
+										{supportedTrust.join(', ')}
 									</dd>
 								</div>
 							{/if}
@@ -418,11 +321,11 @@
 						resource={projection.registrationTypeIri}
 					>
 						{#snippet children(registrationTypeIri)}
-							{#if registrationTypeIri !== undefined && registrationTypeIri !== null}
+							{#if registrationTypeIri != null}
 								<div>
 									<dt>Registration type IRI</dt>
 									<dd>
-										{String((registrationTypeIri) ?? '')}
+										{String(registrationTypeIri)}
 									</dd>
 								</div>
 							{/if}
@@ -433,7 +336,7 @@
 						resource={projection.fetchedAt}
 					>
 						{#snippet children(fetchedAt)}
-							{#if fetchedAt !== undefined && fetchedAt !== null}
+							{#if fetchedAt != null}
 								<div>
 									<dt>Fetched at</dt>
 									<dd>
@@ -449,8 +352,7 @@
 
 		<ResourceBoundary
 			resource={
-				selection({
-					sources: selection.sources,
+				viewSelection({
 					fields: {
 						description: true,
 					},
@@ -458,10 +360,9 @@
 			}
 		>
 			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const description = resolvedEntity.description}
-				{#if description !== undefined && description !== null && description !== ''}
-					<p data-text="long-text">{String((description) ?? '')}</p>
+				{@const description = entity.description}
+				{#if description != null && description !== ''}
+					<p data-text="long-text">{description}</p>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>

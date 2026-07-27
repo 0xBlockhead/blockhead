@@ -2,15 +2,8 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
-	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -22,42 +15,19 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.SolanaValidator_Timestamp>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.SolanaValidator_Timestamp>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.SolanaValidator_Timestamp> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const solanaValidatorTimestamp = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {
-			delinquent: true,
-			timestampMs: true,
-		},
-	} : {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const solanaValidatorTimestamp = $derived(selection({
 		fields: {
 			delinquent: true,
 			timestampMs: true,
 		},
 	}))
-	const titleFallback = $derived([String((pendingEntity.slot) ?? '')].filter(Boolean).join(' ') || 'solana validator timestamp')
-	const viewDomId = $derived('solana-validator-timestamp-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const titleFallback = $derived(String(pendingEntity.slot ?? '') || 'solana validator timestamp')
 
 
 	// Components
@@ -70,71 +40,37 @@
 
 <EntityView
 	entityType={EntityType.SolanaValidator_Timestamp}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'delinquent') && Object.hasOwn(prefetched, 'timestampMs')}
-			{@const slot0 = pendingEntity.slot}
-			{#if slot0 !== undefined && slot0 !== null}
-				<NumberValue
-					value={slot0}
-				/>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={solanaValidatorTimestamp}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const slot0 = resolvedEntity.slot}
-					{#if slot0 !== undefined && slot0 !== null}
-						<NumberValue
-							value={slot0}
-						/>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<NumberValue
+			value={pendingEntity.slot}
+		/>
 	{/snippet}
 
 	{#snippet Value()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'delinquent') && Object.hasOwn(prefetched, 'timestampMs')}
-			{[String((pendingEntity.delinquent) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.slot) ?? '')].filter(Boolean).join(' ') || titleFallback}
-		{:else}
-			<ResourceBoundary resource={solanaValidatorTimestamp}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.delinquent) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.slot) ?? '')].filter(Boolean).join(' ') || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={solanaValidatorTimestamp}>
+			{#snippet children(entity)}
+				{String(entity.delinquent ?? '') || String(pendingEntity.slot) || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'delinquent') && Object.hasOwn(prefetched, 'timestampMs')}
-			{@const timestampMs0 = pendingEntity.timestampMs}
-			{#if timestampMs0 !== undefined && timestampMs0 !== null}
-				<span data-text="muted">
-					<Timestamp timestamp={Number(timestampMs0)} />
-				</span>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={solanaValidatorTimestamp}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const timestampMs0 = resolvedEntity.timestampMs}
-					{#if timestampMs0 !== undefined && timestampMs0 !== null}
-						<span data-text="muted">
-							<Timestamp timestamp={Number(timestampMs0)} />
-						</span>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={solanaValidatorTimestamp}>
+			{#snippet children(entity)}
+				{@const timestampMs0 = entity.timestampMs}
+				{#if timestampMs0 != null}
+					<span data-text="muted">
+						<Timestamp timestamp={Number(timestampMs0)} />
+					</span>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -144,30 +80,6 @@
 				<dd>
 					<SolanaValidatorView
 						selection={select(EntityType.SolanaValidator, selection.entitySelector.$validator)}
-						href={
-							(
-								selection.entitySelector.$validator != null && 'votePubkey' in selection.entitySelector.$validator
-								&& selection.entitySelector.$validator.votePubkey != null
-								&& selection.entitySelector.$validator != null && '$network' in selection.entitySelector.$validator ?
-									selection.entitySelector.$validator.$network != null && 'caip2' in selection.entitySelector.$validator.$network
-									&& selection.entitySelector.$validator.$network.caip2 != null ?
-										resolve('/network/[network=networkCaip2OrNetworkSlug]/validator/[validatorId=nonNegativeIntegerOrSolanaPubkey]', {
-									validatorId: String(selection.entitySelector.$validator.votePubkey ?? ''),
-									network: String(caip2StringFromValue(selection.entitySelector.$validator.$network.caip2) ?? ''),
-								})
-								:
-										selection.entitySelector.$validator.$network != null && 'slug' in selection.entitySelector.$validator.$network
-										&& selection.entitySelector.$validator.$network.slug != null ?
-											resolve('/network/[network=networkCaip2OrNetworkSlug]/validator/[validatorId=nonNegativeIntegerOrSolanaPubkey]', {
-										validatorId: String(selection.entitySelector.$validator.votePubkey ?? ''),
-										network: String(selection.entitySelector.$validator.$network.slug ?? ''),
-									})
-									:
-										undefined
-							:
-									undefined
-							)
-						}
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -177,31 +89,13 @@
 			<div>
 				<dt>Source</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									source: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const source = resolvedEntity.source}
-							{#if source !== undefined && source !== null}
-								{String((source) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{pendingEntity.source}
 				</dd>
 			</div>
 
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							nodePubkey: true,
 						},
@@ -209,13 +103,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const nodePubkey = resolvedEntity.nodePubkey}
-					{#if nodePubkey !== undefined && nodePubkey !== null}
+					{@const nodePubkey = entity.nodePubkey}
+					{#if nodePubkey != null}
 						<div>
 							<dt>Node public key</dt>
 							<dd>
-								{String((nodePubkey) ?? '')}
+								{nodePubkey}
 							</dd>
 						</div>
 					{/if}
@@ -225,7 +118,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							activatedStakeLamports: true,
 						},
@@ -233,13 +125,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const activatedStakeLamports = resolvedEntity.activatedStakeLamports}
-					{#if activatedStakeLamports !== undefined && activatedStakeLamports !== null}
+					{@const activatedStakeLamports = entity.activatedStakeLamports}
+					{#if activatedStakeLamports != null}
 						<div>
 							<dt>Activated stake</dt>
 							<dd>
-								{String((activatedStakeLamports) ?? '')}
+								{String(activatedStakeLamports)}
 							</dd>
 						</div>
 					{/if}
@@ -249,7 +140,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							commission: true,
 						},
@@ -257,13 +147,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const commission = resolvedEntity.commission}
-					{#if commission !== undefined && commission !== null}
+					{@const commission = entity.commission}
+					{#if commission != null}
 						<div>
 							<dt>Commission</dt>
 							<dd>
-								{String((commission) ?? '')}
+								{String(commission)}
 							</dd>
 						</div>
 					{/if}
@@ -273,7 +162,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							lastVoteSlot: true,
 						},
@@ -281,13 +169,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const lastVoteSlot = resolvedEntity.lastVoteSlot}
-					{#if lastVoteSlot !== undefined && lastVoteSlot !== null}
+					{@const lastVoteSlot = entity.lastVoteSlot}
+					{#if lastVoteSlot != null}
 						<div>
 							<dt>Last vote slot</dt>
 							<dd>
-								{String((lastVoteSlot) ?? '')}
+								{String(lastVoteSlot)}
 							</dd>
 						</div>
 					{/if}
@@ -297,7 +184,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							rootSlot: true,
 						},
@@ -305,13 +191,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const rootSlot = resolvedEntity.rootSlot}
-					{#if rootSlot !== undefined && rootSlot !== null}
+					{@const rootSlot = entity.rootSlot}
+					{#if rootSlot != null}
 						<div>
 							<dt>Root slot</dt>
 							<dd>
-								{String((rootSlot) ?? '')}
+								{String(rootSlot)}
 							</dd>
 						</div>
 					{/if}

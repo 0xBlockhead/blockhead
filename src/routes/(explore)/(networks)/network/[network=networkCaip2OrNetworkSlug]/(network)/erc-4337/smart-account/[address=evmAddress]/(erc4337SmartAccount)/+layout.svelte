@@ -30,24 +30,30 @@
 {#key [params.network, params.address].join(':')}
 	<ParentPageCollapsible
 		href={
-			resolve('/network/[network=networkCaip2OrNetworkSlug]/erc-4337/smart-account/[address=evmAddress]', {
-				network: params.network,
-				address: params.address,
-			})
+			resolve(
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/erc-4337/smart-account/[address=evmAddress]',
+				{
+					network: String(params.network),
+					address: String(params.address),
+				}
+			)
 		}
 	>
 		{#snippet Summary()}
-			{@const DetailView = Erc4337SmartAccountView}
-
-			<DetailView
-				selection={select(EntityType.Erc4337SmartAccount, data.selector, { sources: [
-		Source.Blockscout_Rest,
-	] })}
+			<Erc4337SmartAccountView
+				selection={
+					select(EntityType.Erc4337SmartAccount, data.selector, { sources: [
+						Source.Blockscout_Rest,
+					] })
+				}
 				href={
-					resolve('/network/[network=networkCaip2OrNetworkSlug]/erc-4337/smart-account/[address=evmAddress]', {
-						network: params.network,
-						address: params.address,
-					})
+					resolve(
+						'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/erc-4337/smart-account/[address=evmAddress]',
+						{
+							network: String(params.network),
+							address: String(params.address),
+						}
+					)
 				}
 				layout={EntityLayout.SummaryInline}
 			/>

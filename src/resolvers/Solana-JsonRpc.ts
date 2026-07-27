@@ -7,62 +7,22 @@ import {
 	NetworkExecutionModel,
 	NetworkLedgerModel,
 } from '$/constants/Network.ts'
-import { TransportType } from '$/constants/TransportType.ts'
 import {
 	EntityMetaKey,
 	entityFieldAddressKey,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
-import { sourceProviderDefinitions } from '$/sources/$sourceProviders.ts'
-import {
-	SourceEndpointKind,
-	SourceTargetKind,
-} from '$/sources/SourceBinding.ts'
 import type {
 	SolanaRpcInstruction,
 	SolanaRpcTransactionWithMeta,
 	SolanaRpcVoteAccounts,
 } from '$/sources/Solana/JsonRpc/types.ts'
-import { NetworkSelector } from '$/schema/Network.ts'
-import { Network_TimestampSelector } from '$/schema/Network_Timestamp.ts'
-import { SolanaBlockSelector } from '$/schema/SolanaBlock.ts'
-import { SolanaTransactionSelector } from '$/schema/SolanaTransaction.ts'
-import { SolanaTransaction_TimestampSelector } from '$/schema/SolanaTransaction_Timestamp.ts'
-import { SolanaInstructionKind, SolanaInstructionSelector } from '$/schema/SolanaInstruction.ts'
-import { SolanaAccountSelector } from '$/schema/SolanaAccount.ts'
-import { SolanaAccount_TimestampSelector } from '$/schema/SolanaAccount_Timestamp.ts'
-import { SolanaProgramSelector } from '$/schema/SolanaProgram.ts'
-import { SolanaTokenMintSelector } from '$/schema/SolanaTokenMint.ts'
-import { SolanaTokenMint_TimestampSelector } from '$/schema/SolanaTokenMint_Timestamp.ts'
-import { SolanaTokenAccountSelector } from '$/schema/SolanaTokenAccount.ts'
-import { SolanaTokenAccount_TimestampSelector } from '$/schema/SolanaTokenAccount_Timestamp.ts'
-import { SolanaValidatorSelector } from '$/schema/SolanaValidator.ts'
-import { SolanaValidator_TimestampSelector } from '$/schema/SolanaValidator_Timestamp.ts'
+import { SolanaInstructionKind } from '$/schema/SolanaInstruction.ts'
 import type { Entity } from '$/schema/$schema.ts'
 import { schema } from '$/schema/index.ts'
 
 const solanaMainnetCaip2 = networkBySlug.solana.caip2
-
-const solanaMainnetBindingEntries = sourceProviderDefinitions
-	.flatMap((provider) => provider.bindings.map((binding) => ({
-		binding,
-		providerName: provider.label,
-	})))
-	.filter(({ binding }) => (
-		binding.source === Source.Solana_JsonRpc
-		&& binding.target.kind === SourceTargetKind.Caip2Network
-		&& binding.target.key === `${solanaMainnetCaip2.namespace}:${solanaMainnetCaip2.reference}`
-	))
-
-const solanaMainnetHttpBindingEntries = solanaMainnetBindingEntries.filter(({ binding }) => (
-	binding.endpoints.some((endpoint) => endpoint.endpointKind === SourceEndpointKind.HttpUrl)
-))
-const [solanaMainnetHttpBindingEntry] = solanaMainnetHttpBindingEntries
-if (solanaMainnetHttpBindingEntry == null || solanaMainnetHttpBindingEntries.length !== 1)
-	throw new Error('Solana_JsonRpc: canonical Solana mainnet HTTP source binding is missing or ambiguous')
-
-const solanaMainnetHttpBinding = solanaMainnetHttpBindingEntry.binding
 
 const assertSolanaMainnet = (network: { caip2: {
 	namespace: string
@@ -374,7 +334,6 @@ const getTransaction = async ({ $network, signature }: {
 	assertSolanaMainnet($network)
 	const { getTransaction } = await import('$/sources/Solana/JsonRpc/queries.ts')
 	const transaction = await getTransaction({
-		binding: solanaMainnetHttpBinding,
 		signature: signature,
 	})
 	if (transaction == null) throw new Error(`Solana_JsonRpc: transaction not found for signature ${signature}`)
@@ -492,7 +451,7 @@ export default {
 		defineResolver(Source.Solana_JsonRpc, {
 			entityType: EntityType.SolanaBlock,
 			resolve: {
-				[SolanaBlockSelector.Slot]: {
+				Slot: {
 					resolve: async ({ $network, slot }: {
 						$network: { caip2: {
 							namespace: string
@@ -504,7 +463,6 @@ export default {
 
 							const { getBlock } = await import('$/sources/Solana/JsonRpc/queries.ts')
 							const block = await getBlock({
-								binding: solanaMainnetHttpBinding,
 								slot,
 							})
 							if (block == null) throw new Error(`Solana_JsonRpc: block not found for slot ${slot.toString()}`)
@@ -557,27 +515,11 @@ export default {
 		defineResolver(Source.Solana_JsonRpc, {
 			entityType: EntityType.Network,
 			resolve: {
-				[NetworkSelector.Caip2]: {
+				Caip2: {
 					resolve: async ({ caip2 }) => {
 						assertSolanaMainnet({ caip2 })
-						return solanaMainnetBindingEntries.flatMap(({ binding, providerName }) => (
-							binding.endpoints.flatMap((endpoint) => (
-								endpoint.endpointKind === SourceEndpointKind.HttpUrl
-									|| endpoint.endpointKind === SourceEndpointKind.WebSocketUrl ?
-									[{
-										url: endpoint.locator,
-										transportType: (
-											endpoint.endpointKind === SourceEndpointKind.HttpUrl ?
-												TransportType.Http
-											:
-												TransportType.WebSocket
-										),
-										providerName,
-									}]
-								:
-									[]
-							))
-						))
+						const { solanaRpcEndpoints } = await import('$/sources/Solana/JsonRpc/queries.ts')
+						return solanaRpcEndpoints
 					},
 				}
 			},
@@ -590,7 +532,7 @@ export default {
 		defineResolver(Source.Solana_JsonRpc, {
 			entityType: EntityType.Network_Timestamp,
 			resolve: {
-				[Network_TimestampSelector.NetworkTimestampMsSource]: {
+				NetworkTimestampMsSource: {
 					resolve: async ({ $network, timestampMs, source }) => {
 						if (source !== Source.Solana_JsonRpc) throw new Error(`Solana_JsonRpc: unsupported source ${source}`)
 						assertSolanaMainnet($network)
@@ -606,18 +548,10 @@ export default {
 						version,
 						voteAccounts,
 						] = await Promise.all([
-							getEpochInfo({
-								binding: solanaMainnetHttpBinding,
-							}),
-							getHealth({
-								binding: solanaMainnetHttpBinding,
-							}),
-							getVersion({
-								binding: solanaMainnetHttpBinding,
-							}),
-							getVoteAccounts({
-								binding: solanaMainnetHttpBinding,
-							}),
+							getEpochInfo(),
+							getHealth(),
+							getVersion(),
+							getVoteAccounts({}),
 						])
 						return {
 							$network: {
@@ -673,7 +607,7 @@ export default {
 		defineResolver(Source.Solana_JsonRpc, {
 			entityType: EntityType.SolanaTransaction,
 			resolve: {
-				[SolanaTransactionSelector.NetworkSignature]: {
+				NetworkSignature: {
 					resolve: async ({ $network, signature }) => {
 						const transaction = await getTransaction({
 							$network,
@@ -721,7 +655,7 @@ export default {
 		defineResolver(Source.Solana_JsonRpc, {
 			entityType: EntityType.SolanaTransaction_Timestamp,
 			resolve: {
-				[SolanaTransaction_TimestampSelector.TransactionSlotSource]: {
+				TransactionSlotSource: {
 					resolve: async ({ $transaction, slot, source }) => {
 						if (source !== Source.Solana_JsonRpc) throw new Error(`Solana_JsonRpc: unsupported source ${source}`)
 						const transaction = await getTransaction($transaction)
@@ -734,7 +668,6 @@ export default {
 								slot
 							),
 							confirmationStatus: (await getSignatureStatuses({
-								binding: solanaMainnetHttpBinding,
 								signatures: [$transaction.signature],
 							})).value[0]?.confirmationStatus,
 						}
@@ -756,7 +689,7 @@ export default {
 		defineResolver(Source.Solana_JsonRpc, {
 			entityType: EntityType.SolanaInstruction,
 			resolve: {
-				[SolanaInstructionSelector.SolanaTransactionIndexInTransaction]: {
+				SolanaTransactionIndexInTransaction: {
 					resolve: async ({ $transaction, indexInTransaction }) => {
 						const transaction = await getTransaction($transaction)
 						return {
@@ -769,7 +702,7 @@ export default {
 						}
 					},
 				},
-				[SolanaInstructionSelector.SolanaTransactionIndexInInstruction]: {
+				SolanaTransactionIndexInInstruction: {
 					resolve: async ({ $transaction, indexInTransaction, indexInInstruction }) => {
 						const transaction = await getTransaction($transaction)
 						const instruction = transaction.meta?.innerInstructions
@@ -807,12 +740,11 @@ export default {
 		defineResolver(Source.Solana_JsonRpc, {
 			entityType: EntityType.SolanaAccount,
 			resolve: {
-				[SolanaAccountSelector.NetworkPubkey]: {
+				NetworkPubkey: {
 					resolve: async ({ $network, pubkey }) => {
 						assertSolanaMainnet($network)
 						const { getAccountInfo, getSlot } = await import('$/sources/Solana/JsonRpc/queries.ts')
 						const accountInfo = await getAccountInfo({
-							binding: solanaMainnetHttpBinding,
 							pubkey: pubkey,
 						})
 						if (accountInfo.value == null) throw new Error(`Solana_JsonRpc: account not found for pubkey ${pubkey}`)
@@ -824,9 +756,7 @@ export default {
 										pubkey,
 									},
 									accountInfo.value,
-									BigInt(await getSlot({
-										binding: solanaMainnetHttpBinding,
-									}))
+									BigInt(await getSlot())
 								),
 							],
 						}
@@ -842,13 +772,12 @@ export default {
 		defineResolver(Source.Solana_JsonRpc, {
 			entityType: EntityType.SolanaAccount_Timestamp,
 			resolve: {
-				[SolanaAccount_TimestampSelector.AccountSlotSource]: {
+				AccountSlotSource: {
 					resolve: async ({ $account, slot, source }) => {
 						if (source !== Source.Solana_JsonRpc) throw new Error(`Solana_JsonRpc: unsupported source ${source}`)
 						assertSolanaMainnet($account.$network)
 						const { getAccountInfo } = await import('$/sources/Solana/JsonRpc/queries.ts')
 						const accountInfo = await getAccountInfo({
-							binding: solanaMainnetHttpBinding,
 							pubkey: $account.pubkey,
 						})
 						if (accountInfo.value == null) throw new Error(`Solana_JsonRpc: account not found for pubkey ${$account.pubkey}`)
@@ -874,7 +803,7 @@ export default {
 		defineResolver(Source.Solana_JsonRpc, {
 			entityType: EntityType.SolanaProgram,
 			resolve: {
-				[SolanaProgramSelector.NetworkProgramId]: {
+				NetworkProgramId: {
 					resolve: async ({ $network, programId }) => {
 						assertSolanaMainnet($network)
 						return {
@@ -895,12 +824,11 @@ export default {
 		defineResolver(Source.Solana_JsonRpc, {
 			entityType: EntityType.SolanaTokenMint,
 			resolve: {
-				[SolanaTokenMintSelector.NetworkMintAddress]: {
+				NetworkMintAddress: {
 					resolve: async ({ $network, mintAddress }) => {
 						assertSolanaMainnet($network)
 						const { getParsedTokenMintAccountInfo, getSlot } = await import('$/sources/Solana/JsonRpc/queries.ts')
 						const accountInfo = await getParsedTokenMintAccountInfo({
-							binding: solanaMainnetHttpBinding,
 							pubkey: mintAddress,
 						})
 						if (accountInfo.value == null) throw new Error(`Solana_JsonRpc: token mint not found for address ${mintAddress}`)
@@ -912,9 +840,7 @@ export default {
 											$network,
 											mintAddress,
 										},
-										slot: BigInt(await getSlot({
-											binding: solanaMainnetHttpBinding,
-										})),
+										slot: BigInt(await getSlot()),
 										source: Source.Solana_JsonRpc,
 									},
 								},
@@ -930,13 +856,12 @@ export default {
 		defineResolver(Source.Solana_JsonRpc, {
 			entityType: EntityType.SolanaTokenMint_Timestamp,
 			resolve: {
-				[SolanaTokenMint_TimestampSelector.MintSlotSource]: {
+				MintSlotSource: {
 					resolve: async ({ $mint, slot, source }) => {
 						if (source !== Source.Solana_JsonRpc) throw new Error(`Solana_JsonRpc: unsupported source ${source}`)
 						assertSolanaMainnet($mint.$network)
 						const { getParsedTokenMintAccountInfo } = await import('$/sources/Solana/JsonRpc/queries.ts')
 						const accountInfo = await getParsedTokenMintAccountInfo({
-							binding: solanaMainnetHttpBinding,
 							pubkey: $mint.mintAddress,
 						})
 						if (accountInfo.value == null) throw new Error(`Solana_JsonRpc: token mint not found for address ${$mint.mintAddress}`)
@@ -969,12 +894,11 @@ export default {
 		defineResolver(Source.Solana_JsonRpc, {
 			entityType: EntityType.SolanaTokenAccount,
 			resolve: {
-				[SolanaTokenAccountSelector.NetworkTokenAccountPubkey]: {
+				NetworkTokenAccountPubkey: {
 					resolve: async ({ $network, tokenAccountPubkey }) => {
 						assertSolanaMainnet($network)
 						const { getParsedTokenAccountInfo, getSlot } = await import('$/sources/Solana/JsonRpc/queries.ts')
 						const accountInfo = await getParsedTokenAccountInfo({
-							binding: solanaMainnetHttpBinding,
 							pubkey: tokenAccountPubkey,
 						})
 						if (accountInfo.value == null) throw new Error(`Solana_JsonRpc: token account not found for address ${tokenAccountPubkey}`)
@@ -1021,9 +945,7 @@ export default {
 											$network,
 											tokenAccountPubkey,
 										},
-										slot: BigInt(await getSlot({
-											binding: solanaMainnetHttpBinding,
-										})),
+										slot: BigInt(await getSlot()),
 										source: Source.Solana_JsonRpc,
 									},
 								},
@@ -1044,13 +966,12 @@ export default {
 		defineResolver(Source.Solana_JsonRpc, {
 			entityType: EntityType.SolanaTokenAccount_Timestamp,
 			resolve: {
-				[SolanaTokenAccount_TimestampSelector.TokenAccountSlotSource]: {
+				TokenAccountSlotSource: {
 					resolve: async ({ $tokenAccount, slot, source }) => {
 						if (source !== Source.Solana_JsonRpc) throw new Error(`Solana_JsonRpc: unsupported source ${source}`)
 						assertSolanaMainnet($tokenAccount.$network)
 						const { getParsedTokenAccountInfo } = await import('$/sources/Solana/JsonRpc/queries.ts')
 						const accountInfo = await getParsedTokenAccountInfo({
-							binding: solanaMainnetHttpBinding,
 							pubkey: $tokenAccount.tokenAccountPubkey,
 						})
 						if (accountInfo.value == null) throw new Error(`Solana_JsonRpc: token account not found for address ${$tokenAccount.tokenAccountPubkey}`)
@@ -1082,12 +1003,11 @@ export default {
 		defineResolver(Source.Solana_JsonRpc, {
 			entityType: EntityType.SolanaValidator,
 			resolve: {
-				[SolanaValidatorSelector.NetworkVotePubkey]: {
+				NetworkVotePubkey: {
 					resolve: async ({ $network, votePubkey }) => {
 						assertSolanaMainnet($network)
 						const { getSlot, getVoteAccounts } = await import('$/sources/Solana/JsonRpc/queries.ts')
 						const voteAccounts = await getVoteAccounts({
-							binding: solanaMainnetHttpBinding,
 							votePubkey: votePubkey,
 						})
 						const currentVoteAccount = voteAccounts.current.find((voteAccount) => (
@@ -1106,9 +1026,7 @@ export default {
 											$network,
 											votePubkey,
 										},
-										slot: BigInt(await getSlot({
-											binding: solanaMainnetHttpBinding,
-										})),
+										slot: BigInt(await getSlot()),
 										source: Source.Solana_JsonRpc,
 									},
 								},
@@ -1124,13 +1042,12 @@ export default {
 		defineResolver(Source.Solana_JsonRpc, {
 			entityType: EntityType.SolanaValidator_Timestamp,
 			resolve: {
-				[SolanaValidator_TimestampSelector.ValidatorSlotSource]: {
+				ValidatorSlotSource: {
 					resolve: async ({ $validator, slot, source }) => {
 						if (source !== Source.Solana_JsonRpc) throw new Error(`Solana_JsonRpc: unsupported source ${source}`)
 						assertSolanaMainnet($validator.$network)
 						const { getVoteAccounts } = await import('$/sources/Solana/JsonRpc/queries.ts')
 						const voteAccounts = await getVoteAccounts({
-							binding: solanaMainnetHttpBinding,
 							votePubkey: $validator.votePubkey,
 						})
 						const currentVoteAccount = voteAccounts.current.find((voteAccount) => (
@@ -1173,7 +1090,7 @@ export default {
 		defineResolver(Source.Solana_JsonRpc, {
 			entityType: EntityType.Network,
 			resolve: {
-				[NetworkSelector.Caip2]: {
+				Caip2: {
 					resolve: async ({ caip2 }) => {
 						assertSolanaMainnet({ caip2 })
 						return [
@@ -1195,7 +1112,7 @@ export default {
 		defineResolver(Source.Solana_JsonRpc, {
 			entityType: EntityType.Network,
 			resolve: {
-				[NetworkSelector.Caip2]: {
+				Caip2: {
 					resolve: async ({ caip2 }, context) => {
 						assertSolanaMainnet({ caip2 })
 						const {
@@ -1203,11 +1120,8 @@ export default {
 							getSlot,
 						} = await import('$/sources/Solana/JsonRpc/queries.ts')
 						const limit = resolverContextRowLimit(context)
-						const endSlot = BigInt(await getSlot({
-							binding: solanaMainnetHttpBinding,
-						}))
+						const endSlot = BigInt(await getSlot())
 						return (await getBlocks({
-							binding: solanaMainnetHttpBinding,
 							startSlot: endSlot > BigInt(limit - 1) ?
 								endSlot - BigInt(limit - 1)
 							:
@@ -1234,18 +1148,14 @@ export default {
 		defineResolver(Source.Solana_JsonRpc, {
 			entityType: EntityType.Network,
 			resolve: {
-				[NetworkSelector.Caip2]: {
+				Caip2: {
 					resolve: async ({ caip2 }) => {
 						assertSolanaMainnet({ caip2 })
 						const { getSlot, getVoteAccounts } = await import('$/sources/Solana/JsonRpc/queries.ts')
 						return solanaValidatorRows(
 							{ caip2 },
-							await getVoteAccounts({
-								binding: solanaMainnetHttpBinding,
-							}),
-							BigInt(await getSlot({
-								binding: solanaMainnetHttpBinding,
-							}))
+							await getVoteAccounts({}),
+							BigInt(await getSlot())
 						)
 					},
 				}
@@ -1259,13 +1169,11 @@ export default {
 		defineResolver(Source.Solana_JsonRpc, {
 			entityType: EntityType.Network,
 			resolve: {
-				[NetworkSelector.Caip2]: {
+				Caip2: {
 					resolve: async ({ caip2 }) => {
 						assertSolanaMainnet({ caip2 })
 						const { getVoteAccounts } = await import('$/sources/Solana/JsonRpc/queries.ts')
-						const voteAccounts = await getVoteAccounts({
-							binding: solanaMainnetHttpBinding,
-						})
+						const voteAccounts = await getVoteAccounts({})
 						return voteAccounts.current.length + voteAccounts.delinquent.length
 					},
 				}
@@ -1281,7 +1189,7 @@ export default {
 		defineResolver(Source.Solana_JsonRpc, {
 			entityType: EntityType.Network,
 			resolve: {
-				[NetworkSelector.Caip2]: {
+				Caip2: {
 					resolve: async ({ caip2 }, context) => {
 						assertSolanaMainnet({ caip2 })
 						const {
@@ -1290,13 +1198,10 @@ export default {
 							getSlot,
 						} = await import('$/sources/Solana/JsonRpc/queries.ts')
 						const limit = resolverContextRowLimit(context)
-						const endSlot = BigInt(await getSlot({
-							binding: solanaMainnetHttpBinding,
-						}))
+						const endSlot = BigInt(await getSlot())
 						const blocks = (
 							await Promise.all(
 								(await getBlocks({
-									binding: solanaMainnetHttpBinding,
 									startSlot: endSlot > 31n ? endSlot - 31n : 0n,
 									endSlot,
 								}))
@@ -1304,7 +1209,6 @@ export default {
 									.map(async (slot) => ({
 										slot: BigInt(slot),
 										block: await getBlock({
-											binding: solanaMainnetHttpBinding,
 											slot: BigInt(slot),
 										}),
 									}))
@@ -1408,7 +1312,7 @@ export default {
 		defineResolver(Source.Solana_JsonRpc, {
 			entityType: EntityType.SolanaBlock,
 			resolve: {
-				[SolanaBlockSelector.Slot]: {
+				Slot: {
 					resolve: async ({ $network, slot }: {
 						$network: { caip2: {
 							namespace: string
@@ -1420,7 +1324,6 @@ export default {
 
 							const { getBlock } = await import('$/sources/Solana/JsonRpc/queries.ts')
 							const block = await getBlock({
-								binding: solanaMainnetHttpBinding,
 								slot,
 							})
 							if (block == null) throw new Error(`Solana_JsonRpc: block not found for slot ${slot.toString()}`)
@@ -1447,7 +1350,7 @@ export default {
 		defineResolver(Source.Solana_JsonRpc, {
 			entityType: EntityType.SolanaTransaction,
 			resolve: {
-				[SolanaTransactionSelector.NetworkSignature]: {
+				NetworkSignature: {
 					resolve: async ({ $network, signature }) => (
 						solanaInstructionRows(
 							$network,

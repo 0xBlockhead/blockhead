@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { sourceProviderDefinitions } from '$/sources/$sourceProviders.ts'
+import bindings from '$/sources/ZeroG/bindings.ts'
 import { Source } from '$/sources/Source.ts'
 
 const sourceFetch = vi.fn()
@@ -18,21 +18,6 @@ const { getInfo } = await import('$/sources/ZeroG/ChainScan/Rest/queries.ts')
 const { getStatus } = await import('$/sources/ZeroG/StorageNode/JsonRpc/queries.ts')
 const { getStorageMiner } = await import('$/sources/ZeroG/StorageScan/Rest/queries.ts')
 
-const bindingBySource = Object.fromEntries(
-	sourceProviderDefinitions
-		.flatMap((provider) => provider.bindings)
-		.filter((binding) => (
-			binding.source === Source.ZeroGChain_JsonRpc
-			|| binding.source === Source.ZeroGChainScan_Rest
-			|| binding.source === Source.ZeroGStorageNode_JsonRpc
-			|| binding.source === Source.ZeroGStorageScan_Rest
-		))
-		.map((binding) => [
-			binding.source,
-			binding,
-		])
-)
-
 describe('0G transport binding authority', () => {
 	beforeEach(() => {
 		sourceFetch.mockReset()
@@ -48,8 +33,8 @@ describe('0G transport binding authority', () => {
 				status: 200,
 			}))
 
-		await getBlockNumber(bindingBySource[Source.ZeroGChain_JsonRpc])
-		await getStatus(bindingBySource[Source.ZeroGStorageNode_JsonRpc])
+		await getBlockNumber()
+		await getStatus()
 
 		expect(sourceFetch.mock.calls.map(([binding, url]) => [
 			binding.source,
@@ -76,14 +61,13 @@ describe('0G transport binding authority', () => {
 			},
 		})
 
-		expect(getInfo(bindingBySource[Source.ZeroGChainScan_Rest]).url).toBe('https://chainscan.0g.ai')
+		expect(getInfo().url).toBe('https://chainscan.0g.ai')
 		await getStorageMiner({
-			binding: bindingBySource[Source.ZeroGStorageScan_Rest],
 			address: '0x0000000000000000000000000000000000000000',
 		})
 
-		expect(sourceGetJson).toHaveBeenCalledWith(
-			bindingBySource[Source.ZeroGStorageScan_Rest],
+	expect(sourceGetJson).toHaveBeenCalledWith(
+			bindings[Source.ZeroGStorageScan_Rest],
 			'https://storagescan.0g.ai/api/miners/0x0000000000000000000000000000000000000000'
 		)
 	})

@@ -2,15 +2,12 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
 	import { UrlString } from '$/schema/UrlString.ts'
 	import { EvmAddress, ZeroExHex } from '$/schema/ZeroExHex.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -22,42 +19,25 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.Eip8004Validation_Timestamp>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.Eip8004Validation_Timestamp>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.Eip8004Validation_Timestamp> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const eip8004ValidationTimestamp = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {
-			response: true,
-			validatorAddress: true,
-		},
-	} : {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const viewSelection = $derived(selection({
+		sources: selection.sources ?? [
+			Source.Eip8004Scan_Rest,
+			Source.Voltaire_JsonRpc,
+		],
+	}))
+	const eip8004ValidationTimestamp = $derived(viewSelection({
 		fields: {
 			response: true,
 			validatorAddress: true,
 		},
 	}))
-	const titleFallback = $derived([String((pendingEntity.requestHash) ?? '')].filter(Boolean).join(' ') || 'EIP-8004 validation timestamp')
-	const viewDomId = $derived('eip8004validation-timestamp-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const titleFallback = $derived(String(pendingEntity.requestHash ?? '') || 'EIP-8004 validation timestamp')
 
 
 	// Components
@@ -71,61 +51,35 @@
 
 <EntityView
 	entityType={EntityType.Eip8004Validation_Timestamp}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'response') && Object.hasOwn(prefetched, 'validatorAddress')}
-			{[String((pendingEntity.requestHash) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-		{:else}
-			<ResourceBoundary resource={eip8004ValidationTimestamp}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.requestHash) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		{String(pendingEntity.requestHash ?? '') || 'EIP-8004 validation timestamp'}
 	{/snippet}
 
 	{#snippet Value()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'response') && Object.hasOwn(prefetched, 'validatorAddress')}
-			{[String((pendingEntity.response) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.requestHash) ?? '')].filter(Boolean).join(' ') || titleFallback}
-		{:else}
-			<ResourceBoundary resource={eip8004ValidationTimestamp}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.response) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.requestHash) ?? '')].filter(Boolean).join(' ') || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={eip8004ValidationTimestamp}>
+			{#snippet children(entity)}
+				{String(entity.response ?? '') || String(pendingEntity.requestHash) || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'response') && Object.hasOwn(prefetched, 'validatorAddress')}
-			{@const validatorAddress0 = pendingEntity.validatorAddress}
-			{#if validatorAddress0 !== undefined && validatorAddress0 !== null}
-				<span data-text="muted">
-					<TruncatedValue value={String((validatorAddress0) ?? '')} />
-				</span>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={eip8004ValidationTimestamp}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const validatorAddress0 = resolvedEntity.validatorAddress}
-					{#if validatorAddress0 !== undefined && validatorAddress0 !== null}
-						<span data-text="muted">
-							<TruncatedValue value={String((validatorAddress0) ?? '')} />
-						</span>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={eip8004ValidationTimestamp}>
+			{#snippet children(entity)}
+				{@const validatorAddress0 = entity.validatorAddress}
+				{#if validatorAddress0 != null}
+					<span data-text="muted">
+						<TruncatedValue value={String(validatorAddress0)} />
+					</span>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -133,48 +87,14 @@
 			<div>
 				<dt>Request hash algorithm</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									requestHashAlgorithm: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const requestHashAlgorithm = resolvedEntity.requestHashAlgorithm}
-							{#if requestHashAlgorithm !== undefined && requestHashAlgorithm !== null}
-								<TruncatedValue value={String((requestHashAlgorithm) ?? '')} />
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					<TruncatedValue value={pendingEntity.requestHashAlgorithm} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Request hash</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									requestHash: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const requestHash = resolvedEntity.requestHash}
-							{#if requestHash !== undefined && requestHash !== null}
-								<TruncatedValue value={String((requestHash) ?? '')} />
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					<TruncatedValue value={String(pendingEntity.requestHash)} />
 				</dd>
 			</div>
 
@@ -182,7 +102,7 @@
 				resource={selection.$registration}
 			>
 				{#snippet children(eip8004AgentRegistration)}
-					{#if eip8004AgentRegistration != null && eip8004AgentRegistration[EntityMetaKey.Selector] != null}
+					{#if eip8004AgentRegistration != null}
 						<div>
 							<dt>Registration</dt>
 							<dd>
@@ -199,23 +119,15 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							validatorAddress: true,
-						},
-					})
-				}
+				resource={eip8004ValidationTimestamp}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const validatorAddress = resolvedEntity.validatorAddress}
-					{#if validatorAddress !== undefined && validatorAddress !== null}
+					{@const validatorAddress = entity.validatorAddress}
+					{#if validatorAddress != null}
 						<div>
 							<dt>Validator address</dt>
 							<dd>
-								<TruncatedValue value={String((validatorAddress) ?? '')} />
+								<TruncatedValue value={String(validatorAddress)} />
 							</dd>
 						</div>
 					{/if}
@@ -223,19 +135,11 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							response: true,
-						},
-					})
-				}
+				resource={eip8004ValidationTimestamp}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const response = resolvedEntity.response}
-					{#if response !== undefined && response !== null}
+					{@const response = entity.response}
+					{#if response != null}
 						<div>
 							<dt>Response</dt>
 							<dd>
@@ -252,8 +156,7 @@
 		<dl data-column-item="center">
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							requestUri: true,
 						},
@@ -261,20 +164,18 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const requestUri = resolvedEntity.requestUri}
-					{#if requestUri !== undefined && requestUri !== null}
+					{@const requestUri = entity.requestUri}
+					{#if requestUri != null}
 						<div>
 							<dt>Request URI</dt>
 							<dd>
-								<svelte:element
-									this={'a'}
+								<a
 									href={String(requestUri)}
 									target="_blank"
 									rel="noreferrer noopener"
 								>
 									<TruncatedValue value={String(requestUri)} />
-								</svelte:element>
+								</a>
 							</dd>
 						</div>
 					{/if}
@@ -283,8 +184,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							responseUri: true,
 						},
@@ -292,20 +192,18 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const responseUri = resolvedEntity.responseUri}
-					{#if responseUri !== undefined && responseUri !== null}
+					{@const responseUri = entity.responseUri}
+					{#if responseUri != null}
 						<div>
 							<dt>Response URI</dt>
 							<dd>
-								<svelte:element
-									this={'a'}
+								<a
 									href={String(responseUri)}
 									target="_blank"
 									rel="noreferrer noopener"
 								>
 									<TruncatedValue value={String(responseUri)} />
-								</svelte:element>
+								</a>
 							</dd>
 						</div>
 					{/if}
@@ -314,8 +212,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							responseHashAlgorithm: true,
 						},
@@ -323,13 +220,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const responseHashAlgorithm = resolvedEntity.responseHashAlgorithm}
-					{#if responseHashAlgorithm !== undefined && responseHashAlgorithm !== null}
+					{@const responseHashAlgorithm = entity.responseHashAlgorithm}
+					{#if responseHashAlgorithm != null}
 						<div>
 							<dt>Response hash algorithm</dt>
 							<dd>
-								<TruncatedValue value={String((responseHashAlgorithm) ?? '')} />
+								<TruncatedValue value={responseHashAlgorithm} />
 							</dd>
 						</div>
 					{/if}
@@ -338,8 +234,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							responseHash: true,
 						},
@@ -347,13 +242,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const responseHash = resolvedEntity.responseHash}
-					{#if responseHash !== undefined && responseHash !== null}
+					{@const responseHash = entity.responseHash}
+					{#if responseHash != null}
 						<div>
 							<dt>Response hash</dt>
 							<dd>
-								<TruncatedValue value={String((responseHash) ?? '')} />
+								<TruncatedValue value={String(responseHash)} />
 							</dd>
 						</div>
 					{/if}
@@ -364,8 +258,7 @@
 		<dl data-column-item="center">
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							tag: true,
 						},
@@ -373,13 +266,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const tag = resolvedEntity.tag}
-					{#if tag !== undefined && tag !== null}
+					{@const tag = entity.tag}
+					{#if tag != null}
 						<div>
 							<dt>Tag</dt>
 							<dd>
-								{String((tag) ?? '')}
+								{tag}
 							</dd>
 						</div>
 					{/if}
@@ -388,8 +280,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							lastUpdate: true,
 						},
@@ -397,9 +288,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const lastUpdate = resolvedEntity.lastUpdate}
-					{#if lastUpdate !== undefined && lastUpdate !== null}
+					{@const lastUpdate = entity.lastUpdate}
+					{#if lastUpdate != null}
 						<div>
 							<dt>Last update</dt>
 							<dd>
@@ -412,8 +302,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							blockNumber: true,
 						},
@@ -421,9 +310,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const blockNumber = resolvedEntity.blockNumber}
-					{#if blockNumber !== undefined && blockNumber !== null}
+					{@const blockNumber = entity.blockNumber}
+					{#if blockNumber != null}
 						<div>
 							<dt>Block number</dt>
 							<dd>
@@ -438,8 +326,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							transactionHash: true,
 						},
@@ -447,13 +334,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const transactionHash = resolvedEntity.transactionHash}
-					{#if transactionHash !== undefined && transactionHash !== null}
+					{@const transactionHash = entity.transactionHash}
+					{#if transactionHash != null}
 						<div>
 							<dt>Transaction hash</dt>
 							<dd>
-								<TruncatedValue value={String((transactionHash) ?? '')} />
+								<TruncatedValue value={String(transactionHash)} />
 							</dd>
 						</div>
 					{/if}

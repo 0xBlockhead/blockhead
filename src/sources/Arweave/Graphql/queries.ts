@@ -1,14 +1,10 @@
-import { Source } from '$/sources/Source.ts'
-import {
-	SourceTargetKind,
-	type SourceBinding,
-} from '$/sources/SourceBinding.ts'
 import { postJson } from '$/sources/_shared/wire/HttpRest/client.ts'
 import type {
 	ArweaveGraphqlTransaction,
 	ArweaveGraphqlTransactionPage,
 	ArweaveGraphqlTransactionsResponse,
 } from '$/sources/Arweave/Graphql/types.ts'
+import type { SourceBinding } from '$/sources/SourceBinding.ts'
 
 const transactionsQuery = `
 	query Transactions(
@@ -65,15 +61,6 @@ const transactionsQuery = `
 		}
 	}
 `
-
-const assertBinding = (binding: SourceBinding) => {
-	if (
-		binding.source !== Source.Arweave_Graphql
-		|| binding.target.kind !== SourceTargetKind.ContentAddressScheme
-		|| binding.target.key !== 'arweave'
-	)
-		throw new Error('Arweave_Graphql: expected canonical Arweave GraphQL binding')
-}
 
 const assertAddress = (
 	value: string,
@@ -138,7 +125,6 @@ const getTransactionPage = async ({
 	owners?: string[]
 	recipients?: string[]
 }): Promise<ArweaveGraphqlTransactionPage> => {
-	assertBinding(binding)
 	if (!Number.isSafeInteger(first) || first < 1 || first > 100)
 		throw new Error('Arweave_Graphql: page size must be an integer from 1 through 100')
 	if (after === '')

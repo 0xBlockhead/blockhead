@@ -1,14 +1,11 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { entity, facet } from '$/schema/$schema.ts'
+import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { type } from 'arktype'
 
-export enum ZeroGStorageNode_TimestampSelector {
-	StorageNodeTimestampMsSource = 'StorageNodeTimestampMsSource',
-}
-export const ZeroGStorageNode_Timestamp = entity({
+export default entity({
 	entityType: EntityType.ZeroGStorageNode_Timestamp,
 	labels: {
 		singular: 'zero g storage node timestamp',

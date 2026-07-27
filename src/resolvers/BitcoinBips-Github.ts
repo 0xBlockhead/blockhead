@@ -11,9 +11,6 @@ import {
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
-import { _GlobalSelector } from '$/schema/_Global.ts'
-import { SpecificationProposalSelector } from '$/schema/SpecificationProposal.ts'
-
 const bipMetadataValue = (text: string, key: string) => (
 	new RegExp(`^\\s*${key}:\\s*(.+?)\\s*$`, 'im').exec(text)?.[1]?.trim()
 )
@@ -55,7 +52,7 @@ export default {
 		defineResolver(Source.BitcoinBips_Github, {
 			entityType: EntityType.SpecificationProposal,
 			resolve: {
-				[SpecificationProposalSelector.RealmCategoryNumber]: {
+				RealmCategoryNumber: {
 					appliesTo: [
 						{
 							realm: OwnedSpecificationRealm.Bitcoin,
@@ -68,7 +65,9 @@ export default {
 						if (realm !== SpecificationRealm.Bitcoin || category !== ProposalCategory.Bip) {
 							throw new Error('BitcoinBips_Github: proposal resolver only supports Bitcoin BIPs')
 						}
-						const text = await getProposalMediaWikiText({ number: number })
+						const text = await getProposalMediaWikiText({
+							number: number,
+						})
 						if (text.trim() === '') throw new Error('BitcoinBips_Github: empty proposal text')
 						return {
 							documentCategory: bipMetadataValue(text, 'Type'),
@@ -89,7 +88,7 @@ export default {
 		defineResolver(Source.BitcoinBips_Github, {
 			entityType: EntityType._Global,
 			resolve: {
-				[_GlobalSelector.Scope]: {
+				Scope: {
 					resolve: async () => {
 						const { getContents } = await import('$/sources/BitcoinBips/Github/queries.ts')
 						return githubBipProposalIndexRows(await getContents())

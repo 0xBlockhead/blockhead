@@ -30,22 +30,28 @@
 {#key params.userId}
 	<ParentPageCollapsible
 		href={
-			resolve('/farcaster/user/[userId=farcasterFid]', {
-				userId: params.userId,
-			})
+			resolve(
+				'/(social)/(farcaster)/farcaster/(farcasterNetwork)/user/[userId=farcasterFid]',
+				{
+					userId: String(params.userId),
+				}
+			)
 		}
 	>
 		{#snippet Summary()}
-			{@const DetailView = FarcasterUserView}
-
-			<DetailView
-				selection={select(EntityType.FarcasterUser, data.selector, { sources: [
-		Source.Snapchain_Rest,
-	] })}
+			<FarcasterUserView
+				selection={
+					select(EntityType.FarcasterUser, data.selector, { sources: [
+						Source.Snapchain_Rest,
+					] })
+				}
 				href={
-					resolve('/farcaster/user/[userId=farcasterFid]', {
-						userId: params.userId,
-					})
+					resolve(
+						'/(social)/(farcaster)/farcaster/(farcasterNetwork)/user/[userId=farcasterFid]',
+						{
+							userId: String(params.userId),
+						}
+					)
 				}
 				layout={EntityLayout.SummaryInline}
 			/>

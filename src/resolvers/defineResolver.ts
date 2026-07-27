@@ -61,6 +61,14 @@ type ResolveShape<
 	}
 }>
 
+type ExactResolveConstraint<
+	_EntityType extends EntityType<typeof schema>,
+	_Resolve,
+> = Exclude<keyof _Resolve, EntitySelectorName<typeof schema, _EntityType>> extends never ?
+	unknown
+	:
+	{ readonly resolve: never }
+
 type ResolverFields<
 	_Source extends Source,
 	_EntityType extends EntityType<typeof schema>,
@@ -132,7 +140,7 @@ export function defineResolver<
 	resolver: {
 		entityType: _EntityType
 		resolve: _Resolve
-	}
+	} & ExactResolveConstraint<_EntityType, _Resolve>
 ): DefineResolverResult<_Source, _EntityType, _Resolve, typeof resolver>
 
 export function defineResolver<
@@ -146,7 +154,7 @@ export function defineResolver<
 		entityType: _EntityType
 		resolve: _Resolve
 		resolveLive: _ResolveLive
-	}
+	} & ExactResolveConstraint<_EntityType, _Resolve>
 ): DefineResolverResult<_Source, _EntityType, _Resolve, typeof resolver>
 
 export function defineResolver(

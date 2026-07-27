@@ -7,31 +7,13 @@ import {
 	EntityMetaKey,
 	type EntitySelector,
 } from '$/schema/$schema.ts'
-import { CardanoAddressSelector } from '$/schema/CardanoAddress.ts'
-import { CardanoBlockSelector } from '$/schema/CardanoBlock.ts'
-import { CardanoCommittee_EpochSelector } from '$/schema/CardanoCommittee_Epoch.ts'
-import { CardanoDRepSelector } from '$/schema/CardanoDRep.ts'
-import { CardanoGovernanceProposalSelector } from '$/schema/CardanoGovernanceProposal.ts'
-import { CardanoGovernanceProposal_TimestampSelector } from '$/schema/CardanoGovernanceProposal_Timestamp.ts'
-import { CardanoNetwork_TimestampSelector } from '$/schema/CardanoNetwork_Timestamp.ts'
-import { CardanoStakePoolSelector } from '$/schema/CardanoStakePool.ts'
-import { CardanoTransactionSelector } from '$/schema/CardanoTransaction.ts'
-import { CardanoTxInputSelector } from '$/schema/CardanoTxInput.ts'
-import { CardanoTxOutputSelector } from '$/schema/CardanoTxOutput.ts'
+import { cardanoGovernanceActionFields } from '$/resolvers/CardanoGovernance.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { schema } from '$/schema/index.ts'
-import { NetworkSelector } from '$/schema/Network.ts'
 import { Source } from '$/sources/Source.ts'
-import { sourceProviderDefinitions } from '$/sources/$sourceProviders.ts'
 import { firstHttpUrlForBinding } from '$/sources/_runtime/http.ts'
+import bindings from '$/sources/Blockfrost/bindings.ts'
 import type { BlockfrostBlock } from '$/sources/Blockfrost/Rest/types.ts'
-
-const blockfrostBinding = sourceProviderDefinitions
-	.flatMap((provider) => provider.bindings)
-	.find((binding) => binding.source === Source.Blockfrost_Rest)
-
-if (blockfrostBinding == null)
-	throw new Error('Blockfrost_Rest: source binding is missing')
 
 const assertCardanoMainnet = (
 	network: EntitySelector<typeof schema, EntityType.Network>
@@ -50,14 +32,16 @@ const assertCardanoMainnet = (
 		throw new Error('Blockfrost_Rest: unsupported network')
 }
 
-const cardanoNetworkSelectors = <const _Snapshot extends object>(
+const cardanoNetworkSelectors = <
+
+const _Snapshot extends object>(
 	resolve: (
 		network: EntitySelector<typeof schema, EntityType.Network>,
 		context: SourceResolverContext<Source.Blockfrost_Rest>
 	) => Promise<_Snapshot>
 ) => ({
-	[NetworkSelector.Slug]: { resolve },
-	[NetworkSelector.Caip2]: { resolve },
+	Slug: { resolve },
+	Caip2: { resolve },
 })
 
 const blockfrostPageContinuation = (
@@ -96,7 +80,6 @@ const cardanoTransactionUtxos = async (
 	assertCardanoMainnet(cardanoTransaction.$network)
 	const { getTransactionUtxos } = await import('$/sources/Blockfrost/Rest/queries.ts')
 	const transactionUtxos = await getTransactionUtxos(
-		blockfrostBinding,
 		cardanoTransaction.hash
 	)
 	if (transactionUtxos.hash !== cardanoTransaction.hash)
@@ -143,10 +126,10 @@ const networkObservation = async () => {
 		network,
 		health,
 	] = await Promise.all([
-		getLatestBlock(blockfrostBinding),
-		getLatestEpoch(blockfrostBinding),
-		getNetwork(blockfrostBinding),
-		getHealth(blockfrostBinding),
+		getLatestBlock(),
+		getLatestEpoch(),
+		getNetwork(),
+		getHealth(),
 	])
 	const timestampMs = block.time * 1_000
 	if (!Number.isSafeInteger(timestampMs) || timestampMs < 0)
@@ -184,9 +167,9 @@ const committeeEpoch = async (
 		epoch,
 		votes,
 	] = await Promise.all([
-		getCommittee(blockfrostBinding),
-		getLatestEpoch(blockfrostBinding),
-		listCommitteeVotes(blockfrostBinding, limit),
+		getCommittee(),
+		getLatestEpoch(),
+		listCommitteeVotes(limit),
 	])
 
 	return {
@@ -233,7 +216,7 @@ export default {
 		defineResolver(Source.Blockfrost_Rest, {
 			entityType: EntityType.CardanoAddress,
 			resolve: {
-				[CardanoAddressSelector.NetworkAddress]: {
+				NetworkAddress: {
 					resolve: async (cardanoAddress) => {
 						assertCardanoMainnet(cardanoAddress.$network)
 						const {
@@ -246,9 +229,9 @@ export default {
 							total,
 							block,
 						] = await Promise.all([
-							getAddress(blockfrostBinding, cardanoAddress.address),
-							getAddressTotal(blockfrostBinding, cardanoAddress.address),
-							getLatestBlock(blockfrostBinding),
+							getAddress(cardanoAddress.address),
+							getAddressTotal(cardanoAddress.address),
+							getLatestBlock(),
 						])
 						if (
 							address.address !== cardanoAddress.address
@@ -306,7 +289,7 @@ export default {
 		defineResolver(Source.Blockfrost_Rest, {
 			entityType: EntityType.CardanoAddress,
 			resolve: {
-				[CardanoAddressSelector.NetworkAddress]: {
+				NetworkAddress: {
 					resolve: async (cardanoAddress, context) => {
 						assertCardanoMainnet(cardanoAddress.$network)
 						const limit = Math.min(resolverContextRowLimit(context), 100)
@@ -323,7 +306,6 @@ export default {
 							limit,
 							page,
 							transactions: await listAddressTransactions(
-								blockfrostBinding,
 								cardanoAddress.address,
 								limit,
 								page
@@ -364,7 +346,7 @@ export default {
 		defineResolver(Source.Blockfrost_Rest, {
 			entityType: EntityType.CardanoAddress,
 			resolve: {
-				[CardanoAddressSelector.NetworkAddress]: {
+				NetworkAddress: {
 					resolve: async (cardanoAddress, context) => {
 						assertCardanoMainnet(cardanoAddress.$network)
 						const limit = Math.min(resolverContextRowLimit(context), 100)
@@ -381,7 +363,6 @@ export default {
 							limit,
 							page,
 							utxos: await listAddressUtxos(
-								blockfrostBinding,
 								cardanoAddress.address,
 								limit,
 								page
@@ -478,11 +459,11 @@ export default {
 		defineResolver(Source.Blockfrost_Rest, {
 			entityType: EntityType.CardanoTransaction,
 			resolve: {
-				[CardanoTransactionSelector.NetworkHash]: {
+				NetworkHash: {
 					resolve: async (cardanoTransaction) => {
 						assertCardanoMainnet(cardanoTransaction.$network)
 						const { getTransaction } = await import('$/sources/Blockfrost/Rest/queries.ts')
-						const transaction = await getTransaction(blockfrostBinding, cardanoTransaction.hash)
+						const transaction = await getTransaction(cardanoTransaction.hash)
 						if (transaction.hash !== cardanoTransaction.hash)
 							throw new Error('Blockfrost_Rest: transaction response does not match the subject')
 
@@ -502,7 +483,7 @@ export default {
 		defineResolver(Source.Blockfrost_Rest, {
 			entityType: EntityType.CardanoTransaction,
 			resolve: {
-				[CardanoTransactionSelector.NetworkHash]: {
+				NetworkHash: {
 					resolve: cardanoTransactionUtxos,
 				},
 			},
@@ -597,7 +578,7 @@ export default {
 		defineResolver(Source.Blockfrost_Rest, {
 			entityType: EntityType.CardanoTxInput,
 			resolve: {
-				[CardanoTxInputSelector.TransactionInputIndex]: {
+				TransactionInputIndex: {
 					resolve: async (cardanoTxInput) => {
 						const input = (
 							await cardanoTransactionUtxos(cardanoTxInput.$transaction)
@@ -634,7 +615,7 @@ export default {
 		defineResolver(Source.Blockfrost_Rest, {
 			entityType: EntityType.CardanoTxOutput,
 			resolve: {
-				[CardanoTxOutputSelector.TransactionOutputIndex]: {
+				TransactionOutputIndex: {
 					resolve: async (cardanoTxOutput) => {
 						const output = (
 							await cardanoTransactionUtxos(cardanoTxOutput.$transaction)
@@ -689,15 +670,15 @@ export default {
 			entityType: EntityType.Network,
 			resolve: cardanoNetworkSelectors(
 				async (network) => {
-						assertCardanoMainnet(network)
+					assertCardanoMainnet(network)
 
-						return [
-							{
-								url: firstHttpUrlForBinding(blockfrostBinding),
-								transportType: TransportType.Http,
-								providerName: 'Blockfrost',
-							},
-						]
+					return [
+						{
+							url: firstHttpUrlForBinding(bindings[Source.Blockfrost_Rest]),
+							transportType: TransportType.Http,
+							providerName: 'Blockfrost',
+						},
+					]
 				}
 			),
 		})({
@@ -757,7 +738,6 @@ export default {
 				const { listBlocks } = await import('$/sources/Blockfrost/Rest/queries.ts')
 
 				return (await listBlocks(
-					blockfrostBinding,
 					Math.min(resolverContextRowLimit(context), 100)
 				)).map((block) => ({
 					[EntityMetaKey.Selector]: {
@@ -790,7 +770,6 @@ export default {
 				const { listLatestBlockTransactions } = await import('$/sources/Blockfrost/Rest/queries.ts')
 
 				return (await listLatestBlockTransactions(
-					blockfrostBinding,
 					Math.min(resolverContextRowLimit(context), 100)
 				)).map((hash) => ({
 					[EntityMetaKey.Selector]: {
@@ -820,7 +799,6 @@ export default {
 				const { listStakePools } = await import('$/sources/Blockfrost/Rest/queries.ts')
 
 				return (await listStakePools(
-					blockfrostBinding,
 					Math.min(resolverContextRowLimit(context), 100)
 				)).map((poolId) => ({
 					[EntityMetaKey.Selector]: {
@@ -850,7 +828,6 @@ export default {
 				const { listDReps } = await import('$/sources/Blockfrost/Rest/queries.ts')
 
 				return (await listDReps(
-					blockfrostBinding,
 					Math.min(resolverContextRowLimit(context), 100)
 				)).map((dRep) => ({
 					[EntityMetaKey.Selector]: {
@@ -893,7 +870,6 @@ export default {
 					)
 					const limit = Math.min(resolverContextRowLimit(context), 100)
 					const proposals = await listGovernanceProposals(
-						blockfrostBinding,
 						limit,
 						page
 					)
@@ -963,7 +939,6 @@ export default {
 				const { listAssets } = await import('$/sources/Blockfrost/Rest/queries.ts')
 
 				return (await listAssets(
-					blockfrostBinding,
 					Math.min(resolverContextRowLimit(context), 100)
 				)).map(({ asset }) => {
 					if (asset.length < 56 || asset.length % 2 !== 0 || !/^[0-9a-f]+$/u.test(asset))
@@ -999,7 +974,7 @@ export default {
 				async (network) => {
 				assertCardanoMainnet(network)
 				const { getLatestProtocolParameters } = await import('$/sources/Blockfrost/Rest/queries.ts')
-				const parameters = await getLatestProtocolParameters(blockfrostBinding)
+				const parameters = await getLatestProtocolParameters()
 
 				if (
 					parameters.max_val_size != null
@@ -1150,7 +1125,10 @@ export default {
 		defineResolver(Source.Blockfrost_Rest, {
 			entityType: EntityType.CardanoCommittee_Epoch,
 			resolve: {
-				[CardanoCommittee_EpochSelector.NetworkEpochSource]: {
+				NetworkEpochSource: {
+					appliesTo: [{
+						source: Source.Blockfrost_Rest,
+					}],
 					resolve: async ({
 						$network,
 						epoch,
@@ -1187,7 +1165,7 @@ export default {
 		defineResolver(Source.Blockfrost_Rest, {
 			entityType: EntityType.CardanoGovernanceProposal,
 			resolve: {
-				[CardanoGovernanceProposalSelector.NetworkProposalTxHashProposalIndex]: {
+				NetworkProposalTxHashProposalIndex: {
 					resolve: async ({
 						$network,
 						proposalTxHash,
@@ -1212,9 +1190,9 @@ export default {
 							epoch,
 							votes,
 						] = await Promise.all([
-							getGovernanceProposal(blockfrostBinding, proposalTxHash, proposalIndex),
-							getLatestEpoch(blockfrostBinding),
-							listGovernanceProposalVotes(blockfrostBinding, proposalTxHash, proposalIndex, limit, page),
+							getGovernanceProposal(proposalTxHash, proposalIndex),
+							getLatestEpoch(),
+							listGovernanceProposalVotes(proposalTxHash, proposalIndex, limit, page),
 						])
 						if (
 							proposal.tx_hash !== proposalTxHash
@@ -1237,9 +1215,10 @@ export default {
 							page,
 							governanceActionId: proposal.id,
 							proposalKind: proposal.governance_type,
-							...(proposal.governance_description != null && {
-								proposalPayload: proposal.governance_description,
-							}),
+							...(proposal.governance_description == null ? {} : cardanoGovernanceActionFields(
+								proposal.governance_description,
+								$network
+							)),
 							$transaction: {
 								$network,
 								hash: proposal.tx_hash,
@@ -1247,30 +1226,30 @@ export default {
 							depositLovelace: BigInt(proposal.deposit),
 							returnAddress: proposal.return_address,
 							$$timestamps: [{
-								$proposal: {
-									$network,
-									proposalTxHash,
-									proposalIndex,
+								[EntityMetaKey.Selector]: {
+									$proposal: {
+										$network,
+										proposalTxHash,
+										proposalIndex,
+									},
+									epoch: epoch.epoch,
+									source: Source.Blockfrost_Rest,
 								},
-								epoch: epoch.epoch,
-								source: Source.Blockfrost_Rest,
-								status: (
-									proposal.enacted_epoch != null ?
-										'enacted'
-									: proposal.expired_epoch != null ?
-										'expired'
-									: proposal.dropped_epoch != null ?
-										'dropped'
-									: proposal.ratified_epoch != null ?
-										'ratified'
-									:
-										'active'
-								),
-								ratifiedEpoch: proposal.ratified_epoch ?? undefined,
-								enactedEpoch: proposal.enacted_epoch ?? undefined,
-								droppedEpoch: proposal.dropped_epoch ?? undefined,
-								expiredEpoch: proposal.expired_epoch ?? undefined,
-								expirationEpoch: proposal.expiration,
+								[EntityMetaKey.Fields]: {
+									...(proposal.ratified_epoch != null && {
+										[entityFieldAddressKey(EntityType.CardanoGovernanceProposal_Timestamp, [], 'ratifiedEpoch')]: proposal.ratified_epoch,
+									}),
+									...(proposal.enacted_epoch != null && {
+										[entityFieldAddressKey(EntityType.CardanoGovernanceProposal_Timestamp, [], 'enactedEpoch')]: proposal.enacted_epoch,
+									}),
+									...(proposal.dropped_epoch != null && {
+										[entityFieldAddressKey(EntityType.CardanoGovernanceProposal_Timestamp, [], 'droppedEpoch')]: proposal.dropped_epoch,
+									}),
+									...(proposal.expired_epoch != null && {
+										[entityFieldAddressKey(EntityType.CardanoGovernanceProposal_Timestamp, [], 'expiredEpoch')]: proposal.expired_epoch,
+									}),
+									[entityFieldAddressKey(EntityType.CardanoGovernanceProposal_Timestamp, [], 'expirationEpoch')]: proposal.expiration,
+								},
 							}],
 							$$votes: votes.map((vote) => ({
 								$proposal: {
@@ -1308,13 +1287,49 @@ export default {
 		})({
 			governanceActionId: (proposal) => proposal.governanceActionId,
 			proposalKind: (proposal) => proposal.proposalKind,
-			proposalPayload: (proposal) => proposal.proposalPayload,
+			$previousAction: (proposal) => proposal.$previousAction,
+			policyHash: (proposal) => proposal.policyHash,
+			hardForkMajor: (proposal) => proposal.hardForkMajor,
+			hardForkMinor: (proposal) => proposal.hardForkMinor,
+			treasuryWithdrawals: (proposal) => proposal.treasuryWithdrawals ?? [],
+			committeeRemovedCredentials: (proposal) => proposal.committeeRemovedCredentials ?? [],
+			committeeAdditions: (proposal) => proposal.committeeAdditions ?? [],
+			committeeQuorumNumerator: (proposal) => proposal.committeeQuorumNumerator,
+			committeeQuorumDenominator: (proposal) => proposal.committeeQuorumDenominator,
+			constitutionAnchorUrl: (proposal) => proposal.constitutionAnchorUrl,
+			constitutionAnchorHash: (proposal) => proposal.constitutionAnchorHash,
+			constitutionScript: (proposal) => proposal.constitutionScript,
 			$transaction: (proposal) => proposal.$transaction,
 			depositLovelace: (proposal) => proposal.depositLovelace,
 			returnAddress: (proposal) => proposal.returnAddress,
 			$$timestamps: (proposal) => proposal.$$timestamps,
 			$$votes: {
-				select: (proposal) => proposal.$$votes,
+				select: (proposal) => proposal.$$votes.map((vote) => ({
+					[EntityMetaKey.Selector]: {
+						$proposal: vote.$proposal,
+						voterKind: vote.voterKind,
+						voterCredential: vote.voterCredential,
+						voteTxHash: vote.voteTxHash,
+						source: vote.source,
+					},
+					[EntityMetaKey.Fields]: {
+						[entityFieldAddressKey(EntityType.CardanoGovernanceVote, [], 'vote')]: vote.vote,
+						[entityFieldAddressKey(EntityType.CardanoGovernanceVote, [], 'voteIndex')]: vote.voteIndex,
+						[entityFieldAddressKey(EntityType.CardanoGovernanceVote, [], '$transaction')]: {
+							[EntityMetaKey.Selector]: vote.$transaction,
+						},
+						...(vote.$drep != null && {
+							[entityFieldAddressKey(EntityType.CardanoGovernanceVote, [], '$drep')]: {
+								[EntityMetaKey.Selector]: vote.$drep,
+							},
+						}),
+						...(vote.$stakePool != null && {
+							[entityFieldAddressKey(EntityType.CardanoGovernanceVote, [], '$stakePool')]: {
+								[EntityMetaKey.Selector]: vote.$stakePool,
+							},
+						}),
+					},
+				})),
 				continuation: ({ limit, page, $$votes }, proposal) => (
 					$$votes.length < limit ?
 						{
@@ -1339,7 +1354,7 @@ export default {
 		defineResolver(Source.Blockfrost_Rest, {
 			entityType: EntityType.CardanoGovernanceProposal,
 			resolve: {
-				[CardanoGovernanceProposalSelector.NetworkProposalTxHashProposalIndex]: {
+				NetworkProposalTxHashProposalIndex: {
 					resolve: async ({
 						$network,
 						proposalTxHash,
@@ -1347,7 +1362,7 @@ export default {
 					}) => {
 						assertCardanoMainnet($network)
 						const { getGovernanceProposalMetadata } = await import('$/sources/Blockfrost/Rest/queries.ts')
-						const metadata = await getGovernanceProposalMetadata(blockfrostBinding, proposalTxHash, proposalIndex)
+						const metadata = await getGovernanceProposalMetadata(proposalTxHash, proposalIndex)
 						if (
 							metadata != null
 							&& (
@@ -1371,20 +1386,51 @@ export default {
 		defineResolver(Source.Blockfrost_Rest, {
 			entityType: EntityType.CardanoGovernanceProposal_Timestamp,
 			resolve: {
-				[CardanoGovernanceProposal_TimestampSelector.ProposalEpochSource]: {
-					resolve: async ({ $proposal, source }) => {
+				ProposalEpochSource: {
+					appliesTo: [{
+						source: Source.Blockfrost_Rest,
+					}],
+					resolve: async ({
+						$proposal,
+						epoch,
+						source,
+					}) => {
 						assertCardanoMainnet($proposal.$network)
 						if (source !== Source.Blockfrost_Rest)
 							throw new Error('Blockfrost_Rest: observation source mismatch')
 
-						throw new Error('Blockfrost_Rest: historical proposal observation is unavailable')
+						const {
+							getGovernanceProposal,
+							getLatestEpoch,
+						} = await import('$/sources/Blockfrost/Rest/queries.ts')
+						const [
+							proposal,
+							latestEpoch,
+						] = await Promise.all([
+							getGovernanceProposal(
+								$proposal.proposalTxHash,
+								$proposal.proposalIndex
+							),
+							getLatestEpoch(),
+						])
+						if (latestEpoch.epoch !== epoch)
+							throw new Error('Blockfrost_Rest: historical proposal observation is unavailable')
+
+						return {
+							epoch,
+							source,
+							ratifiedEpoch: proposal.ratified_epoch ?? undefined,
+							enactedEpoch: proposal.enacted_epoch ?? undefined,
+							droppedEpoch: proposal.dropped_epoch ?? undefined,
+							expiredEpoch: proposal.expired_epoch ?? undefined,
+							expirationEpoch: proposal.expiration,
+						}
 					},
 				},
 			},
 		})({
 			epoch: (observation) => observation.epoch,
 			source: (observation) => observation.source,
-			status: (observation) => observation.status,
 			ratifiedEpoch: (observation) => observation.ratifiedEpoch,
 			enactedEpoch: (observation) => observation.enactedEpoch,
 			droppedEpoch: (observation) => observation.droppedEpoch,
@@ -1395,7 +1441,7 @@ export default {
 		defineResolver(Source.Blockfrost_Rest, {
 			entityType: EntityType.CardanoDRep,
 			resolve: {
-				[CardanoDRepSelector.NetworkDrepCredential]: {
+				NetworkDrepCredential: {
 					resolve: async ({ $network, drepCredential }, context) => {
 						assertCardanoMainnet($network)
 						const {
@@ -1406,8 +1452,8 @@ export default {
 							drep,
 							votes,
 						] = await Promise.all([
-							getDRep(blockfrostBinding, drepCredential),
-							listDRepVotes(blockfrostBinding, drepCredential, Math.min(resolverContextRowLimit(context), 100)),
+							getDRep(drepCredential),
+							listDRepVotes(drepCredential, Math.min(resolverContextRowLimit(context), 100)),
 						])
 						return {
 							credentialKind: drep.has_script ? 'script' : 'key',
@@ -1434,17 +1480,32 @@ export default {
 			},
 		})({
 			credentialKind: (drep) => drep.credentialKind,
-			$$votes: (drep) => drep.$$votes,
+			$$votes: (drep) => drep.$$votes.map((vote) => ({
+				[EntityMetaKey.Selector]: {
+					$proposal: vote.$proposal,
+					voterKind: vote.voterKind,
+					voterCredential: vote.voterCredential,
+					voteTxHash: vote.voteTxHash,
+					source: vote.source,
+				},
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.CardanoGovernanceVote, [], 'vote')]: vote.vote,
+					[entityFieldAddressKey(EntityType.CardanoGovernanceVote, [], 'voteIndex')]: vote.voteIndex,
+					[entityFieldAddressKey(EntityType.CardanoGovernanceVote, [], '$drep')]: {
+						[EntityMetaKey.Selector]: vote.$drep,
+					},
+				},
+			})),
 		}),
 
 		defineResolver(Source.Blockfrost_Rest, {
 			entityType: EntityType.CardanoDRep,
 			resolve: {
-				[CardanoDRepSelector.NetworkDrepCredential]: {
+				NetworkDrepCredential: {
 					resolve: async ({ $network, drepCredential }) => {
 						assertCardanoMainnet($network)
 						const { getDRepMetadata } = await import('$/sources/Blockfrost/Rest/queries.ts')
-						const metadata = await getDRepMetadata(blockfrostBinding, drepCredential)
+						const metadata = await getDRepMetadata(drepCredential)
 						return {
 							displayName: metadata?.displayName,
 							anchorUrl: metadata?.url,
@@ -1462,13 +1523,13 @@ export default {
 		defineResolver(Source.Blockfrost_Rest, {
 			entityType: EntityType.CardanoStakePool,
 			resolve: {
-				[CardanoStakePoolSelector.NetworkPoolId]: {
+				NetworkPoolId: {
 					resolve: async ({ $network, poolId }) => {
 						assertCardanoMainnet($network)
 						const {
 							getStakePool,
 						} = await import('$/sources/Blockfrost/Rest/queries.ts')
-						const pool = await getStakePool(blockfrostBinding, poolId)
+						const pool = await getStakePool(poolId)
 
 						return pool
 					},
@@ -1481,11 +1542,11 @@ export default {
 		defineResolver(Source.Blockfrost_Rest, {
 			entityType: EntityType.CardanoStakePool,
 			resolve: {
-				[CardanoStakePoolSelector.NetworkPoolId]: {
+				NetworkPoolId: {
 					resolve: async ({ $network, poolId }) => {
 						assertCardanoMainnet($network)
 						const { getStakePoolMetadata } = await import('$/sources/Blockfrost/Rest/queries.ts')
-						const metadata = await getStakePoolMetadata(blockfrostBinding, poolId)
+						const metadata = await getStakePoolMetadata(poolId)
 						return {
 							name: metadata?.name,
 							ticker: metadata?.ticker,
@@ -1505,7 +1566,10 @@ export default {
 		defineResolver(Source.Blockfrost_Rest, {
 			entityType: EntityType.CardanoNetwork_Timestamp,
 			resolve: {
-				[CardanoNetwork_TimestampSelector.NetworkTimestampMsSource]: {
+				NetworkTimestampMsSource: {
+					appliesTo: [{
+						source: Source.Blockfrost_Rest,
+					}],
 					resolve: async ({
 						$network,
 						timestampMs,
@@ -1542,33 +1606,33 @@ export default {
 		defineResolver(Source.Blockfrost_Rest, {
 			entityType: EntityType.CardanoBlock,
 			resolve: {
-				[CardanoBlockSelector.NetworkHash]: {
+				NetworkHash: {
 					resolve: async ({ $network, hash }) => {
 						assertCardanoMainnet($network)
 						const { getBlock } = await import('$/sources/Blockfrost/Rest/queries.ts')
-						const block = blockFields(await getBlock(blockfrostBinding, hash))
+						const block = blockFields(await getBlock(hash))
 						if (block.hash !== hash)
 							throw new Error('Blockfrost_Rest: block hash does not match the requested selector')
 
 						return block
 					},
 				},
-				[CardanoBlockSelector.NetworkSlot]: {
+				NetworkSlot: {
 					resolve: async ({ $network, slot }) => {
 						assertCardanoMainnet($network)
 						const { getBlock } = await import('$/sources/Blockfrost/Rest/queries.ts')
-						const block = blockFields(await getBlock(blockfrostBinding, slot.toString()))
+						const block = blockFields(await getBlock(slot.toString()))
 						if (block.slot !== slot)
 							throw new Error('Blockfrost_Rest: block slot does not match the requested selector')
 
 						return block
 					},
 				},
-				[CardanoBlockSelector.NetworkBlockNo]: {
+				NetworkBlockNo: {
 					resolve: async ({ $network, blockNo }) => {
 						assertCardanoMainnet($network)
 						const { getBlock } = await import('$/sources/Blockfrost/Rest/queries.ts')
-						const block = blockFields(await getBlock(blockfrostBinding, blockNo.toString()))
+						const block = blockFields(await getBlock(blockNo.toString()))
 						if (block.blockNo !== blockNo)
 							throw new Error('Blockfrost_Rest: block number does not match the requested selector')
 

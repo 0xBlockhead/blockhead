@@ -2,14 +2,10 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -25,31 +21,16 @@
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.FarcasterChannel_Timestamp>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.FarcasterChannel_Timestamp>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.FarcasterChannel_Timestamp> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const farcasterChannelTimestamp = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {},
-	} : {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const viewSelection = $derived(selection({
+		sources: selection.sources ?? [
+			Source.Farcaster_Rest,
+			Source.Neynar_Rest,
+		],
 	}))
 	const titleFallback = 'Farcaster channel observation'
-	const viewDomId = $derived('farcaster-channel-timestamp-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -62,22 +43,15 @@
 
 <EntityView
 	entityType={EntityType.FarcasterChannel_Timestamp}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
 	href={
-		href ?? (
-			selection.entitySelector != null && 'timestampMs' in selection.entitySelector
-			&& selection.entitySelector.timestampMs != null
-			&& selection.entitySelector != null && '$channel' in selection.entitySelector
-			&& selection.entitySelector.$channel != null && 'id' in selection.entitySelector.$channel
-			&& selection.entitySelector.$channel.id != null ?
-				resolve('/farcaster/channel/[channelId=stringSegment]/observations/[timestampMs=nonNegativeInteger]', {
-			timestampMs: String(selection.entitySelector.timestampMs ?? ''),
-			channelId: String(selection.entitySelector.$channel.id ?? ''),
-		})
-		:
-				undefined
+		href ?? resolve(
+			'/(social)/(farcaster)/farcaster/(farcasterNetwork)/channel/[channelId=stringSegment]/(farcasterChannel)/observations/[timestampMs=nonNegativeInteger]',
+			{
+				channelId: String(selection.entitySelector.$channel.id),
+				timestampMs: String(selection.entitySelector.timestampMs),
+			}
 		)
 	}
 	{layout}
@@ -85,28 +59,16 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={farcasterChannelTimestamp}>
-			{#snippet children(entity)}
-				<FarcasterChannelView
-					selection={select(EntityType.FarcasterChannel, selection.entitySelector.$channel)}
-					href=""
-					layout={EntityLayout.Title}
-					open={false}
-				/>
-			{/snippet}
-		</ResourceBoundary>
+		<FarcasterChannelView
+			selection={select(EntityType.FarcasterChannel, selection.entitySelector.$channel)}
+			href=""
+			layout={EntityLayout.Title}
+			open={false}
+		/>
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={farcasterChannelTimestamp}>
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const timestampMs0 = resolvedEntity.timestampMs}
-				{#if timestampMs0 !== undefined && timestampMs0 !== null}
-					<Timestamp timestamp={Number(timestampMs0)} />
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -116,17 +78,6 @@
 				<dd>
 					<FarcasterChannelView
 						selection={select(EntityType.FarcasterChannel, selection.entitySelector.$channel)}
-						href={
-							(
-								selection.entitySelector.$channel != null && 'id' in selection.entitySelector.$channel
-								&& selection.entitySelector.$channel.id != null ?
-									resolve('/farcaster/channel/[channelId=stringSegment]', {
-								channelId: String(selection.entitySelector.$channel.id ?? ''),
-							})
-							:
-									undefined
-							)
-						}
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -138,24 +89,7 @@
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									timestampMs: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const timestampMs = resolvedEntity.timestampMs}
-							{#if timestampMs !== undefined && timestampMs !== null}
-								<Timestamp timestamp={Number(timestampMs)} />
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
 				</dd>
 			</div>
 		</dl>
@@ -163,8 +97,7 @@
 		<dl data-column-item="center">
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							followerCount: true,
 						},
@@ -172,9 +105,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const followerCount = resolvedEntity.followerCount}
-					{#if followerCount !== undefined && followerCount !== null}
+					{@const followerCount = entity.followerCount}
+					{#if followerCount != null}
 						<div>
 							<dt>Followers</dt>
 							<dd>
@@ -191,8 +123,7 @@
 		<dl data-column-item="center">
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							memberCount: true,
 						},
@@ -200,9 +131,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const memberCount = resolvedEntity.memberCount}
-					{#if memberCount !== undefined && memberCount !== null}
+					{@const memberCount = entity.memberCount}
+					{#if memberCount != null}
 						<div>
 							<dt>Members</dt>
 							<dd>

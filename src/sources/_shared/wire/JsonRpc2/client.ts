@@ -1,9 +1,17 @@
 import { throwHttpError } from '$/lib/http.ts'
-import type { SourceBinding } from '$/sources/SourceBinding.ts'
+import {
+	SourceEndpointKind,
+	type SourceBinding,
+	type SourceEndpoint,
+} from '$/sources/SourceBinding.ts'
 import {
 	firstHttpUrlForBinding,
 	sourceFetch,
 } from '$/sources/_runtime/http.ts'
+import {
+	jsonRpcHeaders,
+	jsonRpcVersion,
+} from '$/sources/_shared/wire/JsonRpc2/constants.ts'
 import type {
 	JsonRpc2Request,
 	JsonRpc2Response,
@@ -12,10 +20,20 @@ import type {
 export const jsonRpc2 = async <_Result>(
 	binding: SourceBinding,
 	method: string,
-	params?: readonly unknown[] | Readonly<Record<string, unknown>>
+	params?: readonly unknown[] | Readonly<Record<string, unknown>>,
+	endpoint?: SourceEndpoint
 ): Promise<_Result> => {
+	if (
+		endpoint != null
+		&& (
+			endpoint.endpointKind !== SourceEndpointKind.HttpUrl
+			|| !binding.endpoints.includes(endpoint)
+		)
+	)
+		throw new Error(`${binding.source}: JSON-RPC endpoint is not declared by the binding`)
+
 	const body = {
-		jsonrpc: '2.0',
+		jsonrpc: jsonRpcVersion,
 		id: 1,
 		method,
 		...(params != null && {
@@ -23,11 +41,9 @@ export const jsonRpc2 = async <_Result>(
 		}),
 	} satisfies JsonRpc2Request
 
-	const response = await sourceFetch(binding, firstHttpUrlForBinding(binding), {
+	const response = await sourceFetch(binding, endpoint?.locator ?? firstHttpUrlForBinding(binding), {
 		method: 'POST',
-		headers: {
-			'content-type': 'application/json',
-		},
+		headers: jsonRpcHeaders,
 		body: JSON.stringify(body),
 	})
 

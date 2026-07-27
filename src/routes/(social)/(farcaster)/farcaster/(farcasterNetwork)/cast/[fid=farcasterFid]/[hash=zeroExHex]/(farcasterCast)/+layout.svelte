@@ -30,26 +30,32 @@
 {#key [params.fid, params.hash].join(':')}
 	<ParentPageCollapsible
 		href={
-			resolve('/farcaster/cast/[fid=farcasterFid]/[hash=zeroExHex]', {
-				fid: params.fid,
-				hash: params.hash,
-			})
+			resolve(
+				'/(social)/(farcaster)/farcaster/(farcasterNetwork)/cast/[fid=farcasterFid]/[hash=zeroExHex]',
+				{
+					fid: String(params.fid),
+					hash: String(params.hash),
+				}
+			)
 		}
 	>
 		{#snippet Summary()}
-			{@const DetailView = FarcasterCastView}
-
-			<DetailView
-				selection={select(EntityType.FarcasterCast, data.selector, { sources: [
-		Source.Snapchain_Rest,
-		Source.Neynar_Rest,
-		Source.Farcaster_Rest,
-	] })}
+			<FarcasterCastView
+				selection={
+					select(EntityType.FarcasterCast, data.selector, { sources: [
+						Source.Snapchain_Rest,
+						Source.Neynar_Rest,
+						Source.Farcaster_Rest,
+					] })
+				}
 				href={
-					resolve('/farcaster/cast/[fid=farcasterFid]/[hash=zeroExHex]', {
-						fid: params.fid,
-						hash: params.hash,
-					})
+					resolve(
+						'/(social)/(farcaster)/farcaster/(farcasterNetwork)/cast/[fid=farcasterFid]/[hash=zeroExHex]',
+						{
+							fid: String(params.fid),
+							hash: String(params.hash),
+						}
+					)
 				}
 				layout={EntityLayout.SummaryInline}
 			/>

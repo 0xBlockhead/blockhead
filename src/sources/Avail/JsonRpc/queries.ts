@@ -1,16 +1,12 @@
 import { type as arktype } from 'arktype'
 
-import { Source } from '$/sources/Source.ts'
-import {
-	SourceTargetKind,
-	type SourceBinding,
-} from '$/sources/SourceBinding.ts'
 import { jsonRpc2 } from '$/sources/_shared/wire/JsonRpc2/client.ts'
 import type {
 	AvailHeader,
 	AvailNetworkIdentity,
 	AvailRuntimeVersion,
 } from '$/sources/Avail/JsonRpc/types.ts'
+import type { SourceBinding } from '$/sources/SourceBinding.ts'
 import type { JsonValue } from '$/typescript/JsonValue.ts'
 
 const mainnetChainName = 'Avail DA Mainnet'
@@ -38,21 +34,11 @@ const runtimeVersionWire = arktype({
 	stateVersion: 'number.integer >= 0',
 })
 
-const assertBinding = (binding: SourceBinding) => {
-	if (
-		binding.source !== Source.Avail_JsonRpc
-		|| binding.target.kind !== SourceTargetKind.NetworkSlug
-		|| binding.target.key !== 'avail'
-	)
-		throw new Error('Avail_JsonRpc: expected canonical Avail mainnet binding')
-}
-
 const request = <_Result extends JsonValue>(
 	binding: SourceBinding,
 	method: string,
 	params: readonly JsonValue[] = []
 ) => {
-	assertBinding(binding)
 	return jsonRpc2<_Result>(binding, method, params)
 }
 
@@ -82,7 +68,7 @@ const headerFromWire = ({
 		[wire.parentHash, 'parent block hash'],
 		[wire.stateRoot, 'state root'],
 		[wire.extrinsicsRoot, 'extrinsics root'],
-	] as const)
+	])
 		assertHash(value, label)
 	if (!quantityPattern.test(wire.number))
 		throw new Error('Avail_JsonRpc: invalid block number')
@@ -191,7 +177,7 @@ export const getRuntimeVersion = async (
 		[wire.implVersion, 'implementation version'],
 		[wire.transactionVersion, 'transaction version'],
 		[wire.stateVersion, 'state version'],
-	] as const)
+	])
 		if (!Number.isSafeInteger(value))
 			throw new Error(`Avail_JsonRpc: ${label} exceeds lossless JSON integer range`)
 	return {

@@ -1,15 +1,24 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
+import bindings from '$/sources/BitcoinCore/bindings.ts'
+import dogecoinCoreBindings from '$/sources/DogecoinCore/bindings.ts'
 import type { DogecoinCoreBlock } from '$/sources/DogecoinCore/JsonRpc/types.ts'
+import litecoinCoreBindings from '$/sources/LitecoinCore/bindings.ts'
+import { Source } from '$/sources/Source.ts'
 
-const corsFetch = vi.fn()
+const jsonRpc2 = vi.fn()
 
-vi.mock('$/lib/http.ts', async (importOriginal) => ({
-	...await importOriginal(),
-	corsFetch,
+vi.mock('$/sources/_shared/wire/JsonRpc2/client.ts', () => ({
+	jsonRpc2,
 }))
 
-const { getBlock } = await import('$/sources/DogecoinCore/JsonRpc/queries.ts')
+const { getBlock: getBitcoinBlock } = await import('$/sources/BitcoinCore/JsonRpc/queries.ts')
+const { getBlock: getDogecoinBlock } = await import('$/sources/DogecoinCore/JsonRpc/queries.ts')
+const { getBlock: getLitecoinBlock } = await import('$/sources/LitecoinCore/JsonRpc/queries.ts')
+
+const bitcoinMainnetBinding = bindings[Source.BitcoinCore_JsonRpc]
+const dogecoinMainnetBinding = dogecoinCoreBindings[Source.DogecoinCore_JsonRpc]
+const litecoinMainnetBinding = litecoinCoreBindings[Source.LitecoinCore_JsonRpc]
 
 const block = {
 	hash: 'dogecoin-block-hash',
@@ -51,44 +60,55 @@ const block = {
 
 describe('Dogecoin Core JSON-RPC', () => {
 	beforeEach(() => {
-		corsFetch.mockReset()
+		jsonRpc2.mockReset()
 	})
 
 	it('preserves the typed AuxPoW extension from verbose getblock', async () => {
-		corsFetch.mockResolvedValueOnce(new Response(JSON.stringify({
-			jsonrpc: '2.0',
-			id: 1,
-			result: block,
-		})))
+		jsonRpc2.mockResolvedValueOnce(block)
 
-		await expect(getBlock({
-			rpcUrl: 'https://dogecoin.example',
+		await expect(getDogecoinBlock({
+			binding: dogecoinMainnetBinding,
 			blockHash: block.hash,
 		})).resolves.toEqual(block)
-		expect(JSON.parse(corsFetch.mock.calls[0][1].init.body)).toEqual({
-			jsonrpc: '2.0',
-			id: 1,
-			method: 'getblock',
-			params: [
+		expect(jsonRpc2).toHaveBeenCalledWith(
+			dogecoinMainnetBinding,
+			'getblock',
+			[
 				block.hash,
 				2,
-			],
-		})
+			]
+		)
 	})
 
 	it('fails closed on a JSON-RPC error', async () => {
-		corsFetch.mockResolvedValueOnce(new Response(JSON.stringify({
-			jsonrpc: '2.0',
-			id: 1,
-			error: {
-				code: -5,
-				message: 'Block not found',
-			},
-		})))
+		jsonRpc2.mockRejectedValueOnce(new Error('JSON-RPC getblock: Block not found'))
 
-		await expect(getBlock({
-			rpcUrl: 'https://dogecoin.example',
+		await expect(getDogecoinBlock({
+			binding: dogecoinMainnetBinding,
 			blockHash: 'missing',
 		})).rejects.toThrow('Block not found')
+	})
+
+	it('keeps each protocol family request attached to its canonical binding', async () => {
+		jsonRpc2.mockResolvedValue(block)
+
+		await getBitcoinBlock({
+			binding: bitcoinMainnetBinding,
+			blockHash: block.hash,
+		})
+		await getDogecoinBlock({
+			binding: dogecoinMainnetBinding,
+			blockHash: block.hash,
+		})
+		await getLitecoinBlock({
+			binding: litecoinMainnetBinding,
+			blockHash: block.hash,
+		})
+
+		expect(jsonRpc2.mock.calls.map((call) => call[0])).toEqual([
+			bitcoinMainnetBinding,
+			dogecoinMainnetBinding,
+			litecoinMainnetBinding,
+		])
 	})
 })

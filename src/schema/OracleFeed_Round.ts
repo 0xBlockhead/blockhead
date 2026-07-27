@@ -1,14 +1,11 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { entity, facet } from '$/schema/$schema.ts'
+import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { type } from 'arktype'
 
-export enum OracleFeed_RoundSelector {
-	OracleFeedRoundId = 'OracleFeedRoundId',
-}
-export const OracleFeed_Round = entity({
+export default entity({
 	entityType: EntityType.OracleFeed_Round,
 	labels: {
 		singular: 'oracle feed round',

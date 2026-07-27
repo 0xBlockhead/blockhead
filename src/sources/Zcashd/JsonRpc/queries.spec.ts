@@ -13,14 +13,14 @@ import {
 } from '$/sources/Zcashd/JsonRpc/queries.ts'
 import { networkBySlug } from '$/constants/Network.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import {
-	ZcashShieldedActionKind,
-	ZcashShieldedActionSelector,
-} from '$/schema/ZcashShieldedAction.ts'
+import { ZcashShieldedActionKind } from '$/schema/ZcashShieldedAction.ts'
 import { ZcashShieldedPoolKind } from '$/schema/ZcashShieldedPool.ts'
-import { ZcashShieldedPoolBlockStateSelector } from '$/schema/ZcashShieldedPoolBlockState.ts'
+import bindings from '$/sources/Zcashd/bindings.ts'
+import { Source } from '$/sources/Source.ts'
 
 const { default: zcashdResolvers } = await import('$/resolvers/Zcashd-JsonRpc.ts')
+
+const zcashdMainnetBinding = bindings[Source.Zcashd_JsonRpc]
 
 const fetchMock = vi.fn<typeof fetch>()
 
@@ -66,7 +66,7 @@ describe('Zcashd JSON-RPC queries', () => {
 		}))
 
 		await expect(getTreeState({
-			rpcUrl: 'http://127.0.0.1:8232',
+			binding: zcashdMainnetBinding,
 			block: 2_800_000,
 		})).resolves.toMatchObject({
 			height: 2_800_000,
@@ -115,7 +115,7 @@ describe('Zcashd JSON-RPC queries', () => {
 		}))
 
 		await expect(getRawTransaction({
-			rpcUrl: 'http://127.0.0.1:8232',
+			binding: zcashdMainnetBinding,
 			txId: 'transaction-id',
 		})).resolves.toMatchObject({
 			expiryheight: 2_800_040,
@@ -138,13 +138,9 @@ describe('Zcashd JSON-RPC queries', () => {
 			const resolver = zcashdResolvers.resolvers.find((candidate) => (
 				candidate.entityType === EntityType.ZcashShieldedAction
 			))
-			if (resolver == null)
-				throw new Error('Zcashd spec missing shielded action resolver')
 			const actionResolver = resolver.resolve[
-				ZcashShieldedActionSelector.TransactionPoolActionKindIndexInTransaction
+				'TransactionPoolActionKindIndexInTransaction'
 			]
-			if (actionResolver == null)
-				throw new Error('Zcashd spec missing shielded action selector resolver')
 
 			await expect(actionResolver.resolve({
 				$transaction: {
@@ -169,13 +165,9 @@ describe('Zcashd JSON-RPC queries', () => {
 			const resolver = zcashdResolvers.resolvers.find((candidate) => (
 				candidate.entityType === EntityType.ZcashShieldedPoolBlockState
 			))
-			if (resolver == null)
-				throw new Error('Zcashd spec missing shielded pool block state resolver')
 			const treeStateResolver = resolver.resolve[
-				ZcashShieldedPoolBlockStateSelector.BlockPool
+				'BlockPool'
 			]
-			if (treeStateResolver == null)
-				throw new Error('Zcashd spec missing shielded pool block state selector resolver')
 
 			await expect(treeStateResolver.resolve({
 				$block: {

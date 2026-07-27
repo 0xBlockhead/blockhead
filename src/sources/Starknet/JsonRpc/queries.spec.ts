@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { sourceProviderDefinitions } from '$/sources/$sourceProviders.ts'
+import bindings from '$/sources/Starknet/bindings.ts'
 import { Source } from '$/sources/Source.ts'
 import { SourceTargetKind } from '$/sources/SourceBinding.ts'
 
@@ -17,16 +17,7 @@ const {
 	getNonce,
 } = await import('$/sources/Starknet/JsonRpc/queries.ts')
 
-const binding = sourceProviderDefinitions
-	.flatMap((provider) => provider.bindings)
-	.find((candidate) => (
-		candidate.source === Source.Starknet_JsonRpc
-		&& candidate.target.kind === SourceTargetKind.NetworkSlug
-		&& candidate.target.key === 'starknet'
-	))
-
-if (binding == null)
-	throw new Error('Starknet_JsonRpc spec missing Starknet mainnet source binding')
+const binding = bindings[Source.Starknet_JsonRpc]
 
 describe('Starknet JSON-RPC account transport', () => {
 	beforeEach(() => {
@@ -46,8 +37,8 @@ describe('Starknet JSON-RPC account transport', () => {
 			block_hash: '0xabc',
 			block_number: 900_000,
 		})
-		await expect(getNonce(binding, { block_number: 900_000 }, '0xabc')).resolves.toBe('0x7')
-		await expect(getClassHashAt(binding, { block_number: 900_000 }, '0xabc')).resolves.toBe('0x123')
+		await expect(getNonce({ block_number: 900_000 }, '0xabc')).resolves.toBe('0x7')
+		await expect(getClassHashAt({ block_number: 900_000 }, '0xabc')).resolves.toBe('0x123')
 
 		expect(jsonRpc2.mock.calls).toEqual([
 			[binding, 'starknet_blockHashAndNumber'],
@@ -75,7 +66,7 @@ describe('Starknet JSON-RPC account transport', () => {
 			events: [],
 		})
 
-		await expect(getEvents(binding, {
+		await expect(getEvents({
 			address: '0xabc',
 			chunk_size: 25,
 			continuation_token: 'opaque/provider+token',

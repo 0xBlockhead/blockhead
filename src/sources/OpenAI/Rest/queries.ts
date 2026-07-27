@@ -1,16 +1,17 @@
-import type { SourceBinding } from '$/sources/SourceBinding.ts'
+import bindings from '$/sources/OpenAI/bindings.ts'
 import { sourceFetch, firstHttpUrlForBinding } from '$/sources/_runtime/http.ts'
 import { throwHttpError } from '$/lib/http.ts'
 import type {
 	OpenAIModel,
 	OpenAIModelList,
 } from '$/sources/OpenAI/Rest/types.ts'
+import { Source } from '$/sources/Source.ts'
 
-const getJson = async <_Response>({
-	binding,
+const binding = bindings[Source.OpenAI_Rest]
+
+const requestOpenAiJson = async <_Response>({
 	path,
 }: {
-	binding: SourceBinding
 	path: string
 }) => {
 	const response = await sourceFetch(binding, new URL(path, firstHttpUrlForBinding(binding)).toString())
@@ -21,22 +22,14 @@ const getJson = async <_Response>({
 	return response.json<_Response>()
 }
 
-export const listModels = ({
-	binding,
-}: {
-	binding: SourceBinding
-}) => getJson<OpenAIModelList>({
-	binding,
+export const listModels = () => requestOpenAiJson<OpenAIModelList>({
 	path: '/v1/models',
 })
 
 export const retrieveModel = ({
-	binding,
 	modelId,
 }: {
-	binding: SourceBinding
 	modelId: string
-}) => getJson<OpenAIModel>({
-	binding,
+}) => requestOpenAiJson<OpenAIModel>({
 	path: `/v1/models/${encodeURIComponent(modelId)}`,
 })

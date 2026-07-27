@@ -2,15 +2,11 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
 	import { ZeroExHex } from '$/schema/ZeroExHex.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -22,40 +18,23 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.BlockheadAgentProviderCall>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.BlockheadAgentProviderCall>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.BlockheadAgentProviderCall> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const blockheadAgentProviderCall = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {
-			status: true,
-		},
-	} : {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const viewSelection = $derived(selection({
+		sources: selection.sources ?? [
+			Source.Local_Internal,
+		],
+	}))
+	const blockheadAgentProviderCall = $derived(viewSelection({
 		fields: {
 			status: true,
 		},
 	}))
-	const titleFallback = $derived((String((pendingEntity.indexInTurn) ?? '') ? 'Call #' + String((pendingEntity.indexInTurn) ?? '') : '') || 'blockhead agent provider call')
-	const viewDomId = $derived('blockhead-agent-provider-call-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const titleFallback = $derived((String(pendingEntity.indexInTurn ?? '') ? 'Call #' + String(pendingEntity.indexInTurn ?? '') : '') || 'blockhead agent provider call')
 
 
 	// Components
@@ -77,38 +56,28 @@
 
 <EntityView
 	entityType={EntityType.BlockheadAgentProviderCall}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
 	idDragPlainText={String(pendingEntity.indexInTurn ?? '')}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{@const serialValue = pendingEntity.indexInTurn}
-		{#if serialValue !== undefined && serialValue !== null}
-			<span data-row="inline align-center gap-2 wrap">
-				<span>Call </span>
-				<span data-badge="small">
-					#{String((serialValue) ?? '')}
-				</span>
+		<span data-row="inline align-center gap-2 wrap">
+			<span>Call </span>
+			<span data-badge="small">
+				#{String(pendingEntity.indexInTurn)}
 			</span>
-		{/if}
+		</span>
 	{/snippet}
 
 	{#snippet Value()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'status')}
-			{[String((pendingEntity.status) ?? '')].filter(Boolean).join(' ') || titleFallback}
-		{:else}
-			<ResourceBoundary resource={blockheadAgentProviderCall}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.status) ?? '')].filter(Boolean).join(' ') || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={blockheadAgentProviderCall}>
+			{#snippet children(entity)}
+				{(entity.status ?? '') || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -118,21 +87,6 @@
 				<dd>
 					<BlockheadAgentConversationTurnView
 						selection={select(EntityType.BlockheadAgentConversationTurn, selection.entitySelector.$turn)}
-						href={
-							(
-								selection.entitySelector.$turn != null && 'id' in selection.entitySelector.$turn
-								&& selection.entitySelector.$turn.id != null
-								&& selection.entitySelector.$turn != null && '$conversation' in selection.entitySelector.$turn
-								&& selection.entitySelector.$turn.$conversation != null && 'id' in selection.entitySelector.$turn.$conversation
-								&& selection.entitySelector.$turn.$conversation.id != null ?
-									resolve('/~/agents/conversation/[conversationId=stringSegment]/turn/[turnId=stringSegment]', {
-								turnId: String(selection.entitySelector.$turn.id ?? ''),
-								conversationId: String(selection.entitySelector.$turn.$conversation.id ?? ''),
-							})
-							:
-									undefined
-							)
-						}
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -142,26 +96,9 @@
 			<div>
 				<dt>index in turn</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									indexInTurn: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const indexInTurn = resolvedEntity.indexInTurn}
-							{#if indexInTurn !== undefined && indexInTurn !== null}
-								<NumberValue
-									value={indexInTurn}
-								/>
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					<NumberValue
+						value={pendingEntity.indexInTurn}
+					/>
 				</dd>
 			</div>
 
@@ -169,7 +106,7 @@
 				resource={selection.$connection}
 			>
 				{#snippet children(blockheadAgentConnection)}
-					{#if blockheadAgentConnection != null && blockheadAgentConnection[EntityMetaKey.Selector] != null}
+					{#if blockheadAgentConnection != null}
 						<div>
 							<dt>connection</dt>
 							<dd>
@@ -189,7 +126,7 @@
 				resource={selection.$provider}
 			>
 				{#snippet children(aiModelProvider)}
-					{#if aiModelProvider != null && aiModelProvider[EntityMetaKey.Selector] != null}
+					{#if aiModelProvider != null}
 						<div>
 							<dt>provider</dt>
 							<dd>
@@ -209,7 +146,7 @@
 				resource={selection.$model}
 			>
 				{#snippet children(aiModel)}
-					{#if aiModel != null && aiModel[EntityMetaKey.Selector] != null}
+					{#if aiModel != null}
 						<div>
 							<dt>model</dt>
 							<dd>
@@ -229,7 +166,7 @@
 				resource={selection.$operation}
 			>
 				{#snippet children(aiProviderApiOperation)}
-					{#if aiProviderApiOperation != null && aiProviderApiOperation[EntityMetaKey.Selector] != null}
+					{#if aiProviderApiOperation != null}
 						<div>
 							<dt>operation</dt>
 							<dd>
@@ -251,7 +188,7 @@
 				resource={selection.$mcpToolCall}
 			>
 				{#snippet children(mcpToolCall)}
-					{#if mcpToolCall != null && mcpToolCall[EntityMetaKey.Selector] != null}
+					{#if mcpToolCall != null}
 						<div>
 							<dt>MCP tool call</dt>
 							<dd>
@@ -271,7 +208,7 @@
 				resource={selection.$a2aTask}
 			>
 				{#snippet children(a2aTask)}
-					{#if a2aTask != null && a2aTask[EntityMetaKey.Selector] != null}
+					{#if a2aTask != null}
 						<div>
 							<dt>A2A task</dt>
 							<dd>
@@ -291,7 +228,7 @@
 				resource={selection.$acpSession}
 			>
 				{#snippet children(acpSession)}
-					{#if acpSession != null && acpSession[EntityMetaKey.Selector] != null}
+					{#if acpSession != null}
 						<div>
 							<dt>ACP session</dt>
 							<dd>
@@ -311,7 +248,7 @@
 				resource={selection.$acpPromptTurn}
 			>
 				{#snippet children(acpPromptTurn)}
-					{#if acpPromptTurn != null && acpPromptTurn[EntityMetaKey.Selector] != null}
+					{#if acpPromptTurn != null}
 						<div>
 							<dt>ACP prompt turn</dt>
 							<dd>
@@ -331,8 +268,7 @@
 		<dl data-column-item="center">
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							providerRequestId: true,
 						},
@@ -340,13 +276,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const providerRequestId = resolvedEntity.providerRequestId}
-					{#if providerRequestId !== undefined && providerRequestId !== null}
+					{@const providerRequestId = entity.providerRequestId}
+					{#if providerRequestId != null}
 						<div>
 							<dt>provider request ID</dt>
 							<dd>
-								{String((providerRequestId) ?? '')}
+								{providerRequestId}
 							</dd>
 						</div>
 					{/if}
@@ -355,8 +290,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							providerResponseId: true,
 						},
@@ -364,13 +298,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const providerResponseId = resolvedEntity.providerResponseId}
-					{#if providerResponseId !== undefined && providerResponseId !== null}
+					{@const providerResponseId = entity.providerResponseId}
+					{#if providerResponseId != null}
 						<div>
 							<dt>provider response ID</dt>
 							<dd>
-								{String((providerResponseId) ?? '')}
+								{providerResponseId}
 							</dd>
 						</div>
 					{/if}
@@ -378,23 +311,15 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							status: true,
-						},
-					})
-				}
+				resource={blockheadAgentProviderCall}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const status = resolvedEntity.status}
-					{#if status !== undefined && status !== null}
+					{@const status = entity.status}
+					{#if status != null}
 						<div>
 							<dt>status</dt>
 							<dd>
-								{String((status) ?? '')}
+								{status}
 							</dd>
 						</div>
 					{/if}
@@ -403,8 +328,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							error: true,
 						},
@@ -412,13 +336,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const error = resolvedEntity.error}
-					{#if error !== undefined && error !== null}
+					{@const error = entity.error}
+					{#if error != null}
 						<div>
 							<dt>error</dt>
 							<dd>
-								{String((error) ?? '')}
+								{error}
 							</dd>
 						</div>
 					{/if}
@@ -429,8 +352,7 @@
 		<dl data-column-item="center">
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							startedAt: true,
 						},
@@ -438,9 +360,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const startedAt = resolvedEntity.startedAt}
-					{#if startedAt !== undefined && startedAt !== null}
+					{@const startedAt = entity.startedAt}
+					{#if startedAt != null}
 						<div>
 							<dt>started AT</dt>
 							<dd>
@@ -453,8 +374,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							completedAt: true,
 						},
@@ -462,9 +382,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const completedAt = resolvedEntity.completedAt}
-					{#if completedAt !== undefined && completedAt !== null}
+					{@const completedAt = entity.completedAt}
+					{#if completedAt != null}
 						<div>
 							<dt>completed AT</dt>
 							<dd>
@@ -477,8 +396,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							latencyMs: true,
 						},
@@ -486,9 +404,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const latencyMs = resolvedEntity.latencyMs}
-					{#if latencyMs !== undefined && latencyMs !== null}
+					{@const latencyMs = entity.latencyMs}
+					{#if latencyMs != null}
 						<div>
 							<dt>latency ms</dt>
 							<dd>
@@ -505,8 +422,7 @@
 		<dl data-column-item="center">
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							requestHashAlgorithm: true,
 						},
@@ -514,13 +430,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const requestHashAlgorithm = resolvedEntity.requestHashAlgorithm}
-					{#if requestHashAlgorithm !== undefined && requestHashAlgorithm !== null}
+					{@const requestHashAlgorithm = entity.requestHashAlgorithm}
+					{#if requestHashAlgorithm != null}
 						<div>
 							<dt>request hash algorithm</dt>
 							<dd>
-								<TruncatedValue value={String((requestHashAlgorithm) ?? '')} />
+								<TruncatedValue value={requestHashAlgorithm} />
 							</dd>
 						</div>
 					{/if}
@@ -529,8 +444,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							requestHash: true,
 						},
@@ -538,13 +452,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const requestHash = resolvedEntity.requestHash}
-					{#if requestHash !== undefined && requestHash !== null}
+					{@const requestHash = entity.requestHash}
+					{#if requestHash != null}
 						<div>
 							<dt>request hash</dt>
 							<dd>
-								<TruncatedValue value={String((requestHash) ?? '')} />
+								<TruncatedValue value={String(requestHash)} />
 							</dd>
 						</div>
 					{/if}
@@ -553,8 +466,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							responseHashAlgorithm: true,
 						},
@@ -562,13 +474,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const responseHashAlgorithm = resolvedEntity.responseHashAlgorithm}
-					{#if responseHashAlgorithm !== undefined && responseHashAlgorithm !== null}
+					{@const responseHashAlgorithm = entity.responseHashAlgorithm}
+					{#if responseHashAlgorithm != null}
 						<div>
 							<dt>response hash algorithm</dt>
 							<dd>
-								<TruncatedValue value={String((responseHashAlgorithm) ?? '')} />
+								<TruncatedValue value={responseHashAlgorithm} />
 							</dd>
 						</div>
 					{/if}
@@ -577,8 +488,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							responseHash: true,
 						},
@@ -586,13 +496,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const responseHash = resolvedEntity.responseHash}
-					{#if responseHash !== undefined && responseHash !== null}
+					{@const responseHash = entity.responseHash}
+					{#if responseHash != null}
 						<div>
 							<dt>response hash</dt>
 							<dd>
-								<TruncatedValue value={String((responseHash) ?? '')} />
+								<TruncatedValue value={String(responseHash)} />
 							</dd>
 						</div>
 					{/if}
@@ -603,8 +512,7 @@
 		<dl data-column-item="center">
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							inputTokenCount: true,
 						},
@@ -612,9 +520,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const inputTokenCount = resolvedEntity.inputTokenCount}
-					{#if inputTokenCount !== undefined && inputTokenCount !== null}
+					{@const inputTokenCount = entity.inputTokenCount}
+					{#if inputTokenCount != null}
 						<div>
 							<dt>input token count</dt>
 							<dd>
@@ -629,8 +536,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							outputTokenCount: true,
 						},
@@ -638,9 +544,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const outputTokenCount = resolvedEntity.outputTokenCount}
-					{#if outputTokenCount !== undefined && outputTokenCount !== null}
+					{@const outputTokenCount = entity.outputTokenCount}
+					{#if outputTokenCount != null}
 						<div>
 							<dt>output token count</dt>
 							<dd>

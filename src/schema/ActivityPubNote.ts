@@ -1,16 +1,12 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { entity, facet } from '$/schema/$schema.ts'
+import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { UrlString } from '$/schema/UrlString.ts'
 import { type } from 'arktype'
 
-export enum ActivityPubNoteSelector {
-	ActivityStreamsUri = 'ActivityStreamsUri',
-	InstanceOriginLocalStatusId = 'InstanceOriginLocalStatusId',
-}
-export const ActivityPubNote = entity({
+export default entity({
 	entityType: EntityType.ActivityPubNote,
 	labels: {
 		singular: 'ActivityPub note',
@@ -20,7 +16,7 @@ export const ActivityPubNote = entity({
 	instanceOrigin: {
 		label: 'Instance origin',
 		type: EntityFieldType.Primitive,
-		primitiveType: (UrlString),
+		primitiveType: UrlString,
 		cardinality: EntityFieldCardinality.One,
 	},
 	localStatusId: {

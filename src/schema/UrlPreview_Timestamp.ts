@@ -1,15 +1,12 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { entity, facet } from '$/schema/$schema.ts'
+import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { UrlString } from '$/schema/UrlString.ts'
 import { type } from 'arktype'
 
-export enum UrlPreview_TimestampSelector {
-	UrlTimestampMsSource = 'UrlTimestampMsSource',
-}
-export const UrlPreview_Timestamp = entity({
+export default entity({
 	entityType: EntityType.UrlPreview_Timestamp,
 	labels: {
 		singular: 'URL preview timestamp',
@@ -27,7 +24,7 @@ export const UrlPreview_Timestamp = entity({
 		label: 'Timestamp',
 		description: 'The observation time in Unix milliseconds.',
 		type: EntityFieldType.Primitive,
-		primitiveType: (type('number.integer >= 0')),
+		primitiveType: type('number.integer >= 0'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	source: {
@@ -59,7 +56,7 @@ export const UrlPreview_Timestamp = entity({
 	imageUrl: {
 		label: 'Image URL',
 		type: EntityFieldType.Primitive,
-		primitiveType: (UrlString),
+		primitiveType: UrlString,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$image: {

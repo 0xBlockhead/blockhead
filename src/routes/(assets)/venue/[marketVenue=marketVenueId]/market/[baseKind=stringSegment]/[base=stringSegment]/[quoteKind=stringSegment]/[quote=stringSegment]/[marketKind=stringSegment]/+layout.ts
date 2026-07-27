@@ -6,7 +6,7 @@ import { match as matchMarketVenueId } from '$/params/marketVenueId.ts'
 import { match as matchStringSegment } from '$/params/stringSegment.ts'
 import { parseEntitySelector } from '$/schema/$schema.ts'
 import { schema } from '$/schema/index.ts'
-import { Market as MarketSchema } from '$/schema/Market.ts'
+import MarketSchema from '$/schema/Market.ts'
 import { type as arktype } from 'arktype'
 
 export const load: LayoutLoad = ({ params }) => {

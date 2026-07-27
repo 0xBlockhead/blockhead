@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 
-import { sourceProviderDefinitions } from '$/sources/$sourceProviders.ts'
+import bindings from '$/sources/CometBft/bindings.ts'
 import { Source } from '$/sources/Source.ts'
 import { SourceTargetKind } from '$/sources/SourceBinding.ts'
 
@@ -15,16 +15,7 @@ const {
 	getTx,
 } = await import('$/sources/CometBft/Rest/queries.ts')
 
-const binding = sourceProviderDefinitions
-	.flatMap((provider) => provider.bindings)
-	.find((candidate) => (
-		candidate.source === Source.CometBft_Rest
-		&& candidate.target.kind === SourceTargetKind.Caip2Network
-		&& candidate.target.key === 'cosmos:cosmoshub-4'
-	))
-
-if (binding == null)
-	throw new Error('CometBft_Rest spec missing Cosmos Hub source binding')
+const binding = bindings[Source.CometBft_Rest]
 
 describe('CometBFT REST queries', () => {
 	it('uses the registered binding for block and transaction paths', async () => {

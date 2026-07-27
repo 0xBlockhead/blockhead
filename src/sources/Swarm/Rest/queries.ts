@@ -1,32 +1,12 @@
 import { jsonErrorHintFromResponse } from '$/lib/http.ts'
 import { Source } from '$/sources/Source.ts'
-import {
-	ApiFamily,
-	SourceEndpointKind,
-	SourceTargetKind,
-	type SourceBinding,
-} from '$/sources/SourceBinding.ts'
 import { sourceFetch } from '$/sources/_runtime/http.ts'
 import type { SwarmBrowseResult } from '$/sources/Swarm/Rest/types.ts'
+import bindings from '$/sources/Swarm/bindings.ts'
 
-const swarmGatewayEndpoints = (binding: SourceBinding) => {
-	if (
-		binding.source !== Source.Swarm_Rest
-		|| binding.target.kind !== SourceTargetKind.ContentAddressScheme
-		|| binding.target.key !== 'swarm'
-		|| binding.apiFamily !== ApiFamily.SwarmGateway
-	)
-		throw new Error('Swarm_Rest: expected canonical Swarm gateway binding')
+const binding = bindings[Source.Swarm_Rest]
 
-	const endpoints = binding.endpoints.filter((endpoint) => (
-		endpoint.endpointKind === SourceEndpointKind.HttpUrl
-		&& endpoint.origin != null
-	))
-	if (endpoints.length === 0)
-		throw new Error('Swarm_Rest: canonical gateway binding has no HTTP endpoints')
-
-	return endpoints
-}
+const swarmGatewayEndpoints = () => binding.endpoints
 
 const stripHexPrefix = (value: string) => (
 	value.toLowerCase().startsWith('0x') ?
@@ -68,12 +48,10 @@ const getGatewayUrl = ({
 }
 
 export const fetchBrowseResult = async ({
-	binding,
 	reference,
 	contentPath,
 	signal,
 }: {
-	binding: SourceBinding
 	reference: string
 	contentPath?: string
 	signal?: AbortSignal
@@ -82,7 +60,7 @@ export const fetchBrowseResult = async ({
 	const trimmedPath = trimSlashes(contentPath?.trim() ?? '')
 	const failures: string[] = []
 
-	for (const endpoint of swarmGatewayEndpoints(binding)) {
+	for (const endpoint of swarmGatewayEndpoints()) {
 		const gatewayUrl = getGatewayUrl({
 			reference: trimmedReference,
 			contentPath: trimmedPath,
@@ -133,13 +111,11 @@ export const fetchBrowseResult = async ({
 }
 
 export const getGatewayReachability = async ({
-	binding,
 	signal,
 }: {
-	binding: SourceBinding
 	signal?: AbortSignal
-}) => {
-	const endpoints = swarmGatewayEndpoints(binding)
+} = {}) => {
+	const endpoints = swarmGatewayEndpoints()
 	const reachableAccessEndpointCount = (
 		await Promise.all(endpoints.map(async (endpoint) => {
 			try {

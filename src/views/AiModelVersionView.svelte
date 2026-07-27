@@ -2,13 +2,10 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -20,42 +17,29 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.AiModelVersion>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.AiModelVersion>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.AiModelVersion> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const aiModelVersion = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const viewSelection = $derived(selection({
+		sources: selection.sources ?? [
+			Source.HuggingFaceHub_Rest,
+			Source.Mlflow_Rest,
+		],
+	}))
+	const aiModelVersion = $derived(viewSelection({
 		fields: {
-			quantization: true,
-		},
-	} : {
-		sources: selection.sources,
-		fields: {
+			versionId: true,
+			huggingFaceRepo: true,
+			revision: true,
 			mlflowRegisteredModelName: true,
 			mlflowModelVersion: true,
 			quantization: true,
 		},
 	}))
-	const titleFallback = $derived([String((pendingEntity.versionId) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.revision) ?? '')].filter(Boolean).join(' ') || 'AI model version')
-	const viewDomId = $derived('ai-model-version-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const titleFallback = $derived((pendingEntity.versionId ?? '') || (pendingEntity.revision ?? '') || 'AI model version')
 
 
 	// Components
@@ -69,10 +53,8 @@
 
 <EntityView
 	entityType={EntityType.AiModelVersion}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -80,30 +62,25 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={aiModelVersion}>
 			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.versionId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+				{(entity.versionId ?? '') || title || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={aiModelVersion}>
-			{#snippet children(entity)}
-				<ResourceBoundary
-					resource={selection.$model}
-				>
-					{#snippet children(aiModel)}
-						{#if aiModel != null && aiModel[EntityMetaKey.Selector] != null}
-							<AiModelView
-								selection={select(EntityType.AiModel, aiModel[EntityMetaKey.Selector])}
-								prefetched={aiModel}
-								href=""
-								layout={EntityLayout.Value}
-								open={false}
-							/>
-						{/if}
-					{/snippet}
-				</ResourceBoundary>
+		<ResourceBoundary
+			resource={selection.$model}
+		>
+			{#snippet children(aiModel)}
+				{#if aiModel != null}
+					<AiModelView
+						selection={select(EntityType.AiModel, aiModel[EntityMetaKey.Selector])}
+						prefetched={aiModel}
+						href=""
+						layout={EntityLayout.Value}
+						open={false}
+					/>
+				{/if}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -111,11 +88,10 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={aiModelVersion}>
 			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const quantization0 = resolvedEntity.quantization}
-				{#if quantization0 !== undefined && quantization0 !== null}
+				{@const quantization0 = entity.quantization}
+				{#if quantization0 != null}
 					<span data-text="muted">
-						{String((quantization0) ?? '')}
+						{quantization0}
 					</span>
 				{/if}
 			{/snippet}
@@ -128,7 +104,7 @@
 				resource={selection.$model}
 			>
 				{#snippet children(aiModel)}
-					{#if aiModel != null && aiModel[EntityMetaKey.Selector] != null}
+					{#if aiModel != null}
 						<div>
 							<dt>model</dt>
 							<dd>
@@ -145,23 +121,15 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							versionId: true,
-						},
-					})
-				}
+				resource={aiModelVersion}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const versionId = resolvedEntity.versionId}
-					{#if versionId !== undefined && versionId !== null}
+					{@const versionId = entity.versionId}
+					{#if versionId != null}
 						<div>
 							<dt>version ID</dt>
 							<dd>
-								{String((versionId) ?? '')}
+								{versionId}
 							</dd>
 						</div>
 					{/if}
@@ -172,7 +140,7 @@
 				resource={selection.$artifact}
 			>
 				{#snippet children(aiArtifact)}
-					{#if aiArtifact != null && aiArtifact[EntityMetaKey.Selector] != null}
+					{#if aiArtifact != null}
 						<div>
 							<dt>artifact</dt>
 							<dd>
@@ -189,23 +157,15 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							huggingFaceRepo: true,
-						},
-					})
-				}
+				resource={aiModelVersion}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const huggingFaceRepo = resolvedEntity.huggingFaceRepo}
-					{#if huggingFaceRepo !== undefined && huggingFaceRepo !== null}
+					{@const huggingFaceRepo = entity.huggingFaceRepo}
+					{#if huggingFaceRepo != null}
 						<div>
 							<dt>hugging face repo</dt>
 							<dd>
-								{String((huggingFaceRepo) ?? '')}
+								{huggingFaceRepo}
 							</dd>
 						</div>
 					{/if}
@@ -213,23 +173,15 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							revision: true,
-						},
-					})
-				}
+				resource={aiModelVersion}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const revision = resolvedEntity.revision}
-					{#if revision !== undefined && revision !== null}
+					{@const revision = entity.revision}
+					{#if revision != null}
 						<div>
 							<dt>revision</dt>
 							<dd>
-								{String((revision) ?? '')}
+								{revision}
 							</dd>
 						</div>
 					{/if}
@@ -239,23 +191,15 @@
 
 		<dl data-column-item="center">
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							mlflowRegisteredModelName: true,
-						},
-					})
-				}
+				resource={aiModelVersion}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const mlflowRegisteredModelName = resolvedEntity.mlflowRegisteredModelName}
-					{#if mlflowRegisteredModelName !== undefined && mlflowRegisteredModelName !== null}
+					{@const mlflowRegisteredModelName = entity.mlflowRegisteredModelName}
+					{#if mlflowRegisteredModelName != null}
 						<div>
 							<dt>mlflow registered model name</dt>
 							<dd>
-								{String((mlflowRegisteredModelName) ?? '')}
+								{mlflowRegisteredModelName}
 							</dd>
 						</div>
 					{/if}
@@ -263,23 +207,15 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							mlflowModelVersion: true,
-						},
-					})
-				}
+				resource={aiModelVersion}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const mlflowModelVersion = resolvedEntity.mlflowModelVersion}
-					{#if mlflowModelVersion !== undefined && mlflowModelVersion !== null}
+					{@const mlflowModelVersion = entity.mlflowModelVersion}
+					{#if mlflowModelVersion != null}
 						<div>
 							<dt>mlflow model version</dt>
 							<dd>
-								{String((mlflowModelVersion) ?? '')}
+								{mlflowModelVersion}
 							</dd>
 						</div>
 					{/if}
@@ -288,8 +224,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							onnxIrVersion: true,
 						},
@@ -297,13 +232,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const onnxIrVersion = resolvedEntity.onnxIrVersion}
-					{#if onnxIrVersion !== undefined && onnxIrVersion !== null}
+					{@const onnxIrVersion = entity.onnxIrVersion}
+					{#if onnxIrVersion != null}
 						<div>
 							<dt>onnx ir version</dt>
 							<dd>
-								{String((onnxIrVersion) ?? '')}
+								{String(onnxIrVersion)}
 							</dd>
 						</div>
 					{/if}
@@ -314,8 +248,7 @@
 		<dl data-column-item="center">
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							createdAt: true,
 						},
@@ -323,9 +256,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const createdAt = resolvedEntity.createdAt}
-					{#if createdAt !== undefined && createdAt !== null}
+					{@const createdAt = entity.createdAt}
+					{#if createdAt != null}
 						<div>
 							<dt>Created</dt>
 							<dd>
@@ -338,8 +270,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							trainingCutoff: true,
 						},
@@ -347,9 +278,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const trainingCutoff = resolvedEntity.trainingCutoff}
-					{#if trainingCutoff !== undefined && trainingCutoff !== null}
+					{@const trainingCutoff = entity.trainingCutoff}
+					{#if trainingCutoff != null}
 						<div>
 							<dt>training cutoff</dt>
 							<dd>
@@ -361,23 +291,15 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							quantization: true,
-						},
-					})
-				}
+				resource={aiModelVersion}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const quantization = resolvedEntity.quantization}
-					{#if quantization !== undefined && quantization !== null}
+					{@const quantization = entity.quantization}
+					{#if quantization != null}
 						<div>
 							<dt>quantization</dt>
 							<dd>
-								{String((quantization) ?? '')}
+								{quantization}
 							</dd>
 						</div>
 					{/if}
@@ -386,8 +308,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							fineTuneKind: true,
 						},
@@ -395,13 +316,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const fineTuneKind = resolvedEntity.fineTuneKind}
-					{#if fineTuneKind !== undefined && fineTuneKind !== null}
+					{@const fineTuneKind = entity.fineTuneKind}
+					{#if fineTuneKind != null}
 						<div>
 							<dt>fine tune kind</dt>
 							<dd>
-								{String((fineTuneKind) ?? '')}
+								{fineTuneKind}
 							</dd>
 						</div>
 					{/if}
@@ -417,12 +337,12 @@
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
-				<AiDocumentsView
-					selection={aiModelVersionAiDocumentsViewDocumentsResource}
-					countResource={aiModelVersionAiDocumentsViewDocumentsResource.count}
-					title='documents'
-					id='AiDocumentsView-documents'
-				/>
+					<AiDocumentsView
+						selection={aiModelVersionAiDocumentsViewDocumentsResource}
+						countResource={aiModelVersionAiDocumentsViewDocumentsResource.count}
+						title='documents'
+						id='documents'
+					/>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>

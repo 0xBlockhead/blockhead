@@ -2,69 +2,30 @@
 
 <script lang="ts">
 	// Types/constants
-	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
-	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
-	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
+	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-
-
 
 
 	// State
 	let {
 		selection,
-		countResource,
-		title = 'Bit torrent tracker scrape observations',
-		typeAnnotationParagraphs = [],
-		placeholderText = undefined,
-		emptyText = undefined,
 		open = $bindable(true),
-		collapsible = true,
-		showTypeAnnotation = true,
-		id = 'BitTorrentTrackerScrape_Timestamps-list',
 		...EntitiesListProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyEntitiesSelection<EntityType.BitTorrentTrackerScrape_Timestamp>
-			countResource?: SvelteKitResource<number>
-			title?: string
-			typeAnnotationParagraphs?: string[]
-			placeholderText?: string
-			emptyText?: string
-			open?: boolean
-			collapsible?: boolean
-			showTypeAnnotation?: boolean
-			id?: string
-		},
-		EntitiesListForwardProps
-	> = $props()
+	}: EntityListViewProps<EntityType.BitTorrentTrackerScrape_Timestamp> = $props()
 
 
 	// Components
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView from '$/components/EntityView.svelte'
 </script>
 
-
-{#snippet TypeAnnotationParagraphs()}
-	{#each typeAnnotationParagraphs as paragraph (paragraph)}
-		<p>{paragraph}</p>
-	{/each}
-{/snippet}
 
 <EntitiesList
 	{...EntitiesListProps}
 	entityType={EntityType.BitTorrentTrackerScrape_Timestamp}
-	{id}
-	{title}
 	bind:open
-	{collapsible}
-	{showTypeAnnotation}
-	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
 	resource={
 		selection({
-			sources: selection.sources,
 			fields: {
 				timestampMs: true,
 				status: true,
@@ -72,38 +33,23 @@
 			},
 		})
 	}
-	{countResource}
-	getResourceItems={(bitTorrentTrackerScrapeTimestamps) => [...new Map(bitTorrentTrackerScrapeTimestamps.values.map((bitTorrentTrackerScrapeTimestamp) => [bitTorrentTrackerScrapeTimestamp[EntityMetaKey.SelectorKey], bitTorrentTrackerScrapeTimestamp])).values()]}
-	getKey={(bitTorrentTrackerScrapeTimestamp) => bitTorrentTrackerScrapeTimestamp[EntityMetaKey.SelectorKey]}
-	{placeholderText}
 >
-	{#snippet Empty()}
-		{#if emptyText != null}
-			<p data-text="muted">{emptyText}</p>
-		{:else}
-			<p data-text="muted">No Bit torrent tracker scrape observations yet.</p>
-		{/if}
-	{/snippet}
-
 	{#snippet Item({ item: bitTorrentTrackerScrapeTimestamp })}
-		{@const bitTorrentTrackerScrapeTimestampFields = { ...bitTorrentTrackerScrapeTimestamp[EntityMetaKey.Selector], ...bitTorrentTrackerScrapeTimestamp }}
+		{@const bitTorrentTrackerScrapeTimestampSelector = bitTorrentTrackerScrapeTimestamp[EntityMetaKey.Selector]}
 		<EntityView
 			entityType={EntityType.BitTorrentTrackerScrape_Timestamp}
-			entitySelector={bitTorrentTrackerScrapeTimestamp[EntityMetaKey.Selector]}
-			layout={EntityLayout.Summary}
-			open={false}
-			showTypeAnnotation={false}
+			entitySelector={bitTorrentTrackerScrapeTimestampSelector}
 		>
 			{#snippet Title()}
-				{[String((bitTorrentTrackerScrapeTimestampFields.timestampMs) ?? '')].filter(Boolean).join(' ') || 'bit torrent tracker scrape timestamp'}
+				{String(bitTorrentTrackerScrapeTimestampSelector.timestampMs) || 'bit torrent tracker scrape timestamp'}
 			{/snippet}
 
 			{#snippet Value()}
-				{[String((bitTorrentTrackerScrapeTimestampFields.status) ?? '')].filter(Boolean).join(' ')}
+				{bitTorrentTrackerScrapeTimestamp.status}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{[String((bitTorrentTrackerScrapeTimestampFields.source) ?? '')].filter(Boolean).join(' ')}</span>
+				<span data-text="annotation">{bitTorrentTrackerScrapeTimestampSelector.source}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

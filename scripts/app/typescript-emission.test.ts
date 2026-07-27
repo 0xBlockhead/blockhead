@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
 
-import { emitTypeScript } from './generate.ts'
+import { emitTypeScript } from './render.ts'
 
 
 test('emits escaped and nested TypeScript literals deterministically', () => {

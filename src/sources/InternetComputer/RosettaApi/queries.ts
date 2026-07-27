@@ -3,30 +3,17 @@ import {
 	firstHttpUrlForBinding,
 	sourceFetch,
 } from '$/sources/_runtime/http.ts'
-import { Source } from '$/sources/Source.ts'
-import {
-	SourceTargetKind,
-	type SourceBinding,
-} from '$/sources/SourceBinding.ts'
 import type {
 	InternetComputerRosettaAccountBalanceResponse,
 	InternetComputerRosettaAmount,
 	InternetComputerRosettaBlockIdentifier,
 	InternetComputerRosettaSearchTransactionsResponse,
 } from '$/sources/InternetComputer/RosettaApi/types.ts'
+import type { SourceBinding } from '$/sources/SourceBinding.ts'
 
 const networkIdentifier = {
 	blockchain: 'Internet Computer',
 	network: '00000000000000020101',
-} as const
-
-const assertBinding = (binding: SourceBinding) => {
-	if (
-		binding.source !== Source.InternetComputer_RosettaApi
-		|| binding.target.kind !== SourceTargetKind.NetworkSlug
-		|| binding.target.key !== 'icp'
-	)
-		throw new Error('InternetComputer_RosettaApi: expected canonical ICP mainnet binding')
 }
 
 const assertAccountIdentifier = (accountIdentifier: string) => {
@@ -73,7 +60,6 @@ export const request = async <_Response>(
 	path: string,
 	body: Readonly<Record<string, unknown>>
 ): Promise<_Response> => {
-	assertBinding(binding)
 	const response = await sourceFetch(
 		binding,
 		new URL(path, firstHttpUrlForBinding(binding)).toString(),

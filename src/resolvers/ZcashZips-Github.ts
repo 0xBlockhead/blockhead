@@ -11,9 +11,6 @@ import {
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
-import { _GlobalSelector } from '$/schema/_Global.ts'
-import { SpecificationProposalSelector } from '$/schema/SpecificationProposal.ts'
-
 const zipMetadataValue = (text: string, key: string) => (
 	new RegExp(`^:${key}:\\s*(.+?)\\s*$`, 'im').exec(text)?.[1]?.trim()
 )
@@ -55,7 +52,7 @@ export default {
 		defineResolver(Source.ZcashZips_Github, {
 			entityType: EntityType.SpecificationProposal,
 			resolve: {
-				[SpecificationProposalSelector.RealmCategoryNumber]: {
+				RealmCategoryNumber: {
 					appliesTo: [
 						{
 							realm: OwnedSpecificationRealm.Zcash,
@@ -68,7 +65,9 @@ export default {
 					if (realm !== SpecificationRealm.Zcash || category !== ProposalCategory.Zip) {
 						throw new Error('ZcashZips_Github: proposal resolver only supports Zcash ZIPs')
 					}
-					const text = await getProposalRstText({ number: number })
+					const text = await getProposalRstText({
+						number: number,
+					})
 					if (text.trim() === '') throw new Error('ZcashZips_Github: empty proposal text')
 					return {
 						documentCategory: zipMetadataValue(text, 'Category'),
@@ -89,11 +88,11 @@ export default {
 		defineResolver(Source.ZcashZips_Github, {
 			entityType: EntityType._Global,
 			resolve: {
-				[_GlobalSelector.Scope]: {
+				Scope: {
 					resolve: async () => {
-					const { getContents } = await import('$/sources/ZcashZips/Github/queries.ts')
-					return githubZipProposalIndexRows(await getContents())
-				},
+						const { getContents } = await import('$/sources/ZcashZips/Github/queries.ts')
+						return githubZipProposalIndexRows(await getContents())
+					},
 				}
 			}
 		})({

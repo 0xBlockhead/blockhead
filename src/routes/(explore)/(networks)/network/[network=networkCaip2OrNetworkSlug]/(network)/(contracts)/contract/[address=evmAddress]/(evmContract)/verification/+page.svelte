@@ -7,14 +7,12 @@
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		data,
-		params,
 	}: PageProps = $props()
 
 	const pageSelection = $derived(select(EntityType.EvmContractVerification, {
@@ -39,22 +37,12 @@
 
 
 <svelte:head>
-	<title>{(data.title ?? (pageSelection.entity == null ? 'EVM contract verification' : [String((({ ...{
-		$contract: data.selector,
-	}, ...pageSelection.entity }).match) ?? ''), String((({ ...{
-		$contract: data.selector,
-	}, ...pageSelection.entity }).runtimeMatch) ?? '')].filter(Boolean).join(' ') || 'EVM contract verification'))} • EVM contract verification • Blockhead</title>
+	<title>{(data.title ?? (pageSelection.entity == null ? 'EVM contract verification' : [(pageSelection.entity.match ?? ''), (pageSelection.entity.runtimeMatch ?? '')].filter(Boolean).join(' ') || 'EVM contract verification'))} • EVM contract verification • Blockhead</title>
 </svelte:head>
 
 
 <Page>
 	<EvmContractVerificationView
-		href={
-			resolve('/network/[network=networkCaip2OrNetworkSlug]/contract/[address=evmAddress]/verification', {
-				network: params.network,
-				address: params.address,
-			})
-		}
 		selection={pageSelection}
 	/>
 </Page>

@@ -7,14 +7,12 @@
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		data,
-		params,
 	}: PageProps = $props()
 
 	const pageSelection = $derived(select(EntityType.EvmNetwork_Timestamp, data.selector, {
@@ -32,19 +30,12 @@
 
 
 <svelte:head>
-	<title>{(data.title ?? (pageSelection.entity == null ? [String((data.selector.timestampMs) ?? '')].filter(Boolean).join(' ') || 'EVM network timestamp' : [(String((({ ...data.selector, ...pageSelection.entity }).blockHeight) ?? '') ? 'Block ' + String((({ ...data.selector, ...pageSelection.entity }).blockHeight) ?? '') : ''), String((({ ...data.selector, ...pageSelection.entity }).timestampMs) ?? '')].filter(Boolean).join(' ') || 'EVM network timestamp'))} • EVM network timestamp • Blockhead</title>
+	<title>{(data.title ?? (pageSelection.entity == null ? String(pageSelection.entitySelector.timestampMs ?? '') || 'EVM network timestamp' : ([(String(pageSelection.entity.blockHeight) ? 'Block ' + String(pageSelection.entity.blockHeight) : ''), String(pageSelection.entitySelector.timestampMs)].filter(Boolean).join(' ')) || 'EVM network timestamp'))} • EVM network timestamp • Blockhead</title>
 </svelte:head>
 
 
 <Page>
 	<EvmNetwork_TimestampView
-		href={
-			resolve('/network/[network=networkCaip2OrNetworkSlug]/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
-				network: params.network,
-				timestampMs: params.timestampMs,
-				source: params.source,
-			})
-		}
 		selection={pageSelection}
 	/>
 </Page>

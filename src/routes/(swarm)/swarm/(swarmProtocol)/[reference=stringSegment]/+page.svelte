@@ -9,14 +9,12 @@
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		data,
-		params,
 	}: PageProps = $props()
 
 	const pageSelection = $derived(select(EntityType.SwarmResource, data.selector, {
@@ -46,17 +44,12 @@
 
 
 <svelte:head>
-	<title>{(data.title ?? (pageSelection.entity == null ? 'Swarm resource' : [String((({ ...data.selector, ...pageSelection.entity }).canonicalUri) ?? '')].filter(Boolean).join(' ') || 'Swarm resource'))} • Swarm resource • Blockhead</title>
+	<title>{(data.title ?? (pageSelection.entity == null ? 'Swarm resource' : String(pageSelection.entity.canonicalUri) || 'Swarm resource'))} • Swarm resource • Blockhead</title>
 </svelte:head>
 
 
 <Page>
 	<SwarmResourceView
-		href={
-			resolve('/swarm/[reference=stringSegment]', {
-				reference: params.reference,
-			})
-		}
 		selection={pageSelection}
 	/>
 </Page>

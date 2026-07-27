@@ -7,7 +7,6 @@
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
@@ -46,19 +45,12 @@
 
 
 <svelte:head>
-	<title>{(pageSelection.entity == null ? 'X user observation' : 'X user observation')} • X user observation • Blockhead</title>
+	<title>{('X user observation')} • X user observation • Blockhead</title>
 </svelte:head>
 
 
 <Page>
 	<XUser_TimestampView
-		href={
-			resolve('/x/user/[userId=stringSegment]/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
-				userId: params.userId,
-				timestampMs: params.timestampMs,
-				source: params.source,
-			})
-		}
 		selection={pageSelection}
 	/>
 </Page>

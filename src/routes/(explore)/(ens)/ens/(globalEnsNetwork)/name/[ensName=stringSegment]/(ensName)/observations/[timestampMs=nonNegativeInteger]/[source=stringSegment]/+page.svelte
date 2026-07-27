@@ -4,11 +4,9 @@
 	// Types/constants
 	import type { PageProps } from './$types.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
@@ -49,19 +47,12 @@
 
 
 <svelte:head>
-	<title>{(pageSelection.entity == null ? 'ENS name observation' : 'ENS name observation')} • ENS name observation • Blockhead</title>
+	<title>{('ENS name observation')} • ENS name observation • Blockhead</title>
 </svelte:head>
 
 
 <Page>
 	<EnsName_TimestampView
-		href={
-			resolve('/ens/name/[ensName=stringSegment]/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
-				ensName: params.ensName,
-				timestampMs: params.timestampMs,
-				source: params.source,
-			})
-		}
 		selection={pageSelection}
 	/>
 </Page>

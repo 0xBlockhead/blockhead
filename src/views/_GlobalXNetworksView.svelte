@@ -2,102 +2,50 @@
 
 <script lang="ts">
 	// Types/constants
-	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
-	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
-	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
+	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-
-
 
 
 	// State
 	let {
 		selection,
-		countResource,
-		title = 'Global X networks',
-		typeAnnotationParagraphs = [],
-		placeholderText = undefined,
-		emptyText = undefined,
 		open = $bindable(true),
-		collapsible = true,
-		showTypeAnnotation = true,
 		id = 'GlobalXNetworks-list',
 		...EntitiesListProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyEntitiesSelection<EntityType._GlobalXNetwork>
-			countResource?: SvelteKitResource<number>
-			title?: string
-			typeAnnotationParagraphs?: string[]
-			placeholderText?: string
-			emptyText?: string
-			open?: boolean
-			collapsible?: boolean
-			showTypeAnnotation?: boolean
-			id?: string
-		},
-		EntitiesListForwardProps
-	> = $props()
+	}: EntityListViewProps<EntityType._GlobalXNetwork> = $props()
 
 
 	// Components
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView from '$/components/EntityView.svelte'
 </script>
 
-
-{#snippet TypeAnnotationParagraphs()}
-	{#each typeAnnotationParagraphs as paragraph (paragraph)}
-		<p>{paragraph}</p>
-	{/each}
-{/snippet}
 
 <EntitiesList
 	{...EntitiesListProps}
 	entityType={EntityType._GlobalXNetwork}
 	{id}
-	{title}
 	bind:open
-	{collapsible}
-	{showTypeAnnotation}
-	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
 	resource={
 		selection({
-			sources: selection.sources,
 			fields: {
 				scope: true,
 			},
 		})
 	}
-	{countResource}
-	getResourceItems={(globalXNetworks) => [...new Map(globalXNetworks.values.map((globalXNetwork) => [globalXNetwork[EntityMetaKey.SelectorKey], globalXNetwork])).values()]}
-	getKey={(globalXNetwork) => globalXNetwork[EntityMetaKey.SelectorKey]}
-	{placeholderText}
 >
-	{#snippet Empty()}
-		{#if emptyText != null}
-			<p data-text="muted">{emptyText}</p>
-		{:else}
-			<p data-text="muted">No Global X networks yet.</p>
-		{/if}
-	{/snippet}
-
 	{#snippet Item({ item: globalXNetwork })}
-		{@const globalXNetworkFields = { ...globalXNetwork[EntityMetaKey.Selector], ...globalXNetwork }}
+		{@const globalXNetworkSelector = globalXNetwork[EntityMetaKey.Selector]}
 		<EntityView
 			entityType={EntityType._GlobalXNetwork}
-			entitySelector={globalXNetwork[EntityMetaKey.Selector]}
-			layout={EntityLayout.Summary}
-			open={false}
-			showTypeAnnotation={false}
+			entitySelector={globalXNetworkSelector}
 		>
 			{#snippet Title()}
-				{'global X network'}
+				global X network
 			{/snippet}
 
 			{#snippet Value()}
-				{[String((globalXNetworkFields.scope) ?? '')].filter(Boolean).join(' ')}
+				{globalXNetworkSelector.scope}
 			{/snippet}
 		</EntityView>
 	{/snippet}

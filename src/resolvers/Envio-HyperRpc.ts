@@ -10,9 +10,7 @@ import {
 	type Entity,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import { EvmTransactionSelector } from '$/schema/EvmTransaction.ts'
 import { schema } from '$/schema/index.ts'
-import { sourceProviderDefinitions } from '$/sources/$sourceProviders.ts'
 import { Source } from '$/sources/Source.ts'
 
 const quantity = (
@@ -51,15 +49,12 @@ export default {
 		defineResolver(Source.EnvioHyperRpc_JsonRpc, {
 			entityType: EntityType.EvmTransaction,
 			resolve: {
-				[EvmTransactionSelector.EvmNetworkTxHash]: {
+				EvmNetworkTxHash: {
 					resolve: async ({ $network, txHash }) => {
-						const binding = sourceProviderDefinitions
-							.flatMap((provider) => provider.bindings)
-							.find((candidate) => (
-								candidate.source === Source.EnvioHyperRpc_JsonRpc
-								&& candidate.target.key === $network.caip2.reference
-							))
-						if ($network.caip2.namespace !== 'eip155' || binding == null)
+						if (
+							$network.caip2.namespace !== 'eip155'
+							|| $network.caip2.reference !== networkBySlug.ethereum.caip2.reference
+						)
 							throw new Error(`EnvioHyperRpc_JsonRpc: unsupported network ${$network.caip2.namespace}:${$network.caip2.reference}`)
 
 						const {
@@ -67,8 +62,8 @@ export default {
 							getEvmTransactionReceipt,
 						} = await import('$/sources/Envio/HyperRpc/queries.ts')
 						const [transaction, receipt] = await Promise.all([
-							getEvmTransactionByHash(binding, txHash),
-							getEvmTransactionReceipt(binding, txHash),
+							getEvmTransactionByHash(txHash),
+							getEvmTransactionReceipt(txHash),
 						])
 						if (transaction == null)
 							throw new Error(`EnvioHyperRpc_JsonRpc: transaction ${txHash} not found`)
@@ -206,3 +201,4 @@ export default {
 		}),
 	],
 }
+import { networkBySlug } from '$/constants/Network.ts'

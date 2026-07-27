@@ -6,10 +6,10 @@ import { networkByCaip2, networkBySlug } from '$/constants/Network.ts'
 import { match as matchNonNegativeInteger } from '$/params/nonNegativeInteger.ts'
 import { match as matchSolanaPubkey } from '$/params/solanaPubkey.ts'
 import { parseEntitySelector, type EntitySelectorForSelectorName } from '$/schema/$schema.ts'
-import { BeaconValidator as BeaconValidatorSchema } from '$/schema/BeaconValidator.ts'
+import BeaconValidatorSchema from '$/schema/BeaconValidator.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { schema } from '$/schema/index.ts'
-import { SolanaValidator as SolanaValidatorSchema } from '$/schema/SolanaValidator.ts'
+import SolanaValidatorSchema from '$/schema/SolanaValidator.ts'
 import { type as arktype } from 'arktype'
 
 export const load: LayoutLoad = async ({ params, parent }) => {

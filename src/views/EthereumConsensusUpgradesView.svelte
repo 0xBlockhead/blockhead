@@ -3,130 +3,69 @@
 <script lang="ts">
 	// Types/constants
 	import { resolve } from '$app/paths'
-	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
-	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
-	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
+	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
-
-
 	// State
 	let {
 		selection,
-		countResource,
-		title = 'Ethereum consensus upgrades',
-		typeAnnotationParagraphs = [],
-		placeholderText = undefined,
-		emptyText = undefined,
 		open = $bindable(true),
-		collapsible = true,
-		showTypeAnnotation = true,
-		id = 'EthereumConsensusUpgrades-list',
 		...EntitiesListProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyEntitiesSelection<EntityType.EthereumConsensusUpgrade>
-			countResource?: SvelteKitResource<number>
-			title?: string
-			typeAnnotationParagraphs?: string[]
-			placeholderText?: string
-			emptyText?: string
-			open?: boolean
-			collapsible?: boolean
-			showTypeAnnotation?: boolean
-			id?: string
-		},
-		EntitiesListForwardProps
-	> = $props()
+	}: EntityListViewProps<EntityType.EthereumConsensusUpgrade> = $props()
 
 
 	// Components
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView from '$/components/EntityView.svelte'
 </script>
 
-
-{#snippet TypeAnnotationParagraphs()}
-	{#each typeAnnotationParagraphs as paragraph (paragraph)}
-		<p>{paragraph}</p>
-	{/each}
-{/snippet}
 
 <EntitiesList
 	{...EntitiesListProps}
 	entityType={EntityType.EthereumConsensusUpgrade}
-	{id}
-	{title}
 	bind:open
-	{collapsible}
-	{showTypeAnnotation}
-	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
 	resource={
 		selection({
-			sources: selection.sources,
 			fields: {
 				upgradeId: true,
 				name: true,
-				slug: true,
-				$network: true,
 			},
 		})
 	}
-	{countResource}
-	getResourceItems={(ethereumConsensusUpgrades) => [...new Map(ethereumConsensusUpgrades.values.map((ethereumConsensusUpgrade) => [ethereumConsensusUpgrade[EntityMetaKey.SelectorKey], ethereumConsensusUpgrade])).values()]}
-	getKey={(ethereumConsensusUpgrade) => ethereumConsensusUpgrade[EntityMetaKey.SelectorKey]}
-	{placeholderText}
 >
-	{#snippet Empty()}
-		{#if emptyText != null}
-			<p data-text="muted">{emptyText}</p>
-		{:else}
-			<p data-text="muted">No Ethereum consensus upgrades yet.</p>
-		{/if}
-	{/snippet}
-
 	{#snippet Item({ item: ethereumConsensusUpgrade })}
-		{@const ethereumConsensusUpgradeFields = { ...ethereumConsensusUpgrade[EntityMetaKey.Selector], ...ethereumConsensusUpgrade }}
+		{@const ethereumConsensusUpgradeSelector = ethereumConsensusUpgrade[EntityMetaKey.Selector]}
 		<EntityView
 			entityType={EntityType.EthereumConsensusUpgrade}
-			entitySelector={ethereumConsensusUpgrade[EntityMetaKey.Selector]}
+			entitySelector={ethereumConsensusUpgradeSelector}
 			href={
 				(
-					ethereumConsensusUpgrade[EntityMetaKey.Selector] != null && 'slug' in ethereumConsensusUpgrade[EntityMetaKey.Selector]
-					&& ethereumConsensusUpgrade[EntityMetaKey.Selector].slug != null
-					&& ethereumConsensusUpgrade[EntityMetaKey.Selector] != null && '$network' in ethereumConsensusUpgrade[EntityMetaKey.Selector] ?
-						ethereumConsensusUpgrade[EntityMetaKey.Selector].$network != null && 'caip2' in ethereumConsensusUpgrade[EntityMetaKey.Selector].$network
-						&& ethereumConsensusUpgrade[EntityMetaKey.Selector].$network.caip2 != null ?
-							resolve('/network/[network=networkCaip2OrNetworkSlug]/consensus/[upgradeSlug=stringSegment]', {
-						upgradeSlug: String(ethereumConsensusUpgrade[EntityMetaKey.Selector].slug ?? ''),
-						network: String(caip2StringFromValue(ethereumConsensusUpgrade[EntityMetaKey.Selector].$network.caip2) ?? ''),
-					})
+					'slug' in ethereumConsensusUpgradeSelector ?
+						resolve(
+							'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(upgrades)/consensus/[upgradeSlug=stringSegment]',
+							{
+								network: (
+									'caip2' in ethereumConsensusUpgradeSelector.$network ?
+										String(caip2StringFromValue(ethereumConsensusUpgradeSelector.$network.caip2))
+									:
+										String(ethereumConsensusUpgradeSelector.$network.slug)
+								),
+								upgradeSlug: String(ethereumConsensusUpgradeSelector.slug),
+							}
+						)
 					:
-							ethereumConsensusUpgrade[EntityMetaKey.Selector].$network != null && 'slug' in ethereumConsensusUpgrade[EntityMetaKey.Selector].$network
-							&& ethereumConsensusUpgrade[EntityMetaKey.Selector].$network.slug != null ?
-								resolve('/network/[network=networkCaip2OrNetworkSlug]/consensus/[upgradeSlug=stringSegment]', {
-							upgradeSlug: String(ethereumConsensusUpgrade[EntityMetaKey.Selector].slug ?? ''),
-							network: String(ethereumConsensusUpgrade[EntityMetaKey.Selector].$network.slug ?? ''),
-						})
-						:
-							undefined
-				:
 						undefined
 				)
 			}
-			layout={EntityLayout.Summary}
-			open={false}
-			showTypeAnnotation={false}
 		>
 			{#snippet Title()}
-				{[String((ethereumConsensusUpgradeFields.upgradeId) ?? '')].filter(Boolean).join(' ') || [String((ethereumConsensusUpgradeFields.name) ?? '')].filter(Boolean).join(' ') || 'Ethereum consensus upgrade'}
+				{ethereumConsensusUpgradeSelector.upgradeId || ethereumConsensusUpgrade.name || 'Ethereum consensus upgrade'}
 			{/snippet}
 
 			{#snippet Value()}
-				{[String((ethereumConsensusUpgradeFields.upgradeId) ?? '')].filter(Boolean).join(' ')}
+				{ethereumConsensusUpgradeSelector.upgradeId}
 			{/snippet}
 		</EntityView>
 	{/snippet}

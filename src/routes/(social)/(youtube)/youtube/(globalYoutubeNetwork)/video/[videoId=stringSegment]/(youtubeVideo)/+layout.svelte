@@ -30,24 +30,30 @@
 {#key params.videoId}
 	<ParentPageCollapsible
 		href={
-			resolve('/youtube/video/[videoId=stringSegment]', {
-				videoId: params.videoId,
-			})
+			resolve(
+				'/(social)/(youtube)/youtube/(globalYoutubeNetwork)/video/[videoId=stringSegment]',
+				{
+					videoId: String(params.videoId),
+				}
+			)
 		}
 	>
 		{#snippet Summary()}
-			{@const DetailView = YoutubeVideoView}
-
-			<DetailView
-				selection={select(EntityType.YoutubeVideo, data.selector, { sources: [
-		Source.Youtube_Rest,
-		Source.Piped_Rest,
-		Source.Constants_Internal,
-	] })}
+			<YoutubeVideoView
+				selection={
+					select(EntityType.YoutubeVideo, data.selector, { sources: [
+						Source.Youtube_Rest,
+						Source.Piped_Rest,
+						Source.Constants_Internal,
+					] })
+				}
 				href={
-					resolve('/youtube/video/[videoId=stringSegment]', {
-						videoId: params.videoId,
-					})
+					resolve(
+						'/(social)/(youtube)/youtube/(globalYoutubeNetwork)/video/[videoId=stringSegment]',
+						{
+							videoId: String(params.videoId),
+						}
+					)
 				}
 				layout={EntityLayout.SummaryInline}
 			/>

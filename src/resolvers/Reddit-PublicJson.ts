@@ -17,14 +17,6 @@ import type {
 	RedditPublicApiSubredditAbout,
 	RedditPublicApiThing,
 } from '$/sources/RedditPublic/Rest/types.ts'
-import { RedditSubredditSelector } from '$/schema/RedditSubreddit.ts'
-import { RedditLinkSelector } from '$/schema/RedditLink.ts'
-import { RedditCommentSelector } from '$/schema/RedditComment.ts'
-import { RedditSubreddit_TimestampSelector } from '$/schema/RedditSubreddit_Timestamp.ts'
-import { RedditLink_TimestampSelector } from '$/schema/RedditLink_Timestamp.ts'
-import { RedditComment_TimestampSelector } from '$/schema/RedditComment_Timestamp.ts'
-import { _GlobalRedditNetworkSelector } from '$/schema/_GlobalRedditNetwork.ts'
-
 
 const redditSubredditIconUrl = (
 	iconImg: string | undefined,
@@ -229,7 +221,7 @@ export default {
 		defineResolver(Source.Reddit_PublicJson, {
 			entityType: EntityType.RedditSubreddit,
 			resolve: {
-				[RedditSubredditSelector.Name]: {
+				Name: {
 					resolve: async ({ name }) => {
 						const { getSubredditAbout } = await import('$/sources/RedditPublic/Rest/queries.ts')
 						const subredditAbout = (await getSubredditAbout(name)).data
@@ -260,7 +252,7 @@ export default {
 		defineResolver(Source.Reddit_PublicJson, {
 			entityType: EntityType.RedditLink,
 			resolve: {
-				[RedditLinkSelector.Fullname]: {
+				Fullname: {
 					resolve: async ({ fullname }) => {
 						const { getInfo } = await import('$/sources/RedditPublic/Rest/queries.ts')
 						const redditThing = redditThingFromInfo(await getInfo(fullname), fullname, 't3')
@@ -299,7 +291,7 @@ export default {
 		defineResolver(Source.Reddit_PublicJson, {
 			entityType: EntityType.RedditComment,
 			resolve: {
-				[RedditCommentSelector.Fullname]: {
+				Fullname: {
 					resolve: async ({ fullname }) => {
 						const { getInfo } = await import('$/sources/RedditPublic/Rest/queries.ts')
 						const redditThing = redditThingFromInfo(await getInfo(fullname), fullname, 't1')
@@ -339,7 +331,7 @@ export default {
 		defineResolver(Source.Reddit_PublicJson, {
 			entityType: EntityType.RedditSubreddit_Timestamp,
 			resolve: {
-				[RedditSubreddit_TimestampSelector.SubredditTimestampMsSource]: {
+				SubredditTimestampMsSource: {
 					resolve: async ({ $subreddit }) => {
 						const { getSubredditAbout } = await import('$/sources/RedditPublic/Rest/queries.ts')
 						const subredditAbout = (await getSubredditAbout($subreddit.name)).data
@@ -360,7 +352,7 @@ export default {
 		defineResolver(Source.Reddit_PublicJson, {
 			entityType: EntityType.RedditLink_Timestamp,
 			resolve: {
-				[RedditLink_TimestampSelector.LinkTimestampMsSource]: {
+				LinkTimestampMsSource: {
 					resolve: async ({ $link }) => {
 						const { getInfo } = await import('$/sources/RedditPublic/Rest/queries.ts')
 						const redditThing = redditThingFromInfo(await getInfo($link.fullname), $link.fullname, 't3')
@@ -381,7 +373,7 @@ export default {
 		defineResolver(Source.Reddit_PublicJson, {
 			entityType: EntityType.RedditComment_Timestamp,
 			resolve: {
-				[RedditComment_TimestampSelector.CommentTimestampMsSource]: {
+				CommentTimestampMsSource: {
 					resolve: async ({ $comment }) => {
 						const { getInfo } = await import('$/sources/RedditPublic/Rest/queries.ts')
 						const redditThing = redditThingFromInfo(await getInfo($comment.fullname), $comment.fullname, 't1')
@@ -398,7 +390,7 @@ export default {
 		defineResolver(Source.Reddit_PublicJson, {
 			entityType: EntityType._GlobalRedditNetwork,
 			resolve: {
-				[_GlobalRedditNetworkSelector.Scope]: {
+				Scope: {
 					resolve: async (_entitySelector, context) => {
 						const { listSubredditHot } = await import('$/sources/RedditPublic/Rest/queries.ts')
 						const limit = resolverContextRowLimit(context)
@@ -422,7 +414,7 @@ export default {
 		defineResolver(Source.Reddit_PublicJson, {
 			entityType: EntityType._GlobalRedditNetwork,
 			resolve: {
-				[_GlobalRedditNetworkSelector.Scope]: {
+				Scope: {
 					resolve: async (_entitySelector, context) => {
 						const { listSubredditHot } = await import('$/sources/RedditPublic/Rest/queries.ts')
 						const limit = resolverContextRowLimit(context)
@@ -440,7 +432,7 @@ export default {
 		defineResolver(Source.Reddit_PublicJson, {
 			entityType: EntityType.RedditSubreddit,
 			resolve: {
-				[RedditSubredditSelector.Name]: {
+				Name: {
 					resolve: async ({ name }) => {
 						const { getSubredditAbout } = await import('$/sources/RedditPublic/Rest/queries.ts')
 						const data = (await getSubredditAbout(name)).data
@@ -471,7 +463,7 @@ export default {
 		defineResolver(Source.Reddit_PublicJson, {
 			entityType: EntityType.RedditSubreddit,
 			resolve: {
-				[RedditSubredditSelector.Name]: {
+				Name: {
 					resolve: async ({ name }, context) => {
 						const { listSubredditHot } = await import('$/sources/RedditPublic/Rest/queries.ts')
 						return listSubredditHot(
@@ -513,7 +505,7 @@ export default {
 		defineResolver(Source.Reddit_PublicJson, {
 			entityType: EntityType.RedditLink,
 			resolve: {
-				[RedditLinkSelector.Fullname]: {
+				Fullname: {
 					resolve: async ({ fullname }) => {
 						const { getInfo } = await import('$/sources/RedditPublic/Rest/queries.ts')
 						const redditThing = redditThingFromInfo(await getInfo(fullname), fullname, 't3')
@@ -544,7 +536,7 @@ export default {
 		defineResolver(Source.Reddit_PublicJson, {
 			entityType: EntityType.RedditLink,
 			resolve: {
-				[RedditLinkSelector.Fullname]: {
+				Fullname: {
 					resolve: async ({ fullname }, context) => {
 						const limit = resolverContextRowLimit(context)
 						if (limit === 0)
@@ -566,7 +558,7 @@ export default {
 		defineResolver(Source.Reddit_PublicJson, {
 			entityType: EntityType.RedditLink,
 			resolve: {
-				[RedditLinkSelector.Fullname]: {
+				Fullname: {
 					resolve: async ({ fullname }) => {
 						const { getInfo } = await import('$/sources/RedditPublic/Rest/queries.ts')
 						const redditThing = redditThingFromInfo(await getInfo(fullname), fullname, 't3')
@@ -585,7 +577,7 @@ export default {
 		defineResolver(Source.Reddit_PublicJson, {
 			entityType: EntityType.RedditComment,
 			resolve: {
-				[RedditCommentSelector.Fullname]: {
+				Fullname: {
 					resolve: async ({ fullname }) => {
 						const { getInfo } = await import('$/sources/RedditPublic/Rest/queries.ts')
 						const redditThing = redditThingFromInfo(await getInfo(fullname), fullname, 't1')
@@ -613,7 +605,7 @@ export default {
 		defineResolver(Source.Reddit_PublicJson, {
 			entityType: EntityType.RedditComment,
 			resolve: {
-				[RedditCommentSelector.Fullname]: {
+				Fullname: {
 					resolve: async ({ fullname }, context) => {
 						const limit = resolverContextRowLimit(context)
 						if (limit === 0)

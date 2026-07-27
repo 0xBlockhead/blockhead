@@ -2,11 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { stringify } from 'devalue'
 
@@ -16,40 +12,19 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.BitTorrentMetainfo>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.BitTorrentMetainfo>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.BitTorrentMetainfo> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const bitTorrentMetainfo = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {
-			name: true,
-		},
-	} : {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const bitTorrentMetainfo = $derived(selection({
 		fields: {
 			name: true,
 		},
 	}))
-	const titleFallback = $derived([String((pendingEntity.name) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.infoHash) ?? '')].filter(Boolean).join(' ') || 'bit torrent metainfo')
-	const viewDomId = $derived('bit-torrent-metainfo-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const titleFallback = $derived((pendingEntity.name ?? '') || (pendingEntity.infoHash ?? '') || 'bit torrent metainfo')
+	const viewDomId = $derived('bit-torrent-metainfo-' + encodeURIComponent(stringify(selection.entitySelector)))
 
 
 	// Components
@@ -70,60 +45,37 @@
 
 <EntityView
 	entityType={EntityType.BitTorrentMetainfo}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
+	entitySelector={selection.entitySelector}
 	id={viewDomId}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'name')}
-			{[String((pendingEntity.name) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-		{:else}
-			<ResourceBoundary resource={bitTorrentMetainfo}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.name) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={bitTorrentMetainfo}>
+			{#snippet children(entity)}
+				{(entity.name ?? '') || title || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Value()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'name')}
-			{[String((pendingEntity.hashVersion) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.name) ?? '')].filter(Boolean).join(' ') || titleFallback}
-		{:else}
-			<ResourceBoundary resource={bitTorrentMetainfo}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.hashVersion) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.name) ?? '')].filter(Boolean).join(' ') || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		{(pendingEntity.hashVersion ?? '') || (pendingEntity.name ?? '') || titleFallback}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
 		<dl data-column-item="center">
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							name: true,
-						},
-					})
-				}
+				resource={bitTorrentMetainfo}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const name = resolvedEntity.name}
-					{#if name !== undefined && name !== null}
+					{@const name = entity.name}
+					{#if name != null}
 						<div>
 							<dt>Name</dt>
 							<dd>
-								{String((name) ?? '')}
+								{name}
 							</dd>
 						</div>
 					{/if}
@@ -133,55 +85,20 @@
 			<div>
 				<dt>info hash</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									infoHash: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const infoHash = resolvedEntity.infoHash}
-							{#if infoHash !== undefined && infoHash !== null}
-								<TruncatedValue value={String((infoHash) ?? '')} />
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					<TruncatedValue value={pendingEntity.infoHash} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>hash version</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									hashVersion: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const hashVersion = resolvedEntity.hashVersion}
-							{#if hashVersion !== undefined && hashVersion !== null}
-								<TruncatedValue value={String((hashVersion) ?? '')} />
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					<TruncatedValue value={pendingEntity.hashVersion} />
 				</dd>
 			</div>
 
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							totalLength: true,
 						},
@@ -189,9 +106,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const totalLength = resolvedEntity.totalLength}
-					{#if totalLength !== undefined && totalLength !== null}
+					{@const totalLength = entity.totalLength}
+					{#if totalLength != null}
 						<div>
 							<dt>total length</dt>
 							<dd>
@@ -209,7 +125,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							infoHashV1: true,
 						},
@@ -217,13 +132,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const infoHashV1 = resolvedEntity.infoHashV1}
-					{#if infoHashV1 !== undefined && infoHashV1 !== null}
+					{@const infoHashV1 = entity.infoHashV1}
+					{#if infoHashV1 != null}
 						<div>
 							<dt>info hash v1</dt>
 							<dd>
-								<TruncatedValue value={String((infoHashV1) ?? '')} />
+								<TruncatedValue value={infoHashV1} />
 							</dd>
 						</div>
 					{/if}
@@ -233,7 +147,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							infoHashV2: true,
 						},
@@ -241,13 +154,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const infoHashV2 = resolvedEntity.infoHashV2}
-					{#if infoHashV2 !== undefined && infoHashV2 !== null}
+					{@const infoHashV2 = entity.infoHashV2}
+					{#if infoHashV2 != null}
 						<div>
 							<dt>info hash v2</dt>
 							<dd>
-								<TruncatedValue value={String((infoHashV2) ?? '')} />
+								<TruncatedValue value={infoHashV2} />
 							</dd>
 						</div>
 					{/if}
@@ -257,7 +169,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							metainfoHash: true,
 						},
@@ -265,13 +176,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const metainfoHash = resolvedEntity.metainfoHash}
-					{#if metainfoHash !== undefined && metainfoHash !== null}
+					{@const metainfoHash = entity.metainfoHash}
+					{#if metainfoHash != null}
 						<div>
 							<dt>metainfo hash</dt>
 							<dd>
-								<TruncatedValue value={String((metainfoHash) ?? '')} />
+								<TruncatedValue value={metainfoHash} />
 							</dd>
 						</div>
 					{/if}
@@ -281,7 +191,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							bencodedInfoHash: true,
 						},
@@ -289,13 +198,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const bencodedInfoHash = resolvedEntity.bencodedInfoHash}
-					{#if bencodedInfoHash !== undefined && bencodedInfoHash !== null}
+					{@const bencodedInfoHash = entity.bencodedInfoHash}
+					{#if bencodedInfoHash != null}
 						<div>
 							<dt>bencoded info hash</dt>
 							<dd>
-								<TruncatedValue value={String((bencodedInfoHash) ?? '')} />
+								<TruncatedValue value={bencodedInfoHash} />
 							</dd>
 						</div>
 					{/if}
@@ -305,7 +213,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							pieceLength: true,
 						},
@@ -313,9 +220,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const pieceLength = resolvedEntity.pieceLength}
-					{#if pieceLength !== undefined && pieceLength !== null}
+					{@const pieceLength = entity.pieceLength}
+					{#if pieceLength != null}
 						<div>
 							<dt>piece length</dt>
 							<dd>
@@ -331,7 +237,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							private: true,
 						},
@@ -339,9 +244,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const privateValue = resolvedEntity.private}
-					{#if privateValue !== undefined && privateValue !== null}
+					{@const privateValue = entity.private}
+					{#if privateValue != null}
 						<div>
 							<dt>private</dt>
 							<dd>
@@ -363,17 +267,14 @@
 					{
 						id: 'bittorrent-files',
 						label: 'Files',
-						ownsSection: true,
 					},
 					{
 						id: 'bittorrent-file-tree',
 						label: 'File tree',
-						ownsSection: true,
 					},
 					{
 						id: 'bittorrent-pieces',
 						label: 'Pieces',
-						ownsSection: true,
 					},
 				]
 			}
@@ -386,202 +287,49 @@
 				</header>
 			{/snippet}
 
-			{#snippet MarkerBittorrentFiles(_context, Content)}
-				{@const bittorrentContentBittorrentFilesResource = selection.$$files}
-				<ResourceBoundary
-					resource={bittorrentContentBittorrentFilesResource}
-				>
-					{#snippet children(_resolved)}
-						{@render Content()}
-					{/snippet}
-
-					{#snippet PendingContent()}
-						{@render Content()}
-					{/snippet}
-
-					{#snippet FailedContent(_error, _retry)}
-						{@render Content()}
-					{/snippet}
-				</ResourceBoundary>
+			{#snippet SectionBittorrentFiles({ id, label, open })}
+				<BitTorrentFilesView
+					selection={selection.$$files}
+					CollapsibleProps={{ canToggle: false }}
+					collapsible={false}
+					data-column-item="flexible"
+					data-card
+					data-scroll-container
+					open={open}
+					title={label}
+					emptyText='No files found.'
+					id={`${id}-list`}
+				/>
 			{/snippet}
 
-			{#snippet SectionBittorrentFiles({ id, label, open, active })}
-				{@const bittorrentContentBittorrentFilesResource = selection.$$files}
-				<ResourceBoundary
-					resource={bittorrentContentBittorrentFilesResource}
-				>
-					{#snippet children(bitTorrentFile)}
-						<section
-							id={id}
-							aria-labelledby={`${id}:marker`}
-							data-scroll-marker-label={label}
-							data-column-item="flexible"
-							data-column
-							data-active={active}
-						>
-							<BitTorrentFilesView
-								selection={bittorrentContentBittorrentFilesResource}
-								CollapsibleProps={{ canToggle: false }}
-								collapsible={false}
-								data-column-item="flexible"
-								data-card
-								data-scroll-container
-								open={open}
-								title={label}
-								emptyText='No files found.'
-								id={`${id}-list`}
-							/>
-						</section>
-					{/snippet}
-
-					{#snippet Pending()}
-						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
-							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
-								<span data-tag data-text="muted" data-resource-state="pending" class="loading inline-placeholder" aria-busy="true" aria-label="Loading…">•••</span>
-							</article>
-						</section>
-					{/snippet}
-
-					{#snippet Failed(_error, _retry)}
-						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
-							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
-								<span data-tag data-resource-state="failed" class="inline-placeholder" aria-label="Failed to load">•••</span>
-							</article>
-						</section>
-					{/snippet}
-				</ResourceBoundary>
+			{#snippet SectionBittorrentFileTree({ id, label, open })}
+				<BitTorrentFileTreeEntriesView
+					selection={selection.$$fileTreeEntries}
+					CollapsibleProps={{ canToggle: false }}
+					collapsible={false}
+					data-column-item="flexible"
+					data-card
+					data-scroll-container
+					open={open}
+					title={label}
+					emptyText='No file tree entries found.'
+					id={`${id}-list`}
+				/>
 			{/snippet}
 
-			{#snippet MarkerBittorrentFileTree(_context, Content)}
-				{@const bittorrentContentBittorrentFileTreeResource = selection.$$fileTreeEntries}
-				<ResourceBoundary
-					resource={bittorrentContentBittorrentFileTreeResource}
-				>
-					{#snippet children(_resolved)}
-						{@render Content()}
-					{/snippet}
-
-					{#snippet PendingContent()}
-						{@render Content()}
-					{/snippet}
-
-					{#snippet FailedContent(_error, _retry)}
-						{@render Content()}
-					{/snippet}
-				</ResourceBoundary>
-			{/snippet}
-
-			{#snippet SectionBittorrentFileTree({ id, label, open, active })}
-				{@const bittorrentContentBittorrentFileTreeResource = selection.$$fileTreeEntries}
-				<ResourceBoundary
-					resource={bittorrentContentBittorrentFileTreeResource}
-				>
-					{#snippet children(bitTorrentFileTreeEntry)}
-						<section
-							id={id}
-							aria-labelledby={`${id}:marker`}
-							data-scroll-marker-label={label}
-							data-column-item="flexible"
-							data-column
-							data-active={active}
-						>
-							<BitTorrentFileTreeEntriesView
-								selection={bittorrentContentBittorrentFileTreeResource}
-								CollapsibleProps={{ canToggle: false }}
-								collapsible={false}
-								data-column-item="flexible"
-								data-card
-								data-scroll-container
-								open={open}
-								title={label}
-								emptyText='No file tree entries found.'
-								id={`${id}-list`}
-							/>
-						</section>
-					{/snippet}
-
-					{#snippet Pending()}
-						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
-							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
-								<span data-tag data-text="muted" data-resource-state="pending" class="loading inline-placeholder" aria-busy="true" aria-label="Loading…">•••</span>
-							</article>
-						</section>
-					{/snippet}
-
-					{#snippet Failed(_error, _retry)}
-						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
-							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
-								<span data-tag data-resource-state="failed" class="inline-placeholder" aria-label="Failed to load">•••</span>
-							</article>
-						</section>
-					{/snippet}
-				</ResourceBoundary>
-			{/snippet}
-
-			{#snippet MarkerBittorrentPieces(_context, Content)}
-				{@const bittorrentContentBittorrentPiecesResource = selection.$$pieces}
-				<ResourceBoundary
-					resource={bittorrentContentBittorrentPiecesResource}
-				>
-					{#snippet children(_resolved)}
-						{@render Content()}
-					{/snippet}
-
-					{#snippet PendingContent()}
-						{@render Content()}
-					{/snippet}
-
-					{#snippet FailedContent(_error, _retry)}
-						{@render Content()}
-					{/snippet}
-				</ResourceBoundary>
-			{/snippet}
-
-			{#snippet SectionBittorrentPieces({ id, label, open, active })}
-				{@const bittorrentContentBittorrentPiecesResource = selection.$$pieces}
-				<ResourceBoundary
-					resource={bittorrentContentBittorrentPiecesResource}
-				>
-					{#snippet children(bitTorrentPiece)}
-						<section
-							id={id}
-							aria-labelledby={`${id}:marker`}
-							data-scroll-marker-label={label}
-							data-column-item="flexible"
-							data-column
-							data-active={active}
-						>
-							<BitTorrentPiecesView
-								selection={bittorrentContentBittorrentPiecesResource}
-								CollapsibleProps={{ canToggle: false }}
-								collapsible={false}
-								data-column-item="flexible"
-								data-card
-								data-scroll-container
-								open={open}
-								title={label}
-								emptyText='No pieces found.'
-								id={`${id}-list`}
-							/>
-						</section>
-					{/snippet}
-
-					{#snippet Pending()}
-						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
-							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
-								<span data-tag data-text="muted" data-resource-state="pending" class="loading inline-placeholder" aria-busy="true" aria-label="Loading…">•••</span>
-							</article>
-						</section>
-					{/snippet}
-
-					{#snippet Failed(_error, _retry)}
-						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
-							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
-								<span data-tag data-resource-state="failed" class="inline-placeholder" aria-label="Failed to load">•••</span>
-							</article>
-						</section>
-					{/snippet}
-				</ResourceBoundary>
+			{#snippet SectionBittorrentPieces({ id, label, open })}
+				<BitTorrentPiecesView
+					selection={selection.$$pieces}
+					CollapsibleProps={{ canToggle: false }}
+					collapsible={false}
+					data-column-item="flexible"
+					data-card
+					data-scroll-container
+					open={open}
+					title={label}
+					emptyText='No pieces found.'
+					id={`${id}-list`}
+				/>
 			{/snippet}
 
 		</CollapsibleTabs>
@@ -594,12 +342,10 @@
 					{
 						id: 'bittorrent-trackers',
 						label: 'Trackers',
-						ownsSection: true,
 					},
 					{
 						id: 'bittorrent-magnets',
 						label: 'Magnets',
-						ownsSection: true,
 					},
 				]
 			}
@@ -612,136 +358,34 @@
 				</header>
 			{/snippet}
 
-			{#snippet MarkerBittorrentTrackers(_context, Content)}
-				{@const bittorrentDiscoveryBittorrentTrackersResource = selection.$$trackers}
-				<ResourceBoundary
-					resource={bittorrentDiscoveryBittorrentTrackersResource}
-				>
-					{#snippet children(_resolved)}
-						{@render Content()}
-					{/snippet}
-
-					{#snippet PendingContent()}
-						{@render Content()}
-					{/snippet}
-
-					{#snippet FailedContent(_error, _retry)}
-						{@render Content()}
-					{/snippet}
-				</ResourceBoundary>
+			{#snippet SectionBittorrentTrackers({ id, label, open })}
+				<BitTorrentTrackersView
+					selection={selection.$$trackers}
+					CollapsibleProps={{ canToggle: false }}
+					collapsible={false}
+					data-column-item="flexible"
+					data-card
+					data-scroll-container
+					open={open}
+					title={label}
+					emptyText='No trackers found.'
+					id={`${id}-list`}
+				/>
 			{/snippet}
 
-			{#snippet SectionBittorrentTrackers({ id, label, open, active })}
-				{@const bittorrentDiscoveryBittorrentTrackersResource = selection.$$trackers}
-				<ResourceBoundary
-					resource={bittorrentDiscoveryBittorrentTrackersResource}
-				>
-					{#snippet children(bitTorrentTracker)}
-						<section
-							id={id}
-							aria-labelledby={`${id}:marker`}
-							data-scroll-marker-label={label}
-							data-column-item="flexible"
-							data-column
-							data-active={active}
-						>
-							<BitTorrentTrackersView
-								selection={bittorrentDiscoveryBittorrentTrackersResource}
-								CollapsibleProps={{ canToggle: false }}
-								collapsible={false}
-								data-column-item="flexible"
-								data-card
-								data-scroll-container
-								open={open}
-								title={label}
-								emptyText='No trackers found.'
-								id={`${id}-list`}
-							/>
-						</section>
-					{/snippet}
-
-					{#snippet Pending()}
-						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
-							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
-								<span data-tag data-text="muted" data-resource-state="pending" class="loading inline-placeholder" aria-busy="true" aria-label="Loading…">•••</span>
-							</article>
-						</section>
-					{/snippet}
-
-					{#snippet Failed(_error, _retry)}
-						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
-							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
-								<span data-tag data-resource-state="failed" class="inline-placeholder" aria-label="Failed to load">•••</span>
-							</article>
-						</section>
-					{/snippet}
-				</ResourceBoundary>
-			{/snippet}
-
-			{#snippet MarkerBittorrentMagnets(_context, Content)}
-				{@const bittorrentDiscoveryBittorrentMagnetsResource = selection.$$magnets}
-				<ResourceBoundary
-					resource={bittorrentDiscoveryBittorrentMagnetsResource}
-				>
-					{#snippet children(_resolved)}
-						{@render Content()}
-					{/snippet}
-
-					{#snippet PendingContent()}
-						{@render Content()}
-					{/snippet}
-
-					{#snippet FailedContent(_error, _retry)}
-						{@render Content()}
-					{/snippet}
-				</ResourceBoundary>
-			{/snippet}
-
-			{#snippet SectionBittorrentMagnets({ id, label, open, active })}
-				{@const bittorrentDiscoveryBittorrentMagnetsResource = selection.$$magnets}
-				<ResourceBoundary
-					resource={bittorrentDiscoveryBittorrentMagnetsResource}
-				>
-					{#snippet children(magnetLink)}
-						<section
-							id={id}
-							aria-labelledby={`${id}:marker`}
-							data-scroll-marker-label={label}
-							data-column-item="flexible"
-							data-column
-							data-active={active}
-						>
-							<MagnetLinksView
-								selection={bittorrentDiscoveryBittorrentMagnetsResource}
-								CollapsibleProps={{ canToggle: false }}
-								collapsible={false}
-								data-column-item="flexible"
-								data-card
-								data-scroll-container
-								open={open}
-								title={label}
-								emptyText='No magnets found.'
-								id={`${id}-list`}
-							/>
-						</section>
-					{/snippet}
-
-					{#snippet Pending()}
-						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
-							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
-								<span data-tag data-text="muted" data-resource-state="pending" class="loading inline-placeholder" aria-busy="true" aria-label="Loading…">•••</span>
-							</article>
-						</section>
-					{/snippet}
-
-					{#snippet Failed(_error, _retry)}
-						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
-							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
-								<span data-tag data-resource-state="failed" class="inline-placeholder" aria-label="Failed to load">•••</span>
-							</article>
-						</section>
-					{/snippet}
-				</ResourceBoundary>
+			{#snippet SectionBittorrentMagnets({ id, label, open })}
+				<MagnetLinksView
+					selection={selection.$$magnets}
+					CollapsibleProps={{ canToggle: false }}
+					collapsible={false}
+					data-column-item="flexible"
+					data-card
+					data-scroll-container
+					open={open}
+					title={label}
+					emptyText='No magnets found.'
+					id={`${id}-list`}
+				/>
 			{/snippet}
 
 		</CollapsibleTabs>
@@ -754,12 +398,10 @@
 					{
 						id: 'bittorrent-swarm-observations',
 						label: 'Swarm observations',
-						ownsSection: true,
 					},
 					{
 						id: 'bittorrent-client-transfers',
 						label: 'Client transfers',
-						ownsSection: true,
 					},
 				]
 			}
@@ -772,136 +414,34 @@
 				</header>
 			{/snippet}
 
-			{#snippet MarkerBittorrentSwarmObservations(_context, Content)}
-				{@const bittorrentSwarmObservationsResource = selection.$$swarmTimestamps}
-				<ResourceBoundary
-					resource={bittorrentSwarmObservationsResource}
-				>
-					{#snippet children(_resolved)}
-						{@render Content()}
-					{/snippet}
-
-					{#snippet PendingContent()}
-						{@render Content()}
-					{/snippet}
-
-					{#snippet FailedContent(_error, _retry)}
-						{@render Content()}
-					{/snippet}
-				</ResourceBoundary>
+			{#snippet SectionBittorrentSwarmObservations({ id, label, open })}
+				<BitTorrentSwarmObservation_TimestampsView
+					selection={selection.$$swarmTimestamps}
+					CollapsibleProps={{ canToggle: false }}
+					collapsible={false}
+					data-column-item="flexible"
+					data-card
+					data-scroll-container
+					open={open}
+					title={label}
+					emptyText='No swarm observations yet.'
+					id={`${id}-list`}
+				/>
 			{/snippet}
 
-			{#snippet SectionBittorrentSwarmObservations({ id, label, open, active })}
-				{@const bittorrentSwarmObservationsResource = selection.$$swarmTimestamps}
-				<ResourceBoundary
-					resource={bittorrentSwarmObservationsResource}
-				>
-					{#snippet children(bitTorrentSwarmObservationTimestamp)}
-						<section
-							id={id}
-							aria-labelledby={`${id}:marker`}
-							data-scroll-marker-label={label}
-							data-column-item="flexible"
-							data-column
-							data-active={active}
-						>
-							<BitTorrentSwarmObservation_TimestampsView
-								selection={bittorrentSwarmObservationsResource}
-								CollapsibleProps={{ canToggle: false }}
-								collapsible={false}
-								data-column-item="flexible"
-								data-card
-								data-scroll-container
-								open={open}
-								title={label}
-								emptyText='No swarm observations yet.'
-								id={`${id}-list`}
-							/>
-						</section>
-					{/snippet}
-
-					{#snippet Pending()}
-						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
-							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
-								<span data-tag data-text="muted" data-resource-state="pending" class="loading inline-placeholder" aria-busy="true" aria-label="Loading…">•••</span>
-							</article>
-						</section>
-					{/snippet}
-
-					{#snippet Failed(_error, _retry)}
-						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
-							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
-								<span data-tag data-resource-state="failed" class="inline-placeholder" aria-label="Failed to load">•••</span>
-							</article>
-						</section>
-					{/snippet}
-				</ResourceBoundary>
-			{/snippet}
-
-			{#snippet MarkerBittorrentClientTransfers(_context, Content)}
-				{@const bittorrentSwarmBittorrentClientTransfersResource = selection.$$clientTransfers}
-				<ResourceBoundary
-					resource={bittorrentSwarmBittorrentClientTransfersResource}
-				>
-					{#snippet children(_resolved)}
-						{@render Content()}
-					{/snippet}
-
-					{#snippet PendingContent()}
-						{@render Content()}
-					{/snippet}
-
-					{#snippet FailedContent(_error, _retry)}
-						{@render Content()}
-					{/snippet}
-				</ResourceBoundary>
-			{/snippet}
-
-			{#snippet SectionBittorrentClientTransfers({ id, label, open, active })}
-				{@const bittorrentSwarmBittorrentClientTransfersResource = selection.$$clientTransfers}
-				<ResourceBoundary
-					resource={bittorrentSwarmBittorrentClientTransfersResource}
-				>
-					{#snippet children(blockheadBitTorrentTransferTimestamp)}
-						<section
-							id={id}
-							aria-labelledby={`${id}:marker`}
-							data-scroll-marker-label={label}
-							data-column-item="flexible"
-							data-column
-							data-active={active}
-						>
-							<BlockheadBitTorrentTransfer_TimestampsView
-								selection={bittorrentSwarmBittorrentClientTransfersResource}
-								CollapsibleProps={{ canToggle: false }}
-								collapsible={false}
-								data-column-item="flexible"
-								data-card
-								data-scroll-container
-								open={open}
-								title={label}
-								emptyText='No client transfers yet.'
-								id={`${id}-list`}
-							/>
-						</section>
-					{/snippet}
-
-					{#snippet Pending()}
-						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
-							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
-								<span data-tag data-text="muted" data-resource-state="pending" class="loading inline-placeholder" aria-busy="true" aria-label="Loading…">•••</span>
-							</article>
-						</section>
-					{/snippet}
-
-					{#snippet Failed(_error, _retry)}
-						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
-							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
-								<span data-tag data-resource-state="failed" class="inline-placeholder" aria-label="Failed to load">•••</span>
-							</article>
-						</section>
-					{/snippet}
-				</ResourceBoundary>
+			{#snippet SectionBittorrentClientTransfers({ id, label, open })}
+				<BlockheadBitTorrentTransfer_TimestampsView
+					selection={selection.$$clientTransfers}
+					CollapsibleProps={{ canToggle: false }}
+					collapsible={false}
+					data-column-item="flexible"
+					data-card
+					data-scroll-container
+					open={open}
+					title={label}
+					emptyText='No client transfers yet.'
+					id={`${id}-list`}
+				/>
 			{/snippet}
 
 		</CollapsibleTabs>

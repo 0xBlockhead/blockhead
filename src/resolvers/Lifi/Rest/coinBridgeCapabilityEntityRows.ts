@@ -1,5 +1,5 @@
 import { bridgeToolByKey } from '$/constants/Bridge.ts'
-import type { CoinInstanceEntitySelector } from '$/resolvers/Coingecko/Rest/coinInstances.ts'
+import type { CoinInstanceEntitySelector } from '$/sources/Coingecko/Rest/coinInstances.ts'
 import { EntityMetaKey, entityFieldAddressKey } from '$/schema/$schema.ts'
 import type { EntitySelector } from '$/schema/$schema.ts'
 import type { schema } from '$/schema/index.ts'
@@ -48,12 +48,11 @@ export const coinBridgeCapabilityEntityRowsFromInstancesAndTools = (
 	instanceIds: readonly { [EntityMetaKey.Selector]: CoinInstanceEntitySelector }[],
 	tools: readonly LifiBridgeTool[]
 ) => {
-	const instanceByChainId: Partial<Record<number, CoinInstanceEntitySelector>> = {}
+	const instanceByChainId: Partial<Record<string, CoinInstanceEntitySelector>> = {}
 
 	for (const row of instanceIds) {
 			const instanceId = row[EntityMetaKey.Selector]
-			const chainId = Number(instanceId.$network.caip2.reference)
-			instanceByChainId[chainId] = instanceId
+		instanceByChainId[instanceId.$network.caip2.reference] = instanceId
 	}
 
 	const seenKeys = new Set<string>()

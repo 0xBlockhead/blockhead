@@ -2,15 +2,8 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
-	import { caip2StringFromValue } from '$/lib/caip2.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -23,35 +16,17 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.MoneroNetwork>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.MoneroNetwork>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.MoneroNetwork> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const moneroNetwork = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {},
-	} : {
-		sources: selection.sources,
+	const viewSelection = $derived(selection({
+		sources: selection.sources ?? [
+			Source.MoneroDaemonRpc_JsonRpc,
+		],
 	}))
 	const titleFallback = 'monero network'
-	const viewDomId = $derived('monero-network-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -64,33 +39,23 @@
 
 <EntityView
 	entityType={EntityType.MoneroNetwork}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={moneroNetwork}>
-			{#snippet children(entity)}
-				<NetworkView
-					selection={select(EntityType.Network, selection.entitySelector.$network)}
-					href=""
-					layout={EntityLayout.Title}
-					open={false}
-				/>
-			{/snippet}
-		</ResourceBoundary>
+		<NetworkView
+			selection={select(EntityType.Network, selection.entitySelector.$network)}
+			href=""
+			layout={EntityLayout.Title}
+			open={false}
+		/>
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={moneroNetwork}>
-			{#snippet children(entity)}
-				{titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{titleFallback}
 	{/snippet}
 
 	{#snippet TypeAnnotationTooltip()}
@@ -106,23 +71,6 @@
 				<dd>
 					<NetworkView
 						selection={select(EntityType.Network, selection.entitySelector.$network)}
-						href={
-							(
-								selection.entitySelector.$network != null && 'caip2' in selection.entitySelector.$network
-								&& selection.entitySelector.$network.caip2 != null ?
-									resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-								network: String(caip2StringFromValue(selection.entitySelector.$network.caip2) ?? ''),
-							})
-							:
-									selection.entitySelector.$network != null && 'slug' in selection.entitySelector.$network
-									&& selection.entitySelector.$network.slug != null ?
-										resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-									network: String(selection.entitySelector.$network.slug ?? ''),
-								})
-								:
-									undefined
-							)
-						}
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -134,8 +82,7 @@
 				<dd>
 					<ResourceBoundary
 						resource={
-							selection({
-								sources: selection.sources,
+							viewSelection({
 								fields: {
 									rpcEndpoints: true,
 								},
@@ -143,11 +90,7 @@
 						}
 					>
 						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const rpcEndpoints = resolvedEntity.rpcEndpoints}
-							{#if rpcEndpoints !== undefined && rpcEndpoints !== null}
-								{rpcEndpoints.values.map((value) => String((value.url) ?? '')).filter(Boolean).join(', ')}
-							{/if}
+							{entity.rpcEndpoints.values.map((value) => value.url).join(', ')}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -156,45 +99,35 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-				{@const moneroNetworkMoneroNetworkTimestampsViewTimestampsResource = selection
-		.$$timestamps({
-			sources: [
-				Source.MoneroDaemonRpc_JsonRpc,
-			],
-		})}
-				<ResourceBoundary
-					resource={moneroNetworkMoneroNetworkTimestampsViewTimestampsResource}
-				>
-					{#snippet children(entities)}
-						{#if entities.values.length > 0}
-						<MoneroNetwork_TimestampsView
-							selection={moneroNetworkMoneroNetworkTimestampsViewTimestampsResource}
-							countResource={moneroNetworkMoneroNetworkTimestampsViewTimestampsResource.count}
-							title='Observations'
-							id='MoneroNetwork_TimestampsView-timestamps'
-						/>
-						{/if}
-					{/snippet}
-				</ResourceBoundary>
-				{@const moneroNetworkMoneroBlocksViewBlocksResource = selection
-		.$$blocks({
-			sources: [
-				Source.MoneroDaemonRpc_JsonRpc,
-			],
-		})}
-				<ResourceBoundary
-					resource={moneroNetworkMoneroBlocksViewBlocksResource}
-				>
-					{#snippet children(entities)}
-						{#if entities.values.length > 0}
-						<MoneroBlocksView
-							selection={moneroNetworkMoneroBlocksViewBlocksResource}
-							countResource={moneroNetworkMoneroBlocksViewBlocksResource.count}
-							title='Blocks'
-							id='MoneroBlocksView-blocks'
-						/>
-						{/if}
-					{/snippet}
-				</ResourceBoundary>
+		{@const moneroNetworkMoneroNetworkTimestampsViewTimestampsResource = selection.$$timestamps}
+		<ResourceBoundary
+			resource={moneroNetworkMoneroNetworkTimestampsViewTimestampsResource}
+		>
+			{#snippet children(entities)}
+				{#if entities.values.length > 0}
+					<MoneroNetwork_TimestampsView
+						selection={moneroNetworkMoneroNetworkTimestampsViewTimestampsResource}
+						countResource={moneroNetworkMoneroNetworkTimestampsViewTimestampsResource.count}
+						title='Observations'
+						id='timestamps'
+					/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
+		{@const moneroNetworkMoneroBlocksViewBlocksResource = selection.$$blocks}
+		<ResourceBoundary
+			resource={moneroNetworkMoneroBlocksViewBlocksResource}
+		>
+			{#snippet children(entities)}
+				{#if entities.values.length > 0}
+					<MoneroBlocksView
+						selection={moneroNetworkMoneroBlocksViewBlocksResource}
+						countResource={moneroNetworkMoneroBlocksViewBlocksResource.count}
+						title='Blocks'
+						id='blocks'
+					/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 </EntityView>

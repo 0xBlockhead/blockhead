@@ -1,15 +1,12 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { entity, facet } from '$/schema/$schema.ts'
+import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { EvmAddress } from '$/schema/ZeroExHex.ts'
 import { type } from 'arktype'
 
-export enum OracleFeed_TimestampSelector {
-	OracleFeedTimestampMsSource = 'OracleFeedTimestampMsSource',
-}
-export const OracleFeed_Timestamp = entity({
+export default entity({
 	entityType: EntityType.OracleFeed_Timestamp,
 	labels: {
 		singular: 'oracle feed timestamp',
@@ -59,7 +56,7 @@ export const OracleFeed_Timestamp = entity({
 	aggregatorAddress: {
 		label: 'aggregator address',
 		type: EntityFieldType.Primitive,
-		primitiveType: (EvmAddress),
+		primitiveType: EvmAddress,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	typeAndVersion: {

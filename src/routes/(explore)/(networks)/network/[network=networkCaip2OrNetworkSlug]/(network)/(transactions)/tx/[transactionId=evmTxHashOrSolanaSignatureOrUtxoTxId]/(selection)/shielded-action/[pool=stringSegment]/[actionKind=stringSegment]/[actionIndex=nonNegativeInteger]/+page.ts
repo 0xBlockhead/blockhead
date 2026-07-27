@@ -7,7 +7,7 @@ import { match as matchNonNegativeInteger } from '$/params/nonNegativeInteger.ts
 import { match as matchStringSegment } from '$/params/stringSegment.ts'
 import { parseEntitySelector } from '$/schema/$schema.ts'
 import { schema } from '$/schema/index.ts'
-import { ZcashShieldedAction as ZcashShieldedActionSchema } from '$/schema/ZcashShieldedAction.ts'
+import ZcashShieldedActionSchema from '$/schema/ZcashShieldedAction.ts'
 import { type as arktype } from 'arktype'
 
 // Projection eligibility: facetPath=['Zcash']

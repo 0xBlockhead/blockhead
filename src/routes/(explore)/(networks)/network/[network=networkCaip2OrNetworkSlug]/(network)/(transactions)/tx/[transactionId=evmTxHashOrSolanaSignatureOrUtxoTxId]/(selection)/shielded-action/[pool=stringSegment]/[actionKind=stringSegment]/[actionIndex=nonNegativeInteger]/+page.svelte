@@ -9,14 +9,12 @@
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		data,
-		params,
 	}: PageProps = $props()
 
 	const pageSelection = $derived(select(EntityType.ZcashShieldedAction, data.selector, {
@@ -36,21 +34,12 @@
 
 
 <svelte:head>
-	<title>{(data.title ?? (pageSelection.entity == null ? [String((data.selector.actionKind) ?? ''), String((data.selector.indexInTransaction) ?? '')].filter(Boolean).join(' ') || 'Zcash shielded action' : [String((({ ...data.selector, ...pageSelection.entity }).actionKind) ?? ''), String((({ ...data.selector, ...pageSelection.entity }).indexInTransaction) ?? '')].filter(Boolean).join(' ') || 'Zcash shielded action'))} • Zcash shielded action • Blockhead</title>
+	<title>{(data.title ?? ([pageSelection.entitySelector.actionKind, String(pageSelection.entitySelector.indexInTransaction)].filter(Boolean).join(' ') || 'Zcash shielded action'))} • Zcash shielded action • Blockhead</title>
 </svelte:head>
 
 
 <Page>
 	<ZcashShieldedActionView
-		href={
-			resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/shielded-action/[pool=stringSegment]/[actionKind=stringSegment]/[actionIndex=nonNegativeInteger]', {
-				network: params.network,
-				transactionId: params.transactionId,
-				pool: params.pool,
-				actionKind: params.actionKind,
-				actionIndex: params.actionIndex,
-			})
-		}
 		selection={pageSelection}
 	/>
 </Page>

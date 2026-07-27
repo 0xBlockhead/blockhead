@@ -2,13 +2,9 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
 	import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 
 
@@ -21,40 +17,18 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.GitCommit>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.GitCommit>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.GitCommit> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const gitCommit = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {
-			message: true,
-		},
-	} : {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const gitCommit = $derived(selection({
 		fields: {
 			message: true,
 		},
 	}))
-	const titleFallback = $derived([String((pendingEntity.objectId) ?? '')].filter(Boolean).join(' ') || 'Git commit')
-	const viewDomId = $derived('git-commit-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const titleFallback = $derived(String(pendingEntity.objectId ?? '') || 'Git commit')
 
 
 	// Components
@@ -68,67 +42,28 @@
 
 <EntityView
 	entityType={EntityType.GitCommit}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'message')}
-			{@const objectId0 = pendingEntity.objectId}
-			{#if objectId0 !== undefined && objectId0 !== null}
-				<TruncatedValue value={String((objectId0) ?? '')} />
-			{/if}
-		{:else}
-			<ResourceBoundary resource={gitCommit}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const objectId0 = resolvedEntity.objectId}
-					{#if objectId0 !== undefined && objectId0 !== null}
-						<TruncatedValue value={String((objectId0) ?? '')} />
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<TruncatedValue value={String(pendingEntity.objectId)} />
 	{/snippet}
 
 	{#snippet Value()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'message')}
-			{[String((pendingEntity.message) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.objectId) ?? '')].filter(Boolean).join(' ') || titleFallback}
-		{:else}
-			<ResourceBoundary resource={gitCommit}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.message) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.objectId) ?? '')].filter(Boolean).join(' ') || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={gitCommit}>
+			{#snippet children(entity)}
+				{(entity.message ?? '') || String(pendingEntity.objectId) || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'message')}
-			{@const objectFormat0 = pendingEntity.objectFormat}
-			{#if objectFormat0 !== undefined && objectFormat0 !== null}
-				<span data-text="muted">
-					{String((objectFormat0) ?? '')}
-				</span>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={gitCommit}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const objectFormat0 = resolvedEntity.objectFormat}
-					{#if objectFormat0 !== undefined && objectFormat0 !== null}
-						<span data-text="muted">
-							{String((objectFormat0) ?? '')}
-						</span>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<span data-text="muted">
+			{pendingEntity.objectFormat}
+		</span>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -136,48 +71,14 @@
 			<div>
 				<dt>object ID</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									objectId: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const objectId = resolvedEntity.objectId}
-							{#if objectId !== undefined && objectId !== null}
-								<TruncatedValue value={String((objectId) ?? '')} />
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					<TruncatedValue value={String(pendingEntity.objectId)} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>object format</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									objectFormat: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const objectFormat = resolvedEntity.objectFormat}
-							{#if objectFormat !== undefined && objectFormat !== null}
-								{String((objectFormat) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{pendingEntity.objectFormat}
 				</dd>
 			</div>
 
@@ -187,7 +88,6 @@
 					<ResourceBoundary
 						resource={
 							selection({
-								sources: selection.sources,
 								fields: {
 									treeObjectId: true,
 								},
@@ -195,11 +95,7 @@
 						}
 					>
 						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const treeObjectId = resolvedEntity.treeObjectId}
-							{#if treeObjectId !== undefined && treeObjectId !== null}
-								<TruncatedValue value={String((treeObjectId) ?? '')} />
-							{/if}
+							<TruncatedValue value={String(entity.treeObjectId)} />
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -212,14 +108,12 @@
 						resource={selection.$object}
 					>
 						{#snippet children(gitObject)}
-							{#if gitObject != null && gitObject[EntityMetaKey.Selector] != null}
-								<GitObjectView
-									selection={select(EntityType.GitObject, gitObject[EntityMetaKey.Selector])}
-									prefetched={gitObject}
-									layout={EntityLayout.Value}
-									open={false}
-								/>
-							{/if}
+							<GitObjectView
+								selection={select(EntityType.GitObject, gitObject[EntityMetaKey.Selector])}
+								prefetched={gitObject}
+								layout={EntityLayout.Value}
+								open={false}
+							/>
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -230,7 +124,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							authorName: true,
 						},
@@ -238,13 +131,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const authorName = resolvedEntity.authorName}
-					{#if authorName !== undefined && authorName !== null}
+					{@const authorName = entity.authorName}
+					{#if authorName != null}
 						<div>
 							<dt>author name</dt>
 							<dd>
-								{String((authorName) ?? '')}
+								{authorName}
 							</dd>
 						</div>
 					{/if}
@@ -254,7 +146,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							authorEmail: true,
 						},
@@ -262,13 +153,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const authorEmail = resolvedEntity.authorEmail}
-					{#if authorEmail !== undefined && authorEmail !== null}
+					{@const authorEmail = entity.authorEmail}
+					{#if authorEmail != null}
 						<div>
 							<dt>author email</dt>
 							<dd>
-								{String((authorEmail) ?? '')}
+								{authorEmail}
 							</dd>
 						</div>
 					{/if}
@@ -278,7 +168,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							authorTimestampMs: true,
 						},
@@ -286,9 +175,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const authorTimestampMs = resolvedEntity.authorTimestampMs}
-					{#if authorTimestampMs !== undefined && authorTimestampMs !== null}
+					{@const authorTimestampMs = entity.authorTimestampMs}
+					{#if authorTimestampMs != null}
 						<div>
 							<dt>author timestamp ms</dt>
 							<dd>
@@ -302,7 +190,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							committerName: true,
 						},
@@ -310,13 +197,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const committerName = resolvedEntity.committerName}
-					{#if committerName !== undefined && committerName !== null}
+					{@const committerName = entity.committerName}
+					{#if committerName != null}
 						<div>
 							<dt>committer name</dt>
 							<dd>
-								{String((committerName) ?? '')}
+								{committerName}
 							</dd>
 						</div>
 					{/if}
@@ -326,7 +212,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							committerEmail: true,
 						},
@@ -334,13 +219,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const committerEmail = resolvedEntity.committerEmail}
-					{#if committerEmail !== undefined && committerEmail !== null}
+					{@const committerEmail = entity.committerEmail}
+					{#if committerEmail != null}
 						<div>
 							<dt>committer email</dt>
 							<dd>
-								{String((committerEmail) ?? '')}
+								{committerEmail}
 							</dd>
 						</div>
 					{/if}
@@ -350,7 +234,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							committerTimestampMs: true,
 						},
@@ -358,9 +241,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const committerTimestampMs = resolvedEntity.committerTimestampMs}
-					{#if committerTimestampMs !== undefined && committerTimestampMs !== null}
+					{@const committerTimestampMs = entity.committerTimestampMs}
+					{#if committerTimestampMs != null}
 						<div>
 							<dt>committer timestamp ms</dt>
 							<dd>
@@ -373,20 +255,12 @@
 		</dl>
 
 		<ResourceBoundary
-			resource={
-				selection({
-					sources: selection.sources,
-					fields: {
-						message: true,
-					},
-				})
-			}
+			resource={gitCommit}
 		>
 			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const message = resolvedEntity.message}
-				{#if message !== undefined && message !== null && message !== ''}
-					<p data-text="long-text">{String((message) ?? '')}</p>
+				{@const message = entity.message}
+				{#if message != null && message !== ''}
+					<p data-text="long-text">{message}</p>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>
@@ -399,12 +273,12 @@
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
-				<GitSignaturesView
-					selection={gitCommitGitSignaturesViewSignaturesResource}
-					countResource={gitCommitGitSignaturesViewSignaturesResource.count}
-					title='signatures'
-					id='GitSignaturesView-signatures'
-				/>
+					<GitSignaturesView
+						selection={gitCommitGitSignaturesViewSignaturesResource}
+						countResource={gitCommitGitSignaturesViewSignaturesResource.count}
+						title='signatures'
+						id='signatures'
+					/>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>

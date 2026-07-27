@@ -1,8 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-
-import { NearContractStorageEntrySelector } from '$/schema/NearContractStorageEntry.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import { sourceProviderDefinitions } from '$/sources/$sourceProviders.ts'
+import bindings from '$/sources/NearRpc/bindings.ts'
 import { Source } from '$/sources/Source.ts'
 import { SourceTargetKind } from '$/sources/SourceBinding.ts'
 
@@ -44,18 +42,7 @@ const selector = {
 	blockHeight: 123n,
 	source: Source.NearRpc_JsonRpc,
 }
-const nearBindings = sourceProviderDefinitions
-	.flatMap((provider) => provider.bindings)
-	.filter((binding) => (
-		binding.source === Source.NearRpc_JsonRpc
-		&& binding.target.kind === SourceTargetKind.NetworkSlug
-		&& binding.target.key === 'near'
-	))
-
-if (nearBindings.length !== 1)
-	throw new Error('NearRpc_JsonRpc spec missing canonical mainnet binding')
-
-const nearBinding = nearBindings[0]
+const nearBinding = bindings[Source.NearRpc_JsonRpc]
 
 describe('NEAR contract storage query', () => {
 	beforeEach(() => {
@@ -125,7 +112,7 @@ describe('NEAR contract storage resolver', () => {
 		})))
 
 		await expect(storageEntryResolver.resolve[
-			NearContractStorageEntrySelector.ContractKeyBlockHeightSource
+			'ContractKeyBlockHeightSource'
 		].resolve(selector, context)).resolves.toEqual({
 			blockHash: 'block-hash',
 			valueBase64: 'dmFsdWU=',
@@ -140,7 +127,7 @@ describe('NEAR contract storage resolver', () => {
 
 	it('rejects wrong sources, networks, heights, and prefix-only results', async () => {
 		await expect(storageEntryResolver.resolve[
-			NearContractStorageEntrySelector.ContractKeyBlockHeightSource
+			'ContractKeyBlockHeightSource'
 		].resolve({
 			...selector,
 			source: Source.Constants_Internal,
@@ -148,7 +135,7 @@ describe('NEAR contract storage resolver', () => {
 		expect(corsFetch).not.toHaveBeenCalled()
 
 		await expect(storageEntryResolver.resolve[
-			NearContractStorageEntrySelector.ContractKeyBlockHeightSource
+			'ContractKeyBlockHeightSource'
 		].resolve({
 			...selector,
 			$contract: {
@@ -174,7 +161,7 @@ describe('NEAR contract storage resolver', () => {
 			},
 		})))
 		await expect(storageEntryResolver.resolve[
-			NearContractStorageEntrySelector.ContractKeyBlockHeightSource
+			'ContractKeyBlockHeightSource'
 		].resolve(selector, context)).rejects.toThrow('response block height 124 does not match 123')
 
 		corsFetch.mockResolvedValueOnce(new Response(JSON.stringify({
@@ -191,7 +178,7 @@ describe('NEAR contract storage resolver', () => {
 			},
 		})))
 		await expect(storageEntryResolver.resolve[
-			NearContractStorageEntrySelector.ContractKeyBlockHeightSource
+			'ContractKeyBlockHeightSource'
 		].resolve(selector, context)).rejects.toThrow('storage key')
 	})
 })

@@ -1,6 +1,6 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { entity, facet } from '$/schema/$schema.ts'
+import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { type } from 'arktype'
@@ -10,10 +10,8 @@ export enum XmtpConversationConsentState {
 	Allowed = 'allowed',
 	Denied = 'denied',
 }
-export enum XmtpConversationSelector {
-	Id = 'Id',
-}
-export const XmtpConversation = entity({
+
+export default entity({
 	entityType: EntityType.XmtpConversation,
 	labels: {
 		singular: 'XMTP conversation',

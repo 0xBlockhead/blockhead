@@ -1,14 +1,5 @@
-import { getJson } from '$/lib/http.ts'
-import { TransportType } from '$/constants/TransportType.ts'
-import { Source } from '$/sources/Source.ts'
-import {
-	SourceTargetKind,
-	type SourceBinding,
-} from '$/sources/SourceBinding.ts'
-import {
-	firstHttpUrlForBinding,
-	sourceGetJson,
-} from '$/sources/_runtime/http.ts'
+import { firstHttpUrlForBinding } from '$/sources/_runtime/http.ts'
+import { getJson as getNearBlocksRestJson } from '$/sources/_shared/wire/HttpRest/client.ts'
 import type {
 	NearBlocksAccountResponse,
 	NearBlocksBlockResponse,
@@ -17,39 +8,15 @@ import type {
 	NearBlocksV3Response,
 	NearBlocksV3Transaction,
 } from '$/sources/NearBlocks/Rest/types.ts'
+import bindings from '$/sources/NearBlocks/bindings.ts'
+import { Source } from '$/sources/Source.ts'
 
-export const nearBlocksMainnetRestEndpoints = [
-	{
-		url: 'https://api.nearblocks.io',
-		transportType: TransportType.Http,
-		providerName: 'NearBlocks',
-	},
-] as const
+const binding = bindings[Source.NearBlocks_Rest]
 
-export const nearBlocksOrigins = [
-	{
-		origin: 'https://api.nearblocks.io',
-		corsEnabled: true,
-	},
-] as const
-
-const base = (restBaseUrl: string) => restBaseUrl.replace(/\/$/, '')
-
-const assertNearMainnetBinding = (binding: SourceBinding) => {
-	if (
-		binding.source !== Source.NearBlocks_Rest
-		|| binding.target.kind !== SourceTargetKind.NetworkSlug
-		|| binding.target.key !== 'near'
-	)
-		throw new Error('NearBlocks_Rest: expected canonical NEAR mainnet binding')
-}
-
-const v3Url = (
-	binding: SourceBinding,
+const getNearBlocksJson = <_Response>(
 	path: string
 ) => {
-	assertNearMainnetBinding(binding)
-	return new URL(path, firstHttpUrlForBinding(binding))
+	return getNearBlocksRestJson<_Response>(binding, path)
 }
 
 const assertNonnegativeIntegerString = (
@@ -78,57 +45,43 @@ const assertV3Success = <_Data>(
 }
 
 export const getAccount = ({
-	restBaseUrl,
 	accountId,
 }: {
-	restBaseUrl: string
 	accountId: string
 }) => (
-	getJson<NearBlocksAccountResponse>(
-		`${base(restBaseUrl)}/v1/account/${encodeURIComponent(accountId)}`,
-		{ origins: nearBlocksOrigins }
+	getNearBlocksJson<NearBlocksAccountResponse>(
+		`/v1/account/${encodeURIComponent(accountId)}`
 	)
 )
 
 export const getBlock = ({
-	restBaseUrl,
 	block,
 }: {
-	restBaseUrl: string
 	block: bigint | string
 }) => (
-	getJson<NearBlocksBlockResponse>(
-		`${base(restBaseUrl)}/v1/blocks/${encodeURIComponent(String(block))}`,
-		{ origins: nearBlocksOrigins }
+	getNearBlocksJson<NearBlocksBlockResponse>(
+		`/v1/blocks/${encodeURIComponent(String(block))}`
 	)
 )
 
 export const getTransaction = ({
-	restBaseUrl,
 	transactionHash,
 }: {
-	restBaseUrl: string
 	transactionHash: string
 }) => (
-	getJson<NearBlocksTransactionResponse>(
-		`${base(restBaseUrl)}/v1/txns/${encodeURIComponent(transactionHash)}`,
-		{ origins: nearBlocksOrigins }
+	getNearBlocksJson<NearBlocksTransactionResponse>(
+		`/v1/txns/${encodeURIComponent(transactionHash)}`
 	)
 )
 
 export const getAccountBalance = async (
-	binding: SourceBinding,
 	accountId: string
 ) => {
 	if (accountId.length === 0)
 		throw new Error('NearBlocks_Rest: account ID must not be empty')
 
-	const response = await sourceGetJson<NearBlocksV3Response<NearBlocksV3AccountBalance>>(
-		binding,
-		v3Url(
-			binding,
-			`/v3/accounts/${encodeURIComponent(accountId)}/balance`
-		).toString()
+	const response = await getNearBlocksJson<NearBlocksV3Response<NearBlocksV3AccountBalance>>(
+		`/v3/accounts/${encodeURIComponent(accountId)}/balance`
 	)
 	const balance = assertV3Success(response, `account balance ${accountId}`)
 	if (balance.account_id !== accountId)
@@ -140,7 +93,6 @@ export const getAccountBalance = async (
 }
 
 export const getAccountTransactions = async (
-	binding: SourceBinding,
 	{
 		accountId,
 		limit,
@@ -163,17 +115,16 @@ export const getAccountTransactions = async (
 			continuationToken: undefined,
 		}
 
-	const url = v3Url(
-		binding,
-		`/v3/accounts/${encodeURIComponent(accountId)}/txns`
+	const url = new URL(
+		`/v3/accounts/${encodeURIComponent(accountId)}/txns`,
+		firstHttpUrlForBinding(binding)
 	)
 	url.searchParams.set('limit', limit.toString())
 	if (next != null)
 		url.searchParams.set('next', next)
 
-	const response = await sourceGetJson<NearBlocksV3Response<NearBlocksV3Transaction[]>>(
-		binding,
-		url.toString()
+	const response = await getNearBlocksJson<NearBlocksV3Response<NearBlocksV3Transaction[]>>(
+		`${url.pathname}${url.search}`
 	)
 	const transactions = assertV3Success(response, `account transactions ${accountId}`)
 	if (transactions.length > limit)
@@ -223,14 +174,14 @@ export const getAccountTransactions = async (
 			&& transaction.block_timestamp !== transaction.block.block_timestamp
 		)
 			throw new Error('NearBlocks_Rest: transaction block timestamp does not match nested block context')
-		for (const [value, label] of [
-			[transaction.actions_agg.deposit, 'transaction deposit'],
-			[transaction.actions_agg.gas_attached, 'transaction attached gas'],
-			[transaction.outcomes_agg.gas_used, 'transaction gas used'],
-			[transaction.outcomes_agg.transaction_fee, 'transaction fee'],
-			[transaction.receipt_conversion_gas_burnt, 'receipt conversion gas burnt'],
-			[transaction.receipt_conversion_tokens_burnt, 'receipt conversion tokens burnt'],
-		] as const)
+		for (const [label, value] of Object.entries({
+			'transaction deposit': transaction.actions_agg.deposit,
+			'transaction attached gas': transaction.actions_agg.gas_attached,
+			'transaction gas used': transaction.outcomes_agg.gas_used,
+			'transaction fee': transaction.outcomes_agg.transaction_fee,
+			'receipt conversion gas burnt': transaction.receipt_conversion_gas_burnt,
+			'receipt conversion tokens burnt': transaction.receipt_conversion_tokens_burnt,
+		}))
 			if (value != null)
 				assertNonnegativeIntegerString(value, label)
 	}

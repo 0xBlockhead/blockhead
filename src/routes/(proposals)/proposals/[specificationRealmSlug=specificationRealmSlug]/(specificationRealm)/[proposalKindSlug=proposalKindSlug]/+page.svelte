@@ -9,14 +9,12 @@
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		data,
-		params,
 	}: PageProps = $props()
 
 	const pageSelection = $derived(select(EntityType.SpecificationProposalKind, data.selector, {
@@ -39,18 +37,12 @@
 
 
 <svelte:head>
-	<title>{(data.title ?? (pageSelection.entity == null ? [String((proposalCategoryById[String(data.selector.category)]?.labelPlural ?? (String((data.selector.category) ?? ''))) ?? '')].filter(Boolean).join(' ') || 'Specification proposal kind' : [String((({ ...data.selector, ...pageSelection.entity }).labelPlural) ?? '')].filter(Boolean).join(' ') || [String((proposalCategoryById[String(({ ...data.selector, ...pageSelection.entity }).category)]?.labelPlural ?? (String((({ ...data.selector, ...pageSelection.entity }).category) ?? ''))) ?? '')].filter(Boolean).join(' ') || 'Specification proposal kind'))} • Specification proposal kind • Blockhead</title>
+	<title>{(data.title ?? (pageSelection.entity == null ? (proposalCategoryById[String(pageSelection.entitySelector.category)]?.labelPlural ?? ((pageSelection.entitySelector.category ?? ''))) || 'Specification proposal kind' : pageSelection.entity.labelPlural || String((proposalCategoryById[String(pageSelection.entitySelector.category)]?.labelPlural ?? (pageSelection.entitySelector.category)) ?? '') || 'Specification proposal kind'))} • Specification proposal kind • Blockhead</title>
 </svelte:head>
 
 
 <Page>
 	<SpecificationProposalKindView
-		href={
-			resolve('/proposals/[specificationRealmSlug=specificationRealmSlug]/[proposalKindSlug=proposalKindSlug]', {
-				specificationRealmSlug: params.specificationRealmSlug,
-				proposalKindSlug: params.proposalKindSlug,
-			})
-		}
 		selection={pageSelection}
 	/>
 </Page>

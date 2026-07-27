@@ -13,22 +13,10 @@ import {
 } from 'vitest'
 
 import { EntityMetaKey } from '$/schema/$schema.ts'
-import { SolanaAccount_TimestampSelector } from '$/schema/SolanaAccount_Timestamp.ts'
 import accountUpdate from '$/sources/GetBlock/Yellowstone/fixtures/account-update.json'
 import { subscribeSolanaAccountUpdates } from '$/sources/GetBlock/Yellowstone/queries.ts'
 import type { SourceLiveRequest } from '$/sources/_runtime/live.server.ts'
 import { Source } from '$/sources/Source.ts'
-import {
-	ApiFamily,
-	SourceCredentialScope,
-	SourceDelivery,
-	SourceEndpointKind,
-	SourceOperationGroup,
-	SourceTargetKind,
-	WireProtocol,
-	type SourceBinding,
-} from '$/sources/SourceBinding.ts'
-import { SourceProvider } from '$/sources/SourceProvider.ts'
 
 const resolverBinding = vi.hoisted(() => ({
 	source: 'GetBlockYellowstone_Grpc',
@@ -38,7 +26,9 @@ const resolverBinding = vi.hoisted(() => ({
 	},
 	endpoints: [{
 		endpointKind: 'HttpUrl',
-		locator: 'http://127.0.0.1/{accessToken}',
+		locator: 'https://go.getblock.io/{GETBLOCK_API_KEY}/',
+		origin: 'https://go.getblock.io',
+		corsEnabled: false,
 	}],
 	wireProtocol: 'Grpc',
 	apiFamily: 'GrpcService',
@@ -47,20 +37,26 @@ const resolverBinding = vi.hoisted(() => ({
 	credentials: [{
 		scope: 'RuntimeSecret',
 	}],
-	serverCredentialId: 'getblock-yellowstone-test',
-}))
-
-vi.mock('$/sources/$sourceProviders.ts', () => ({
-	sourceProviderDefinitions: [{
-		bindings: [resolverBinding],
+	serverCredentialId: 'GetBlockYellowstone_Grpc-144',
+	artifacts: [{
+		kind: 'HandwrittenTypes',
+		path: 'src/sources/GetBlock/Yellowstone/types.ts',
+		generated: false,
+		referenceUrl: 'https://getblock.io/docs/yellowstone-grpc/',
 	}],
 }))
+
 vi.mock('$/sources/index.server.ts', () => ({
 	remoteLiveBindings: [resolverBinding],
 }))
+vi.mock('$/sources/GetBlock/bindings.ts', () => ({
+	default: {
+		GetBlockYellowstone_Grpc: resolverBinding,
+	},
+}))
 vi.mock('$/sources/$sourceServerCredentials.server.ts', () => ({
-	sourceServerCredentialsById: {
-		'getblock-yellowstone-test': {
+	default: {
+		'GetBlockYellowstone_Grpc-144': {
 			envKey: 'GETBLOCK_API_KEY',
 			injection: {
 				endpointTemplate: {
@@ -180,26 +176,6 @@ const respond = (
 	}))
 	stream.end(message == null ? undefined : frame(message))
 }
-const binding = (locator: string) => ({
-	provider: SourceProvider.GetBlock,
-	source: Source.GetBlockYellowstone_Grpc,
-	target: {
-		kind: SourceTargetKind.Caip2Network,
-		key: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
-	},
-	endpoints: [{
-		endpointKind: SourceEndpointKind.HttpUrl,
-		locator,
-	}],
-	wireProtocol: WireProtocol.Grpc,
-	apiFamily: ApiFamily.GrpcService,
-	operationGroups: [SourceOperationGroup.GenericSubscribe],
-	delivery: SourceDelivery.RemoteLive,
-	credentials: [{
-		scope: SourceCredentialScope.RuntimeSecret,
-	}],
-	serverCredentialId: 'getblock-yellowstone-test',
-} as const satisfies SourceBinding)
 const network = {
 	caip2: {
 		namespace: 'solana',
@@ -226,7 +202,7 @@ describe('GetBlock Yellowstone account source', () => {
 		process.env.GETBLOCK_API_KEY = 'test-token'
 		const server = await startServer((stream) => respond(stream, '0', accountUpdateMessage))
 		resolverBinding.endpoints[0].locator = server.locator
-		const updates = subscribeSolanaAccountUpdates(binding(server.locator), {
+		const updates = subscribeSolanaAccountUpdates({
 			accounts: [accountUpdate.account],
 			commitment: 'confirmed',
 		})
@@ -236,7 +212,7 @@ describe('GetBlock Yellowstone account source', () => {
 		expect(received).toEqual([accountUpdate])
 		expect(new TextDecoder().decode(concatBytes(server.requestBody))).toContain(accountUpdate.account)
 
-		const resolved = await getBlockYellowstone.resolvers[0].resolve[SolanaAccount_TimestampSelector.AccountSlotSource].resolve({
+		const resolved = await getBlockYellowstone.resolvers[0].resolve['AccountSlotSource'].resolve({
 			$account: {
 				$network: network,
 				pubkey: accountUpdate.account,
@@ -263,7 +239,7 @@ describe('GetBlock Yellowstone account source', () => {
 		const server = await startServer((stream) => respond(stream, '7'))
 		resolverBinding.endpoints[0].locator = server.locator
 		await expect(async () => {
-			for await (const _update of subscribeSolanaAccountUpdates(binding(server.locator), {
+			for await (const _update of subscribeSolanaAccountUpdates({
 				accounts: [accountUpdate.account],
 				commitment: 'confirmed',
 			})) {
@@ -272,7 +248,7 @@ describe('GetBlock Yellowstone account source', () => {
 
 		process.env.GETBLOCK_API_KEY = 'test-token'
 		await expect(async () => {
-			for await (const _update of subscribeSolanaAccountUpdates(binding(server.locator), {
+			for await (const _update of subscribeSolanaAccountUpdates({
 				accounts: [accountUpdate.account],
 				commitment: 'confirmed',
 			})) {
@@ -296,7 +272,7 @@ describe('GetBlock Yellowstone account source', () => {
 		})
 		resolverBinding.endpoints[0].locator = server.locator
 		const abortController = new AbortController()
-		const updates = subscribeSolanaAccountUpdates(binding(server.locator), {
+		const updates = subscribeSolanaAccountUpdates({
 			accounts: [accountUpdate.account],
 			commitment: 'confirmed',
 		}, abortController.signal)[Symbol.asyncIterator]()

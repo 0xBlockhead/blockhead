@@ -21,18 +21,7 @@ import type {
 	NostrBandRelayStats,
 } from '$/sources/NostrBand/Rest/types.ts'
 import type { JsonObject } from '$/typescript/JsonValue.ts'
-import { NostrProfileSelector } from '$/schema/NostrProfile.ts'
-import { NostrNoteSelector } from '$/schema/NostrNote.ts'
-import { NostrRelaySelector } from '$/schema/NostrRelay.ts'
-import { NostrRelay_TimestampSelector } from '$/schema/NostrRelay_Timestamp.ts'
-import { NostrRepostSelector } from '$/schema/NostrRepost.ts'
-import { NostrReactionSelector } from '$/schema/NostrReaction.ts'
-import { NostrArticleSelector } from '$/schema/NostrArticle.ts'
-import { NostrArticleEventSelector } from '$/schema/NostrArticleEvent.ts'
-import { NostrProfileMetadataEventSelector } from '$/schema/NostrProfileMetadataEvent.ts'
 import { UrlString } from '$/schema/UrlString.ts'
-import { NostrSearchQuerySelector } from '$/schema/NostrSearchQuery.ts'
-import { _GlobalNostrNetworkSelector } from '$/schema/_GlobalNostrNetwork.ts'
 import {
 	type NostrEventExpectation,
 	validateNostrEvent,
@@ -619,7 +608,7 @@ export default {
 		defineResolver(Source.NostrBand_Rest, {
 			entityType: EntityType.NostrSearchQuery,
 			resolve: {
-				[NostrSearchQuerySelector.Query]: {
+				Query: {
 					resolve: async ({ query }, context) => {
 						const {
 							normalizeNostrBandProfileSearchQuery,
@@ -671,7 +660,7 @@ export default {
 		defineResolver(Source.NostrBand_Rest, {
 			entityType: EntityType.NostrProfile,
 			resolve: {
-				[NostrProfileSelector.CanonicalPubkey]: {
+				CanonicalPubkey: {
 					resolve: async ({ pubkey }, context) => {
 						const { listAuthorMetadataEvents } = await import('$/sources/NostrBand/Rest/queries.ts')
 						const events = [...new Map(
@@ -683,11 +672,14 @@ export default {
 								}
 							).map((event) => [event.id, event])
 						).values()].sort(newestNostrEventFirst)
-						if (events.length === 0)
-							throw new Error('NostrBand_Rest: profile not found')
 						return {
 							pubkey,
-							$latestMetadataEvent: profileMetadataEventReference(events[0]),
+							$latestMetadataEvent: (
+								events.length === 0 ?
+									undefined
+								:
+									profileMetadataEventReference(events[0])
+							),
 							$$metadataEvents: events.map(profileMetadataEventReference),
 						}
 					},
@@ -702,7 +694,7 @@ export default {
 		defineResolver(Source.NostrBand_Rest, {
 			entityType: EntityType.NostrProfileMetadataEvent,
 			resolve: {
-				[NostrProfileMetadataEventSelector.CanonicalEventId]: {
+				CanonicalEventId: {
 					resolve: async ({ eventId }) => {
 						const { getEventById } = await import('$/sources/NostrBand/Rest/queries.ts')
 						const event = eventFromWire(await getEventById(eventId), {
@@ -739,7 +731,7 @@ export default {
 		defineResolver(Source.NostrBand_Rest, {
 			entityType: EntityType.NostrNote,
 			resolve: {
-				[NostrNoteSelector.CanonicalEventId]: {
+				CanonicalEventId: {
 					resolve: async ({ eventId: eventIdSelector }, context) => {
 						const { getEventById } = await import('$/sources/NostrBand/Rest/queries.ts')
 						const event = eventFromWire(await getEventById(eventIdSelector), {
@@ -774,7 +766,7 @@ export default {
 		defineResolver(Source.NostrBand_Rest, {
 			entityType: EntityType.NostrRelay,
 			resolve: {
-				[NostrRelaySelector.RelayUrl]: {
+				RelayUrl: {
 					resolve: async ({ relayUrl: relayUrlSelector }) => {
 						const relayUrl = normalizeRelayUrl(relayUrlSelector)
 						if (relayUrl == null)
@@ -801,7 +793,7 @@ export default {
 		defineResolver(Source.NostrBand_Rest, {
 			entityType: EntityType.NostrRelay_Timestamp,
 			resolve: {
-				[NostrRelay_TimestampSelector.RelayTimestampMsSource]: {
+				RelayTimestampMsSource: {
 					appliesTo: [{
 						source: Source.NostrBand_Rest,
 					}],
@@ -893,7 +885,7 @@ export default {
 		defineResolver(Source.NostrBand_Rest, {
 			entityType: EntityType.NostrRepost,
 			resolve: {
-				[NostrRepostSelector.CanonicalEventId]: {
+				CanonicalEventId: {
 					resolve: async ({ eventId: eventIdSelector }, context) => {
 						const { getEventById } = await import('$/sources/NostrBand/Rest/queries.ts')
 						const event = eventFromWire(await getEventById(eventIdSelector), {
@@ -948,7 +940,7 @@ export default {
 		defineResolver(Source.NostrBand_Rest, {
 			entityType: EntityType.NostrReaction,
 			resolve: {
-				[NostrReactionSelector.CanonicalEventId]: {
+				CanonicalEventId: {
 					resolve: async ({ eventId: eventIdSelector }, context) => {
 						const { getEventById } = await import('$/sources/NostrBand/Rest/queries.ts')
 						const event = eventFromWire(await getEventById(eventIdSelector), {
@@ -992,7 +984,7 @@ export default {
 		defineResolver(Source.NostrBand_Rest, {
 			entityType: EntityType.NostrArticle,
 			resolve: {
-				[NostrArticleSelector.CanonicalCoordinate]: {
+				CanonicalCoordinate: {
 					resolve: async ({ identifier: identifierSelector, kind, pubkey: pubkeySelector }, context) => {
 						const { listAuthorArticles } = await import('$/sources/NostrBand/Rest/queries.ts')
 						const pubkey = normalizePubkey(pubkeySelector)
@@ -1033,7 +1025,7 @@ export default {
 		defineResolver(Source.NostrBand_Rest, {
 			entityType: EntityType.NostrArticleEvent,
 			resolve: {
-				[NostrArticleEventSelector.CanonicalEventId]: {
+				CanonicalEventId: {
 					resolve: async ({ eventId }) => {
 						const { getEventById } = await import('$/sources/NostrBand/Rest/queries.ts')
 						const event = eventFromWire(await getEventById(eventId), {
@@ -1068,7 +1060,7 @@ export default {
 			defineResolver(Source.NostrBand_Rest, {
 				entityType: EntityType._GlobalNostrNetwork,
 				resolve: {
-					[_GlobalNostrNetworkSelector.Scope]: {
+					Scope: {
 						resolve: async (_entitySelector, context) => {
 						const { listTopProfiles } = await import('$/sources/NostrBand/Rest/queries.ts')
 						const limit = resolverContextRowLimit(context)
@@ -1095,7 +1087,7 @@ export default {
 			defineResolver(Source.NostrBand_Rest, {
 				entityType: EntityType._GlobalNostrNetwork,
 				resolve: {
-					[_GlobalNostrNetworkSelector.Scope]: {
+					Scope: {
 						resolve: async (_entitySelector, context) => {
 						const { listRecentTextNotes } = await import('$/sources/NostrBand/Rest/queries.ts')
 						const limit = resolverContextRowLimit(context)
@@ -1125,7 +1117,7 @@ export default {
 			defineResolver(Source.NostrBand_Rest, {
 				entityType: EntityType._GlobalNostrNetwork,
 				resolve: {
-					[_GlobalNostrNetworkSelector.Scope]: {
+					Scope: {
 						resolve: async (_entitySelector, context) => {
 						const { listTopRelays } = await import('$/sources/NostrBand/Rest/queries.ts')
 						const limit = resolverContextRowLimit(context)
@@ -1149,7 +1141,7 @@ export default {
 			defineResolver(Source.NostrBand_Rest, {
 				entityType: EntityType._GlobalNostrNetwork,
 				resolve: {
-					[_GlobalNostrNetworkSelector.Scope]: {
+					Scope: {
 						resolve: async (_entitySelector, context) => {
 						const { listRecentReposts } = await import('$/sources/NostrBand/Rest/queries.ts')
 						const limit = resolverContextRowLimit(context)
@@ -1179,7 +1171,7 @@ export default {
 			defineResolver(Source.NostrBand_Rest, {
 				entityType: EntityType._GlobalNostrNetwork,
 				resolve: {
-					[_GlobalNostrNetworkSelector.Scope]: {
+					Scope: {
 						resolve: async (_entitySelector, context) => {
 						const { listRecentArticles } = await import('$/sources/NostrBand/Rest/queries.ts')
 						const limit = resolverContextRowLimit(context)
@@ -1200,7 +1192,7 @@ export default {
 		defineResolver(Source.NostrBand_Rest, {
 			entityType: EntityType.NostrProfile,
 			resolve: {
-				[NostrProfileSelector.CanonicalPubkey]: {
+				CanonicalPubkey: {
 					resolve: async ({ pubkey }, context) => {
 						const { listAuthorTextNotes } = await import('$/sources/NostrBand/Rest/queries.ts')
 						const limit = resolverContextRowLimit(context)
@@ -1233,7 +1225,7 @@ export default {
 		defineResolver(Source.NostrBand_Rest, {
 			entityType: EntityType.NostrProfile,
 			resolve: {
-				[NostrProfileSelector.CanonicalPubkey]: {
+				CanonicalPubkey: {
 					resolve: async ({ pubkey }, context) => {
 						const { listAuthorArticles } = await import('$/sources/NostrBand/Rest/queries.ts')
 						const limit = resolverContextRowLimit(context)
@@ -1257,7 +1249,7 @@ export default {
 		defineResolver(Source.NostrBand_Rest, {
 			entityType: EntityType.NostrProfile,
 			resolve: {
-				[NostrProfileSelector.CanonicalPubkey]: {
+				CanonicalPubkey: {
 					resolve: async ({ pubkey }, context) => {
 						const { listAuthorReposts } = await import('$/sources/NostrBand/Rest/queries.ts')
 						const limit = resolverContextRowLimit(context)
@@ -1290,7 +1282,7 @@ export default {
 		defineResolver(Source.NostrBand_Rest, {
 			entityType: EntityType.NostrNote,
 			resolve: {
-				[NostrNoteSelector.CanonicalEventId]: {
+				CanonicalEventId: {
 					resolve: async ({ eventId }, context) => {
 						const { listNoteReplies } = await import('$/sources/NostrBand/Rest/queries.ts')
 						const limit = resolverContextRowLimit(context)
@@ -1321,7 +1313,7 @@ export default {
 		defineResolver(Source.NostrBand_Rest, {
 			entityType: EntityType.NostrNote,
 			resolve: {
-				[NostrNoteSelector.CanonicalEventId]: {
+				CanonicalEventId: {
 					resolve: async ({ eventId }, context) => {
 						const { listNoteReactions } = await import('$/sources/NostrBand/Rest/queries.ts')
 						const limit = resolverContextRowLimit(context)
@@ -1352,7 +1344,7 @@ export default {
 		defineResolver(Source.NostrBand_Rest, {
 			entityType: EntityType.NostrNote,
 			resolve: {
-				[NostrNoteSelector.CanonicalEventId]: {
+				CanonicalEventId: {
 					resolve: async ({ eventId }, context) => {
 						const { getEventById } = await import('$/sources/NostrBand/Rest/queries.ts')
 						const event = eventFromWire(await getEventById(eventId), {

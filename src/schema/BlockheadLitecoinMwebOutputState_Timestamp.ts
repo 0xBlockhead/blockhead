@@ -1,14 +1,11 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { entity, facet } from '$/schema/$schema.ts'
+import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { type } from 'arktype'
 
-export enum BlockheadLitecoinMwebOutputState_TimestampSelector {
-	OutputStateTimestampMsSource = 'OutputStateTimestampMsSource',
-}
-export const BlockheadLitecoinMwebOutputState_Timestamp = entity({
+export default entity({
 	entityType: EntityType.BlockheadLitecoinMwebOutputState_Timestamp,
 	labels: {
 		singular: 'blockhead litecoin mweb output state timestamp',

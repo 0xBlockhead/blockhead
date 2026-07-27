@@ -6,7 +6,7 @@ import { networkByCaip2, networkBySlug } from '$/constants/Network.ts'
 import { match as matchNonNegativeInteger } from '$/params/nonNegativeInteger.ts'
 import { match as matchStringSegment } from '$/params/stringSegment.ts'
 import { parseEntitySelector } from '$/schema/$schema.ts'
-import { CardanoGovernanceProposal as CardanoGovernanceProposalSchema } from '$/schema/CardanoGovernanceProposal.ts'
+import CardanoGovernanceProposalSchema from '$/schema/CardanoGovernanceProposal.ts'
 import { schema } from '$/schema/index.ts'
 import { type as arktype } from 'arktype'
 

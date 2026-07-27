@@ -6,11 +6,12 @@ import {
 	expectMainVisible,
 	installChainlistRpcsJsonStub,
 } from '../../../../tests/_e2eBrowserHelpers.ts'
+import { nostrNetworkSeedNotes } from '$/constants/Social/Nostr.ts'
 import { nostrEventId } from '../../../sources/NostrRelay/Nip01/event.ts'
 
 
-const profilePubkey = '82341f880b9929660a178be448011edd0e5839858c4fc1480b5fd4b6205d127b'
-const rootEventId = '69be3416ed20ce50dea9cdd5471dbef55d320df41d97e1e999108321c2c3e3df'
+const profilePubkey = nostrNetworkSeedNotes[0].pubkey
+const rootEventId = nostrNetworkSeedNotes[0].eventId
 
 const secretKey = Hex.toBytes(`0x${'03'.repeat(32)}`)
 const relayAuthorPubkey = Hex.fromBytes(schnorr.getPublicKey(secretKey)).slice(2)
@@ -33,7 +34,16 @@ const signedRelayNote = (content: string, createdAt: number) => {
 
 test.setTimeout(240_000)
 
-test.beforeEach(async ({ page }) => {
+test.beforeEach(async ({ page }, testInfo) => {
+	await page.addInitScript(({ name, schemaVersion }) => {
+		window.__blockheadClientProbeEnabled = true
+		window.__blockheadWaSqliteDatabaseNameOverride = name
+		window.__blockheadWaSqliteVfsNameOverride = name.replace(/[^a-zA-Z0-9_-]/g, '_')
+		window.__blockheadPersistedCollectionSchemaVersionOverride = schemaVersion
+	}, {
+		name: `bh-nostr-${testInfo.workerIndex}-${testInfo.retry}-${Date.now()}.sqlite`,
+		schemaVersion: Date.now(),
+	})
 	await installChainlistRpcsJsonStub(page)
 })
 
@@ -109,6 +119,7 @@ test('event thread preserves root and reply context', async ({ page }) => {
 	await expect(page.locator('#main')).toContainText('Blockhead Nostr seed note', { timeout: 180_000 })
 	await expect(page.locator('#main dt', { hasText: 'Event ID' })).toBeAttached()
 	await expect(page.locator('#main').getByRole('heading', { name: /Replies/ })).toBeAttached()
+	await expect(page.locator('#main [data-error], #main [role="alert"]')).toHaveCount(0)
 })
 
 test('profile context carries authored notes into event reading', async ({ page }) => {

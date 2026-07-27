@@ -11,8 +11,6 @@ import {
 	entityFieldAddressKey,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import { FarcasterCastSelector } from '$/schema/FarcasterCast.ts'
-import { FarcasterUserSelector } from '$/schema/FarcasterUser.ts'
 import { Source } from '$/sources/Source.ts'
 
 const getCastsByParent = vi.hoisted(() => vi.fn())
@@ -52,7 +50,7 @@ if (castResolver == null)
 if (userResolver == null || userCastsResolver == null)
 	throw new Error('Snapchain spec missing FarcasterUser resolvers')
 
-const directRepliesResolve = directRepliesResolver.resolve[FarcasterCastSelector.FidHash].resolve
+const directRepliesResolve = directRepliesResolver.resolve['FidHash'].resolve
 const parentHash = '0x1111111111111111111111111111111111111111'
 const reply = ({
 	fid = 7,
@@ -126,18 +124,24 @@ describe('Snapchain Farcaster direct replies', () => {
 				[entityFieldAddressKey(EntityType.FarcasterCast, [], 'timestamp')]: 1_752_840_001_000,
 			}),
 		})
-		expect(getCastsByParent).toHaveBeenNthCalledWith(1, {
-			fid: 42,
-			hash: parentHash,
-			pageSize: 2,
-			pageToken: undefined,
-		})
-		expect(getCastsByParent).toHaveBeenNthCalledWith(2, {
-			fid: 42,
-			hash: parentHash,
-			pageSize: 1,
-			pageToken: 'opaque+/=',
-		})
+		expect(getCastsByParent).toHaveBeenNthCalledWith(
+			1,
+			{
+				fid: 42,
+				hash: parentHash,
+				pageSize: 2,
+				pageToken: undefined,
+			}
+		)
+		expect(getCastsByParent).toHaveBeenNthCalledWith(
+			2,
+			{
+				fid: 42,
+				hash: parentHash,
+				pageSize: 1,
+				pageToken: 'opaque+/=',
+			}
+		)
 		expect(snapchainResolvers.source).toBe(Source.Snapchain_Rest)
 	})
 
@@ -192,7 +196,7 @@ describe('Snapchain Farcaster cast identity', () => {
 			},
 		})
 
-		await expect(castResolver.resolve[FarcasterCastSelector.FidHash].resolve({
+		await expect(castResolver.resolve['FidHash'].resolve({
 			fid: 42,
 			hash: parentHash,
 		})).rejects.toThrow('cast subject mismatch')
@@ -240,7 +244,7 @@ describe('Snapchain Farcaster account ownership', () => {
 				messages: [],
 			},
 		})
-		await expect(userResolver.resolve[FarcasterUserSelector.Fid].resolve({
+		await expect(userResolver.resolve['Fid'].resolve({
 			fid: 42,
 		})).resolves.toMatchObject({
 			username: 'alice',
@@ -259,7 +263,7 @@ describe('Snapchain Farcaster account ownership', () => {
 				}),
 			],
 		})
-		await expect(userCastsResolver.resolve[FarcasterUserSelector.Fid].resolve(
+		await expect(userCastsResolver.resolve['Fid'].resolve(
 			{ fid: 42 },
 			context
 		)).resolves.toEqual([{

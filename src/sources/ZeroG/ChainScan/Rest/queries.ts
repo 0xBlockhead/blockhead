@@ -1,11 +1,14 @@
-import type { SourceBinding } from '$/sources/SourceBinding.ts'
+import { Source } from '$/sources/Source.ts'
 import {
 	firstHttpUrlForBinding,
 	sourceGetText,
 } from '$/sources/_runtime/http.ts'
+import bindings from '$/sources/ZeroG/bindings.ts'
 import type { ZeroGChainScanInfo } from '$/sources/ZeroG/ChainScan/Rest/types.ts'
 
-export const getInfo = (binding: SourceBinding) => ({
+const binding = bindings[Source.ZeroGChainScan_Rest]
+
+export const getInfo = () => ({
 	url: firstHttpUrlForBinding(binding),
 	chainId: 16661,
 	features: [
@@ -15,8 +18,8 @@ export const getInfo = (binding: SourceBinding) => ({
 		'validators',
 		'contracts',
 	],
-}) as const satisfies ZeroGChainScanInfo
+}) satisfies ZeroGChainScanInfo
 
-export const getLlmInfo = (binding: SourceBinding) => (
+export const getLlmInfo = () => (
 	sourceGetText(binding, new URL('/llms.txt', firstHttpUrlForBinding(binding)).toString())
 )

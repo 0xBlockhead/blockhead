@@ -6,7 +6,7 @@ import { networkByCaip2, networkBySlug } from '$/constants/Network.ts'
 import { match as matchStringSegment } from '$/params/stringSegment.ts'
 import { parseEntitySelector } from '$/schema/$schema.ts'
 import { schema } from '$/schema/index.ts'
-import { XrplAmendment as XrplAmendmentSchema } from '$/schema/XrplAmendment.ts'
+import XrplAmendmentSchema from '$/schema/XrplAmendment.ts'
 import { type as arktype } from 'arktype'
 
 // Projection eligibility: facetPath=['Xrpl']
@@ -16,7 +16,7 @@ export const load: PageLoad = async ({ params, parent }) => {
 	const projectionNetwork = (Object.getOwnPropertyDescriptor(networkByCaip2, decodeURIComponent(params.network))?.value ?? Object.getOwnPropertyDescriptor(networkBySlug, params.network)?.value)
 	if (projectionNetwork == null) error(404, 'Network projection context not found')
 
-	if (!((projectionNetwork.namespace === 'Xrpl' && projectionNetwork.namespace === 'Xrpl') && matchStringSegment(params.amendmentId))) error(404, 'Route mapping not applicable')
+	if (!(projectionNetwork.namespace === 'Xrpl' && matchStringSegment(params.amendmentId))) error(404, 'Route mapping not applicable')
 
 	const xrplAmendmentNetworkAmendmentIdSelector = parseEntitySelector(
 		schema,

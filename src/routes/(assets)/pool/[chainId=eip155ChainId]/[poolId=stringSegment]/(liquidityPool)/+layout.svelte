@@ -30,24 +30,30 @@
 {#key [params.chainId, params.poolId].join(':')}
 	<ParentPageCollapsible
 		href={
-			resolve('/pool/[chainId=eip155ChainId]/[poolId=stringSegment]', {
-				chainId: params.chainId,
-				poolId: params.poolId,
-			})
+			resolve(
+				'/(assets)/pool/[chainId=eip155ChainId]/[poolId=stringSegment]',
+				{
+					chainId: String(params.chainId),
+					poolId: String(params.poolId),
+				}
+			)
 		}
 	>
 		{#snippet Summary()}
-			{@const DetailView = LiquidityPoolView}
-
-			<DetailView
-				selection={select(EntityType.LiquidityPool, data.selector, { sources: [
-		Source.Dexscreener_OpenApi,
-	] })}
+			<LiquidityPoolView
+				selection={
+					select(EntityType.LiquidityPool, data.selector, { sources: [
+						Source.Dexscreener_OpenApi,
+					] })
+				}
 				href={
-					resolve('/pool/[chainId=eip155ChainId]/[poolId=stringSegment]', {
-						chainId: params.chainId,
-						poolId: params.poolId,
-					})
+					resolve(
+						'/(assets)/pool/[chainId=eip155ChainId]/[poolId=stringSegment]',
+						{
+							chainId: String(params.chainId),
+							poolId: String(params.poolId),
+						}
+					)
 				}
 				layout={EntityLayout.SummaryInline}
 			/>

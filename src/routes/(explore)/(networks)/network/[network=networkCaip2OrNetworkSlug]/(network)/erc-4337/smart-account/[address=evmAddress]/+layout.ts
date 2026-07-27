@@ -5,7 +5,7 @@ import { error } from '@sveltejs/kit'
 import { networkByCaip2, networkBySlug } from '$/constants/Network.ts'
 import { match as matchEvmAddress } from '$/params/evmAddress.ts'
 import { parseEntitySelector } from '$/schema/$schema.ts'
-import { Erc4337SmartAccount as Erc4337SmartAccountSchema } from '$/schema/Erc4337SmartAccount.ts'
+import Erc4337SmartAccountSchema from '$/schema/Erc4337SmartAccount.ts'
 import { schema } from '$/schema/index.ts'
 import { type as arktype } from 'arktype'
 

@@ -9,14 +9,12 @@
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		data,
-		params,
 	}: PageProps = $props()
 
 	const pageSelection = $derived(select(EntityType.EvmSelector, data.selector, {
@@ -36,17 +34,12 @@
 
 
 <svelte:head>
-	<title>{(data.title ?? (pageSelection.entity == null ? 'EVM selector' : 'EVM selector'))} • EVM selector • Blockhead</title>
+	<title>{(data.title ?? ('EVM selector'))} • EVM selector • Blockhead</title>
 </svelte:head>
 
 
 <Page>
 	<EvmSelectorView
-		href={
-			resolve('/evm/selector/[hex=zeroExHex]', {
-				hex: params.hex,
-			})
-		}
 		selection={pageSelection}
 	/>
 </Page>

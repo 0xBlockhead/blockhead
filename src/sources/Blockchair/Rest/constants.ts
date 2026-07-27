@@ -1,23 +1,4 @@
-import type { SourceOrigin } from '$/sources/SourceProvider.ts'
-
-
-// Types
-
-export type BlockchairOrigin = (typeof blockchairOrigins)[number]
-
-
 // Constants
-
-export const blockchairOrigin = 'https://api.blockchair.com' as const
-
-export const blockchairRestBaseUrl = blockchairOrigin
-
-export const blockchairOrigins = [
-	{
-		origin: blockchairOrigin,
-		corsEnabled: false,
-	},
-] as const satisfies readonly SourceOrigin[]
 
 export const blockchairBitcoinLikeChains = [
 	{

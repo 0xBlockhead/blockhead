@@ -9,8 +9,6 @@ import {
 import { MediaType } from '$/schema/Media.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
-import { UrlSelector } from '$/schema/Url.ts'
-import { UrlPreview_TimestampSelector } from '$/schema/UrlPreview_Timestamp.ts'
 import type { MetadataVisionOpenGraphData } from '$/sources/MetadataVision/Rest/types.ts'
 
 const urlPreviewFieldsFromWire = (
@@ -39,7 +37,7 @@ export default {
 		defineResolver(Source.MetadataVision_Rest, {
 			entityType: EntityType.Url,
 			resolve: {
-				[UrlSelector.Url]: {
+				Url: {
 					resolve: async ({ url }) => {
 						const { getOpenGraphWireForPublicHttpUrl } = await import('$/sources/MetadataVision/Rest/queries.ts')
 						try {
@@ -52,7 +50,9 @@ export default {
 											source: Source.MetadataVision_Rest,
 										},
 										...urlPreviewFieldsFromWire(
-											await getOpenGraphWireForPublicHttpUrl(url)
+											await getOpenGraphWireForPublicHttpUrl(
+												url
+											)
 										),
 									},
 								],
@@ -76,14 +76,16 @@ export default {
 		defineResolver(Source.MetadataVision_Rest, {
 			entityType: EntityType.UrlPreview_Timestamp,
 			resolve: {
-				[UrlPreview_TimestampSelector.UrlTimestampMsSource]: {
+				UrlTimestampMsSource: {
 					resolve: async ({ $url, source }) => {
 						if (source !== Source.MetadataVision_Rest)
 							throw new Error(`MetadataVision_Rest: unsupported source ${source}`)
 
 						const { getOpenGraphWireForPublicHttpUrl } = await import('$/sources/MetadataVision/Rest/queries.ts')
 						return urlPreviewFieldsFromWire(
-							await getOpenGraphWireForPublicHttpUrl($url.url)
+							await getOpenGraphWireForPublicHttpUrl(
+								$url.url
+							)
 						)
 					},
 				}

@@ -7,7 +7,6 @@ import {
 } from 'vitest'
 
 import { Source } from '$/sources/Source.ts'
-import { SourceProvider } from '$/sources/SourceProvider.ts'
 import {
 	ApiFamily,
 	SourceCredentialScope,
@@ -19,10 +18,11 @@ import {
 	type SourceBinding,
 } from '$/sources/SourceBinding.ts'
 
-const getJson = vi.hoisted(() => vi.fn())
+const sourceGetJson = vi.hoisted(() => vi.fn())
 
-vi.mock('$/sources/_shared/wire/HttpRest/client.ts', () => ({
-	getJson,
+vi.mock('$/sources/_runtime/http.ts', async (importOriginal) => ({
+	...await importOriginal<typeof import('$/sources/_runtime/http.ts')>(),
+	sourceGetJson,
 }))
 
 const {
@@ -35,7 +35,6 @@ const {
 } = await import('$/sources/Dydx/Rest/queries.ts')
 
 const binding = {
-	provider: SourceProvider.Dydx,
 	source: Source.DydxIndexer_Rest,
 	target: {
 		kind: SourceTargetKind.NetworkSlug,
@@ -57,6 +56,12 @@ const binding = {
 const validatorBinding = {
 	...binding,
 	source: Source.DydxValidator_Rest,
+	endpoints: [{
+		endpointKind: SourceEndpointKind.HttpUrl,
+		locator: 'https://validator.dydx.test',
+		origin: 'https://validator.dydx.test',
+		corsEnabled: false,
+	}],
 	apiFamily: ApiFamily.CosmosLcdApi,
 } as const satisfies SourceBinding
 
@@ -68,18 +73,18 @@ const height = {
 
 describe('dYdX v4 read-only public transport', () => {
 	beforeEach(() => {
-		getJson.mockReset()
-		getJson.mockImplementation((_binding, path) => (
-			path === '/v4/height' ?
+		sourceGetJson.mockReset()
+		sourceGetJson.mockImplementation((_binding, url) => (
+			url.endsWith('/v4/height') ?
 				Promise.resolve(height)
 				:
-				Promise.reject(new Error(`Unexpected path ${path}`))
+				Promise.reject(new Error(`Unexpected URL ${url}`))
 		))
 	})
 
 	it('preserves market decimals and attaches indexer observation provenance', async () => {
-		getJson.mockImplementation((_binding, path) => Promise.resolve(
-			path === '/v4/height' ?
+		sourceGetJson.mockImplementation((_binding, url) => Promise.resolve(
+			url.endsWith('/v4/height') ?
 				height
 				:
 				{
@@ -127,15 +132,15 @@ describe('dYdX v4 read-only public transport', () => {
 			indexedAtHeight: '9007199254740993',
 			indexedAtTime: '2026-07-22T00:00:00.000Z',
 		})
-		expect(getJson).toHaveBeenCalledWith(
+		expect(sourceGetJson).toHaveBeenCalledWith(
 			binding,
-			'/v4/perpetualMarkets?market=BTC-USD'
+			'https://indexer.dydx.test/v4/perpetualMarkets?market=BTC-USD'
 		)
 	})
 
 	it('keeps public subaccount identity independent of signing state', async () => {
-		getJson.mockImplementation((_binding, path) => Promise.resolve(
-			path === '/v4/height' ?
+		sourceGetJson.mockImplementation((_binding, url) => Promise.resolve(
+			url.endsWith('/v4/height') ?
 				height
 				:
 				{
@@ -212,8 +217,8 @@ describe('dYdX v4 read-only public transport', () => {
 			},
 		},
 	])('bounds and preserves $path rows', async ({ query, path, response }) => {
-		getJson.mockImplementation((_binding, requestPath) => Promise.resolve(
-			requestPath === '/v4/height' ? height : response
+		sourceGetJson.mockImplementation((_binding, requestUrl) => Promise.resolve(
+			requestUrl.endsWith('/v4/height') ? height : response
 		))
 
 		await expect(query({
@@ -226,9 +231,11 @@ describe('dYdX v4 read-only public transport', () => {
 				subaccountNumber: 7,
 			})],
 		})
-		expect(getJson).toHaveBeenCalledWith(
+		expect(sourceGetJson).toHaveBeenCalledWith(
 			binding,
-			expect.stringContaining(`${path}?address=${address}&subaccountNumber=7&limit=1`)
+			expect.stringContaining(
+				`https://indexer.dydx.test${path}?address=${address}&subaccountNumber=7&limit=1`
+			)
 		)
 	})
 
@@ -250,8 +257,8 @@ describe('dYdX v4 read-only public transport', () => {
 			limit: 101,
 		})).rejects.toThrow('invalid page limit')
 
-		getJson.mockImplementation((_binding, path) => Promise.resolve(
-			path === '/v4/height' ?
+		sourceGetJson.mockImplementation((_binding, url) => Promise.resolve(
+			url.endsWith('/v4/height') ?
 				height
 				:
 				[{
@@ -271,7 +278,7 @@ describe('dYdX v4 read-only public transport', () => {
 	})
 
 	it('rejects validator responses from another consensus chain', async () => {
-		getJson.mockResolvedValue({
+		sourceGetJson.mockResolvedValue({
 			block: {
 				header: {
 					chain_id: 'foreign-1',
@@ -283,5 +290,10 @@ describe('dYdX v4 read-only public transport', () => {
 
 		await expect(getValidatorLatestBlock(validatorBinding))
 			.rejects.toThrow('foreign chain')
+	})
+
+	it('rejects indexer authority for validator queries', async () => {
+		await expect(getValidatorLatestBlock(binding))
+			.rejects.toThrow('expected canonical mainnet validator binding')
 	})
 })

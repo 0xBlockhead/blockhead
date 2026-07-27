@@ -2,69 +2,32 @@
 
 <script lang="ts">
 	// Types/constants
-	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
-	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
-	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
+	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-
-
 
 
 	// State
 	let {
 		selection,
-		countResource,
 		title = 'MCP tool calls',
-		typeAnnotationParagraphs = [],
-		placeholderText = undefined,
-		emptyText = undefined,
 		open = $bindable(true),
-		collapsible = true,
-		showTypeAnnotation = true,
-		id = 'McpToolCalls-list',
 		...EntitiesListProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyEntitiesSelection<EntityType.McpToolCall>
-			countResource?: SvelteKitResource<number>
-			title?: string
-			typeAnnotationParagraphs?: string[]
-			placeholderText?: string
-			emptyText?: string
-			open?: boolean
-			collapsible?: boolean
-			showTypeAnnotation?: boolean
-			id?: string
-		},
-		EntitiesListForwardProps
-	> = $props()
+	}: EntityListViewProps<EntityType.McpToolCall> = $props()
 
 
 	// Components
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView from '$/components/EntityView.svelte'
 </script>
 
-
-{#snippet TypeAnnotationParagraphs()}
-	{#each typeAnnotationParagraphs as paragraph (paragraph)}
-		<p>{paragraph}</p>
-	{/each}
-{/snippet}
 
 <EntitiesList
 	{...EntitiesListProps}
 	entityType={EntityType.McpToolCall}
-	{id}
 	{title}
 	bind:open
-	{collapsible}
-	{showTypeAnnotation}
-	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
 	resource={
 		selection({
-			sources: selection.sources,
 			fields: {
 				callId: true,
 				$tool: true,
@@ -72,38 +35,23 @@
 			},
 		})
 	}
-	{countResource}
-	getResourceItems={(mcpToolCalls) => [...new Map(mcpToolCalls.values.map((mcpToolCall) => [mcpToolCall[EntityMetaKey.SelectorKey], mcpToolCall])).values()]}
-	getKey={(mcpToolCall) => mcpToolCall[EntityMetaKey.SelectorKey]}
-	{placeholderText}
 >
-	{#snippet Empty()}
-		{#if emptyText != null}
-			<p data-text="muted">{emptyText}</p>
-		{:else}
-			<p data-text="muted">No Mcp tool calls yet.</p>
-		{/if}
-	{/snippet}
-
 	{#snippet Item({ item: mcpToolCall })}
-		{@const mcpToolCallFields = { ...mcpToolCall[EntityMetaKey.Selector], ...mcpToolCall }}
+		{@const mcpToolCallSelector = mcpToolCall[EntityMetaKey.Selector]}
 		<EntityView
 			entityType={EntityType.McpToolCall}
-			entitySelector={mcpToolCall[EntityMetaKey.Selector]}
-			layout={EntityLayout.Summary}
-			open={false}
-			showTypeAnnotation={false}
+			entitySelector={mcpToolCallSelector}
 		>
 			{#snippet Title()}
-				{[String((mcpToolCallFields.callId) ?? '')].filter(Boolean).join(' ') || 'mcp tool call'}
+				{mcpToolCallSelector.callId || 'mcp tool call'}
 			{/snippet}
 
 			{#snippet Value()}
-				{[[String((mcpToolCallFields.$tool.title) ?? '')].filter(Boolean).join(' ') || [String((mcpToolCallFields.$tool.name) ?? '')].filter(Boolean).join(' ') || 'mcp tool'].filter(Boolean).join(' ')}
+				{mcpToolCall.$tool == null ? '' : (mcpToolCall.$tool.title ?? '') || mcpToolCall.$tool.name || 'mcp tool'}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{[String((mcpToolCallFields.startedAt) ?? '')].filter(Boolean).join(' ')}</span>
+				<span data-text="annotation">{String(mcpToolCall.startedAt ?? '')}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

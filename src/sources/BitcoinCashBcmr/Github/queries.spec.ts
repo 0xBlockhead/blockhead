@@ -1,11 +1,11 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-const { getJson } = vi.hoisted(() => ({
-	getJson: vi.fn(),
+const { sourceGetJson } = vi.hoisted(() => ({
+	sourceGetJson: vi.fn(),
 }))
 
-vi.mock('$/lib/http.ts', () => ({
-	getJson,
+vi.mock('$/sources/_runtime/http.ts', () => ({
+	sourceGetJson,
 }))
 
 const { getCategoryMetadata } = await import('$/sources/BitcoinCashBcmr/Github/queries.ts')
@@ -18,7 +18,7 @@ describe('Bitcoin Cash BCMR metadata selection', () => {
 	})
 
 	it('selects the latest reached identity snapshot rather than registry latestRevision', async () => {
-		getJson.mockResolvedValueOnce({
+		sourceGetJson.mockResolvedValueOnce({
 			latestRevision: '2026-07-01T00:00:00.000Z',
 			identities: {
 				[categoryId]: {
@@ -68,9 +68,9 @@ describe('Bitcoin Cash BCMR metadata selection', () => {
 			categoryId,
 			atTimestamp: '2026-07-22T00:00:00.000Z',
 		})).rejects.toThrow('declared GitHub source')
-		expect(getJson).not.toHaveBeenCalled()
+		expect(sourceGetJson).not.toHaveBeenCalled()
 
-		getJson.mockResolvedValueOnce({
+		sourceGetJson.mockResolvedValueOnce({
 			identities: {
 				[categoryId]: {
 					tomorrow: {
@@ -85,7 +85,7 @@ describe('Bitcoin Cash BCMR metadata selection', () => {
 			atTimestamp: '2026-07-22T00:00:00.000Z',
 		})).rejects.toThrow('revision timestamp')
 
-		getJson.mockResolvedValueOnce({
+		sourceGetJson.mockResolvedValueOnce({
 			identities: {
 				[categoryId]: {
 					'2026-01-01T00:00:00.000Z': {

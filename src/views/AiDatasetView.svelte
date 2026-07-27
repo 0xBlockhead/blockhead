@@ -2,13 +2,9 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
 	import { UrlString } from '$/schema/UrlString.ts'
 
 
@@ -21,44 +17,23 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.AiDataset>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.AiDataset>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.AiDataset> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const aiDataset = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const aiDataset = $derived(selection({
 		fields: {
 			label: true,
 			modality: true,
-			license: true,
-		},
-	} : {
-		sources: selection.sources,
-		fields: {
-			label: true,
-			modality: true,
+			datasetUri: true,
+			datasetName: true,
+			huggingFaceDatasetId: true,
 			license: true,
 		},
 	}))
-	const titleFallback = $derived([String((pendingEntity.label) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.datasetUri) ?? ''), String((pendingEntity.datasetName) ?? ''), String((pendingEntity.huggingFaceDatasetId) ?? '')].filter(Boolean).join(' ') || 'AI dataset')
-	const viewDomId = $derived('ai-dataset-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const titleFallback = $derived((pendingEntity.label ?? '') || [String(pendingEntity.datasetUri ?? ''), (pendingEntity.datasetName ?? ''), (pendingEntity.huggingFaceDatasetId ?? '')].filter(Boolean).join(' ') || 'AI dataset')
 
 
 	// Components
@@ -71,90 +46,59 @@
 
 <EntityView
 	entityType={EntityType.AiDataset}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'label') && Object.hasOwn(prefetched, 'modality') && Object.hasOwn(prefetched, 'datasetUri') && Object.hasOwn(prefetched, 'datasetName') && Object.hasOwn(prefetched, 'huggingFaceDatasetId') && Object.hasOwn(prefetched, 'license')}
-			{[String((pendingEntity.label) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-		{:else}
-			<ResourceBoundary resource={aiDataset}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.label) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={aiDataset}>
+			{#snippet children(entity)}
+				{(entity.label ?? '') || title || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Value()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'label') && Object.hasOwn(prefetched, 'modality') && Object.hasOwn(prefetched, 'datasetUri') && Object.hasOwn(prefetched, 'datasetName') && Object.hasOwn(prefetched, 'huggingFaceDatasetId') && Object.hasOwn(prefetched, 'license')}
-			{[String((pendingEntity.modality) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.label) ?? '')].filter(Boolean).join(' ') || titleFallback}
-		{:else}
-			<ResourceBoundary resource={aiDataset}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.modality) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.label) ?? '')].filter(Boolean).join(' ') || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={aiDataset}>
+			{#snippet children(entity)}
+				{(entity.modality ?? '') || (entity.label ?? '') || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'label') && Object.hasOwn(prefetched, 'modality') && Object.hasOwn(prefetched, 'datasetUri') && Object.hasOwn(prefetched, 'datasetName') && Object.hasOwn(prefetched, 'huggingFaceDatasetId') && Object.hasOwn(prefetched, 'license')}
-			{@const license0 = pendingEntity.license}
-			{#if license0 !== undefined && license0 !== null}
-				<span data-text="muted">
-					{String((license0) ?? '')}
-				</span>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={aiDataset}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const license0 = resolvedEntity.license}
-					{#if license0 !== undefined && license0 !== null}
-						<span data-text="muted">
-							{String((license0) ?? '')}
-						</span>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={aiDataset}>
+			{#snippet children(entity)}
+				{@const license0 = entity.license}
+				{#if license0 != null}
+					<span data-text="muted">
+						{license0}
+					</span>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
 		<dl data-column-item="center">
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							datasetUri: true,
-						},
-					})
-				}
+				resource={aiDataset}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const datasetUri = resolvedEntity.datasetUri}
-					{#if datasetUri !== undefined && datasetUri !== null}
+					{@const datasetUri = entity.datasetUri}
+					{#if datasetUri != null}
 						<div>
 							<dt>dataset URI</dt>
 							<dd>
-								<svelte:element
-									this={'a'}
+								<a
 									href={String(datasetUri)}
 									target="_blank"
 									rel="noreferrer noopener"
 								>
 									<TruncatedValue value={String(datasetUri)} />
-								</svelte:element>
+								</a>
 							</dd>
 						</div>
 					{/if}
@@ -162,23 +106,15 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							huggingFaceDatasetId: true,
-						},
-					})
-				}
+				resource={aiDataset}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const huggingFaceDatasetId = resolvedEntity.huggingFaceDatasetId}
-					{#if huggingFaceDatasetId !== undefined && huggingFaceDatasetId !== null}
+					{@const huggingFaceDatasetId = entity.huggingFaceDatasetId}
+					{#if huggingFaceDatasetId != null}
 						<div>
 							<dt>hugging face dataset ID</dt>
 							<dd>
-								{String((huggingFaceDatasetId) ?? '')}
+								{huggingFaceDatasetId}
 							</dd>
 						</div>
 					{/if}
@@ -188,7 +124,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							revision: true,
 						},
@@ -196,13 +131,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const revision = resolvedEntity.revision}
-					{#if revision !== undefined && revision !== null}
+					{@const revision = entity.revision}
+					{#if revision != null}
 						<div>
 							<dt>revision</dt>
 							<dd>
-								{String((revision) ?? '')}
+								{revision}
 							</dd>
 						</div>
 					{/if}
@@ -212,7 +146,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							source: true,
 						},
@@ -220,13 +153,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const source = resolvedEntity.source}
-					{#if source !== undefined && source !== null}
+					{@const source = entity.source}
+					{#if source != null}
 						<div>
 							<dt>Source</dt>
 							<dd>
-								{String((source) ?? '')}
+								{source}
 							</dd>
 						</div>
 					{/if}
@@ -234,23 +166,15 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							datasetName: true,
-						},
-					})
-				}
+				resource={aiDataset}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const datasetName = resolvedEntity.datasetName}
-					{#if datasetName !== undefined && datasetName !== null}
+					{@const datasetName = entity.datasetName}
+					{#if datasetName != null}
 						<div>
 							<dt>dataset name</dt>
 							<dd>
-								{String((datasetName) ?? '')}
+								{datasetName}
 							</dd>
 						</div>
 					{/if}
@@ -260,7 +184,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							datasetDigest: true,
 						},
@@ -268,13 +191,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const datasetDigest = resolvedEntity.datasetDigest}
-					{#if datasetDigest !== undefined && datasetDigest !== null}
+					{@const datasetDigest = entity.datasetDigest}
+					{#if datasetDigest != null}
 						<div>
 							<dt>dataset digest</dt>
 							<dd>
-								<TruncatedValue value={String((datasetDigest) ?? '')} />
+								<TruncatedValue value={datasetDigest} />
 							</dd>
 						</div>
 					{/if}
@@ -285,7 +207,7 @@
 				resource={selection.$artifact}
 			>
 				{#snippet children(aiArtifact)}
-					{#if aiArtifact != null && aiArtifact[EntityMetaKey.Selector] != null}
+					{#if aiArtifact != null}
 						<div>
 							<dt>artifact</dt>
 							<dd>
@@ -304,23 +226,15 @@
 
 		<dl data-column-item="center">
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							label: true,
-						},
-					})
-				}
+				resource={aiDataset}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const label = resolvedEntity.label}
-					{#if label !== undefined && label !== null}
+					{@const label = entity.label}
+					{#if label != null}
 						<div>
 							<dt>Label</dt>
 							<dd>
-								{String((label) ?? '')}
+								{label}
 							</dd>
 						</div>
 					{/if}
@@ -328,23 +242,15 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							license: true,
-						},
-					})
-				}
+				resource={aiDataset}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const license = resolvedEntity.license}
-					{#if license !== undefined && license !== null}
+					{@const license = entity.license}
+					{#if license != null}
 						<div>
 							<dt>license</dt>
 							<dd>
-								{String((license) ?? '')}
+								{license}
 							</dd>
 						</div>
 					{/if}
@@ -352,23 +258,15 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							modality: true,
-						},
-					})
-				}
+				resource={aiDataset}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const modality = resolvedEntity.modality}
-					{#if modality !== undefined && modality !== null}
+					{@const modality = entity.modality}
+					{#if modality != null}
 						<div>
 							<dt>modality</dt>
 							<dd>
-								{String((modality) ?? '')}
+								{modality}
 							</dd>
 						</div>
 					{/if}
@@ -378,7 +276,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							version: true,
 						},
@@ -386,13 +283,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const version = resolvedEntity.version}
-					{#if version !== undefined && version !== null}
+					{@const version = entity.version}
+					{#if version != null}
 						<div>
 							<dt>version</dt>
 							<dd>
-								{String((version) ?? '')}
+								{version}
 							</dd>
 						</div>
 					{/if}
@@ -402,7 +298,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							isLiveDataset: true,
 						},
@@ -410,9 +305,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const isLiveDataset = resolvedEntity.isLiveDataset}
-					{#if isLiveDataset !== undefined && isLiveDataset !== null}
+					{@const isLiveDataset = entity.isLiveDataset}
+					{#if isLiveDataset != null}
 						<div>
 							<dt>is live dataset</dt>
 							<dd>
@@ -432,12 +326,12 @@
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
-				<AiDocumentsView
-					selection={aiDatasetAiDocumentsViewDocumentsResource}
-					countResource={aiDatasetAiDocumentsViewDocumentsResource.count}
-					title='documents'
-					id='AiDocumentsView-documents'
-				/>
+					<AiDocumentsView
+						selection={aiDatasetAiDocumentsViewDocumentsResource}
+						countResource={aiDatasetAiDocumentsViewDocumentsResource.count}
+						title='documents'
+						id='documents'
+					/>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>

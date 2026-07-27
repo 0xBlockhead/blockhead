@@ -2,14 +2,10 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -21,40 +17,24 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.AcpAgentRuntime>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.AcpAgentRuntime>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.AcpAgentRuntime> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const acpAgentRuntime = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {
-			transportKind: true,
-		},
-	} : {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const viewSelection = $derived(selection({
+		sources: selection.sources ?? [
+			Source.AcpLocal_JsonRpc,
+			Source.Local_Internal,
+		],
+	}))
+	const acpAgentRuntime = $derived(viewSelection({
 		fields: {
 			transportKind: true,
 		},
 	}))
-	const titleFallback = $derived([String((pendingEntity.runtimeId) ?? '')].filter(Boolean).join(' ') || 'ACP agent runtime')
-	const viewDomId = $derived('acp-agent-runtime-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const titleFallback = $derived((pendingEntity.runtimeId ?? '') || 'ACP agent runtime')
 
 
 	// Components
@@ -70,41 +50,30 @@
 
 <EntityView
 	entityType={EntityType.AcpAgentRuntime}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={acpAgentRuntime}>
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.runtimeId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{(pendingEntity.runtimeId ?? '') || 'ACP agent runtime'}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={acpAgentRuntime}>
-			{#snippet children(entity)}
-				<ResourceBoundary
-					resource={selection.$programVersion}
-				>
-					{#snippet children(acpAgentProgramVersion)}
-						{#if acpAgentProgramVersion != null && acpAgentProgramVersion[EntityMetaKey.Selector] != null}
-							<AcpAgentProgramVersionView
-								selection={select(EntityType.AcpAgentProgramVersion, acpAgentProgramVersion[EntityMetaKey.Selector])}
-								prefetched={acpAgentProgramVersion}
-								href=""
-								layout={EntityLayout.Value}
-								open={false}
-							/>
-						{/if}
-					{/snippet}
-				</ResourceBoundary>
+		<ResourceBoundary
+			resource={selection.$programVersion}
+		>
+			{#snippet children(acpAgentProgramVersion)}
+				{#if acpAgentProgramVersion != null}
+					<AcpAgentProgramVersionView
+						selection={select(EntityType.AcpAgentProgramVersion, acpAgentProgramVersion[EntityMetaKey.Selector])}
+						prefetched={acpAgentProgramVersion}
+						href=""
+						layout={EntityLayout.Value}
+						open={false}
+					/>
+				{/if}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -112,11 +81,10 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={acpAgentRuntime}>
 			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const transportKind0 = resolvedEntity.transportKind}
-				{#if transportKind0 !== undefined && transportKind0 !== null}
+				{@const transportKind0 = entity.transportKind}
+				{#if transportKind0 != null}
 					<span data-text="muted">
-						{String((transportKind0) ?? '')}
+						{transportKind0}
 					</span>
 				{/if}
 			{/snippet}
@@ -128,24 +96,7 @@
 			<div>
 				<dt>runtime ID</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									runtimeId: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const runtimeId = resolvedEntity.runtimeId}
-							{#if runtimeId !== undefined && runtimeId !== null}
-								{String((runtimeId) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{pendingEntity.runtimeId}
 				</dd>
 			</div>
 
@@ -153,24 +104,13 @@
 				resource={selection.$source}
 			>
 				{#snippet children(blockheadSource)}
-					{#if blockheadSource != null && blockheadSource[EntityMetaKey.Selector] != null}
+					{#if blockheadSource != null}
 						<div>
 							<dt>Source</dt>
 							<dd>
 								<BlockheadSourceView
 									selection={select(EntityType.BlockheadSource, blockheadSource[EntityMetaKey.Selector])}
 									prefetched={blockheadSource}
-									href={
-										(
-											blockheadSource[EntityMetaKey.Selector] != null && 'id' in blockheadSource[EntityMetaKey.Selector]
-											&& blockheadSource[EntityMetaKey.Selector].id != null ?
-												resolve('/~/manage/source/[sourceId=stringSegment]', {
-											sourceId: String(blockheadSource[EntityMetaKey.Selector].id ?? ''),
-										})
-										:
-												undefined
-										)
-									}
 									layout={EntityLayout.Value}
 									open={false}
 								/>
@@ -184,7 +124,7 @@
 				resource={selection.$programVersion}
 			>
 				{#snippet children(acpAgentProgramVersion)}
-					{#if acpAgentProgramVersion != null && acpAgentProgramVersion[EntityMetaKey.Selector] != null}
+					{#if acpAgentProgramVersion != null}
 						<div>
 							<dt>program version</dt>
 							<dd>
@@ -204,7 +144,7 @@
 				resource={selection.$programInstall}
 			>
 				{#snippet children(blockheadAgentProgramInstall)}
-					{#if blockheadAgentProgramInstall != null && blockheadAgentProgramInstall[EntityMetaKey.Selector] != null}
+					{#if blockheadAgentProgramInstall != null}
 						<div>
 							<dt>program install</dt>
 							<dd>
@@ -221,23 +161,15 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							transportKind: true,
-						},
-					})
-				}
+				resource={acpAgentRuntime}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const transportKind = resolvedEntity.transportKind}
-					{#if transportKind !== undefined && transportKind !== null}
+					{@const transportKind = entity.transportKind}
+					{#if transportKind != null}
 						<div>
 							<dt>transport kind</dt>
 							<dd>
-								{String((transportKind) ?? '')}
+								{transportKind}
 							</dd>
 						</div>
 					{/if}
@@ -248,8 +180,7 @@
 		<dl data-column-item="center">
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							processId: true,
 						},
@@ -257,13 +188,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const processId = resolvedEntity.processId}
-					{#if processId !== undefined && processId !== null}
+					{@const processId = entity.processId}
+					{#if processId != null}
 						<div>
 							<dt>process ID</dt>
 							<dd>
-								{String((processId) ?? '')}
+								{processId}
 							</dd>
 						</div>
 					{/if}
@@ -272,8 +202,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							initializedAt: true,
 						},
@@ -281,9 +210,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const initializedAt = resolvedEntity.initializedAt}
-					{#if initializedAt !== undefined && initializedAt !== null}
+					{@const initializedAt = entity.initializedAt}
+					{#if initializedAt != null}
 						<div>
 							<dt>initialized AT</dt>
 							<dd>
@@ -303,12 +231,12 @@
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
-				<AcpSessionsView
-					selection={acpAgentRuntimeAcpSessionsViewSessionsResource}
-					countResource={acpAgentRuntimeAcpSessionsViewSessionsResource.count}
-					title='sessions'
-					id='AcpSessionsView-sessions'
-				/>
+					<AcpSessionsView
+						selection={acpAgentRuntimeAcpSessionsViewSessionsResource}
+						countResource={acpAgentRuntimeAcpSessionsViewSessionsResource.count}
+						title='sessions'
+						id='sessions'
+					/>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>
@@ -318,12 +246,12 @@
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
-				<AcpAgentRuntime_TimestampsView
-					selection={acpAgentRuntimeAcpAgentRuntimeTimestampsViewTimestampsResource}
-					countResource={acpAgentRuntimeAcpAgentRuntimeTimestampsViewTimestampsResource.count}
-					title='timestamps'
-					id='AcpAgentRuntime_TimestampsView-timestamps'
-				/>
+					<AcpAgentRuntime_TimestampsView
+						selection={acpAgentRuntimeAcpAgentRuntimeTimestampsViewTimestampsResource}
+						countResource={acpAgentRuntimeAcpAgentRuntimeTimestampsViewTimestampsResource.count}
+						title='timestamps'
+						id='timestamps'
+					/>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>

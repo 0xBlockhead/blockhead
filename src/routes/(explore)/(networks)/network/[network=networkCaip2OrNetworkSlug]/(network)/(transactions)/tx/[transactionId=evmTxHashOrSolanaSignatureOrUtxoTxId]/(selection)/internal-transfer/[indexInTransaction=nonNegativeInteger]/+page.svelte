@@ -9,7 +9,6 @@
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
@@ -44,31 +43,12 @@
 
 
 <svelte:head>
-	<title>{(data.title ?? (pageSelection.entity == null ? (String(({
-		$transaction: data.selector,
-		indexInTransaction: Number(params.indexInTransaction),
-	}.indexInTransaction) ?? '') ? 'Internal #' + String(({
-		$transaction: data.selector,
-		indexInTransaction: Number(params.indexInTransaction),
-	}.indexInTransaction) ?? '') : '') || 'EVM internal transfer' : (String((({ ...{
-		$transaction: data.selector,
-		indexInTransaction: Number(params.indexInTransaction),
-	}, ...pageSelection.entity }).indexInTransaction) ?? '') ? 'Internal #' + String((({ ...{
-		$transaction: data.selector,
-		indexInTransaction: Number(params.indexInTransaction),
-	}, ...pageSelection.entity }).indexInTransaction) ?? '') : '') || 'EVM internal transfer'))} • EVM internal transfer • Blockhead</title>
+	<title>{(data.title ?? (pageSelection.entity == null ? (String(pageSelection.entitySelector.indexInTransaction ?? '') ? 'Internal #' + String(pageSelection.entitySelector.indexInTransaction ?? '') : '') || 'EVM internal transfer' : (String(pageSelection.entitySelector.indexInTransaction ?? '') ? 'Internal #' + String(pageSelection.entitySelector.indexInTransaction ?? '') : '') || 'EVM internal transfer'))} • EVM internal transfer • Blockhead</title>
 </svelte:head>
 
 
 <Page>
 	<EvmInternalTransferView
-		href={
-			resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/internal-transfer/[indexInTransaction=nonNegativeInteger]', {
-				network: params.network,
-				transactionId: params.transactionId,
-				indexInTransaction: params.indexInTransaction,
-			})
-		}
 		selection={pageSelection}
 	/>
 </Page>

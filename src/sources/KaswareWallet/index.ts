@@ -1,0 +1,17 @@
+// Generated from APP.ts. Do not edit by hand.
+
+import bindings from '$/sources/KaswareWallet/bindings.ts'
+import { Source } from '$/sources/Source.ts'
+import { SourceProvider, type SourceProviderDefinition } from '$/sources/SourceProvider.ts'
+
+export default {
+	provider: SourceProvider.KaswareWallet,
+	label: 'Kasware Wallet',
+	sources: [
+		{
+			source: Source.KaswareWallet_WalletApi,
+			label: 'Kasware Wallet API',
+		},
+	],
+	bindings: [bindings[Source.KaswareWallet_WalletApi]],
+} satisfies SourceProviderDefinition

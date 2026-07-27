@@ -2,14 +2,10 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
 	import { ZeroExHex } from '$/schema/ZeroExHex.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -21,40 +17,23 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.BlockheadWakuMessageObservation_Timestamp>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.BlockheadWakuMessageObservation_Timestamp>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.BlockheadWakuMessageObservation_Timestamp> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const blockheadWakuMessageObservationTimestamp = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {
-			contentTopic: true,
-		},
-	} : {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const viewSelection = $derived(selection({
+		sources: selection.sources ?? [
+			Source.Local_Internal,
+		],
+	}))
+	const blockheadWakuMessageObservationTimestamp = $derived(viewSelection({
 		fields: {
 			contentTopic: true,
 		},
 	}))
-	const titleFallback = $derived([String((pendingEntity.messageHash) ?? '')].filter(Boolean).join(' ') || 'blockhead waku message observation timestamp')
-	const viewDomId = $derived('blockhead-waku-message-observation-timestamp-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const titleFallback = $derived(String(pendingEntity.messageHash ?? '') || 'blockhead waku message observation timestamp')
 
 
 	// Components
@@ -68,67 +47,31 @@
 
 <EntityView
 	entityType={EntityType.BlockheadWakuMessageObservation_Timestamp}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'contentTopic')}
-			{[String((pendingEntity.messageHash) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-		{:else}
-			<ResourceBoundary resource={blockheadWakuMessageObservationTimestamp}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.messageHash) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		{String(pendingEntity.messageHash ?? '') || 'blockhead waku message observation timestamp'}
 	{/snippet}
 
 	{#snippet Value()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'contentTopic')}
-			{@const timestampMs0 = pendingEntity.timestampMs}
-			{#if timestampMs0 !== undefined && timestampMs0 !== null}
-				<Timestamp timestamp={Number(timestampMs0)} />
-			{/if}
-		{:else}
-			<ResourceBoundary resource={blockheadWakuMessageObservationTimestamp}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const timestampMs0 = resolvedEntity.timestampMs}
-					{#if timestampMs0 !== undefined && timestampMs0 !== null}
-						<Timestamp timestamp={Number(timestampMs0)} />
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'contentTopic')}
-			{@const contentTopic0 = pendingEntity.contentTopic}
-			{#if contentTopic0 !== undefined && contentTopic0 !== null}
-				<span data-text="muted">
-					{String((contentTopic0) ?? '')}
-				</span>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={blockheadWakuMessageObservationTimestamp}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const contentTopic0 = resolvedEntity.contentTopic}
-					{#if contentTopic0 !== undefined && contentTopic0 !== null}
-						<span data-text="muted">
-							{String((contentTopic0) ?? '')}
-						</span>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={blockheadWakuMessageObservationTimestamp}>
+			{#snippet children(entity)}
+				{@const contentTopic0 = entity.contentTopic}
+				{#if contentTopic0 != null}
+					<span data-text="muted">
+						{contentTopic0}
+					</span>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -147,79 +90,27 @@
 			<div>
 				<dt>message hash</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									messageHash: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const messageHash = resolvedEntity.messageHash}
-							{#if messageHash !== undefined && messageHash !== null}
-								<TruncatedValue value={String((messageHash) ?? '')} />
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					<TruncatedValue value={String(pendingEntity.messageHash)} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									timestampMs: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const timestampMs = resolvedEntity.timestampMs}
-							{#if timestampMs !== undefined && timestampMs !== null}
-								<Timestamp timestamp={Number(timestampMs)} />
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									source: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const source = resolvedEntity.source}
-							{#if source !== undefined && source !== null}
-								{String((source) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{pendingEntity.source}
 				</dd>
 			</div>
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							pubsubTopic: true,
 						},
@@ -227,13 +118,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const pubsubTopic = resolvedEntity.pubsubTopic}
-					{#if pubsubTopic !== undefined && pubsubTopic !== null}
+					{@const pubsubTopic = entity.pubsubTopic}
+					{#if pubsubTopic != null}
 						<div>
 							<dt>pubsub topic</dt>
 							<dd>
-								{String((pubsubTopic) ?? '')}
+								{pubsubTopic}
 							</dd>
 						</div>
 					{/if}
@@ -241,23 +131,15 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							contentTopic: true,
-						},
-					})
-				}
+				resource={blockheadWakuMessageObservationTimestamp}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const contentTopic = resolvedEntity.contentTopic}
-					{#if contentTopic !== undefined && contentTopic !== null}
+					{@const contentTopic = entity.contentTopic}
+					{#if contentTopic != null}
 						<div>
 							<dt>content topic</dt>
 							<dd>
-								{String((contentTopic) ?? '')}
+								{contentTopic}
 							</dd>
 						</div>
 					{/if}
@@ -268,8 +150,7 @@
 		<dl data-column-item="center">
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							payloadHash: true,
 						},
@@ -277,13 +158,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const payloadHash = resolvedEntity.payloadHash}
-					{#if payloadHash !== undefined && payloadHash !== null}
+					{@const payloadHash = entity.payloadHash}
+					{#if payloadHash != null}
 						<div>
 							<dt>payload hash</dt>
 							<dd>
-								<TruncatedValue value={String((payloadHash) ?? '')} />
+								<TruncatedValue value={String(payloadHash)} />
 							</dd>
 						</div>
 					{/if}
@@ -292,8 +172,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							payloadSizeBytes: true,
 						},
@@ -301,9 +180,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const payloadSizeBytes = resolvedEntity.payloadSizeBytes}
-					{#if payloadSizeBytes !== undefined && payloadSizeBytes !== null}
+					{@const payloadSizeBytes = entity.payloadSizeBytes}
+					{#if payloadSizeBytes != null}
 						<div>
 							<dt>payload size bytes</dt>
 							<dd>
@@ -318,8 +196,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							version: true,
 						},
@@ -327,9 +204,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const version = resolvedEntity.version}
-					{#if version !== undefined && version !== null}
+					{@const version = entity.version}
+					{#if version != null}
 						<div>
 							<dt>version</dt>
 							<dd>
@@ -344,8 +220,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							ephemeral: true,
 						},
@@ -353,9 +228,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const ephemeral = resolvedEntity.ephemeral}
-					{#if ephemeral !== undefined && ephemeral !== null}
+					{@const ephemeral = entity.ephemeral}
+					{#if ephemeral != null}
 						<div>
 							<dt>ephemeral</dt>
 							<dd>
@@ -368,8 +242,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							senderPeerId: true,
 						},
@@ -377,13 +250,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const senderPeerId = resolvedEntity.senderPeerId}
-					{#if senderPeerId !== undefined && senderPeerId !== null}
+					{@const senderPeerId = entity.senderPeerId}
+					{#if senderPeerId != null}
 						<div>
 							<dt>sender peer ID</dt>
 							<dd>
-								{String((senderPeerId) ?? '')}
+								{senderPeerId}
 							</dd>
 						</div>
 					{/if}
@@ -392,8 +264,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							protocolPath: true,
 						},
@@ -401,13 +272,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const protocolPath = resolvedEntity.protocolPath}
-					{#if protocolPath !== undefined && protocolPath !== null}
+					{@const protocolPath = entity.protocolPath}
+					{#if protocolPath != null}
 						<div>
 							<dt>protocol path</dt>
 							<dd>
-								{String((protocolPath) ?? '')}
+								{protocolPath}
 							</dd>
 						</div>
 					{/if}

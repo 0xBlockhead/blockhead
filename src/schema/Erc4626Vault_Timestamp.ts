@@ -1,15 +1,12 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { entity, facet } from '$/schema/$schema.ts'
+import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { EvmAddress } from '$/schema/ZeroExHex.ts'
 import { type } from 'arktype'
 
-export enum Erc4626Vault_TimestampSelector {
-	VaultTimestampMsSource = 'VaultTimestampMsSource',
-}
-export const Erc4626Vault_Timestamp = entity({
+export default entity({
 	entityType: EntityType.Erc4626Vault_Timestamp,
 	labels: {
 		singular: 'erc4626 vault timestamp',
@@ -63,7 +60,7 @@ export const Erc4626Vault_Timestamp = entity({
 	rewardTokens: {
 		label: 'Reward tokens',
 		type: EntityFieldType.Primitive,
-		primitiveType: (EvmAddress),
+		primitiveType: EvmAddress,
 		cardinality: EntityFieldCardinality.Many,
 	},
 	poolId: {

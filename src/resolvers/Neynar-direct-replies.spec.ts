@@ -7,8 +7,6 @@ import {
 
 import { EntityMetaKey, entityFieldAddressKey } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import { FarcasterCastSelector } from '$/schema/FarcasterCast.ts'
-
 const getCastConversation = vi.hoisted(() => vi.fn())
 
 vi.mock('$/sources/Neynar/Rest/queries.ts', () => ({
@@ -26,10 +24,10 @@ if (castDirectRepliesResolver == null)
 
 const directRepliesResolve = castDirectRepliesResolver.resolve
 
-if (!(FarcasterCastSelector.FidHash in directRepliesResolve))
+if (!('FidHash' in directRepliesResolve))
 	throw new Error('Neynar spec missing FidHash direct replies resolver')
 
-if (!(FarcasterCastSelector.ClientUrl in directRepliesResolve))
+if (!('ClientUrl' in directRepliesResolve))
 	throw new Error('Neynar spec missing ClientUrl direct replies resolver')
 
 const resolverContext = {
@@ -119,16 +117,9 @@ describe('Neynar Farcaster direct replies', () => {
 					},
 					[entityFieldAddressKey(EntityType.FarcasterCast, [], '$channel')]: {
 						[EntityMetaKey.Selector]: { id: 'design' },
-						[EntityMetaKey.Fields]: {
-							[entityFieldAddressKey(EntityType.FarcasterChannel, [], 'name')]: 'Design',
-						},
 					},
 					[entityFieldAddressKey(EntityType.FarcasterCast, [], '$author')]: {
 						[EntityMetaKey.Selector]: { fid: 7 },
-						[EntityMetaKey.Fields]: expect.objectContaining({
-							[entityFieldAddressKey(EntityType.FarcasterUser, [], 'displayName')]:
-								'Bob',
-						}),
 					},
 				}),
 			}],

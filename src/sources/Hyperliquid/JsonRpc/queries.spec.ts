@@ -5,9 +5,17 @@ import {
 	it,
 	vi,
 } from 'vitest'
-import { sourceProviderDefinitions } from '$/sources/$sourceProviders.ts'
+import bindings from '$/sources/Hyperliquid/bindings.ts'
 import { Source } from '$/sources/Source.ts'
-import { SourceTargetKind } from '$/sources/SourceBinding.ts'
+import {
+	ApiFamily,
+	SourceArtifactKind,
+	SourceCredentialScope,
+	SourceDelivery,
+	SourceEndpointKind,
+	SourceOperationGroup,
+	WireProtocol,
+} from '$/sources/SourceBinding.ts'
 
 const corsFetch = vi.hoisted(() => vi.fn())
 
@@ -23,16 +31,7 @@ const {
 	getTransactionReceipt,
 } = await import('$/sources/Hyperliquid/JsonRpc/queries.ts')
 
-const binding = sourceProviderDefinitions
-	.flatMap((provider) => provider.bindings)
-	.find((candidate) => (
-		candidate.source === Source.Hyperliquid_JsonRpc
-		&& candidate.target.kind === SourceTargetKind.Eip155Chain
-		&& candidate.target.key === '999'
-	))
-
-if (binding == null)
-	throw new Error('Hyperliquid_JsonRpc test: canonical source binding is missing')
+const binding = bindings[Source.Hyperliquid_JsonRpc]
 
 describe('Hyperliquid JSON-RPC transport', () => {
 	beforeEach(() => {
@@ -47,15 +46,41 @@ describe('Hyperliquid JSON-RPC transport', () => {
 		})
 	})
 
+	it('uses the exact canonical HyperEVM binding axes', () => {
+		expect(binding).toMatchObject({
+			endpoints: [{
+				endpointKind: SourceEndpointKind.HttpUrl,
+				locator: 'https://rpc.hyperliquid.xyz/evm',
+				origin: 'https://rpc.hyperliquid.xyz',
+				corsEnabled: true,
+			}],
+			wireProtocol: WireProtocol.JsonRpc2,
+			apiFamily: ApiFamily.EvmExecutionJsonRpc,
+			operationGroups: [SourceOperationGroup.EvmRpcCore],
+			delivery: SourceDelivery.BrowserDirect,
+			credentials: [{
+				scope: SourceCredentialScope.None,
+			}],
+			artifacts: [{
+				kind: SourceArtifactKind.OpenRpcSpec,
+				path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src',
+				generated: false,
+			}, {
+				kind: SourceArtifactKind.GenerationManifest,
+				path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts',
+				generated: false,
+			}],
+		})
+	})
+
 	it.each([
 		{
-			query: () => getBlockNumber({ binding }),
+			query: () => getBlockNumber(),
 			method: 'eth_blockNumber',
 			params: [],
 		},
 		{
 			query: () => getBlockByNumber({
-				binding,
 				height: 42n,
 				includeTransactions: true,
 			}),
@@ -67,7 +92,6 @@ describe('Hyperliquid JSON-RPC transport', () => {
 		},
 		{
 			query: () => getTransactionByHash({
-				binding,
 				txHash: `0x${'1'.repeat(64)}`,
 			}),
 			method: 'eth_getTransactionByHash',
@@ -75,7 +99,6 @@ describe('Hyperliquid JSON-RPC transport', () => {
 		},
 		{
 			query: () => getTransactionReceipt({
-				binding,
 				txHash: `0x${'2'.repeat(64)}`,
 			}),
 			method: 'eth_getTransactionReceipt',

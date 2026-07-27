@@ -2,14 +2,9 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -22,36 +17,25 @@
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.FarcasterFeed>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.FarcasterFeed>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.FarcasterFeed> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const farcasterFeed = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const viewSelection = $derived(selection({
+		sources: selection.sources ?? [
+			Source.Constants_Internal,
+			Source.Farcaster_Rest,
+			Source.Neynar_Rest,
+		],
+	}))
+	const farcasterFeed = $derived(viewSelection({
 		fields: {
 			label: true,
-		},
-	} : {
-		sources: selection.sources,
-		fields: {
-			label: true,
+			fid: true,
+			channelId: true,
+			viewerFid: true,
 		},
 	}))
-	const titleFallback = $derived([String((pendingEntity.label) ?? ''), String((pendingEntity.variant) ?? '')].filter(Boolean).join(' ') || 'Farcaster feed')
-	const viewDomId = $derived('farcaster-feed-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const titleFallback = $derived([(pendingEntity.label ?? ''), (pendingEntity.variant ?? '')].filter(Boolean).join(' ') || 'Farcaster feed')
 
 
 	// Components
@@ -63,36 +47,41 @@
 
 <EntityView
 	entityType={EntityType.FarcasterFeed}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
 	href={
 		href ?? (
-			selection.entitySelector.variant === 'trending' ?
-				resolve('/farcaster/feed/trending')
-		:
-				selection.entitySelector.variant === 'byUser'
-				&& selection.entitySelector != null && 'fid' in selection.entitySelector
-				&& selection.entitySelector.fid != null ?
-					resolve('/farcaster/feed/user/[userId=farcasterFid]', {
-				userId: String(selection.entitySelector.fid ?? ''),
-			})
+			selection.entitySelector.variant === 'byUser'
+			&& 'fid' in selection.entitySelector ?
+				resolve(
+					'/(social)/(farcaster)/farcaster/(farcasterNetwork)/feed/user/[userId=farcasterFid]',
+					{
+						userId: String(selection.entitySelector.fid),
+					}
+				)
 			:
-					selection.entitySelector.variant === 'byChannel'
-					&& selection.entitySelector != null && 'channelId' in selection.entitySelector
-					&& selection.entitySelector.channelId != null ?
-						resolve('/farcaster/feed/channel/[channelId=stringSegment]', {
-					channelId: String(selection.entitySelector.channelId ?? ''),
-				})
+				selection.entitySelector.variant === 'byChannel'
+				&& 'channelId' in selection.entitySelector ?
+					resolve(
+						'/(social)/(farcaster)/farcaster/(farcasterNetwork)/feed/channel/[channelId=stringSegment]',
+						{
+							channelId: String(selection.entitySelector.channelId),
+						}
+					)
 				:
-						selection.entitySelector.variant === 'following'
-						&& selection.entitySelector != null && 'viewerFid' in selection.entitySelector
-						&& selection.entitySelector.viewerFid != null ?
-							resolve('/farcaster/feed/following/[userId=farcasterFid]', {
-						userId: String(selection.entitySelector.viewerFid ?? ''),
-					})
+					selection.entitySelector.variant === 'following'
+					&& 'viewerFid' in selection.entitySelector ?
+						resolve(
+							'/(social)/(farcaster)/farcaster/(farcasterNetwork)/feed/following/[userId=farcasterFid]',
+							{
+								userId: String(selection.entitySelector.viewerFid),
+							}
+						)
 					:
-						undefined
+						selection.entitySelector.variant === 'trending' ?
+							resolve('/(social)/(farcaster)/farcaster/(farcasterNetwork)/feed/trending')
+						:
+							undefined
 		)
 	}
 	{layout}
@@ -100,29 +89,15 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'label')}
-			{[String((pendingEntity.label) ?? ''), String((pendingEntity.variant) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-		{:else}
-			<ResourceBoundary resource={farcasterFeed}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.label) ?? ''), String((resolvedEntity.variant) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={farcasterFeed}>
+			{#snippet children(entity)}
+				{[entity.label, pendingEntity.variant].filter(Boolean).join(' ') || title || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Value()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'label')}
-			{[String((pendingEntity.variant) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.label) ?? ''), String((pendingEntity.variant) ?? '')].filter(Boolean).join(' ') || titleFallback}
-		{:else}
-			<ResourceBoundary resource={farcasterFeed}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.variant) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.label) ?? ''), String((resolvedEntity.variant) ?? '')].filter(Boolean).join(' ') || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		{(pendingEntity.variant ?? '') || [(pendingEntity.label ?? ''), (pendingEntity.variant ?? '')].filter(Boolean).join(' ') || titleFallback}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -130,43 +105,18 @@
 			<div>
 				<dt>Variant</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									variant: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const variant = resolvedEntity.variant}
-							{#if variant !== undefined && variant !== null}
-								{String((variant) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{pendingEntity.variant}
 				</dd>
 			</div>
 		</dl>
 
 		<dl data-column-item="center">
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							fid: true,
-						},
-					})
-				}
+				resource={farcasterFeed}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const fid = resolvedEntity.fid}
-					{#if fid !== undefined && fid !== null}
+					{@const fid = entity.fid}
+					{#if fid != null}
 						<div>
 							<dt>FID</dt>
 							<dd>
@@ -182,23 +132,15 @@
 
 		<dl data-column-item="center">
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							channelId: true,
-						},
-					})
-				}
+				resource={farcasterFeed}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const channelId = resolvedEntity.channelId}
-					{#if channelId !== undefined && channelId !== null}
+					{@const channelId = entity.channelId}
+					{#if channelId != null}
 						<div>
 							<dt>Channel ID</dt>
 							<dd>
-								{String((channelId) ?? '')}
+								{channelId}
 							</dd>
 						</div>
 					{/if}
@@ -208,19 +150,11 @@
 
 		<dl data-column-item="center">
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							viewerFid: true,
-						},
-					})
-				}
+				resource={farcasterFeed}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const viewerFid = resolvedEntity.viewerFid}
-					{#if viewerFid !== undefined && viewerFid !== null}
+					{@const viewerFid = entity.viewerFid}
+					{#if viewerFid != null}
 						<div>
 							<dt>Viewer FID</dt>
 							<dd>
@@ -236,27 +170,21 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-				{@const farcasterFeedFarcasterCastsViewEntriesResource = selection
-		.$$entries({
-			sources: [
-				Source.Neynar_Rest,
-				Source.Snapchain_Rest,
-			],
-		})}
-				<ResourceBoundary
-					resource={farcasterFeedFarcasterCastsViewEntriesResource}
-				>
-					{#snippet children(entities)}
-						{#if entities.values.length > 0}
-						<FarcasterCastsView
-							selection={farcasterFeedFarcasterCastsViewEntriesResource}
-							countResource={farcasterFeedFarcasterCastsViewEntriesResource.count}
-							title='Entries'
-							href={resolve('/farcaster/feed/trending')}
-							id='FarcasterCastsView-entries'
-						/>
-						{/if}
-					{/snippet}
-				</ResourceBoundary>
+		{@const farcasterFeedFarcasterCastsViewEntriesResource = selection.$$entries}
+		<ResourceBoundary
+			resource={farcasterFeedFarcasterCastsViewEntriesResource}
+		>
+			{#snippet children(entities)}
+				{#if entities.values.length > 0}
+					<FarcasterCastsView
+						selection={farcasterFeedFarcasterCastsViewEntriesResource}
+						countResource={farcasterFeedFarcasterCastsViewEntriesResource.count}
+						title='Entries'
+						href={resolve('/(social)/(farcaster)/farcaster/(farcasterNetwork)/feed/trending')}
+						id='entries'
+					/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 </EntityView>

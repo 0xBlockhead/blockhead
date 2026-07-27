@@ -2,69 +2,32 @@
 
 <script lang="ts">
 	// Types/constants
-	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
-	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
-	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
+	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-
-
 
 
 	// State
 	let {
 		selection,
-		countResource,
-		title = 'ActivityPub instance peers',
 		typeAnnotationParagraphs = ['A domain that a declared ActivityPub instance reports as a known connected domain.'],
-		placeholderText = undefined,
-		emptyText = undefined,
 		open = $bindable(true),
-		collapsible = true,
-		showTypeAnnotation = true,
-		id = 'ActivityPubInstancePeers-list',
 		...EntitiesListProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyEntitiesSelection<EntityType.ActivityPubInstancePeer>
-			countResource?: SvelteKitResource<number>
-			title?: string
-			typeAnnotationParagraphs?: string[]
-			placeholderText?: string
-			emptyText?: string
-			open?: boolean
-			collapsible?: boolean
-			showTypeAnnotation?: boolean
-			id?: string
-		},
-		EntitiesListForwardProps
-	> = $props()
+	}: EntityListViewProps<EntityType.ActivityPubInstancePeer> = $props()
 
 
 	// Components
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView from '$/components/EntityView.svelte'
 </script>
 
-
-{#snippet TypeAnnotationParagraphs()}
-	{#each typeAnnotationParagraphs as paragraph (paragraph)}
-		<p>{paragraph}</p>
-	{/each}
-{/snippet}
 
 <EntitiesList
 	{...EntitiesListProps}
 	entityType={EntityType.ActivityPubInstancePeer}
-	{id}
-	{title}
 	bind:open
-	{collapsible}
-	{showTypeAnnotation}
-	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	{typeAnnotationParagraphs}
 	resource={
 		selection({
-			sources: selection.sources,
 			fields: {
 				peerDomain: true,
 				$observation: {
@@ -77,34 +40,19 @@
 			},
 		})
 	}
-	{countResource}
-	getResourceItems={(activityPubInstancePeers) => [...new Map(activityPubInstancePeers.values.map((activityPubInstancePeer) => [activityPubInstancePeer[EntityMetaKey.SelectorKey], activityPubInstancePeer])).values()]}
-	getKey={(activityPubInstancePeer) => activityPubInstancePeer[EntityMetaKey.SelectorKey]}
-	{placeholderText}
 >
-	{#snippet Empty()}
-		{#if emptyText != null}
-			<p data-text="muted">{emptyText}</p>
-		{:else}
-			<p data-text="muted">No ActivityPub instance peers yet.</p>
-		{/if}
-	{/snippet}
-
 	{#snippet Item({ item: activityPubInstancePeer })}
-		{@const activityPubInstancePeerFields = { ...activityPubInstancePeer[EntityMetaKey.Selector], ...activityPubInstancePeer }}
+		{@const activityPubInstancePeerSelector = activityPubInstancePeer[EntityMetaKey.Selector]}
 		<EntityView
 			entityType={EntityType.ActivityPubInstancePeer}
-			entitySelector={activityPubInstancePeer[EntityMetaKey.Selector]}
-			layout={EntityLayout.Summary}
-			open={false}
-			showTypeAnnotation={false}
+			entitySelector={activityPubInstancePeerSelector}
 		>
 			{#snippet Title()}
-				{[String((activityPubInstancePeerFields.peerDomain) ?? '')].filter(Boolean).join(' ') || 'ActivityPub instance peer'}
+				{activityPubInstancePeerSelector.peerDomain || 'ActivityPub instance peer'}
 			{/snippet}
 
 			{#snippet Value()}
-				{[[String((activityPubInstancePeerFields.$observation.title) ?? ''), String((activityPubInstancePeerFields.$observation.timestampMs) ?? '')].filter(Boolean).join(' ') || 'ActivityPub instance observation'].filter(Boolean).join(' ')}
+				{[(activityPubInstancePeer.$observation.title ?? ''), String(activityPubInstancePeerSelector.$observation.timestampMs)].filter(Boolean).join(' ') || 'ActivityPub instance observation'}
 			{/snippet}
 		</EntityView>
 	{/snippet}

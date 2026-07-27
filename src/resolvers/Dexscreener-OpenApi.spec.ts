@@ -7,7 +7,8 @@ import {
 
 import { EntityMetaKey } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import { LiquidityPoolSelector } from '$/schema/LiquidityPool.ts'
+import bindings from '$/sources/Dexscreener/bindings.ts'
+import { Source } from '$/sources/Source.ts'
 
 const getLatestPairs = vi.hoisted(() => vi.fn())
 
@@ -17,6 +18,8 @@ vi.mock('$/sources/Dexscreener/OpenApi/queries.ts', () => ({
 }))
 
 const { default: dexscreener } = await import('$/resolvers/Dexscreener-OpenApi.ts')
+
+const dexscreenerBinding = bindings[Source.Dexscreener_OpenApi]
 
 describe('Dexscreener liquidity pool observation clock', () => {
 	it('uses the source resolution time rather than a separate wall clock', async () => {
@@ -33,7 +36,7 @@ describe('Dexscreener liquidity pool observation clock', () => {
 		})
 
 		await expect(
-			resolver.resolve[LiquidityPoolSelector.EvmNetworkId].resolve({
+			resolver.resolve['EvmNetworkId'].resolve({
 				$network: {
 					caip2: {
 						namespace: 'eip155',
@@ -65,15 +68,9 @@ describe('Dexscreener liquidity pool observation clock', () => {
 				feedKey: 'dexscreener',
 			},
 		}])
-		expect(getLatestPairs).toHaveBeenCalledWith(expect.objectContaining({
-			binding: expect.objectContaining({
-				source: 'Dexscreener_OpenApi',
-				target: {
-					kind: 'Global',
-					key: 'dexscreener-openapi',
-				},
-				delivery: 'HttpProxy',
-			}),
-		}))
+		expect(getLatestPairs).toHaveBeenCalledWith({
+			chainId: 'ethereum',
+			pairId: '0x1111111111111111111111111111111111111111',
+		})
 	})
 })

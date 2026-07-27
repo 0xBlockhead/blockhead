@@ -4,11 +4,9 @@
 	// Types/constants
 	import type { PageProps } from './$types.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
@@ -49,26 +47,12 @@
 
 
 <svelte:head>
-	<title>{(data.title ?? (pageSelection.entity == null ? 'filecoin actor timestamp' : [String((({ ...{
-		$actor: data.selector,
-		height: BigInt(params.height),
-		tipsetKey: params.tipsetKey,
-		source: params.source,
-	}, ...pageSelection.entity }).timestampMs) ?? '')].filter(Boolean).join(' ') || 'filecoin actor timestamp'))} • filecoin actor timestamp • Blockhead</title>
+	<title>{(data.title ?? (pageSelection.entity == null ? 'filecoin actor timestamp' : String(pageSelection.entity.timestampMs) || 'filecoin actor timestamp'))} • filecoin actor timestamp • Blockhead</title>
 </svelte:head>
 
 
 <Page>
 	<FilecoinActor_TimestampView
-		href={
-			resolve('/network/[network=networkCaip2OrNetworkSlug]/actor/[address=stringSegment]/observations/[height=nonNegativeBigInt]/[tipsetKey=stringSegment]/[source=stringSegment]', {
-				network: params.network,
-				address: params.address,
-				height: params.height,
-				tipsetKey: params.tipsetKey,
-				source: params.source,
-			})
-		}
 		selection={pageSelection}
 	/>
 </Page>

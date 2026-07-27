@@ -131,6 +131,12 @@ describe('BlockheadSessionActionsComposer contract', () => {
 		expect(() => actionTypeDefinitionByActionType[ActionType.Bridge].params.assert({
 			slippage: 1,
 		})).toThrow()
+		expect(() => actionTypeDefinitionByActionType[ActionType.Swap].params.assert({
+			fromActor: zeroAddress,
+		})).toThrow()
+		expect(() => actionTypeDefinitionByActionType[ActionType.Bridge].params.assert({
+			tokenIn: zeroAddress,
+		})).toThrow()
 		expect(() => actionTypeDefinitionByActionType[ActionType.Transfer].params.assert({
 			slippage: 0.005,
 		})).toThrow()

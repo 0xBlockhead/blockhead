@@ -2,107 +2,53 @@
 
 <script lang="ts">
 	// Types/constants
-	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
-	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
-	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
+	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-
-
 
 
 	// State
 	let {
 		selection,
-		countResource,
-		title = 'Asset format support observations',
-		typeAnnotationParagraphs = [],
-		placeholderText = undefined,
-		emptyText = undefined,
 		open = $bindable(true),
-		collapsible = true,
-		showTypeAnnotation = true,
-		id = 'AssetFormatSupport_Timestamps-list',
 		...EntitiesListProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyEntitiesSelection<EntityType.AssetFormatSupport_Timestamp>
-			countResource?: SvelteKitResource<number>
-			title?: string
-			typeAnnotationParagraphs?: string[]
-			placeholderText?: string
-			emptyText?: string
-			open?: boolean
-			collapsible?: boolean
-			showTypeAnnotation?: boolean
-			id?: string
-		},
-		EntitiesListForwardProps
-	> = $props()
+	}: EntityListViewProps<EntityType.AssetFormatSupport_Timestamp> = $props()
 
 
 	// Components
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView from '$/components/EntityView.svelte'
 </script>
 
-
-{#snippet TypeAnnotationParagraphs()}
-	{#each typeAnnotationParagraphs as paragraph (paragraph)}
-		<p>{paragraph}</p>
-	{/each}
-{/snippet}
 
 <EntitiesList
 	{...EntitiesListProps}
 	entityType={EntityType.AssetFormatSupport_Timestamp}
-	{id}
-	{title}
 	bind:open
-	{collapsible}
-	{showTypeAnnotation}
-	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
 	resource={
 		selection({
-			sources: selection.sources,
 			fields: {
 				formatId: true,
 				confidence: true,
 			},
 		})
 	}
-	{countResource}
-	getResourceItems={(assetFormatSupportTimestamps) => [...new Map(assetFormatSupportTimestamps.values.map((assetFormatSupportTimestamp) => [assetFormatSupportTimestamp[EntityMetaKey.SelectorKey], assetFormatSupportTimestamp])).values()]}
-	getKey={(assetFormatSupportTimestamp) => assetFormatSupportTimestamp[EntityMetaKey.SelectorKey]}
-	{placeholderText}
 >
-	{#snippet Empty()}
-		{#if emptyText != null}
-			<p data-text="muted">{emptyText}</p>
-		{:else}
-			<p data-text="muted">No Asset format support observations yet.</p>
-		{/if}
-	{/snippet}
-
 	{#snippet Item({ item: assetFormatSupportTimestamp })}
-		{@const assetFormatSupportTimestampFields = { ...assetFormatSupportTimestamp[EntityMetaKey.Selector], ...assetFormatSupportTimestamp }}
+		{@const assetFormatSupportTimestampSelector = assetFormatSupportTimestamp[EntityMetaKey.Selector]}
 		<EntityView
 			entityType={EntityType.AssetFormatSupport_Timestamp}
-			entitySelector={assetFormatSupportTimestamp[EntityMetaKey.Selector]}
-			layout={EntityLayout.Summary}
-			open={false}
-			showTypeAnnotation={false}
+			entitySelector={assetFormatSupportTimestampSelector}
 		>
 			{#snippet Title()}
-				{[String((assetFormatSupportTimestampFields.formatId) ?? '')].filter(Boolean).join(' ') || 'asset format support timestamp'}
+				{assetFormatSupportTimestampSelector.formatId || 'asset format support timestamp'}
 			{/snippet}
 
 			{#snippet Value()}
-				{[String((assetFormatSupportTimestampFields.formatId) ?? '')].filter(Boolean).join(' ')}
+				{assetFormatSupportTimestampSelector.formatId}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{[String((assetFormatSupportTimestampFields.confidence) ?? '')].filter(Boolean).join(' ')}</span>
+				<span data-text="annotation">{(assetFormatSupportTimestamp.confidence ?? '')}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

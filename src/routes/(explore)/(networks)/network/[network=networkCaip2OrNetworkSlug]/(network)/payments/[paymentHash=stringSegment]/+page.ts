@@ -5,7 +5,7 @@ import { error } from '@sveltejs/kit'
 import { networkByCaip2, networkBySlug } from '$/constants/Network.ts'
 import { match as matchStringSegment } from '$/params/stringSegment.ts'
 import { parseEntitySelector } from '$/schema/$schema.ts'
-import { BlockheadLightningPayment as BlockheadLightningPaymentSchema } from '$/schema/BlockheadLightningPayment.ts'
+import BlockheadLightningPaymentSchema from '$/schema/BlockheadLightningPayment.ts'
 import { schema } from '$/schema/index.ts'
 import { type as arktype } from 'arktype'
 

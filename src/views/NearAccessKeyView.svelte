@@ -2,13 +2,9 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -20,42 +16,24 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.NearAccessKey>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.NearAccessKey>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.NearAccessKey> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const nearAccessKey = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {
-			permission: true,
-			nonce: true,
-		},
-	} : {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const viewSelection = $derived(selection({
+		sources: selection.sources ?? [
+			Source.NearRpc_JsonRpc,
+		],
+	}))
+	const nearAccessKey = $derived(viewSelection({
 		fields: {
 			permission: true,
 			nonce: true,
 		},
 	}))
-	const titleFallback = $derived([String((pendingEntity.publicKey) ?? '')].filter(Boolean).join(' ') || 'near access key')
-	const viewDomId = $derived('near-access-key-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const titleFallback = $derived((pendingEntity.publicKey ?? '') || 'near access key')
 
 
 	// Components
@@ -68,71 +46,37 @@
 
 <EntityView
 	entityType={EntityType.NearAccessKey}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'permission') && Object.hasOwn(prefetched, 'nonce')}
-			{@const publicKey0 = pendingEntity.publicKey}
-			{#if publicKey0 !== undefined && publicKey0 !== null}
-				<TruncatedValue value={String((publicKey0) ?? '')} />
-			{/if}
-		{:else}
-			<ResourceBoundary resource={nearAccessKey}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const publicKey0 = resolvedEntity.publicKey}
-					{#if publicKey0 !== undefined && publicKey0 !== null}
-						<TruncatedValue value={String((publicKey0) ?? '')} />
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<TruncatedValue value={pendingEntity.publicKey} />
 	{/snippet}
 
 	{#snippet Value()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'permission') && Object.hasOwn(prefetched, 'nonce')}
-			{[String((pendingEntity.permission) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.publicKey) ?? '')].filter(Boolean).join(' ') || titleFallback}
-		{:else}
-			<ResourceBoundary resource={nearAccessKey}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.permission) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.publicKey) ?? '')].filter(Boolean).join(' ') || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={nearAccessKey}>
+			{#snippet children(entity)}
+				{(entity.permission ?? '') || pendingEntity.publicKey || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'permission') && Object.hasOwn(prefetched, 'nonce')}
-			{@const nonce0 = pendingEntity.nonce}
-			{#if nonce0 !== undefined && nonce0 !== null}
-				<span data-text="muted">
-					<NumberValue
-						value={nonce0}
-					/>
-				</span>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={nearAccessKey}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const nonce0 = resolvedEntity.nonce}
-					{#if nonce0 !== undefined && nonce0 !== null}
-						<span data-text="muted">
-							<NumberValue
-								value={nonce0}
-							/>
-						</span>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={nearAccessKey}>
+			{#snippet children(entity)}
+				{@const nonce0 = entity.nonce}
+				{#if nonce0 != null}
+					<span data-text="muted">
+						<NumberValue
+							value={nonce0}
+						/>
+					</span>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -151,41 +95,16 @@
 			<div>
 				<dt>Public key</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									publicKey: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const publicKey = resolvedEntity.publicKey}
-							{#if publicKey !== undefined && publicKey !== null}
-								<TruncatedValue value={String((publicKey) ?? '')} />
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					<TruncatedValue value={pendingEntity.publicKey} />
 				</dd>
 			</div>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							nonce: true,
-						},
-					})
-				}
+				resource={nearAccessKey}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const nonce = resolvedEntity.nonce}
-					{#if nonce !== undefined && nonce !== null}
+					{@const nonce = entity.nonce}
+					{#if nonce != null}
 						<div>
 							<dt>Nonce</dt>
 							<dd>
@@ -199,23 +118,15 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							permission: true,
-						},
-					})
-				}
+				resource={nearAccessKey}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const permission = resolvedEntity.permission}
-					{#if permission !== undefined && permission !== null}
+					{@const permission = entity.permission}
+					{#if permission != null}
 						<div>
 							<dt>Permission</dt>
 							<dd>
-								{String((permission) ?? '')}
+								{permission}
 							</dd>
 						</div>
 					{/if}

@@ -1,19 +1,13 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { entity, facet } from '$/schema/$schema.ts'
+import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
-export enum FarcasterCastSelector {
-	Hash = 'Hash',
-	FidHash = 'FidHash',
-	UsernameHashPrefix = 'UsernameHashPrefix',
-	ClientUrl = 'ClientUrl',
-}
-export const FarcasterCast = entity({
+export default entity({
 	entityType: EntityType.FarcasterCast,
 	labels: {
 		singular: 'Farcaster cast',
@@ -23,13 +17,13 @@ export const FarcasterCast = entity({
 	fid: {
 		label: 'FID',
 		type: EntityFieldType.Primitive,
-		primitiveType: (type('number.integer >= 0')),
+		primitiveType: type('number.integer >= 0'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	hash: {
 		label: 'Hash',
 		type: EntityFieldType.Primitive,
-		primitiveType: (ZeroExHex),
+		primitiveType: ZeroExHex,
 		cardinality: EntityFieldCardinality.One,
 	},
 	username: {
@@ -41,7 +35,7 @@ export const FarcasterCast = entity({
 	hashPrefix: {
 		label: 'Hash prefix',
 		type: EntityFieldType.Primitive,
-		primitiveType: (ZeroExHex),
+		primitiveType: ZeroExHex,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	clientUrl: {
@@ -117,7 +111,7 @@ export const FarcasterCast = entity({
 	threadHash: {
 		label: 'Thread hash',
 		type: EntityFieldType.Primitive,
-		primitiveType: (ZeroExHex),
+		primitiveType: ZeroExHex,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$channel: {

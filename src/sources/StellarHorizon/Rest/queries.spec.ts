@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { sourceProviderDefinitions } from '$/sources/$sourceProviders.ts'
+import bindings from '$/sources/StellarHorizon/bindings.ts'
 import { Source } from '$/sources/Source.ts'
 
 const { getJson } = vi.hoisted(() => ({
@@ -18,12 +18,7 @@ const {
 	getAccountTransactions,
 } = await import('$/sources/StellarHorizon/Rest/queries.ts')
 
-const binding = sourceProviderDefinitions
-	.flatMap((provider) => provider.bindings)
-	.find((candidate) => candidate.source === Source.StellarHorizon_Rest)
-
-if (binding == null)
-	throw new Error('StellarHorizon_Rest spec missing source binding')
+const binding = bindings[Source.StellarHorizon_Rest]
 
 const accountId = `G${'A'.repeat(55)}`
 const otherAccountId = `G${'B'.repeat(55)}`
@@ -70,7 +65,7 @@ describe('Stellar Horizon account transport', () => {
 			signers: [],
 		})
 
-		await expect(getAccount(binding, accountId)).resolves.toMatchObject({
+		await expect(getAccount(accountId)).resolves.toMatchObject({
 			sequence: '9223372036854775807',
 			balances: [
 				{
@@ -97,7 +92,7 @@ describe('Stellar Horizon account transport', () => {
 			amount: '1.0000000',
 			asset_type: 'native',
 		}]))
-		await expect(getAccountPayments(binding, accountId, 25, '100')).resolves.toMatchObject({
+		await expect(getAccountPayments(accountId, 25, '100')).resolves.toMatchObject({
 			_embedded: {
 				records: [{
 					id: 'payment-id',
@@ -118,7 +113,7 @@ describe('Stellar Horizon account transport', () => {
 			created_at: '2026-07-22T00:00:00Z',
 			source_account: accountId,
 		}]))
-		await expect(getAccountOperations(binding, accountId, 25)).resolves.toMatchObject({
+		await expect(getAccountOperations(accountId, 25)).resolves.toMatchObject({
 			_embedded: {
 				records: [{
 					type: 'manage_data',
@@ -144,7 +139,7 @@ describe('Stellar Horizon account transport', () => {
 			memo_type: 'none',
 		}]))
 
-		await expect(getAccountTransactions(binding, accountId, 10)).resolves.toMatchObject({
+		await expect(getAccountTransactions(accountId, 10)).resolves.toMatchObject({
 			_embedded: {
 				records: [{
 					source_account_sequence: '9223372036854775807',
@@ -165,7 +160,7 @@ describe('Stellar Horizon account transport', () => {
 			to: otherAccountId,
 			amount: '1.0000000',
 		}]))
-		await expect(getAccountPayments(binding, accountId, 1)).rejects.toThrow('foreign account row')
+		await expect(getAccountPayments(accountId, 1)).rejects.toThrow('foreign account row')
 
 		getJson.mockResolvedValueOnce(page([
 			{
@@ -177,20 +172,20 @@ describe('Stellar Horizon account transport', () => {
 				paging_token: '2',
 			},
 		]))
-		await expect(getAccountOperations(binding, accountId, 2)).rejects.toThrow('duplicate record ID')
+		await expect(getAccountOperations(accountId, 2)).rejects.toThrow('duplicate record ID')
 
 		getJson.mockResolvedValueOnce(page([{
 			id: 'stalled',
 			paging_token: 'same',
 		}]))
-		await expect(getAccountOperations(binding, accountId, 1, 'same')).rejects.toThrow('cursor did not advance')
+		await expect(getAccountOperations(accountId, 1, 'same')).rejects.toThrow('cursor did not advance')
 
-		await expect(getAccountPayments(binding, accountId, 201)).rejects.toThrow('0 through 200')
+		await expect(getAccountPayments(accountId, 201)).rejects.toThrow('0 through 200')
 		expect(getJson).toHaveBeenCalledTimes(3)
 	})
 
 	it('does not transport zero-cardinality pages', async () => {
-		await expect(getAccountTransactions(binding, accountId, 0)).resolves.toMatchObject({
+		await expect(getAccountTransactions(accountId, 0)).resolves.toMatchObject({
 			_embedded: {
 				records: [],
 			},

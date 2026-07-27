@@ -9,14 +9,12 @@
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		data,
-		params,
 	}: PageProps = $props()
 
 	const pageSelection = $derived(select(EntityType.Coin, data.selector, {
@@ -38,17 +36,12 @@
 
 
 <svelte:head>
-	<title>{(data.title ?? (pageSelection.entity == null ? 'Coin' : [String((({ ...data.selector, ...pageSelection.entity }).symbol) ?? ''), String((({ ...data.selector, ...pageSelection.entity }).name) ?? '')].filter(Boolean).join(' ') || 'Coin'))} • Coin • Blockhead</title>
+	<title>{(data.title ?? (pageSelection.entity == null ? 'Coin' : [pageSelection.entity.symbol, pageSelection.entity.name].filter(Boolean).join(' ') || 'Coin'))} • Coin • Blockhead</title>
 </svelte:head>
 
 
 <Page>
 	<CoinView
-		href={
-			resolve('/coin/[coinId=stringSegment]', {
-				coinId: params.coinId,
-			})
-		}
 		selection={pageSelection}
 	/>
 </Page>

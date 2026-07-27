@@ -1,4 +1,8 @@
 <script module lang="ts">
+	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { RegisteredEntityType } from '$/schema/index.ts'
+	import type { WithRest } from '$/typescript/WithRest.ts'
+
 	export enum EntityLayout {
 		/** Value-only identity (`#snippet Value`); use when a parent `<dt>` already names the kind. */
 		Value = 'Value',
@@ -14,6 +18,23 @@
 		 */
 		SummaryInline = 'SummaryInline',
 	}
+
+	export type EntitySelectionViewProps<
+		_EntityType extends RegisteredEntityType,
+	> = WithRest<
+		{
+			selection: RegisteredEntityProxyResource<_EntityType>
+			prefetched?: RegisteredEntityProxyPrefetchedData<_EntityType>
+			title?: string
+			href?: string
+			layout?: EntityLayout
+			open?: boolean
+		},
+		{
+			collapsible?: boolean
+			showTypeAnnotation?: boolean
+		}
+	>
 </script>
 
 
@@ -55,6 +76,12 @@
 	let {
 		entityType,
 		entitySelector,
+		id = `${
+			String(entityType)
+				.replace(/([a-z])([A-Z])/g, '$1-$2')
+				.replace(/[_\s]+/g, '-')
+				.toLowerCase()
+		}-${encodeURIComponent(stringify(entitySelector))}`,
 
 		title,
 		href,
@@ -255,8 +282,8 @@
 		{...articleProps}
 		data-card={articleProps['data-card'] ?? true}
 		data-scroll-container={articleProps['data-scroll-container'] ?? true}
-		id={articleProps.id ?? stringify(entitySelector)}
-		style:view-transition-name={`EntityView-${articleProps.id ?? stringify(entitySelector)}`}
+		{id}
+		style:view-transition-name={`EntityView-${id}`}
 	>
 		<Collapsible
 			bind:open

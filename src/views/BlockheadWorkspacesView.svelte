@@ -2,69 +2,30 @@
 
 <script lang="ts">
 	// Types/constants
-	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
-	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
-	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
+	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-
-
 
 
 	// State
 	let {
 		selection,
-		countResource,
-		title = 'Workspaces',
-		typeAnnotationParagraphs = [],
-		placeholderText = undefined,
-		emptyText = undefined,
 		open = $bindable(true),
-		collapsible = true,
-		showTypeAnnotation = true,
-		id = 'BlockheadWorkspaces-list',
 		...EntitiesListProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyEntitiesSelection<EntityType.BlockheadWorkspace>
-			countResource?: SvelteKitResource<number>
-			title?: string
-			typeAnnotationParagraphs?: string[]
-			placeholderText?: string
-			emptyText?: string
-			open?: boolean
-			collapsible?: boolean
-			showTypeAnnotation?: boolean
-			id?: string
-		},
-		EntitiesListForwardProps
-	> = $props()
+	}: EntityListViewProps<EntityType.BlockheadWorkspace> = $props()
 
 
 	// Components
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView from '$/components/EntityView.svelte'
 </script>
 
-
-{#snippet TypeAnnotationParagraphs()}
-	{#each typeAnnotationParagraphs as paragraph (paragraph)}
-		<p>{paragraph}</p>
-	{/each}
-{/snippet}
 
 <EntitiesList
 	{...EntitiesListProps}
 	entityType={EntityType.BlockheadWorkspace}
-	{id}
-	{title}
 	bind:open
-	{collapsible}
-	{showTypeAnnotation}
-	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
 	resource={
 		selection({
-			sources: selection.sources,
 			fields: {
 				name: true,
 				updatedAt: true,
@@ -72,34 +33,19 @@
 			},
 		})
 	}
-	{countResource}
-	getResourceItems={(blockheadWorkspaces) => [...new Map(blockheadWorkspaces.values.map((blockheadWorkspace) => [blockheadWorkspace[EntityMetaKey.SelectorKey], blockheadWorkspace])).values()]}
-	getKey={(blockheadWorkspace) => blockheadWorkspace[EntityMetaKey.SelectorKey]}
-	{placeholderText}
 >
-	{#snippet Empty()}
-		{#if emptyText != null}
-			<p data-text="muted">{emptyText}</p>
-		{:else}
-			<p data-text="muted">No Workspaces yet.</p>
-		{/if}
-	{/snippet}
-
 	{#snippet Item({ item: blockheadWorkspace })}
-		{@const blockheadWorkspaceFields = { ...blockheadWorkspace[EntityMetaKey.Selector], ...blockheadWorkspace }}
+		{@const blockheadWorkspaceSelector = blockheadWorkspace[EntityMetaKey.Selector]}
 		<EntityView
 			entityType={EntityType.BlockheadWorkspace}
-			entitySelector={blockheadWorkspace[EntityMetaKey.Selector]}
-			layout={EntityLayout.Summary}
-			open={false}
-			showTypeAnnotation={false}
+			entitySelector={blockheadWorkspaceSelector}
 		>
 			{#snippet Title()}
-				{[String((blockheadWorkspaceFields.name) ?? '')].filter(Boolean).join(' ') || [String((blockheadWorkspaceFields.id) ?? '')].filter(Boolean).join(' ') || 'workspace'}
+				{(blockheadWorkspace.name ?? '') || blockheadWorkspaceSelector.id || 'workspace'}
 			{/snippet}
 
 			{#snippet Value()}
-				{[String((blockheadWorkspaceFields.updatedAt) ?? '')].filter(Boolean).join(' ')}
+				{String(blockheadWorkspace.updatedAt)}
 			{/snippet}
 		</EntityView>
 	{/snippet}

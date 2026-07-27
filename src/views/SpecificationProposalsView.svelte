@@ -3,63 +3,39 @@
 <script lang="ts">
 	// Types/constants
 	import { resolve } from '$app/paths'
-	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
-	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
-	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
+	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { specificationRealmById, proposalCategoryById } from '$/constants/SpecificationProposal.ts'
-	import { defaultSpecificationProposalSources, specificationProposalSourceSelectionByKey } from '$/sources/$sourceSelections.ts'
-
-
+	import type { RegisteredEntitySelector } from '$/schema/index.ts'
+	import { proposalCategoryById, specificationRealmById } from '$/constants/SpecificationProposal.ts'
+	import specificationProposalSources from '$/sources/specificationProposalSources.ts'
 
 
 	// State
 	let {
 		selection,
-		countResource,
 		title = 'Proposals',
-		typeAnnotationParagraphs = [],
-		placeholderText = undefined,
-		emptyText = undefined,
 		open = $bindable(true),
-		collapsible = true,
-		showTypeAnnotation = true,
-		id = 'SpecificationProposals-list',
 		filterRealm,
 		filterCategory,
 		...EntitiesListProps
-	}: WithRest<
+	}: EntityListViewProps<
+		EntityType.SpecificationProposal,
 		{
-			selection: RegisteredEntityProxyEntitiesSelection<EntityType.SpecificationProposal>
-			countResource?: SvelteKitResource<number>
-			title?: string
-			typeAnnotationParagraphs?: string[]
-			placeholderText?: string
-			emptyText?: string
-			open?: boolean
-			collapsible?: boolean
-			showTypeAnnotation?: boolean
-			id?: string
-			filterRealm?: unknown
-			filterCategory?: unknown
-		},
-		EntitiesListForwardProps
+			filterRealm?: RegisteredEntitySelector<EntityType.SpecificationProposal>['realm']
+			filterCategory?: RegisteredEntitySelector<EntityType.SpecificationProposal>['category']
+		}
 	> = $props()
-	const selectedSources = $derived(specificationProposalSourceSelectionByKey[[String(filterRealm), String(filterCategory)].join(':')] ?? defaultSpecificationProposalSources)
+	const selectedSources = $derived(specificationProposalSources({
+		realm: filterRealm,
+		category: filterCategory,
+	}))
 
 
 	// Components
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView from '$/components/EntityView.svelte'
 </script>
 
-
-{#snippet TypeAnnotationParagraphs()}
-	{#each typeAnnotationParagraphs as paragraph (paragraph)}
-		<p>{paragraph}</p>
-	{/each}
-{/snippet}
 
 {#snippet ModelTypeAnnotationTooltip()}
 	<p>
@@ -74,71 +50,47 @@
 <EntitiesList
 	{...EntitiesListProps}
 	entityType={EntityType.SpecificationProposal}
-	{id}
 	{title}
 	bind:open
-	{collapsible}
-	{showTypeAnnotation}
-	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : ModelTypeAnnotationTooltip}
+	TypeAnnotationTooltip={ModelTypeAnnotationTooltip}
 	resource={
 		selection({
 			sources: selectedSources,
 		})
 	}
-	{countResource}
-	getResourceItems={(specificationProposals) => [...new Map(specificationProposals.values.filter((specificationProposal) => (filterRealm == null || specificationProposal[EntityMetaKey.Selector].realm === filterRealm) && (filterCategory == null || specificationProposal[EntityMetaKey.Selector].category === filterCategory)).map((specificationProposal) => [specificationProposal[EntityMetaKey.SelectorKey], specificationProposal])).values()]}
-	getKey={(specificationProposal) => specificationProposal[EntityMetaKey.SelectorKey]}
-	{placeholderText}
+	getResourceItems={(specificationProposals) => specificationProposals.values.filter((specificationProposal) => (filterRealm == null || specificationProposal[EntityMetaKey.Selector].realm === filterRealm) && (filterCategory == null || specificationProposal[EntityMetaKey.Selector].category === filterCategory))}
 >
-	{#snippet Empty()}
-		{#if emptyText != null}
-			<p data-text="muted">{emptyText}</p>
-		{:else}
-			<p data-text="muted">No Specification proposals yet.</p>
-		{/if}
-	{/snippet}
-
 	{#snippet Item({ item: specificationProposal })}
-		{@const specificationProposalFields = { ...specificationProposal[EntityMetaKey.Selector], ...specificationProposal }}
+		{@const specificationProposalSelector = specificationProposal[EntityMetaKey.Selector]}
 		<EntityView
 			entityType={EntityType.SpecificationProposal}
-			entitySelector={specificationProposal[EntityMetaKey.Selector]}
+			entitySelector={specificationProposalSelector}
 			href={
-				(
-					specificationProposal[EntityMetaKey.Selector] != null && 'realm' in specificationProposal[EntityMetaKey.Selector]
-					&& specificationProposal[EntityMetaKey.Selector].realm != null
-					&& specificationProposal[EntityMetaKey.Selector] != null && 'category' in specificationProposal[EntityMetaKey.Selector]
-					&& specificationProposal[EntityMetaKey.Selector].category != null
-					&& specificationProposal[EntityMetaKey.Selector] != null && 'number' in specificationProposal[EntityMetaKey.Selector]
-					&& specificationProposal[EntityMetaKey.Selector].number != null ?
-						resolve('/proposals/[specificationRealmSlug=specificationRealmSlug]/[proposalKindSlug=proposalKindSlug]/[proposalRef=proposalRef]', {
-					specificationRealmSlug: String(specificationRealmById[String(specificationProposal[EntityMetaKey.Selector].realm)].slug ?? ''),
-					proposalKindSlug: String(proposalCategoryById[String(specificationProposal[EntityMetaKey.Selector].category)].slug ?? ''),
-					proposalRef: `${String(String(proposalCategoryById[String(specificationProposal[EntityMetaKey.Selector].category)].label ?? '') ?? '')}-${String(String(specificationProposal[EntityMetaKey.Selector].number ?? '') ?? '')}`,
-				})
-				:
-						undefined
+				resolve(
+					'/(proposals)/proposals/[specificationRealmSlug=specificationRealmSlug]/(specificationRealm)/[proposalKindSlug=proposalKindSlug]/(specificationProposalKind)/[proposalRef=proposalRef]',
+					{
+						specificationRealmSlug: String(specificationRealmById[String(specificationProposalSelector.realm)].slug),
+						proposalKindSlug: String(proposalCategoryById[String(specificationProposalSelector.category)].slug),
+						proposalRef: `${proposalCategoryById[String(specificationProposalSelector.category)].label}-${specificationProposalSelector.number}`,
+					}
 				)
 			}
-			layout={EntityLayout.Summary}
-			open={false}
-			showTypeAnnotation={false}
 		>
 			{#snippet Title()}
-				{[[
-		[(String((proposalCategoryById[String(specificationProposalFields.category)]?.label ?? (String((specificationProposalFields.category) ?? ''))) ?? '') ? String((proposalCategoryById[String(specificationProposalFields.category)]?.label ?? (String((specificationProposalFields.category) ?? ''))) ?? '') + '-' : ''), String((specificationProposalFields.number) ?? '')].filter(Boolean).join(''),
-		String((specificationProposalFields.documentTitle) ?? ''),
-	].filter(Boolean).join(': ')].filter(Boolean).join(' ') || [[
-		[String((proposalCategoryById[String(specificationProposalFields.category)]?.label ?? (String((specificationProposalFields.category) ?? ''))) ?? '')].filter(Boolean).join(''),
-		String((specificationProposalFields.number) ?? ''),
-	].filter(Boolean).join('-')].filter(Boolean).join(' ') || 'Specification proposal'}
+				{([
+		[(String((proposalCategoryById[String(specificationProposalSelector.category)]?.label ?? (specificationProposalSelector.category)) ?? '') ? String((proposalCategoryById[String(specificationProposalSelector.category)]?.label ?? (specificationProposalSelector.category)) ?? '') + '-' : ''), String(specificationProposalSelector.number)].filter(Boolean).join(''),
+		(specificationProposal.documentTitle ?? ''),
+	].filter(Boolean).join(': ')) || [
+		String((proposalCategoryById[String(specificationProposalSelector.category)]?.label ?? (specificationProposalSelector.category)) ?? ''),
+		String(specificationProposalSelector.number),
+	].filter(Boolean).join('-') || 'Specification proposal'}
 			{/snippet}
 
 			{#snippet Value()}
-				{[[
-		[String((proposalCategoryById[String(specificationProposalFields.category)]?.label ?? (String((specificationProposalFields.category) ?? ''))) ?? '')].filter(Boolean).join(''),
-		String((specificationProposalFields.number) ?? ''),
-	].filter(Boolean).join('-')].filter(Boolean).join(' ')}
+				{[
+		String((proposalCategoryById[String(specificationProposalSelector.category)]?.label ?? (specificationProposalSelector.category)) ?? ''),
+		String(specificationProposalSelector.number),
+	].filter(Boolean).join('-')}
 			{/snippet}
 		</EntityView>
 	{/snippet}

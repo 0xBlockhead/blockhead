@@ -2,13 +2,8 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
 
 
 	// State
@@ -16,40 +11,18 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.FedimintGateway>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.FedimintGateway>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.FedimintGateway> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const fedimintGateway = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {
-			apiUrl: true,
-		},
-	} : {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const fedimintGateway = $derived(selection({
 		fields: {
 			apiUrl: true,
 		},
 	}))
-	const titleFallback = $derived([String((pendingEntity.gatewayId) ?? '')].filter(Boolean).join(' ') || 'Fedimint gateway')
-	const viewDomId = $derived('fedimint-gateway-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const titleFallback = $derived((pendingEntity.gatewayId ?? '') || 'Fedimint gateway')
 
 
 	// Components
@@ -62,38 +35,22 @@
 
 <EntityView
 	entityType={EntityType.FedimintGateway}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'apiUrl')}
-			{[String((pendingEntity.gatewayId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-		{:else}
-			<ResourceBoundary resource={fedimintGateway}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.gatewayId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		{(pendingEntity.gatewayId ?? '') || 'Fedimint gateway'}
 	{/snippet}
 
 	{#snippet Value()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'apiUrl')}
-			{[String((pendingEntity.apiUrl) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.gatewayId) ?? '')].filter(Boolean).join(' ') || titleFallback}
-		{:else}
-			<ResourceBoundary resource={fedimintGateway}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.apiUrl) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.gatewayId) ?? '')].filter(Boolean).join(' ') || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={fedimintGateway}>
+			{#snippet children(entity)}
+				{(entity.apiUrl ?? '') || pendingEntity.gatewayId || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -101,52 +58,26 @@
 			<div>
 				<dt>gateway ID</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									gatewayId: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const gatewayId = resolvedEntity.gatewayId}
-							{#if gatewayId !== undefined && gatewayId !== null}
-								{String((gatewayId) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{pendingEntity.gatewayId}
 				</dd>
 			</div>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							apiUrl: true,
-						},
-					})
-				}
+				resource={fedimintGateway}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const apiUrl = resolvedEntity.apiUrl}
-					{#if apiUrl !== undefined && apiUrl !== null}
+					{@const apiUrl = entity.apiUrl}
+					{#if apiUrl != null}
 						<div>
 							<dt>API URL</dt>
 							<dd>
-								<svelte:element
-									this={'a'}
+								<a
 									href={String(apiUrl)}
 									target="_blank"
 									rel="noreferrer noopener"
 								>
 									<TruncatedValue value={String(apiUrl)} />
-								</svelte:element>
+								</a>
 							</dd>
 						</div>
 					{/if}
@@ -156,7 +87,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							nodePubkey: true,
 						},
@@ -164,13 +94,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const nodePubkey = resolvedEntity.nodePubkey}
-					{#if nodePubkey !== undefined && nodePubkey !== null}
+					{@const nodePubkey = entity.nodePubkey}
+					{#if nodePubkey != null}
 						<div>
 							<dt>node public key</dt>
 							<dd>
-								{String((nodePubkey) ?? '')}
+								{nodePubkey}
 							</dd>
 						</div>
 					{/if}
@@ -186,12 +115,12 @@
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
-				<FedimintGateway_TimestampsView
-					selection={fedimintGatewayFedimintGatewayTimestampsViewTimestampsResource}
-					countResource={fedimintGatewayFedimintGatewayTimestampsViewTimestampsResource.count}
-					title='timestamps'
-					id='FedimintGateway_TimestampsView-timestamps'
-				/>
+					<FedimintGateway_TimestampsView
+						selection={fedimintGatewayFedimintGatewayTimestampsViewTimestampsResource}
+						countResource={fedimintGatewayFedimintGatewayTimestampsViewTimestampsResource.count}
+						title='timestamps'
+						id='timestamps'
+					/>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>
@@ -201,12 +130,12 @@
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
-				<FedimintFederationsView
-					selection={fedimintGatewayFedimintFederationsViewFederationsResource}
-					countResource={fedimintGatewayFedimintFederationsViewFederationsResource.count}
-					title='federations'
-					id='FedimintFederationsView-federations'
-				/>
+					<FedimintFederationsView
+						selection={fedimintGatewayFedimintFederationsViewFederationsResource}
+						countResource={fedimintGatewayFedimintFederationsViewFederationsResource.count}
+						title='federations'
+						id='federations'
+					/>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>

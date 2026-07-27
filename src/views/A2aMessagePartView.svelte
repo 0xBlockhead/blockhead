@@ -2,13 +2,9 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
 	import { UrlString } from '$/schema/UrlString.ts'
 
 
@@ -21,42 +17,22 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.A2aMessagePart>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.A2aMessagePart>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.A2aMessagePart> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const a2aMessagePart = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {
-			partKind: true,
-			mimeType: true,
-		},
-	} : {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const viewSelection = $derived(selection({
+		sources: selection.sources ?? [],
+	}))
+	const a2aMessagePart = $derived(viewSelection({
 		fields: {
 			partKind: true,
 			mimeType: true,
 		},
 	}))
-	const titleFallback = $derived([String((pendingEntity.partIndex) ?? '')].filter(Boolean).join(' ') || 'A2A message part')
-	const viewDomId = $derived('a2a-message-part-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const titleFallback = $derived(String(pendingEntity.partIndex ?? '') || 'A2A message part')
 
 
 	// Components
@@ -70,61 +46,35 @@
 
 <EntityView
 	entityType={EntityType.A2aMessagePart}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'partKind') && Object.hasOwn(prefetched, 'mimeType')}
-			{[String((pendingEntity.partIndex) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-		{:else}
-			<ResourceBoundary resource={a2aMessagePart}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.partIndex) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		{String(pendingEntity.partIndex ?? '') || 'A2A message part'}
 	{/snippet}
 
 	{#snippet Value()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'partKind') && Object.hasOwn(prefetched, 'mimeType')}
-			{[String((pendingEntity.partKind) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.partIndex) ?? '')].filter(Boolean).join(' ') || titleFallback}
-		{:else}
-			<ResourceBoundary resource={a2aMessagePart}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.partKind) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.partIndex) ?? '')].filter(Boolean).join(' ') || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={a2aMessagePart}>
+			{#snippet children(entity)}
+				{entity.partKind || String(pendingEntity.partIndex) || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'partKind') && Object.hasOwn(prefetched, 'mimeType')}
-			{@const mimeType0 = pendingEntity.mimeType}
-			{#if mimeType0 !== undefined && mimeType0 !== null}
-				<span data-text="muted">
-					{String((mimeType0) ?? '')}
-				</span>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={a2aMessagePart}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const mimeType0 = resolvedEntity.mimeType}
-					{#if mimeType0 !== undefined && mimeType0 !== null}
-						<span data-text="muted">
-							{String((mimeType0) ?? '')}
-						</span>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={a2aMessagePart}>
+			{#snippet children(entity)}
+				{@const mimeType0 = entity.mimeType}
+				{#if mimeType0 != null}
+					<span data-text="muted">
+						{mimeType0}
+					</span>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -133,7 +83,7 @@
 				resource={selection.$message}
 			>
 				{#snippet children(a2aMessage)}
-					{#if a2aMessage != null && a2aMessage[EntityMetaKey.Selector] != null}
+					{#if a2aMessage != null}
 						<div>
 							<dt>message</dt>
 							<dd>
@@ -153,7 +103,7 @@
 				resource={selection.$artifact}
 			>
 				{#snippet children(a2aArtifact)}
-					{#if a2aArtifact != null && a2aArtifact[EntityMetaKey.Selector] != null}
+					{#if a2aArtifact != null}
 						<div>
 							<dt>artifact</dt>
 							<dd>
@@ -172,24 +122,7 @@
 			<div>
 				<dt>part index</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									partIndex: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const partIndex = resolvedEntity.partIndex}
-							{#if partIndex !== undefined && partIndex !== null}
-								{String((partIndex) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{String(pendingEntity.partIndex)}
 				</dd>
 			</div>
 
@@ -197,21 +130,10 @@
 				<dt>part kind</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									partKind: true,
-								},
-							})
-						}
+						resource={a2aMessagePart}
 					>
 						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const partKind = resolvedEntity.partKind}
-							{#if partKind !== undefined && partKind !== null}
-								{String((partKind) ?? '')}
-							{/if}
+							{entity.partKind}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -219,8 +141,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							text: true,
 						},
@@ -228,13 +149,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const text = resolvedEntity.text}
-					{#if text !== undefined && text !== null}
+					{@const text = entity.text}
+					{#if text != null}
 						<div>
 							<dt>text</dt>
 							<dd>
-								{String((text) ?? '')}
+								{text}
 							</dd>
 						</div>
 					{/if}
@@ -243,8 +163,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							uri: true,
 						},
@@ -252,20 +171,18 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const uri = resolvedEntity.uri}
-					{#if uri !== undefined && uri !== null}
+					{@const uri = entity.uri}
+					{#if uri != null}
 						<div>
 							<dt>URI</dt>
 							<dd>
-								<svelte:element
-									this={'a'}
+								<a
 									href={String(uri)}
 									target="_blank"
 									rel="noreferrer noopener"
 								>
 									<TruncatedValue value={String(uri)} />
-								</svelte:element>
+								</a>
 							</dd>
 						</div>
 					{/if}
@@ -273,23 +190,15 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							mimeType: true,
-						},
-					})
-				}
+				resource={a2aMessagePart}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const mimeType = resolvedEntity.mimeType}
-					{#if mimeType !== undefined && mimeType !== null}
+					{@const mimeType = entity.mimeType}
+					{#if mimeType != null}
 						<div>
 							<dt>mime type</dt>
 							<dd>
-								{String((mimeType) ?? '')}
+								{mimeType}
 							</dd>
 						</div>
 					{/if}
@@ -300,7 +209,7 @@
 				resource={selection.$aiArtifact}
 			>
 				{#snippet children(aiArtifact)}
-					{#if aiArtifact != null && aiArtifact[EntityMetaKey.Selector] != null}
+					{#if aiArtifact != null}
 						<div>
 							<dt>AI artifact</dt>
 							<dd>

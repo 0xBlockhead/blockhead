@@ -2,15 +2,8 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
-	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -22,40 +15,18 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.PolkadotReferendum>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.PolkadotReferendum>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.PolkadotReferendum> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const polkadotReferendum = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {
-			track: true,
-		},
-	} : {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const polkadotReferendum = $derived(selection({
 		fields: {
 			track: true,
 		},
 	}))
-	const titleFallback = $derived([String((pendingEntity.referendumId) ?? '')].filter(Boolean).join(' ') || 'Polkadot referendum')
-	const viewDomId = $derived('polkadot-referendum-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const titleFallback = $derived((pendingEntity.referendumId ?? '') || 'Polkadot referendum')
 
 
 	// Components
@@ -68,62 +39,32 @@
 
 <EntityView
 	entityType={EntityType.PolkadotReferendum}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={polkadotReferendum}>
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.referendumId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{(pendingEntity.referendumId ?? '') || 'Polkadot referendum'}
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={polkadotReferendum}>
 			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.track) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.referendumId) ?? '')].filter(Boolean).join(' ') || titleFallback}
+				{(entity.track ?? '') || pendingEntity.referendumId || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		<ResourceBoundary resource={polkadotReferendum}>
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				<span data-text="muted">
-					<NetworkView
-						selection={select(EntityType.Network, selection.entitySelector.$network)}
-						href={
-							(
-								selection.entitySelector.$network != null && 'caip2' in selection.entitySelector.$network
-								&& selection.entitySelector.$network.caip2 != null ?
-									resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-								network: String(caip2StringFromValue(selection.entitySelector.$network.caip2) ?? ''),
-							})
-							:
-									selection.entitySelector.$network != null && 'slug' in selection.entitySelector.$network
-									&& selection.entitySelector.$network.slug != null ?
-										resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-									network: String(selection.entitySelector.$network.slug ?? ''),
-								})
-								:
-									undefined
-							)
-						}
-						layout={EntityLayout.Title}
-						open={false}
-					/>
-				</span>
-			{/snippet}
-		</ResourceBoundary>
+		<span data-text="muted">
+			<NetworkView
+				selection={select(EntityType.Network, selection.entitySelector.$network)}
+				layout={EntityLayout.Title}
+				open={false}
+			/>
+		</span>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -133,23 +74,6 @@
 				<dd>
 					<NetworkView
 						selection={select(EntityType.Network, selection.entitySelector.$network)}
-						href={
-							(
-								selection.entitySelector.$network != null && 'caip2' in selection.entitySelector.$network
-								&& selection.entitySelector.$network.caip2 != null ?
-									resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-								network: String(caip2StringFromValue(selection.entitySelector.$network.caip2) ?? ''),
-							})
-							:
-									selection.entitySelector.$network != null && 'slug' in selection.entitySelector.$network
-									&& selection.entitySelector.$network.slug != null ?
-										resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-									network: String(selection.entitySelector.$network.slug ?? ''),
-								})
-								:
-									undefined
-							)
-						}
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -159,45 +83,20 @@
 			<div>
 				<dt>Referendum ID</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									referendumId: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const referendumId = resolvedEntity.referendumId}
-							{#if referendumId !== undefined && referendumId !== null}
-								{String((referendumId) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{pendingEntity.referendumId}
 				</dd>
 			</div>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							track: true,
-						},
-					})
-				}
+				resource={polkadotReferendum}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const track = resolvedEntity.track}
-					{#if track !== undefined && track !== null}
+					{@const track = entity.track}
+					{#if track != null}
 						<div>
 							<dt>Track</dt>
 							<dd>
-								{String((track) ?? '')}
+								{track}
 							</dd>
 						</div>
 					{/if}
@@ -207,7 +106,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							submittedAtBlockNumber: true,
 						},
@@ -215,9 +113,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const submittedAtBlockNumber = resolvedEntity.submittedAtBlockNumber}
-					{#if submittedAtBlockNumber !== undefined && submittedAtBlockNumber !== null}
+					{@const submittedAtBlockNumber = entity.submittedAtBlockNumber}
+					{#if submittedAtBlockNumber != null}
 						<div>
 							<dt>Submitted at block number</dt>
 							<dd>
@@ -239,12 +136,12 @@
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
-				<PolkadotReferendum_TimestampsView
-					selection={polkadotReferendumPolkadotReferendumTimestampsViewTimestampsResource}
-					countResource={polkadotReferendumPolkadotReferendumTimestampsViewTimestampsResource.count}
-					title='Lifecycle observations'
-					id='PolkadotReferendum_TimestampsView-timestamps'
-				/>
+					<PolkadotReferendum_TimestampsView
+						selection={polkadotReferendumPolkadotReferendumTimestampsViewTimestampsResource}
+						countResource={polkadotReferendumPolkadotReferendumTimestampsViewTimestampsResource.count}
+						title='Lifecycle observations'
+						id='timestamps'
+					/>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>

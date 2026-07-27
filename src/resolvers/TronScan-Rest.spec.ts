@@ -5,12 +5,10 @@ import {
 	Caip2Reference,
 	networkBySlug,
 } from '$/constants/Network.ts'
-import { entityFieldAddressKey, EntityMetaKey } from '$/schema/$schema.ts'
+import { EntityMetaKey } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import { TronAccountSelector } from '$/schema/TronAccount.ts'
-import { TronAccountTokenBalance_TimestampSelector } from '$/schema/TronAccountTokenBalance_Timestamp.ts'
 import { Source } from '$/sources/Source.ts'
-import { sourceProviderDefinitions } from '$/sources/$sourceProviders.ts'
+import bindings from '$/sources/TronScan/bindings.ts'
 import type { TronScanTransactions } from '$/sources/TronScan/Rest/types.ts'
 
 const getAccountTransactions = vi.fn()
@@ -30,12 +28,7 @@ const accountTransactionsResolver = tronScanResolvers.resolvers.find((resolver) 
 if (accountTransactionsResolver == null)
 	throw new Error('TronScan-Rest spec missing TronAccount.$$transactions resolver')
 
-const binding = sourceProviderDefinitions
-	.flatMap((provider) => provider.bindings)
-	.find((candidate) => candidate.source === Source.TronScan_Rest)
-
-if (binding == null)
-	throw new Error('TronScan-Rest spec missing source binding')
+const binding = bindings[Source.TronScan_Rest]
 
 const resolverContext = {
 	filters: [],
@@ -75,7 +68,7 @@ describe('TronScan account transaction resolver', () => {
 				expect(selectorEntry.appliesTo.length).toBeGreaterThan(0)
 
 		expect(accountTransactionsResolver.resolve[
-			TronAccountSelector.NetworkAddress
+			'NetworkAddress'
 		].appliesTo).toEqual([
 			{
 				$network: {
@@ -96,11 +89,11 @@ describe('TronScan account transaction resolver', () => {
 			throw new Error('TronScan-Rest spec missing account token timestamp resolver')
 
 		expect(accountTokenTimestampResolver.resolve[
-			TronAccountTokenBalance_TimestampSelector.AccountTokenTimestampMsSource
+			'AccountTokenTimestampMsSource'
 		].appliesTo).toHaveLength(2)
 	})
 
-	it('materializes incoming and outgoing transaction identity, fields, pagination, and provenance', async () => {
+	it('materializes selector-only transaction membership and pagination', async () => {
 		getAccountTransactions.mockResolvedValueOnce({
 			total: 10,
 			data: [
@@ -134,7 +127,7 @@ describe('TronScan account transaction resolver', () => {
 		} satisfies TronScanTransactions)
 
 		const page = await accountTransactionsResolver.resolve[
-			TronAccountSelector.NetworkAddress
+			'NetworkAddress'
 		].resolve(account, resolverContext)
 		const projection = accountTransactionsResolver.projections.$$transactions
 		if (
@@ -147,7 +140,6 @@ describe('TronScan account transaction resolver', () => {
 		const transactions = projection.select(page, account, resolverContext)
 		expect(tronScanResolvers.source).toBe(Source.TronScan_Rest)
 		expect(getAccountTransactions).toHaveBeenCalledWith(
-			binding,
 			account.address,
 			2,
 			4
@@ -162,22 +154,9 @@ describe('TronScan account transaction resolver', () => {
 				transactionId: 'incoming-transaction',
 			},
 		])
-		expect(transactions[0][EntityMetaKey.Fields]).toMatchObject({
-			[entityFieldAddressKey(EntityType.TronTransaction, [], 'blockHeight')]: 77n,
-			[entityFieldAddressKey(EntityType.TronTransaction, [], 'timestampMs')]: 1_720_000_000_000,
-			[entityFieldAddressKey(EntityType.TronTransaction, [], 'contractType')]: '1',
-			[entityFieldAddressKey(EntityType.TronTransaction, [], 'result')]: 'SUCCESS',
-			[entityFieldAddressKey(EntityType.TronTransaction, [], 'feeSun')]: 3n,
-			[entityFieldAddressKey(EntityType.TronTransaction, [], 'amountSun')]: 42n,
-		})
-		expect(transactions[1][EntityMetaKey.Fields]).toMatchObject({
-			[entityFieldAddressKey(EntityType.TronTransaction, [], 'blockHeight')]: 78n,
-			[entityFieldAddressKey(EntityType.TronTransaction, [], 'timestampMs')]: 1_720_000_003_000,
-			[entityFieldAddressKey(EntityType.TronTransaction, [], 'contractType')]: 'TransferAssetContract',
-			[entityFieldAddressKey(EntityType.TronTransaction, [], 'result')]: 'REVERT',
-			[entityFieldAddressKey(EntityType.TronTransaction, [], 'amountSun')]: 7n,
-			[entityFieldAddressKey(EntityType.TronTransaction, [], 'assetName')]: 'asset',
-		})
+		expect(transactions.every((transaction) => (
+			!Object.hasOwn(transaction, EntityMetaKey.Fields)
+		))).toBe(true)
 		expect(projection.continuation(page, account, resolverContext)).toEqual({
 			operation: 'account-transactions',
 			target: account.address,
@@ -193,7 +172,7 @@ describe('TronScan account transaction resolver', () => {
 		} satisfies TronScanTransactions)
 
 		await accountTransactionsResolver.resolve[
-			TronAccountSelector.NetworkAddress
+			'NetworkAddress'
 		].resolve({
 			$network: {
 				slug: networkBySlug.tron.slug,
@@ -221,7 +200,7 @@ describe('TronScan account transaction resolver', () => {
 			},
 		])
 			await expect(accountTransactionsResolver.resolve[
-				TronAccountSelector.NetworkAddress
+				'NetworkAddress'
 			].resolve({
 				$network,
 				address: account.address,

@@ -1,14 +1,11 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { entity, facet } from '$/schema/$schema.ts'
+import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { type } from 'arktype'
 
-export enum TezosToken_TimestampSelector {
-	TokenLevelSource = 'TokenLevelSource',
-}
-export const TezosToken_Timestamp = entity({
+export default entity({
 	entityType: EntityType.TezosToken_Timestamp,
 	labels: {
 		singular: 'tezos token timestamp',

@@ -53,7 +53,10 @@ export const runProcess = ({
 	timeoutMs,
 	label,
 	environment = process.env,
+	heartbeatMs = 30_000,
 }) => new Promise((resolve) => {
+	const startedAt = Date.now()
+	process.stderr.write(`${label}: START\n`)
 	const child = spawn(command, args, {
 		cwd,
 		detached: true,
@@ -70,6 +73,10 @@ export const runProcess = ({
 		timedOut = true
 		terminateProcessGroup(child)
 	}, timeoutMs)
+	const heartbeat = setInterval(() => {
+		process.stderr.write(`${label}: RUNNING (${Math.round((Date.now() - startedAt) / 1_000)}s)\n`)
+	}, heartbeatMs)
+	heartbeat.unref()
 
 	child.stdout.on('data', (chunk) => {
 		output += chunk
@@ -82,6 +89,10 @@ export const runProcess = ({
 	})
 	child.on('close', (code, signal) => {
 		clearTimeout(timer)
+		clearInterval(heartbeat)
+		process.stderr.write(
+			`${label}: ${timedOut ? 'TIMEOUT' : code === 0 ? 'PASS' : 'FAIL'} (${Math.round((Date.now() - startedAt) / 1_000)}s)\n`
+		)
 		resolve({
 			label,
 			code: code ?? 1,
@@ -401,7 +412,8 @@ export const runCanonicalSvelteCheck = async ({
 	const shards = await writeShardConfigs(
 		tsconfigPath,
 		path.resolve(projectRoot, '.svelte-kit/svelte-check-shards'),
-		partitionSvelteRoots(roots, graph, shardCount)
+		partitionSvelteRoots(roots, graph, shardCount),
+		declarationFiles
 	)
 	process.stdout.write(`svelte roots: ${roots.length}; declarations covered by plain TypeScript: ${declarationFiles.length}; shards: ${shards.length}; concurrency: ${concurrency}\n`)
 	const results = await runShardQueue({
@@ -427,10 +439,10 @@ export const runCanonicalSvelteCheck = async ({
 	for (const result of results)
 		printResult(result)
 
-	return results.every((result) => result.code === 0 && !result.timedOut) ? 0 : 1
+	return results.every((result) => result.code === 0) ? 0 : 1
 }
 
-const isMain = process.argv[1] != null
+const isMain = process.argv.length > 1
 	&& path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)
 
 if (isMain)

@@ -2,13 +2,8 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
 
 
 	// Context
@@ -20,35 +15,13 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.TonShard_Timestamp>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.TonShard_Timestamp>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.TonShard_Timestamp> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const tonShardTimestamp = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {},
-	} : {
-		sources: selection.sources,
-	}))
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const titleFallback = 'TON shard timestamp'
-	const viewDomId = $derived('ton-shard-timestamp-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -61,24 +34,14 @@
 
 <EntityView
 	entityType={EntityType.TonShard_Timestamp}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails}
-			{title || titleFallback}
-		{:else}
-			<ResourceBoundary resource={tonShardTimestamp}>
-				{#snippet children(entity)}
-					{title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		TON shard timestamp
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -97,79 +60,27 @@
 			<div>
 				<dt>shard prefix</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									shardPrefix: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const shardPrefix = resolvedEntity.shardPrefix}
-							{#if shardPrefix !== undefined && shardPrefix !== null}
-								{String((shardPrefix) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{pendingEntity.shardPrefix}
 				</dd>
 			</div>
 
 			<div>
 				<dt>seqno</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									seqno: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const seqno = resolvedEntity.seqno}
-							{#if seqno !== undefined && seqno !== null}
-								{String((seqno) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{String(pendingEntity.seqno)}
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									source: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const source = resolvedEntity.source}
-							{#if source !== undefined && source !== null}
-								{String((source) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{pendingEntity.source}
 				</dd>
 			</div>
 
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							timestampMs: true,
 						},
@@ -177,9 +88,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const timestampMs = resolvedEntity.timestampMs}
-					{#if timestampMs !== undefined && timestampMs !== null}
+					{@const timestampMs = entity.timestampMs}
+					{#if timestampMs != null}
 						<div>
 							<dt>Timestamp</dt>
 							<dd>
@@ -193,7 +103,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							startLt: true,
 						},
@@ -201,13 +110,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const startLt = resolvedEntity.startLt}
-					{#if startLt !== undefined && startLt !== null}
+					{@const startLt = entity.startLt}
+					{#if startLt != null}
 						<div>
 							<dt>start lt</dt>
 							<dd>
-								{String((startLt) ?? '')}
+								{String(startLt)}
 							</dd>
 						</div>
 					{/if}
@@ -217,7 +125,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							endLt: true,
 						},
@@ -225,13 +132,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const endLt = resolvedEntity.endLt}
-					{#if endLt !== undefined && endLt !== null}
+					{@const endLt = entity.endLt}
+					{#if endLt != null}
 						<div>
 							<dt>end lt</dt>
 							<dd>
-								{String((endLt) ?? '')}
+								{String(endLt)}
 							</dd>
 						</div>
 					{/if}
@@ -241,7 +147,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							minRefMcSeqno: true,
 						},
@@ -249,13 +154,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const minRefMcSeqno = resolvedEntity.minRefMcSeqno}
-					{#if minRefMcSeqno !== undefined && minRefMcSeqno !== null}
+					{@const minRefMcSeqno = entity.minRefMcSeqno}
+					{#if minRefMcSeqno != null}
 						<div>
 							<dt>min ref mc seqno</dt>
 							<dd>
-								{String((minRefMcSeqno) ?? '')}
+								{String(minRefMcSeqno)}
 							</dd>
 						</div>
 					{/if}
@@ -265,7 +169,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							rootHash: true,
 						},
@@ -273,13 +176,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const rootHash = resolvedEntity.rootHash}
-					{#if rootHash !== undefined && rootHash !== null}
+					{@const rootHash = entity.rootHash}
+					{#if rootHash != null}
 						<div>
 							<dt>root hash</dt>
 							<dd>
-								<TruncatedValue value={String((rootHash) ?? '')} />
+								<TruncatedValue value={rootHash} />
 							</dd>
 						</div>
 					{/if}
@@ -289,7 +191,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							fileHash: true,
 						},
@@ -297,13 +198,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const fileHash = resolvedEntity.fileHash}
-					{#if fileHash !== undefined && fileHash !== null}
+					{@const fileHash = entity.fileHash}
+					{#if fileHash != null}
 						<div>
 							<dt>file hash</dt>
 							<dd>
-								<TruncatedValue value={String((fileHash) ?? '')} />
+								<TruncatedValue value={fileHash} />
 							</dd>
 						</div>
 					{/if}

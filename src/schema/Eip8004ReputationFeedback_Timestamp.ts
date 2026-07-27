@@ -1,16 +1,13 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { entity, facet } from '$/schema/$schema.ts'
+import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { UrlString } from '$/schema/UrlString.ts'
 import { EvmAddress, ZeroExHex } from '$/schema/ZeroExHex.ts'
 import { type } from 'arktype'
 
-export enum Eip8004ReputationFeedback_TimestampSelector {
-	RegistrationClientAddressFeedbackIndexTimestampMsSource = 'RegistrationClientAddressFeedbackIndexTimestampMsSource',
-}
-export const Eip8004ReputationFeedback_Timestamp = entity({
+export default entity({
 	entityType: EntityType.Eip8004ReputationFeedback_Timestamp,
 	labels: {
 		singular: 'EIP-8004 reputation feedback timestamp',
@@ -26,7 +23,7 @@ export const Eip8004ReputationFeedback_Timestamp = entity({
 	clientAddress: {
 		label: 'Client address',
 		type: EntityFieldType.Primitive,
-		primitiveType: (EvmAddress),
+		primitiveType: EvmAddress,
 		cardinality: EntityFieldCardinality.One,
 	},
 	feedbackIndex: {
@@ -77,13 +74,13 @@ export const Eip8004ReputationFeedback_Timestamp = entity({
 	endpoint: {
 		label: 'Endpoint',
 		type: EntityFieldType.Primitive,
-		primitiveType: (UrlString),
+		primitiveType: UrlString,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	feedbackUri: {
 		label: 'Feedback URI',
 		type: EntityFieldType.Primitive,
-		primitiveType: (UrlString),
+		primitiveType: UrlString,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	feedbackHashAlgorithm: {
@@ -95,7 +92,7 @@ export const Eip8004ReputationFeedback_Timestamp = entity({
 	feedbackHash: {
 		label: 'Feedback hash',
 		type: EntityFieldType.Primitive,
-		primitiveType: (ZeroExHex),
+		primitiveType: ZeroExHex,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	revoked: {
@@ -114,7 +111,7 @@ export const Eip8004ReputationFeedback_Timestamp = entity({
 	transactionHash: {
 		label: 'Transaction hash',
 		type: EntityFieldType.Primitive,
-		primitiveType: (ZeroExHex),
+		primitiveType: ZeroExHex,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 })({

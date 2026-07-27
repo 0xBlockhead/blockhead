@@ -4,18 +4,15 @@
 	// Types/constants
 	import type { PageProps } from './$types.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		data,
-		params,
 	}: PageProps = $props()
 
 	const pageSelection = $derived(select(EntityType.Network_Activity_Day, data.selector, {
@@ -38,18 +35,12 @@
 
 
 <svelte:head>
-	<title>{(data.title ?? (pageSelection.entity == null ? [String((data.selector.dayStartTimestampMs) ?? '')].filter(Boolean).join(' ') || 'network activity day' : [String((({ ...data.selector, ...pageSelection.entity }).dayStartTimestampMs) ?? '')].filter(Boolean).join(' ') || 'network activity day'))} • network activity day • Blockhead</title>
+	<title>{(data.title ?? (String(pageSelection.entitySelector.dayStartTimestampMs) || 'network activity day'))} • network activity day • Blockhead</title>
 </svelte:head>
 
 
 <Page>
 	<Network_Activity_DayView
-		href={
-			resolve('/network/[network=networkCaip2OrNetworkSlug]/activity/day/[dayStartTimestampMs=nonNegativeInteger]', {
-				network: params.network,
-				dayStartTimestampMs: params.dayStartTimestampMs,
-			})
-		}
 		selection={pageSelection}
 	/>
 </Page>

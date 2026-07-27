@@ -7,14 +7,12 @@
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		data,
-		params,
 	}: PageProps = $props()
 
 	const pageSelection = $derived(select(EntityType.UtxoAddress, data.selector))
@@ -27,18 +25,12 @@
 
 
 <svelte:head>
-	<title>{(data.title ?? (pageSelection.entity == null ? [String((data.selector.address) ?? '')].filter(Boolean).join(' ') || 'UTXO address' : [String((({ ...data.selector, ...pageSelection.entity }).address) ?? '')].filter(Boolean).join(' ') || 'UTXO address'))} • UTXO address • Blockhead</title>
+	<title>{(data.title ?? (pageSelection.entitySelector.address || 'UTXO address'))} • UTXO address • Blockhead</title>
 </svelte:head>
 
 
 <Page>
 	<UtxoAddressView
-		href={
-			resolve('/network/[network=networkCaip2OrNetworkSlug]/address/[address=stringSegment]', {
-				network: params.network,
-				address: params.address,
-			})
-		}
 		selection={pageSelection}
 	/>
 </Page>

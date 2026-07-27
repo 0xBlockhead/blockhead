@@ -29,30 +29,34 @@
 {#key [params.marketVenue, params.baseKind, params.base, params.quoteKind, params.quote, params.marketKind].join(':')}
 	<ParentPageCollapsible
 		href={
-			resolve('/venue/[marketVenue=marketVenueId]/market/[baseKind=stringSegment]/[base=stringSegment]/[quoteKind=stringSegment]/[quote=stringSegment]/[marketKind=stringSegment]', {
-				marketVenue: params.marketVenue,
-				baseKind: params.baseKind,
-				base: params.base,
-				quoteKind: params.quoteKind,
-				quote: params.quote,
-				marketKind: params.marketKind,
-			})
+			resolve(
+				'/(assets)/venue/[marketVenue=marketVenueId]/market/[baseKind=stringSegment]/[base=stringSegment]/[quoteKind=stringSegment]/[quote=stringSegment]/[marketKind=stringSegment]',
+				{
+					marketVenue: String(params.marketVenue),
+					baseKind: String(params.baseKind),
+					base: String(params.base),
+					quoteKind: String(params.quoteKind),
+					quote: String(params.quote),
+					marketKind: String(params.marketKind),
+				}
+			)
 		}
 	>
 		{#snippet Summary()}
-			{@const DetailView = MarketView}
-
-			<DetailView
+			<MarketView
 				selection={select(EntityType.Market, data.selector)}
 				href={
-					resolve('/venue/[marketVenue=marketVenueId]/market/[baseKind=stringSegment]/[base=stringSegment]/[quoteKind=stringSegment]/[quote=stringSegment]/[marketKind=stringSegment]', {
-						marketVenue: params.marketVenue,
-						baseKind: params.baseKind,
-						base: params.base,
-						quoteKind: params.quoteKind,
-						quote: params.quote,
-						marketKind: params.marketKind,
-					})
+					resolve(
+						'/(assets)/venue/[marketVenue=marketVenueId]/market/[baseKind=stringSegment]/[base=stringSegment]/[quoteKind=stringSegment]/[quote=stringSegment]/[marketKind=stringSegment]',
+						{
+							marketVenue: String(params.marketVenue),
+							baseKind: String(params.baseKind),
+							base: String(params.base),
+							quoteKind: String(params.quoteKind),
+							quote: String(params.quote),
+							marketKind: String(params.marketKind),
+						}
+					)
 				}
 				layout={EntityLayout.SummaryInline}
 			/>

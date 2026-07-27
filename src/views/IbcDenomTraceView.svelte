@@ -2,15 +2,8 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
-	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -22,37 +15,13 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.IbcDenomTrace>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.IbcDenomTrace>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.IbcDenomTrace> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const ibcDenomTrace = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {
-			displayDenom: true,
-			baseDenom: true,
-			denomHash: true,
-			sourceChannel: true,
-		},
-	} : {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const ibcDenomTrace = $derived(selection({
 		fields: {
 			displayDenom: true,
 			baseDenom: true,
@@ -60,8 +29,7 @@
 			sourceChannel: true,
 		},
 	}))
-	const titleFallback = $derived([String((pendingEntity.displayDenom) ?? ''), String((pendingEntity.baseDenom) ?? ''), String((pendingEntity.traceKey) ?? '')].filter(Boolean).join(' ') || 'IBC denom trace')
-	const viewDomId = $derived('ibc-denom-trace-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const titleFallback = $derived([(pendingEntity.displayDenom ?? ''), (pendingEntity.baseDenom ?? ''), (pendingEntity.traceKey ?? '')].filter(Boolean).join(' ') || 'IBC denom trace')
 
 
 	// Components
@@ -73,61 +41,39 @@
 
 <EntityView
 	entityType={EntityType.IbcDenomTrace}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'displayDenom') && Object.hasOwn(prefetched, 'baseDenom') && Object.hasOwn(prefetched, 'denomHash') && Object.hasOwn(prefetched, 'sourceChannel')}
-			{[String((pendingEntity.displayDenom) ?? ''), String((pendingEntity.baseDenom) ?? ''), String((pendingEntity.traceKey) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-		{:else}
-			<ResourceBoundary resource={ibcDenomTrace}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.displayDenom) ?? ''), String((resolvedEntity.baseDenom) ?? ''), String((resolvedEntity.traceKey) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={ibcDenomTrace}>
+			{#snippet children(entity)}
+				{[(entity.displayDenom ?? ''), (entity.baseDenom ?? ''), pendingEntity.traceKey].filter(Boolean).join(' ') || title || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Value()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'displayDenom') && Object.hasOwn(prefetched, 'baseDenom') && Object.hasOwn(prefetched, 'denomHash') && Object.hasOwn(prefetched, 'sourceChannel')}
-			{[String((pendingEntity.denomHash) ?? ''), String((pendingEntity.traceKey) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.displayDenom) ?? ''), String((pendingEntity.baseDenom) ?? ''), String((pendingEntity.traceKey) ?? '')].filter(Boolean).join(' ') || titleFallback}
-		{:else}
-			<ResourceBoundary resource={ibcDenomTrace}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.denomHash) ?? ''), String((resolvedEntity.traceKey) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.displayDenom) ?? ''), String((resolvedEntity.baseDenom) ?? ''), String((resolvedEntity.traceKey) ?? '')].filter(Boolean).join(' ') || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={ibcDenomTrace}>
+			{#snippet children(entity)}
+				{[(entity.denomHash ?? ''), pendingEntity.traceKey].filter(Boolean).join(' ') || [(entity.displayDenom ?? ''), (entity.baseDenom ?? ''), pendingEntity.traceKey].filter(Boolean).join(' ') || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'displayDenom') && Object.hasOwn(prefetched, 'baseDenom') && Object.hasOwn(prefetched, 'denomHash') && Object.hasOwn(prefetched, 'sourceChannel')}
-			{@const sourceChannel0 = pendingEntity.sourceChannel}
-			{#if sourceChannel0 !== undefined && sourceChannel0 !== null}
-				<span data-text="muted">
-					{String((sourceChannel0) ?? '')}
-				</span>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={ibcDenomTrace}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const sourceChannel0 = resolvedEntity.sourceChannel}
-					{#if sourceChannel0 !== undefined && sourceChannel0 !== null}
-						<span data-text="muted">
-							{String((sourceChannel0) ?? '')}
-						</span>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={ibcDenomTrace}>
+			{#snippet children(entity)}
+				{@const sourceChannel0 = entity.sourceChannel}
+				{#if sourceChannel0 != null}
+					<span data-text="muted">
+						{sourceChannel0}
+					</span>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -135,45 +81,20 @@
 			<div>
 				<dt>Trace key</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									traceKey: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const traceKey = resolvedEntity.traceKey}
-							{#if traceKey !== undefined && traceKey !== null}
-								<TruncatedValue value={String((traceKey) ?? '')} />
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					<TruncatedValue value={pendingEntity.traceKey} />
 				</dd>
 			</div>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							denomHash: true,
-						},
-					})
-				}
+				resource={ibcDenomTrace}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const denomHash = resolvedEntity.denomHash}
-					{#if denomHash !== undefined && denomHash !== null}
+					{@const denomHash = entity.denomHash}
+					{#if denomHash != null}
 						<div>
 							<dt>Denom hash</dt>
 							<dd>
-								<TruncatedValue value={String((denomHash) ?? '')} />
+								<TruncatedValue value={denomHash} />
 							</dd>
 						</div>
 					{/if}
@@ -183,7 +104,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							path: true,
 						},
@@ -191,13 +111,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const path = resolvedEntity.path}
-					{#if path !== undefined && path !== null}
+					{@const path = entity.path}
+					{#if path != null}
 						<div>
 							<dt>Path</dt>
 							<dd>
-								{String((path) ?? '')}
+								{path}
 							</dd>
 						</div>
 					{/if}
@@ -207,23 +126,15 @@
 
 		<dl data-column-item="center">
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							baseDenom: true,
-						},
-					})
-				}
+				resource={ibcDenomTrace}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const baseDenom = resolvedEntity.baseDenom}
-					{#if baseDenom !== undefined && baseDenom !== null}
+					{@const baseDenom = entity.baseDenom}
+					{#if baseDenom != null}
 						<div>
 							<dt>Base denom</dt>
 							<dd>
-								{String((baseDenom) ?? '')}
+								{baseDenom}
 							</dd>
 						</div>
 					{/if}
@@ -231,23 +142,15 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							displayDenom: true,
-						},
-					})
-				}
+				resource={ibcDenomTrace}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const displayDenom = resolvedEntity.displayDenom}
-					{#if displayDenom !== undefined && displayDenom !== null}
+					{@const displayDenom = entity.displayDenom}
+					{#if displayDenom != null}
 						<div>
 							<dt>Display denom</dt>
 							<dd>
-								{String((displayDenom) ?? '')}
+								{displayDenom}
 							</dd>
 						</div>
 					{/if}
@@ -257,7 +160,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							sourcePort: true,
 						},
@@ -265,13 +167,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const sourcePort = resolvedEntity.sourcePort}
-					{#if sourcePort !== undefined && sourcePort !== null}
+					{@const sourcePort = entity.sourcePort}
+					{#if sourcePort != null}
 						<div>
 							<dt>Source port</dt>
 							<dd>
-								{String((sourcePort) ?? '')}
+								{sourcePort}
 							</dd>
 						</div>
 					{/if}
@@ -279,23 +180,15 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							sourceChannel: true,
-						},
-					})
-				}
+				resource={ibcDenomTrace}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const sourceChannel = resolvedEntity.sourceChannel}
-					{#if sourceChannel !== undefined && sourceChannel !== null}
+					{@const sourceChannel = entity.sourceChannel}
+					{#if sourceChannel != null}
 						<div>
 							<dt>Source channel</dt>
 							<dd>
-								{String((sourceChannel) ?? '')}
+								{sourceChannel}
 							</dd>
 						</div>
 					{/if}
@@ -307,23 +200,6 @@
 				<dd>
 					<NetworkView
 						selection={select(EntityType.Network, selection.entitySelector.$network)}
-						href={
-							(
-								selection.entitySelector.$network != null && 'caip2' in selection.entitySelector.$network
-								&& selection.entitySelector.$network.caip2 != null ?
-									resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-								network: String(caip2StringFromValue(selection.entitySelector.$network.caip2) ?? ''),
-							})
-							:
-									selection.entitySelector.$network != null && 'slug' in selection.entitySelector.$network
-									&& selection.entitySelector.$network.slug != null ?
-										resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-									network: String(selection.entitySelector.$network.slug ?? ''),
-								})
-								:
-									undefined
-							)
-						}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

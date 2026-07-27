@@ -3,135 +3,84 @@
 <script lang="ts">
 	// Types/constants
 	import { resolve } from '$app/paths'
-	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
-	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
-	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
+	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-
-
 
 
 	// State
 	let {
 		selection,
-		countResource,
-		title = 'Farcaster feeds',
-		typeAnnotationParagraphs = [],
-		placeholderText = undefined,
-		emptyText = undefined,
 		open = $bindable(true),
-		collapsible = true,
-		showTypeAnnotation = true,
-		id = 'FarcasterFeeds-list',
 		...EntitiesListProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyEntitiesSelection<EntityType.FarcasterFeed>
-			countResource?: SvelteKitResource<number>
-			title?: string
-			typeAnnotationParagraphs?: string[]
-			placeholderText?: string
-			emptyText?: string
-			open?: boolean
-			collapsible?: boolean
-			showTypeAnnotation?: boolean
-			id?: string
-		},
-		EntitiesListForwardProps
-	> = $props()
+	}: EntityListViewProps<EntityType.FarcasterFeed> = $props()
 
 
 	// Components
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView from '$/components/EntityView.svelte'
 </script>
 
-
-{#snippet TypeAnnotationParagraphs()}
-	{#each typeAnnotationParagraphs as paragraph (paragraph)}
-		<p>{paragraph}</p>
-	{/each}
-{/snippet}
 
 <EntitiesList
 	{...EntitiesListProps}
 	entityType={EntityType.FarcasterFeed}
-	{id}
-	{title}
 	bind:open
-	{collapsible}
-	{showTypeAnnotation}
-	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
 	resource={
 		selection({
-			sources: selection.sources,
 			fields: {
 				label: true,
 				variant: true,
-				fid: true,
-				channelId: true,
-				viewerFid: true,
 			},
 		})
 	}
-	{countResource}
-	getResourceItems={(farcasterFeeds) => [...new Map(farcasterFeeds.values.map((farcasterFeed) => [farcasterFeed[EntityMetaKey.SelectorKey], farcasterFeed])).values()]}
-	getKey={(farcasterFeed) => farcasterFeed[EntityMetaKey.SelectorKey]}
-	{placeholderText}
 >
-	{#snippet Empty()}
-		{#if emptyText != null}
-			<p data-text="muted">{emptyText}</p>
-		{:else}
-			<p data-text="muted">No Farcaster feeds yet.</p>
-		{/if}
-	{/snippet}
-
 	{#snippet Item({ item: farcasterFeed })}
-		{@const farcasterFeedFields = { ...farcasterFeed[EntityMetaKey.Selector], ...farcasterFeed }}
+		{@const farcasterFeedSelector = farcasterFeed[EntityMetaKey.Selector]}
 		<EntityView
 			entityType={EntityType.FarcasterFeed}
-			entitySelector={farcasterFeed[EntityMetaKey.Selector]}
+			entitySelector={farcasterFeedSelector}
 			href={
 				(
-					farcasterFeed[EntityMetaKey.Selector].variant === 'trending' ?
-						resolve('/farcaster/feed/trending')
-				:
-						farcasterFeed[EntityMetaKey.Selector].variant === 'byUser'
-						&& farcasterFeed[EntityMetaKey.Selector] != null && 'fid' in farcasterFeed[EntityMetaKey.Selector]
-						&& farcasterFeed[EntityMetaKey.Selector].fid != null ?
-							resolve('/farcaster/feed/user/[userId=farcasterFid]', {
-						userId: String(farcasterFeed[EntityMetaKey.Selector].fid ?? ''),
-					})
+					farcasterFeedSelector.variant === 'byUser'
+					&& 'fid' in farcasterFeedSelector ?
+						resolve(
+							'/(social)/(farcaster)/farcaster/(farcasterNetwork)/feed/user/[userId=farcasterFid]',
+							{
+								userId: String(farcasterFeedSelector.fid),
+							}
+						)
 					:
-							farcasterFeed[EntityMetaKey.Selector].variant === 'byChannel'
-							&& farcasterFeed[EntityMetaKey.Selector] != null && 'channelId' in farcasterFeed[EntityMetaKey.Selector]
-							&& farcasterFeed[EntityMetaKey.Selector].channelId != null ?
-								resolve('/farcaster/feed/channel/[channelId=stringSegment]', {
-							channelId: String(farcasterFeed[EntityMetaKey.Selector].channelId ?? ''),
-						})
+						farcasterFeedSelector.variant === 'byChannel'
+						&& 'channelId' in farcasterFeedSelector ?
+							resolve(
+								'/(social)/(farcaster)/farcaster/(farcasterNetwork)/feed/channel/[channelId=stringSegment]',
+								{
+									channelId: String(farcasterFeedSelector.channelId),
+								}
+							)
 						:
-								farcasterFeed[EntityMetaKey.Selector].variant === 'following'
-								&& farcasterFeed[EntityMetaKey.Selector] != null && 'viewerFid' in farcasterFeed[EntityMetaKey.Selector]
-								&& farcasterFeed[EntityMetaKey.Selector].viewerFid != null ?
-									resolve('/farcaster/feed/following/[userId=farcasterFid]', {
-								userId: String(farcasterFeed[EntityMetaKey.Selector].viewerFid ?? ''),
-							})
+							farcasterFeedSelector.variant === 'following'
+							&& 'viewerFid' in farcasterFeedSelector ?
+								resolve(
+									'/(social)/(farcaster)/farcaster/(farcasterNetwork)/feed/following/[userId=farcasterFid]',
+									{
+										userId: String(farcasterFeedSelector.viewerFid),
+									}
+								)
 							:
-								undefined
+								farcasterFeedSelector.variant === 'trending' ?
+									resolve('/(social)/(farcaster)/farcaster/(farcasterNetwork)/feed/trending')
+								:
+									undefined
 				)
 			}
-			layout={EntityLayout.Summary}
-			open={false}
-			showTypeAnnotation={false}
 		>
 			{#snippet Title()}
-				{[String((farcasterFeedFields.label) ?? ''), String((farcasterFeedFields.variant) ?? '')].filter(Boolean).join(' ') || 'Farcaster feed'}
+				{[farcasterFeed.label, farcasterFeedSelector.variant].filter(Boolean).join(' ') || 'Farcaster feed'}
 			{/snippet}
 
 			{#snippet Value()}
-				{[String((farcasterFeedFields.variant) ?? '')].filter(Boolean).join(' ')}
+				{farcasterFeedSelector.variant}
 			{/snippet}
 		</EntityView>
 	{/snippet}

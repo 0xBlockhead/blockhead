@@ -3,12 +3,10 @@
 <script lang="ts">
 	// Types/constants
 	import { resolve } from '$app/paths'
-	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
-	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
-	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
+	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { EvmTokenStandard } from '$/constants/Evm.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
 	import { Source } from '$/sources/Source.ts'
 
@@ -20,45 +18,17 @@
 	// State
 	let {
 		selection,
-		countResource,
-		title = 'Token transfers',
-		typeAnnotationParagraphs = [],
-		placeholderText = undefined,
-		emptyText = undefined,
 		open = $bindable(true),
-		collapsible = true,
-		showTypeAnnotation = true,
-		id = 'EvmTokenTransfers-list',
 		...EntitiesListProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyEntitiesSelection<EntityType.EvmTokenTransfer>
-			countResource?: SvelteKitResource<number>
-			title?: string
-			typeAnnotationParagraphs?: string[]
-			placeholderText?: string
-			emptyText?: string
-			open?: boolean
-			collapsible?: boolean
-			showTypeAnnotation?: boolean
-			id?: string
-		},
-		EntitiesListForwardProps
-	> = $props()
+	}: EntityListViewProps<EntityType.EvmTokenTransfer> = $props()
 
 
 	// Components
 	import ProjectionBoundary from '$/components/ProjectionBoundary.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView from '$/components/EntityView.svelte'
 </script>
 
-
-{#snippet TypeAnnotationParagraphs()}
-	{#each typeAnnotationParagraphs as paragraph (paragraph)}
-		<p>{paragraph}</p>
-	{/each}
-{/snippet}
 
 {#snippet ModelTypeAnnotationTooltip()}
 	<p>
@@ -69,12 +39,8 @@
 <EntitiesList
 	{...EntitiesListProps}
 	entityType={EntityType.EvmTokenTransfer}
-	{id}
-	{title}
 	bind:open
-	{collapsible}
-	{showTypeAnnotation}
-	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : ModelTypeAnnotationTooltip}
+	TypeAnnotationTooltip={ModelTypeAnnotationTooltip}
 	resource={
 		selection({
 			sources: selection.sources ?? [
@@ -85,92 +51,48 @@
 				standard: true,
 				amount: true,
 				tokenSymbol: true,
-				$log: true,
 			},
 			limit: 64,
 		})
 	}
-	{countResource}
-	getResourceItems={(evmTokenTransfers) => [...new Map(evmTokenTransfers.values.map((evmTokenTransfer) => [evmTokenTransfer[EntityMetaKey.SelectorKey], evmTokenTransfer])).values()]}
-	getKey={(evmTokenTransfer) => evmTokenTransfer[EntityMetaKey.SelectorKey]}
-	{placeholderText}
 >
-	{#snippet Empty()}
-		{#if emptyText != null}
-			<p data-text="muted">{emptyText}</p>
-		{:else}
-			<p data-text="muted">No Token transfers yet.</p>
-		{/if}
-	{/snippet}
-
 	{#snippet Item({ item: evmTokenTransfer })}
-		{@const selection = select(EntityType.EvmTokenTransfer, evmTokenTransfer[EntityMetaKey.Selector])}
+		{@const evmTokenTransferSelector = evmTokenTransfer[EntityMetaKey.Selector]}
+		{@const selection = select(EntityType.EvmTokenTransfer, evmTokenTransferSelector)}
 		<ProjectionBoundary
 			resource={selection.Nft}
 		>
-			{#snippet Applicable()}
+			{#snippet Applicable(evmTokenTransferProjection0)}
 				<ResourceBoundary
-					resource={
-						selection({
-							fields: {
-								Nft: {
-									fields: {
-										tokenId: true,
-									},
-								},
-							},
-						})
-					}
+					resource={evmTokenTransferProjection0.tokenId}
 				>
-					{#snippet children(evmTokenTransferProjection0)}
-						{@const evmTokenTransferFields = { ...evmTokenTransfer[EntityMetaKey.Selector], ...evmTokenTransfer, ...evmTokenTransferProjection0 }}
+					{#snippet children(nftTokenId0)}
 						<EntityView
 							entityType={EntityType.EvmTokenTransfer}
-							entitySelector={evmTokenTransfer[EntityMetaKey.Selector]}
+							entitySelector={evmTokenTransferSelector}
 							href={
-								(
-									evmTokenTransfer[EntityMetaKey.Selector] != null && 'indexInLog' in evmTokenTransfer[EntityMetaKey.Selector]
-									&& evmTokenTransfer[EntityMetaKey.Selector].indexInLog != null
-									&& evmTokenTransfer[EntityMetaKey.Selector] != null && '$log' in evmTokenTransfer[EntityMetaKey.Selector]
-									&& evmTokenTransfer[EntityMetaKey.Selector].$log != null && 'indexInTransaction' in evmTokenTransfer[EntityMetaKey.Selector].$log
-									&& evmTokenTransfer[EntityMetaKey.Selector].$log.indexInTransaction != null
-									&& evmTokenTransfer[EntityMetaKey.Selector].$log != null && '$transaction' in evmTokenTransfer[EntityMetaKey.Selector].$log
-									&& evmTokenTransfer[EntityMetaKey.Selector].$log.$transaction != null && 'txHash' in evmTokenTransfer[EntityMetaKey.Selector].$log.$transaction
-									&& evmTokenTransfer[EntityMetaKey.Selector].$log.$transaction.txHash != null
-									&& evmTokenTransfer[EntityMetaKey.Selector].$log.$transaction != null && '$network' in evmTokenTransfer[EntityMetaKey.Selector].$log.$transaction ?
-										evmTokenTransfer[EntityMetaKey.Selector].$log.$transaction.$network != null && 'caip2' in evmTokenTransfer[EntityMetaKey.Selector].$log.$transaction.$network
-										&& evmTokenTransfer[EntityMetaKey.Selector].$log.$transaction.$network.caip2 != null ?
-											resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/log/[indexInTransaction=nonNegativeInteger]/token-transfer/[transferIndex=nonNegativeInteger]', {
-										transferIndex: String(evmTokenTransfer[EntityMetaKey.Selector].indexInLog ?? ''),
-										indexInTransaction: String(evmTokenTransfer[EntityMetaKey.Selector].$log.indexInTransaction ?? ''),
-										transactionId: String(evmTokenTransfer[EntityMetaKey.Selector].$log.$transaction.txHash ?? ''),
-										network: String(caip2StringFromValue(evmTokenTransfer[EntityMetaKey.Selector].$log.$transaction.$network.caip2) ?? ''),
-									})
-									:
-											evmTokenTransfer[EntityMetaKey.Selector].$log.$transaction.$network != null && 'slug' in evmTokenTransfer[EntityMetaKey.Selector].$log.$transaction.$network
-											&& evmTokenTransfer[EntityMetaKey.Selector].$log.$transaction.$network.slug != null ?
-												resolve('/network/[network=networkCaip2OrNetworkSlug]/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/log/[indexInTransaction=nonNegativeInteger]/token-transfer/[transferIndex=nonNegativeInteger]', {
-											transferIndex: String(evmTokenTransfer[EntityMetaKey.Selector].indexInLog ?? ''),
-											indexInTransaction: String(evmTokenTransfer[EntityMetaKey.Selector].$log.indexInTransaction ?? ''),
-											transactionId: String(evmTokenTransfer[EntityMetaKey.Selector].$log.$transaction.txHash ?? ''),
-											network: String(evmTokenTransfer[EntityMetaKey.Selector].$log.$transaction.$network.slug ?? ''),
-										})
-										:
-											undefined
-								:
-										undefined
+								resolve(
+									'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(transactions)/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/(selection)/log/[indexInTransaction=nonNegativeInteger]/(evmLog)/token-transfer/[transferIndex=nonNegativeInteger]',
+									{
+										network: (
+											'caip2' in evmTokenTransferSelector.$log.$transaction.$network ?
+												String(caip2StringFromValue(evmTokenTransferSelector.$log.$transaction.$network.caip2))
+											:
+												String(evmTokenTransferSelector.$log.$transaction.$network.slug)
+										),
+										transactionId: String(evmTokenTransferSelector.$log.$transaction.txHash),
+										indexInTransaction: String(evmTokenTransferSelector.$log.indexInTransaction),
+										transferIndex: String(evmTokenTransferSelector.indexInLog),
+									}
 								)
 							}
-							layout={EntityLayout.Summary}
-							open={false}
-							showTypeAnnotation={false}
 						>
 							{#snippet Title()}
-								{(String((evmTokenTransferFields.indexInLog) ?? '') ? 'Transfer #' + String((evmTokenTransferFields.indexInLog) ?? '') : '') || [String((evmTokenTransferFields.standard) ?? ''), String((evmTokenTransferFields.amount) ?? '')].filter(Boolean).join(' ') || [(String((evmTokenTransferFields.indexInLog) ?? '') ? '#' + String((evmTokenTransferFields.indexInLog) ?? '') : '')].filter(Boolean).join(' ') || 'Token transfer'}
+								{(String(evmTokenTransferSelector.indexInLog ?? '') ? 'Transfer #' + String(evmTokenTransferSelector.indexInLog ?? '') : '') || ([(String(evmTokenTransferSelector.indexInLog) ? 'Transfer #' + String(evmTokenTransferSelector.indexInLog) : ''), evmTokenTransfer.standard, String(evmTokenTransfer.amount)].filter(Boolean).join(' ')) || (String(evmTokenTransferSelector.indexInLog) ? '#' + String(evmTokenTransferSelector.indexInLog) : '') || 'Token transfer'}
 							{/snippet}
 
 							{#snippet HeadingAfter()}
-								<span data-text="annotation">{[String((evmTokenTransferFields.tokenSymbol) ?? ''), String((evmTokenTransferFields.Nft.tokenId) ?? '')].filter(Boolean).join(' ')}</span>
+								<span data-text="annotation">{[(evmTokenTransfer.tokenSymbol ?? ''), String(nftTokenId0 ?? '')].filter(Boolean).join(' ')}</span>
 							{/snippet}
 						</EntityView>
 					{/snippet}

@@ -2,13 +2,8 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
 
 
 	// State
@@ -16,42 +11,19 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.BlockheadBitTorrentClientState>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.BlockheadBitTorrentClientState>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.BlockheadBitTorrentClientState> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const blockheadBitTorrentClientState = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {
-			clientName: true,
-			peerId: true,
-		},
-	} : {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const blockheadBitTorrentClientState = $derived(selection({
 		fields: {
 			clientName: true,
 			peerId: true,
 		},
 	}))
-	const titleFallback = $derived([String((pendingEntity.clientName) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.clientId) ?? '')].filter(Boolean).join(' ') || 'blockhead bit torrent client state')
-	const viewDomId = $derived('blockhead-bit-torrent-client-state-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const titleFallback = $derived((pendingEntity.clientName ?? '') || (pendingEntity.clientId ?? '') || 'blockhead bit torrent client state')
 
 
 	// Components
@@ -63,38 +35,26 @@
 
 <EntityView
 	entityType={EntityType.BlockheadBitTorrentClientState}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'clientName') && Object.hasOwn(prefetched, 'peerId')}
-			{[String((pendingEntity.clientName) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-		{:else}
-			<ResourceBoundary resource={blockheadBitTorrentClientState}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.clientName) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={blockheadBitTorrentClientState}>
+			{#snippet children(entity)}
+				{(entity.clientName ?? '') || title || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Value()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'clientName') && Object.hasOwn(prefetched, 'peerId')}
-			{[String((pendingEntity.peerId) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.clientName) ?? '')].filter(Boolean).join(' ') || titleFallback}
-		{:else}
-			<ResourceBoundary resource={blockheadBitTorrentClientState}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.peerId) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.clientName) ?? '')].filter(Boolean).join(' ') || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={blockheadBitTorrentClientState}>
+			{#snippet children(entity)}
+				{(entity.peerId ?? '') || (entity.clientName ?? '') || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -102,45 +62,20 @@
 			<div>
 				<dt>client ID</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									clientId: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const clientId = resolvedEntity.clientId}
-							{#if clientId !== undefined && clientId !== null}
-								{String((clientId) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{pendingEntity.clientId}
 				</dd>
 			</div>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							clientName: true,
-						},
-					})
-				}
+				resource={blockheadBitTorrentClientState}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const clientName = resolvedEntity.clientName}
-					{#if clientName !== undefined && clientName !== null}
+					{@const clientName = entity.clientName}
+					{#if clientName != null}
 						<div>
 							<dt>client name</dt>
 							<dd>
-								{String((clientName) ?? '')}
+								{clientName}
 							</dd>
 						</div>
 					{/if}
@@ -148,23 +83,15 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							peerId: true,
-						},
-					})
-				}
+				resource={blockheadBitTorrentClientState}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const peerId = resolvedEntity.peerId}
-					{#if peerId !== undefined && peerId !== null}
+					{@const peerId = entity.peerId}
+					{#if peerId != null}
 						<div>
 							<dt>peer ID</dt>
 							<dd>
-								{String((peerId) ?? '')}
+								{peerId}
 							</dd>
 						</div>
 					{/if}
@@ -174,7 +101,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							dhtNodeId: true,
 						},
@@ -182,13 +108,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const dhtNodeId = resolvedEntity.dhtNodeId}
-					{#if dhtNodeId !== undefined && dhtNodeId !== null}
+					{@const dhtNodeId = entity.dhtNodeId}
+					{#if dhtNodeId != null}
 						<div>
 							<dt>DHT node ID</dt>
 							<dd>
-								{String((dhtNodeId) ?? '')}
+								{dhtNodeId}
 							</dd>
 						</div>
 					{/if}
@@ -204,12 +129,12 @@
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
-				<BlockheadBitTorrentClientState_TimestampsView
-					selection={blockheadBitTorrentClientStateBlockheadBitTorrentClientStateTimestampsViewTimestampsResource}
-					countResource={blockheadBitTorrentClientStateBlockheadBitTorrentClientStateTimestampsViewTimestampsResource.count}
-					title='timestamps'
-					id='BlockheadBitTorrentClientState_TimestampsView-timestamps'
-				/>
+					<BlockheadBitTorrentClientState_TimestampsView
+						selection={blockheadBitTorrentClientStateBlockheadBitTorrentClientStateTimestampsViewTimestampsResource}
+						countResource={blockheadBitTorrentClientStateBlockheadBitTorrentClientStateTimestampsViewTimestampsResource.count}
+						title='timestamps'
+						id='timestamps'
+					/>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>
@@ -219,12 +144,12 @@
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
-				<BlockheadBitTorrentTransfer_TimestampsView
-					selection={blockheadBitTorrentClientStateBlockheadBitTorrentTransferTimestampsViewTransfersResource}
-					countResource={blockheadBitTorrentClientStateBlockheadBitTorrentTransferTimestampsViewTransfersResource.count}
-					title='transfers'
-					id='BlockheadBitTorrentTransfer_TimestampsView-transfers'
-				/>
+					<BlockheadBitTorrentTransfer_TimestampsView
+						selection={blockheadBitTorrentClientStateBlockheadBitTorrentTransferTimestampsViewTransfersResource}
+						countResource={blockheadBitTorrentClientStateBlockheadBitTorrentTransferTimestampsViewTransfersResource.count}
+						title='transfers'
+						id='transfers'
+					/>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>

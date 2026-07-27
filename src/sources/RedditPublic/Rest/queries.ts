@@ -87,7 +87,7 @@ const redditThingFromRssEntry = (
 			undefined
 			:
 				{
-					kind: 't3' as const,
+					kind: 't3',
 					data: {
 						name: fullname,
 						subreddit: subredditName,
@@ -126,13 +126,13 @@ export const getInfo = async (id: string) => (
 	redditJsonGet<RedditPublicApiInfoResponse>(
 		`/api/info.json?${(
 			new URLSearchParams({ id, raw_json: '1' }).toString()
-		)}` as const
+		)}`
 	)
 )
 
 export const getSubredditAbout = async (name: string) => (
 	redditJsonGet<RedditPublicApiSubredditAbout>(
-		`/r/${encodeURIComponent(name)}/about.json?raw_json=1` as const
+		`/r/${encodeURIComponent(name)}/about.json?raw_json=1`
 	)
 )
 
@@ -156,7 +156,7 @@ export const listSubredditHot = async (
 				limit: String(redditListingLimit(limit)),
 				raw_json: '1',
 			}).toString()
-		)}` as const
+		)}`
 	).catch(
 		after === undefined ?
 			async () => listSubredditRss(name, redditListingLimit(limit))
@@ -191,7 +191,7 @@ export const listSubredditLinks = async (
 					limit: String(redditListingLimit(request.limit)),
 					raw_json: '1',
 				}).toString()
-			)}` as const
+			)}`
 		)
 )
 
@@ -233,6 +233,6 @@ export const getCommentsByArticleId = async (
 				limit: String(boundedLimit),
 				raw_json: '1',
 			}).toString()
-		)}` as const
+		)}`
 	)
 }

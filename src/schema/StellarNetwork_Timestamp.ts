@@ -1,14 +1,11 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { entity, facet } from '$/schema/$schema.ts'
+import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { type } from 'arktype'
 
-export enum StellarNetwork_TimestampSelector {
-	NetworkTimestampMsSource = 'NetworkTimestampMsSource',
-}
-export const StellarNetwork_Timestamp = entity({
+export default entity({
 	entityType: EntityType.StellarNetwork_Timestamp,
 	labels: {
 		singular: 'stellar network timestamp',

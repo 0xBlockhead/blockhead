@@ -3,13 +3,25 @@ import {
 	githubRawUrl,
 } from '$/sources/_shared/hosts/Github/Http/client.ts'
 import type { GithubContentsEntry } from '$/sources/_shared/hosts/Github/Http/types.ts'
-import type { SourceBinding } from '$/sources/SourceBinding.ts'
+import bindings from '$/sources/EthereumEips/bindings.ts'
+import { Source } from '$/sources/Source.ts'
 import { sourceGetJson, sourceGetText } from '$/sources/_runtime/http.ts'
 import {
 	ethereumEipSpecGithubRepoByLedger,
 	ethereumEipSpecMarkdownPrefixByLedger,
 } from '$/sources/EthereumEips/Github/constants.ts'
 import type { EthereumEipSpecLedger } from '$/sources/EthereumEips/Github/types.ts'
+
+const bindingForLedger = (ledger: EthereumEipSpecLedger) => {
+	const target = ethereumEipSpecGithubRepoByLedger[ledger]
+	const binding = bindings[Source.EthereumEips_Github].find(({ target: bindingTarget }) => (
+		bindingTarget.key === `${target.owner}/${target.repo}@${target.ref}:${target.path}`
+	))
+	if (binding == null)
+		throw new Error(`EthereumEips_Github: ${ledger.toUpperCase()} source binding is missing`)
+
+	return binding
+}
 
 const githubTargetForLedger = (ledger: EthereumEipSpecLedger) => (
 	ethereumEipSpecGithubRepoByLedger[ledger]
@@ -55,27 +67,23 @@ export const getProposalMarkdownUrl = ({
 }
 
 export const getContents = ({
-	binding,
 	ledger,
 }: {
-	binding: SourceBinding
 	ledger: EthereumEipSpecLedger
 }) => (
-	sourceGetJson<GithubContentsEntry[]>(binding, getContentsUrl({ ledger }))
+	sourceGetJson<GithubContentsEntry[]>(bindingForLedger(ledger), getContentsUrl({ ledger }))
 )
 
 export const getRawMarkdownText = ({
 	ledger,
 	fileName,
 	downloadUrl,
-	binding,
 }: {
 	ledger: EthereumEipSpecLedger
 	fileName: string
 	downloadUrl: string | null | undefined
-	binding: SourceBinding
 }) => (
-	sourceGetText(binding, getRawMarkdownUrl({
+	sourceGetText(bindingForLedger(ledger), getRawMarkdownUrl({
 		ledger,
 		fileName,
 		downloadUrl,
@@ -85,13 +93,11 @@ export const getRawMarkdownText = ({
 export const getProposalMarkdownText = ({
 	ledger,
 	number,
-	binding,
 }: {
 	ledger: EthereumEipSpecLedger
 	number: number
-	binding: SourceBinding
 }) => {
-	return sourceGetText(binding, getProposalMarkdownUrl({
+	return sourceGetText(bindingForLedger(ledger), getProposalMarkdownUrl({
 		ledger,
 		number,
 	}))

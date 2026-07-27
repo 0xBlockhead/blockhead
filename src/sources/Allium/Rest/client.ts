@@ -1,19 +1,14 @@
 import { throwHttpError } from '$/lib/http.ts'
-import { sourceProviderDefinitions } from '$/sources/$sourceProviders.ts'
 import { requiredPublicEnvString } from '$/sources/$sources.ts'
 import type { SourcePublicEnv } from '$/sources/$sources.ts'
+import bindings from '$/sources/Allium/bindings.ts'
 import { Source } from '$/sources/Source.ts'
 import {
 	firstHttpUrlForBinding,
 	sourceFetch,
 } from '$/sources/_runtime/http.ts'
 
-const alliumRestBinding = sourceProviderDefinitions
-	.flatMap((provider) => provider.bindings)
-	.find((binding) => binding.source === Source.Allium_Rest)
-
-if (alliumRestBinding == null)
-	throw new Error('Allium_Rest: missing source binding')
+const binding = bindings[Source.Allium_Rest]
 
 export const alliumFetch = async <_Response>(
 	publicEnv: SourcePublicEnv,
@@ -21,8 +16,8 @@ export const alliumFetch = async <_Response>(
 	init?: RequestInit
 ): Promise<_Response> => {
 	const response = await sourceFetch(
-		alliumRestBinding,
-		new URL(pathAndQuery, firstHttpUrlForBinding(alliumRestBinding)).toString(),
+		binding,
+		new URL(pathAndQuery, firstHttpUrlForBinding(binding)).toString(),
 		{
 			...init,
 			headers: {

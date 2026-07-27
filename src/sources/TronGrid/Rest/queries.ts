@@ -1,5 +1,4 @@
 import { throwHttpError } from '$/lib/http.ts'
-import type { SourceBinding } from '$/sources/SourceBinding.ts'
 import {
 	firstHttpUrlForBinding,
 	sourceFetch,
@@ -17,13 +16,15 @@ import type {
 	TronNodeTransactionInfo,
 	TronNodeWitnesses,
 } from '$/sources/TronGrid/Rest/types.ts'
+import bindings from '$/sources/TronGrid/bindings.ts'
+import { Source } from '$/sources/Source.ts'
+
+const binding = bindings[Source.TronGrid_Rest]
 
 const tronGridPost = async <_Result>({
-	binding,
 	path,
 	body,
 }: {
-	binding: SourceBinding
 	path: string
 	body: JsonValue
 }) => {
@@ -43,14 +44,11 @@ const tronGridPost = async <_Result>({
 }
 
 export const getBlockByNumber = ({
-	binding,
 	height,
 }: {
-	binding: SourceBinding
 	height: bigint
 }) => (
 	tronGridPost<TronNodeBlock>({
-		binding,
 		path: 'wallet/getblockbynum',
 		body: {
 			num: Number(height),
@@ -59,13 +57,8 @@ export const getBlockByNumber = ({
 	})
 )
 
-export const getNowBlock = ({
-	binding,
-}: {
-	binding: SourceBinding
-}) => (
+export const getNowBlock = () => (
 	tronGridPost<TronNodeBlock>({
-		binding,
 		path: 'wallet/getnowblock',
 		body: {
 			visible: true,
@@ -74,14 +67,11 @@ export const getNowBlock = ({
 )
 
 export const getTransactionById = ({
-	binding,
 	transactionId,
 }: {
-	binding: SourceBinding
 	transactionId: string
 }) => (
 	tronGridPost<TronNodeTransaction>({
-		binding,
 		path: 'wallet/gettransactionbyid',
 		body: {
 			value: transactionId,
@@ -91,14 +81,11 @@ export const getTransactionById = ({
 )
 
 export const getTransactionInfoById = ({
-	binding,
 	transactionId,
 }: {
-	binding: SourceBinding
 	transactionId: string
 }) => (
 	tronGridPost<TronNodeTransactionInfo>({
-		binding,
 		path: 'wallet/gettransactioninfobyid',
 		body: {
 			value: transactionId,
@@ -107,14 +94,11 @@ export const getTransactionInfoById = ({
 )
 
 export const getAccount = ({
-	binding,
 	address,
 }: {
-	binding: SourceBinding
 	address: string
 }) => (
 	tronGridPost<TronNodeAccount>({
-		binding,
 		path: 'wallet/getaccount',
 		body: {
 			address,
@@ -124,14 +108,11 @@ export const getAccount = ({
 )
 
 export const getAccountResource = ({
-	binding,
 	address,
 }: {
-	binding: SourceBinding
 	address: string
 }) => (
 	tronGridPost<TronNodeAccountResource>({
-		binding,
 		path: 'wallet/getaccountresource',
 		body: {
 			address,
@@ -141,11 +122,9 @@ export const getAccountResource = ({
 )
 
 export const getAccountTransactions = ({
-	binding,
 	address,
 	limit,
 }: {
-	binding: SourceBinding
 	address: string
 	limit: number
 }) => (
@@ -155,13 +134,8 @@ export const getAccountTransactions = ({
 	)
 )
 
-export const listWitnesses = ({
-	binding,
-}: {
-	binding: SourceBinding
-}) => (
+export const listWitnesses = () => (
 	tronGridPost<TronNodeWitnesses>({
-		binding,
 		path: 'wallet/listwitnesses',
 		body: {
 			visible: true,
@@ -169,25 +143,15 @@ export const listWitnesses = ({
 	})
 )
 
-export const getChainParameters = ({
-	binding,
-}: {
-	binding: SourceBinding
-}) => (
+export const getChainParameters = () => (
 	tronGridPost<TronNodeChainParameters>({
-		binding,
 		path: 'wallet/getchainparameters',
 		body: {},
 	})
 )
 
-export const getNodeInfo = ({
-	binding,
-}: {
-	binding: SourceBinding
-}) => (
+export const getNodeInfo = () => (
 	tronGridPost<TronNodeInfo>({
-		binding,
 		path: 'wallet/getnodeinfo',
 		body: {},
 	})

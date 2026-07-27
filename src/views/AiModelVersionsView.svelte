@@ -2,69 +2,30 @@
 
 <script lang="ts">
 	// Types/constants
-	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
-	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
-	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
+	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-
-
 
 
 	// State
 	let {
 		selection,
-		countResource,
-		title = 'AI model versions',
-		typeAnnotationParagraphs = [],
-		placeholderText = undefined,
-		emptyText = undefined,
 		open = $bindable(true),
-		collapsible = true,
-		showTypeAnnotation = true,
-		id = 'AiModelVersions-list',
 		...EntitiesListProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyEntitiesSelection<EntityType.AiModelVersion>
-			countResource?: SvelteKitResource<number>
-			title?: string
-			typeAnnotationParagraphs?: string[]
-			placeholderText?: string
-			emptyText?: string
-			open?: boolean
-			collapsible?: boolean
-			showTypeAnnotation?: boolean
-			id?: string
-		},
-		EntitiesListForwardProps
-	> = $props()
+	}: EntityListViewProps<EntityType.AiModelVersion> = $props()
 
 
 	// Components
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView from '$/components/EntityView.svelte'
 </script>
 
-
-{#snippet TypeAnnotationParagraphs()}
-	{#each typeAnnotationParagraphs as paragraph (paragraph)}
-		<p>{paragraph}</p>
-	{/each}
-{/snippet}
 
 <EntitiesList
 	{...EntitiesListProps}
 	entityType={EntityType.AiModelVersion}
-	{id}
-	{title}
 	bind:open
-	{collapsible}
-	{showTypeAnnotation}
-	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
 	resource={
 		selection({
-			sources: selection.sources,
 			fields: {
 				versionId: true,
 				$model: true,
@@ -74,38 +35,23 @@
 			},
 		})
 	}
-	{countResource}
-	getResourceItems={(aiModelVersions) => [...new Map(aiModelVersions.values.map((aiModelVersion) => [aiModelVersion[EntityMetaKey.SelectorKey], aiModelVersion])).values()]}
-	getKey={(aiModelVersion) => aiModelVersion[EntityMetaKey.SelectorKey]}
-	{placeholderText}
 >
-	{#snippet Empty()}
-		{#if emptyText != null}
-			<p data-text="muted">{emptyText}</p>
-		{:else}
-			<p data-text="muted">No AI model versions yet.</p>
-		{/if}
-	{/snippet}
-
 	{#snippet Item({ item: aiModelVersion })}
-		{@const aiModelVersionFields = { ...aiModelVersion[EntityMetaKey.Selector], ...aiModelVersion }}
+		{@const aiModelVersionSelector = aiModelVersion[EntityMetaKey.Selector]}
 		<EntityView
 			entityType={EntityType.AiModelVersion}
-			entitySelector={aiModelVersion[EntityMetaKey.Selector]}
-			layout={EntityLayout.Summary}
-			open={false}
-			showTypeAnnotation={false}
+			entitySelector={aiModelVersionSelector}
 		>
 			{#snippet Title()}
-				{[String((aiModelVersionFields.versionId) ?? '')].filter(Boolean).join(' ') || [String((aiModelVersionFields.revision) ?? ''), [String((aiModelVersionFields.$artifact.artifactType) ?? '')].filter(Boolean).join(' ') || [String((aiModelVersionFields.$artifact.providerArtifactId) ?? ''), String((aiModelVersionFields.$artifact.ociDigest) ?? ''), String((aiModelVersionFields.$artifact.ipfsCid) ?? ''), String((aiModelVersionFields.$artifact.arweaveId) ?? ''), String((aiModelVersionFields.$artifact.gitObject) ?? ''), String((aiModelVersionFields.$artifact.digest) ?? '')].filter(Boolean).join(' ') || 'AI artifact'].filter(Boolean).join(' ') || 'AI model version'}
+				{(aiModelVersionSelector.versionId ?? '') || ([(aiModelVersionSelector.revision ?? ''), aiModelVersion.$artifact == null ? '' : (aiModelVersion.$artifact.artifactType ?? '') || [(aiModelVersion.$artifact.providerArtifactId ?? ''), (aiModelVersion.$artifact.ociDigest ?? ''), (aiModelVersion.$artifact.ipfsCid ?? ''), (aiModelVersion.$artifact.arweaveId ?? ''), (aiModelVersion.$artifact.gitObject ?? ''), String(aiModelVersion.$artifact.digest ?? '')].filter(Boolean).join(' ') || 'AI artifact'].filter(Boolean).join(' ')) || 'AI model version'}
 			{/snippet}
 
 			{#snippet Value()}
-				{[[String((aiModelVersionFields.$model.label) ?? '')].filter(Boolean).join(' ') || [String((aiModelVersionFields.$model.providerModelId) ?? '')].filter(Boolean).join(' ') || 'AI model'].filter(Boolean).join(' ')}
+				{aiModelVersion.$model == null ? '' : (aiModelVersion.$model.label ?? '') || aiModelVersion.$model.providerModelId || 'AI model'}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{[String((aiModelVersionFields.quantization) ?? '')].filter(Boolean).join(' ')}</span>
+				<span data-text="annotation">{(aiModelVersion.quantization ?? '')}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

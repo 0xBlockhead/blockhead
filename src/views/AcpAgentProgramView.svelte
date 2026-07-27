@@ -2,13 +2,8 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
 	import { UrlString } from '$/schema/UrlString.ts'
 
 
@@ -17,40 +12,21 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.AcpAgentProgram>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.AcpAgentProgram>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.AcpAgentProgram> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const acpAgentProgram = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const acpAgentProgram = $derived(selection({
 		fields: {
 			label: true,
-		},
-	} : {
-		sources: selection.sources,
-		fields: {
-			label: true,
+			packageName: true,
+			registryAgentId: true,
+			repositoryUrl: true,
 		},
 	}))
-	const titleFallback = $derived([String((pendingEntity.label) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.registryAgentId) ?? ''), String((pendingEntity.packageName) ?? ''), String((pendingEntity.repositoryUrl) ?? '')].filter(Boolean).join(' ') || 'ACP agent program')
-	const viewDomId = $derived('acp-agent-program-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const titleFallback = $derived((pendingEntity.label ?? '') || [(pendingEntity.registryAgentId ?? ''), (pendingEntity.packageName ?? ''), String(pendingEntity.repositoryUrl ?? '')].filter(Boolean).join(' ') || 'ACP agent program')
 
 
 	// Components
@@ -61,60 +37,40 @@
 
 <EntityView
 	entityType={EntityType.AcpAgentProgram}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'label') && Object.hasOwn(prefetched, 'packageName') && Object.hasOwn(prefetched, 'registryAgentId') && Object.hasOwn(prefetched, 'repositoryUrl')}
-			{[String((pendingEntity.label) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-		{:else}
-			<ResourceBoundary resource={acpAgentProgram}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.label) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={acpAgentProgram}>
+			{#snippet children(entity)}
+				{(entity.label ?? '') || title || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Value()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'label') && Object.hasOwn(prefetched, 'packageName') && Object.hasOwn(prefetched, 'registryAgentId') && Object.hasOwn(prefetched, 'repositoryUrl')}
-			{[String((pendingEntity.packageName) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.label) ?? '')].filter(Boolean).join(' ') || titleFallback}
-		{:else}
-			<ResourceBoundary resource={acpAgentProgram}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.packageName) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.label) ?? '')].filter(Boolean).join(' ') || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={acpAgentProgram}>
+			{#snippet children(entity)}
+				{(entity.packageName ?? '') || (entity.label ?? '') || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
 		<dl data-column-item="center">
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							registryAgentId: true,
-						},
-					})
-				}
+				resource={acpAgentProgram}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const registryAgentId = resolvedEntity.registryAgentId}
-					{#if registryAgentId !== undefined && registryAgentId !== null}
+					{@const registryAgentId = entity.registryAgentId}
+					{#if registryAgentId != null}
 						<div>
 							<dt>registry agent ID</dt>
 							<dd>
-								{String((registryAgentId) ?? '')}
+								{registryAgentId}
 							</dd>
 						</div>
 					{/if}
@@ -122,23 +78,15 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							packageName: true,
-						},
-					})
-				}
+				resource={acpAgentProgram}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const packageName = resolvedEntity.packageName}
-					{#if packageName !== undefined && packageName !== null}
+					{@const packageName = entity.packageName}
+					{#if packageName != null}
 						<div>
 							<dt>package name</dt>
 							<dd>
-								{String((packageName) ?? '')}
+								{packageName}
 							</dd>
 						</div>
 					{/if}
@@ -146,30 +94,21 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							repositoryUrl: true,
-						},
-					})
-				}
+				resource={acpAgentProgram}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const repositoryUrl = resolvedEntity.repositoryUrl}
-					{#if repositoryUrl !== undefined && repositoryUrl !== null}
+					{@const repositoryUrl = entity.repositoryUrl}
+					{#if repositoryUrl != null}
 						<div>
 							<dt>repository URL</dt>
 							<dd>
-								<svelte:element
-									this={'a'}
+								<a
 									href={String(repositoryUrl)}
 									target="_blank"
 									rel="noreferrer noopener"
 								>
 									<TruncatedValue value={String(repositoryUrl)} />
-								</svelte:element>
+								</a>
 							</dd>
 						</div>
 					{/if}
@@ -177,23 +116,15 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							label: true,
-						},
-					})
-				}
+				resource={acpAgentProgram}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const label = resolvedEntity.label}
-					{#if label !== undefined && label !== null}
+					{@const label = entity.label}
+					{#if label != null}
 						<div>
 							<dt>Label</dt>
 							<dd>
-								{String((label) ?? '')}
+								{label}
 							</dd>
 						</div>
 					{/if}
@@ -203,7 +134,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							authors: true,
 						},
@@ -211,13 +141,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const authors = resolvedEntity.authors}
-					{#if authors !== undefined && authors !== null}
+					{@const authors = entity.authors}
+					{#if authors != null}
 						<div>
 							<dt>authors</dt>
 							<dd>
-								{authors == null ? '' : String(((authors).join(', ')) ?? '')}
+								{authors.join(', ')}
 							</dd>
 						</div>
 					{/if}

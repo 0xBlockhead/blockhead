@@ -1,15 +1,12 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { entity, facet } from '$/schema/$schema.ts'
+import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 import { type } from 'arktype'
 
-export enum PayoutSelector {
-	SourcePayoutId = 'SourcePayoutId',
-}
-export const Payout = entity({
+export default entity({
 	entityType: EntityType.Payout,
 	labels: {
 		singular: 'payout',
@@ -62,7 +59,7 @@ export const Payout = entity({
 	merkleRoot: {
 		label: 'merkle root',
 		type: EntityFieldType.Primitive,
-		primitiveType: (ZeroExHex),
+		primitiveType: ZeroExHex,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	paymentAsset: {

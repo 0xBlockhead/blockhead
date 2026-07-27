@@ -1,16 +1,12 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { entity, facet } from '$/schema/$schema.ts'
+import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { UrlString } from '$/schema/UrlString.ts'
 import { type } from 'arktype'
 
-export enum AiModelProviderSelector {
-	Domain = 'Domain',
-	ProviderId = 'ProviderId',
-}
-export const AiModelProvider = entity({
+export default entity({
 	entityType: EntityType.AiModelProvider,
 	labels: {
 		singular: 'AI model provider',
@@ -45,13 +41,13 @@ export const AiModelProvider = entity({
 	homepageUrl: {
 		label: 'homepage URL',
 		type: EntityFieldType.Primitive,
-		primitiveType: (UrlString),
+		primitiveType: UrlString,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	docsUrl: {
 		label: 'docs URL',
 		type: EntityFieldType.Primitive,
-		primitiveType: (UrlString),
+		primitiveType: UrlString,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$$catalogEntries: {

@@ -7,7 +7,6 @@
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
@@ -44,31 +43,12 @@
 
 
 <svelte:head>
-	<title>{(pageSelection.entity == null ? [String(({
-		$subreddit: {
-			name: decodeURIComponent(params.name),
-		},
-		timestampMs: Number(params.timestampMs),
-		source: params.source,
-	}.timestampMs) ?? '')].filter(Boolean).join(' ') || 'Reddit subreddit timestamp' : [String((({ ...{
-		$subreddit: {
-			name: decodeURIComponent(params.name),
-		},
-		timestampMs: Number(params.timestampMs),
-		source: params.source,
-	}, ...pageSelection.entity }).timestampMs) ?? '')].filter(Boolean).join(' ') || 'Reddit subreddit timestamp')} • Reddit subreddit timestamp • Blockhead</title>
+	<title>{(String(pageSelection.entitySelector.timestampMs) || 'Reddit subreddit timestamp')} • Reddit subreddit timestamp • Blockhead</title>
 </svelte:head>
 
 
 <Page>
 	<RedditSubreddit_TimestampView
-		href={
-			resolve('/reddit/r/[name=stringSegment]/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]', {
-				name: params.name,
-				timestampMs: params.timestampMs,
-				source: params.source,
-			})
-		}
 		selection={pageSelection}
 	/>
 </Page>

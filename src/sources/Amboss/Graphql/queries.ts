@@ -44,6 +44,8 @@ export const getNode = async ({
 		`),
 		{ pubkey: publicKey }
 	).then((data) => data.getNode)
+	if (node.graph_info.node == null)
+		throw new Error('Amboss_Graphql: node response is missing graph identity')
 	if (node.graph_info.node.pub_key !== publicKey)
 		throw new Error('Amboss_Graphql: node response has mismatched identity')
 	return node
@@ -82,6 +84,8 @@ export const getEdge = async ({
 		`),
 		{ id: channelId }
 	).then((data) => data.getEdge)
+	if (edge.graph == null)
+		throw new Error('Amboss_Graphql: channel response is missing graph identity')
 	assertChannelId(edge.long_channel_id)
 	assertChannelId(edge.short_channel_id)
 	if (edge.long_channel_id !== channelId && edge.short_channel_id !== channelId)

@@ -3,116 +3,62 @@
 <script lang="ts">
 	// Types/constants
 	import { resolve } from '$app/paths'
-	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
-	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
-	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
+	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-
-
+	import { Source } from '$/sources/Source.ts'
 
 
 	// State
 	let {
 		selection,
-		countResource,
-		title = 'Contacts',
-		typeAnnotationParagraphs = [],
-		placeholderText = undefined,
-		emptyText = undefined,
 		open = $bindable(true),
-		collapsible = true,
-		showTypeAnnotation = true,
-		id = 'BlockheadRoomPeers-list',
 		...EntitiesListProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyEntitiesSelection<EntityType.BlockheadRoomPeer>
-			countResource?: SvelteKitResource<number>
-			title?: string
-			typeAnnotationParagraphs?: string[]
-			placeholderText?: string
-			emptyText?: string
-			open?: boolean
-			collapsible?: boolean
-			showTypeAnnotation?: boolean
-			id?: string
-		},
-		EntitiesListForwardProps
-	> = $props()
+	}: EntityListViewProps<EntityType.BlockheadRoomPeer> = $props()
 
 
 	// Components
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView from '$/components/EntityView.svelte'
 </script>
 
-
-{#snippet TypeAnnotationParagraphs()}
-	{#each typeAnnotationParagraphs as paragraph (paragraph)}
-		<p>{paragraph}</p>
-	{/each}
-{/snippet}
 
 <EntitiesList
 	{...EntitiesListProps}
 	entityType={EntityType.BlockheadRoomPeer}
-	{id}
-	{title}
 	bind:open
-	{collapsible}
-	{showTypeAnnotation}
-	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
 	resource={
 		selection({
-			sources: selection.sources,
+			sources: selection.sources ?? [
+				Source.Local_Internal,
+			],
 			fields: {
 				displayName: true,
 				isConnected: true,
 				peerId: true,
-				id: true,
 			},
 		})
 	}
-	{countResource}
-	getResourceItems={(blockheadRoomPeers) => [...new Map(blockheadRoomPeers.values.map((blockheadRoomPeer) => [blockheadRoomPeer[EntityMetaKey.SelectorKey], blockheadRoomPeer])).values()]}
-	getKey={(blockheadRoomPeer) => blockheadRoomPeer[EntityMetaKey.SelectorKey]}
-	{placeholderText}
 >
-	{#snippet Empty()}
-		{#if emptyText != null}
-			<p data-text="muted">{emptyText}</p>
-		{:else}
-			<p data-text="muted">No Contacts yet.</p>
-		{/if}
-	{/snippet}
-
 	{#snippet Item({ item: blockheadRoomPeer })}
-		{@const blockheadRoomPeerFields = { ...blockheadRoomPeer[EntityMetaKey.Selector], ...blockheadRoomPeer }}
+		{@const blockheadRoomPeerSelector = blockheadRoomPeer[EntityMetaKey.Selector]}
 		<EntityView
 			entityType={EntityType.BlockheadRoomPeer}
-			entitySelector={blockheadRoomPeer[EntityMetaKey.Selector]}
+			entitySelector={blockheadRoomPeerSelector}
 			href={
-				(
-					blockheadRoomPeer[EntityMetaKey.Selector] != null && 'id' in blockheadRoomPeer[EntityMetaKey.Selector]
-					&& blockheadRoomPeer[EntityMetaKey.Selector].id != null ?
-						resolve('/~/multiplayer/contact/[contactId=stringSegment]', {
-					contactId: String(blockheadRoomPeer[EntityMetaKey.Selector].id ?? ''),
-				})
-				:
-						undefined
+				resolve(
+					'/~/multiplayer/contact/[contactId=stringSegment]',
+					{
+						contactId: String(blockheadRoomPeerSelector.id),
+					}
 				)
 			}
-			layout={EntityLayout.Summary}
-			open={false}
-			showTypeAnnotation={false}
 		>
 			{#snippet Title()}
-				{[String((blockheadRoomPeerFields.displayName) ?? '')].filter(Boolean).join(' ') || [String((blockheadRoomPeerFields.peerId) ?? '')].filter(Boolean).join(' ') || 'contact'}
+				{(blockheadRoomPeer.displayName ?? '') || blockheadRoomPeer.peerId || 'contact'}
 			{/snippet}
 
 			{#snippet Value()}
-				{[String((blockheadRoomPeerFields.isConnected) ?? '')].filter(Boolean).join(' ')}
+				{String(blockheadRoomPeer.isConnected)}
 			{/snippet}
 		</EntityView>
 	{/snippet}

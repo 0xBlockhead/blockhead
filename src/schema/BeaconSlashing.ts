@@ -1,14 +1,11 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { entity, facet } from '$/schema/$schema.ts'
+import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { type } from 'arktype'
 
-export enum BeaconSlashingSelector {
-	EvmNetworkSlotKindIndexInSlot = 'EvmNetworkSlotKindIndexInSlot',
-}
-export const BeaconSlashing = entity({
+export default entity({
 	entityType: EntityType.BeaconSlashing,
 	labels: {
 		singular: 'beacon slashing',
@@ -24,7 +21,7 @@ export const BeaconSlashing = entity({
 	slot: {
 		label: 'Slot',
 		type: EntityFieldType.Primitive,
-		primitiveType: (type('number.integer >= 0')),
+		primitiveType: type('number.integer >= 0'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	kind: {
@@ -36,7 +33,7 @@ export const BeaconSlashing = entity({
 	indexInSlot: {
 		label: 'Index in slot',
 		type: EntityFieldType.Primitive,
-		primitiveType: (type('number.integer >= 0')),
+		primitiveType: type('number.integer >= 0'),
 		cardinality: EntityFieldCardinality.One,
 	},
 })({

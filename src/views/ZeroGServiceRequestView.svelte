@@ -2,14 +2,10 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -21,35 +17,20 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.ZeroGServiceRequest>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.ZeroGServiceRequest>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.ZeroGServiceRequest> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const zeroGServiceRequest = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {},
-	} : {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const viewSelection = $derived(selection({
+		sources: selection.sources ?? [
+			Source.ZeroGChain_JsonRpc,
+			Source.ZeroGStorageNode_JsonRpc,
+			Source.ZeroGStorageScan_Rest,
+		],
 	}))
-	const titleFallback = $derived([String((pendingEntity.requestId) ?? '')].filter(Boolean).join(' ') || 'zero g service request')
-	const viewDomId = $derived('zero-gservice-request-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const titleFallback = $derived((pendingEntity.requestId ?? '') || 'zero g service request')
 
 
 	// Components
@@ -63,67 +44,40 @@
 
 <EntityView
 	entityType={EntityType.ZeroGServiceRequest}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={zeroGServiceRequest}>
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.requestId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{(pendingEntity.requestId ?? '') || 'zero g service request'}
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={zeroGServiceRequest}>
-			{#snippet children(entity)}
-				<ZeroGServiceProviderView
-					selection={select(EntityType.ZeroGServiceProvider, selection.entitySelector.$serviceProvider)}
-					href=""
-					layout={EntityLayout.Value}
-					open={false}
-				/>
-			{/snippet}
-		</ResourceBoundary>
+		<ZeroGServiceProviderView
+			selection={select(EntityType.ZeroGServiceProvider, selection.entitySelector.$serviceProvider)}
+			href=""
+			layout={EntityLayout.Value}
+			open={false}
+		/>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		<ResourceBoundary resource={zeroGServiceRequest}>
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				<ResourceBoundary
-					resource={selection.$requester}
-				>
-					{#snippet children(evmAccount)}
-						{#if evmAccount != null && evmAccount[EntityMetaKey.Selector] != null}
-							<span data-text="muted">
-								<EvmAccountView
-									selection={select(EntityType.EvmAccount, evmAccount[EntityMetaKey.Selector])}
-									prefetched={evmAccount}
-									href={
-										(
-											evmAccount[EntityMetaKey.Selector] != null && 'address' in evmAccount[EntityMetaKey.Selector]
-											&& evmAccount[EntityMetaKey.Selector].address != null ?
-												resolve('/account/[address=evmAddress]', {
-											address: String(evmAccount[EntityMetaKey.Selector].address ?? ''),
-										})
-										:
-												undefined
-										)
-									}
-									layout={EntityLayout.Title}
-									open={false}
-								/>
-							</span>
-						{/if}
-					{/snippet}
-				</ResourceBoundary>
+		<ResourceBoundary
+			resource={selection.$requester}
+		>
+			{#snippet children(evmAccount)}
+				{#if evmAccount != null}
+					<span data-text="muted">
+						<EvmAccountView
+							selection={select(EntityType.EvmAccount, evmAccount[EntityMetaKey.Selector])}
+							prefetched={evmAccount}
+							layout={EntityLayout.Title}
+							open={false}
+						/>
+					</span>
+				{/if}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -144,24 +98,7 @@
 			<div>
 				<dt>request ID</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									requestId: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const requestId = resolvedEntity.requestId}
-							{#if requestId !== undefined && requestId !== null}
-								{String((requestId) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{pendingEntity.requestId}
 				</dd>
 			</div>
 
@@ -169,24 +106,13 @@
 				resource={selection.$requester}
 			>
 				{#snippet children(evmAccount)}
-					{#if evmAccount != null && evmAccount[EntityMetaKey.Selector] != null}
+					{#if evmAccount != null}
 						<div>
 							<dt>requester</dt>
 							<dd>
 								<EvmAccountView
 									selection={select(EntityType.EvmAccount, evmAccount[EntityMetaKey.Selector])}
 									prefetched={evmAccount}
-									href={
-										(
-											evmAccount[EntityMetaKey.Selector] != null && 'address' in evmAccount[EntityMetaKey.Selector]
-											&& evmAccount[EntityMetaKey.Selector].address != null ?
-												resolve('/account/[address=evmAddress]', {
-											address: String(evmAccount[EntityMetaKey.Selector].address ?? ''),
-										})
-										:
-												undefined
-										)
-									}
 									layout={EntityLayout.Value}
 									open={false}
 								/>
@@ -198,8 +124,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							requestHash: true,
 						},
@@ -207,13 +132,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const requestHash = resolvedEntity.requestHash}
-					{#if requestHash !== undefined && requestHash !== null}
+					{@const requestHash = entity.requestHash}
+					{#if requestHash != null}
 						<div>
 							<dt>request hash</dt>
 							<dd>
-								<TruncatedValue value={String((requestHash) ?? '')} />
+								<TruncatedValue value={requestHash} />
 							</dd>
 						</div>
 					{/if}
@@ -222,8 +146,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							responseHash: true,
 						},
@@ -231,13 +154,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const responseHash = resolvedEntity.responseHash}
-					{#if responseHash !== undefined && responseHash !== null}
+					{@const responseHash = entity.responseHash}
+					{#if responseHash != null}
 						<div>
 							<dt>response hash</dt>
 							<dd>
-								<TruncatedValue value={String((responseHash) ?? '')} />
+								<TruncatedValue value={responseHash} />
 							</dd>
 						</div>
 					{/if}
@@ -248,7 +170,7 @@
 				resource={selection.$settlementTrace}
 			>
 				{#snippet children(zeroGSettlementTrace)}
-					{#if zeroGSettlementTrace != null && zeroGSettlementTrace[EntityMetaKey.Selector] != null}
+					{#if zeroGSettlementTrace != null}
 						<div>
 							<dt>settlement trace</dt>
 							<dd>

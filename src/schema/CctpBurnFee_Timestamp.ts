@@ -1,14 +1,11 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { entity, facet } from '$/schema/$schema.ts'
+import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { type } from 'arktype'
 
-export enum CctpBurnFee_TimestampSelector {
-	SourceDomainDestinationDomainTimestampMsSource = 'SourceDomainDestinationDomainTimestampMsSource',
-}
-export const CctpBurnFee_Timestamp = entity({
+export default entity({
 	entityType: EntityType.CctpBurnFee_Timestamp,
 	labels: {
 		singular: 'CCTP burn fee timestamp',

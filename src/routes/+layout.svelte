@@ -23,6 +23,8 @@
 		schemaMeta,
 	} from '$/schema/index.ts'
 	import { sourceProviders } from '$/sources/index.ts'
+	import type { Source } from '$/sources/Source.ts'
+	import type { SourceProvider } from '$/sources/SourceProvider.ts'
 	import { indexSourceProviders } from '$/sources/$sources.ts'
 	import { applicationRuntimeWhenReady } from './applicationRuntime.ts'
 	import { databaseCloseWhenReady } from './databaseLifecycle.ts'
@@ -39,7 +41,11 @@
 		data.databaseClose = closeDatabase()
 	})
 
-	type AppClient = ReturnType<ReturnType<ReturnType<typeof client>>>
+	type AppClient = ReturnType<ReturnType<ReturnType<typeof client<
+		typeof schema,
+		SourceProvider,
+		Source
+	>>>>
 	let appClient: AppClient | undefined
 	const bootstrap = Promise.all([
 		loadResolvers(indexSourceProviders(sourceProviders, env).enabledSources),
@@ -109,7 +115,7 @@
 	import {
 		mountWalletConnectionRuntime,
 	} from '$/state/wallets/walletConnectionRuntime.svelte.ts'
-	import { navigationItems } from './navigationItems.svelte.ts'
+	import navigationItems from './navigationItems.svelte.ts'
 
 
 	// State

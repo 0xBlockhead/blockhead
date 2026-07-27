@@ -1,47 +1,28 @@
-import { corsFetch, throwIfHttpNotOk } from '$/lib/http.ts'
+import { throwIfHttpNotOk } from '$/lib/http.ts'
+import { Source } from '$/sources/Source.ts'
+import bindings from '$/sources/Payjoin/bindings.ts'
+import { sourceFetch } from '$/sources/_runtime/http.ts'
 
-const base = (directoryUrl: string) => directoryUrl.replace(/\/$/, '')
-const payjoinOrigins = [
-	{
-		origin: 'https://{payjoin-ohttp-relay-host}',
-		corsEnabled: false,
-	},
-	{
-		origin: 'https://{payjoin-receiver-host}',
-		corsEnabled: false,
-	},
-	{
-		origin: 'https://payjo.in',
-		corsEnabled: false,
-	},
-	{
-		origin: 'http://127.0.0.1:8080',
-		corsEnabled: false,
-	},
-	{
-		origin: 'http://localhost:8080',
-		corsEnabled: false,
-	},
-] as const
+const payjoinDirectoryBinding = bindings[Source.PayjoinDirectory_Rest]
 
 export const ohttpGatewayUrlForDirectory = (directoryUrl: string) => (
-	`${base(directoryUrl)}/.well-known/ohttp-gateway`
+	`${directoryUrl.replace(/\/$/, '')}/.well-known/ohttp-gateway`
 )
 
-export const getOhttpKeyConfigBase64 = async ({
-	directoryUrl,
-}: {
-	directoryUrl: string
-}) => {
+export const getOhttpKeyConfigBase64 = async (
+	{
+		directoryUrl,
+	}: {
+		directoryUrl: string
+	}
+) => {
 	const url = ohttpGatewayUrlForDirectory(directoryUrl)
-	const response = await corsFetch(
+	const response = await sourceFetch(
+		payjoinDirectoryBinding,
 		url,
 		{
-			origins: payjoinOrigins,
-			init: {
-				headers: {
-					accept: 'application/ohttp-keys',
-				},
+			headers: {
+				accept: 'application/ohttp-keys',
 			},
 		}
 	)

@@ -2,69 +2,32 @@
 
 <script lang="ts">
 	// Types/constants
-	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
-	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
-	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
+	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-
-
 
 
 	// State
 	let {
 		selection,
-		countResource,
 		title = 'Blockhead Avalanche node states',
-		typeAnnotationParagraphs = [],
-		placeholderText = undefined,
-		emptyText = undefined,
 		open = $bindable(true),
-		collapsible = true,
-		showTypeAnnotation = true,
-		id = 'BlockheadAvalancheNodeStates-list',
 		...EntitiesListProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyEntitiesSelection<EntityType.BlockheadAvalancheNodeState>
-			countResource?: SvelteKitResource<number>
-			title?: string
-			typeAnnotationParagraphs?: string[]
-			placeholderText?: string
-			emptyText?: string
-			open?: boolean
-			collapsible?: boolean
-			showTypeAnnotation?: boolean
-			id?: string
-		},
-		EntitiesListForwardProps
-	> = $props()
+	}: EntityListViewProps<EntityType.BlockheadAvalancheNodeState> = $props()
 
 
 	// Components
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView from '$/components/EntityView.svelte'
 </script>
 
-
-{#snippet TypeAnnotationParagraphs()}
-	{#each typeAnnotationParagraphs as paragraph (paragraph)}
-		<p>{paragraph}</p>
-	{/each}
-{/snippet}
 
 <EntitiesList
 	{...EntitiesListProps}
 	entityType={EntityType.BlockheadAvalancheNodeState}
-	{id}
 	{title}
 	bind:open
-	{collapsible}
-	{showTypeAnnotation}
-	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
 	resource={
 		selection({
-			sources: selection.sources,
 			fields: {
 				nodeId: true,
 				$network: true,
@@ -72,38 +35,23 @@
 			},
 		})
 	}
-	{countResource}
-	getResourceItems={(blockheadAvalancheNodeStates) => [...new Map(blockheadAvalancheNodeStates.values.map((blockheadAvalancheNodeState) => [blockheadAvalancheNodeState[EntityMetaKey.SelectorKey], blockheadAvalancheNodeState])).values()]}
-	getKey={(blockheadAvalancheNodeState) => blockheadAvalancheNodeState[EntityMetaKey.SelectorKey]}
-	{placeholderText}
 >
-	{#snippet Empty()}
-		{#if emptyText != null}
-			<p data-text="muted">{emptyText}</p>
-		{:else}
-			<p data-text="muted">No Blockhead avalanche node states yet.</p>
-		{/if}
-	{/snippet}
-
 	{#snippet Item({ item: blockheadAvalancheNodeState })}
-		{@const blockheadAvalancheNodeStateFields = { ...blockheadAvalancheNodeState[EntityMetaKey.Selector], ...blockheadAvalancheNodeState }}
+		{@const blockheadAvalancheNodeStateSelector = blockheadAvalancheNodeState[EntityMetaKey.Selector]}
 		<EntityView
 			entityType={EntityType.BlockheadAvalancheNodeState}
-			entitySelector={blockheadAvalancheNodeState[EntityMetaKey.Selector]}
-			layout={EntityLayout.Summary}
-			open={false}
-			showTypeAnnotation={false}
+			entitySelector={blockheadAvalancheNodeStateSelector}
 		>
 			{#snippet Title()}
-				{[String((blockheadAvalancheNodeStateFields.nodeId) ?? '')].filter(Boolean).join(' ') || 'blockhead avalanche node state'}
+				{blockheadAvalancheNodeStateSelector.nodeId || 'blockhead avalanche node state'}
 			{/snippet}
 
 			{#snippet Value()}
-				{[[String((blockheadAvalancheNodeStateFields.$network.name) ?? '')].filter(Boolean).join(' ') || [blockheadAvalancheNodeStateFields.$network.caip2 == null ? '' : String(`${(blockheadAvalancheNodeStateFields.$network.caip2).namespace}:${(blockheadAvalancheNodeStateFields.$network.caip2).reference}`)].filter(Boolean).join(' ') || 'Network'].filter(Boolean).join(' ')}
+				{blockheadAvalancheNodeState.$network == null ? '' : blockheadAvalancheNodeState.$network.name || (blockheadAvalancheNodeState.$network.caip2 == null ? '' : `${blockheadAvalancheNodeState.$network.caip2.namespace}:${blockheadAvalancheNodeState.$network.caip2.reference}`) || 'Network'}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{[String((blockheadAvalancheNodeStateFields.nodeIp) ?? '')].filter(Boolean).join(' ')}</span>
+				<span data-text="annotation">{(blockheadAvalancheNodeState.nodeIp ?? '')}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

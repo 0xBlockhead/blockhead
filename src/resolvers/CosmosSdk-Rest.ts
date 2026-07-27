@@ -10,8 +10,6 @@ import {
 import { TransportType } from '$/constants/TransportType.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
-import { sourceProviderDefinitions } from '$/sources/$sourceProviders.ts'
-import { SourceTargetKind } from '$/sources/SourceBinding.ts'
 import {
 	EntityMetaKey,
 	entityFieldAddressKey,
@@ -23,21 +21,8 @@ import type {
 	CosmosSdkTxsEventResponse,
 } from '$/sources/CosmosSdk/Rest/types.ts'
 import type { JsonValue } from '$/typescript/JsonValue.ts'
-import { NetworkSelector } from '$/schema/Network.ts'
-import { Network_TimestampSelector } from '$/schema/Network_Timestamp.ts'
-import { CosmosBlockSelector } from '$/schema/CosmosBlock.ts'
-import { CosmosTransactionSelector } from '$/schema/CosmosTransaction.ts'
-import { CosmosAccountSelector } from '$/schema/CosmosAccount.ts'
-import { CosmosAccount_TimestampSelector } from '$/schema/CosmosAccount_Timestamp.ts'
-import { CosmosValidatorSelector } from '$/schema/CosmosValidator.ts'
-import { CosmosValidator_TimestampSelector } from '$/schema/CosmosValidator_Timestamp.ts'
-import { CosmosMessageSelector } from '$/schema/CosmosMessage.ts'
-import { CosmosGovernanceProposalSelector } from '$/schema/CosmosGovernanceProposal.ts'
-import { CosmosGovernanceProposal_TimestampSelector } from '$/schema/CosmosGovernanceProposal_Timestamp.ts'
-import { CosmosDenomSelector } from '$/schema/CosmosDenom.ts'
-import { CosmosModuleSelector } from '$/schema/CosmosModule.ts'
-import { CosmosContractSelector } from '$/schema/CosmosContract.ts'
 import { schema } from '$/schema/index.ts'
+import { endpointLocators } from '$/sources/CosmosSdk/Rest/queries.ts'
 
 type NetworkId = EntitySelector<typeof schema, EntityType.Network>
 
@@ -57,19 +42,6 @@ const assertCosmosHub = (network: NetworkId) => {
 
 	throw new Error('CosmosSdk_Rest: unsupported network')
 }
-
-const cosmosSdkBindings = sourceProviderDefinitions
-	.flatMap((provider) => provider.bindings)
-	.filter((binding) => (
-		binding.source === Source.CosmosSdk_Rest
-		&& binding.target.kind === SourceTargetKind.Caip2Network
-		&& binding.target.key === `${cosmosNetworkBySlug.cosmos.caip2.namespace}:${cosmosNetworkBySlug.cosmos.caip2.reference}`
-	))
-
-if (cosmosSdkBindings.length !== 1)
-	throw new Error('CosmosSdk_Rest: canonical Cosmos Hub source binding is missing or ambiguous')
-
-const cosmosSdkBinding = cosmosSdkBindings[0]
 
 const cosmosNetworkApplicability = [
 	{
@@ -478,21 +450,21 @@ export default {
 		defineResolver(Source.CosmosSdk_Rest, {
 			entityType: EntityType.Network,
 			resolve: {
-				[NetworkSelector.Caip2]: {
+				Caip2: {
 					appliesTo: [cosmosNetworkApplicability[0]],
 					resolve: async () => (
-						cosmosSdkBinding.endpoints.map((endpoint) => ({
-							url: endpoint.locator,
+						endpointLocators.map((url) => ({
+							url,
 							transportType: TransportType.Http,
 							providerName: 'Cosmos Directory',
 						}))
 					),
 				},
-				[NetworkSelector.Slug]: {
+				Slug: {
 					appliesTo: [cosmosNetworkApplicability[1]],
 					resolve: async () => (
-						cosmosSdkBinding.endpoints.map((endpoint) => ({
-							url: endpoint.locator,
+						endpointLocators.map((url) => ({
+							url,
 							transportType: TransportType.Http,
 							providerName: 'Cosmos Directory',
 						}))
@@ -508,7 +480,7 @@ export default {
 		defineResolver(Source.CosmosSdk_Rest, {
 			entityType: EntityType.Network_Timestamp,
 			resolve: {
-				[Network_TimestampSelector.NetworkTimestampMsSource]: {
+				NetworkTimestampMsSource: {
 					appliesTo: cosmosNetworkTimestampApplicability,
 					resolve: async ({
 						$network,
@@ -529,15 +501,14 @@ export default {
 							bondedValidators,
 							stakingPool,
 						] = await Promise.all([
-							getLatestBlock({ binding: cosmosSdkBinding }),
-							getNodeInfo({ binding: cosmosSdkBinding }),
-							getSyncing({ binding: cosmosSdkBinding }),
+							getLatestBlock(),
+							getNodeInfo(),
+							getSyncing(),
 							getValidators({
-								binding: cosmosSdkBinding,
 								limit: 1,
 								status: 'BOND_STATUS_BONDED',
 							}),
-							getStakingPool({ binding: cosmosSdkBinding }),
+							getStakingPool(),
 						])
 						return {
 							$network: {
@@ -590,13 +561,12 @@ export default {
 		defineResolver(Source.CosmosSdk_Rest, {
 			entityType: EntityType.CosmosBlock,
 			resolve: {
-				[CosmosBlockSelector.NetworkHeight]: {
+				NetworkHeight: {
 					appliesTo: cosmosNetworkReferenceApplicability,
 					resolve: async ({ $network, height }) => {
 
 						const { getBlock } = await import('$/sources/CosmosSdk/Rest/queries.ts')
 						const wireBlock = await getBlock({
-							binding: cosmosSdkBinding,
 							height,
 						})
 						return {
@@ -618,14 +588,13 @@ export default {
 		defineResolver(Source.CosmosSdk_Rest, {
 			entityType: EntityType.CosmosTransaction,
 			resolve: {
-				[CosmosTransactionSelector.NetworkTxHash]: {
+				NetworkTxHash: {
 					appliesTo: cosmosNetworkReferenceApplicability,
 					resolve: async (entitySelector) => {
 						assertCosmosHub(entitySelector.$network)
 
 						const { getTx } = await import('$/sources/CosmosSdk/Rest/queries.ts')
 						const wireTransaction = await getTx({
-							binding: cosmosSdkBinding,
 							txHash: entitySelector.txHash,
 						})
 						if (wireTransaction.tx_response.txhash !== entitySelector.txHash)
@@ -655,7 +624,7 @@ export default {
 		defineResolver(Source.CosmosSdk_Rest, {
 			entityType: EntityType.CosmosAccount,
 			resolve: {
-				[CosmosAccountSelector.NetworkAddress]: {
+				NetworkAddress: {
 					appliesTo: cosmosNetworkReferenceApplicability,
 					resolve: async (entitySelector) => {
 						const { $network, address } = entitySelector
@@ -670,12 +639,9 @@ export default {
 							latestBlock,
 						] = await Promise.all([
 							getAccount({
-								binding: cosmosSdkBinding,
 								address: address,
 							}),
-							getLatestBlock({
-								binding: cosmosSdkBinding,
-							}),
+							getLatestBlock(),
 						])
 						if (account == null)
 							throw new Error('CosmosSdk_Rest: account response is missing')
@@ -711,7 +677,7 @@ export default {
 		defineResolver(Source.CosmosSdk_Rest, {
 			entityType: EntityType.CosmosAccount_Timestamp,
 			resolve: {
-				[CosmosAccount_TimestampSelector.AccountTimestampMsSource]: {
+				AccountTimestampMsSource: {
 					appliesTo: cosmosAccountTimestampApplicability,
 					resolve: async ({
 						$account,
@@ -724,7 +690,6 @@ export default {
 
 						const { getAccount } = await import('$/sources/CosmosSdk/Rest/queries.ts')
 						const account = (await getAccount({
-							binding: cosmosSdkBinding,
 							address: $account.address,
 						})).account
 						if (account == null)
@@ -752,13 +717,12 @@ export default {
 		defineResolver(Source.CosmosSdk_Rest, {
 			entityType: EntityType.CosmosValidator,
 			resolve: {
-				[CosmosValidatorSelector.NetworkOperatorAddress]: {
+				NetworkOperatorAddress: {
 					appliesTo: cosmosNetworkReferenceApplicability,
 					resolve: async (entitySelector) => {
 						const { $network, operatorAddress } = entitySelector
 						const { getValidator } = await import('$/sources/CosmosSdk/Rest/queries.ts')
 						const validator = (await getValidator({
-							binding: cosmosSdkBinding,
 							operatorAddress: operatorAddress,
 						})).validator
 						return {
@@ -779,7 +743,7 @@ export default {
 		defineResolver(Source.CosmosSdk_Rest, {
 			entityType: EntityType.CosmosValidator_Timestamp,
 			resolve: {
-				[CosmosValidator_TimestampSelector.ValidatorTimestampMsSource]: {
+				ValidatorTimestampMsSource: {
 					appliesTo: cosmosValidatorTimestampApplicability,
 					resolve: async ({
 						$validator,
@@ -790,7 +754,6 @@ export default {
 						return cosmosValidatorTimestampFields(
 							$validator,
 							(await getValidator({
-								binding: cosmosSdkBinding,
 								operatorAddress: $validator.operatorAddress,
 							})).validator,
 							timestampMs
@@ -810,14 +773,13 @@ export default {
 		defineResolver(Source.CosmosSdk_Rest, {
 			entityType: EntityType.CosmosMessage,
 			resolve: {
-				[CosmosMessageSelector.TransactionIndexInTransaction]: {
+				TransactionIndexInTransaction: {
 					appliesTo: cosmosTransactionReferenceApplicability,
 					resolve: async ({ $transaction, indexInTransaction }) => {
 						const { getTx } = await import('$/sources/CosmosSdk/Rest/queries.ts')
 						const cosmosMessage = cosmosMessageRows(
 							$transaction,
 							await getTx({
-								binding: cosmosSdkBinding,
 								txHash: $transaction.txHash,
 							})
 							).at(indexInTransaction)
@@ -835,13 +797,12 @@ export default {
 		defineResolver(Source.CosmosSdk_Rest, {
 			entityType: EntityType.CosmosGovernanceProposal,
 			resolve: {
-				[CosmosGovernanceProposalSelector.NetworkProposalId]: {
+				NetworkProposalId: {
 					appliesTo: cosmosNetworkReferenceApplicability,
 					resolve: async (entitySelector) => {
 						const { $network, proposalId } = entitySelector
 						const { getProposal } = await import('$/sources/CosmosSdk/Rest/queries.ts')
 						const proposal = (await getProposal({
-							binding: cosmosSdkBinding,
 							proposalId: proposalId,
 						})).proposal
 						if (proposal.id !== proposalId)
@@ -866,7 +827,7 @@ export default {
 		defineResolver(Source.CosmosSdk_Rest, {
 			entityType: EntityType.CosmosGovernanceProposal_Timestamp,
 			resolve: {
-				[CosmosGovernanceProposal_TimestampSelector.ProposalTimestampMsSource]: {
+				ProposalTimestampMsSource: {
 					appliesTo: cosmosProposalTimestampApplicability,
 					resolve: async ({
 						$proposal,
@@ -881,7 +842,6 @@ export default {
 							timestampMs,
 							source,
 							status: (await getProposal({
-								binding: cosmosSdkBinding,
 								proposalId: $proposal.proposalId,
 							})).proposal.status,
 						}
@@ -898,12 +858,11 @@ export default {
 		defineResolver(Source.CosmosSdk_Rest, {
 			entityType: EntityType.CosmosDenom,
 			resolve: {
-				[CosmosDenomSelector.NetworkDenom]: {
+				NetworkDenom: {
 					appliesTo: cosmosNetworkReferenceApplicability,
 					resolve: async ({ $network, denom }) => {
 						const { getDenomMetadata } = await import('$/sources/CosmosSdk/Rest/queries.ts')
 						const metadata = (await getDenomMetadata({
-							binding: cosmosSdkBinding,
 							denom: denom,
 						})).metadata
 						return {
@@ -923,12 +882,11 @@ export default {
 		defineResolver(Source.CosmosSdk_Rest, {
 			entityType: EntityType.CosmosModule,
 			resolve: {
-				[CosmosModuleSelector.NetworkModuleName]: {
+				NetworkModuleName: {
 					appliesTo: cosmosNetworkReferenceApplicability,
 					resolve: async ({ $network, moduleName }) => {
 						const { getModuleAccount } = await import('$/sources/CosmosSdk/Rest/queries.ts')
 						const moduleAccount = await getModuleAccount({
-							binding: cosmosSdkBinding,
 							moduleName: moduleName,
 						})
 						return {
@@ -951,12 +909,11 @@ export default {
 		defineResolver(Source.CosmosSdk_Rest, {
 			entityType: EntityType.CosmosContract,
 			resolve: {
-				[CosmosContractSelector.NetworkAddress]: {
+				NetworkAddress: {
 					appliesTo: cosmosNetworkReferenceApplicability,
 					resolve: async ({ $network, address }) => {
 						const { getContractInfo } = await import('$/sources/CosmosSdk/Rest/queries.ts')
 						const contractInfo = (await getContractInfo({
-							binding: cosmosSdkBinding,
 							address: address,
 						})).contract_info
 						return {
@@ -988,7 +945,7 @@ export default {
 		defineResolver(Source.CosmosSdk_Rest, {
 			entityType: EntityType.Network,
 			resolve: {
-				[NetworkSelector.Caip2]: {
+				Caip2: {
 					appliesTo: [cosmosNetworkApplicability[0]],
 					resolve: async (network) => {
 						return [
@@ -1002,7 +959,7 @@ export default {
 						]
 					},
 				},
-				[NetworkSelector.Slug]: {
+				Slug: {
 					appliesTo: [cosmosNetworkApplicability[1]],
 					resolve: async (network) => {
 						return [
@@ -1024,11 +981,11 @@ export default {
 		defineResolver(Source.CosmosSdk_Rest, {
 			entityType: EntityType.Network,
 			resolve: {
-				[NetworkSelector.Caip2]: {
+				Caip2: {
 					appliesTo: [cosmosNetworkApplicability[0]],
 					resolve: async (network, context) => {
 						const { getLatestBlock } = await import('$/sources/CosmosSdk/Rest/queries.ts')
-						const latestBlock = await getLatestBlock({ binding: cosmosSdkBinding })
+						const latestBlock = await getLatestBlock()
 						const latestBlockHeight = BigInt(latestBlock.block.header.height)
 						return Array.from({
 							length: Math.min(
@@ -1043,11 +1000,11 @@ export default {
 						}))
 					},
 				},
-				[NetworkSelector.Slug]: {
+				Slug: {
 					appliesTo: [cosmosNetworkApplicability[1]],
 					resolve: async (network, context) => {
 						const { getLatestBlock } = await import('$/sources/CosmosSdk/Rest/queries.ts')
-						const latestBlock = await getLatestBlock({ binding: cosmosSdkBinding })
+						const latestBlock = await getLatestBlock()
 						const latestBlockHeight = BigInt(latestBlock.block.header.height)
 						return Array.from({
 							length: Math.min(
@@ -1072,14 +1029,13 @@ export default {
 		defineResolver(Source.CosmosSdk_Rest, {
 			entityType: EntityType.Network,
 			resolve: {
-				[NetworkSelector.Caip2]: {
+				Caip2: {
 					appliesTo: [cosmosNetworkApplicability[0]],
 					resolve: async (network, context) => {
 						const { getAccounts } = await import('$/sources/CosmosSdk/Rest/queries.ts')
 						return cosmosAccountRows(
 							network,
 							(await getAccounts({
-								binding: cosmosSdkBinding,
 								limit: resolverContextRowLimit(context),
 							})).accounts
 						).map((account) => ({
@@ -1087,14 +1043,13 @@ export default {
 						}))
 					},
 				},
-				[NetworkSelector.Slug]: {
+				Slug: {
 					appliesTo: [cosmosNetworkApplicability[1]],
 					resolve: async (network, context) => {
 						const { getAccounts } = await import('$/sources/CosmosSdk/Rest/queries.ts')
 						return cosmosAccountRows(
 							network,
 							(await getAccounts({
-								binding: cosmosSdkBinding,
 								limit: resolverContextRowLimit(context),
 							})).accounts
 						).map((account) => ({
@@ -1112,22 +1067,20 @@ export default {
 		defineResolver(Source.CosmosSdk_Rest, {
 			entityType: EntityType.Network,
 			resolve: {
-				[NetworkSelector.Caip2]: {
+				Caip2: {
 					appliesTo: [cosmosNetworkApplicability[0]],
 					resolve: async () => {
 						const { getAccounts } = await import('$/sources/CosmosSdk/Rest/queries.ts')
 						return cosmosPaginationCount((await getAccounts({
-							binding: cosmosSdkBinding,
 							limit: 1,
 						})).pagination?.total, 'account')
 					},
 				},
-				[NetworkSelector.Slug]: {
+				Slug: {
 					appliesTo: [cosmosNetworkApplicability[1]],
 					resolve: async () => {
 						const { getAccounts } = await import('$/sources/CosmosSdk/Rest/queries.ts')
 						return cosmosPaginationCount((await getAccounts({
-							binding: cosmosSdkBinding,
 							limit: 1,
 						})).pagination?.total, 'account')
 					},
@@ -1144,14 +1097,13 @@ export default {
 		defineResolver(Source.CosmosSdk_Rest, {
 			entityType: EntityType.Network,
 			resolve: {
-				[NetworkSelector.Caip2]: {
+				Caip2: {
 					appliesTo: [cosmosNetworkApplicability[0]],
 					resolve: async (network, context) => {
 						const { getValidators } = await import('$/sources/CosmosSdk/Rest/queries.ts')
 						return cosmosValidatorRows(
 							network,
 							(await getValidators({
-								binding: cosmosSdkBinding,
 								limit: resolverContextRowLimit(context),
 							})).validators
 						).map((validator) => ({
@@ -1159,14 +1111,13 @@ export default {
 						}))
 					},
 				},
-				[NetworkSelector.Slug]: {
+				Slug: {
 					appliesTo: [cosmosNetworkApplicability[1]],
 					resolve: async (network, context) => {
 						const { getValidators } = await import('$/sources/CosmosSdk/Rest/queries.ts')
 						return cosmosValidatorRows(
 							network,
 							(await getValidators({
-								binding: cosmosSdkBinding,
 								limit: resolverContextRowLimit(context),
 							})).validators
 						).map((validator) => ({
@@ -1184,22 +1135,20 @@ export default {
 		defineResolver(Source.CosmosSdk_Rest, {
 			entityType: EntityType.Network,
 			resolve: {
-				[NetworkSelector.Caip2]: {
+				Caip2: {
 					appliesTo: [cosmosNetworkApplicability[0]],
 					resolve: async (network) => {
 						const { getValidators } = await import('$/sources/CosmosSdk/Rest/queries.ts')
 						return cosmosPaginationCount((await getValidators({
-							binding: cosmosSdkBinding,
 							limit: 1,
 						})).pagination?.total, 'validator')
 					},
 				},
-				[NetworkSelector.Slug]: {
+				Slug: {
 					appliesTo: [cosmosNetworkApplicability[1]],
 					resolve: async (network) => {
 						const { getValidators } = await import('$/sources/CosmosSdk/Rest/queries.ts')
 						return cosmosPaginationCount((await getValidators({
-							binding: cosmosSdkBinding,
 							limit: 1,
 						})).pagination?.total, 'validator')
 					},
@@ -1216,14 +1165,13 @@ export default {
 		defineResolver(Source.CosmosSdk_Rest, {
 			entityType: EntityType.Network,
 			resolve: {
-				[NetworkSelector.Caip2]: {
+				Caip2: {
 					appliesTo: [cosmosNetworkApplicability[0]],
 					resolve: async (network, context) => {
 						const { getProposals } = await import('$/sources/CosmosSdk/Rest/queries.ts')
 						return cosmosProposalRows(
 							network,
 							(await getProposals({
-								binding: cosmosSdkBinding,
 								limit: resolverContextRowLimit(context),
 							})).proposals
 						).map((proposal) => ({
@@ -1231,14 +1179,13 @@ export default {
 						}))
 					},
 				},
-				[NetworkSelector.Slug]: {
+				Slug: {
 					appliesTo: [cosmosNetworkApplicability[1]],
 					resolve: async (network, context) => {
 						const { getProposals } = await import('$/sources/CosmosSdk/Rest/queries.ts')
 						return cosmosProposalRows(
 							network,
 							(await getProposals({
-								binding: cosmosSdkBinding,
 								limit: resolverContextRowLimit(context),
 							})).proposals
 						).map((proposal) => ({
@@ -1256,22 +1203,20 @@ export default {
 		defineResolver(Source.CosmosSdk_Rest, {
 			entityType: EntityType.Network,
 			resolve: {
-				[NetworkSelector.Caip2]: {
+				Caip2: {
 					appliesTo: [cosmosNetworkApplicability[0]],
 					resolve: async (network) => {
 						const { getProposals } = await import('$/sources/CosmosSdk/Rest/queries.ts')
 						return cosmosPaginationCount((await getProposals({
-							binding: cosmosSdkBinding,
 							limit: 1,
 						})).pagination?.total, 'governance proposal')
 					},
 				},
-				[NetworkSelector.Slug]: {
+				Slug: {
 					appliesTo: [cosmosNetworkApplicability[1]],
 					resolve: async (network) => {
 						const { getProposals } = await import('$/sources/CosmosSdk/Rest/queries.ts')
 						return cosmosPaginationCount((await getProposals({
-							binding: cosmosSdkBinding,
 							limit: 1,
 						})).pagination?.total, 'governance proposal')
 					},
@@ -1289,14 +1234,13 @@ export default {
 		defineResolver(Source.CosmosSdk_Rest, {
 			entityType: EntityType.CosmosTransaction,
 			resolve: {
-				[CosmosTransactionSelector.NetworkTxHash]: {
+				NetworkTxHash: {
 					appliesTo: cosmosNetworkReferenceApplicability,
 					resolve: async (entitySelector) => {
 						const { getTx } = await import('$/sources/CosmosSdk/Rest/queries.ts')
 						return cosmosMessageRows(
 							entitySelector,
 							await getTx({
-								binding: cosmosSdkBinding,
 								txHash: entitySelector.txHash,
 							})
 						)
@@ -1310,7 +1254,7 @@ export default {
 		defineResolver(Source.CosmosSdk_Rest, {
 			entityType: EntityType.CosmosAccount,
 			resolve: {
-				[CosmosAccountSelector.NetworkAddress]: {
+				NetworkAddress: {
 					appliesTo: cosmosNetworkReferenceApplicability,
 					resolve: async (cosmosAccount, context) => {
 						assertCosmosHub(cosmosAccount.$network)
@@ -1329,12 +1273,10 @@ export default {
 						const { getTransactionsByEvent } = await import('$/sources/CosmosSdk/Rest/queries.ts')
 						const [senderPage, recipientPage] = await Promise.all([
 							getTransactionsByEvent({
-								binding: cosmosSdkBinding,
 								event: `message.sender='${cosmosAccount.address}'`,
 								limit: prefixLimit,
 							}),
 							getTransactionsByEvent({
-								binding: cosmosSdkBinding,
 								event: `transfer.recipient='${cosmosAccount.address}'`,
 								limit: prefixLimit,
 							}),

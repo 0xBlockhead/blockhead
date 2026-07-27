@@ -2,13 +2,8 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
 	import { UrlString } from '$/schema/UrlString.ts'
 	import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 
@@ -22,44 +17,23 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.A2aAgentCard_Snapshot>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.A2aAgentCard_Snapshot>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.A2aAgentCard_Snapshot> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const a2aAgentCardSnapshot = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {
-			name: true,
-			version: true,
-			protocolVersion: true,
-		},
-	} : {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const viewSelection = $derived(selection({
+		sources: selection.sources ?? [],
+	}))
+	const a2aAgentCardSnapshot = $derived(viewSelection({
 		fields: {
 			name: true,
 			version: true,
 			protocolVersion: true,
 		},
 	}))
-	const titleFallback = $derived([String((pendingEntity.name) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.contentHash) ?? '')].filter(Boolean).join(' ') || 'A2A agent card snapshot')
-	const viewDomId = $derived('a2a-agent-card-snapshot-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const titleFallback = $derived((pendingEntity.name ?? '') || String(pendingEntity.contentHash ?? '') || 'A2A agent card snapshot')
 
 
 	// Components
@@ -75,61 +49,39 @@
 
 <EntityView
 	entityType={EntityType.A2aAgentCard_Snapshot}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'name') && Object.hasOwn(prefetched, 'version') && Object.hasOwn(prefetched, 'protocolVersion')}
-			{[String((pendingEntity.name) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-		{:else}
-			<ResourceBoundary resource={a2aAgentCardSnapshot}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.name) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={a2aAgentCardSnapshot}>
+			{#snippet children(entity)}
+				{(entity.name ?? '') || title || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Value()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'name') && Object.hasOwn(prefetched, 'version') && Object.hasOwn(prefetched, 'protocolVersion')}
-			{[String((pendingEntity.version) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.name) ?? '')].filter(Boolean).join(' ') || titleFallback}
-		{:else}
-			<ResourceBoundary resource={a2aAgentCardSnapshot}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.version) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.name) ?? '')].filter(Boolean).join(' ') || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={a2aAgentCardSnapshot}>
+			{#snippet children(entity)}
+				{(entity.version ?? '') || (entity.name ?? '') || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'name') && Object.hasOwn(prefetched, 'version') && Object.hasOwn(prefetched, 'protocolVersion')}
-			{@const protocolVersion0 = pendingEntity.protocolVersion}
-			{#if protocolVersion0 !== undefined && protocolVersion0 !== null}
-				<span data-text="muted">
-					{String((protocolVersion0) ?? '')}
-				</span>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={a2aAgentCardSnapshot}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const protocolVersion0 = resolvedEntity.protocolVersion}
-					{#if protocolVersion0 !== undefined && protocolVersion0 !== null}
-						<span data-text="muted">
-							{String((protocolVersion0) ?? '')}
-						</span>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={a2aAgentCardSnapshot}>
+			{#snippet children(entity)}
+				{@const protocolVersion0 = entity.protocolVersion}
+				{#if protocolVersion0 != null}
+					<span data-text="muted">
+						{protocolVersion0}
+					</span>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -148,55 +100,20 @@
 			<div>
 				<dt>content hash algorithm</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									contentHashAlgorithm: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const contentHashAlgorithm = resolvedEntity.contentHashAlgorithm}
-							{#if contentHashAlgorithm !== undefined && contentHashAlgorithm !== null}
-								<TruncatedValue value={String((contentHashAlgorithm) ?? '')} />
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					<TruncatedValue value={pendingEntity.contentHashAlgorithm} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>content hash</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									contentHash: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const contentHash = resolvedEntity.contentHash}
-							{#if contentHash !== undefined && contentHash !== null}
-								<TruncatedValue value={String((contentHash) ?? '')} />
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					<TruncatedValue value={String(pendingEntity.contentHash)} />
 				</dd>
 			</div>
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							fetchedAt: true,
 						},
@@ -204,9 +121,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const fetchedAt = resolvedEntity.fetchedAt}
-					{#if fetchedAt !== undefined && fetchedAt !== null}
+					{@const fetchedAt = entity.fetchedAt}
+					{#if fetchedAt != null}
 						<div>
 							<dt>fetched AT</dt>
 							<dd>
@@ -219,8 +135,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							snapshotKind: true,
 						},
@@ -228,13 +143,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const snapshotKind = resolvedEntity.snapshotKind}
-					{#if snapshotKind !== undefined && snapshotKind !== null}
+					{@const snapshotKind = entity.snapshotKind}
+					{#if snapshotKind != null}
 						<div>
 							<dt>snapshot kind</dt>
 							<dd>
-								{String((snapshotKind) ?? '')}
+								{snapshotKind}
 							</dd>
 						</div>
 					{/if}
@@ -244,23 +158,15 @@
 
 		<dl data-column-item="center">
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							name: true,
-						},
-					})
-				}
+				resource={a2aAgentCardSnapshot}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const name = resolvedEntity.name}
-					{#if name !== undefined && name !== null}
+					{@const name = entity.name}
+					{#if name != null}
 						<div>
 							<dt>Name</dt>
 							<dd>
-								{String((name) ?? '')}
+								{name}
 							</dd>
 						</div>
 					{/if}
@@ -269,8 +175,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							description: true,
 						},
@@ -278,13 +183,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const description = resolvedEntity.description}
-					{#if description !== undefined && description !== null}
+					{@const description = entity.description}
+					{#if description != null}
 						<div>
 							<dt>Description</dt>
 							<dd>
-								{String((description) ?? '')}
+								{description}
 							</dd>
 						</div>
 					{/if}
@@ -292,23 +196,15 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							version: true,
-						},
-					})
-				}
+				resource={a2aAgentCardSnapshot}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const version = resolvedEntity.version}
-					{#if version !== undefined && version !== null}
+					{@const version = entity.version}
+					{#if version != null}
 						<div>
 							<dt>version</dt>
 							<dd>
-								{String((version) ?? '')}
+								{version}
 							</dd>
 						</div>
 					{/if}
@@ -316,23 +212,15 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							protocolVersion: true,
-						},
-					})
-				}
+				resource={a2aAgentCardSnapshot}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const protocolVersion = resolvedEntity.protocolVersion}
-					{#if protocolVersion !== undefined && protocolVersion !== null}
+					{@const protocolVersion = entity.protocolVersion}
+					{#if protocolVersion != null}
 						<div>
 							<dt>protocol version</dt>
 							<dd>
-								{String((protocolVersion) ?? '')}
+								{protocolVersion}
 							</dd>
 						</div>
 					{/if}
@@ -341,8 +229,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							providerName: true,
 						},
@@ -350,13 +237,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const providerName = resolvedEntity.providerName}
-					{#if providerName !== undefined && providerName !== null}
+					{@const providerName = entity.providerName}
+					{#if providerName != null}
 						<div>
 							<dt>provider name</dt>
 							<dd>
-								{String((providerName) ?? '')}
+								{providerName}
 							</dd>
 						</div>
 					{/if}
@@ -365,8 +251,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							providerUrl: true,
 						},
@@ -374,20 +259,18 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const providerUrl = resolvedEntity.providerUrl}
-					{#if providerUrl !== undefined && providerUrl !== null}
+					{@const providerUrl = entity.providerUrl}
+					{#if providerUrl != null}
 						<div>
 							<dt>provider URL</dt>
 							<dd>
-								<svelte:element
-									this={'a'}
+								<a
 									href={String(providerUrl)}
 									target="_blank"
 									rel="noreferrer noopener"
 								>
 									<TruncatedValue value={String(providerUrl)} />
-								</svelte:element>
+								</a>
 							</dd>
 						</div>
 					{/if}
@@ -396,8 +279,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							preferredTransport: true,
 						},
@@ -405,13 +287,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const preferredTransport = resolvedEntity.preferredTransport}
-					{#if preferredTransport !== undefined && preferredTransport !== null}
+					{@const preferredTransport = entity.preferredTransport}
+					{#if preferredTransport != null}
 						<div>
 							<dt>preferred transport</dt>
 							<dd>
-								{String((preferredTransport) ?? '')}
+								{preferredTransport}
 							</dd>
 						</div>
 					{/if}
@@ -427,12 +308,12 @@
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
-				<A2aAgentInterfacesView
-					selection={a2aAgentCardSnapshotA2aAgentInterfacesViewInterfacesResource}
-					countResource={a2aAgentCardSnapshotA2aAgentInterfacesViewInterfacesResource.count}
-					title='interfaces'
-					id='A2aAgentInterfacesView-interfaces'
-				/>
+					<A2aAgentInterfacesView
+						selection={a2aAgentCardSnapshotA2aAgentInterfacesViewInterfacesResource}
+						countResource={a2aAgentCardSnapshotA2aAgentInterfacesViewInterfacesResource.count}
+						title='interfaces'
+						id='interfaces'
+					/>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>
@@ -442,12 +323,12 @@
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
-				<A2aAgentServicesView
-					selection={a2aAgentCardSnapshotA2aAgentServicesViewServicesResource}
-					countResource={a2aAgentCardSnapshotA2aAgentServicesViewServicesResource.count}
-					title='services'
-					id='A2aAgentServicesView-services'
-				/>
+					<A2aAgentServicesView
+						selection={a2aAgentCardSnapshotA2aAgentServicesViewServicesResource}
+						countResource={a2aAgentCardSnapshotA2aAgentServicesViewServicesResource.count}
+						title='services'
+						id='services'
+					/>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>
@@ -457,12 +338,12 @@
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
-				<A2aAgentSkillsView
-					selection={a2aAgentCardSnapshotA2aAgentSkillsViewSkillsResource}
-					countResource={a2aAgentCardSnapshotA2aAgentSkillsViewSkillsResource.count}
-					title='skills'
-					id='A2aAgentSkillsView-skills'
-				/>
+					<A2aAgentSkillsView
+						selection={a2aAgentCardSnapshotA2aAgentSkillsViewSkillsResource}
+						countResource={a2aAgentCardSnapshotA2aAgentSkillsViewSkillsResource.count}
+						title='skills'
+						id='skills'
+					/>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>

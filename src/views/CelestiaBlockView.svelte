@@ -2,13 +2,8 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
 
 
 	// Context
@@ -20,40 +15,20 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.CelestiaBlock>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.CelestiaBlock>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.CelestiaBlock> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const celestiaBlock = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const celestiaBlock = $derived(selection({
 		fields: {
+			height: true,
 			timestampMs: true,
-		},
-	} : {
-		sources: selection.sources,
-		fields: {
-			timestampMs: true,
+			hash: true,
 		},
 	}))
-	const titleFallback = $derived([String((pendingEntity.height) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.hash) ?? '')].filter(Boolean).join(' ') || 'celestia block')
-	const viewDomId = $derived('celestia-block-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const titleFallback = $derived(String(pendingEntity.height ?? '') || (pendingEntity.hash ?? '') || 'celestia block')
 
 
 	// Components
@@ -68,54 +43,31 @@
 
 <EntityView
 	entityType={EntityType.CelestiaBlock}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'height') && Object.hasOwn(prefetched, 'timestampMs') && Object.hasOwn(prefetched, 'hash')}
-			{@const height0 = pendingEntity.height}
-			{#if height0 !== undefined && height0 !== null}
+		<ResourceBoundary resource={celestiaBlock}>
+			{#snippet children(entity)}
 				<NumberValue
-					value={height0}
+					value={entity.height}
 				/>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={celestiaBlock}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const height0 = resolvedEntity.height}
-					{#if height0 !== undefined && height0 !== null}
-						<NumberValue
-							value={height0}
-						/>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Value()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'height') && Object.hasOwn(prefetched, 'timestampMs') && Object.hasOwn(prefetched, 'hash')}
-			{@const timestampMs0 = pendingEntity.timestampMs}
-			{#if timestampMs0 !== undefined && timestampMs0 !== null}
-				<Timestamp timestamp={Number(timestampMs0)} />
-			{/if}
-		{:else}
-			<ResourceBoundary resource={celestiaBlock}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const timestampMs0 = resolvedEntity.timestampMs}
-					{#if timestampMs0 !== undefined && timestampMs0 !== null}
-						<Timestamp timestamp={Number(timestampMs0)} />
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={celestiaBlock}>
+			{#snippet children(entity)}
+				{@const timestampMs0 = entity.timestampMs}
+				{#if timestampMs0 != null}
+					<Timestamp timestamp={Number(timestampMs0)} />
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -135,23 +87,12 @@
 				<dt>Height</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									height: true,
-								},
-							})
-						}
+						resource={celestiaBlock}
 					>
 						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const height = resolvedEntity.height}
-							{#if height !== undefined && height !== null}
-								<NumberValue
-									value={height}
-								/>
-							{/if}
+							<NumberValue
+								value={entity.height}
+							/>
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -161,21 +102,10 @@
 				<dt>Hash</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									hash: true,
-								},
-							})
-						}
+						resource={celestiaBlock}
 					>
 						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const hash = resolvedEntity.hash}
-							{#if hash !== undefined && hash !== null}
-								<TruncatedValue value={String((hash) ?? '')} />
-							{/if}
+							<TruncatedValue value={entity.hash} />
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -186,7 +116,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							appHash: true,
 						},
@@ -194,13 +123,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const appHash = resolvedEntity.appHash}
-					{#if appHash !== undefined && appHash !== null}
+					{@const appHash = entity.appHash}
+					{#if appHash != null}
 						<div>
 							<dt>app hash</dt>
 							<dd>
-								<TruncatedValue value={String((appHash) ?? '')} />
+								<TruncatedValue value={appHash} />
 							</dd>
 						</div>
 					{/if}
@@ -210,7 +138,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							dataHash: true,
 						},
@@ -218,13 +145,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const dataHash = resolvedEntity.dataHash}
-					{#if dataHash !== undefined && dataHash !== null}
+					{@const dataHash = entity.dataHash}
+					{#if dataHash != null}
 						<div>
 							<dt>data hash</dt>
 							<dd>
-								<TruncatedValue value={String((dataHash) ?? '')} />
+								<TruncatedValue value={dataHash} />
 							</dd>
 						</div>
 					{/if}
@@ -234,7 +160,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							proposerAddress: true,
 						},
@@ -242,13 +167,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const proposerAddress = resolvedEntity.proposerAddress}
-					{#if proposerAddress !== undefined && proposerAddress !== null}
+					{@const proposerAddress = entity.proposerAddress}
+					{#if proposerAddress != null}
 						<div>
 							<dt>proposer address</dt>
 							<dd>
-								<TruncatedValue value={String((proposerAddress) ?? '')} />
+								<TruncatedValue value={proposerAddress} />
 							</dd>
 						</div>
 					{/if}
@@ -256,19 +180,11 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							timestampMs: true,
-						},
-					})
-				}
+				resource={celestiaBlock}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const timestampMs = resolvedEntity.timestampMs}
-					{#if timestampMs !== undefined && timestampMs !== null}
+					{@const timestampMs = entity.timestampMs}
+					{#if timestampMs != null}
 						<div>
 							<dt>Timestamp</dt>
 							<dd>
@@ -284,7 +200,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							blobCount: true,
 						},
@@ -292,9 +207,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const blobCount = resolvedEntity.blobCount}
-					{#if blobCount !== undefined && blobCount !== null}
+					{@const blobCount = entity.blobCount}
+					{#if blobCount != null}
 						<div>
 							<dt>blob count</dt>
 							<dd>
@@ -310,7 +224,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							namespaceCount: true,
 						},
@@ -318,9 +231,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const namespaceCount = resolvedEntity.namespaceCount}
-					{#if namespaceCount !== undefined && namespaceCount !== null}
+					{@const namespaceCount = entity.namespaceCount}
+					{#if namespaceCount != null}
 						<div>
 							<dt>namespace count</dt>
 							<dd>
@@ -336,7 +248,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							transactionCount: true,
 						},
@@ -344,9 +255,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const transactionCount = resolvedEntity.transactionCount}
-					{#if transactionCount !== undefined && transactionCount !== null}
+					{@const transactionCount = entity.transactionCount}
+					{#if transactionCount != null}
 						<div>
 							<dt>transaction count</dt>
 							<dd>
@@ -368,12 +278,12 @@
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
-				<CelestiaBlobsView
-					selection={celestiaBlockCelestiaBlobsViewBlobsResource}
-					countResource={celestiaBlockCelestiaBlobsViewBlobsResource.count}
-					title='blobs'
-					id='CelestiaBlobsView-blobs'
-				/>
+					<CelestiaBlobsView
+						selection={celestiaBlockCelestiaBlobsViewBlobsResource}
+						countResource={celestiaBlockCelestiaBlobsViewBlobsResource.count}
+						title='blobs'
+						id='blobs'
+					/>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>

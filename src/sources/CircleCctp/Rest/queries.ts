@@ -114,7 +114,7 @@ const assertMessage = (
 		['maximum fee', message.decodedMessage.decodedMessageBody.maxFee],
 		['executed fee', message.decodedMessage.decodedMessageBody.feeExecuted],
 		['expiration block', message.decodedMessage.decodedMessageBody.expirationBlock],
-	] as const)
+	])
 		if (value != null)
 			assertUnsignedInteger(value, label)
 
@@ -225,7 +225,7 @@ export const getMessages = async ({
 			}),
 			source: binding.source,
 			resolvedAtMs,
-			lifecycleStatus: 'not_observed' as const,
+			lifecycleStatus: 'not_observed',
 		}
 	if (!response.ok)
 		await throwHttpError('CircleCctp_IrisApi get messages', response)

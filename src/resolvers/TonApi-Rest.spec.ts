@@ -5,11 +5,18 @@ import {
 	EntityMetaKey,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import { NetworkSelector } from '$/schema/Network.ts'
-import { TonAccountSelector } from '$/schema/TonAccount.ts'
-import { TonJettonSelector } from '$/schema/TonJetton.ts'
-import { sourceProviderDefinitions } from '$/sources/$sourceProviders.ts'
+import bindings from '$/sources/TonApi/bindings.ts'
 import { Source } from '$/sources/Source.ts'
+import {
+	ApiFamily,
+	SourceArtifactKind,
+	SourceCredentialScope,
+	SourceDelivery,
+	SourceEndpointKind,
+	SourceOperationGroup,
+	SourceTargetKind,
+	WireProtocol,
+} from '$/sources/SourceBinding.ts'
 import accountFixtureJson from '$/sources/TonApi/Rest/fixtures/account.json'
 import type {
 	TonApiAccount,
@@ -41,12 +48,7 @@ const masterchainHeadFixture = {
 	gen_utime: 1_750_000_000,
 } satisfies TonApiMasterchainHead
 
-const tonApiBinding = sourceProviderDefinitions
-	.flatMap((provider) => provider.bindings)
-	.find((binding) => binding.source === Source.TonApi_Rest)
-
-if (tonApiBinding == null)
-	throw new Error('TonApi-Rest spec missing source binding')
+const tonApiBinding = bindings[Source.TonApi_Rest]
 
 const accountResolver = tonApiResolvers.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.TonAccount
@@ -66,10 +68,41 @@ describe('TonAPI masterchain-head transport', () => {
 		vi.clearAllMocks()
 	})
 
+	it('selects the exact canonical TON mainnet binding', () => {
+		expect(tonApiBinding).toEqual({
+			source: Source.TonApi_Rest,
+			target: {
+				kind: SourceTargetKind.Caip2Network,
+				key: 'ton:-239',
+			},
+			endpoints: [{
+				endpointKind: SourceEndpointKind.HttpUrl,
+				locator: 'https://tonapi.io',
+				origin: 'https://tonapi.io',
+				corsEnabled: false,
+			}],
+			wireProtocol: WireProtocol.HttpRest,
+			apiFamily: ApiFamily.RestJson,
+			operationGroups: [
+				SourceOperationGroup.GenericRead,
+			],
+			delivery: SourceDelivery.HttpProxy,
+			credentials: [{
+				scope: SourceCredentialScope.None,
+			}],
+			proxyId: '["TonApi_Rest","Caip2Network","ton:-239","HttpProxy","RestJson"]',
+			artifacts: [{
+				kind: SourceArtifactKind.HandwrittenTypes,
+				path: 'src/sources/TonApi/Rest/types.ts',
+				generated: false,
+			}],
+		})
+	})
+
 	it('uses the canonical binding and typed masterchain-head endpoint', async () => {
 		sourceGetJson.mockResolvedValueOnce(masterchainHeadFixture)
 
-		await expect(getBlockchainMasterchainHead(tonApiBinding)).resolves.toEqual(masterchainHeadFixture)
+		await expect(getBlockchainMasterchainHead()).resolves.toEqual(masterchainHeadFixture)
 		expect(sourceGetJson).toHaveBeenCalledWith(
 			tonApiBinding,
 			'https://tonapi.io/v2/blockchain/masterchain-head'
@@ -82,14 +115,14 @@ describe('TonAPI masterchain-head transport', () => {
 			seqno: '45678901',
 		})
 
-		await expect(getBlockchainMasterchainHead(tonApiBinding)).rejects.toThrow()
+		await expect(getBlockchainMasterchainHead()).rejects.toThrow()
 
 		sourceGetJson.mockResolvedValueOnce({
 			...masterchainHeadFixture,
 			gen_utime: Number.MAX_SAFE_INTEGER,
 		})
 
-		await expect(getBlockchainMasterchainHead(tonApiBinding)).rejects.toThrow('safe numeric bounds')
+		await expect(getBlockchainMasterchainHead()).rejects.toThrow('safe numeric bounds')
 	})
 })
 
@@ -100,7 +133,7 @@ describe('TonAPI network observation resolver', () => {
 
 	it.each([
 		[
-			NetworkSelector.Caip2,
+			'Caip2',
 			{
 				caip2: {
 					namespace: 'ton',
@@ -109,7 +142,7 @@ describe('TonAPI network observation resolver', () => {
 			},
 		],
 		[
-			NetworkSelector.Slug,
+			'Slug',
 			{
 				slug: 'ton',
 			},
@@ -136,7 +169,7 @@ describe('TonAPI network observation resolver', () => {
 	})
 
 	it('rejects unsupported networks before transport', async () => {
-		await expect(networkResolver.resolve[NetworkSelector.Slug].resolve({
+		await expect(networkResolver.resolve['Slug'].resolve({
 			slug: 'ethereum',
 		})).rejects.toThrow('unsupported network')
 		expect(sourceGetJson).not.toHaveBeenCalled()
@@ -151,7 +184,7 @@ describe('TonAPI account transport', () => {
 	it('uses the selector address in the typed account endpoint', async () => {
 		sourceGetJson.mockResolvedValueOnce(accountFixture)
 
-		await expect(getAccount(tonApiBinding, 'EQ/a+b')).resolves.toEqual(accountFixture)
+		await expect(getAccount('EQ/a+b')).resolves.toEqual(accountFixture)
 		expect(sourceGetJson).toHaveBeenCalledWith(
 			tonApiBinding,
 			'https://tonapi.io/v2/accounts/EQ%2Fa%2Bb'
@@ -164,7 +197,7 @@ describe('TonAPI account transport', () => {
 			balance: 1,
 		})
 
-		await expect(getAccount(tonApiBinding, 'EQ/a+b')).rejects.toThrow()
+		await expect(getAccount('EQ/a+b')).rejects.toThrow()
 	})
 
 	it('rejects a balance that cannot be represented as bigint', async () => {
@@ -173,7 +206,7 @@ describe('TonAPI account transport', () => {
 			balance: '1.5',
 		})
 
-		await expect(getAccount(tonApiBinding, 'EQ/a+b')).rejects.toThrow('non-negative decimal integer')
+		await expect(getAccount('EQ/a+b')).rejects.toThrow('non-negative decimal integer')
 	})
 })
 
@@ -186,7 +219,7 @@ describe('TonAPI account resolver', () => {
 		sourceGetJson.mockResolvedValueOnce(accountFixture)
 		vi.spyOn(Date, 'now').mockReturnValueOnce(1_750_000_000_000)
 
-		await expect(accountResolver.resolve[TonAccountSelector.NetworkAddress].resolve(
+		await expect(accountResolver.resolve['NetworkAddress'].resolve(
 			{
 				$network: {
 					slug: 'ton',
@@ -225,7 +258,7 @@ describe('TonAPI account resolver', () => {
 			address: 'EQ_not_a_raw_address',
 		})
 
-		await expect(accountResolver.resolve[TonAccountSelector.NetworkAddress].resolve(
+		await expect(accountResolver.resolve['NetworkAddress'].resolve(
 			{
 				$network: {
 					slug: 'ton',
@@ -241,7 +274,7 @@ describe('TonAPI account resolver', () => {
 			address: '9007199254740992:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef',
 		})
 
-		await expect(accountResolver.resolve[TonAccountSelector.NetworkAddress].resolve(
+		await expect(accountResolver.resolve['NetworkAddress'].resolve(
 			{
 				$network: {
 					slug: 'ton',
@@ -252,7 +285,7 @@ describe('TonAPI account resolver', () => {
 	})
 
 	it('rejects a non-TON parent before transport', async () => {
-		await expect(accountResolver.resolve[TonAccountSelector.NetworkAddress].resolve(
+		await expect(accountResolver.resolve['NetworkAddress'].resolve(
 			{
 				$network: {
 					slug: 'ethereum',
@@ -273,7 +306,7 @@ describe('TonAPI jetton resolver', () => {
 		sourceGetJson.mockResolvedValueOnce(accountFixture)
 
 		await expect(jettonResolver.resolve[
-			TonJettonSelector.NetworkMasterAddress
+			'NetworkMasterAddress'
 		].resolve(
 			{
 				$network: {
@@ -299,7 +332,7 @@ describe('TonAPI jetton resolver', () => {
 
 	it('rejects a non-TON parent before transport', async () => {
 		await expect(jettonResolver.resolve[
-			TonJettonSelector.NetworkMasterAddress
+			'NetworkMasterAddress'
 		].resolve(
 			{
 				$network: {
@@ -319,7 +352,7 @@ describe('TonAPI jetton resolver', () => {
 		})
 
 		await expect(jettonResolver.resolve[
-			TonJettonSelector.NetworkMasterAddress
+			'NetworkMasterAddress'
 		].resolve(
 			{
 				$network: {

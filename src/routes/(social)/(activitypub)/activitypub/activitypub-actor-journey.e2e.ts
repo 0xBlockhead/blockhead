@@ -9,6 +9,8 @@ import {
 	routeViewSmokeTimeoutsMs,
 	setupRouteViewSmokePage,
 } from '../../../../../tests/e2e/_routeViewDiagnostics.ts'
+import bindings from '$/sources/Mastodon/bindings.ts'
+import { Source } from '$/sources/Source.ts'
 
 
 const instanceOrigin = 'https://mastodon.social'
@@ -19,6 +21,7 @@ const actorNotesPath = `${actorPath}/notes`
 const notePath = `/activitypub/note/${encodeURIComponent(instanceOrigin)}/${localStatusId}`
 const profileUrl = `${instanceOrigin}/@protocolgardener`
 const activityStreamsUri = `${instanceOrigin}/users/protocolgardener`
+const mastodonSocialProxyRoute = new RegExp(`/api-proxy/${encodeURIComponent(bindings[Source.Mastodon_Rest][0].proxyId)}/0/`)
 
 const account = {
 	id: localAccountId,
@@ -79,7 +82,7 @@ test('Mastodon actor details lead to transport-discovered authored notes', async
 			consoleErrors.push(message.text())
 	})
 	page.on('pageerror', (error) => pageErrors.push(error.message))
-	await page.route('**/api-proxy/Mastodon_Rest-*/0/**', async (route) => {
+	await page.route(mastodonSocialProxyRoute, async (route) => {
 		const providerUrl = new URL(decodeURIComponent(new URL(route.request().url()).pathname.split('/').at(-1) ?? ''))
 		expect(route.request().method()).toBe('GET')
 		mastodonRequests.push(providerUrl.pathname)
@@ -97,6 +100,20 @@ test('Mastodon actor details lead to transport-discovered authored notes', async
 			await route.fulfill({
 				contentType: 'application/json',
 				json: [status],
+			})
+			return
+		}
+		if (providerUrl.pathname === '/api/v2/search') {
+			expect(providerUrl.searchParams.get('q')).toBe(status.uri)
+			expect(providerUrl.searchParams.get('resolve')).toBe('true')
+			expect(providerUrl.searchParams.get('type')).toBe('statuses')
+			await route.fulfill({
+				contentType: 'application/json',
+				json: {
+					accounts: [],
+					hashtags: [],
+					statuses: [status],
+				},
 			})
 			return
 		}
@@ -119,7 +136,7 @@ test('Mastodon actor details lead to transport-discovered authored notes', async
 		await expectMainVisible(page, routeViewSmokeTimeoutsMs.mainSelector, diagnostics)
 		await step(expect.poll(
 			() => mastodonRequests,
-			{ timeout: routeViewSmokeTimeoutsMs.settle }
+			{ timeout: routeViewSmokeTimeoutsMs.mainSelector }
 		).toEqual(expect.arrayContaining([
 			`/api/v1/accounts/${localAccountId}`,
 			`/api/v1/accounts/${localAccountId}/statuses`,
@@ -140,11 +157,9 @@ test('Mastodon actor details lead to transport-discovered authored notes', async
 		))
 
 		const main = page.locator('#main')
-		const actorCard = main.locator('article[data-card][data-scroll-container]').first()
-		await step(expect(actorCard).toBeVisible())
-		await step(expect(actorCard.locator(`a[href="${actorPath}"]`)).toHaveCount(1))
-		await step(expect(actorCard.locator(`a[href="${profileUrl}"]`)).toHaveAttribute('rel', 'noreferrer noopener'))
-		await step(expect(actorCard.locator(`a[href="${activityStreamsUri}"]`)).toHaveAttribute('target', '_blank'))
+		await step(expect(main.getByRole('link', { name: /Protocol Gardener/ }).first()).toHaveAttribute('href', actorPath))
+		await step(expect(main.locator(`a[href="${profileUrl}"]`)).toHaveAttribute('rel', 'noreferrer noopener'))
+		await step(expect(main.locator(`a[href="${activityStreamsUri}"]`)).toHaveAttribute('target', '_blank'))
 		await step(expect(main.locator(`a[href="${notePath}"]`)).toContainText('ActivityPub works best when identity remains portable.'))
 		await step(expect(main.locator('[data-error], [role="alert"]')).toHaveCount(0))
 		await step(expect(main).not.toContainText('[object Object]'))

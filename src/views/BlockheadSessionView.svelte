@@ -2,15 +2,13 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { stringify } from 'devalue'
 	import BlockheadSessionActionsComposer from '$/views/BlockheadSessionActionsComposer.svelte'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -26,32 +24,15 @@
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.BlockheadSession>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.BlockheadSession>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.BlockheadSession> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const blockheadSession = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {
-			name: true,
-			status: true,
-			updatedAt: true,
-		},
-	} : {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const viewSelection = $derived(selection({
+		sources: selection.sources ?? [
+			Source.Local_Internal,
+		],
+	}))
+	const blockheadSession = $derived(viewSelection({
 		fields: {
 			name: true,
 			status: true,
@@ -59,8 +40,8 @@
 			updatedAt: true,
 		},
 	}))
-	const titleFallback = $derived([String((pendingEntity.name) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.id) ?? '')].filter(Boolean).join(' ') || 'session')
-	const viewDomId = $derived('blockhead-session-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const titleFallback = $derived((pendingEntity.name ?? '') || (pendingEntity.id ?? '') || 'session')
+	const viewDomId = $derived('blockhead-session-' + encodeURIComponent(stringify(selection.entitySelector)))
 
 
 	// Components
@@ -77,18 +58,15 @@
 
 <EntityView
 	entityType={EntityType.BlockheadSession}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
+	entitySelector={selection.entitySelector}
 	id={viewDomId}
 	title={title ?? titleFallback}
 	href={
-		href ?? (
-			selection.entitySelector != null && 'id' in selection.entitySelector
-			&& selection.entitySelector.id != null ?
-				resolve('/~/session/[sessionId=stringSegment]', {
-			sessionId: String(selection.entitySelector.id ?? ''),
-		})
-		:
-				undefined
+		href ?? resolve(
+			'/~/session/[sessionId=stringSegment]',
+			{
+				sessionId: String(selection.entitySelector.id),
+			}
 		)
 	}
 	{layout}
@@ -96,52 +74,29 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'name') && Object.hasOwn(prefetched, 'status') && Object.hasOwn(prefetched, 'updatedAt')}
-			{[String((pendingEntity.name) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-		{:else}
-			<ResourceBoundary resource={blockheadSession}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.name) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={blockheadSession}>
+			{#snippet children(entity)}
+				{(entity.name ?? '') || title || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Value()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'name') && Object.hasOwn(prefetched, 'status') && Object.hasOwn(prefetched, 'updatedAt')}
-			{[String((pendingEntity.status) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.name) ?? '')].filter(Boolean).join(' ') || titleFallback}
-		{:else}
-			<ResourceBoundary resource={blockheadSession}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.status) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.name) ?? '')].filter(Boolean).join(' ') || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={blockheadSession}>
+			{#snippet children(entity)}
+				{entity.status || (entity.name ?? '') || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'name') && Object.hasOwn(prefetched, 'status') && Object.hasOwn(prefetched, 'updatedAt')}
-			{@const updatedAt0 = pendingEntity.updatedAt}
-			{#if updatedAt0 !== undefined && updatedAt0 !== null}
+		<ResourceBoundary resource={blockheadSession}>
+			{#snippet children(entity)}
 				<span data-text="muted">
-					<Timestamp timestamp={Number(updatedAt0)} />
+					<Timestamp timestamp={Number(entity.updatedAt)} />
 				</span>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={blockheadSession}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const updatedAt0 = resolvedEntity.updatedAt}
-					{#if updatedAt0 !== undefined && updatedAt0 !== null}
-						<span data-text="muted">
-							<Timestamp timestamp={Number(updatedAt0)} />
-						</span>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -150,21 +105,10 @@
 				<dt>Status</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									status: true,
-								},
-							})
-						}
+						resource={blockheadSession}
 					>
 						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const status = resolvedEntity.status}
-							{#if status !== undefined && status !== null}
-								{String((status) ?? '')}
-							{/if}
+							{entity.status}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -174,21 +118,10 @@
 				<dt>Created</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									createdAt: true,
-								},
-							})
-						}
+						resource={blockheadSession}
 					>
 						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const createdAt = resolvedEntity.createdAt}
-							{#if createdAt !== undefined && createdAt !== null}
-								<Timestamp timestamp={Number(createdAt)} />
-							{/if}
+							<Timestamp timestamp={Number(entity.createdAt)} />
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -198,21 +131,10 @@
 				<dt>Updated</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									updatedAt: true,
-								},
-							})
-						}
+						resource={blockheadSession}
 					>
 						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const updatedAt = resolvedEntity.updatedAt}
-							{#if updatedAt !== undefined && updatedAt !== null}
-								<Timestamp timestamp={Number(updatedAt)} />
-							{/if}
+							<Timestamp timestamp={Number(entity.updatedAt)} />
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -220,8 +142,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							lockedAt: true,
 						},
@@ -229,9 +150,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const lockedAt = resolvedEntity.lockedAt}
-					{#if lockedAt !== undefined && lockedAt !== null}
+					{@const lockedAt = entity.lockedAt}
+					{#if lockedAt != null}
 						<div>
 							<dt>Locked</dt>
 							<dd>
@@ -248,7 +168,7 @@
 				resource={selection.$latestSimulation}
 			>
 				{#snippet children(blockheadSessionSimulation)}
-					{#if blockheadSessionSimulation != null && blockheadSessionSimulation[EntityMetaKey.Selector] != null}
+					{#if blockheadSessionSimulation != null}
 						<div>
 							<dt>Latest simulation</dt>
 							<dd>
@@ -266,8 +186,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							simulationCount: true,
 						},
@@ -275,13 +194,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const simulationCount = resolvedEntity.simulationCount}
-					{#if simulationCount !== undefined && simulationCount !== null}
+					{@const simulationCount = entity.simulationCount}
+					{#if simulationCount != null}
 						<div>
 							<dt>Simulation count</dt>
 							<dd>
-								{String((simulationCount) ?? '')}
+								{String(simulationCount)}
 							</dd>
 						</div>
 					{/if}
@@ -303,7 +221,6 @@
 					{
 						id: 'blockhead-session-intents',
 						label: 'Intent invocations',
-						ownsSection: true,
 					},
 				]
 			}
@@ -331,70 +248,19 @@
 				</article>
 			{/snippet}
 
-			{#snippet MarkerBlockheadSessionIntents(_context, Content)}
-				{@const blockheadSessionWorkBlockheadSessionIntentsResource = selection.$$intentInvocations}
-				<ResourceBoundary
-					resource={blockheadSessionWorkBlockheadSessionIntentsResource}
-				>
-					{#snippet children(_resolved)}
-						{@render Content()}
-					{/snippet}
-
-					{#snippet PendingContent()}
-						{@render Content()}
-					{/snippet}
-
-					{#snippet FailedContent(_error, _retry)}
-						{@render Content()}
-					{/snippet}
-				</ResourceBoundary>
-			{/snippet}
-
-			{#snippet SectionBlockheadSessionIntents({ id, label, open, active })}
-				{@const blockheadSessionWorkBlockheadSessionIntentsResource = selection.$$intentInvocations}
-				<ResourceBoundary
-					resource={blockheadSessionWorkBlockheadSessionIntentsResource}
-				>
-					{#snippet children(blockheadIntentInvocation)}
-						<section
-							id={id}
-							aria-labelledby={`${id}:marker`}
-							data-scroll-marker-label={label}
-							data-column-item="flexible"
-							data-column
-							data-active={active}
-						>
-							<BlockheadIntentInvocationsView
-								selection={blockheadSessionWorkBlockheadSessionIntentsResource}
-								CollapsibleProps={{ canToggle: false }}
-								collapsible={false}
-								data-column-item="flexible"
-								data-card
-								data-scroll-container
-								open={open}
-								title={label}
-								emptyText='No intent invocations.'
-								id={`${id}-list`}
-							/>
-						</section>
-					{/snippet}
-
-					{#snippet Pending()}
-						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
-							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
-								<span data-tag data-text="muted" data-resource-state="pending" class="loading inline-placeholder" aria-busy="true" aria-label="Loading…">•••</span>
-							</article>
-						</section>
-					{/snippet}
-
-					{#snippet Failed(_error, _retry)}
-						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
-							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
-								<span data-tag data-resource-state="failed" class="inline-placeholder" aria-label="Failed to load">•••</span>
-							</article>
-						</section>
-					{/snippet}
-				</ResourceBoundary>
+			{#snippet SectionBlockheadSessionIntents({ id, label, open })}
+				<BlockheadIntentInvocationsView
+					selection={selection.$$intentInvocations}
+					CollapsibleProps={{ canToggle: false }}
+					collapsible={false}
+					data-column-item="flexible"
+					data-card
+					data-scroll-container
+					open={open}
+					title={label}
+					emptyText='No intent invocations.'
+					id={`${id}-list`}
+				/>
 			{/snippet}
 
 		</CollapsibleTabs>
@@ -407,7 +273,6 @@
 					{
 						id: 'blockhead-session-simulation-list',
 						label: 'Simulations',
-						ownsSection: true,
 					},
 				]
 			}
@@ -420,70 +285,19 @@
 				</header>
 			{/snippet}
 
-			{#snippet MarkerBlockheadSessionSimulationList(_context, Content)}
-				{@const blockheadSessionSimulationsBlockheadSessionSimulationListResource = selection.$$simulations}
-				<ResourceBoundary
-					resource={blockheadSessionSimulationsBlockheadSessionSimulationListResource}
-				>
-					{#snippet children(_resolved)}
-						{@render Content()}
-					{/snippet}
-
-					{#snippet PendingContent()}
-						{@render Content()}
-					{/snippet}
-
-					{#snippet FailedContent(_error, _retry)}
-						{@render Content()}
-					{/snippet}
-				</ResourceBoundary>
-			{/snippet}
-
-			{#snippet SectionBlockheadSessionSimulationList({ id, label, open, active })}
-				{@const blockheadSessionSimulationsBlockheadSessionSimulationListResource = selection.$$simulations}
-				<ResourceBoundary
-					resource={blockheadSessionSimulationsBlockheadSessionSimulationListResource}
-				>
-					{#snippet children(blockheadSessionSimulation)}
-						<section
-							id={id}
-							aria-labelledby={`${id}:marker`}
-							data-scroll-marker-label={label}
-							data-column-item="flexible"
-							data-column
-							data-active={active}
-						>
-							<BlockheadSessionSimulationsView
-								selection={blockheadSessionSimulationsBlockheadSessionSimulationListResource}
-								CollapsibleProps={{ canToggle: false }}
-								collapsible={false}
-								data-column-item="flexible"
-								data-card
-								data-scroll-container
-								open={open}
-								title={label}
-								emptyText='No simulations.'
-								id={`${id}-list`}
-							/>
-						</section>
-					{/snippet}
-
-					{#snippet Pending()}
-						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
-							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
-								<span data-tag data-text="muted" data-resource-state="pending" class="loading inline-placeholder" aria-busy="true" aria-label="Loading…">•••</span>
-							</article>
-						</section>
-					{/snippet}
-
-					{#snippet Failed(_error, _retry)}
-						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
-							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
-								<span data-tag data-resource-state="failed" class="inline-placeholder" aria-label="Failed to load">•••</span>
-							</article>
-						</section>
-					{/snippet}
-				</ResourceBoundary>
+			{#snippet SectionBlockheadSessionSimulationList({ id, label, open })}
+				<BlockheadSessionSimulationsView
+					selection={selection.$$simulations}
+					CollapsibleProps={{ canToggle: false }}
+					collapsible={false}
+					data-column-item="flexible"
+					data-card
+					data-scroll-container
+					open={open}
+					title={label}
+					emptyText='No simulations.'
+					id={`${id}-list`}
+				/>
 			{/snippet}
 
 		</CollapsibleTabs>

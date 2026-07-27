@@ -3,7 +3,7 @@ import { sourceFetch, firstHttpUrlForBinding } from '$/sources/_runtime/http.ts'
 import { throwHttpError } from '$/lib/http.ts'
 import type { AzureAiFoundryJson } from '$/sources/AzureAiFoundry/Rest/types.ts'
 
-const getJson = async ({
+const requestAzureAiFoundryJson = async ({
 	binding,
 	path,
 	credential,
@@ -32,7 +32,7 @@ export const listDeployments = ({
 	binding: SourceBinding
 	credential: string
 	apiVersion: string
-}) => getJson({
+}) => requestAzureAiFoundryJson({
 	binding,
 	path: `/openai/deployments?${new URLSearchParams({ 'api-version': apiVersion })}`,
 	credential,

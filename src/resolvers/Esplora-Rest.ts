@@ -8,41 +8,27 @@ import {
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 import type { EsploraAsset } from '$/sources/Esplora/Rest/types.ts'
-import { UtxoBlockSelector } from '$/schema/UtxoBlock.ts'
-import { UtxoTransactionSelector } from '$/schema/UtxoTransaction.ts'
-import { ElementsAssetSelector } from '$/schema/ElementsAsset.ts'
-import { ElementsAsset_TimestampSelector } from '$/schema/ElementsAsset_Timestamp.ts'
-import { ElementsNetworkSelector } from '$/schema/ElementsNetwork.ts'
-
 type NetworkId = { caip2: {
 	namespace: string
 	reference: string
 } } | { slug: string }
 
-const esploraRestBaseUrls = async () => (
-	(await import('$/sources/Esplora/Rest/queries.ts')).esploraRestBaseUrlByNetworkKey
-)
-
-const esploraRestBaseUrlForNetwork = async (network: NetworkId): Promise<string | undefined> => (
-	(await esploraRestBaseUrls())[
-		'caip2' in network ?
-			`${network.caip2.namespace}:${network.caip2.reference}`
+const esploraTargetForNetwork = (network: NetworkId) => {
+	const target = (
+		'caip2' in network
+		&& network.caip2.namespace === 'bip122'
+		&& network.caip2.reference === '000000000019d6689c085ae165831e93' ?
+			'bip122:000000000019d6689c085ae165831e93'
+		: 'slug' in network && network.slug === 'liquid' ?
+			'liquid'
 		:
-			network.slug
-	]
-)
-
-const requireEsploraRestBaseUrlForNetwork = async (network: NetworkId) => {
-	const restBaseUrl = await esploraRestBaseUrlForNetwork(network)
-	if (restBaseUrl == null)
+			undefined
+	)
+	if (target == null)
 		throw new Error('Esplora_Rest: unsupported network')
 
-	return restBaseUrl
+	return target
 }
-
-const liquidEsploraRestBaseUrl = async () => (
-	(await esploraRestBaseUrls()).liquid
-)
 
 const elementsAssetFieldsFromWire = (
 	asset: EsploraAsset
@@ -92,14 +78,14 @@ export default {
 		defineResolver(Source.Esplora_Rest, {
 			entityType: EntityType.UtxoBlock,
 			resolve: {
-				[UtxoBlockSelector.NetworkHeightHash]: {
+				NetworkHeightHash: {
 					resolve: async ({ $network, hash }) => {
 						const {
 							getBlock,
 						} = await import('$/sources/Esplora/Rest/queries.ts')
 						const block = await getBlock({
-							restBaseUrl: await requireEsploraRestBaseUrlForNetwork($network),
 							blockHash: hash,
+							target: esploraTargetForNetwork($network),
 						})
 						return {
 							hash: block.id,
@@ -138,11 +124,11 @@ export default {
 		defineResolver(Source.Esplora_Rest, {
 			entityType: EntityType.UtxoTransaction,
 			resolve: {
-				[UtxoTransactionSelector.NetworkTxId]: {
+				NetworkTxId: {
 					resolve: async ({ $network, txId }) => {
 						const { getTransaction } = await import('$/sources/Esplora/Rest/queries.ts')
 						const transaction = await getTransaction({
-							restBaseUrl: await requireEsploraRestBaseUrlForNetwork($network),
+							target: esploraTargetForNetwork($network),
 							txId: txId,
 						})
 						return {
@@ -182,7 +168,7 @@ export default {
 		defineResolver(Source.Esplora_Rest, {
 			entityType: EntityType.ElementsAsset,
 			resolve: {
-				[ElementsAssetSelector.ElementsNetworkAssetId]: {
+				ElementsNetworkAssetId: {
 					resolve: async ({ $network, assetId }) => {
 						if (
 							!('slug' in $network)
@@ -192,8 +178,8 @@ export default {
 
 						const { getAsset } = await import('$/sources/Esplora/Rest/queries.ts')
 						const asset = await getAsset({
-							restBaseUrl: await liquidEsploraRestBaseUrl(),
 							assetId: assetId,
+							target: 'liquid',
 						})
 						if (asset.asset_id !== assetId)
 							throw new Error(`Esplora_Rest: asset id mismatch for ${assetId}`)
@@ -214,7 +200,7 @@ export default {
 		defineResolver(Source.Esplora_Rest, {
 			entityType: EntityType.ElementsAsset,
 			resolve: {
-				[ElementsAssetSelector.ElementsNetworkAssetId]: {
+				ElementsNetworkAssetId: {
 					resolve: async (entitySelector) => [
 						{
 							[EntityMetaKey.Selector]: {
@@ -233,7 +219,7 @@ export default {
 		defineResolver(Source.Esplora_Rest, {
 			entityType: EntityType.ElementsAsset_Timestamp,
 			resolve: {
-				[ElementsAsset_TimestampSelector.AssetTimestampMsSource]: {
+				AssetTimestampMsSource: {
 					resolve: async ({ $asset }) => {
 						if (
 							!('$network' in $asset)
@@ -245,8 +231,8 @@ export default {
 
 						const { getAsset } = await import('$/sources/Esplora/Rest/queries.ts')
 						const asset = await getAsset({
-							restBaseUrl: await liquidEsploraRestBaseUrl(),
 							assetId: $asset.assetId,
+							target: 'liquid',
 						})
 						if (asset.asset_id !== $asset.assetId)
 							throw new Error(`Esplora_Rest: asset id mismatch for ${$asset.assetId}`)
@@ -264,7 +250,7 @@ export default {
 		defineResolver(Source.Esplora_Rest, {
 			entityType: EntityType.ElementsNetwork,
 			resolve: {
-				[ElementsNetworkSelector.Network]: {
+				Network: {
 					resolve: async ({ $network }) => {
 						if (
 							!('slug' in $network)
@@ -274,8 +260,8 @@ export default {
 
 						const { getAsset } = await import('$/sources/Esplora/Rest/queries.ts')
 						const asset = await getAsset({
-							restBaseUrl: await liquidEsploraRestBaseUrl(),
 							assetId: '6f0279e9ed041c3d710a9f57d0c02928416460c4b722ae3457a11eec381c526d',
+							target: 'liquid',
 						})
 
 						return elementsAssetRowFromWire(asset)
@@ -291,7 +277,7 @@ export default {
 		defineResolver(Source.Esplora_Rest, {
 			entityType: EntityType.ElementsNetwork,
 			resolve: {
-				[ElementsNetworkSelector.Network]: {
+				Network: {
 					resolve: async ({ $network }, context) => {
 						if (
 							!('slug' in $network)
@@ -301,7 +287,7 @@ export default {
 
 						const { listRegistryAssets } = await import('$/sources/Esplora/Rest/queries.ts')
 						return (await listRegistryAssets({
-							restBaseUrl: await liquidEsploraRestBaseUrl(),
+							target: 'liquid',
 						}))
 							.slice(0, resolverContextRowLimit(context))
 							.map((asset) => elementsAssetRowFromWire(asset))

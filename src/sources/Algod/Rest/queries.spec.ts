@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
+import bindings from '$/sources/Algod/bindings.ts'
 import { Source } from '$/sources/Source.ts'
-import { sourceProviderDefinitions } from '$/sources/$sourceProviders.ts'
 
 const { getJson } = vi.hoisted(() => ({
 	getJson: vi.fn(),
@@ -13,12 +13,7 @@ vi.mock('$/sources/_shared/wire/HttpRest/client.ts', () => ({
 
 const { getAccount } = await import('$/sources/Algod/Rest/queries.ts')
 
-const binding = sourceProviderDefinitions
-	.flatMap((provider) => provider.bindings)
-	.find((candidate) => candidate.source === Source.Algod_Rest)
-
-if (binding == null)
-	throw new Error('Algod_Rest spec missing source binding')
+const binding = bindings[Source.Algod_Rest]
 
 const account = 'A'.repeat(58)
 

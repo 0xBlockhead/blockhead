@@ -8,7 +8,6 @@
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
@@ -38,23 +37,12 @@
 
 
 <svelte:head>
-	<title>{(pageSelection.entity == null ? [String(({
-		id: params.roomId,
-	}.id) ?? '')].filter(Boolean).join(' ') || 'room' : [String((({ ...{
-		id: params.roomId,
-	}, ...pageSelection.entity }).name) ?? '')].filter(Boolean).join(' ') || [String((({ ...{
-		id: params.roomId,
-	}, ...pageSelection.entity }).id) ?? '')].filter(Boolean).join(' ') || 'room')} • room • Blockhead</title>
+	<title>{(pageSelection.entity == null ? (pageSelection.entitySelector.id ?? '') || 'room' : (pageSelection.entity.name ?? '') || pageSelection.entitySelector.id || 'room')} • room • Blockhead</title>
 </svelte:head>
 
 
 <Page>
 	<BlockheadRoomView
-		href={
-			resolve('/~/multiplayer/room/[roomId=stringSegment]', {
-				roomId: params.roomId,
-			})
-		}
 		selection={pageSelection}
 	/>
 </Page>

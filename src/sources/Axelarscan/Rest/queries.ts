@@ -1,5 +1,3 @@
-import { Source } from '$/sources/Source.ts'
-import type { SourceBinding } from '$/sources/SourceBinding.ts'
 import { getJson } from '$/sources/_shared/wire/HttpRest/client.ts'
 import type {
 	AxelarscanEvent,
@@ -7,14 +5,10 @@ import type {
 	AxelarscanGmpObservation,
 	AxelarscanGmpResponse,
 } from '$/sources/Axelarscan/Rest/types.ts'
+import type { SourceBinding } from '$/sources/SourceBinding.ts'
 
 const integerStringPattern = /^(?:0|[1-9]\d*)$/
 const bytes32Pattern = /^0x[0-9a-fA-F]{64}$/
-
-const assertBinding = (binding: SourceBinding) => {
-	if (binding.source !== Source.Axelarscan_Rest)
-		throw new Error('Axelarscan_Rest: incorrect source binding')
-}
 
 const assertOpaqueIdentity = (value: string, name: string) => {
 	if (value.length < 1 || value.length > 1_024 || value.includes('/') || value.includes('\\'))
@@ -164,7 +158,6 @@ const observe = async (
 	path: string,
 	size: number
 ): Promise<AxelarscanGmpObservation> => {
-	assertBinding(binding)
 	const response = await getJson<AxelarscanGmpResponse>(binding, path)
 	assertSafeNonnegativeInteger(response.total, 'total')
 	assertSafeNonnegativeInteger(response.time_spent, 'query time')

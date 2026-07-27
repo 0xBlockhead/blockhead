@@ -1,15 +1,12 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { entity, facet } from '$/schema/$schema.ts'
+import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { UrlString } from '$/schema/UrlString.ts'
 import { type } from 'arktype'
 
-export enum Eip8004AgentRegistrationFileSelector {
-	RegistrationFileUrl = 'RegistrationFileUrl',
-}
-export const Eip8004AgentRegistrationFile = entity({
+export default entity({
 	entityType: EntityType.Eip8004AgentRegistrationFile,
 	labels: {
 		singular: 'EIP-8004 agent registration file',
@@ -25,7 +22,7 @@ export const Eip8004AgentRegistrationFile = entity({
 	fileUrl: {
 		label: 'File URL',
 		type: EntityFieldType.Primitive,
-		primitiveType: (UrlString),
+		primitiveType: UrlString,
 		cardinality: EntityFieldCardinality.One,
 	},
 })({

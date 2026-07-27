@@ -4,18 +4,21 @@
  * @see https://docs.llama.fi/pro-api
  */
 
-import { corsFetch, throwIfHttpNotOk } from '$/lib/http.ts'
 import { requiredPublicEnvString } from '$/sources/$sources.ts'
+import { Source } from '$/sources/Source.ts'
+import {
+	firstHttpUrlForBinding,
+	sourceGetJson,
+} from '$/sources/_runtime/http.ts'
+import bindings from '$/sources/Defillama/bindings.ts'
 import type { GetDefillamaCurrentPricesOptions } from '$/sources/Defillama/OpenApi/types.ts'
 import { getCurrentPrices as getCurrentPricesOpenApi } from '$/sources/Defillama/OpenApi/queries.ts'
-import {
-	defillamaOrigins,
-	proBaseUrl,
-} from '$/sources/Defillama/Rest/constants.ts'
 import type {
 	DefiLlamaCurrentPricesResponse,
 	GetProDefillamaCurrentPricesArgs,
 } from '$/sources/Defillama/Rest/types.ts'
+
+const binding = bindings[Source.Defillama_Rest]
 
 /**
  * `GET /prices/current/{coins}` on `https://coins.llama.fi` — unauthenticated.
@@ -40,10 +43,8 @@ export const getProCurrentPrices = async ({
 }: GetProDefillamaCurrentPricesArgs): Promise<DefiLlamaCurrentPricesResponse> => {
 	if (coins.length === 0) return { coins: {} }
 	const url = new URL(
-		`${proBaseUrl}/${encodeURIComponent(requiredPublicEnvString(publicEnv, 'PUBLIC_DEFILLAMA_PRO_API_KEY'))}/coins/prices/current/${coins.join(',')}`
+		`${firstHttpUrlForBinding(binding).replace(/\/$/, '')}/${encodeURIComponent(requiredPublicEnvString(publicEnv, 'PUBLIC_DEFILLAMA_PRO_API_KEY'))}/coins/prices/current/${coins.join(',')}`
 	)
 	if (searchWidthOption != null) url.searchParams.set('searchWidth', searchWidthOption)
-	const res = await corsFetch(url.href, { origins: defillamaOrigins })
-	await throwIfHttpNotOk(res, url.href)
-	return res.json<DefiLlamaCurrentPricesResponse>()
+	return sourceGetJson(binding, url.href)
 }

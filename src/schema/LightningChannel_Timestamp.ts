@@ -1,15 +1,12 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { entity, facet } from '$/schema/$schema.ts'
+import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
-export enum LightningChannel_TimestampSelector {
-	ChannelTimestampMsSource = 'ChannelTimestampMsSource',
-}
-export const LightningChannel_Timestamp = entity({
+export default entity({
 	entityType: EntityType.LightningChannel_Timestamp,
 	labels: {
 		singular: 'Lightning channel timestamp',
@@ -72,7 +69,6 @@ export const LightningChannel_Timestamp = entity({
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
 			Source.LightningMempoolSpace_Rest,
-			Source.LightningLnd_Rest,
 		],
 	},
 	closingTransactionId: {
@@ -82,7 +78,6 @@ export const LightningChannel_Timestamp = entity({
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
 			Source.LightningMempoolSpace_Rest,
-			Source.LightningLnd_Rest,
 		],
 	},
 	closingFeeSats: {
@@ -92,7 +87,6 @@ export const LightningChannel_Timestamp = entity({
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
 			Source.LightningMempoolSpace_Rest,
-			Source.LightningLnd_Rest,
 		],
 	},
 	closingReason: {
@@ -102,7 +96,6 @@ export const LightningChannel_Timestamp = entity({
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
 			Source.LightningMempoolSpace_Rest,
-			Source.LightningLnd_Rest,
 		],
 	},
 	closedAtMs: {
@@ -112,7 +105,6 @@ export const LightningChannel_Timestamp = entity({
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
 			Source.LightningMempoolSpace_Rest,
-			Source.LightningLnd_Rest,
 		],
 	},
 })({

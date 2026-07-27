@@ -2,13 +2,9 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -20,42 +16,24 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.NearAction>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.NearAction>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.NearAction> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const nearAction = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {
-			actionKind: true,
-			methodName: true,
-		},
-	} : {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const viewSelection = $derived(selection({
+		sources: selection.sources ?? [
+			Source.NearRpc_JsonRpc,
+		],
+	}))
+	const nearAction = $derived(viewSelection({
 		fields: {
 			actionKind: true,
 			methodName: true,
 		},
 	}))
-	const titleFallback = $derived([String((pendingEntity.actionKind) ?? '')].filter(Boolean).join(' ') || 'near action')
-	const viewDomId = $derived('near-action-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const titleFallback = $derived((pendingEntity.actionKind ?? '') || 'near action')
 
 
 	// Components
@@ -67,65 +45,34 @@
 
 <EntityView
 	entityType={EntityType.NearAction}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'actionKind') && Object.hasOwn(prefetched, 'methodName')}
-			{[String((pendingEntity.actionKind) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-		{:else}
-			<ResourceBoundary resource={nearAction}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.actionKind) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={nearAction}>
+			{#snippet children(entity)}
+				{entity.actionKind || title || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Value()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'actionKind') && Object.hasOwn(prefetched, 'methodName')}
-			{[String((pendingEntity.methodName) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.actionKind) ?? '')].filter(Boolean).join(' ') || titleFallback}
-		{:else}
-			<ResourceBoundary resource={nearAction}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.methodName) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.actionKind) ?? '')].filter(Boolean).join(' ') || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={nearAction}>
+			{#snippet children(entity)}
+				{(entity.methodName ?? '') || entity.actionKind || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'actionKind') && Object.hasOwn(prefetched, 'methodName')}
-			{@const actionIndex0 = pendingEntity.actionIndex}
-			{#if actionIndex0 !== undefined && actionIndex0 !== null}
-				<span data-text="muted">
-					<NumberValue
-						value={actionIndex0}
-					/>
-				</span>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={nearAction}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const actionIndex0 = resolvedEntity.actionIndex}
-					{#if actionIndex0 !== undefined && actionIndex0 !== null}
-						<span data-text="muted">
-							<NumberValue
-								value={actionIndex0}
-							/>
-						</span>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<span data-text="muted">
+			<NumberValue
+				value={pendingEntity.actionIndex}
+			/>
+		</span>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -144,26 +91,9 @@
 			<div>
 				<dt>Action index</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									actionIndex: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const actionIndex = resolvedEntity.actionIndex}
-							{#if actionIndex !== undefined && actionIndex !== null}
-								<NumberValue
-									value={actionIndex}
-								/>
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					<NumberValue
+						value={pendingEntity.actionIndex}
+					/>
 				</dd>
 			</div>
 
@@ -171,44 +101,25 @@
 				<dt>Action kind</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									actionKind: true,
-								},
-							})
-						}
+						resource={nearAction}
 					>
 						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const actionKind = resolvedEntity.actionKind}
-							{#if actionKind !== undefined && actionKind !== null}
-								{String((actionKind) ?? '')}
-							{/if}
+							{entity.actionKind}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
 			</div>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							methodName: true,
-						},
-					})
-				}
+				resource={nearAction}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const methodName = resolvedEntity.methodName}
-					{#if methodName !== undefined && methodName !== null}
+					{@const methodName = entity.methodName}
+					{#if methodName != null}
 						<div>
 							<dt>Method name</dt>
 							<dd>
-								{String((methodName) ?? '')}
+								{methodName}
 							</dd>
 						</div>
 					{/if}
@@ -217,8 +128,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							depositYoctoNear: true,
 						},
@@ -226,9 +136,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const depositYoctoNear = resolvedEntity.depositYoctoNear}
-					{#if depositYoctoNear !== undefined && depositYoctoNear !== null}
+					{@const depositYoctoNear = entity.depositYoctoNear}
+					{#if depositYoctoNear != null}
 						<div>
 							<dt>Deposit yocto near</dt>
 							<dd>

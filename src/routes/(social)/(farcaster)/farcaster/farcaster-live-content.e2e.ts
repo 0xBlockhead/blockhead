@@ -11,6 +11,10 @@ import {
 	setupRouteViewSmokePage,
 } from '../../../../../tests/e2e/_routeViewDiagnostics.ts'
 
+const firstContinuationHash = '0x1111111111111111111111111111111111111111'
+const secondContinuationHash = '0x2222222222222222222222222222222222222222'
+const directReplyHash = '0x3333333333333333333333333333333333333333'
+
 const farcasterCast = (
 	fid: number,
 	hash: `0x${string}`,
@@ -44,7 +48,7 @@ const installNeynarContinuationFixture = async (
 					hash: helperCast ?
 						'0xe4f2e1c70d72388a98dba2a2511a9b480840e544'
 					:
-						'0x1111',
+						firstContinuationHash,
 					data: {
 						fid: helperCast ? 3 : 1,
 						timestamp: 1_700_000_000,
@@ -103,10 +107,16 @@ const installNeynarContinuationFixture = async (
 								helperCast ?
 									farcasterCast(3, '0xe4f2e1c70d72388a98dba2a2511a9b480840e544', 'Snapchain fixture cast')
 								:
-									farcasterCast(1, '0x1111', 'First continuation cast')
+									farcasterCast(1, firstContinuationHash, 'First continuation cast')
 							),
 							direct_replies: [
-								farcasterCast(3, '0x3333', 'Direct reply cast'),
+								{
+									...farcasterCast(3, directReplyHash, 'Direct reply cast'),
+									parent_author: {
+										fid: 1,
+									},
+									parent_hash: firstContinuationHash,
+								},
 							],
 						},
 					},
@@ -127,7 +137,7 @@ const installNeynarContinuationFixture = async (
 						url.includes('0xe4f2e1c70d72388a98dba2a2511a9b480840e544') ?
 							farcasterCast(3, '0xe4f2e1c70d72388a98dba2a2511a9b480840e544', 'Snapchain fixture cast')
 						:
-							farcasterCast(1, '0x1111', 'First continuation cast')
+							farcasterCast(1, firstContinuationHash, 'First continuation cast')
 					),
 				},
 			})
@@ -149,7 +159,7 @@ const installNeynarContinuationFixture = async (
 				url.includes('cursor=next-page') ?
 					{
 						casts: [
-							farcasterCast(2, '0x2222', 'Second continuation cast'),
+							farcasterCast(2, secondContinuationHash, 'Second continuation cast'),
 						],
 						next: {
 							cursor: null,
@@ -158,7 +168,7 @@ const installNeynarContinuationFixture = async (
 				:
 					{
 						casts: [
-							farcasterCast(1, '0x1111', 'First continuation cast'),
+							farcasterCast(1, firstContinuationHash, 'First continuation cast'),
 						],
 						next: {
 							cursor: 'next-page',
@@ -207,8 +217,8 @@ test('Farcaster trending feed opens meaningful live cast content', async ({ page
 			}
 		))
 
-		await step(expect(page.getByText('Snapchain fixture cast').first()).toBeVisible())
-		const castLink = page.locator('#main a[href="/farcaster/cast/3/0xe4f2e1c70d72388a98dba2a2511a9b480840e544"]').first()
+		await step(expect(page.getByText('First continuation cast').first()).toBeVisible())
+		const castLink = page.locator(`#main a[href="/farcaster/cast/1/${firstContinuationHash}"]`).first()
 		await step(expect(castLink).toBeVisible())
 		await step(castLink.click())
 		await step(expect(page).toHaveURL(/\/farcaster\/cast\/\d+\/0x[0-9a-f]+\/?$/i))
@@ -239,7 +249,7 @@ test('Farcaster continuation appends a terminal page without duplicate casts', a
 		window.__blockheadWaSqliteVfsNameOverride = name.replace(/[^a-zA-Z0-9_-]/g, '_')
 		window.__blockheadPersistedCollectionSchemaVersionOverride = schemaVersion
 	}, {
-		name: `blockhead-farcaster-continuation-${testInfo.workerIndex}-${testInfo.retry}-${Date.now()}.sqlite`,
+		name: `bh-farcaster-page-${testInfo.workerIndex}-${testInfo.retry}-${Date.now()}.sqlite`,
 		schemaVersion: Date.now(),
 	})
 	await installChainlistRpcsJsonStub(page)

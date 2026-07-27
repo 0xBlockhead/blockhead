@@ -9,14 +9,12 @@
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		data,
-		params,
 	}: PageProps = $props()
 
 	const pageSelection = $derived(select(EntityType.EvmUserOperation, data.selector, {
@@ -59,18 +57,12 @@
 
 
 <svelte:head>
-	<title>{(data.title ?? (pageSelection.entity == null ? [String((data.selector.hash) ?? '')].filter(Boolean).join(' ') || 'User operation' : [String((({ ...data.selector, ...pageSelection.entity }).hash) ?? '')].filter(Boolean).join(' ') || 'User operation'))} • User operation • Blockhead</title>
+	<title>{(data.title ?? (pageSelection.entitySelector.hash || 'User operation'))} • User operation • Blockhead</title>
 </svelte:head>
 
 
 <Page>
 	<EvmUserOperationView
-		href={
-			resolve('/network/[network=networkCaip2OrNetworkSlug]/user-operation/[userOperationHash=userOperationHash]', {
-				network: params.network,
-				userOperationHash: params.userOperationHash,
-			})
-		}
 		selection={pageSelection}
 	/>
 </Page>

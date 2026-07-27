@@ -2,13 +2,9 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
 
 
 	// Context
@@ -20,35 +16,13 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.StellarTrade>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.StellarTrade>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.StellarTrade> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const stellarTrade = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {},
-	} : {
-		sources: selection.sources,
-	}))
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const titleFallback = 'stellar trade'
-	const viewDomId = $derived('stellar-trade-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -66,24 +40,14 @@
 
 <EntityView
 	entityType={EntityType.StellarTrade}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails}
-			{title || titleFallback}
-		{:else}
-			<ResourceBoundary resource={stellarTrade}>
-				{#snippet children(entity)}
-					{title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		stellar trade
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -102,55 +66,20 @@
 			<div>
 				<dt>trade ID</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									tradeId: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const tradeId = resolvedEntity.tradeId}
-							{#if tradeId !== undefined && tradeId !== null}
-								{String((tradeId) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{pendingEntity.tradeId}
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									source: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const source = resolvedEntity.source}
-							{#if source !== undefined && source !== null}
-								{String((source) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{pendingEntity.source}
 				</dd>
 			</div>
 
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							ledgerCloseTimeMs: true,
 						},
@@ -158,13 +87,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const ledgerCloseTimeMs = resolvedEntity.ledgerCloseTimeMs}
-					{#if ledgerCloseTimeMs !== undefined && ledgerCloseTimeMs !== null}
+					{@const ledgerCloseTimeMs = entity.ledgerCloseTimeMs}
+					{#if ledgerCloseTimeMs != null}
 						<div>
 							<dt>ledger close time ms</dt>
 							<dd>
-								{String((ledgerCloseTimeMs) ?? '')}
+								{String(ledgerCloseTimeMs)}
 							</dd>
 						</div>
 					{/if}
@@ -175,7 +103,7 @@
 				resource={selection.$baseAccount}
 			>
 				{#snippet children(stellarAccount)}
-					{#if stellarAccount != null && stellarAccount[EntityMetaKey.Selector] != null}
+					{#if stellarAccount != null}
 						<div>
 							<dt>base account</dt>
 							<dd>
@@ -195,7 +123,7 @@
 				resource={selection.$counterAccount}
 			>
 				{#snippet children(stellarAccount)}
-					{#if stellarAccount != null && stellarAccount[EntityMetaKey.Selector] != null}
+					{#if stellarAccount != null}
 						<div>
 							<dt>counter account</dt>
 							<dd>
@@ -215,7 +143,7 @@
 				resource={selection.$baseOffer}
 			>
 				{#snippet children(stellarOffer)}
-					{#if stellarOffer != null && stellarOffer[EntityMetaKey.Selector] != null}
+					{#if stellarOffer != null}
 						<div>
 							<dt>base offer</dt>
 							<dd>
@@ -235,7 +163,7 @@
 				resource={selection.$counterOffer}
 			>
 				{#snippet children(stellarOffer)}
-					{#if stellarOffer != null && stellarOffer[EntityMetaKey.Selector] != null}
+					{#if stellarOffer != null}
 						<div>
 							<dt>counter offer</dt>
 							<dd>
@@ -255,7 +183,7 @@
 				resource={selection.$baseLiquidityPool}
 			>
 				{#snippet children(stellarLiquidityPool)}
-					{#if stellarLiquidityPool != null && stellarLiquidityPool[EntityMetaKey.Selector] != null}
+					{#if stellarLiquidityPool != null}
 						<div>
 							<dt>base liquidity pool</dt>
 							<dd>
@@ -275,7 +203,7 @@
 				resource={selection.$counterLiquidityPool}
 			>
 				{#snippet children(stellarLiquidityPool)}
-					{#if stellarLiquidityPool != null && stellarLiquidityPool[EntityMetaKey.Selector] != null}
+					{#if stellarLiquidityPool != null}
 						<div>
 							<dt>counter liquidity pool</dt>
 							<dd>
@@ -295,7 +223,7 @@
 				resource={selection.$baseAsset}
 			>
 				{#snippet children(stellarAsset)}
-					{#if stellarAsset != null && stellarAsset[EntityMetaKey.Selector] != null}
+					{#if stellarAsset != null}
 						<div>
 							<dt>base asset</dt>
 							<dd>
@@ -315,7 +243,7 @@
 				resource={selection.$counterAsset}
 			>
 				{#snippet children(stellarAsset)}
-					{#if stellarAsset != null && stellarAsset[EntityMetaKey.Selector] != null}
+					{#if stellarAsset != null}
 						<div>
 							<dt>counter asset</dt>
 							<dd>
@@ -334,7 +262,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							baseAmount: true,
 						},
@@ -342,13 +269,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const baseAmount = resolvedEntity.baseAmount}
-					{#if baseAmount !== undefined && baseAmount !== null}
+					{@const baseAmount = entity.baseAmount}
+					{#if baseAmount != null}
 						<div>
 							<dt>base amount</dt>
 							<dd>
-								{String((baseAmount) ?? '')}
+								{baseAmount}
 							</dd>
 						</div>
 					{/if}
@@ -358,7 +284,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							counterAmount: true,
 						},
@@ -366,13 +291,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const counterAmount = resolvedEntity.counterAmount}
-					{#if counterAmount !== undefined && counterAmount !== null}
+					{@const counterAmount = entity.counterAmount}
+					{#if counterAmount != null}
 						<div>
 							<dt>counter amount</dt>
 							<dd>
-								{String((counterAmount) ?? '')}
+								{counterAmount}
 							</dd>
 						</div>
 					{/if}
@@ -382,7 +306,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							priceNumerator: true,
 						},
@@ -390,13 +313,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const priceNumerator = resolvedEntity.priceNumerator}
-					{#if priceNumerator !== undefined && priceNumerator !== null}
+					{@const priceNumerator = entity.priceNumerator}
+					{#if priceNumerator != null}
 						<div>
 							<dt>price numerator</dt>
 							<dd>
-								{String((priceNumerator) ?? '')}
+								{String(priceNumerator)}
 							</dd>
 						</div>
 					{/if}
@@ -406,7 +328,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							priceDenominator: true,
 						},
@@ -414,13 +335,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const priceDenominator = resolvedEntity.priceDenominator}
-					{#if priceDenominator !== undefined && priceDenominator !== null}
+					{@const priceDenominator = entity.priceDenominator}
+					{#if priceDenominator != null}
 						<div>
 							<dt>price denominator</dt>
 							<dd>
-								{String((priceDenominator) ?? '')}
+								{String(priceDenominator)}
 							</dd>
 						</div>
 					{/if}
@@ -431,7 +351,7 @@
 				resource={selection.$transaction}
 			>
 				{#snippet children(stellarTransaction)}
-					{#if stellarTransaction != null && stellarTransaction[EntityMetaKey.Selector] != null}
+					{#if stellarTransaction != null}
 						<div>
 							<dt>transaction</dt>
 							<dd>
@@ -451,7 +371,7 @@
 				resource={selection.$operation}
 			>
 				{#snippet children(stellarOperation)}
-					{#if stellarOperation != null && stellarOperation[EntityMetaKey.Selector] != null}
+					{#if stellarOperation != null}
 						<div>
 							<dt>operation</dt>
 							<dd>

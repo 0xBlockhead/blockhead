@@ -1,15 +1,12 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { entity, facet } from '$/schema/$schema.ts'
+import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 import { type } from 'arktype'
 
-export enum BlockheadAgentProviderCallSelector {
-	TurnIndexInTurn = 'TurnIndexInTurn',
-}
-export const BlockheadAgentProviderCall = entity({
+export default entity({
 	entityType: EntityType.BlockheadAgentProviderCall,
 	labels: {
 		singular: 'blockhead agent provider call',
@@ -115,7 +112,7 @@ export const BlockheadAgentProviderCall = entity({
 	requestHash: {
 		label: 'request hash',
 		type: EntityFieldType.Primitive,
-		primitiveType: (ZeroExHex),
+		primitiveType: ZeroExHex,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	responseHashAlgorithm: {
@@ -127,7 +124,7 @@ export const BlockheadAgentProviderCall = entity({
 	responseHash: {
 		label: 'response hash',
 		type: EntityFieldType.Primitive,
-		primitiveType: (ZeroExHex),
+		primitiveType: ZeroExHex,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	inputTokenCount: {

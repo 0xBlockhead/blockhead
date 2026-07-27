@@ -1,8 +1,9 @@
-import type { SourceBinding } from '$/sources/SourceBinding.ts'
+import bindings from '$/sources/CardanoKoios/bindings.ts'
 import {
-	getJson,
+	httpUrl,
 	postJson,
 } from '$/sources/_shared/wire/HttpRest/client.ts'
+import { sourceGetJson } from '$/sources/_runtime/http.ts'
 import type {
 	CardanoKoiosGovernanceProposal,
 	CardanoKoiosTransactionInfo,
@@ -18,18 +19,31 @@ import {
 	cardanoKoiosTip,
 	cardanoKoiosTransactionProposalProcedure,
 } from '$/sources/CardanoKoios/Rest/types.ts'
+import { parseCardanoGovernanceAction } from '$/sources/_shared/interfaces/CardanoGovernance/types.ts'
 import type { JsonValue } from '$/typescript/JsonValue.ts'
+import { Source } from '$/sources/Source.ts'
+
+const binding = bindings[Source.CardanoKoios_Rest]
 
 export const query = <_Response>(
-	binding: SourceBinding,
 	path: string
-) => (
-	getJson<_Response>(binding, path)
-)
+) => sourceGetJson<_Response>(binding, httpUrl(binding, path))
 
-export const getTip = async (binding: SourceBinding) => {
+const cardanoKoiosPostJson = <_Response>({
+	path,
+	body,
+}: {
+	path: string
+	body: unknown
+}) => postJson<_Response>({
+		binding,
+		path,
+		body,
+	})
+
+export const getTip = async () => {
 	const tips = cardanoKoiosTip.array().assert(
-		await query<JsonValue>(binding, '/api/v1/tip')
+		await query<JsonValue>('/api/v1/tip')
 	)
 	if (tips.length !== 1)
 		throw new Error('CardanoKoios_Rest: tip must return exactly one network observation')
@@ -46,12 +60,11 @@ export const getTip = async (binding: SourceBinding) => {
 	return tips
 }
 
-export const getEpochInfo = (binding: SourceBinding) => (
-	query<Record<string, unknown>[]>(binding, '/api/v1/epoch_info')
+export const getEpochInfo = () => (
+	query<Record<string, unknown>[]>('/api/v1/epoch_info')
 )
 
 const list = <_Response>(
-	binding: SourceBinding,
 	path: string,
 	count: number,
 	offset?: number
@@ -64,17 +77,15 @@ const list = <_Response>(
 	return count === 0
 		? Promise.resolve<_Response[]>([])
 		: query<_Response[]>(
-			binding,
 			`/api/v1/${path}?limit=${Math.min(count, 100).toString()}${offset == null ? '' : `&offset=${offset.toString()}`}`
 		)
 }
 
 export const listBlocks = async (
-	binding: SourceBinding,
 	count: number
 ) => {
 	const blocks = cardanoKoiosBlock.array().assert(
-		await list<JsonValue>(binding, 'blocks', count)
+		await list<JsonValue>('blocks', count)
 	)
 	if (new Set(blocks.map((block) => block.hash)).size !== blocks.length)
 		throw new Error('CardanoKoios_Rest: blocks contains duplicate identities')
@@ -105,7 +116,6 @@ export const listBlocks = async (
 }
 
 export const listLatestBlockTransactions = async (
-	binding: SourceBinding,
 	count: number
 ) => {
 	if (!Number.isSafeInteger(count) || count < 0 || count > 100)
@@ -113,9 +123,8 @@ export const listLatestBlockTransactions = async (
 	if (count === 0)
 		return []
 
-	const [tip] = await getTip(binding)
-	const transactions = cardanoKoiosBlockTransaction.array().assert(await postJson<JsonValue>({
-		binding,
+	const [tip] = await getTip()
+	const transactions = cardanoKoiosBlockTransaction.array().assert(await cardanoKoiosPostJson<JsonValue>({
 		path: '/api/v1/block_txs',
 		body: {
 			_block_hashes: [tip.hash],
@@ -128,12 +137,10 @@ export const listLatestBlockTransactions = async (
 }
 
 export const getTransactionInfo = async (
-	binding: SourceBinding,
 	transactionHash: string
 ) => {
 	const transaction = (
-		await postJson<CardanoKoiosTransactionInfo[]>({
-			binding,
+		await cardanoKoiosPostJson<CardanoKoiosTransactionInfo[]>({
 			path: '/api/v1/tx_info',
 			body: {
 				_tx_hashes: [transactionHash],
@@ -156,6 +163,9 @@ export const getTransactionInfo = async (
 		...transaction,
 		proposal_procedures: transaction.proposal_procedures.map((proposal) => {
 			const validated = cardanoKoiosTransactionProposalProcedure.assert(proposal)
+			const description = parseCardanoGovernanceAction(validated.description)
+			if (validated.type !== description.tag)
+				throw new Error('CardanoKoios_Rest: proposal type does not match description tag')
 
 			return {
 				...proposal,
@@ -164,6 +174,7 @@ export const getTransactionInfo = async (
 				deposit: validated.deposit,
 				meta_url: validated.meta_url,
 				meta_hash: validated.meta_hash,
+				description,
 				return_address: validated.return_address,
 			}
 		}),
@@ -171,11 +182,10 @@ export const getTransactionInfo = async (
 }
 
 export const listStakePools = async (
-	binding: SourceBinding,
 	count: number
 ) => {
 	const stakePools = cardanoKoiosStakePool.array().assert(
-		await list<JsonValue>(binding, 'pool_list', count)
+		await list<JsonValue>('pool_list', count)
 	)
 	if (new Set(stakePools.map((stakePool) => stakePool.pool_id_bech32)).size !== stakePools.length)
 		throw new Error('CardanoKoios_Rest: pool_list contains duplicate identities')
@@ -187,11 +197,10 @@ export const listStakePools = async (
 }
 
 export const listDReps = async (
-	binding: SourceBinding,
 	count: number
 ) => {
 	const dReps = cardanoKoiosDRep.array().assert(
-		await list<JsonValue>(binding, 'drep_list', count)
+		await list<JsonValue>('drep_list', count)
 	)
 	if (new Set(dReps.map((dRep) => dRep.drep_id)).size !== dReps.length)
 		throw new Error('CardanoKoios_Rest: drep_list contains duplicate identities')
@@ -200,19 +209,17 @@ export const listDReps = async (
 }
 
 export const listGovernanceProposals = (
-	binding: SourceBinding,
 	count: number,
 	offset?: number
 ) => (
-	list<CardanoKoiosGovernanceProposal>(binding, 'proposal_list', count, offset)
+	list<CardanoKoiosGovernanceProposal>('proposal_list', count, offset)
 )
 
 export const listAssets = async (
-	binding: SourceBinding,
 	count: number
 ) => {
 	const assets = cardanoKoiosAsset.array().assert(
-		await list<JsonValue>(binding, 'asset_list', count)
+		await list<JsonValue>('asset_list', count)
 	)
 	if (
 		new Set(assets.map((asset) => (
@@ -224,9 +231,8 @@ export const listAssets = async (
 	return assets
 }
 
-export const getLatestProtocolParameters = async (binding: SourceBinding) => {
+export const getLatestProtocolParameters = async () => {
 	const parameters = cardanoKoiosProtocolParameters.array().assert(await query<JsonValue>(
-		binding,
 		'/api/v1/epoch_params?limit=1&order=epoch_no.desc'
 	))
 	if (parameters.length !== 1)
@@ -250,9 +256,9 @@ export const getLatestProtocolParameters = async (binding: SourceBinding) => {
 	return parameters
 }
 
-export const getCommittee = async (binding: SourceBinding) => {
+export const getCommittee = async () => {
 	const committees = cardanoKoiosCommittee.array().assert(
-		await query<JsonValue>(binding, '/api/v1/committee_info')
+		await query<JsonValue>('/api/v1/committee_info')
 	)
 	if (committees.length !== 1)
 		throw new Error('CardanoKoios_Rest: committee_info must return exactly one committee')

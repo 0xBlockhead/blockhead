@@ -2,15 +2,8 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
-	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -22,35 +15,13 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.HederaNetworkExchangeRate_Timestamp>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.HederaNetworkExchangeRate_Timestamp>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.HederaNetworkExchangeRate_Timestamp> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const hederaNetworkExchangeRateTimestamp = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {},
-	} : {
-		sources: selection.sources,
-	}))
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const titleFallback = 'hedera network exchange rate timestamp'
-	const viewDomId = $derived('hedera-network-exchange-rate-timestamp-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -62,24 +33,14 @@
 
 <EntityView
 	entityType={EntityType.HederaNetworkExchangeRate_Timestamp}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails}
-			{title || titleFallback}
-		{:else}
-			<ResourceBoundary resource={hederaNetworkExchangeRateTimestamp}>
-				{#snippet children(entity)}
-					{title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		hedera network exchange rate timestamp
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -89,23 +50,6 @@
 				<dd>
 					<NetworkView
 						selection={select(EntityType.Network, selection.entitySelector.$network)}
-						href={
-							(
-								selection.entitySelector.$network != null && 'caip2' in selection.entitySelector.$network
-								&& selection.entitySelector.$network.caip2 != null ?
-									resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-								network: String(caip2StringFromValue(selection.entitySelector.$network.caip2) ?? ''),
-							})
-							:
-									selection.entitySelector.$network != null && 'slug' in selection.entitySelector.$network
-									&& selection.entitySelector.$network.slug != null ?
-										resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-									network: String(selection.entitySelector.$network.slug ?? ''),
-								})
-								:
-									undefined
-							)
-						}
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -115,55 +59,20 @@
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									timestampMs: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const timestampMs = resolvedEntity.timestampMs}
-							{#if timestampMs !== undefined && timestampMs !== null}
-								<Timestamp timestamp={Number(timestampMs)} />
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									source: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const source = resolvedEntity.source}
-							{#if source !== undefined && source !== null}
-								{String((source) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{pendingEntity.source}
 				</dd>
 			</div>
 
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							currentRateCentEquivalent: true,
 						},
@@ -171,13 +80,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const currentRateCentEquivalent = resolvedEntity.currentRateCentEquivalent}
-					{#if currentRateCentEquivalent !== undefined && currentRateCentEquivalent !== null}
+					{@const currentRateCentEquivalent = entity.currentRateCentEquivalent}
+					{#if currentRateCentEquivalent != null}
 						<div>
 							<dt>current rate cent equivalent</dt>
 							<dd>
-								{String((currentRateCentEquivalent) ?? '')}
+								{String(currentRateCentEquivalent)}
 							</dd>
 						</div>
 					{/if}
@@ -187,7 +95,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							currentRateHbarEquivalent: true,
 						},
@@ -195,13 +102,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const currentRateHbarEquivalent = resolvedEntity.currentRateHbarEquivalent}
-					{#if currentRateHbarEquivalent !== undefined && currentRateHbarEquivalent !== null}
+					{@const currentRateHbarEquivalent = entity.currentRateHbarEquivalent}
+					{#if currentRateHbarEquivalent != null}
 						<div>
 							<dt>current rate HBAR equivalent</dt>
 							<dd>
-								{String((currentRateHbarEquivalent) ?? '')}
+								{String(currentRateHbarEquivalent)}
 							</dd>
 						</div>
 					{/if}
@@ -211,7 +117,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							currentRateExpirationTime: true,
 						},
@@ -219,13 +124,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const currentRateExpirationTime = resolvedEntity.currentRateExpirationTime}
-					{#if currentRateExpirationTime !== undefined && currentRateExpirationTime !== null}
+					{@const currentRateExpirationTime = entity.currentRateExpirationTime}
+					{#if currentRateExpirationTime != null}
 						<div>
 							<dt>current rate expiration time</dt>
 							<dd>
-								{String((currentRateExpirationTime) ?? '')}
+								{currentRateExpirationTime}
 							</dd>
 						</div>
 					{/if}
@@ -235,7 +139,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							nextRateCentEquivalent: true,
 						},
@@ -243,13 +146,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const nextRateCentEquivalent = resolvedEntity.nextRateCentEquivalent}
-					{#if nextRateCentEquivalent !== undefined && nextRateCentEquivalent !== null}
+					{@const nextRateCentEquivalent = entity.nextRateCentEquivalent}
+					{#if nextRateCentEquivalent != null}
 						<div>
 							<dt>next rate cent equivalent</dt>
 							<dd>
-								{String((nextRateCentEquivalent) ?? '')}
+								{String(nextRateCentEquivalent)}
 							</dd>
 						</div>
 					{/if}
@@ -259,7 +161,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							nextRateHbarEquivalent: true,
 						},
@@ -267,13 +168,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const nextRateHbarEquivalent = resolvedEntity.nextRateHbarEquivalent}
-					{#if nextRateHbarEquivalent !== undefined && nextRateHbarEquivalent !== null}
+					{@const nextRateHbarEquivalent = entity.nextRateHbarEquivalent}
+					{#if nextRateHbarEquivalent != null}
 						<div>
 							<dt>next rate HBAR equivalent</dt>
 							<dd>
-								{String((nextRateHbarEquivalent) ?? '')}
+								{String(nextRateHbarEquivalent)}
 							</dd>
 						</div>
 					{/if}
@@ -283,7 +183,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							nextRateExpirationTime: true,
 						},
@@ -291,13 +190,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const nextRateExpirationTime = resolvedEntity.nextRateExpirationTime}
-					{#if nextRateExpirationTime !== undefined && nextRateExpirationTime !== null}
+					{@const nextRateExpirationTime = entity.nextRateExpirationTime}
+					{#if nextRateExpirationTime != null}
 						<div>
 							<dt>next rate expiration time</dt>
 							<dd>
-								{String((nextRateExpirationTime) ?? '')}
+								{nextRateExpirationTime}
 							</dd>
 						</div>
 					{/if}

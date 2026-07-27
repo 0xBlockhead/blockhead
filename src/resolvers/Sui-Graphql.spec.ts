@@ -5,7 +5,6 @@ import {
 	EntityMetaKey,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import { SuiAccountSelector } from '$/schema/SuiAccount.ts'
 
 const graphql = vi.hoisted(() => vi.fn())
 
@@ -84,7 +83,7 @@ describe('Sui GraphQL public-account resolver', () => {
 			},
 		})
 		const resolver = resolverFor('$$balances')
-		const snapshot = await resolver.resolve[SuiAccountSelector.NetworkAddress].resolve(
+		const snapshot = await resolver.resolve['NetworkAddress'].resolve(
 			account,
 			context
 		)
@@ -165,7 +164,7 @@ describe('Sui GraphQL public-account resolver', () => {
 			},
 		})
 		const resolver = resolverFor('$$transactions')
-		const snapshot = await resolver.resolve[SuiAccountSelector.NetworkAddress].resolve(
+		const snapshot = await resolver.resolve['NetworkAddress'].resolve(
 			account,
 			context
 		)
@@ -210,7 +209,7 @@ describe('Sui GraphQL public-account resolver', () => {
 			},
 		})
 		const resolver = resolverFor('$$transactions')
-		const snapshot = await resolver.resolve[SuiAccountSelector.NetworkAddress].resolve(account, {
+		const snapshot = await resolver.resolve['NetworkAddress'].resolve(account, {
 			...context,
 			pagination: {
 				limit: 1_000,
@@ -228,11 +227,11 @@ describe('Sui GraphQL public-account resolver', () => {
 		})
 
 		graphql.mockReset()
-		await expect(resolver.resolve[SuiAccountSelector.NetworkAddress].resolve({
+		await expect(resolver.resolve['NetworkAddress'].resolve({
 			...account,
 			address: '0xz',
 		}, context)).rejects.toThrow('hexadecimal address')
-		await expect(resolver.resolve[SuiAccountSelector.NetworkAddress].resolve({
+		await expect(resolver.resolve['NetworkAddress'].resolve({
 			...account,
 			$network: {
 				$network: {
@@ -263,7 +262,7 @@ describe('Sui GraphQL public-account resolver', () => {
 		})
 
 		await expect(resolverFor('$$transactions').resolve[
-			SuiAccountSelector.NetworkAddress
+			'NetworkAddress'
 		].resolve(account, context)).rejects.toThrow('hexadecimal address')
 	})
 })

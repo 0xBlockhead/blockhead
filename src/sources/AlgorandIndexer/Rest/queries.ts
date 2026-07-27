@@ -1,9 +1,6 @@
-import { Source } from '$/sources/Source.ts'
-import {
-	SourceTargetKind,
-	type SourceBinding,
-} from '$/sources/SourceBinding.ts'
 import { getJson } from '$/sources/_shared/wire/HttpRest/client.ts'
+import { Source } from '$/sources/Source.ts'
+import bindings from '$/sources/Nodely/bindings.ts'
 import type {
 	AlgorandIndexerAccountResponse,
 	AlgorandIndexerAssetHoldingsPage,
@@ -11,14 +8,7 @@ import type {
 	AlgorandIndexerTransactionsPage,
 } from '$/sources/AlgorandIndexer/Rest/types.ts'
 
-const assertBinding = (binding: SourceBinding) => {
-	if (
-		binding.source !== Source.Nodely_AlgorandIndexer_Rest
-		|| binding.target.kind !== SourceTargetKind.NetworkSlug
-		|| binding.target.key !== 'algorand'
-	)
-		throw new Error('Nodely_AlgorandIndexer_Rest: expected canonical Algorand binding')
-}
+const binding = bindings[Source.Nodely_AlgorandIndexer_Rest]
 
 const assertAddress = (
 	address: string,
@@ -54,7 +44,6 @@ const touchesAccount = (
 )
 
 export const query = <_Json>(
-	binding: SourceBinding,
 	path: string
 ) => (
 	getJson<_Json>(binding, path)
@@ -77,7 +66,6 @@ const pageParameters = (
 }
 
 export const getAccountAssets = async (
-	binding: SourceBinding,
 	{
 		address,
 		limit,
@@ -88,7 +76,6 @@ export const getAccountAssets = async (
 		next?: string
 	}
 ) => {
-	assertBinding(binding)
 	assertAddress(address, 'account address')
 	const parameters = pageParameters(limit, next)
 	parameters.set('include-all', 'true')
@@ -98,7 +85,6 @@ export const getAccountAssets = async (
 			'current-round': 0,
 		}
 	const page = await query<AlgorandIndexerAssetHoldingsPage>(
-		binding,
 		`/v2/accounts/${encodeURIComponent(address)}/assets?${parameters.toString()}`
 	)
 	assertSafeUnsigned(page['current-round'], 'asset page round')
@@ -121,13 +107,10 @@ export const getAccountAssets = async (
 }
 
 export const getAccount = async (
-	binding: SourceBinding,
 	address: string
 ) => {
-	assertBinding(binding)
 	assertAddress(address, 'account address')
 	const response = await query<AlgorandIndexerAccountResponse>(
-		binding,
 		`/v2/accounts/${encodeURIComponent(address)}`
 	)
 	if (response.account.address !== address)
@@ -142,7 +125,6 @@ export const getAccount = async (
 }
 
 export const getAccountTransactions = async (
-	binding: SourceBinding,
 	{
 		address,
 		limit,
@@ -153,7 +135,6 @@ export const getAccountTransactions = async (
 		next?: string
 	}
 ) => {
-	assertBinding(binding)
 	assertAddress(address, 'account address')
 	const parameters = pageParameters(limit, next)
 	if (limit === 0)
@@ -162,7 +143,6 @@ export const getAccountTransactions = async (
 			transactions: [],
 		}
 	const page = await query<AlgorandIndexerTransactionsPage>(
-		binding,
 		`/v2/accounts/${encodeURIComponent(address)}/transactions?${parameters.toString()}`
 	)
 	assertSafeUnsigned(page['current-round'], 'transaction page round')

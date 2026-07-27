@@ -1,7 +1,7 @@
-import { corsFetch, getJson as fetchGetJson, getText as fetchGetText } from '$/lib/http.ts'
-import { githubHttpAllowedOrigins } from '$/sources/Github/githubHttpOrigins.ts'
+import { fetchFailedMessage } from '$/lib/http.ts'
 import { restHeaders, restOrigin } from '$/sources/Github/Rest/constants.ts'
-import type { SourceOrigin } from '$/sources/SourceProvider.ts'
+import { sourceFetch } from '$/sources/_runtime/http.ts'
+import type { SourceBinding } from '$/sources/SourceBinding.ts'
 import type { JsonValue } from '$/typescript/JsonValue.ts'
 
 const isGithubRestApiUrl = (url: string) => url.startsWith(restOrigin)
@@ -14,40 +14,41 @@ const githubInit = (url: string): RequestInit | undefined => (
 )
 
 export const githubHttp = ({
+	binding,
 	url,
-	origins = githubHttpAllowedOrigins,
 }: {
+	binding: SourceBinding
 	url: string
-	origins?: readonly SourceOrigin[]
 }): Promise<Response> => (
-	corsFetch(url, {
-		origins,
-		init: githubInit(url),
-	})
+	sourceFetch(
+		binding,
+		url,
+		githubInit(url)
+	)
 )
 
-export const getJson = <_Json extends JsonValue = JsonValue>({
-	url,
-	origins = githubHttpAllowedOrigins,
-}: {
-	url: string
-	origins?: readonly SourceOrigin[]
-}): Promise<_Json> => (
-	fetchGetJson<_Json>(url, {
-		origins: [...origins],
-		init: githubInit(url),
-	})
-)
+export const getJson = async <_Json extends JsonValue = JsonValue>(
+	request: {
+		binding: SourceBinding
+		url: string
+	}
+): Promise<_Json> => {
+	const response = await githubHttp(request)
+	if (!response.ok)
+		throw new Error(await fetchFailedMessage(request.url, response))
 
-export const getText = ({
-	url,
-	origins = githubHttpAllowedOrigins,
-}: {
-	url: string
-	origins?: readonly SourceOrigin[]
-}): Promise<string> => (
-	fetchGetText(url, {
-		origins: [...origins],
-		init: githubInit(url),
-	})
-)
+	return response.json()
+}
+
+export const getText = async (
+	request: {
+		binding: SourceBinding
+		url: string
+	}
+): Promise<string> => {
+	const response = await githubHttp(request)
+	if (!response.ok)
+		throw new Error(await fetchFailedMessage(request.url, response))
+
+	return response.text()
+}

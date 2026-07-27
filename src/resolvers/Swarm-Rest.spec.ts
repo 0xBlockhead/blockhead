@@ -1,8 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { EntityType } from '$/schema/EntityType.ts'
-import { _GlobalSwarmAccess_TimestampSelector } from '$/schema/_GlobalSwarmAccess_Timestamp.ts'
-import { sourceProviderDefinitions } from '$/sources/$sourceProviders.ts'
+import bindings from '$/sources/Swarm/bindings.ts'
 import { Source } from '$/sources/Source.ts'
 import { SourceTargetKind } from '$/sources/SourceBinding.ts'
 
@@ -14,22 +13,16 @@ vi.mock('$/lib/http.ts', () => ({
 }))
 
 const resolverModule = (await import('$/resolvers/Swarm-Rest.ts')).default
-const binding = sourceProviderDefinitions
-	.flatMap((provider) => provider.bindings)
-	.find((candidate) => (
-		candidate.source === Source.Swarm_Rest
-		&& candidate.target.kind === SourceTargetKind.ContentAddressScheme
-		&& candidate.target.key === 'swarm'
-	))
+const binding = bindings[Source.Swarm_Rest]
 const accessTimestampResolver = resolverModule.resolvers.find((resolver) => (
 	resolver.entityType === EntityType._GlobalSwarmAccess_Timestamp
 ))
 
-if (binding == null || accessTimestampResolver == null)
+if (accessTimestampResolver == null)
 	throw new Error('Swarm source binding or access timestamp resolver is not registered')
 
 const resolveAccessTimestamp = accessTimestampResolver.resolve[
-	_GlobalSwarmAccess_TimestampSelector.HubTimestampMsSource
+	'HubTimestampMsSource'
 ].resolve
 
 describe('Swarm access timestamp resolver', () => {

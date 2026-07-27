@@ -7,7 +7,6 @@ import {
 } from 'vitest'
 
 import { Source } from '$/sources/Source.ts'
-import { SourceProvider } from '$/sources/SourceProvider.ts'
 import {
 	ApiFamily,
 	SourceCredentialScope,
@@ -32,7 +31,6 @@ const {
 } = await import('$/sources/Axelarscan/Rest/queries.ts')
 
 const binding = {
-	provider: SourceProvider.Axelarscan,
 	source: Source.Axelarscan_Rest,
 	target: {
 		kind: SourceTargetKind.Global,
@@ -256,15 +254,6 @@ describe('Axelarscan GMP queries', () => {
 			binding,
 			transactionHash: `0x${'9'.repeat(64)}`,
 		})).rejects.toThrow('foreign transaction message')
-	})
-
-	it('rejects the wrong binding before transport', async () => {
-		await expect(getGmpMessages({
-			binding: {
-				...binding,
-				source: Source.Across_Rest,
-			},
-		})).rejects.toThrow('incorrect source binding')
 	})
 
 	it('does not expose the former arbitrary-path query', async () => {

@@ -2,13 +2,9 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
 
 
 	// Context
@@ -20,35 +16,13 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.RadicleIdentityDocument>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.RadicleIdentityDocument>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.RadicleIdentityDocument> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const radicleIdentityDocument = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {},
-	} : {
-		sources: selection.sources,
-	}))
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const titleFallback = 'radicle identity document'
-	const viewDomId = $derived('radicle-identity-document-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -60,24 +34,14 @@
 
 <EntityView
 	entityType={EntityType.RadicleIdentityDocument}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails}
-			{title || titleFallback}
-		{:else}
-			<ResourceBoundary resource={radicleIdentityDocument}>
-				{#snippet children(entity)}
-					{title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		radicle identity document
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -85,48 +49,14 @@
 			<div>
 				<dt>rid</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									rid: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const rid = resolvedEntity.rid}
-							{#if rid !== undefined && rid !== null}
-								{String((rid) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{pendingEntity.rid}
 				</dd>
 			</div>
 
 			<div>
 				<dt>revision</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									revision: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const revision = resolvedEntity.revision}
-							{#if revision !== undefined && revision !== null}
-								{String((revision) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{pendingEntity.revision}
 				</dd>
 			</div>
 
@@ -136,7 +66,6 @@
 					<ResourceBoundary
 						resource={
 							selection({
-								sources: selection.sources,
 								fields: {
 									documentHash: true,
 								},
@@ -144,11 +73,7 @@
 						}
 					>
 						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const documentHash = resolvedEntity.documentHash}
-							{#if documentHash !== undefined && documentHash !== null}
-								<TruncatedValue value={String((documentHash) ?? '')} />
-							{/if}
+							<TruncatedValue value={entity.documentHash} />
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -157,7 +82,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							signatureThreshold: true,
 						},
@@ -165,13 +89,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const signatureThreshold = resolvedEntity.signatureThreshold}
-					{#if signatureThreshold !== undefined && signatureThreshold !== null}
+					{@const signatureThreshold = entity.signatureThreshold}
+					{#if signatureThreshold != null}
 						<div>
 							<dt>signature threshold</dt>
 							<dd>
-								<TruncatedValue value={String((signatureThreshold) ?? '')} />
+								<TruncatedValue value={String(signatureThreshold)} />
 							</dd>
 						</div>
 					{/if}
@@ -181,7 +104,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							verifiedSignatureCount: true,
 						},
@@ -189,13 +111,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const verifiedSignatureCount = resolvedEntity.verifiedSignatureCount}
-					{#if verifiedSignatureCount !== undefined && verifiedSignatureCount !== null}
+					{@const verifiedSignatureCount = entity.verifiedSignatureCount}
+					{#if verifiedSignatureCount != null}
 						<div>
 							<dt>verified signature count</dt>
 							<dd>
-								<TruncatedValue value={String((verifiedSignatureCount) ?? '')} />
+								<TruncatedValue value={String(verifiedSignatureCount)} />
 							</dd>
 						</div>
 					{/if}
@@ -205,7 +126,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							verificationStatus: true,
 						},
@@ -213,13 +133,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const verificationStatus = resolvedEntity.verificationStatus}
-					{#if verificationStatus !== undefined && verificationStatus !== null}
+					{@const verificationStatus = entity.verificationStatus}
+					{#if verificationStatus != null}
 						<div>
 							<dt>verification status</dt>
 							<dd>
-								{String((verificationStatus) ?? '')}
+								{verificationStatus}
 							</dd>
 						</div>
 					{/if}
@@ -230,7 +149,7 @@
 				resource={selection.$repository}
 			>
 				{#snippet children(radicleRepository)}
-					{#if radicleRepository != null && radicleRepository[EntityMetaKey.Selector] != null}
+					{#if radicleRepository != null}
 						<div>
 							<dt>repository</dt>
 							<dd>

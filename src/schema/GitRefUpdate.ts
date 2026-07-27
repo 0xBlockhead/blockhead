@@ -1,15 +1,12 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { entity, facet } from '$/schema/$schema.ts'
+import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 import { type } from 'arktype'
 
-export enum GitRefUpdateSelector {
-	RepositoryRefNameOldObjectIdNewObjectId = 'RepositoryRefNameOldObjectIdNewObjectId',
-}
-export const GitRefUpdate = entity({
+export default entity({
 	entityType: EntityType.GitRefUpdate,
 	labels: {
 		singular: 'Git ref update',
@@ -31,13 +28,13 @@ export const GitRefUpdate = entity({
 	oldObjectId: {
 		label: 'old object ID',
 		type: EntityFieldType.Primitive,
-		primitiveType: (ZeroExHex),
+		primitiveType: ZeroExHex,
 		cardinality: EntityFieldCardinality.One,
 	},
 	newObjectId: {
 		label: 'new object ID',
 		type: EntityFieldType.Primitive,
-		primitiveType: (ZeroExHex),
+		primitiveType: ZeroExHex,
 		cardinality: EntityFieldCardinality.One,
 	},
 	updateKind: {

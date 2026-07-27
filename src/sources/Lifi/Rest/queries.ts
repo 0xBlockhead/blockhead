@@ -15,6 +15,7 @@ import type {
 	LifiQuoteStepLike,
 	LifiTokensResponse,
 	LifiToolsResponse,
+	LifiToolsWireResponse,
 } from '$/sources/Lifi/Rest/types.ts'
 
 const maximumQuoteSteps = 32
@@ -67,14 +68,14 @@ const assertQuoteStep = (
  * `GET /v1/chains` — supported chains (optional `chainTypes` e.g. `EVM,SVM`).
  */
 export async function fetchChains(
-	options?: FetchLifiChainsOptions
+	options?: Omit<FetchLifiChainsOptions, 'baseUrl'>
 ): Promise<LifiChainsResponse> {
 	const params = new URLSearchParams()
 	if (options?.chainTypes != null && options.chainTypes !== '')
 		params.set('chainTypes', options.chainTypes)
 	const queryString = params.toString()
 	const path = `/v1/chains${queryString ? `?${queryString}` : ''}`
-	const res = await lifiRestFetch(path, undefined, { baseUrl: options?.baseUrl })
+	const res = await lifiRestFetch(path)
 	await throwIfHttpNotOk(res, path)
 	const result = await res.json<LifiChainsResponse>()
 	if (
@@ -95,7 +96,7 @@ export async function fetchChains(
  * `GET /v1/tokens` — token lists keyed by chain id string under `tokens`.
  */
 export async function fetchTokens(
-	options?: FetchLifiTokensOptions
+	options?: Omit<FetchLifiTokensOptions, 'baseUrl'>
 ): Promise<LifiTokensResponse> {
 	const params = new URLSearchParams()
 	if (options?.chains != null && options.chains !== '')
@@ -107,7 +108,7 @@ export async function fetchTokens(
 		params.set('minPriceUSD', String(options.minPriceUSD))
 	const queryString = params.toString()
 	const path = `/v1/tokens${queryString ? `?${queryString}` : ''}`
-	const res = await lifiRestFetch(path, undefined, { baseUrl: options?.baseUrl })
+	const res = await lifiRestFetch(path)
 	await throwIfHttpNotOk(res, path)
 	const result = await res.json<LifiTokensResponse>()
 	if (
@@ -136,30 +137,76 @@ export const findChainByChainId = async (
  * `GET /v1/tools` — supported bridges (and exchanges; callers use `bridges`).
  * @see https://docs.li.fi/li.fi-api/li.fi-api/requesting-all-supported-tools
  */
-export async function fetchTools(
-	options?: { baseUrl?: string }
-): Promise<LifiToolsResponse> {
+export async function fetchTools(): Promise<LifiToolsResponse> {
 	const path = '/v1/tools'
-	const res = await lifiRestFetch(path, undefined, { baseUrl: options?.baseUrl })
+	const res = await lifiRestFetch(path)
 	await throwIfHttpNotOk(res, path)
-	const result = await res.json<LifiToolsResponse>()
+	const result = await res.json<LifiToolsWireResponse>()
+	const bridges = result.bridges?.map((tool) => {
+		if (
+			tool.key == null
+			|| tool.key === ''
+			|| tool.name == null
+			|| tool.name === ''
+			|| tool.supportedChains == null
+			|| tool.supportedChains.length > maximumSupportedChainsPerTool
+		)
+			throw new Error('Lifi_Rest: malformed tools catalog')
+
+		const supportedChains = tool.supportedChains.map((pair) => {
+			if (
+				pair.fromChainId == null
+				|| !unsignedIntegerPattern.test(String(pair.fromChainId))
+				|| String(pair.fromChainId) === '0'
+				|| pair.toChainId == null
+				|| !unsignedIntegerPattern.test(String(pair.toChainId))
+				|| String(pair.toChainId) === '0'
+			)
+				throw new Error('Lifi_Rest: malformed tools catalog')
+
+			return {
+				fromChainId: String(pair.fromChainId),
+				toChainId: String(pair.toChainId),
+			}
+		})
+		if (new Set(supportedChains.map((pair) => `${pair.fromChainId}:${pair.toChainId}`)).size !== supportedChains.length)
+			throw new Error('Lifi_Rest: malformed tools catalog')
+
+		return {
+			key: tool.key,
+			name: tool.name,
+			...(tool.logoURI != null && { logoURI: tool.logoURI }),
+			supportedChains,
+		}
+	})
+	const exchanges = result.exchanges?.map((exchange) => {
+		if (
+			exchange.key == null
+			|| exchange.key === ''
+			|| exchange.name == null
+			|| exchange.name === ''
+			|| exchange.supportedChains == null
+		)
+			throw new Error('Lifi_Rest: malformed tools catalog')
+
+		return {
+			key: exchange.key,
+			name: exchange.name,
+			...(exchange.logoURI != null && { logoURI: exchange.logoURI }),
+			supportedChains: exchange.supportedChains,
+		}
+	})
 	if (
-		result.bridges.length > maximumTools
-		|| (result.exchanges?.length ?? 0) > maximumTools
-		|| new Set(result.bridges.map((tool) => tool.key)).size !== result.bridges.length
-		|| result.bridges.some((tool) => (
-			tool.supportedChains.length > maximumSupportedChainsPerTool
-			|| new Set(tool.supportedChains.map((pair) => `${pair.fromChainId}:${pair.toChainId}`)).size !== tool.supportedChains.length
-			|| tool.supportedChains.some((pair) => (
-				!Number.isSafeInteger(pair.fromChainId)
-				|| pair.fromChainId <= 0
-				|| !Number.isSafeInteger(pair.toChainId)
-				|| pair.toChainId <= 0
-			))
-		))
+		bridges == null
+		|| bridges.length > maximumTools
+		|| (exchanges?.length ?? 0) > maximumTools
+		|| new Set(bridges.map((tool) => tool.key)).size !== bridges.length
 	)
 		throw new Error('Lifi_Rest: malformed tools catalog')
-	return result
+	return {
+		bridges,
+		...(exchanges != null && { exchanges }),
+	}
 }
 
 /**
@@ -167,8 +214,7 @@ export async function fetchTools(
  * signing payloads are deliberately discarded at this source boundary.
  */
 export const fetchQuote = async (
-	params: LifiQuoteRequest,
-	options?: { baseUrl?: string }
+	params: LifiQuoteRequest
 ): Promise<LifiQuoteStep> => {
 	if (
 		!Number.isSafeInteger(params.fromChain)
@@ -196,7 +242,7 @@ export const fetchQuote = async (
 		...(params.slippage != null && { slippage: String(params.slippage) }),
 	})
 	const path = `/v1/quote?${search}`
-	const response = await lifiRestFetch(path, undefined, options)
+	const response = await lifiRestFetch(path)
 	await throwIfHttpNotOk(response, path)
 	const quote = await response.json<LifiQuoteStep>()
 

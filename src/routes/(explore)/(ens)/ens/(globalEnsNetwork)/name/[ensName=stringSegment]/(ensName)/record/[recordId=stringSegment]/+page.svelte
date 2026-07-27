@@ -8,14 +8,12 @@
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		data,
-		params,
 	}: PageProps = $props()
 
 	const pageSelection = $derived(select(EntityType.EnsRecord, data.selector, {
@@ -37,18 +35,12 @@
 
 
 <svelte:head>
-	<title>{(data.title ?? (pageSelection.entity == null ? [String((data.selector.recordKey) ?? '')].filter(Boolean).join(' ') || 'ENS record' : [String((({ ...data.selector, ...pageSelection.entity }).recordKey) ?? '')].filter(Boolean).join(' ') || 'ENS record'))} • ENS record • Blockhead</title>
+	<title>{(data.title ?? (pageSelection.entitySelector.recordKey || 'ENS record'))} • ENS record • Blockhead</title>
 </svelte:head>
 
 
 <Page>
 	<EnsRecordView
-		href={
-			resolve('/ens/name/[ensName=stringSegment]/record/[recordId=stringSegment]', {
-				ensName: params.ensName,
-				recordId: params.recordId,
-			})
-		}
 		selection={pageSelection}
 	/>
 </Page>

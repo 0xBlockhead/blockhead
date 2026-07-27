@@ -8,12 +8,6 @@ import {
 } from '$/schema/$schema.ts'
 import type { Entity } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import { BlockheadEnsNameSearchSelector } from '$/schema/BlockheadEnsNameSearch.ts'
-import { EnsNameSelector } from '$/schema/EnsName.ts'
-import { EnsName_TimestampSelector } from '$/schema/EnsName_Timestamp.ts'
-import { EnsRecordSelector } from '$/schema/EnsRecord.ts'
-import { EvmAccountSelector } from '$/schema/EvmAccount.ts'
-import { _GlobalEnsNetwork_TimestampSelector } from '$/schema/_GlobalEnsNetwork_Timestamp.ts'
 import { schema } from '$/schema/index.ts'
 import { Source } from '$/sources/Source.ts'
 import { hexLowerOfByteSize, zeroExLowerCase } from '$/lib/hexLowerOfByteSize.ts'
@@ -61,7 +55,7 @@ export default {
 		defineResolver(Source.TheGraph_Graphql, {
 			entityType: EntityType._GlobalEnsNetwork_Timestamp,
 			resolve: {
-				[_GlobalEnsNetwork_TimestampSelector.HubTimestampMsSource]: {
+				HubTimestampMsSource: {
 					resolve: async ({
 						$hub,
 						timestampMs,
@@ -104,7 +98,7 @@ export default {
 		defineResolver(Source.TheGraph_Graphql, {
 			entityType: EntityType.EnsName,
 			resolve: {
-				[EnsNameSelector.NormalizedName]: {
+				NormalizedName: {
 					resolve: async ({ name }, context) => {
 						const { getName } = await import('$/sources/TheGraph/Graphql/Ens/queries.ts')
 						const normalizedName = ensToString(ensNormalizeNode(name))
@@ -238,7 +232,7 @@ export default {
 		defineResolver(Source.TheGraph_Graphql, {
 			entityType: EntityType.EnsName_Timestamp,
 			resolve: {
-				[EnsName_TimestampSelector.NameTimestampMsSource]: {
+				NameTimestampMsSource: {
 					resolve: async ({ $name, timestampMs, source }, context) => {
 						if (source !== Source.TheGraph_Graphql)
 							throw new Error('TheGraph_Graphql: EnsName_Timestamp selector source mismatch')
@@ -319,7 +313,7 @@ export default {
 		defineResolver(Source.TheGraph_Graphql, {
 			entityType: EntityType.EvmAccount,
 			resolve: {
-				[EvmAccountSelector.AddressInteropAddress]: {
+				AddressInteropAddress: {
 					resolve: async ({ address }, context) => {
 						const { getDomainsByOwner } = await import('$/sources/TheGraph/Graphql/Ens/queries.ts')
 						return (
@@ -348,7 +342,7 @@ export default {
 		defineResolver(Source.TheGraph_Graphql, {
 			entityType: EntityType.EnsRecord,
 			resolve: {
-				[EnsRecordSelector.NameRecordKey]: {
+				NameRecordKey: {
 					resolve: ({ recordKey }) => {
 						const coinType = recordKey.startsWith('coin:') ?
 							Number(recordKey.slice('coin:'.length))
@@ -372,7 +366,7 @@ export default {
 		defineResolver(Source.TheGraph_Graphql, {
 			entityType: EntityType.BlockheadEnsNameSearch,
 			resolve: {
-				[BlockheadEnsNameSearchSelector.Query]: {
+				Query: {
 					resolve: async ({ query: querySelector }, context) => {
 					const { getDomainsContaining } = await import('$/sources/TheGraph/Graphql/Ens/queries.ts')
 					const limit = resolverContextRowLimit(context)

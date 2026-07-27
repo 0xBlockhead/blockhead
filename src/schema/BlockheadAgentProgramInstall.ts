@@ -1,15 +1,12 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { entity, facet } from '$/schema/$schema.ts'
+import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 import { type } from 'arktype'
 
-export enum BlockheadAgentProgramInstallSelector {
-	InstallId = 'InstallId',
-}
-export const BlockheadAgentProgramInstall = entity({
+export default entity({
 	entityType: EntityType.BlockheadAgentProgramInstall,
 	labels: {
 		singular: 'blockhead agent program install',
@@ -50,7 +47,7 @@ export const BlockheadAgentProgramInstall = entity({
 	argsHash: {
 		label: 'args hash',
 		type: EntityFieldType.Primitive,
-		primitiveType: (ZeroExHex),
+		primitiveType: ZeroExHex,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	environmentScope: {

@@ -30,24 +30,30 @@
 {#key [params.instanceOrigin, params.localStatusId].join(':')}
 	<ParentPageCollapsible
 		href={
-			resolve('/activitypub/note/[instanceOrigin=absoluteUrl]/[localStatusId=stringSegment]', {
-				instanceOrigin: params.instanceOrigin,
-				localStatusId: params.localStatusId,
-			})
+			resolve(
+				'/(social)/(activitypub)/activitypub/(globalActivityPubNetwork)/note/[instanceOrigin=absoluteUrl]/[localStatusId=stringSegment]',
+				{
+					instanceOrigin: String(params.instanceOrigin),
+					localStatusId: String(params.localStatusId),
+				}
+			)
 		}
 	>
 		{#snippet Summary()}
-			{@const DetailView = ActivityPubNoteView}
-
-			<DetailView
-				selection={select(EntityType.ActivityPubNote, data.selector, { sources: [
-		Source.Mastodon_Rest,
-	] })}
+			<ActivityPubNoteView
+				selection={
+					select(EntityType.ActivityPubNote, data.selector, { sources: [
+						Source.Mastodon_Rest,
+					] })
+				}
 				href={
-					resolve('/activitypub/note/[instanceOrigin=absoluteUrl]/[localStatusId=stringSegment]', {
-						instanceOrigin: params.instanceOrigin,
-						localStatusId: params.localStatusId,
-					})
+					resolve(
+						'/(social)/(activitypub)/activitypub/(globalActivityPubNetwork)/note/[instanceOrigin=absoluteUrl]/[localStatusId=stringSegment]',
+						{
+							instanceOrigin: String(params.instanceOrigin),
+							localStatusId: String(params.localStatusId),
+						}
+					)
 				}
 				layout={EntityLayout.SummaryInline}
 			/>

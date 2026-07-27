@@ -1,15 +1,12 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { entity, facet } from '$/schema/$schema.ts'
+import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { EvmTopicHash } from '$/schema/ZeroExHex.ts'
 import { type } from 'arktype'
 
-export enum EvmTopicSelector {
-	Hex = 'Hex',
-}
-export const EvmTopic = entity({
+export default entity({
 	entityType: EntityType.EvmTopic,
 	labels: {
 		singular: 'EVM topic',
@@ -19,7 +16,7 @@ export const EvmTopic = entity({
 	hex: {
 		label: 'Hex',
 		type: EntityFieldType.Primitive,
-		primitiveType: (EvmTopicHash),
+		primitiveType: EvmTopicHash,
 		cardinality: EntityFieldCardinality.One,
 	},
 	signatures: {

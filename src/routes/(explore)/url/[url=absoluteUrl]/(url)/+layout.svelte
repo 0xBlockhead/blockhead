@@ -29,20 +29,24 @@
 {#key params.url}
 	<ParentPageCollapsible
 		href={
-			resolve('/url/[url=absoluteUrl]', {
-				url: params.url,
-			})
+			resolve(
+				'/(explore)/url/[url=absoluteUrl]',
+				{
+					url: String(params.url),
+				}
+			)
 		}
 	>
 		{#snippet Summary()}
-			{@const DetailView = UrlView}
-
-			<DetailView
+			<UrlView
 				selection={select(EntityType.Url, data.selector)}
 				href={
-					resolve('/url/[url=absoluteUrl]', {
-						url: params.url,
-					})
+					resolve(
+						'/(explore)/url/[url=absoluteUrl]',
+						{
+							url: String(params.url),
+						}
+					)
 				}
 				layout={EntityLayout.SummaryInline}
 			/>

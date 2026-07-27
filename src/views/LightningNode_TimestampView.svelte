@@ -2,15 +2,8 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
-	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -22,42 +15,19 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.LightningNode_Timestamp>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.LightningNode_Timestamp>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.LightningNode_Timestamp> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const lightningNodeTimestamp = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {
-			alias: true,
-			capacitySats: true,
-		},
-	} : {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const lightningNodeTimestamp = $derived(selection({
 		fields: {
 			alias: true,
 			capacitySats: true,
 		},
 	}))
-	const titleFallback = $derived([String((pendingEntity.alias) ?? ''), String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || 'Lightning node timestamp')
-	const viewDomId = $derived('lightning-node-timestamp-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const titleFallback = $derived([(pendingEntity.alias ?? ''), String(pendingEntity.timestampMs ?? '')].filter(Boolean).join(' ') || 'Lightning node timestamp')
 
 
 	// Components
@@ -71,48 +41,31 @@
 
 <EntityView
 	entityType={EntityType.LightningNode_Timestamp}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'alias') && Object.hasOwn(prefetched, 'capacitySats')}
-			{[String((pendingEntity.alias) ?? ''), String((pendingEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-		{:else}
-			<ResourceBoundary resource={lightningNodeTimestamp}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.alias) ?? ''), String((resolvedEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={lightningNodeTimestamp}>
+			{#snippet children(entity)}
+				{[(entity.alias ?? ''), String(pendingEntity.timestampMs)].filter(Boolean).join(' ') || title || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Value()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'alias') && Object.hasOwn(prefetched, 'capacitySats')}
-			{@const capacitySats0 = pendingEntity.capacitySats}
-			{#if capacitySats0 !== undefined && capacitySats0 !== null}
-				<NumberValue
-					value={capacitySats0}
-				/>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={lightningNodeTimestamp}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const capacitySats0 = resolvedEntity.capacitySats}
-					{#if capacitySats0 !== undefined && capacitySats0 !== null}
-						<NumberValue
-							value={capacitySats0}
-						/>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={lightningNodeTimestamp}>
+			{#snippet children(entity)}
+				{@const capacitySats0 = entity.capacitySats}
+				{#if capacitySats0 != null}
+					<NumberValue
+						value={capacitySats0}
+					/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -122,30 +75,6 @@
 				<dd>
 					<LightningNodeView
 						selection={select(EntityType.LightningNode, selection.entitySelector.$node)}
-						href={
-							(
-								selection.entitySelector.$node != null && 'publicKey' in selection.entitySelector.$node
-								&& selection.entitySelector.$node.publicKey != null
-								&& selection.entitySelector.$node != null && '$network' in selection.entitySelector.$node ?
-									selection.entitySelector.$node.$network != null && 'caip2' in selection.entitySelector.$node.$network
-									&& selection.entitySelector.$node.$network.caip2 != null ?
-										resolve('/network/[network=networkCaip2OrNetworkSlug]/nodes/[pubkey=stringSegment]', {
-									pubkey: String(selection.entitySelector.$node.publicKey ?? ''),
-									network: String(caip2StringFromValue(selection.entitySelector.$node.$network.caip2) ?? ''),
-								})
-								:
-										selection.entitySelector.$node.$network != null && 'slug' in selection.entitySelector.$node.$network
-										&& selection.entitySelector.$node.$network.slug != null ?
-											resolve('/network/[network=networkCaip2OrNetworkSlug]/nodes/[pubkey=stringSegment]', {
-										pubkey: String(selection.entitySelector.$node.publicKey ?? ''),
-										network: String(selection.entitySelector.$node.$network.slug ?? ''),
-									})
-									:
-										undefined
-							:
-									undefined
-							)
-						}
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -155,31 +84,13 @@
 			<div>
 				<dt>Source</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									source: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const source = resolvedEntity.source}
-							{#if source !== undefined && source !== null}
-								{String((source) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{pendingEntity.source}
 				</dd>
 			</div>
 
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							color: true,
 						},
@@ -187,13 +98,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const color = resolvedEntity.color}
-					{#if color !== undefined && color !== null}
+					{@const color = entity.color}
+					{#if color != null}
 						<div>
 							<dt>Color</dt>
 							<dd>
-								{String((color) ?? '')}
+								{color}
 							</dd>
 						</div>
 					{/if}
@@ -203,7 +113,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							channelCount: true,
 						},
@@ -211,13 +120,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const channelCount = resolvedEntity.channelCount}
-					{#if channelCount !== undefined && channelCount !== null}
+					{@const channelCount = entity.channelCount}
+					{#if channelCount != null}
 						<div>
 							<dt>Channels</dt>
 							<dd>
-								{String((channelCount) ?? '')}
+								{String(channelCount)}
 							</dd>
 						</div>
 					{/if}
@@ -227,7 +135,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							firstSeenMs: true,
 						},
@@ -235,13 +142,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const firstSeenMs = resolvedEntity.firstSeenMs}
-					{#if firstSeenMs !== undefined && firstSeenMs !== null}
+					{@const firstSeenMs = entity.firstSeenMs}
+					{#if firstSeenMs != null}
 						<div>
 							<dt>First seen</dt>
 							<dd>
-								{String((firstSeenMs) ?? '')}
+								{String(firstSeenMs)}
 							</dd>
 						</div>
 					{/if}
@@ -251,7 +157,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							updatedAtMs: true,
 						},
@@ -259,13 +164,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const updatedAtMs = resolvedEntity.updatedAtMs}
-					{#if updatedAtMs !== undefined && updatedAtMs !== null}
+					{@const updatedAtMs = entity.updatedAtMs}
+					{#if updatedAtMs != null}
 						<div>
 							<dt>Updated</dt>
 							<dd>
-								{String((updatedAtMs) ?? '')}
+								{String(updatedAtMs)}
 							</dd>
 						</div>
 					{/if}
@@ -275,7 +179,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							countryCode: true,
 						},
@@ -283,13 +186,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const countryCode = resolvedEntity.countryCode}
-					{#if countryCode !== undefined && countryCode !== null}
+					{@const countryCode = entity.countryCode}
+					{#if countryCode != null}
 						<div>
 							<dt>Country</dt>
 							<dd>
-								{String((countryCode) ?? '')}
+								{countryCode}
 							</dd>
 						</div>
 					{/if}
@@ -299,7 +201,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							city: true,
 						},
@@ -307,13 +208,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const city = resolvedEntity.city}
-					{#if city !== undefined && city !== null}
+					{@const city = entity.city}
+					{#if city != null}
 						<div>
 							<dt>City</dt>
 							<dd>
-								{String((city) ?? '')}
+								{city}
 							</dd>
 						</div>
 					{/if}
@@ -326,7 +226,6 @@
 					<ResourceBoundary
 						resource={
 							selection({
-								sources: selection.sources,
 								fields: {
 									networkAddresses: true,
 								},
@@ -334,11 +233,7 @@
 						}
 					>
 						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const networkAddresses = resolvedEntity.networkAddresses}
-							{#if networkAddresses !== undefined && networkAddresses !== null}
-								<TruncatedValue value={networkAddresses.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')} />
-							{/if}
+							<TruncatedValue value={entity.networkAddresses.values.join(', ')} />
 						{/snippet}
 					</ResourceBoundary>
 				</dd>

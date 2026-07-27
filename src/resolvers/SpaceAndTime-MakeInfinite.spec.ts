@@ -18,19 +18,7 @@ import {
 	EntityMetaKey,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import { NetworkSelector } from '$/schema/Network.ts'
 import { Source } from '$/sources/Source.ts'
-import {
-	ApiFamily,
-	SourceCredentialScope,
-	SourceDelivery,
-	SourceEndpointKind,
-	SourceOperationGroup,
-	SourceTargetKind,
-	WireProtocol,
-	type SourceBinding,
-} from '$/sources/SourceBinding.ts'
-import { SourceProvider as Provider } from '$/sources/SourceProvider.ts'
 
 const sourceFetch = vi.hoisted(() => vi.fn())
 
@@ -45,35 +33,6 @@ const {
 	resolveNetworkActivityDay,
 } = await import('$/resolvers/SpaceAndTime-MakeInfinite.ts')
 const networkActivityDaysResolver = spaceAndTimeMakeInfiniteResolvers.resolvers[0]
-
-const binding = {
-	provider: Provider.A2a,
-	source: Source.A2aWellKnown_Http,
-	target: {
-		kind: SourceTargetKind.Caip2Network,
-		key: 'eip155:1',
-	},
-	endpoints: [{
-		endpointKind: SourceEndpointKind.HttpUrl,
-		locator: 'https://proxy.api.makeinfinite.dev',
-		origin: 'https://proxy.api.makeinfinite.dev',
-		corsEnabled: false,
-	}],
-	wireProtocol: WireProtocol.HttpRest,
-	apiFamily: ApiFamily.RestJson,
-	operationGroups: [SourceOperationGroup.GenericRead],
-	delivery: SourceDelivery.HttpProxy,
-	credentials: [{
-		scope: SourceCredentialScope.RuntimeSecret,
-		envKey: 'MAKEINFINITE_API_KEY',
-		injection: {
-			header: {
-				name: 'apikey',
-			},
-		},
-	}],
-	proxyId: 'makeinfinite-test',
-} as const satisfies SourceBinding
 
 const network = {
 	caip2: {
@@ -98,7 +57,6 @@ describe('MakeInfinite source and resolver slice', () => {
 		sourceFetch.mockResolvedValueOnce(Response.json(completedDay))
 
 		await expect(resolveNetworkActivityDay({
-			binding,
 			network,
 			dayStartTimestampMs: completedDayStartTimestampMs,
 			nowMs: completedDayNowMs,
@@ -116,27 +74,12 @@ describe('MakeInfinite source and resolver slice', () => {
 		expect(JSON.parse(sourceFetch.mock.calls[0][2].body)).toEqual({
 			sqlText: expect.stringContaining('FROM ETHEREUM.BLOCKS'),
 		})
-		expect(sourceFetch.mock.calls[0][0]).toBe(binding)
+		expect(sourceFetch.mock.calls[0][0]).toMatchObject({
+			source: Source.SpaceAndTime_MakeInfinite,
+		})
 		expect(sourceFetch.mock.calls[0][1]).toBe('https://proxy.api.makeinfinite.dev/v1/sql')
 		expect(sourceFetch.mock.calls[0][2].headers).toEqual({
 			'content-type': 'application/json',
-		})
-		expect(sourceFetch.mock.calls[0][0]).toMatchObject({
-			target: {
-				kind: SourceTargetKind.Caip2Network,
-				key: 'eip155:1',
-			},
-			delivery: SourceDelivery.HttpProxy,
-			credentials: [{
-				scope: SourceCredentialScope.RuntimeSecret,
-				envKey: 'MAKEINFINITE_API_KEY',
-				injection: {
-					header: {
-						name: 'apikey',
-					},
-				},
-			}],
-			proxyId: 'makeinfinite-test',
 		})
 	})
 
@@ -145,7 +88,7 @@ describe('MakeInfinite source and resolver slice', () => {
 		const dateNow = vi.spyOn(Date, 'now').mockReturnValue(completedDayNowMs)
 
 		const activityDays = await networkActivityDaysResolver.resolve[
-			NetworkSelector.Caip2
+			'Caip2'
 		].resolve(network)
 		expect(activityDays).toEqual([{
 			[EntityMetaKey.Selector]: {
@@ -171,7 +114,6 @@ describe('MakeInfinite source and resolver slice', () => {
 		sourceFetch.mockResolvedValueOnce(Response.json(incompleteDay))
 
 		await expect(resolveNetworkActivityDay({
-			binding,
 			network,
 			dayStartTimestampMs: currentUtcDayStartTimestampMs,
 			nowMs: completedDayNowMs,
@@ -183,7 +125,6 @@ describe('MakeInfinite source and resolver slice', () => {
 		sourceFetch.mockResolvedValueOnce(Response.json(empty))
 
 		await expect(resolveNetworkActivityDay({
-			binding,
 			network,
 			dayStartTimestampMs: completedDayStartTimestampMs,
 			nowMs: completedDayNowMs,
@@ -195,7 +136,7 @@ describe('MakeInfinite source and resolver slice', () => {
 		const dateNow = vi.spyOn(Date, 'now').mockReturnValue(completedDayNowMs)
 
 		await expect(networkActivityDaysResolver.resolve[
-			NetworkSelector.Caip2
+			'Caip2'
 		].resolve(network)).resolves.toEqual([])
 		expect(sourceFetch).toHaveBeenCalledTimes(1)
 		dateNow.mockRestore()
@@ -203,7 +144,7 @@ describe('MakeInfinite source and resolver slice', () => {
 
 	it('rejects non-Ethereum-mainnet parents before provider I/O', async () => {
 		await expect(networkActivityDaysResolver.resolve[
-			NetworkSelector.Caip2
+			'Caip2'
 		].resolve({
 			caip2: {
 				namespace: 'eip155',
@@ -217,7 +158,6 @@ describe('MakeInfinite source and resolver slice', () => {
 		sourceFetch.mockResolvedValueOnce(Response.json(authFailure, { status: 401 }))
 
 		await expect(getActivityDay({
-			binding,
 			dayStartTimestampMs: completedDayStartTimestampMs,
 		})).rejects.toThrow('MakeInfinite SQL')
 	})
@@ -227,7 +167,7 @@ describe('MakeInfinite source and resolver slice', () => {
 		const dateNow = vi.spyOn(Date, 'now').mockReturnValue(completedDayNowMs)
 
 		await expect(networkActivityDaysResolver.resolve[
-			NetworkSelector.Caip2
+			'Caip2'
 		].resolve(network)).rejects.toThrow('MakeInfinite SQL')
 		dateNow.mockRestore()
 	})
@@ -236,7 +176,6 @@ describe('MakeInfinite source and resolver slice', () => {
 		sourceFetch.mockResolvedValueOnce(Response.json(staleCursor))
 
 		await expect(resolveNetworkActivityDay({
-			binding,
 			network,
 			dayStartTimestampMs: completedDayStartTimestampMs,
 			nowMs: completedDayNowMs,
@@ -248,14 +187,13 @@ describe('MakeInfinite source and resolver slice', () => {
 		const dateNow = vi.spyOn(Date, 'now').mockReturnValue(completedDayNowMs)
 
 		await expect(networkActivityDaysResolver.resolve[
-			NetworkSelector.Caip2
+			'Caip2'
 		].resolve(network)).rejects.toThrow('stale indexed cursor')
 		dateNow.mockRestore()
 	})
 
 	it('unsupported table', async () => {
 		await expect(getActivityDay({
-			binding,
 			dayStartTimestampMs: completedDayStartTimestampMs,
 			table: unsupportedTable.table,
 		})).rejects.toThrow('unsupported table')
@@ -265,7 +203,6 @@ describe('MakeInfinite source and resolver slice', () => {
 	it('rejects QueryRouter evidence', async () => {
 		sourceFetch.mockResolvedValueOnce(Response.json(completedDay))
 		const result = await getActivityDay({
-			binding,
 			dayStartTimestampMs: completedDayStartTimestampMs,
 		})
 		const sqlText = JSON.parse(sourceFetch.mock.calls[0][2].body).sqlText as string

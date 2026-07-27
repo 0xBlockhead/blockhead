@@ -6,7 +6,6 @@ import {
 	type Entity,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import { EvmTransactionSelector } from '$/schema/EvmTransaction.ts'
 import { schema } from '$/schema/index.ts'
 import { Source } from '$/sources/Source.ts'
 import { getTransaction } from '$/sources/Covalent/GoldRush/Rest/queries.ts'
@@ -37,7 +36,7 @@ export default {
 		defineResolver(Source.GoldRushFoundational_Rest, {
 			entityType: EntityType.EvmTransaction,
 			resolve: {
-				[EvmTransactionSelector.EvmNetworkTxHash]: {
+				EvmNetworkTxHash: {
 					resolve: async ({ $network, txHash }) => {
 						if ($network.caip2.namespace !== 'eip155')
 							throw new Error('GoldRushFoundational_Rest: unsupported chain')

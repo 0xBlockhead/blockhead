@@ -8,14 +8,12 @@
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		data,
-		params,
 	}: PageProps = $props()
 
 	const pageSelection = $derived(select(EntityType.RedditComment, data.selector, {
@@ -40,17 +38,12 @@
 
 
 <svelte:head>
-	<title>{(data.title ?? (pageSelection.entity == null ? [String((data.selector.fullname) ?? '')].filter(Boolean).join(' ') || 'Reddit comment' : [String((({ ...data.selector, ...pageSelection.entity }).body) ?? '')].filter(Boolean).join(' ') || [String((({ ...data.selector, ...pageSelection.entity }).fullname) ?? '')].filter(Boolean).join(' ') || 'Reddit comment'))} • Reddit comment • Blockhead</title>
+	<title>{(data.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.fullname ?? '') || 'Reddit comment' : (pageSelection.entity.body ?? '') || pageSelection.entitySelector.fullname || 'Reddit comment'))} • Reddit comment • Blockhead</title>
 </svelte:head>
 
 
 <Page>
 	<RedditCommentView
-		href={
-			resolve('/reddit/comment/[fullname=stringSegment]', {
-				fullname: params.fullname,
-			})
-		}
 		selection={pageSelection}
 	/>
 </Page>

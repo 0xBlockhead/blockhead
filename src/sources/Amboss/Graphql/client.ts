@@ -4,13 +4,16 @@ import {
 	type TadaDocumentNode,
 } from 'gql.tada'
 
-import { getJson } from '$/lib/http.ts'
+import bindings from '$/sources/Amboss/bindings.ts'
+import { Source } from '$/sources/Source.ts'
 import {
-	ambossOrigins,
-	graphqlUrl,
-} from '$/sources/Amboss/Graphql/constants.ts'
+	firstHttpUrlForBinding,
+	sourceFetch,
+} from '$/sources/_runtime/http.ts'
 
 import type { introspection } from './graphql-env.d.ts'
+
+const binding = bindings[Source.Amboss_Graphql]
 
 export const graphql = initGraphQLTada<{
 	introspection: introspection
@@ -30,9 +33,7 @@ export const queryAmboss = async <
 	document: TadaDocumentNode<_Result, _Variables>,
 	variables?: _Variables
 ): Promise<_Result> => {
-	const out = await getJson<AmbossGqlResponse<_Result>>(graphqlUrl, {
-		origins: ambossOrigins,
-		init: {
+	const response = await sourceFetch(binding, firstHttpUrlForBinding(binding), {
 			method: 'POST',
 			headers: {
 				'Content-Type': 'application/json',
@@ -42,8 +43,11 @@ export const queryAmboss = async <
 				query: print(document),
 				variables,
 			}),
-		},
 	})
+	if (!response.ok)
+		throw new Error(`Amboss_Graphql: request failed with ${response.status}`)
+
+	const out = await response.json<AmbossGqlResponse<_Result>>()
 
 	if (out.errors?.[0]?.message != null)
 		throw new Error(`Amboss_Graphql: ${out.errors[0].message}`)

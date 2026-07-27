@@ -2,13 +2,8 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
 
 
 	// Context
@@ -20,35 +15,13 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.HyperliquidVault_Timestamp>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.HyperliquidVault_Timestamp>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.HyperliquidVault_Timestamp> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const hyperliquidVaultTimestamp = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {},
-	} : {
-		sources: selection.sources,
-	}))
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const titleFallback = 'hyperliquid vault timestamp'
-	const viewDomId = $derived('hyperliquid-vault-timestamp-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -60,24 +33,14 @@
 
 <EntityView
 	entityType={EntityType.HyperliquidVault_Timestamp}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails}
-			{title || titleFallback}
-		{:else}
-			<ResourceBoundary resource={hyperliquidVaultTimestamp}>
-				{#snippet children(entity)}
-					{title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		hyperliquid vault timestamp
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -96,55 +59,20 @@
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									timestampMs: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const timestampMs = resolvedEntity.timestampMs}
-							{#if timestampMs !== undefined && timestampMs !== null}
-								<Timestamp timestamp={Number(timestampMs)} />
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									source: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const source = resolvedEntity.source}
-							{#if source !== undefined && source !== null}
-								{String((source) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{pendingEntity.source}
 				</dd>
 			</div>
 
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							name: true,
 						},
@@ -152,13 +80,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const name = resolvedEntity.name}
-					{#if name !== undefined && name !== null}
+					{@const name = entity.name}
+					{#if name != null}
 						<div>
 							<dt>Name</dt>
 							<dd>
-								{String((name) ?? '')}
+								{name}
 							</dd>
 						</div>
 					{/if}
@@ -168,7 +95,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							description: true,
 						},
@@ -176,13 +102,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const description = resolvedEntity.description}
-					{#if description !== undefined && description !== null}
+					{@const description = entity.description}
+					{#if description != null}
 						<div>
 							<dt>Description</dt>
 							<dd>
-								{String((description) ?? '')}
+								{description}
 							</dd>
 						</div>
 					{/if}
@@ -192,7 +117,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							apr: true,
 						},
@@ -200,13 +124,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const apr = resolvedEntity.apr}
-					{#if apr !== undefined && apr !== null}
+					{@const apr = entity.apr}
+					{#if apr != null}
 						<div>
 							<dt>apr</dt>
 							<dd>
-								{String((apr) ?? '')}
+								{apr}
 							</dd>
 						</div>
 					{/if}
@@ -216,7 +139,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							leaderFraction: true,
 						},
@@ -224,13 +146,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const leaderFraction = resolvedEntity.leaderFraction}
-					{#if leaderFraction !== undefined && leaderFraction !== null}
+					{@const leaderFraction = entity.leaderFraction}
+					{#if leaderFraction != null}
 						<div>
 							<dt>leader fraction</dt>
 							<dd>
-								{String((leaderFraction) ?? '')}
+								{leaderFraction}
 							</dd>
 						</div>
 					{/if}
@@ -240,7 +161,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							leaderCommission: true,
 						},
@@ -248,13 +168,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const leaderCommission = resolvedEntity.leaderCommission}
-					{#if leaderCommission !== undefined && leaderCommission !== null}
+					{@const leaderCommission = entity.leaderCommission}
+					{#if leaderCommission != null}
 						<div>
 							<dt>leader commission</dt>
 							<dd>
-								{String((leaderCommission) ?? '')}
+								{leaderCommission}
 							</dd>
 						</div>
 					{/if}
@@ -264,7 +183,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							maxDistributable: true,
 						},
@@ -272,13 +190,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const maxDistributable = resolvedEntity.maxDistributable}
-					{#if maxDistributable !== undefined && maxDistributable !== null}
+					{@const maxDistributable = entity.maxDistributable}
+					{#if maxDistributable != null}
 						<div>
 							<dt>max distributable</dt>
 							<dd>
-								{String((maxDistributable) ?? '')}
+								{maxDistributable}
 							</dd>
 						</div>
 					{/if}
@@ -288,7 +205,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							maxWithdrawable: true,
 						},
@@ -296,13 +212,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const maxWithdrawable = resolvedEntity.maxWithdrawable}
-					{#if maxWithdrawable !== undefined && maxWithdrawable !== null}
+					{@const maxWithdrawable = entity.maxWithdrawable}
+					{#if maxWithdrawable != null}
 						<div>
 							<dt>max withdrawable</dt>
 							<dd>
-								{String((maxWithdrawable) ?? '')}
+								{maxWithdrawable}
 							</dd>
 						</div>
 					{/if}
@@ -312,7 +227,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							isClosed: true,
 						},
@@ -320,13 +234,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const isClosed = resolvedEntity.isClosed}
-					{#if isClosed !== undefined && isClosed !== null}
+					{@const isClosed = entity.isClosed}
+					{#if isClosed != null}
 						<div>
 							<dt>is closed</dt>
 							<dd>
-								{String((isClosed) ?? '')}
+								{String(isClosed)}
 							</dd>
 						</div>
 					{/if}
@@ -336,7 +249,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							allowDeposits: true,
 						},
@@ -344,13 +256,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const allowDeposits = resolvedEntity.allowDeposits}
-					{#if allowDeposits !== undefined && allowDeposits !== null}
+					{@const allowDeposits = entity.allowDeposits}
+					{#if allowDeposits != null}
 						<div>
 							<dt>allow deposits</dt>
 							<dd>
-								{String((allowDeposits) ?? '')}
+								{String(allowDeposits)}
 							</dd>
 						</div>
 					{/if}
@@ -360,7 +271,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							alwaysCloseOnWithdraw: true,
 						},
@@ -368,13 +278,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const alwaysCloseOnWithdraw = resolvedEntity.alwaysCloseOnWithdraw}
-					{#if alwaysCloseOnWithdraw !== undefined && alwaysCloseOnWithdraw !== null}
+					{@const alwaysCloseOnWithdraw = entity.alwaysCloseOnWithdraw}
+					{#if alwaysCloseOnWithdraw != null}
 						<div>
 							<dt>always close on withdraw</dt>
 							<dd>
-								{String((alwaysCloseOnWithdraw) ?? '')}
+								{String(alwaysCloseOnWithdraw)}
 							</dd>
 						</div>
 					{/if}
@@ -384,7 +293,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							followerCount: true,
 						},
@@ -392,13 +300,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const followerCount = resolvedEntity.followerCount}
-					{#if followerCount !== undefined && followerCount !== null}
+					{@const followerCount = entity.followerCount}
+					{#if followerCount != null}
 						<div>
 							<dt>follower count</dt>
 							<dd>
-								{String((followerCount) ?? '')}
+								{String(followerCount)}
 							</dd>
 						</div>
 					{/if}

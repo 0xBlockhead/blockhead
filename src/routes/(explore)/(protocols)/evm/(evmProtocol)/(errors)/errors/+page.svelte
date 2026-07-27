@@ -2,12 +2,12 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
@@ -23,29 +23,20 @@
 
 
 <Page>
+	{@const collectionSelection = select(EntityType.EvmProtocol, {
+		scope: 'EvmProtocol',
+	})
+		.$$evmErrors({
+			sources: [
+				Source.Openchain_Rest,
+			],
+		})}
+
 	<EvmErrorsView
-		href={resolve('/evm/errors')}
+		href={resolve('/(explore)/(protocols)/evm/(evmProtocol)/(errors)/errors')}
 		title='EVM errors'
-		selection={
-			select(EntityType.EvmProtocol, {
-				scope: 'EvmProtocol',
-			})
-				.$$evmErrors({
-					sources: [
-						Source.Openchain_Rest,
-					],
-				})
-		}
-		countResource={
-			select(EntityType.EvmProtocol, {
-				scope: 'EvmProtocol',
-			})
-				.$$evmErrors({
-					sources: [
-						Source.Openchain_Rest,
-					],
-				}).count
-		}
+		selection={collectionSelection}
+		countResource={collectionSelection.count}
 		id='evm-errors'
 		data-column-item="flexible"
 		data-card

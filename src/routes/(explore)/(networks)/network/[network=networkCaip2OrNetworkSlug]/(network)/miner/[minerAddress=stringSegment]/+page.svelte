@@ -8,14 +8,12 @@
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		data,
-		params,
 	}: PageProps = $props()
 
 	const pageSelection = $derived(select(EntityType.FilecoinMiner, data.selector, {
@@ -32,18 +30,12 @@
 
 
 <svelte:head>
-	<title>{(data.title ?? (pageSelection.entity == null ? [String((data.selector.minerAddress) ?? '')].filter(Boolean).join(' ') || 'filecoin miner' : [String((({ ...data.selector, ...pageSelection.entity }).minerAddress) ?? '')].filter(Boolean).join(' ') || 'filecoin miner'))} • filecoin miner • Blockhead</title>
+	<title>{(data.title ?? (pageSelection.entitySelector.minerAddress || 'filecoin miner'))} • filecoin miner • Blockhead</title>
 </svelte:head>
 
 
 <Page>
 	<FilecoinMinerView
-		href={
-			resolve('/network/[network=networkCaip2OrNetworkSlug]/miner/[minerAddress=stringSegment]', {
-				network: params.network,
-				minerAddress: params.minerAddress,
-			})
-		}
 		selection={pageSelection}
 	/>
 </Page>

@@ -2,13 +2,8 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
 
 
 	// Context
@@ -20,40 +15,18 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.HederaNft>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.HederaNft>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.HederaNft> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const hederaNft = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {
-			createdTimestamp: true,
-		},
-	} : {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const hederaNft = $derived(selection({
 		fields: {
 			createdTimestamp: true,
 		},
 	}))
-	const titleFallback = $derived([String((pendingEntity.serialNumber) ?? '')].filter(Boolean).join(' ') || 'hedera NFT')
-	const viewDomId = $derived('hedera-nft-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const titleFallback = $derived(String(pendingEntity.serialNumber ?? '') || 'hedera NFT')
 
 
 	// Components
@@ -67,84 +40,38 @@
 
 <EntityView
 	entityType={EntityType.HederaNft}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, '$token') && prefetched.$token != null && Object.hasOwn(prefetched.$token, 'tokenType') && Object.hasOwn(prefetched.$token, 'decimals') && Object.hasOwn(prefetched, 'createdTimestamp')}
-			{@const serialNumber0 = pendingEntity.serialNumber}
-			{#if serialNumber0 !== undefined && serialNumber0 !== null}
-				<NumberValue
-					value={serialNumber0}
-				/>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={hederaNft}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const serialNumber0 = resolvedEntity.serialNumber}
-					{#if serialNumber0 !== undefined && serialNumber0 !== null}
-						<NumberValue
-							value={serialNumber0}
-						/>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<NumberValue
+			value={pendingEntity.serialNumber}
+		/>
 	{/snippet}
 
 	{#snippet Value()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, '$token') && prefetched.$token != null && Object.hasOwn(prefetched.$token, 'tokenType') && Object.hasOwn(prefetched.$token, 'decimals') && Object.hasOwn(prefetched, 'createdTimestamp')}
-			{@const hederaToken0 = pendingEntity.$token}
-			{#if hederaToken0 != null && selection.entitySelector.$token != null}
-				<HederaTokenView
-					selection={select(EntityType.HederaToken, selection.entitySelector.$token, { sources: selection.sources })}
-					prefetched={hederaToken0}
-					href=""
-					layout={EntityLayout.Value}
-					open={false}
-				/>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={hederaNft}>
-				{#snippet children(entity)}
-					<HederaTokenView
-						selection={select(EntityType.HederaToken, selection.entitySelector.$token)}
-						href=""
-						layout={EntityLayout.Value}
-						open={false}
-					/>
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<HederaTokenView
+			selection={select(EntityType.HederaToken, selection.entitySelector.$token)}
+			href=""
+			layout={EntityLayout.Value}
+			open={false}
+		/>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, '$token') && prefetched.$token != null && Object.hasOwn(prefetched.$token, 'tokenType') && Object.hasOwn(prefetched.$token, 'decimals') && Object.hasOwn(prefetched, 'createdTimestamp')}
-			{@const createdTimestamp0 = pendingEntity.createdTimestamp}
-			{#if createdTimestamp0 !== undefined && createdTimestamp0 !== null}
-				<span data-text="muted">
-					{String((createdTimestamp0) ?? '')}
-				</span>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={hederaNft}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const createdTimestamp0 = resolvedEntity.createdTimestamp}
-					{#if createdTimestamp0 !== undefined && createdTimestamp0 !== null}
-						<span data-text="muted">
-							{String((createdTimestamp0) ?? '')}
-						</span>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={hederaNft}>
+			{#snippet children(entity)}
+				{@const createdTimestamp0 = entity.createdTimestamp}
+				{#if createdTimestamp0 != null}
+					<span data-text="muted">
+						{createdTimestamp0}
+					</span>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -163,26 +90,9 @@
 			<div>
 				<dt>serial number</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									serialNumber: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const serialNumber = resolvedEntity.serialNumber}
-							{#if serialNumber !== undefined && serialNumber !== null}
-								<NumberValue
-									value={serialNumber}
-								/>
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					<NumberValue
+						value={pendingEntity.serialNumber}
+					/>
 				</dd>
 			</div>
 		</dl>
@@ -191,7 +101,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							metadata: true,
 						},
@@ -199,13 +108,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const metadata = resolvedEntity.metadata}
-					{#if metadata !== undefined && metadata !== null}
+					{@const metadata = entity.metadata}
+					{#if metadata != null}
 						<div>
 							<dt>metadata</dt>
 							<dd>
-								{String((metadata) ?? '')}
+								{metadata}
 							</dd>
 						</div>
 					{/if}
@@ -213,23 +121,15 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							createdTimestamp: true,
-						},
-					})
-				}
+				resource={hederaNft}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const createdTimestamp = resolvedEntity.createdTimestamp}
-					{#if createdTimestamp !== undefined && createdTimestamp !== null}
+					{@const createdTimestamp = entity.createdTimestamp}
+					{#if createdTimestamp != null}
 						<div>
 							<dt>created timestamp</dt>
 							<dd>
-								{String((createdTimestamp) ?? '')}
+								{createdTimestamp}
 							</dd>
 						</div>
 					{/if}
@@ -245,12 +145,12 @@
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
-				<HederaTokenTransfersView
-					selection={hederaNftHederaTokenTransfersViewTransfersResource}
-					countResource={hederaNftHederaTokenTransfersViewTransfersResource.count}
-					title='Transfers'
-					id='HederaTokenTransfersView-transfers'
-				/>
+					<HederaTokenTransfersView
+						selection={hederaNftHederaTokenTransfersViewTransfersResource}
+						countResource={hederaNftHederaTokenTransfersViewTransfersResource.count}
+						title='Transfers'
+						id='transfers'
+					/>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>
@@ -260,12 +160,12 @@
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
-				<HederaNft_TimestampsView
-					selection={hederaNftHederaNftTimestampsViewTimestampsResource}
-					countResource={hederaNftHederaNftTimestampsViewTimestampsResource.count}
-					title='Observations'
-					id='HederaNft_TimestampsView-timestamps'
-				/>
+					<HederaNft_TimestampsView
+						selection={hederaNftHederaNftTimestampsViewTimestampsResource}
+						countResource={hederaNftHederaNftTimestampsViewTimestampsResource.count}
+						title='Observations'
+						id='timestamps'
+					/>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>

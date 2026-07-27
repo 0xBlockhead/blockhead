@@ -9,15 +9,6 @@ import { networkBySlug } from '$/constants/Network.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 import type { ThreeXplBlockEvent } from '$/sources/ThreeXpl/Rest/types.ts'
-import { MoneroBlockSelector } from '$/schema/MoneroBlock.ts'
-import { NearBlockSelector } from '$/schema/NearBlock.ts'
-import { NearTransactionSelector } from '$/schema/NearTransaction.ts'
-import { PolkadotBlockSelector } from '$/schema/PolkadotBlock.ts'
-import { SolanaBlockSelector } from '$/schema/SolanaBlock.ts'
-import { SolanaTransactionSelector } from '$/schema/SolanaTransaction.ts'
-import { TronBlockSelector } from '$/schema/TronBlock.ts'
-import { TronTransactionSelector } from '$/schema/TronTransaction.ts'
-import { UtxoBlockSelector } from '$/schema/UtxoBlock.ts'
 
 const threeXplBlockchain = (
 	network: { caip2: {
@@ -65,7 +56,7 @@ export default {
 		defineResolver(Source.ThreeXpl_Rest, {
 			entityType: EntityType.MoneroBlock,
 			resolve: {
-				[MoneroBlockSelector.NetworkHeightHash]: {
+				NetworkHeightHash: {
 					resolve: async ({ $network, hash, height }) => {
 						const { fetchBlock } = await import('$/sources/ThreeXpl/Rest/queries.ts')
 						const wireBlock = await fetchBlock({
@@ -89,7 +80,7 @@ export default {
 		defineResolver(Source.ThreeXpl_Rest, {
 			entityType: EntityType.NearBlock,
 			resolve: {
-				[NearBlockSelector.NetworkHeightHash]: {
+				NetworkHeightHash: {
 					resolve: async ({ $network, hash, height }) => {
 						const { fetchBlock } = await import('$/sources/ThreeXpl/Rest/queries.ts')
 						const wireBlock = await fetchBlock({
@@ -113,7 +104,7 @@ export default {
 		defineResolver(Source.ThreeXpl_Rest, {
 			entityType: EntityType.PolkadotBlock,
 			resolve: {
-				[PolkadotBlockSelector.NetworkBlockNumberHash]: {
+				NetworkBlockNumberHash: {
 					resolve: async ({ $network, blockNumber, hash }) => {
 						const { fetchBlock } = await import('$/sources/ThreeXpl/Rest/queries.ts')
 						const wireBlock = await fetchBlock({
@@ -133,7 +124,7 @@ export default {
 		defineResolver(Source.ThreeXpl_Rest, {
 			entityType: EntityType.SolanaBlock,
 			resolve: {
-				[SolanaBlockSelector.Slot]: {
+				Slot: {
 					resolve: async ({ $network, slot }: {
 						$network: { caip2: {
 							namespace: string
@@ -169,7 +160,7 @@ export default {
 		defineResolver(Source.ThreeXpl_Rest, {
 			entityType: EntityType.SolanaTransaction,
 			resolve: {
-				[SolanaTransactionSelector.NetworkSignature]: {
+				NetworkSignature: {
 					resolve: async ({ $network, signature }) => {
 						const { fetchTransaction } = await import('$/sources/ThreeXpl/Rest/queries.ts')
 						const wireTransaction = await fetchTransaction({
@@ -196,7 +187,7 @@ export default {
 		defineResolver(Source.ThreeXpl_Rest, {
 			entityType: EntityType.TronBlock,
 			resolve: {
-				[TronBlockSelector.NetworkHeightHash]: {
+				NetworkHeightHash: {
 					resolve: async ({ $network, hash, height }) => {
 						const { fetchBlock } = await import('$/sources/ThreeXpl/Rest/queries.ts')
 						const wireBlock = await fetchBlock({
@@ -222,7 +213,7 @@ export default {
 		defineResolver(Source.ThreeXpl_Rest, {
 			entityType: EntityType.TronTransaction,
 			resolve: {
-				[TronTransactionSelector.NetworkTransactionId]: {
+				NetworkTransactionId: {
 					resolve: async ({ $network, transactionId }) => {
 						const { fetchTransaction } = await import('$/sources/ThreeXpl/Rest/queries.ts')
 						const wireTransaction = await fetchTransaction({
@@ -257,7 +248,7 @@ export default {
 		defineResolver(Source.ThreeXpl_Rest, {
 			entityType: EntityType.UtxoBlock,
 			resolve: {
-				[UtxoBlockSelector.NetworkHeightHash]: {
+				NetworkHeightHash: {
 					resolve: async ({ $network, hash }) => {
 						const { fetchBlock } = await import('$/sources/ThreeXpl/Rest/queries.ts')
 						const wireBlock = await fetchBlock({
@@ -283,7 +274,7 @@ export default {
 		defineResolver(Source.ThreeXpl_Rest, {
 			entityType: EntityType.MoneroBlock,
 			resolve: {
-				[MoneroBlockSelector.NetworkHeightHash]: {
+				NetworkHeightHash: {
 					resolve: async ({ $network, height, hash }) => {
 						const { fetchBlock } = await import('$/sources/ThreeXpl/Rest/queries.ts')
 						return eventTransactions(
@@ -318,7 +309,7 @@ export default {
 		defineResolver(Source.ThreeXpl_Rest, {
 			entityType: EntityType.SolanaBlock,
 			resolve: {
-				[SolanaBlockSelector.Slot]: {
+				Slot: {
 					resolve: async ({ $network, slot }: {
 						$network: { caip2: {
 							namespace: string
@@ -359,7 +350,7 @@ export default {
 		defineResolver(Source.ThreeXpl_Rest, {
 			entityType: EntityType.TronBlock,
 			resolve: {
-				[TronBlockSelector.NetworkHeightHash]: {
+				NetworkHeightHash: {
 					resolve: async ({ $network, height, hash }) => {
 						const { fetchBlock } = await import('$/sources/ThreeXpl/Rest/queries.ts')
 						return eventTransactions(
@@ -395,7 +386,7 @@ export default {
 		defineResolver(Source.ThreeXpl_Rest, {
 			entityType: EntityType.UtxoBlock,
 			resolve: {
-				[UtxoBlockSelector.NetworkHeightHash]: {
+				NetworkHeightHash: {
 					resolve: async ({ $network, height, hash }) => {
 						const { fetchBlock } = await import('$/sources/ThreeXpl/Rest/queries.ts')
 						return eventTransactions(

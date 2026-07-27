@@ -1,24 +1,12 @@
 import { defineResolver } from '$/resolvers/defineResolver.ts'
 import { EntityMetaKey } from '$/schema/$schema.ts'
-import { AiModelSelector } from '$/schema/AiModel.ts'
-import { AiProviderApiOperationSelector } from '$/schema/AiProviderApiOperation.ts'
-import { AiProviderCatalogEntrySelector } from '$/schema/AiProviderCatalogEntry.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
-import { sourceProviderDefinitions } from '$/sources/$sourceProviders.ts'
 import {
 	listModels,
 	retrieveModel,
 } from '$/sources/OpenAI/Rest/queries.ts'
 import type { OpenAIModel } from '$/sources/OpenAI/Rest/types.ts'
-
-const openAiBinding = sourceProviderDefinitions
-	.flatMap((provider) => provider.bindings)
-	.find((binding) => binding.source === Source.OpenAI_Rest)
-
-if (openAiBinding == null)
-	throw new Error('OpenAI_Rest: source binding is missing')
-
 const assertOpenAiProvider = (provider: { providerId?: string, domain?: string }) => {
 	if (provider.providerId === 'openai' || provider.domain === 'openai.com')
 		return
@@ -64,12 +52,11 @@ export default {
 		defineResolver(Source.OpenAI_Rest, {
 			entityType: EntityType.AiModel,
 			resolve: {
-				[AiModelSelector.ProviderModelId]: {
+				ProviderModelId: {
 					resolve: async ({ $provider, providerModelId }) => {
 						assertOpenAiProvider($provider)
 						return modelFields(
 							await retrieveModel({
-								binding: openAiBinding,
 								modelId: providerModelId,
 							}),
 							$provider
@@ -89,7 +76,7 @@ export default {
 		defineResolver(Source.OpenAI_Rest, {
 			entityType: EntityType.AiProviderCatalogEntry,
 			resolve: {
-				[AiProviderCatalogEntrySelector.ProviderCatalogKindProviderEntryId]: {
+				ProviderCatalogKindProviderEntryId: {
 					resolve: async ({
 						$provider,
 						catalogKind,
@@ -100,7 +87,6 @@ export default {
 							throw new Error(`OpenAI_Rest: unsupported catalog kind ${catalogKind}`)
 
 						const model = await retrieveModel({
-							binding: openAiBinding,
 							modelId: providerEntryId,
 						})
 						return {
@@ -131,16 +117,14 @@ export default {
 		defineResolver(Source.OpenAI_Rest, {
 			entityType: EntityType.AiProviderApiOperation,
 			resolve: {
-				[AiProviderApiOperationSelector.ProviderOperationId]: {
+				ProviderOperationId: {
 					resolve: async ({ $provider, operationId }) => {
 						assertOpenAiProvider($provider)
 						const operation = operationById.get(operationId)
 						if (operation == null)
 							throw new Error(`OpenAI_Rest: unsupported operation ${operationId}`)
 
-						await listModels({
-							binding: openAiBinding,
-						})
+						await listModels()
 						return {
 							$provider: {
 								[EntityMetaKey.Selector]: $provider,

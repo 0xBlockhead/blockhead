@@ -6,7 +6,7 @@ import { match as matchIpfsNamespace } from '$/params/ipfsNamespace.ts'
 import { match as matchStringSegment } from '$/params/stringSegment.ts'
 import { parseEntitySelector } from '$/schema/$schema.ts'
 import { schema } from '$/schema/index.ts'
-import { IpfsResource as IpfsResourceSchema } from '$/schema/IpfsResource.ts'
+import IpfsResourceSchema from '$/schema/IpfsResource.ts'
 import { type as arktype } from 'arktype'
 
 export const load: LayoutLoad = ({ params }) => {

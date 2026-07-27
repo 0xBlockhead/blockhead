@@ -2,15 +2,8 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
-	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -22,42 +15,19 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.SolanaTokenMint_Timestamp>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.SolanaTokenMint_Timestamp>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.SolanaTokenMint_Timestamp> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const solanaTokenMintTimestamp = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {
-			supply: true,
-			timestampMs: true,
-		},
-	} : {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const solanaTokenMintTimestamp = $derived(selection({
 		fields: {
 			supply: true,
 			timestampMs: true,
 		},
 	}))
-	const titleFallback = $derived([String((pendingEntity.slot) ?? '')].filter(Boolean).join(' ') || 'solana token mint timestamp')
-	const viewDomId = $derived('solana-token-mint-timestamp-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const titleFallback = $derived(String(pendingEntity.slot ?? '') || 'solana token mint timestamp')
 
 
 	// Components
@@ -70,81 +40,42 @@
 
 <EntityView
 	entityType={EntityType.SolanaTokenMint_Timestamp}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'supply') && Object.hasOwn(prefetched, 'timestampMs')}
-			{@const slot0 = pendingEntity.slot}
-			{#if slot0 !== undefined && slot0 !== null}
-				<NumberValue
-					value={slot0}
-				/>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={solanaTokenMintTimestamp}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const slot0 = resolvedEntity.slot}
-					{#if slot0 !== undefined && slot0 !== null}
-						<NumberValue
-							value={slot0}
-						/>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<NumberValue
+			value={pendingEntity.slot}
+		/>
 	{/snippet}
 
 	{#snippet Value()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'supply') && Object.hasOwn(prefetched, 'timestampMs')}
-			{@const supply0 = pendingEntity.supply}
-			{#if supply0 !== undefined && supply0 !== null}
-				<NumberValue
-					value={supply0}
-				/>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={solanaTokenMintTimestamp}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const supply0 = resolvedEntity.supply}
-					{#if supply0 !== undefined && supply0 !== null}
-						<NumberValue
-							value={supply0}
-						/>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={solanaTokenMintTimestamp}>
+			{#snippet children(entity)}
+				{@const supply0 = entity.supply}
+				{#if supply0 != null}
+					<NumberValue
+						value={supply0}
+					/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'supply') && Object.hasOwn(prefetched, 'timestampMs')}
-			{@const timestampMs0 = pendingEntity.timestampMs}
-			{#if timestampMs0 !== undefined && timestampMs0 !== null}
-				<span data-text="muted">
-					<Timestamp timestamp={Number(timestampMs0)} />
-				</span>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={solanaTokenMintTimestamp}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const timestampMs0 = resolvedEntity.timestampMs}
-					{#if timestampMs0 !== undefined && timestampMs0 !== null}
-						<span data-text="muted">
-							<Timestamp timestamp={Number(timestampMs0)} />
-						</span>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={solanaTokenMintTimestamp}>
+			{#snippet children(entity)}
+				{@const timestampMs0 = entity.timestampMs}
+				{#if timestampMs0 != null}
+					<span data-text="muted">
+						<Timestamp timestamp={Number(timestampMs0)} />
+					</span>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -154,30 +85,6 @@
 				<dd>
 					<SolanaTokenMintView
 						selection={select(EntityType.SolanaTokenMint, selection.entitySelector.$mint)}
-						href={
-							(
-								selection.entitySelector.$mint != null && 'mintAddress' in selection.entitySelector.$mint
-								&& selection.entitySelector.$mint.mintAddress != null
-								&& selection.entitySelector.$mint != null && '$network' in selection.entitySelector.$mint ?
-									selection.entitySelector.$mint.$network != null && 'caip2' in selection.entitySelector.$mint.$network
-									&& selection.entitySelector.$mint.$network.caip2 != null ?
-										resolve('/network/[network=networkCaip2OrNetworkSlug]/token-mint/[mintAddress=stringSegment]', {
-									mintAddress: String(selection.entitySelector.$mint.mintAddress ?? ''),
-									network: String(caip2StringFromValue(selection.entitySelector.$mint.$network.caip2) ?? ''),
-								})
-								:
-										selection.entitySelector.$mint.$network != null && 'slug' in selection.entitySelector.$mint.$network
-										&& selection.entitySelector.$mint.$network.slug != null ?
-											resolve('/network/[network=networkCaip2OrNetworkSlug]/token-mint/[mintAddress=stringSegment]', {
-										mintAddress: String(selection.entitySelector.$mint.mintAddress ?? ''),
-										network: String(selection.entitySelector.$mint.$network.slug ?? ''),
-									})
-									:
-										undefined
-							:
-									undefined
-							)
-						}
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -187,31 +94,13 @@
 			<div>
 				<dt>Source</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									source: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const source = resolvedEntity.source}
-							{#if source !== undefined && source !== null}
-								{String((source) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{pendingEntity.source}
 				</dd>
 			</div>
 
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							decimals: true,
 						},
@@ -219,13 +108,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const decimals = resolvedEntity.decimals}
-					{#if decimals !== undefined && decimals !== null}
+					{@const decimals = entity.decimals}
+					{#if decimals != null}
 						<div>
 							<dt>Decimals</dt>
 							<dd>
-								{String((decimals) ?? '')}
+								{String(decimals)}
 							</dd>
 						</div>
 					{/if}
@@ -235,7 +123,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							mintAuthorityPubkey: true,
 						},
@@ -243,13 +130,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const mintAuthorityPubkey = resolvedEntity.mintAuthorityPubkey}
-					{#if mintAuthorityPubkey !== undefined && mintAuthorityPubkey !== null}
+					{@const mintAuthorityPubkey = entity.mintAuthorityPubkey}
+					{#if mintAuthorityPubkey != null}
 						<div>
 							<dt>Mint authority public key</dt>
 							<dd>
-								{String((mintAuthorityPubkey) ?? '')}
+								{mintAuthorityPubkey}
 							</dd>
 						</div>
 					{/if}
@@ -259,7 +145,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							freezeAuthorityPubkey: true,
 						},
@@ -267,13 +152,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const freezeAuthorityPubkey = resolvedEntity.freezeAuthorityPubkey}
-					{#if freezeAuthorityPubkey !== undefined && freezeAuthorityPubkey !== null}
+					{@const freezeAuthorityPubkey = entity.freezeAuthorityPubkey}
+					{#if freezeAuthorityPubkey != null}
 						<div>
 							<dt>Freeze authority public key</dt>
 							<dd>
-								{String((freezeAuthorityPubkey) ?? '')}
+								{freezeAuthorityPubkey}
 							</dd>
 						</div>
 					{/if}
@@ -283,7 +167,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							isInitialized: true,
 						},
@@ -291,9 +174,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const isInitialized = resolvedEntity.isInitialized}
-					{#if isInitialized !== undefined && isInitialized !== null}
+					{@const isInitialized = entity.isInitialized}
+					{#if isInitialized != null}
 						<div>
 							<dt>Initialized</dt>
 							<dd>

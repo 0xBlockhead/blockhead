@@ -6,7 +6,7 @@ import { networkByCaip2, networkBySlug } from '$/constants/Network.ts'
 import { match as matchStringSegment } from '$/params/stringSegment.ts'
 import { parseEntitySelector } from '$/schema/$schema.ts'
 import { schema } from '$/schema/index.ts'
-import { UtxoAddress as UtxoAddressSchema } from '$/schema/UtxoAddress.ts'
+import UtxoAddressSchema from '$/schema/UtxoAddress.ts'
 import { type as arktype } from 'arktype'
 
 // Projection eligibility: facetPath=['Utxo']

@@ -2,16 +2,12 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
 	import { ConsensusProtocol } from '$/schema/NetworkUpgradeProtocols.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// State
@@ -23,40 +19,25 @@
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.EthereumConsensusUpgrade>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.EthereumConsensusUpgrade>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.EthereumConsensusUpgrade> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const ethereumConsensusUpgrade = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const viewSelection = $derived(selection({
+		sources: selection.sources ?? [
+			Source.Constants_Internal,
+		],
+	}))
+	const ethereumConsensusUpgrade = $derived(viewSelection({
 		fields: {
 			name: true,
-		},
-	} : {
-		sources: selection.sources,
-		fields: {
-			name: true,
+			upgradeId: true,
 			protocol: true,
 			activationBlock: true,
 			activationEpoch: true,
 			activationTimestampMs: true,
 		},
 	}))
-	const titleFallback = $derived([String((pendingEntity.upgradeId) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.name) ?? '')].filter(Boolean).join(' ') || 'Ethereum consensus upgrade')
-	const viewDomId = $derived('ethereum-consensus-upgrade-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const titleFallback = $derived((pendingEntity.upgradeId ?? '') || (pendingEntity.name ?? '') || 'Ethereum consensus upgrade')
 
 
 	// Components
@@ -70,30 +51,24 @@
 
 <EntityView
 	entityType={EntityType.EthereumConsensusUpgrade}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
 	href={
 		href ?? (
-			selection.entitySelector != null && 'slug' in selection.entitySelector
-			&& selection.entitySelector.slug != null
-			&& selection.entitySelector != null && '$network' in selection.entitySelector ?
-				selection.entitySelector.$network != null && 'caip2' in selection.entitySelector.$network
-				&& selection.entitySelector.$network.caip2 != null ?
-					resolve('/network/[network=networkCaip2OrNetworkSlug]/consensus/[upgradeSlug=stringSegment]', {
-				upgradeSlug: String(selection.entitySelector.slug ?? ''),
-				network: String(caip2StringFromValue(selection.entitySelector.$network.caip2) ?? ''),
-			})
+			'slug' in selection.entitySelector ?
+				resolve(
+					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(upgrades)/consensus/[upgradeSlug=stringSegment]',
+					{
+						network: (
+							'caip2' in selection.entitySelector.$network ?
+								String(caip2StringFromValue(selection.entitySelector.$network.caip2))
+							:
+								String(selection.entitySelector.$network.slug)
+						),
+						upgradeSlug: String(selection.entitySelector.slug),
+					}
+				)
 			:
-					selection.entitySelector.$network != null && 'slug' in selection.entitySelector.$network
-					&& selection.entitySelector.$network.slug != null ?
-						resolve('/network/[network=networkCaip2OrNetworkSlug]/consensus/[upgradeSlug=stringSegment]', {
-					upgradeSlug: String(selection.entitySelector.slug ?? ''),
-					network: String(selection.entitySelector.$network.slug ?? ''),
-				})
-				:
-					undefined
-		:
 				undefined
 		)
 	}
@@ -102,51 +77,33 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'upgradeId') && Object.hasOwn(prefetched, 'name')}
-			{[String((pendingEntity.upgradeId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-		{:else}
-			<ResourceBoundary resource={ethereumConsensusUpgrade}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.upgradeId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={ethereumConsensusUpgrade}>
+			{#snippet children(entity)}
+				{entity.upgradeId || title || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Value()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'upgradeId') && Object.hasOwn(prefetched, 'name')}
-			{[String((pendingEntity.upgradeId) ?? '')].filter(Boolean).join(' ') || titleFallback}
-		{:else}
-			<ResourceBoundary resource={ethereumConsensusUpgrade}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.upgradeId) ?? '')].filter(Boolean).join(' ') || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={ethereumConsensusUpgrade}>
+			{#snippet children(entity)}
+				{entity.upgradeId || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
 		<dl data-column-item="center">
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							protocol: true,
-						},
-					})
-				}
+				resource={ethereumConsensusUpgrade}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const protocol = resolvedEntity.protocol}
-					{#if protocol !== undefined && protocol !== null}
+					{@const protocol = entity.protocol}
+					{#if protocol != null}
 						<div>
 							<dt>Consensus fork</dt>
 							<dd>
-								{String((protocol) ?? '')}
+								{protocol}
 							</dd>
 						</div>
 					{/if}
@@ -154,19 +111,11 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							activationBlock: true,
-						},
-					})
-				}
+				resource={ethereumConsensusUpgrade}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const activationBlock = resolvedEntity.activationBlock}
-					{#if activationBlock !== undefined && activationBlock !== null}
+					{@const activationBlock = entity.activationBlock}
+					{#if activationBlock != null}
 						<div>
 							<dt>Activation block</dt>
 							<dd>
@@ -180,19 +129,11 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							activationEpoch: true,
-						},
-					})
-				}
+				resource={ethereumConsensusUpgrade}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const activationEpoch = resolvedEntity.activationEpoch}
-					{#if activationEpoch !== undefined && activationEpoch !== null}
+					{@const activationEpoch = entity.activationEpoch}
+					{#if activationEpoch != null}
 						<div>
 							<dt>Activation epoch</dt>
 							<dd>
@@ -206,19 +147,11 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							activationTimestampMs: true,
-						},
-					})
-				}
+				resource={ethereumConsensusUpgrade}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const activationTimestampMs = resolvedEntity.activationTimestampMs}
-					{#if activationTimestampMs !== undefined && activationTimestampMs !== null}
+					{@const activationTimestampMs = entity.activationTimestampMs}
+					{#if activationTimestampMs != null}
 						<div>
 							<dt>Activation time</dt>
 							<dd>
@@ -232,8 +165,7 @@
 			{#if contentOpen}
 				<ResourceBoundary
 					resource={
-						selection({
-							sources: selection.sources,
+						viewSelection({
 							fields: {
 								previousForkVersion: true,
 							},
@@ -241,13 +173,12 @@
 					}
 				>
 					{#snippet children(entity)}
-						{@const resolvedEntity = { ...pendingEntity, ...entity }}
-						{@const previousForkVersion = resolvedEntity.previousForkVersion}
-						{#if previousForkVersion !== undefined && previousForkVersion !== null}
+						{@const previousForkVersion = entity.previousForkVersion}
+						{#if previousForkVersion != null}
 							<div>
 								<dt>Previous fork version</dt>
 								<dd>
-									<TruncatedValue value={String((previousForkVersion) ?? '')} />
+									<TruncatedValue value={previousForkVersion} />
 								</dd>
 							</div>
 						{/if}
@@ -258,8 +189,7 @@
 			{#if contentOpen}
 				<ResourceBoundary
 					resource={
-						selection({
-							sources: selection.sources,
+						viewSelection({
 							fields: {
 								currentForkVersion: true,
 							},
@@ -267,13 +197,12 @@
 					}
 				>
 					{#snippet children(entity)}
-						{@const resolvedEntity = { ...pendingEntity, ...entity }}
-						{@const currentForkVersion = resolvedEntity.currentForkVersion}
-						{#if currentForkVersion !== undefined && currentForkVersion !== null}
+						{@const currentForkVersion = entity.currentForkVersion}
+						{#if currentForkVersion != null}
 							<div>
 								<dt>Current fork version</dt>
 								<dd>
-									<TruncatedValue value={String((currentForkVersion) ?? '')} />
+									<TruncatedValue value={currentForkVersion} />
 								</dd>
 							</div>
 						{/if}
@@ -290,12 +219,12 @@
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
-				<SpecificationProposalsView
-					selection={ethereumConsensusUpgradeSpecificationProposalsViewProposalsResource}
-					countResource={ethereumConsensusUpgradeSpecificationProposalsViewProposalsResource.count}
-					title='Specification proposals'
-					id='SpecificationProposalsView-proposals'
-				/>
+					<SpecificationProposalsView
+						selection={ethereumConsensusUpgradeSpecificationProposalsViewProposalsResource}
+						countResource={ethereumConsensusUpgradeSpecificationProposalsViewProposalsResource.count}
+						title='Specification proposals'
+						id='proposals'
+					/>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>

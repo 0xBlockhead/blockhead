@@ -8,7 +8,6 @@
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
@@ -29,21 +28,12 @@
 
 
 <svelte:head>
-	<title>{(pageSelection.entity == null ? [String(({
-		hex: params.hex,
-	}.hex) ?? '')].filter(Boolean).join(' ') || 'EVM calldata' : [String((({ ...{
-		hex: params.hex,
-	}, ...pageSelection.entity }).hex) ?? '')].filter(Boolean).join(' ') || 'EVM calldata')} • EVM calldata • Blockhead</title>
+	<title>{(String(pageSelection.entitySelector.hex) || 'EVM calldata')} • EVM calldata • Blockhead</title>
 </svelte:head>
 
 
 <Page>
 	<EvmCalldataView
-		href={
-			resolve('/evm/calldata/[hex=zeroExHex]', {
-				hex: params.hex,
-			})
-		}
 		selection={pageSelection}
 	/>
 </Page>

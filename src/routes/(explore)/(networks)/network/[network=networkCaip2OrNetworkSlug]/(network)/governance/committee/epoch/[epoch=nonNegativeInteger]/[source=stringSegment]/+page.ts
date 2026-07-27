@@ -6,7 +6,7 @@ import { networkByCaip2, networkBySlug } from '$/constants/Network.ts'
 import { match as matchNonNegativeInteger } from '$/params/nonNegativeInteger.ts'
 import { match as matchStringSegment } from '$/params/stringSegment.ts'
 import { parseEntitySelector } from '$/schema/$schema.ts'
-import { CardanoCommittee_Epoch as CardanoCommittee_EpochSchema } from '$/schema/CardanoCommittee_Epoch.ts'
+import CardanoCommittee_EpochSchema from '$/schema/CardanoCommittee_Epoch.ts'
 import { schema } from '$/schema/index.ts'
 import { type as arktype } from 'arktype'
 

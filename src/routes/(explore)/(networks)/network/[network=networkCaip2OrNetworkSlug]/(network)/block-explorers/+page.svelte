@@ -3,11 +3,11 @@
 <script lang="ts">
 	// Types/constants
 	import type { PageProps } from './$types.ts'
+	import { resolve } from '$app/paths'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
@@ -16,8 +16,6 @@
 		data,
 		params,
 	}: PageProps = $props()
-
-
 	// Components
 	import Page from '$/components/Page.svelte'
 	import UrlsView from '$/views/UrlsView.svelte'
@@ -30,15 +28,20 @@
 
 
 <Page>
+	{@const collectionSelection = select(EntityType.Network, data.selector).$$blockExplorerUrls}
+
 	<UrlsView
 		href={
-			resolve('/network/[network=networkCaip2OrNetworkSlug]/block-explorers', {
-				network: params.network,
-			})
+			resolve(
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/block-explorers',
+				{
+					network: String(params.network),
+				}
+			)
 		}
 		title='Block explorers'
-		selection={select(EntityType.Network, data.selector).$$blockExplorerUrls}
-		countResource={select(EntityType.Network, data.selector).$$blockExplorerUrls.count}
+		selection={collectionSelection}
+		countResource={collectionSelection.count}
 		id='block-explorer-urls'
 		data-column-item="flexible"
 		data-card

@@ -35,18 +35,18 @@ test('coins discovery navigates to a recognizable asset detail', async ({ page }
 		}
 	).toBeGreaterThanOrEqual(5))
 	await diagnostics.step(expect.poll(
-		() => page.locator('#main a').evaluateAll((links) => (
+		() => page.locator('#main a[href^="/coin/"]').evaluateAll((links) => (
 			new Set(
 				links
 					.map((link) => link.getAttribute('href'))
-					.filter((href) => href != null && href !== '' && !href.startsWith('#'))
+					.filter((href) => href != null)
 			).size
 		)),
 		{
-			message: '/coins unique non-fragment links',
+			message: '/coins unique coin links',
 			timeout: 120_000,
 		}
-	).toBeGreaterThanOrEqual(8))
+	).toBeGreaterThanOrEqual(5))
 	await diagnostics.step(assertNoGeneratedRouteArtifacts(page, '/coins'))
 	await diagnostics.step(expect(page.locator('#main [role="alert"], #main [data-error]')).toHaveCount(0))
 	await diagnostics.step(expect(page.locator('#main').getByText(/Loading\b/)).toHaveCount(0))

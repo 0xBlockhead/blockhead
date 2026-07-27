@@ -2,15 +2,10 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { stringify } from 'devalue'
-	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -22,42 +17,22 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.HederaTransaction>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.HederaTransaction>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.HederaTransaction> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const hederaTransaction = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const hederaTransaction = $derived(selection({
 		fields: {
 			transactionType: true,
 			result: true,
-		},
-	} : {
-		sources: selection.sources,
-		fields: {
-			transactionType: true,
-			result: true,
+			transactionId: true,
+			consensusTimestamp: true,
 		},
 	}))
-	const titleFallback = $derived([String((pendingEntity.transactionType) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.transactionId) ?? '')].filter(Boolean).join(' ') || 'hedera transaction')
-	const viewDomId = $derived('hedera-transaction-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const titleFallback = $derived((pendingEntity.transactionType ?? '') || (pendingEntity.transactionId ?? '') || 'hedera transaction')
+	const viewDomId = $derived('hedera-transaction-' + encodeURIComponent(stringify(selection.entitySelector)))
 
 
 	// Components
@@ -77,61 +52,37 @@
 
 <EntityView
 	entityType={EntityType.HederaTransaction}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
+	entitySelector={selection.entitySelector}
 	id={viewDomId}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'transactionType') && Object.hasOwn(prefetched, 'result') && Object.hasOwn(prefetched, 'transactionId') && Object.hasOwn(prefetched, 'consensusTimestamp')}
-			{[String((pendingEntity.transactionType) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-		{:else}
-			<ResourceBoundary resource={hederaTransaction}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.transactionType) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={hederaTransaction}>
+			{#snippet children(entity)}
+				{entity.transactionType || title || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Value()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'transactionType') && Object.hasOwn(prefetched, 'result') && Object.hasOwn(prefetched, 'transactionId') && Object.hasOwn(prefetched, 'consensusTimestamp')}
-			{[String((pendingEntity.result) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.transactionType) ?? '')].filter(Boolean).join(' ') || titleFallback}
-		{:else}
-			<ResourceBoundary resource={hederaTransaction}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.result) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.transactionType) ?? '')].filter(Boolean).join(' ') || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={hederaTransaction}>
+			{#snippet children(entity)}
+				{(entity.result ?? '') || entity.transactionType || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'transactionType') && Object.hasOwn(prefetched, 'result') && Object.hasOwn(prefetched, 'transactionId') && Object.hasOwn(prefetched, 'consensusTimestamp')}
-			{@const consensusTimestamp0 = pendingEntity.consensusTimestamp}
-			{#if consensusTimestamp0 !== undefined && consensusTimestamp0 !== null}
+		<ResourceBoundary resource={hederaTransaction}>
+			{#snippet children(entity)}
 				<span data-text="muted">
-					{String((consensusTimestamp0) ?? '')}
+					{entity.consensusTimestamp}
 				</span>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={hederaTransaction}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const consensusTimestamp0 = resolvedEntity.consensusTimestamp}
-					{#if consensusTimestamp0 !== undefined && consensusTimestamp0 !== null}
-						<span data-text="muted">
-							{String((consensusTimestamp0) ?? '')}
-						</span>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -141,23 +92,6 @@
 				<dd>
 					<NetworkView
 						selection={select(EntityType.Network, selection.entitySelector.$network)}
-						href={
-							(
-								selection.entitySelector.$network != null && 'caip2' in selection.entitySelector.$network
-								&& selection.entitySelector.$network.caip2 != null ?
-									resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-								network: String(caip2StringFromValue(selection.entitySelector.$network.caip2) ?? ''),
-							})
-							:
-									selection.entitySelector.$network != null && 'slug' in selection.entitySelector.$network
-									&& selection.entitySelector.$network.slug != null ?
-										resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-									network: String(selection.entitySelector.$network.slug ?? ''),
-								})
-								:
-									undefined
-							)
-						}
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -168,44 +102,25 @@
 				<dt>transaction type</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									transactionType: true,
-								},
-							})
-						}
+						resource={hederaTransaction}
 					>
 						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const transactionType = resolvedEntity.transactionType}
-							{#if transactionType !== undefined && transactionType !== null}
-								{String((transactionType) ?? '')}
-							{/if}
+							{entity.transactionType}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
 			</div>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							result: true,
-						},
-					})
-				}
+				resource={hederaTransaction}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const result = resolvedEntity.result}
-					{#if result !== undefined && result !== null}
+					{@const result = entity.result}
+					{#if result != null}
 						<div>
 							<dt>result</dt>
 							<dd>
-								{String((result) ?? '')}
+								{result}
 							</dd>
 						</div>
 					{/if}
@@ -218,21 +133,10 @@
 				<dt>transaction ID</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									transactionId: true,
-								},
-							})
-						}
+						resource={hederaTransaction}
 					>
 						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const transactionId = resolvedEntity.transactionId}
-							{#if transactionId !== undefined && transactionId !== null}
-								<TruncatedValue value={String((transactionId) ?? '')} />
-							{/if}
+							<TruncatedValue value={entity.transactionId} />
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -242,21 +146,10 @@
 				<dt>consensus timestamp</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									consensusTimestamp: true,
-								},
-							})
-						}
+						resource={hederaTransaction}
 					>
 						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const consensusTimestamp = resolvedEntity.consensusTimestamp}
-							{#if consensusTimestamp !== undefined && consensusTimestamp !== null}
-								{String((consensusTimestamp) ?? '')}
-							{/if}
+							{entity.consensusTimestamp}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -268,7 +161,6 @@
 					<ResourceBoundary
 						resource={
 							selection({
-								sources: selection.sources,
 								fields: {
 									nonce: true,
 								},
@@ -276,13 +168,9 @@
 						}
 					>
 						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const nonce = resolvedEntity.nonce}
-							{#if nonce !== undefined && nonce !== null}
-								<NumberValue
-									value={nonce}
-								/>
-							{/if}
+							<NumberValue
+								value={entity.nonce}
+							/>
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -293,7 +181,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							payerAccount: true,
 						},
@@ -301,13 +188,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const payerAccount = resolvedEntity.payerAccount}
-					{#if payerAccount !== undefined && payerAccount !== null}
+					{@const payerAccount = entity.payerAccount}
+					{#if payerAccount != null}
 						<div>
 							<dt>payer account</dt>
 							<dd>
-								<TruncatedValue value={String((payerAccount) ?? '')} />
+								<TruncatedValue value={payerAccount} />
 							</dd>
 						</div>
 					{/if}
@@ -317,7 +203,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							nodeAccountId: true,
 						},
@@ -325,13 +210,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const nodeAccountId = resolvedEntity.nodeAccountId}
-					{#if nodeAccountId !== undefined && nodeAccountId !== null}
+					{@const nodeAccountId = entity.nodeAccountId}
+					{#if nodeAccountId != null}
 						<div>
 							<dt>node account ID</dt>
 							<dd>
-								<TruncatedValue value={String((nodeAccountId) ?? '')} />
+								<TruncatedValue value={nodeAccountId} />
 							</dd>
 						</div>
 					{/if}
@@ -341,7 +225,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							chargedTxFeeTinybar: true,
 						},
@@ -349,9 +232,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const chargedTxFeeTinybar = resolvedEntity.chargedTxFeeTinybar}
-					{#if chargedTxFeeTinybar !== undefined && chargedTxFeeTinybar !== null}
+					{@const chargedTxFeeTinybar = entity.chargedTxFeeTinybar}
+					{#if chargedTxFeeTinybar != null}
 						<div>
 							<dt>charged transaction fee tinybar</dt>
 							<dd>
@@ -367,7 +249,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							scheduled: true,
 						},
@@ -375,9 +256,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const scheduled = resolvedEntity.scheduled}
-					{#if scheduled !== undefined && scheduled !== null}
+					{@const scheduled = entity.scheduled}
+					{#if scheduled != null}
 						<div>
 							<dt>scheduled</dt>
 							<dd>
@@ -394,7 +274,7 @@
 				resource={selection.$block}
 			>
 				{#snippet children(hederaBlock)}
-					{#if hederaBlock != null && hederaBlock[EntityMetaKey.Selector] != null}
+					{#if hederaBlock != null}
 						<div>
 							<dt>block</dt>
 							<dd>
@@ -414,7 +294,7 @@
 				resource={selection.$schedule}
 			>
 				{#snippet children(hederaSchedule)}
-					{#if hederaSchedule != null && hederaSchedule[EntityMetaKey.Selector] != null}
+					{#if hederaSchedule != null}
 						<div>
 							<dt>schedule</dt>
 							<dd>
@@ -441,12 +321,10 @@
 					{
 						id: 'hedera-transaction-hbar-transfers',
 						label: 'Hbar Transfers',
-						ownsSection: true,
 					},
 					{
 						id: 'hedera-transaction-token-transfers',
 						label: 'Token Transfers',
-						ownsSection: true,
 					},
 				]
 			}
@@ -459,136 +337,34 @@
 				</header>
 			{/snippet}
 
-			{#snippet MarkerHederaTransactionHbarTransfers(_context, Content)}
-				{@const hederaTransactionActivityAHederaTransactionHbarTransfersResource = selection.$$hbarTransfers}
-				<ResourceBoundary
-					resource={hederaTransactionActivityAHederaTransactionHbarTransfersResource}
-				>
-					{#snippet children(_resolved)}
-						{@render Content()}
-					{/snippet}
-
-					{#snippet PendingContent()}
-						{@render Content()}
-					{/snippet}
-
-					{#snippet FailedContent(_error, _retry)}
-						{@render Content()}
-					{/snippet}
-				</ResourceBoundary>
+			{#snippet SectionHederaTransactionHbarTransfers({ id, label, open })}
+				<HederaHbarTransfersView
+					selection={selection.$$hbarTransfers}
+					CollapsibleProps={{ canToggle: false }}
+					collapsible={false}
+					data-column-item="flexible"
+					data-card
+					data-scroll-container
+					open={open}
+					title={label}
+					emptyText='No hbar transfers.'
+					id={`${id}-list`}
+				/>
 			{/snippet}
 
-			{#snippet SectionHederaTransactionHbarTransfers({ id, label, open, active })}
-				{@const hederaTransactionActivityAHederaTransactionHbarTransfersResource = selection.$$hbarTransfers}
-				<ResourceBoundary
-					resource={hederaTransactionActivityAHederaTransactionHbarTransfersResource}
-				>
-					{#snippet children(hederaHbarTransfer)}
-						<section
-							id={id}
-							aria-labelledby={`${id}:marker`}
-							data-scroll-marker-label={label}
-							data-column-item="flexible"
-							data-column
-							data-active={active}
-						>
-							<HederaHbarTransfersView
-								selection={hederaTransactionActivityAHederaTransactionHbarTransfersResource}
-								CollapsibleProps={{ canToggle: false }}
-								collapsible={false}
-								data-column-item="flexible"
-								data-card
-								data-scroll-container
-								open={open}
-								title={label}
-								emptyText='No hbar transfers.'
-								id={`${id}-list`}
-							/>
-						</section>
-					{/snippet}
-
-					{#snippet Pending()}
-						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
-							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
-								<span data-tag data-text="muted" data-resource-state="pending" class="loading inline-placeholder" aria-busy="true" aria-label="Loading…">•••</span>
-							</article>
-						</section>
-					{/snippet}
-
-					{#snippet Failed(_error, _retry)}
-						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
-							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
-								<span data-tag data-resource-state="failed" class="inline-placeholder" aria-label="Failed to load">•••</span>
-							</article>
-						</section>
-					{/snippet}
-				</ResourceBoundary>
-			{/snippet}
-
-			{#snippet MarkerHederaTransactionTokenTransfers(_context, Content)}
-				{@const hederaTransactionActivityAHederaTransactionTokenTransfersResource = selection.$$tokenTransfers}
-				<ResourceBoundary
-					resource={hederaTransactionActivityAHederaTransactionTokenTransfersResource}
-				>
-					{#snippet children(_resolved)}
-						{@render Content()}
-					{/snippet}
-
-					{#snippet PendingContent()}
-						{@render Content()}
-					{/snippet}
-
-					{#snippet FailedContent(_error, _retry)}
-						{@render Content()}
-					{/snippet}
-				</ResourceBoundary>
-			{/snippet}
-
-			{#snippet SectionHederaTransactionTokenTransfers({ id, label, open, active })}
-				{@const hederaTransactionActivityAHederaTransactionTokenTransfersResource = selection.$$tokenTransfers}
-				<ResourceBoundary
-					resource={hederaTransactionActivityAHederaTransactionTokenTransfersResource}
-				>
-					{#snippet children(hederaTokenTransfer)}
-						<section
-							id={id}
-							aria-labelledby={`${id}:marker`}
-							data-scroll-marker-label={label}
-							data-column-item="flexible"
-							data-column
-							data-active={active}
-						>
-							<HederaTokenTransfersView
-								selection={hederaTransactionActivityAHederaTransactionTokenTransfersResource}
-								CollapsibleProps={{ canToggle: false }}
-								collapsible={false}
-								data-column-item="flexible"
-								data-card
-								data-scroll-container
-								open={open}
-								title={label}
-								emptyText='No token transfers.'
-								id={`${id}-list`}
-							/>
-						</section>
-					{/snippet}
-
-					{#snippet Pending()}
-						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
-							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
-								<span data-tag data-text="muted" data-resource-state="pending" class="loading inline-placeholder" aria-busy="true" aria-label="Loading…">•••</span>
-							</article>
-						</section>
-					{/snippet}
-
-					{#snippet Failed(_error, _retry)}
-						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
-							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
-								<span data-tag data-resource-state="failed" class="inline-placeholder" aria-label="Failed to load">•••</span>
-							</article>
-						</section>
-					{/snippet}
-				</ResourceBoundary>
+			{#snippet SectionHederaTransactionTokenTransfers({ id, label, open })}
+				<HederaTokenTransfersView
+					selection={selection.$$tokenTransfers}
+					CollapsibleProps={{ canToggle: false }}
+					collapsible={false}
+					data-column-item="flexible"
+					data-card
+					data-scroll-container
+					open={open}
+					title={label}
+					emptyText='No token transfers.'
+					id={`${id}-list`}
+				/>
 			{/snippet}
 
 		</CollapsibleTabs>
@@ -601,7 +377,6 @@
 					{
 						id: 'hedera-transaction-contract-results',
 						label: 'Contract Results',
-						ownsSection: true,
 					},
 				]
 			}
@@ -614,70 +389,19 @@
 				</header>
 			{/snippet}
 
-			{#snippet MarkerHederaTransactionContractResults(_context, Content)}
-				{@const hederaTransactionActivityBHederaTransactionContractResultsResource = selection.$$contractResults}
-				<ResourceBoundary
-					resource={hederaTransactionActivityBHederaTransactionContractResultsResource}
-				>
-					{#snippet children(_resolved)}
-						{@render Content()}
-					{/snippet}
-
-					{#snippet PendingContent()}
-						{@render Content()}
-					{/snippet}
-
-					{#snippet FailedContent(_error, _retry)}
-						{@render Content()}
-					{/snippet}
-				</ResourceBoundary>
-			{/snippet}
-
-			{#snippet SectionHederaTransactionContractResults({ id, label, open, active })}
-				{@const hederaTransactionActivityBHederaTransactionContractResultsResource = selection.$$contractResults}
-				<ResourceBoundary
-					resource={hederaTransactionActivityBHederaTransactionContractResultsResource}
-				>
-					{#snippet children(hederaContractResult)}
-						<section
-							id={id}
-							aria-labelledby={`${id}:marker`}
-							data-scroll-marker-label={label}
-							data-column-item="flexible"
-							data-column
-							data-active={active}
-						>
-							<HederaContractResultsView
-								selection={hederaTransactionActivityBHederaTransactionContractResultsResource}
-								CollapsibleProps={{ canToggle: false }}
-								collapsible={false}
-								data-column-item="flexible"
-								data-card
-								data-scroll-container
-								open={open}
-								title={label}
-								emptyText='No contract results.'
-								id={`${id}-list`}
-							/>
-						</section>
-					{/snippet}
-
-					{#snippet Pending()}
-						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
-							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
-								<span data-tag data-text="muted" data-resource-state="pending" class="loading inline-placeholder" aria-busy="true" aria-label="Loading…">•••</span>
-							</article>
-						</section>
-					{/snippet}
-
-					{#snippet Failed(_error, _retry)}
-						<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
-							<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
-								<span data-tag data-resource-state="failed" class="inline-placeholder" aria-label="Failed to load">•••</span>
-							</article>
-						</section>
-					{/snippet}
-				</ResourceBoundary>
+			{#snippet SectionHederaTransactionContractResults({ id, label, open })}
+				<HederaContractResultsView
+					selection={selection.$$contractResults}
+					CollapsibleProps={{ canToggle: false }}
+					collapsible={false}
+					data-column-item="flexible"
+					data-card
+					data-scroll-container
+					open={open}
+					title={label}
+					emptyText='No contract results.'
+					id={`${id}-list`}
+				/>
 			{/snippet}
 
 		</CollapsibleTabs>

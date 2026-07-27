@@ -3,12 +3,11 @@
 <script lang="ts">
 	// Types/constants
 	import type { PageProps } from './$types.ts'
+	import { resolve } from '$app/paths'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
@@ -16,8 +15,6 @@
 	let {
 		params,
 	}: PageProps = $props()
-
-
 	// Components
 	import Page from '$/components/Page.svelte'
 	import RedditCommentsView from '$/views/RedditCommentsView.svelte'
@@ -30,33 +27,22 @@
 
 
 <Page>
+	{@const collectionSelection = select(EntityType.RedditLink, {
+		fullname: decodeURIComponent(params.fullname),
+	}).$$comments}
+
 	<RedditCommentsView
 		href={
-			resolve('/reddit/link/[fullname=stringSegment]/comments', {
-				fullname: params.fullname,
-			})
+			resolve(
+				'/(social)/(reddit)/reddit/(globalRedditNetwork)/link/[fullname=stringSegment]/(redditLink)/comments',
+				{
+					fullname: String(params.fullname),
+				}
+			)
 		}
 		title='Comments'
-		selection={
-			select(EntityType.RedditLink, {
-				fullname: decodeURIComponent(params.fullname),
-			})
-				.$$comments({
-					sources: [
-						Source.Reddit_PublicJson,
-					],
-				})
-		}
-		countResource={
-			select(EntityType.RedditLink, {
-				fullname: decodeURIComponent(params.fullname),
-			})
-				.$$comments({
-					sources: [
-						Source.Reddit_PublicJson,
-					],
-				}).count
-		}
+		selection={collectionSelection}
+		countResource={collectionSelection.count}
 		id='comments'
 		data-column-item="flexible"
 		data-card

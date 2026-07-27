@@ -1,14 +1,11 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { entity, facet } from '$/schema/$schema.ts'
+import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { type } from 'arktype'
 
-export enum XrplAccount_TimestampSelector {
-	AccountLedgerIndexSource = 'AccountLedgerIndexSource',
-}
-export const XrplAccount_Timestamp = entity({
+export default entity({
 	entityType: EntityType.XrplAccount_Timestamp,
 	labels: {
 		singular: 'xrpl account timestamp',
@@ -24,7 +21,7 @@ export const XrplAccount_Timestamp = entity({
 	ledgerIndex: {
 		label: 'ledger index',
 		type: EntityFieldType.Primitive,
-		primitiveType: (type('bigint').narrow((value) => value >= 0n)),
+		primitiveType: type('bigint').narrow((value) => value >= 0n),
 		cardinality: EntityFieldCardinality.One,
 	},
 	source: {
@@ -62,7 +59,7 @@ export const XrplAccount_Timestamp = entity({
 	flags: {
 		label: 'flags',
 		type: EntityFieldType.Primitive,
-		primitiveType: (type('number.integer >= 0')),
+		primitiveType: type('number.integer >= 0'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 })({

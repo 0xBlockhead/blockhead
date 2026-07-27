@@ -9,7 +9,6 @@
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
@@ -55,23 +54,12 @@
 
 
 <svelte:head>
-	<title>{(pageSelection.entity == null ? 'IPFS resource' : [String((({ ...{
-		namespace: params.namespace,
-		target: params.target,
-		contentPath: params.contentPath,
-	}, ...pageSelection.entity }).canonicalUri) ?? '')].filter(Boolean).join(' ') || 'IPFS resource')} • IPFS resource • Blockhead</title>
+	<title>{(pageSelection.entity == null ? 'IPFS resource' : String(pageSelection.entity.canonicalUri) || 'IPFS resource')} • IPFS resource • Blockhead</title>
 </svelte:head>
 
 
 <Page>
 	<IpfsResourceView
-		href={
-			resolve('/[namespace=ipfsNamespace]/[target=stringSegment]/path/[...contentPath=stringSegment]', {
-				namespace: params.namespace,
-				target: params.target,
-				contentPath: params.contentPath,
-			})
-		}
 		selection={pageSelection}
 	/>
 </Page>

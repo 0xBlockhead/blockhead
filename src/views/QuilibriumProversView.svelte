@@ -2,69 +2,30 @@
 
 <script lang="ts">
 	// Types/constants
-	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
-	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
-	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
+	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-
-
 
 
 	// State
 	let {
 		selection,
-		countResource,
-		title = 'Quilibrium provers',
-		typeAnnotationParagraphs = [],
-		placeholderText = undefined,
-		emptyText = undefined,
 		open = $bindable(true),
-		collapsible = true,
-		showTypeAnnotation = true,
-		id = 'QuilibriumProvers-list',
 		...EntitiesListProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyEntitiesSelection<EntityType.QuilibriumProver>
-			countResource?: SvelteKitResource<number>
-			title?: string
-			typeAnnotationParagraphs?: string[]
-			placeholderText?: string
-			emptyText?: string
-			open?: boolean
-			collapsible?: boolean
-			showTypeAnnotation?: boolean
-			id?: string
-		},
-		EntitiesListForwardProps
-	> = $props()
+	}: EntityListViewProps<EntityType.QuilibriumProver> = $props()
 
 
 	// Components
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView from '$/components/EntityView.svelte'
 </script>
 
-
-{#snippet TypeAnnotationParagraphs()}
-	{#each typeAnnotationParagraphs as paragraph (paragraph)}
-		<p>{paragraph}</p>
-	{/each}
-{/snippet}
 
 <EntitiesList
 	{...EntitiesListProps}
 	entityType={EntityType.QuilibriumProver}
-	{id}
-	{title}
 	bind:open
-	{collapsible}
-	{showTypeAnnotation}
-	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
 	resource={
 		selection({
-			sources: selection.sources,
 			fields: {
 				proverPeerId: true,
 				$network: true,
@@ -72,38 +33,23 @@
 			},
 		})
 	}
-	{countResource}
-	getResourceItems={(quilibriumProvers) => [...new Map(quilibriumProvers.values.map((quilibriumProver) => [quilibriumProver[EntityMetaKey.SelectorKey], quilibriumProver])).values()]}
-	getKey={(quilibriumProver) => quilibriumProver[EntityMetaKey.SelectorKey]}
-	{placeholderText}
 >
-	{#snippet Empty()}
-		{#if emptyText != null}
-			<p data-text="muted">{emptyText}</p>
-		{:else}
-			<p data-text="muted">No Quilibrium provers yet.</p>
-		{/if}
-	{/snippet}
-
 	{#snippet Item({ item: quilibriumProver })}
-		{@const quilibriumProverFields = { ...quilibriumProver[EntityMetaKey.Selector], ...quilibriumProver }}
+		{@const quilibriumProverSelector = quilibriumProver[EntityMetaKey.Selector]}
 		<EntityView
 			entityType={EntityType.QuilibriumProver}
-			entitySelector={quilibriumProver[EntityMetaKey.Selector]}
-			layout={EntityLayout.Summary}
-			open={false}
-			showTypeAnnotation={false}
+			entitySelector={quilibriumProverSelector}
 		>
 			{#snippet Title()}
-				{[String((quilibriumProverFields.proverPeerId) ?? '')].filter(Boolean).join(' ') || 'quilibrium prover'}
+				{quilibriumProverSelector.proverPeerId || 'quilibrium prover'}
 			{/snippet}
 
 			{#snippet Value()}
-				{[[String((quilibriumProverFields.$network.name) ?? '')].filter(Boolean).join(' ') || [quilibriumProverFields.$network.caip2 == null ? '' : String(`${(quilibriumProverFields.$network.caip2).namespace}:${(quilibriumProverFields.$network.caip2).reference}`)].filter(Boolean).join(' ') || 'Network'].filter(Boolean).join(' ')}
+				{quilibriumProver.$network.name || (quilibriumProverSelector.$network.caip2 == null ? '' : `${quilibriumProverSelector.$network.caip2.namespace}:${quilibriumProverSelector.$network.caip2.reference}`) || 'Network'}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{[String((quilibriumProverFields.version) ?? '')].filter(Boolean).join(' ')}</span>
+				<span data-text="annotation">{(quilibriumProver.version ?? '')}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

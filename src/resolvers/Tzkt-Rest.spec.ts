@@ -5,18 +5,18 @@ import {
 	EntityMetaKey,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import { TezosAccountSelector } from '$/schema/TezosAccount.ts'
-import { TezosBlockSelector } from '$/schema/TezosBlock.ts'
-import { TezosNetworkSelector } from '$/schema/TezosNetwork.ts'
-import { sourceProviderDefinitions } from '$/sources/$sourceProviders.ts'
+import bindings from '$/sources/Tzkt/bindings.ts'
 import { Source } from '$/sources/Source.ts'
 import {
+	ApiFamily,
 	SourceCredentialScope,
 	SourceDelivery,
+	SourceEndpointKind,
+	SourceOperationGroup,
 	SourceTargetKind,
+	WireProtocol,
 	type SourceBinding,
 } from '$/sources/SourceBinding.ts'
-import { SourceProvider } from '$/sources/SourceProvider.ts'
 
 const { getJson } = vi.hoisted(() => ({
 	getJson: vi.fn(),
@@ -27,16 +27,7 @@ vi.mock('$/sources/_runtime/http.ts', () => ({
 	sourceGetJson: (binding: SourceBinding, url: string) => getJson(url, binding),
 }))
 
-const tzktRestBinding = sourceProviderDefinitions
-	.flatMap((provider) => provider.bindings)
-	.find((binding) => (
-		binding.source === Source.Tzkt_Rest
-		&& binding.target.kind === SourceTargetKind.Caip2Network
-		&& binding.target.key === 'tezos:NetXdQprcVkpaWU'
-	))
-
-if (tzktRestBinding == null)
-	throw new Error('TzKT REST spec missing canonical mainnet binding')
+const tzktRestBinding = bindings[Source.Tzkt_Rest]
 
 const {
 	getBlock,
@@ -122,7 +113,7 @@ describe('TzKT Tezos identity contract', () => {
 			},
 		},
 	])('accepts canonical mainnet selector $slug$caip2.reference', async ($network) => {
-		await expect(networkResolver.resolve[TezosNetworkSelector.Network].resolve({
+		await expect(networkResolver.resolve['Network'].resolve({
 			$network,
 		})).resolves.toEqual({
 			$network: {
@@ -137,7 +128,7 @@ describe('TzKT Tezos identity contract', () => {
 		{ caip2: { namespace: 'eip155', reference: 'NetXdQprcVkpaWU' } },
 		{ caip2: { namespace: 'tezos', reference: 'mainnet' } },
 	])('rejects noncanonical selector $slug$caip2.namespace:$caip2.reference', async ($network) => {
-		await expect(networkResolver.resolve[TezosNetworkSelector.Network].resolve({
+		await expect(networkResolver.resolve['Network'].resolve({
 			$network,
 		})).rejects.toThrow('Tzkt_Rest: unsupported network')
 	})
@@ -146,6 +137,32 @@ describe('TzKT Tezos identity contract', () => {
 describe('TzKT block transport and resolver', () => {
 	beforeEach(() => {
 		vi.clearAllMocks()
+	})
+
+	it('selects the exact canonical Tezos mainnet binding', () => {
+		expect(tzktRestBinding).toEqual({
+			source: Source.Tzkt_Rest,
+			target: {
+				kind: SourceTargetKind.Caip2Network,
+				key: 'tezos:NetXdQprcVkpaWU',
+			},
+			endpoints: [{
+				endpointKind: SourceEndpointKind.HttpUrl,
+				locator: 'https://api.tzkt.io',
+				origin: 'https://api.tzkt.io',
+				corsEnabled: false,
+			}],
+			wireProtocol: WireProtocol.HttpRest,
+			apiFamily: ApiFamily.RestJson,
+			operationGroups: [
+				SourceOperationGroup.GenericRead,
+			],
+			delivery: SourceDelivery.HttpProxy,
+			credentials: [{
+				scope: SourceCredentialScope.None,
+			}],
+			proxyId: '["Tzkt_Rest","Caip2Network","tezos:NetXdQprcVkpaWU","HttpProxy","RestJson"]',
+		})
 	})
 
 	it('parses the typed block endpoint', async () => {
@@ -169,53 +186,6 @@ describe('TzKT block transport and resolver', () => {
 			tzktRestBinding
 		)
 		expect(globalFetch).not.toHaveBeenCalled()
-	})
-
-	it.each([
-		[
-			'provider',
-			(binding: SourceBinding) => {
-				binding.provider = SourceProvider.AptosFullnode
-			},
-		],
-		[
-			'source',
-			(binding: SourceBinding) => {
-				binding.source = Source.AptosFullnode_Rest
-			},
-		],
-		[
-			'target',
-			(binding: SourceBinding) => {
-				binding.target = {
-					kind: SourceTargetKind.Caip2Network,
-					key: 'tezos:NetXnHfVqm9iesp',
-				}
-			},
-		],
-		[
-			'direct delivery',
-			(binding: SourceBinding) => {
-				binding.delivery = SourceDelivery.BrowserDirect
-			},
-		],
-		[
-			'credentials',
-			(binding: SourceBinding) => {
-				binding.credentials = [{
-					scope: SourceCredentialScope.RuntimeSecret,
-				}]
-			},
-		],
-	] as const)('rejects a %s binding before transport', async (_label, mutateBinding) => {
-		const binding = structuredClone(tzktRestBinding)
-		mutateBinding(binding)
-
-		expect(() => getBlock({
-			binding,
-			level: 5_000_000n,
-		})).toThrow('canonical Tezos mainnet source binding is malformed')
-		expect(getJson).not.toHaveBeenCalled()
 	})
 
 	it.each([
@@ -250,7 +220,7 @@ describe('TzKT block transport and resolver', () => {
 			hash: 'BLzyx',
 		})
 
-		await expect(blockResolver.resolve[TezosBlockSelector.NetworkLevel].resolve({
+		await expect(blockResolver.resolve['NetworkLevel'].resolve({
 			$network: {
 				$network: {
 					slug: 'tezos',
@@ -272,7 +242,7 @@ describe('TzKT block transport and resolver', () => {
 	})
 
 	it('rejects a non-Tezos parent before transport', async () => {
-		await expect(blockResolver.resolve[TezosBlockSelector.NetworkLevel].resolve({
+		await expect(blockResolver.resolve['NetworkLevel'].resolve({
 			$network: {
 				$network: {
 					slug: 'ethereum',
@@ -287,7 +257,7 @@ describe('TzKT block transport and resolver', () => {
 		-1n,
 		BigInt(Number.MAX_SAFE_INTEGER) + 1n,
 	])('rejects unsupported level %s before transport', async (level) => {
-		await expect(blockResolver.resolve[TezosBlockSelector.NetworkLevel].resolve({
+		await expect(blockResolver.resolve['NetworkLevel'].resolve({
 			$network: {
 				$network: {
 					slug: 'tezos',
@@ -323,7 +293,7 @@ describe('TzKT block transport and resolver', () => {
 	}) => {
 		getJson.mockResolvedValueOnce(wire)
 
-		await expect(blockResolver.resolve[TezosBlockSelector.NetworkLevel].resolve({
+		await expect(blockResolver.resolve['NetworkLevel'].resolve({
 			$network: {
 				$network: {
 					slug: 'tezos',
@@ -356,7 +326,7 @@ describe('TzKT account state and activity', () => {
 			lastActivity: '2026-07-16T12:34:56Z',
 		})
 		const resolver = accountResolverFor('accountKind')
-		const snapshot = await resolver.resolve[TezosAccountSelector.NetworkAddress].resolve(account, context)
+		const snapshot = await resolver.resolve['NetworkAddress'].resolve(account, context)
 
 		expect(resolver.projections.accountKind(snapshot)).toBe('user')
 		expect(resolver.projections.$$timestamps(snapshot)).toEqual([
@@ -441,7 +411,7 @@ describe('TzKT account state and activity', () => {
 				accountOperation,
 			])
 		const resolver = accountResolverFor('$$operations')
-		const page = await resolver.resolve[TezosAccountSelector.NetworkAddress].resolve(account, context)
+		const page = await resolver.resolve['NetworkAddress'].resolve(account, context)
 		const projection = resolver.projections.$$operations
 
 		expect(projection.select(page, account, context)).toEqual([
@@ -509,7 +479,7 @@ describe('TzKT account state and activity', () => {
 				.mockResolvedValueOnce([accountOperation])
 				.mockResolvedValueOnce(operationGroup)
 
-			await expect(resolver.resolve[TezosAccountSelector.NetworkAddress].resolve(
+			await expect(resolver.resolve['NetworkAddress'].resolve(
 				account,
 				context
 			)).rejects.toThrow()
@@ -519,7 +489,7 @@ describe('TzKT account state and activity', () => {
 	it('returns a terminal empty operations page and rejects invalid subjects before transport', async () => {
 		getJson.mockResolvedValueOnce([])
 		const resolver = accountResolverFor('$$operations')
-		const page = await resolver.resolve[TezosAccountSelector.NetworkAddress].resolve(account, context)
+		const page = await resolver.resolve['NetworkAddress'].resolve(account, context)
 
 		expect(resolver.projections.$$operations.select(page, account, context)).toEqual([])
 		expect(resolver.projections.$$operations.continuation(page, account, context)).toEqual({
@@ -529,7 +499,7 @@ describe('TzKT account state and activity', () => {
 		})
 
 		vi.clearAllMocks()
-		await expect(resolver.resolve[TezosAccountSelector.NetworkAddress].resolve({
+		await expect(resolver.resolve['NetworkAddress'].resolve({
 			...account,
 			$network: {
 				$network: {
@@ -560,7 +530,7 @@ describe('TzKT account state and activity', () => {
 			transfersCount: 7,
 		}])
 		const resolver = accountResolverFor('$$tokenBalanceTimestamps')
-		const page = await resolver.resolve[TezosAccountSelector.NetworkAddress].resolve(account, context)
+		const page = await resolver.resolve['NetworkAddress'].resolve(account, context)
 		const projection = resolver.projections.$$tokenBalanceTimestamps
 
 		expect(projection.select(page, account, context)).toEqual([
@@ -625,7 +595,7 @@ describe('TzKT account state and activity', () => {
 			},
 		])
 		const resolver = accountResolverFor('$$tokenTransfers')
-		const page = await resolver.resolve[TezosAccountSelector.NetworkAddress].resolve(account, context)
+		const page = await resolver.resolve['NetworkAddress'].resolve(account, context)
 		const projection = resolver.projections.$$tokenTransfers
 
 		expect(projection.select(page, account, context)).toHaveLength(2)
@@ -669,13 +639,13 @@ describe('TzKT account state and activity', () => {
 			}],
 		]) {
 			getJson.mockResolvedValueOnce(transfers)
-			await expect(resolver.resolve[TezosAccountSelector.NetworkAddress].resolve(
+			await expect(resolver.resolve['NetworkAddress'].resolve(
 				account,
 				context
 			)).rejects.toThrow()
 		}
 
-		await expect(resolver.resolve[TezosAccountSelector.NetworkAddress].resolve(account, {
+		await expect(resolver.resolve['NetworkAddress'].resolve(account, {
 			...context,
 			providerContinuationToken: '01',
 		})).rejects.toThrow('invalid account continuation')

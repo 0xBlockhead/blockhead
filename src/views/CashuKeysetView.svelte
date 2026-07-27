@@ -2,11 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { stringify } from 'devalue'
 	import { Source } from '$/sources/Source.ts'
@@ -21,40 +17,24 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.CashuKeyset>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.CashuKeyset>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.CashuKeyset> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const cashuKeyset = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {
-			unit: true,
-		},
-	} : {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const viewSelection = $derived(selection({
+		sources: selection.sources ?? [
+			Source.CashuMint_Rest,
+		],
+	}))
+	const cashuKeyset = $derived(viewSelection({
 		fields: {
 			unit: true,
 		},
 	}))
-	const titleFallback = $derived([String((pendingEntity.keysetId) ?? '')].filter(Boolean).join(' ') || 'Cashu keyset')
-	const viewDomId = $derived('cashu-keyset-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const titleFallback = $derived((pendingEntity.keysetId ?? '') || 'Cashu keyset')
+	const viewDomId = $derived('cashu-keyset-' + encodeURIComponent(stringify(selection.entitySelector)))
 
 
 	// Components
@@ -69,69 +49,33 @@
 
 <EntityView
 	entityType={EntityType.CashuKeyset}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
+	entitySelector={selection.entitySelector}
 	id={viewDomId}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'unit') && Object.hasOwn(prefetched, '$mint') && prefetched.$mint != null}
-			{@const keysetId0 = pendingEntity.keysetId}
-			{#if keysetId0 !== undefined && keysetId0 !== null}
-				<TruncatedValue value={String((keysetId0) ?? '')} />
-			{/if}
-		{:else}
-			<ResourceBoundary resource={cashuKeyset}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const keysetId0 = resolvedEntity.keysetId}
-					{#if keysetId0 !== undefined && keysetId0 !== null}
-						<TruncatedValue value={String((keysetId0) ?? '')} />
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<TruncatedValue value={pendingEntity.keysetId} />
 	{/snippet}
 
 	{#snippet Value()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'unit') && Object.hasOwn(prefetched, '$mint') && prefetched.$mint != null}
-			{[String((pendingEntity.unit) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.keysetId) ?? '')].filter(Boolean).join(' ') || titleFallback}
-		{:else}
-			<ResourceBoundary resource={cashuKeyset}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.unit) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.keysetId) ?? '')].filter(Boolean).join(' ') || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={cashuKeyset}>
+			{#snippet children(entity)}
+				{(entity.unit ?? '') || pendingEntity.keysetId || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'unit') && Object.hasOwn(prefetched, '$mint') && prefetched.$mint != null}
-			<span data-text="muted">
-				<CashuMintView
-					selection={select(EntityType.CashuMint, selection.entitySelector.$mint)}
-					layout={EntityLayout.Title}
-					open={false}
-				/>
-			</span>
-		{:else}
-			<ResourceBoundary resource={cashuKeyset}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					<span data-text="muted">
-						<CashuMintView
-							selection={select(EntityType.CashuMint, selection.entitySelector.$mint)}
-							layout={EntityLayout.Title}
-							open={false}
-						/>
-					</span>
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<span data-text="muted">
+			<CashuMintView
+				selection={select(EntityType.CashuMint, selection.entitySelector.$mint)}
+				layout={EntityLayout.Title}
+				open={false}
+			/>
+		</span>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -150,45 +94,20 @@
 			<div>
 				<dt>keyset ID</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									keysetId: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const keysetId = resolvedEntity.keysetId}
-							{#if keysetId !== undefined && keysetId !== null}
-								<TruncatedValue value={String((keysetId) ?? '')} />
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					<TruncatedValue value={pendingEntity.keysetId} />
 				</dd>
 			</div>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							unit: true,
-						},
-					})
-				}
+				resource={cashuKeyset}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const unit = resolvedEntity.unit}
-					{#if unit !== undefined && unit !== null}
+					{@const unit = entity.unit}
+					{#if unit != null}
 						<div>
 							<dt>unit</dt>
 							<dd>
-								{String((unit) ?? '')}
+								{unit}
 							</dd>
 						</div>
 					{/if}
@@ -199,8 +118,7 @@
 		<dl data-column-item="center">
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							keysByAmountJson: true,
 						},
@@ -208,13 +126,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const keysByAmountJson = resolvedEntity.keysByAmountJson}
-					{#if keysByAmountJson !== undefined && keysByAmountJson !== null}
+					{@const keysByAmountJson = entity.keysByAmountJson}
+					{#if keysByAmountJson != null}
 						<div>
 							<dt>keys by amount JSON</dt>
 							<dd>
-								{String((keysByAmountJson) ?? '')}
+								{keysByAmountJson}
 							</dd>
 						</div>
 					{/if}
@@ -224,103 +141,41 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-				<CollapsibleTabs
-					id={viewDomId + '-carousel-cashu-keyset-observations'}
-					sectionIdPrefix={viewDomId}
-					sections={
-						[
-							{
-								id: 'cashu-keyset-timestamps',
-								label: 'Observations',
-								ownsSection: true,
-							},
-						]
-					}
+		<CollapsibleTabs
+			id={viewDomId + '-carousel-cashu-keyset-observations'}
+			sectionIdPrefix={viewDomId}
+			sections={
+				[
+					{
+						id: 'cashu-keyset-timestamps',
+						label: 'Observations',
+					},
+				]
+			}
+			data-card
+			class='network-view-collapsible-observations'
+		>
+			{#snippet Summary()}
+				<header data-row-item="flexible" data-row="wrap gap-4">
+					<HeadingComponent>Observations</HeadingComponent>
+				</header>
+			{/snippet}
+
+			{#snippet SectionCashuKeysetTimestamps({ id, label, open })}
+				<CashuKeyset_TimestampsView
+					selection={selection.$$timestamps}
+					CollapsibleProps={{ canToggle: false }}
+					collapsible={false}
+					data-column-item="flexible"
 					data-card
-					class='network-view-collapsible-observations'
-				>
-					{#snippet Summary()}
-						<header data-row-item="flexible" data-row="wrap gap-4">
-							<HeadingComponent>Observations</HeadingComponent>
-						</header>
-					{/snippet}
+					data-scroll-container
+					open={open}
+					title={label}
+					emptyText='No keyset observations.'
+					id={`${id}-list`}
+				/>
+			{/snippet}
 
-					{#snippet MarkerCashuKeysetTimestamps(_context, Content)}
-						{@const cashuKeysetObservationsCashuKeysetTimestampsResource = selection
-		.$$timestamps({
-			sources: [
-				Source.CashuMint_Rest,
-			],
-		})}
-						<ResourceBoundary
-							resource={cashuKeysetObservationsCashuKeysetTimestampsResource}
-						>
-							{#snippet children(_resolved)}
-								{@render Content()}
-							{/snippet}
-
-							{#snippet PendingContent()}
-								{@render Content()}
-							{/snippet}
-
-							{#snippet FailedContent(_error, _retry)}
-								{@render Content()}
-							{/snippet}
-						</ResourceBoundary>
-					{/snippet}
-
-					{#snippet SectionCashuKeysetTimestamps({ id, label, open, active })}
-						{@const cashuKeysetObservationsCashuKeysetTimestampsResource = selection
-		.$$timestamps({
-			sources: [
-				Source.CashuMint_Rest,
-			],
-		})}
-						<ResourceBoundary
-							resource={cashuKeysetObservationsCashuKeysetTimestampsResource}
-						>
-							{#snippet children(cashuKeysetTimestamp)}
-								<section
-									id={id}
-									aria-labelledby={`${id}:marker`}
-									data-scroll-marker-label={label}
-									data-column-item="flexible"
-									data-column
-									data-active={active}
-								>
-									<CashuKeyset_TimestampsView
-										selection={cashuKeysetObservationsCashuKeysetTimestampsResource}
-										CollapsibleProps={{ canToggle: false }}
-										collapsible={false}
-										data-column-item="flexible"
-										data-card
-										data-scroll-container
-										open={open}
-										title={label}
-										emptyText='No keyset observations.'
-										id={`${id}-list`}
-									/>
-								</section>
-							{/snippet}
-
-							{#snippet Pending()}
-								<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
-									<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
-										<span data-tag data-text="muted" data-resource-state="pending" class="loading inline-placeholder" aria-busy="true" aria-label="Loading…">•••</span>
-									</article>
-								</section>
-							{/snippet}
-
-							{#snippet Failed(_error, _retry)}
-								<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
-									<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
-										<span data-tag data-resource-state="failed" class="inline-placeholder" aria-label="Failed to load">•••</span>
-									</article>
-								</section>
-							{/snippet}
-						</ResourceBoundary>
-					{/snippet}
-
-				</CollapsibleTabs>
+		</CollapsibleTabs>
 	{/snippet}
 </EntityView>

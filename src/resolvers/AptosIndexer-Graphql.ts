@@ -2,11 +2,6 @@ import { networkBySlug } from '$/constants/Network.ts'
 import { resolverContextRowLimit } from '$/resolvers/$resolvers.ts'
 import { defineResolver } from '$/resolvers/defineResolver.ts'
 import { EntityMetaKey, type EntitySelector } from '$/schema/$schema.ts'
-import { AptosAccountSelector } from '$/schema/AptosAccount.ts'
-import { AptosCoinBalance_TimestampSelector } from '$/schema/AptosCoinBalance_Timestamp.ts'
-import { AptosTableItemSelector } from '$/schema/AptosTableItem.ts'
-import { AptosTableItem_TimestampSelector } from '$/schema/AptosTableItem_Timestamp.ts'
-import { AptosTransactionSelector } from '$/schema/AptosTransaction.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import type { schema } from '$/schema/index.ts'
 import { Source } from '$/sources/Source.ts'
@@ -100,7 +95,7 @@ export const aptosAccountTransactionsResolver = aptosIndexerResolver(
 	defineResolver(Source.AptosIndexer_Graphql, {
 		entityType: EntityType.AptosAccount,
 		resolve: {
-			[AptosAccountSelector.NetworkAddress]: {
+			NetworkAddress: {
 				appliesTo: aptosNetworkReferenceApplicability,
 				resolve: async (entitySelector, context) => {
 					assertAptosMainnet(entitySelector.$network.$network)
@@ -128,7 +123,7 @@ export const aptosAccountBalancesResolver = aptosIndexerResolver(
 	defineResolver(Source.AptosIndexer_Graphql, {
 		entityType: EntityType.AptosAccount,
 		resolve: {
-			[AptosAccountSelector.NetworkAddress]: {
+			NetworkAddress: {
 				appliesTo: aptosNetworkReferenceApplicability,
 				resolve: async (entitySelector, context) => {
 					assertAptosMainnet(entitySelector.$network.$network)
@@ -164,7 +159,7 @@ export const aptosCoinBalanceResolver = aptosIndexerResolver(
 	defineResolver(Source.AptosIndexer_Graphql, {
 		entityType: EntityType.AptosCoinBalance_Timestamp,
 		resolve: {
-			[AptosCoinBalance_TimestampSelector.AccountStorageIdLedgerVersionSource]: {
+			AccountStorageIdLedgerVersionSource: {
 				appliesTo: aptosAccountObservationApplicability,
 				resolve: async ({
 					$account,
@@ -210,7 +205,7 @@ export const aptosTransactionResolver = aptosIndexerResolver(
 	defineResolver(Source.AptosIndexer_Graphql, {
 		entityType: EntityType.AptosTransaction,
 		resolve: {
-			[AptosTransactionSelector.NetworkVersion]: {
+			NetworkVersion: {
 				appliesTo: aptosNetworkReferenceApplicability,
 				resolve: async ({ $network, version }) => {
 					assertAptosMainnet($network.$network)
@@ -238,7 +233,7 @@ export const aptosTableItemResolver = aptosIndexerResolver(
 	defineResolver(Source.AptosIndexer_Graphql, {
 		entityType: EntityType.AptosTableItem,
 		resolve: {
-			[AptosTableItemSelector.NetworkTableHandleKeyHash]: {
+			NetworkTableHandleKeyHash: {
 				appliesTo: aptosNetworkReferenceApplicability,
 				resolve: async (entitySelector) => {
 					assertAptosMainnet(entitySelector.$network.$network)
@@ -269,7 +264,7 @@ export const aptosTableItemTimestampResolver = aptosIndexerResolver(
 	defineResolver(Source.AptosIndexer_Graphql, {
 		entityType: EntityType.AptosTableItem_Timestamp,
 		resolve: {
-			[AptosTableItem_TimestampSelector.TableItemLedgerVersionSource]: {
+			TableItemLedgerVersionSource: {
 				appliesTo: [
 					{
 						$tableItem: aptosNetworkReferenceApplicability[0],

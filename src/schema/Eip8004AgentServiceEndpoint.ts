@@ -1,15 +1,12 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { entity, facet } from '$/schema/$schema.ts'
+import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { UrlString } from '$/schema/UrlString.ts'
 import { type } from 'arktype'
 
-export enum Eip8004AgentServiceEndpointSelector {
-	RegistrationFileEndpointKindEndpointUrl = 'RegistrationFileEndpointKindEndpointUrl',
-}
-export const Eip8004AgentServiceEndpoint = entity({
+export default entity({
 	entityType: EntityType.Eip8004AgentServiceEndpoint,
 	labels: {
 		singular: 'EIP-8004 agent service endpoint',
@@ -31,7 +28,7 @@ export const Eip8004AgentServiceEndpoint = entity({
 	endpointUrl: {
 		label: 'Endpoint URL',
 		type: EntityFieldType.Primitive,
-		primitiveType: (UrlString),
+		primitiveType: UrlString,
 		cardinality: EntityFieldCardinality.One,
 	},
 	name: {

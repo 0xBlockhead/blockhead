@@ -6,27 +6,11 @@ import {
 	EntityMetaKey,
 	type EntitySelector,
 } from '$/schema/$schema.ts'
-import { AlgorandAccountSelector } from '$/schema/AlgorandAccount.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { schema } from '$/schema/index.ts'
 import { Source } from '$/sources/Source.ts'
-import { sourceProviderDefinitions } from '$/sources/$sourceProviders.ts'
-import { SourceTargetKind } from '$/sources/SourceBinding.ts'
 
 type AlgorandNetworkId = EntitySelector<typeof schema, EntityType.AlgorandNetwork>
-
-const algorandIndexerBindings = sourceProviderDefinitions
-	.flatMap((provider) => provider.bindings)
-	.filter((binding) => (
-		binding.source === Source.Nodely_AlgorandIndexer_Rest
-		&& binding.target.kind === SourceTargetKind.NetworkSlug
-		&& binding.target.key === networkBySlug.algorand.slug
-	))
-
-if (algorandIndexerBindings.length !== 1)
-	throw new Error('Nodely_AlgorandIndexer_Rest: canonical Algorand binding is missing or ambiguous')
-
-const algorandIndexerBinding = algorandIndexerBindings[0]
 
 const algorandAccountApplicability = [{
 	$network: {
@@ -55,19 +39,16 @@ export default {
 		defineResolver(Source.Nodely_AlgorandIndexer_Rest, {
 			entityType: EntityType.AlgorandAccount,
 			resolve: {
-				[AlgorandAccountSelector.NetworkAddress]: {
+				NetworkAddress: {
 					appliesTo: algorandAccountApplicability,
 					resolve: async (account, context) => {
 						assertAlgorandMainnet(account.$network)
 						const { getAccountAssets } = await import('$/sources/AlgorandIndexer/Rest/queries.ts')
-						return getAccountAssets(
-							algorandIndexerBinding,
-							{
-								address: account.address,
-								limit: Math.min(resolverContextRowLimit(context), 1_000),
-								next: context.providerContinuationToken,
-							}
-						)
+						return getAccountAssets({
+							address: account.address,
+							limit: Math.min(resolverContextRowLimit(context), 1_000),
+							next: context.providerContinuationToken,
+						})
 					},
 				},
 			},
@@ -116,7 +97,7 @@ export default {
 		defineResolver(Source.Nodely_AlgorandIndexer_Rest, {
 			entityType: EntityType.AlgorandAccount,
 			resolve: {
-				[AlgorandAccountSelector.NetworkAddress]: {
+				NetworkAddress: {
 					appliesTo: algorandAccountApplicability,
 					resolve: async (account, context) => {
 						assertAlgorandMainnet(account.$network)
@@ -124,10 +105,7 @@ export default {
 							return []
 
 						const { getAccount } = await import('$/sources/AlgorandIndexer/Rest/queries.ts')
-						const response = await getAccount(
-							algorandIndexerBinding,
-							account.address
-						)
+						const response = await getAccount(account.address)
 						return [{
 							[EntityMetaKey.Selector]: {
 								$account: account,

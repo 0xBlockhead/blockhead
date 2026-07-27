@@ -1,22 +1,12 @@
-import { Source } from '$/sources/Source.ts'
-import {
-	SourceTargetKind,
-	type SourceBinding,
-} from '$/sources/SourceBinding.ts'
 import { getJson } from '$/sources/_shared/wire/HttpRest/client.ts'
+import bindings from '$/sources/Starkscan/bindings.ts'
 import type {
 	StarkscanAddressTransactionPage,
 	StarkscanTokenHoldings,
 } from '$/sources/Starkscan/Rest/types.ts'
+import { Source } from '$/sources/Source.ts'
 
-const assertBinding = (binding: SourceBinding) => {
-	if (
-		binding.source !== Source.Starkscan_Rest
-		|| binding.target.kind !== SourceTargetKind.Global
-		|| binding.target.key !== 'starkscan-api'
-	)
-		throw new Error('Starkscan_Rest: expected declared Starkscan API binding')
-}
+const binding = bindings[Source.Starkscan_Rest]
 
 const assertFelt = (
 	value: string,
@@ -56,14 +46,12 @@ const assertNonnegativeDecimal = (
 }
 
 export const query = <_Json>(
-	binding: SourceBinding,
 	path: string
 ) => (
 	getJson<_Json>(binding, path)
 )
 
 export const getAddressTransactions = async (
-	binding: SourceBinding,
 	{
 		address,
 		limit,
@@ -74,7 +62,6 @@ export const getAddressTransactions = async (
 		cursor?: string
 	}
 ) => {
-	assertBinding(binding)
 	assertFelt(address, 'account address')
 	if (!Number.isSafeInteger(limit) || limit < 0 || limit > 100)
 		throw new Error('Starkscan_Rest: transaction limit must be an integer from 0 through 100')
@@ -92,7 +79,6 @@ export const getAddressTransactions = async (
 	if (cursor != null)
 		parameters.set('cursor', cursor)
 	const page = await query<StarkscanAddressTransactionPage>(
-		binding,
 		`/v1/SN_MAIN/address/${encodeURIComponent(address)}/transactions?${parameters.toString()}`
 	)
 	if (page.items.length > limit)
@@ -148,13 +134,10 @@ export const getAddressTransactions = async (
 }
 
 export const getExactTokenHoldings = async (
-	binding: SourceBinding,
 	address: string
 ) => {
-	assertBinding(binding)
 	assertFelt(address, 'account address')
 	const holdings = await query<StarkscanTokenHoldings>(
-		binding,
 		`/v1/SN_MAIN/address/${encodeURIComponent(address)}/token-holdings`
 	)
 	if (holdings.chainId !== 'SN_MAIN')

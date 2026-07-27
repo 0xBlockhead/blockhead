@@ -5,7 +5,7 @@ import { error } from '@sveltejs/kit'
 import { networkByCaip2, networkBySlug } from '$/constants/Network.ts'
 import { match as matchStringSegment } from '$/params/stringSegment.ts'
 import { parseEntitySelector } from '$/schema/$schema.ts'
-import { EthereumExecutionUpgrade as EthereumExecutionUpgradeSchema } from '$/schema/EthereumExecutionUpgrade.ts'
+import EthereumExecutionUpgradeSchema from '$/schema/EthereumExecutionUpgrade.ts'
 import { schema } from '$/schema/index.ts'
 import { type as arktype } from 'arktype'
 

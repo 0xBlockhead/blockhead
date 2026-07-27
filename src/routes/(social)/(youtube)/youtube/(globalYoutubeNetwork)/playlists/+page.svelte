@@ -2,12 +2,11 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
@@ -23,31 +22,15 @@
 
 
 <Page>
+	{@const collectionSelection = select(EntityType._GlobalYoutubeNetwork, {
+		scope: '_GlobalYoutubeNetwork',
+	}).$$observedPlaylists}
+
 	<YoutubePlaylistsView
-		href={resolve('/youtube/playlists')}
+		href={resolve('/(social)/(youtube)/youtube/(globalYoutubeNetwork)/playlists')}
 		title='YouTube playlists'
-		selection={
-			select(EntityType._GlobalYoutubeNetwork, {
-				scope: '_GlobalYoutubeNetwork',
-			})
-				.$$observedPlaylists({
-					sources: [
-						Source.Constants_Internal,
-						Source.Youtube_Rest,
-					],
-				})
-		}
-		countResource={
-			select(EntityType._GlobalYoutubeNetwork, {
-				scope: '_GlobalYoutubeNetwork',
-			})
-				.$$observedPlaylists({
-					sources: [
-						Source.Constants_Internal,
-						Source.Youtube_Rest,
-					],
-				}).count
-		}
+		selection={collectionSelection}
+		countResource={collectionSelection.count}
 		id='observed-playlists'
 		data-column-item="flexible"
 		data-card

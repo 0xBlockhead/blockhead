@@ -3,113 +3,59 @@
 <script lang="ts">
 	// Types/constants
 	import { resolve } from '$app/paths'
-	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
-	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
-	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
+	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-
-
+	import { UrlString } from '$/schema/UrlString.ts'
 
 
 	// State
 	let {
 		selection,
-		countResource,
-		title = 'Media',
-		typeAnnotationParagraphs = [],
-		placeholderText = undefined,
-		emptyText = undefined,
 		open = $bindable(true),
-		collapsible = true,
-		showTypeAnnotation = true,
 		id = 'MediaList-list',
 		...EntitiesListProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyEntitiesSelection<EntityType.Media>
-			countResource?: SvelteKitResource<number>
-			title?: string
-			typeAnnotationParagraphs?: string[]
-			placeholderText?: string
-			emptyText?: string
-			open?: boolean
-			collapsible?: boolean
-			showTypeAnnotation?: boolean
-			id?: string
-		},
-		EntitiesListForwardProps
-	> = $props()
+	}: EntityListViewProps<EntityType.Media> = $props()
 
 
 	// Components
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView from '$/components/EntityView.svelte'
 </script>
 
-
-{#snippet TypeAnnotationParagraphs()}
-	{#each typeAnnotationParagraphs as paragraph (paragraph)}
-		<p>{paragraph}</p>
-	{/each}
-{/snippet}
 
 <EntitiesList
 	{...EntitiesListProps}
 	entityType={EntityType.Media}
 	{id}
-	{title}
 	bind:open
-	{collapsible}
-	{showTypeAnnotation}
-	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
 	resource={
 		selection({
-			sources: selection.sources,
 			fields: {
 				url: true,
 			},
 		})
 	}
-	{countResource}
-	getResourceItems={(mediaList) => [...new Map(mediaList.values.map((media) => [media[EntityMetaKey.SelectorKey], media])).values()]}
-	getKey={(media) => media[EntityMetaKey.SelectorKey]}
-	{placeholderText}
 >
-	{#snippet Empty()}
-		{#if emptyText != null}
-			<p data-text="muted">{emptyText}</p>
-		{:else}
-			<p data-text="muted">No Media yet.</p>
-		{/if}
-	{/snippet}
-
 	{#snippet Item({ item: media })}
-		{@const mediaFields = { ...media[EntityMetaKey.Selector], ...media }}
+		{@const mediaSelector = media[EntityMetaKey.Selector]}
 		<EntityView
 			entityType={EntityType.Media}
-			entitySelector={media[EntityMetaKey.Selector]}
+			entitySelector={mediaSelector}
 			href={
-				(
-					media[EntityMetaKey.Selector] != null && 'url' in media[EntityMetaKey.Selector]
-					&& media[EntityMetaKey.Selector].url != null ?
-						resolve('/media/[url=absoluteUrl]', {
-					url: encodeURIComponent(String(media[EntityMetaKey.Selector].url ?? '')),
-				})
-				:
-						undefined
+				resolve(
+					'/(explore)/media/[url=absoluteUrl]',
+					{
+						url: encodeURIComponent(String(mediaSelector.url)),
+					}
 				)
 			}
-			layout={EntityLayout.Summary}
-			open={false}
-			showTypeAnnotation={false}
 		>
 			{#snippet Title()}
-				{[String((mediaFields.url) ?? '')].filter(Boolean).join(' ') || 'Media'}
+				{String(mediaSelector.url) || 'Media'}
 			{/snippet}
 
 			{#snippet Value()}
-				{[String((mediaFields.url) ?? '')].filter(Boolean).join(' ')}
+				{String(mediaSelector.url)}
 			{/snippet}
 		</EntityView>
 	{/snippet}

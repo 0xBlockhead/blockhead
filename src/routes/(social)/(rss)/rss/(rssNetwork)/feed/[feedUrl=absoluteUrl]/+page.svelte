@@ -9,14 +9,12 @@
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		data,
-		params,
 	}: PageProps = $props()
 
 	const pageSelection = $derived(select(EntityType.RssFeed, data.selector, {
@@ -42,17 +40,12 @@
 
 
 <svelte:head>
-	<title>{(data.title ?? (pageSelection.entity == null ? [String((data.selector.feedUrl) ?? '')].filter(Boolean).join(' ') || 'RSS feed' : [String((({ ...data.selector, ...pageSelection.entity }).title) ?? ''), String((({ ...data.selector, ...pageSelection.entity }).feedUrl) ?? '')].filter(Boolean).join(' ') || 'RSS feed'))} • RSS feed • Blockhead</title>
+	<title>{(data.title ?? (pageSelection.entity == null ? String(pageSelection.entitySelector.feedUrl ?? '') || 'RSS feed' : [(pageSelection.entity.title ?? ''), String(pageSelection.entitySelector.feedUrl)].filter(Boolean).join(' ') || 'RSS feed'))} • RSS feed • Blockhead</title>
 </svelte:head>
 
 
 <Page>
 	<RssFeedView
-		href={
-			resolve('/rss/feed/[feedUrl=absoluteUrl]', {
-				feedUrl: params.feedUrl,
-			})
-		}
 		selection={pageSelection}
 	/>
 </Page>

@@ -6,7 +6,7 @@ import { networkByCaip2, networkBySlug } from '$/constants/Network.ts'
 import { match as matchStringSegment } from '$/params/stringSegment.ts'
 import { parseEntitySelector } from '$/schema/$schema.ts'
 import { schema } from '$/schema/index.ts'
-import { LightningChannel as LightningChannelSchema } from '$/schema/LightningChannel.ts'
+import LightningChannelSchema from '$/schema/LightningChannel.ts'
 import { type as arktype } from 'arktype'
 
 // Projection eligibility: facetPath=['Lightning']

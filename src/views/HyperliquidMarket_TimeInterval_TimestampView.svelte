@@ -2,15 +2,9 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
-	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -22,35 +16,13 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.HyperliquidMarket_TimeInterval_Timestamp>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.HyperliquidMarket_TimeInterval_Timestamp>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.HyperliquidMarket_TimeInterval_Timestamp> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const hyperliquidMarketTimeIntervalTimestamp = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {},
-	} : {
-		sources: selection.sources,
-	}))
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const titleFallback = 'hyperliquid market time interval timestamp'
-	const viewDomId = $derived('hyperliquid-market-time-interval-timestamp-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -64,24 +36,14 @@
 
 <EntityView
 	entityType={EntityType.HyperliquidMarket_TimeInterval_Timestamp}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails}
-			{title || titleFallback}
-		{:else}
-			<ResourceBoundary resource={hyperliquidMarketTimeIntervalTimestamp}>
-				{#snippet children(entity)}
-					{title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		hyperliquid market time interval timestamp
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -91,23 +53,6 @@
 				<dd>
 					<NetworkView
 						selection={select(EntityType.Network, selection.entitySelector.$network)}
-						href={
-							(
-								selection.entitySelector.$network != null && 'caip2' in selection.entitySelector.$network
-								&& selection.entitySelector.$network.caip2 != null ?
-									resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-								network: String(caip2StringFromValue(selection.entitySelector.$network.caip2) ?? ''),
-							})
-							:
-									selection.entitySelector.$network != null && 'slug' in selection.entitySelector.$network
-									&& selection.entitySelector.$network.slug != null ?
-										resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-									network: String(selection.entitySelector.$network.slug ?? ''),
-								})
-								:
-									undefined
-							)
-						}
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -117,48 +62,14 @@
 			<div>
 				<dt>market key</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									marketKey: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const marketKey = resolvedEntity.marketKey}
-							{#if marketKey !== undefined && marketKey !== null}
-								{String((marketKey) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{pendingEntity.marketKey}
 				</dd>
 			</div>
 
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									timestampMs: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const timestampMs = resolvedEntity.timestampMs}
-							{#if timestampMs !== undefined && timestampMs !== null}
-								<Timestamp timestamp={Number(timestampMs)} />
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
 				</dd>
 			</div>
 
@@ -166,7 +77,7 @@
 				resource={selection.$perpMarket}
 			>
 				{#snippet children(hyperliquidPerpMarket)}
-					{#if hyperliquidPerpMarket != null && hyperliquidPerpMarket[EntityMetaKey.Selector] != null}
+					{#if hyperliquidPerpMarket != null}
 						<div>
 							<dt>perp market</dt>
 							<dd>
@@ -186,7 +97,7 @@
 				resource={selection.$spotPair}
 			>
 				{#snippet children(hyperliquidSpotPair)}
-					{#if hyperliquidSpotPair != null && hyperliquidSpotPair[EntityMetaKey.Selector] != null}
+					{#if hyperliquidSpotPair != null}
 						<div>
 							<dt>spot pair</dt>
 							<dd>
@@ -205,7 +116,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							open: true,
 						},
@@ -213,13 +123,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const open = resolvedEntity.open}
-					{#if open !== undefined && open !== null}
+					{@const open = entity.open}
+					{#if open != null}
 						<div>
 							<dt>open</dt>
 							<dd>
-								{String((open) ?? '')}
+								{String(open)}
 							</dd>
 						</div>
 					{/if}
@@ -229,7 +138,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							high: true,
 						},
@@ -237,13 +145,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const high = resolvedEntity.high}
-					{#if high !== undefined && high !== null}
+					{@const high = entity.high}
+					{#if high != null}
 						<div>
 							<dt>high</dt>
 							<dd>
-								{String((high) ?? '')}
+								{String(high)}
 							</dd>
 						</div>
 					{/if}
@@ -253,7 +160,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							low: true,
 						},
@@ -261,13 +167,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const low = resolvedEntity.low}
-					{#if low !== undefined && low !== null}
+					{@const low = entity.low}
+					{#if low != null}
 						<div>
 							<dt>low</dt>
 							<dd>
-								{String((low) ?? '')}
+								{String(low)}
 							</dd>
 						</div>
 					{/if}
@@ -277,7 +182,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							close: true,
 						},
@@ -285,13 +189,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const close = resolvedEntity.close}
-					{#if close !== undefined && close !== null}
+					{@const close = entity.close}
+					{#if close != null}
 						<div>
 							<dt>close</dt>
 							<dd>
-								{String((close) ?? '')}
+								{String(close)}
 							</dd>
 						</div>
 					{/if}
@@ -301,7 +204,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							volume: true,
 						},
@@ -309,13 +211,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const volume = resolvedEntity.volume}
-					{#if volume !== undefined && volume !== null}
+					{@const volume = entity.volume}
+					{#if volume != null}
 						<div>
 							<dt>volume</dt>
 							<dd>
-								{String((volume) ?? '')}
+								{String(volume)}
 							</dd>
 						</div>
 					{/if}
@@ -325,7 +226,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							tradeCount: true,
 						},
@@ -333,13 +233,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const tradeCount = resolvedEntity.tradeCount}
-					{#if tradeCount !== undefined && tradeCount !== null}
+					{@const tradeCount = entity.tradeCount}
+					{#if tradeCount != null}
 						<div>
 							<dt>trade count</dt>
 							<dd>
-								{String((tradeCount) ?? '')}
+								{String(tradeCount)}
 							</dd>
 						</div>
 					{/if}

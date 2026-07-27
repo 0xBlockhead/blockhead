@@ -1,15 +1,12 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { entity, facet } from '$/schema/$schema.ts'
+import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
-export enum NearReceiptSelector {
-	NetworkReceiptId = 'NetworkReceiptId',
-}
-export const NearReceipt = entity({
+export default entity({
 	entityType: EntityType.NearReceipt,
 	labels: {
 		singular: 'near receipt',

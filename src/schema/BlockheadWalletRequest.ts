@@ -1,15 +1,12 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { entity, facet } from '$/schema/$schema.ts'
+import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { EvmAddress, ZeroExHex } from '$/schema/ZeroExHex.ts'
 import { type } from 'arktype'
 
-export enum BlockheadWalletRequestSelector {
-	Id = 'Id',
-}
-export const BlockheadWalletRequest = entity({
+export default entity({
 	entityType: EntityType.BlockheadWalletRequest,
 	labels: {
 		singular: 'blockhead wallet request',
@@ -75,13 +72,13 @@ export const BlockheadWalletRequest = entity({
 	fromAddress: {
 		label: 'from address',
 		type: EntityFieldType.Primitive,
-		primitiveType: (EvmAddress),
+		primitiveType: EvmAddress,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	toAddress: {
 		label: 'to address',
 		type: EntityFieldType.Primitive,
-		primitiveType: (EvmAddress),
+		primitiveType: EvmAddress,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	value: {
@@ -106,7 +103,7 @@ export const BlockheadWalletRequest = entity({
 	requestPayloadHash: {
 		label: 'request payload hash',
 		type: EntityFieldType.Primitive,
-		primitiveType: (ZeroExHex),
+		primitiveType: ZeroExHex,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	walletCallBundleId: {

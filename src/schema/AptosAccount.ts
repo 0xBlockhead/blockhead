@@ -1,15 +1,12 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { entity, facet } from '$/schema/$schema.ts'
+import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
-export enum AptosAccountSelector {
-	NetworkAddress = 'NetworkAddress',
-}
-export const AptosAccount = entity({
+export default entity({
 	entityType: EntityType.AptosAccount,
 	labels: {
 		singular: 'aptos account',
@@ -63,7 +60,6 @@ export const AptosAccount = entity({
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
 			Source.AptosIndexer_Graphql,
-			Source.AptosFullnode_Rest,
 		],
 	},
 })({

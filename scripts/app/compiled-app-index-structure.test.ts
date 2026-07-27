@@ -283,7 +283,7 @@ const analyzeRenderModule = (source: string, fileName = path.join(process.cwd(),
 					.toSorted()
 		))
 		if (JSON.stringify(actualVariants) !== JSON.stringify(expectedVariants))
-			addFinding(declaration, `${typeName} does not match the purpose-lowered IR shape`)
+			addFinding(declaration, `${typeName} does not match the serialization-only IR shape`)
 	}
 
 	const generatedFileDeclaration = localTypeAliases.get('GeneratedFile')
@@ -562,7 +562,7 @@ test('product compiler exports only generated-file IR and renderer has no semant
 		['generatedFiles']
 	)
 	assert.match(generator, /from '\.\/render\.ts'/)
-	assert.match(generator, /generatedFiles: lowerGeneratedFiles\(loweringInput\)/)
+	assert.match(generator, /generatedFiles: generateFiles\(generationInput\)/)
 	assert.match(generator, /const files = compileApp\(app\)\.generatedFiles/)
 	assert.doesNotMatch(generator, /compileApp\(app\)\.renderPlan/)
 })

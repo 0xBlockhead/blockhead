@@ -7,14 +7,12 @@
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		data,
-		params,
 	}: PageProps = $props()
 
 	const pageSelection = $derived(select(EntityType.XrplAmm, data.selector, {
@@ -35,18 +33,12 @@
 
 
 <svelte:head>
-	<title>{(data.title ?? (pageSelection.entity == null ? 'XRPL AMM' : 'XRPL AMM'))} • XRPL AMM • Blockhead</title>
+	<title>{(data.title ?? ('XRPL AMM'))} • XRPL AMM • Blockhead</title>
 </svelte:head>
 
 
 <Page>
 	<XrplAmmView
-		href={
-			resolve('/network/[network=networkCaip2OrNetworkSlug]/amm/[ammAccount=stringSegment]', {
-				network: params.network,
-				ammAccount: params.ammAccount,
-			})
-		}
 		selection={pageSelection}
 	/>
 </Page>

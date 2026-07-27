@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { Source } from '$/sources/Source.ts'
-import { sourceProviderDefinitions } from '$/sources/$sourceProviders.ts'
+import bindings from '$/sources/TronScan/bindings.ts'
 import type { TronScanTransactions } from '$/sources/TronScan/Rest/types.ts'
 
 const { sourceGetJson } = vi.hoisted(() => ({
@@ -15,12 +15,7 @@ vi.mock('$/sources/_runtime/http.ts', async (importOriginal) => ({
 
 const { getAccountTransactions } = await import('$/sources/TronScan/Rest/queries.ts')
 
-const binding = sourceProviderDefinitions
-	.flatMap((provider) => provider.bindings)
-	.find((candidate) => candidate.source === Source.TronScan_Rest)
-
-if (binding == null)
-	throw new Error('TronScan_Rest spec missing source binding')
+const binding = bindings[Source.TronScan_Rest]
 
 describe('TronScan REST account transactions transport', () => {
 	beforeEach(() => {
@@ -45,7 +40,6 @@ describe('TronScan REST account transactions transport', () => {
 		sourceGetJson.mockResolvedValueOnce(response)
 
 		await expect(getAccountTransactions(
-			binding,
 			'T/account+address',
 			20,
 			40
@@ -57,10 +51,10 @@ describe('TronScan REST account transactions transport', () => {
 	})
 
 	it('rejects pages outside TronScan transaction-list limits before transport', async () => {
-		expect(() => getAccountTransactions(binding, 'Taccount', 51)).toThrow(
+		expect(() => getAccountTransactions('Taccount', 51)).toThrow(
 			'TronScan_Rest: transaction list limit must be an integer from 1 through 50'
 		)
-		expect(() => getAccountTransactions(binding, 'Taccount', 50, 9_951)).toThrow(
+		expect(() => getAccountTransactions('Taccount', 50, 9_951)).toThrow(
 			'TronScan_Rest: transaction list range must be within the first 10000 rows'
 		)
 		expect(sourceGetJson).not.toHaveBeenCalled()

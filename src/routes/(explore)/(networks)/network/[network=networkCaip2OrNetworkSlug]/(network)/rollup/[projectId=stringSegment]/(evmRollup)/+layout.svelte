@@ -29,22 +29,26 @@
 {#key [params.network, params.projectId].join(':')}
 	<ParentPageCollapsible
 		href={
-			resolve('/network/[network=networkCaip2OrNetworkSlug]/rollup/[projectId=stringSegment]', {
-				network: params.network,
-				projectId: params.projectId,
-			})
+			resolve(
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/rollup/[projectId=stringSegment]',
+				{
+					network: String(params.network),
+					projectId: String(params.projectId),
+				}
+			)
 		}
 	>
 		{#snippet Summary()}
-			{@const DetailView = EvmRollupView}
-
-			<DetailView
+			<EvmRollupView
 				selection={select(EntityType.EvmRollup, data.selector)}
 				href={
-					resolve('/network/[network=networkCaip2OrNetworkSlug]/rollup/[projectId=stringSegment]', {
-						network: params.network,
-						projectId: params.projectId,
-					})
+					resolve(
+						'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/rollup/[projectId=stringSegment]',
+						{
+							network: String(params.network),
+							projectId: String(params.projectId),
+						}
+					)
 				}
 				layout={EntityLayout.SummaryInline}
 			/>

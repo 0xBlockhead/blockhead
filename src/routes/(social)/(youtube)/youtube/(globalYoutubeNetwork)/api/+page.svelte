@@ -8,7 +8,6 @@
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 	const pageSelection = $derived(select(EntityType.YoutubeNetwork, {
@@ -32,15 +31,12 @@
 
 
 <svelte:head>
-	<title>{(pageSelection.entity == null ? 'YouTube Data API' : [String((({ ...{
-		scope: 'YoutubeNetwork',
-	}, ...pageSelection.entity }).protocolName) ?? '')].filter(Boolean).join(' ') || 'YouTube Data API')} • YouTube Data API • Blockhead</title>
+	<title>{(pageSelection.entity == null ? 'YouTube Data API' : pageSelection.entity.protocolName || 'YouTube Data API')} • YouTube Data API • Blockhead</title>
 </svelte:head>
 
 
 <Page>
 	<YoutubeNetworkView
-		href={resolve('/youtube/api')}
 		selection={pageSelection}
 	/>
 </Page>

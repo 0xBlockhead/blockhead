@@ -2,69 +2,32 @@
 
 <script lang="ts">
 	// Types/constants
-	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
-	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
-	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
+	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-
-
 
 
 	// State
 	let {
 		selection,
-		countResource,
 		title = 'Asset balance observations',
-		typeAnnotationParagraphs = [],
-		placeholderText = undefined,
-		emptyText = undefined,
 		open = $bindable(true),
-		collapsible = true,
-		showTypeAnnotation = true,
-		id = 'PolkadotAssetBalance_Timestamps-list',
 		...EntitiesListProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyEntitiesSelection<EntityType.PolkadotAssetBalance_Timestamp>
-			countResource?: SvelteKitResource<number>
-			title?: string
-			typeAnnotationParagraphs?: string[]
-			placeholderText?: string
-			emptyText?: string
-			open?: boolean
-			collapsible?: boolean
-			showTypeAnnotation?: boolean
-			id?: string
-		},
-		EntitiesListForwardProps
-	> = $props()
+	}: EntityListViewProps<EntityType.PolkadotAssetBalance_Timestamp> = $props()
 
 
 	// Components
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView from '$/components/EntityView.svelte'
 </script>
 
-
-{#snippet TypeAnnotationParagraphs()}
-	{#each typeAnnotationParagraphs as paragraph (paragraph)}
-		<p>{paragraph}</p>
-	{/each}
-{/snippet}
 
 <EntitiesList
 	{...EntitiesListProps}
 	entityType={EntityType.PolkadotAssetBalance_Timestamp}
-	{id}
 	{title}
 	bind:open
-	{collapsible}
-	{showTypeAnnotation}
-	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
 	resource={
 		selection({
-			sources: selection.sources,
 			fields: {
 				$asset: true,
 				freeBalancePlancks: true,
@@ -72,38 +35,23 @@
 			},
 		})
 	}
-	{countResource}
-	getResourceItems={(polkadotAssetBalanceTimestamps) => [...new Map(polkadotAssetBalanceTimestamps.values.map((polkadotAssetBalanceTimestamp) => [polkadotAssetBalanceTimestamp[EntityMetaKey.SelectorKey], polkadotAssetBalanceTimestamp])).values()]}
-	getKey={(polkadotAssetBalanceTimestamp) => polkadotAssetBalanceTimestamp[EntityMetaKey.SelectorKey]}
-	{placeholderText}
 >
-	{#snippet Empty()}
-		{#if emptyText != null}
-			<p data-text="muted">{emptyText}</p>
-		{:else}
-			<p data-text="muted">No Polkadot asset balance observations yet.</p>
-		{/if}
-	{/snippet}
-
 	{#snippet Item({ item: polkadotAssetBalanceTimestamp })}
-		{@const polkadotAssetBalanceTimestampFields = { ...polkadotAssetBalanceTimestamp[EntityMetaKey.Selector], ...polkadotAssetBalanceTimestamp }}
+		{@const polkadotAssetBalanceTimestampSelector = polkadotAssetBalanceTimestamp[EntityMetaKey.Selector]}
 		<EntityView
 			entityType={EntityType.PolkadotAssetBalance_Timestamp}
-			entitySelector={polkadotAssetBalanceTimestamp[EntityMetaKey.Selector]}
-			layout={EntityLayout.Summary}
-			open={false}
-			showTypeAnnotation={false}
+			entitySelector={polkadotAssetBalanceTimestampSelector}
 		>
 			{#snippet Title()}
-				{[[String((polkadotAssetBalanceTimestampFields.$asset.assetId) ?? '')].filter(Boolean).join(' ') || 'Polkadot asset'].filter(Boolean).join(' ') || 'Polkadot asset balance timestamp'}
+				{polkadotAssetBalanceTimestampSelector.$asset.assetId || 'Polkadot asset'}
 			{/snippet}
 
 			{#snippet Value()}
-				{[String((polkadotAssetBalanceTimestampFields.freeBalancePlancks) ?? '')].filter(Boolean).join(' ')}
+				{String(polkadotAssetBalanceTimestamp.freeBalancePlancks ?? '')}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{[String((polkadotAssetBalanceTimestampFields.status) ?? '')].filter(Boolean).join(' ')}</span>
+				<span data-text="annotation">{(polkadotAssetBalanceTimestamp.status ?? '')}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

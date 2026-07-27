@@ -2,14 +2,9 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
 
 
 	// State
@@ -21,31 +16,10 @@
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType._GlobalIpfsAccess>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType._GlobalIpfsAccess>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType._GlobalIpfsAccess> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const globalIpfsAccess = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {},
-	} : {
-		sources: selection.sources,
-	}))
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const titleFallback = 'global IPFS access'
-	const viewDomId = $derived('-global-ipfs-access-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -56,43 +30,19 @@
 
 <EntityView
 	entityType={EntityType._GlobalIpfsAccess}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	href={
-		href ?? (
-			selection.entitySelector.scope === '_GlobalIpfsAccess' ?
-				resolve('/ipfs/access')
-		:
-				undefined
-		)
-	}
+	href={href ?? resolve('/(explore)/(ipfs)/ipfs/(ipfsProtocol)/access')}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails}
-			{title || titleFallback}
-		{:else}
-			<ResourceBoundary resource={globalIpfsAccess}>
-				{#snippet children(entity)}
-					{title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		global IPFS access
 	{/snippet}
 
 	{#snippet Value()}
-		{#if layout !== EntityLayout.SummaryDetails}
-			{titleFallback}
-		{:else}
-			<ResourceBoundary resource={globalIpfsAccess}>
-				{#snippet children(entity)}
-					{titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		{titleFallback}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -100,24 +50,7 @@
 			<div>
 				<dt>Scope</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									scope: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const scope = resolvedEntity.scope}
-							{#if scope !== undefined && scope !== null}
-								{String((scope) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{pendingEntity.scope}
 				</dd>
 			</div>
 		</dl>
@@ -130,12 +63,12 @@
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
-				<IpfsResourcesView
-					selection={globalIpfsAccessIpfsResourcesViewObservedResourcesResource}
-					countResource={globalIpfsAccessIpfsResourcesViewObservedResourcesResource.count}
-					title='Observed resources'
-					id='IpfsResourcesView-observed-resources'
-				/>
+					<IpfsResourcesView
+						selection={globalIpfsAccessIpfsResourcesViewObservedResourcesResource}
+						countResource={globalIpfsAccessIpfsResourcesViewObservedResourcesResource.count}
+						title='Observed resources'
+						id='observed-resources'
+					/>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>

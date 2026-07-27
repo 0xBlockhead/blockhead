@@ -31,6 +31,7 @@ import {
 	persistedCollectionRemoteResult,
 	trackPersistedCollectionPersistence,
 } from '$/client/$client.svelte.ts'
+import { writeLocalBlockheadAccount } from '$/collections/localMutations.ts'
 import {
 	materializeResolverOutput,
 	ResolverOutputMaterialization,
@@ -40,7 +41,10 @@ import {
 	subscribeEntityField,
 	subscribeEntityFieldCount,
 } from '$/client/$subscribe.svelte.ts'
-import { EntityProxyField } from '$/client/$proxy.svelte.ts'
+import {
+	createEntityProxy,
+	EntityProxyField,
+} from '$/client/$proxy.svelte.ts'
 import type {
 	ResolverContext,
 	SourceResolverModule,
@@ -52,12 +56,16 @@ import {
 	entitySelectorKey,
 	facet,
 	indexSchema,
+	ProjectionResolution,
 } from '$/schema/$schema.ts'
 import {
 	EntityFieldCardinality,
 	EntityFieldType,
 } from '$/schema/EntityField.ts'
+import { EntityType } from '$/schema/EntityType.ts'
+import { schema } from '$/schema/index.ts'
 import { Source } from '$/sources/Source.ts'
+import { sourceProviders } from '$/sources/index.ts'
 
 
 const clientDirectory = resolve(
@@ -129,6 +137,11 @@ const materializationFixtureSchema = [
 			type: EntityFieldType.Primitive,
 			primitiveType: arktype('string'),
 			cardinality: EntityFieldCardinality.One,
+		},
+		$sibling: {
+			type: EntityFieldType.EntityReference,
+			entityType: 'MaterializationChild',
+			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 	})({
 		selectors: {
@@ -686,12 +699,10 @@ describe('client resolver stack architecture', () => {
 			label: 'Persistence fixture',
 			sources: [
 				{
-					provider: 'PersistenceFixture',
 					source: 'source-a',
 					label: 'Source A',
 				},
 				{
-					provider: 'PersistenceFixture',
 					source: 'source-b',
 					label: 'Source B',
 				},
@@ -1798,13 +1809,14 @@ describe('client resolver stack architecture', () => {
 			}),
 		] as const
 		let releaseCancelledPage: (() => void) | undefined
-		const context = client({
+		const persistedRowsByCollectionId = new Map<string, Map<string | number, object>>()
+		const persistedMetadataByCollectionId = new Map<string, Map<string, string>>()
+		const createContext = () => client({
 			schema: fixtureSchema,
 			sourceProviders: [{
 				provider: 'continuation-provider',
 				label: 'Continuation provider',
 				sources: [{
-					provider: 'continuation-provider',
 					source: 'continuation-source',
 					label: 'Continuation source',
 				}],
@@ -1829,7 +1841,6 @@ describe('client resolver stack architecture', () => {
 										:
 											resolverContext.providerContinuationToken === 'next-page' ?
 												[
-													`${slug}-first`,
 													`${slug}-second`,
 												]
 											:
@@ -1877,13 +1888,43 @@ describe('client resolver stack architecture', () => {
 			queryClient: new QueryClient(),
 			persistence: {
 				adapter: {
-					loadSubset: async () => [],
-					applyCommittedTx: async () => {},
+					loadSubset: async (collectionId) => [
+						...(persistedRowsByCollectionId.get(collectionId) ?? new Map()),
+					].map(([key, value]) => ({
+						key,
+						value,
+					})),
+					applyCommittedTx: async (collectionId, transaction) => {
+						const persistedRows = persistedRowsByCollectionId.get(collectionId) ?? new Map()
+						for (const mutation of transaction.mutations) {
+							if (mutation.type === 'delete')
+								persistedRows.delete(mutation.key)
+							else
+								persistedRows.set(mutation.key, mutation.value)
+						}
+						persistedRowsByCollectionId.set(collectionId, persistedRows)
+
+						const persistedMetadata = persistedMetadataByCollectionId.get(collectionId) ?? new Map()
+						for (const mutation of transaction.collectionMetadataMutations ?? []) {
+							if (mutation.type === 'delete')
+								persistedMetadata.delete(mutation.key)
+							else
+								persistedMetadata.set(mutation.key, JSON.stringify(mutation.value))
+						}
+						persistedMetadataByCollectionId.set(collectionId, persistedMetadata)
+					},
+					loadCollectionMetadata: async (collectionId) => [
+						...(persistedMetadataByCollectionId.get(collectionId) ?? new Map()),
+					].map(([key, value]) => ({
+						key,
+						value: JSON.parse(value),
+					})),
 					ensureIndex: async () => {},
 				} satisfies PersistenceAdapter,
 			},
 			schemaVersion: 1,
 		})
+		const context = createContext()
 		const firstResource = subscribeEntityField(
 			context,
 			'ContinuationParent',
@@ -1922,25 +1963,38 @@ describe('client resolver stack architecture', () => {
 			{ id: 'second-first' },
 		])
 
-		const cancelledLoad = firstResource.current?.continuation?.loadMore()
+		const restartedResource = subscribeEntityField(
+			createContext(),
+			'ContinuationParent',
+			{ slug: 'first' },
+			'$$children',
+			{
+				sources: ['continuation-source'],
+			}
+		)
+		await expect.poll(() => restartedResource.current?.entities.map((entity) => entity.entitySelector)).toEqual([
+			{ id: 'first-first' },
+			{ id: 'first-second' },
+		])
+		const cancelledLoad = restartedResource.current?.continuation?.loadMore()
 		await vi.waitFor(() => {
-			expect(firstResource.current?.continuation?.loading).toBe(true)
+			expect(restartedResource.current?.continuation?.loading).toBe(true)
 		})
-		firstResource.current?.continuation?.cancel()
+		restartedResource.current?.continuation?.cancel()
 		await expect(cancelledLoad).rejects.toMatchObject({
 			name: 'AbortError',
 		})
 		releaseCancelledPage?.()
 		await Promise.resolve()
-		expect(firstResource.current?.entities.map((entity) => entity.entitySelector)).toEqual([
+		expect(restartedResource.current?.entities.map((entity) => entity.entitySelector)).toEqual([
 			{ id: 'first-first' },
 			{ id: 'first-second' },
 		])
-		expect(firstResource.current?.continuation?.metadata).toMatchObject({
+		expect(restartedResource.current?.continuation?.metadata).toMatchObject({
 			terminal: false,
 			token: 'cancelled-page',
 		})
-		expect((await firstResource).entities.map((entity) => entity.entitySelector)).toEqual([
+		expect((await restartedResource).entities.map((entity) => entity.entitySelector)).toEqual([
 			{ id: 'first-first' },
 			{ id: 'first-second' },
 		])
@@ -2172,7 +2226,6 @@ describe('client resolver stack architecture', () => {
 				provider: 'selection-fixture',
 				label: 'Selection fixture',
 				sources: [{
-					provider: 'selection-fixture',
 					source: 'selection-fixture',
 					label: 'Selection fixture',
 				}],
@@ -2386,8 +2439,10 @@ describe('client resolver stack architecture', () => {
 		).toEqual({
 			slug: 'fixture',
 		})
+		expect(reselectedOwnerFromChildrenResource.sources).toEqual(['selection-fixture'])
+		const reselectedOwners = await reselectedOwnerFromChildrenResource
 		expect(
-			(await reselectedOwnerFromChildrenResource).values[0]?.value
+			reselectedOwners.values[0]?.value
 		).toBe('Loaded fixture')
 		expect(
 			(await selectedChildFromOwnerResource).values[0]?.[EntityMetaKey.Selector]
@@ -2440,6 +2495,143 @@ describe('client resolver stack architecture', () => {
 		expect(materializerSource).toMatch(/schemaIndex\.entityFieldDefinitionByEntityTypePathAndName\[fieldDefinition\.entityType\]/)
 		expect(materializerSource).not.toMatch(/indexSchema\(|entityFieldDefinitions\(/)
 	})
+
+	it('settles persisted account terminal projections through the app resolver registry', async () => {
+		const collectionRowsByCollectionId = new Map<string, Map<string | number, object>>()
+		const collectionMetadataByCollectionId = new Map<string, Map<string, string>>()
+		const persistence = {
+			adapter: {
+				loadSubset: async (collectionId) => [
+					...(collectionRowsByCollectionId.get(collectionId) ?? new Map()),
+				].map(([key, value]) => ({
+					key,
+					value,
+				})),
+				applyCommittedTx: async (collectionId, transaction) => {
+					const collectionRows = collectionRowsByCollectionId.get(collectionId) ?? new Map()
+					for (const mutation of transaction.mutations) {
+						if (mutation.type === 'delete')
+							collectionRows.delete(mutation.key)
+						else
+							collectionRows.set(mutation.key, mutation.value)
+					}
+					collectionRowsByCollectionId.set(collectionId, collectionRows)
+					const collectionMetadata = collectionMetadataByCollectionId.get(collectionId) ?? new Map()
+					for (const mutation of transaction.collectionMetadataMutations ?? []) {
+						if (mutation.type === 'delete')
+							collectionMetadata.delete(mutation.key)
+						else
+							collectionMetadata.set(mutation.key, JSON.stringify(mutation.value))
+					}
+					collectionMetadataByCollectionId.set(collectionId, collectionMetadata)
+				},
+				loadCollectionMetadata: async (collectionId) => [
+					...(collectionMetadataByCollectionId.get(collectionId) ?? new Map()),
+				].map(([key, value]) => ({
+					key,
+					value: JSON.parse(value),
+				})),
+				ensureIndex: async () => {},
+			} satisfies PersistenceAdapter,
+		}
+		const resolvers = (
+			await Promise.all([
+				import('$/resolvers/Constants.ts'),
+				import('$/resolvers/Local.ts'),
+			])
+		).map((resolverModule) => resolverModule.default)
+		const createContext = () => client({
+			schema,
+			sourceProviders,
+		})({
+			resolvers,
+			env: {},
+		})({
+			queryClient: new QueryClient(),
+			persistence,
+			schemaVersion: 1,
+		})
+		await writeLocalBlockheadAccount(createContext(), {
+			namespace: 'eip155',
+			reference: '1',
+			accountAddress: '0x1111111111111111111111111111111111111111',
+		})
+		const restartedContext = createContext()
+		expect(restartedContext.enabledSources.has(Source.Constants_Internal)).toBe(true)
+		expect(restartedContext.resolverIndexes.resolverParts.filter((resolverPart) => (
+			resolverPart.entityType === EntityType.Account
+			&& resolverPart.fieldName === '$account'
+			&& resolverPart.facetPath.join('.') === 'Evm'
+		)).map((resolverPart) => resolverPart.source)).toEqual([
+			Source.Constants_Internal,
+		])
+		const directEvmAccount = restartedContext.select(
+			EntityType.Account,
+			{
+				caip10: {
+					namespace: 'eip155',
+					reference: '1',
+					accountAddress: '0x1111111111111111111111111111111111111111',
+				},
+			}
+		)
+			.Evm
+			.$account({
+				sources: [Source.Constants_Internal],
+			})
+		await expect.poll(() => directEvmAccount.current).toBeDefined()
+		await expect(directEvmAccount).resolves.toEqual(directEvmAccount.current)
+		const accountProjection = restartedContext.select(
+			EntityType._Global,
+			{
+				scope: '$$blockheadAccounts',
+			}
+		)
+			.$$blockheadAccounts({
+				sources: [Source.Local_Internal],
+			})
+			.$account({
+				sources: [Source.Local_Internal],
+			})
+			.Evm
+
+		await expect.poll(() => accountProjection.current?.resolution).toBe(
+			ProjectionResolution.Applicable
+		)
+		await expect(accountProjection).resolves.toMatchObject({
+			resolution: ProjectionResolution.Applicable,
+		})
+		const evmAccounts = (await accountProjection).value.$account({
+			sources: [Source.Constants_Internal],
+		})
+		await expect.poll(() => evmAccounts.current?.values.length).toBe(1)
+		await expect(evmAccounts).resolves.toEqual(evmAccounts.current)
+
+		const networkProjection = restartedContext.select(
+			EntityType.Network,
+			{
+				caip2: {
+					namespace: 'eip155',
+					reference: '1',
+				},
+			}
+		).Evm
+		await expect.poll(() => networkProjection.current?.resolution).toBe(
+			ProjectionResolution.Applicable
+		)
+		const upgrades = (await networkProjection).value
+			.$$upgrades({
+				sources: [Source.Constants_Internal],
+				limit: 1,
+			})({
+				fields: {
+					upgradeId: true,
+					name: true,
+				},
+			})
+		await expect.poll(() => upgrades.current?.values.length).toBe(1)
+		await expect(upgrades).resolves.toEqual(upgrades.current)
+	}, 30_000)
 
 	it('hydrates identity from selector defaults without activating unrelated selector resolvers', async () => {
 		const fixtureSchema = [
@@ -2546,17 +2738,14 @@ describe('client resolver stack architecture', () => {
 				label: 'Selector source fixture',
 				sources: [
 					{
-						provider: 'selector-source-fixture',
 						source: 'identity-source',
 						label: 'Identity source',
 					},
 					{
-						provider: 'selector-source-fixture',
 						source: 'unrelated-source',
 						label: 'Unrelated source',
 					},
 					{
-						provider: 'selector-source-fixture',
 						source: 'facet-source',
 						label: 'Facet source',
 					},
@@ -2604,6 +2793,21 @@ describe('client resolver stack architecture', () => {
 			['facet-source']
 		)).toEqual(['facet-source'])
 
+		const parentScopedSelection = context.select(
+			'SelectorSourceFixture',
+			{
+				slug: 'fixture',
+			},
+			{
+				sources: ['unrelated-source'],
+			}
+		)
+		expect(parentScopedSelection.Details.status.sources).toBeUndefined()
+		expect(parentScopedSelection.Details.status({
+			sources: ['identity-source'],
+		}).sources).toEqual(['identity-source'])
+		await expect(parentScopedSelection.Details.status).resolves.toBe('resolved')
+
 		expect((await subscribeEntity(
 			context,
 			'SelectorSourceFixture',
@@ -2621,7 +2825,7 @@ describe('client resolver stack architecture', () => {
 		expect(calls).toEqual({
 			'identity-source': 1,
 			'unrelated-source': 0,
-			'facet-source': 1,
+			'facet-source': 2,
 		})
 	})
 
@@ -2695,7 +2899,6 @@ describe('client resolver stack architecture', () => {
 				provider: 'identity-provider',
 				label: 'Identity provider',
 				sources: [{
-					provider: 'identity-provider',
 					source: 'identity-source',
 					label: 'Identity source',
 				}],
@@ -2859,7 +3062,7 @@ describe('client resolver stack architecture', () => {
 				'not-a-number',
 			],
 		})).toThrow(/must be a number/)
-		expect(materializeResolverOutput({
+		const materializedReferenceRows = materializeResolverOutput({
 			kind: ResolverOutputMaterialization.Field,
 			schema: materializationFixtureSchema,
 			schemaIndex: materializationFixtureSchemaIndex,
@@ -2877,11 +3080,11 @@ describe('client resolver stack architecture', () => {
 					[entityFieldAddressKey('MaterializationChild', ['Right'], 'label')]: 'Right label',
 				},
 			}],
-		})).toEqual([expect.objectContaining({
+		})
+		expect(materializedReferenceRows).toEqual([expect.objectContaining({
 			[EntityMetaKey.Value]: {
 				[EntityMetaKey.Selector]: childSelector,
 				[EntityMetaKey.SelectorKey]: childSelectorKey,
-				title: 'Child title',
 				[EntityMetaKey.Fields]: {
 					[entityFieldAddressKey('MaterializationChild', [], 'title')]: 'Child title',
 					[entityFieldAddressKey('MaterializationChild', ['Left'], 'label')]: 'Left label',
@@ -2889,6 +3092,17 @@ describe('client resolver stack architecture', () => {
 				},
 			},
 		})])
+		expect(materializeResolverOutput({
+			kind: ResolverOutputMaterialization.Field,
+			schema: materializationFixtureSchema,
+			schemaIndex: materializationFixtureSchemaIndex,
+			entityDefinition: materializationFixtureSchema[0],
+			parentSelector: materializationParentSelector,
+			parentSelectorKey: materializationParentSelectorKey,
+			source: 'source-a',
+			fieldDefinition: materializationFixtureSchema[0].fields[2],
+			value: materializedReferenceRows.map((row) => row[EntityMetaKey.Value]),
+		})).toEqual(materializedReferenceRows)
 
 		expect(materializeResolverOutput({
 			kind: ResolverOutputMaterialization.Count,
@@ -2914,7 +3128,6 @@ describe('client resolver stack architecture', () => {
 				provider: 'materialization-provider',
 				label: 'Materialization provider',
 				sources: [{
-					provider: 'materialization-provider',
 					source: 'source-a',
 					label: 'Source A',
 				}],
@@ -2941,6 +3154,15 @@ describe('client resolver stack architecture', () => {
 								[EntityMetaKey.Fields]: {
 									[entityFieldAddressKey('MaterializationChild', [], 'title')]: 'Left child',
 									[entityFieldAddressKey('MaterializationChild', [], 'kind')]: 'left',
+									[entityFieldAddressKey('MaterializationChild', [], '$sibling')]: {
+										[EntityMetaKey.Selector]: {
+											id: 'right',
+										},
+										[EntityMetaKey.Fields]: {
+											[entityFieldAddressKey('MaterializationChild', [], 'title')]: 'Right child',
+											[entityFieldAddressKey('MaterializationChild', [], 'kind')]: 'right',
+										},
+									},
 								},
 							},
 							{
@@ -2983,6 +3205,11 @@ describe('client resolver stack architecture', () => {
 			fields: {
 				title: true,
 				kind: true,
+				$sibling: {
+					fields: {
+						title: true,
+					},
+				},
 			},
 		})
 		await expect(children).resolves.toMatchObject({
@@ -2991,11 +3218,16 @@ describe('client resolver stack architecture', () => {
 					id: 'left',
 					title: 'Left child',
 					kind: 'left',
+					$sibling: {
+						title: 'Right child',
+					},
+					[EntityMetaKey.Source]: 'source-a',
 				},
 				{
 					id: 'right',
 					title: 'Right child',
 					kind: 'right',
+					[EntityMetaKey.Source]: 'source-a',
 				},
 			],
 		})
@@ -3005,11 +3237,13 @@ describe('client resolver stack architecture', () => {
 					id: 'left',
 					title: 'Left child',
 					kind: 'left',
+					[EntityMetaKey.Source]: 'source-a',
 				},
 				{
 					id: 'right',
 					title: 'Right child',
 					kind: 'right',
+					[EntityMetaKey.Source]: 'source-a',
 				},
 			],
 		})
@@ -3051,6 +3285,145 @@ describe('client resolver stack architecture', () => {
 					title: 'Right child',
 					kind: 'right',
 				},
+			],
+		})
+	})
+
+	it('hydrates relationship children only from their producer sources', async () => {
+		const childCalls: Record<'source-a' | 'source-b', string[]> = {
+			'source-a': [],
+			'source-b': [],
+		}
+		const resolverModule = (
+			source: 'source-a' | 'source-b',
+			childIds: string[]
+		) => ({
+			source,
+			resolvers: [
+				{
+					entityType: 'MaterializationParent',
+					resolve: {
+						Slug: {
+							resolve: async () => ({ childIds }),
+						},
+					},
+					projections: {
+						$$children: ({ childIds: resolvedChildIds }) => resolvedChildIds.map((id) => ({
+							[EntityMetaKey.Selector]: { id },
+						})),
+					},
+				},
+				{
+					entityType: 'MaterializationChild',
+					resolve: {
+						Id: {
+							resolve: async ({ id }) => {
+								childCalls[source].push(id)
+								return {
+									title: `${source}:${id}`,
+								}
+							},
+						},
+					},
+					projections: {
+						title: ({ title }) => title,
+					},
+				},
+			],
+		}) satisfies SourceResolverModule<
+			typeof materializationFixtureSchema,
+			'source-a' | 'source-b',
+			ResolverContext
+		>
+		const context = client({
+			schema: materializationFixtureSchema,
+			sourceProviders: [{
+				provider: 'materialization-provider',
+				label: 'Materialization provider',
+				sources: [
+					{
+						source: 'source-a',
+						label: 'Source A',
+					},
+					{
+						source: 'source-b',
+						label: 'Source B',
+					},
+				],
+			}],
+		})({
+			resolvers: [
+				resolverModule('source-a', [
+					'shared',
+					'a-only',
+				]),
+				resolverModule('source-b', [
+					'shared',
+					'b-only',
+				]),
+			],
+			env: {},
+		})({
+			queryClient: new QueryClient(),
+			persistence: {
+				adapter: {
+					loadSubset: async () => [],
+					applyCommittedTx: async () => {},
+					ensureIndex: async () => {},
+				} satisfies PersistenceAdapter,
+			},
+			schemaVersion: 1,
+		})
+
+		const children = await subscribeEntityField(
+			context,
+			'MaterializationParent',
+			materializationParentSelector,
+			'$$children',
+			{
+				sources: [
+					'source-a',
+					'source-b',
+				],
+				fields: {
+					title: true,
+				},
+			}
+		)
+
+		expect(children.values.map((child) => child.title).sort()).toEqual([
+			'source-a:a-only',
+			'source-a:shared',
+			'source-b:b-only',
+			'source-b:shared',
+		])
+		const proxiedChildren = await createEntityProxy(
+			context,
+			'MaterializationParent',
+			materializationParentSelector
+		).$$children({
+			sources: [
+				'source-a',
+				'source-b',
+			],
+			fields: {
+				title: true,
+			},
+		})
+		expect(proxiedChildren.values.map((child) => child.title).sort()).toEqual([
+			'source-a:a-only',
+			'source-a:shared',
+			'source-b:b-only',
+			'source-b:shared',
+		])
+		expect(childCalls).toEqual({
+			'source-a': [
+				'shared',
+				'a-only',
+			],
+			'source-b': [
+				'shared',
+				'b-only',
 			],
 		})
 	})
@@ -3233,12 +3606,10 @@ describe('client resolver stack architecture', () => {
 				label: 'Fixture',
 				sources: [
 					{
-						provider: 'fixture',
 						source: 'source-a',
 						label: 'Source A',
 					},
 					{
-						provider: 'fixture',
 						source: 'source-b',
 						label: 'Source B',
 					},
@@ -3443,7 +3814,6 @@ describe('client resolver stack architecture', () => {
 				provider: 'fixture',
 				label: 'Fixture',
 				sources: [{
-					provider: 'fixture',
 					source: 'live-source',
 					label: 'Live source',
 				}],
@@ -3678,12 +4048,10 @@ describe('client resolver stack architecture', () => {
 				label: 'Local',
 				sources: [
 					{
-						provider: 'local',
 						source: Source.Local_Internal,
 						label: 'Local',
 					},
 					{
-						provider: 'local',
 						source: Source.Constants_Internal,
 						label: 'Constants',
 					},
@@ -3799,6 +4167,16 @@ describe('client resolver stack architecture', () => {
 				sources: [Source.Local_Internal],
 			}
 		)
+		const entityResource = context.select(
+			'LocalAuthorityFixture',
+			entitySelector
+		)({
+			sources: [Source.Local_Internal],
+			fields: {
+				slug: true,
+				note: true,
+			},
+		})
 		expect(subscribeEntityField(
 			context,
 			'LocalAuthorityFixture',
@@ -3873,6 +4251,41 @@ describe('client resolver stack architecture', () => {
 
 		await expect.poll(() => resource.current).toBe('Persisted locally')
 		await expect(resource).resolves.toBe('Persisted locally')
+		await expect.poll(() => entityResource.current?.note).toBe('Persisted locally')
+		await expect(entityResource).resolves.toMatchObject({
+			slug: 'runtime',
+			note: 'Persisted locally',
+		})
+		context.entityFieldCollections.LocalAuthorityFixture[fieldAddressKey].utils.replaceRowsWithAuthority(
+			(row) => row[EntityMetaKey.ParentSelectorKey] === selectorKey,
+			[{
+				facetPath: [],
+				facetPathKey: stringify([]),
+				fieldName: 'note',
+				[EntityMetaKey.ParentSelector]: entitySelector,
+				[EntityMetaKey.ParentSelectorKey]: selectorKey,
+				[EntityMetaKey.Source]: Source.Local_Internal,
+				[EntityMetaKey.Value]: 'Updated locally',
+				valueKey: `Value:${stringify('Updated locally')}`,
+			}],
+			selectorKey,
+			localMutationAuthorityKey({
+				source: Source.Local_Internal,
+				entityType: 'LocalAuthorityFixture',
+				selectorKey,
+				fieldName: 'note',
+				fieldAddressKey,
+				facetPathKey: stringify([]),
+			}),
+			'resolved'
+		)
+		await expect.poll(() => resource.current).toBe('Updated locally')
+		await expect(resource).resolves.toBe('Updated locally')
+		await expect.poll(() => entityResource.current?.note).toBe('Updated locally')
+		await expect(entityResource).resolves.toMatchObject({
+			slug: 'runtime',
+			note: 'Updated locally',
+		})
 		await expect.poll(() => relatedResource.current).toMatchObject({
 			[EntityMetaKey.Selector]: {
 				id: 'related',
@@ -3894,7 +4307,7 @@ describe('client resolver stack architecture', () => {
 			},
 		})).resolves.toMatchObject({
 			slug: 'runtime',
-			note: 'Persisted locally',
+			note: 'Updated locally',
 		})
 
 		const absentEntitySelector = {
@@ -4201,7 +4614,7 @@ describe('client resolver stack architecture', () => {
 				note: true,
 			},
 		})).resolves.toMatchObject({
-			note: 'Persisted locally',
+			note: 'Updated locally',
 		})
 		expect(localResolverCalls).toBe(0)
 		expect(providerCalls).toBe(providerCallsBeforeReentry)

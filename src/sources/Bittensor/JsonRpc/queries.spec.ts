@@ -1,9 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { substrateJsonRpc } from '$/sources/Substrate/JsonRpc/client.ts'
-import { sourceProviderDefinitions } from '$/sources/$sourceProviders.ts'
+import { substrateJsonRpc } from '$/sources/_shared/interfaces/SubstrateJsonRpc/client.ts'
+import bindings from '$/sources/Bittensor/bindings.ts'
 import { Source } from '$/sources/Source.ts'
-import { SourceTargetKind } from '$/sources/SourceBinding.ts'
 import {
 	getAllMetagraphs,
 	getNeuronLite,
@@ -11,24 +10,13 @@ import {
 	getSubnetInfo,
 } from '$/sources/Bittensor/JsonRpc/queries.ts'
 
-vi.mock('$/sources/Substrate/JsonRpc/client.ts', () => ({
+vi.mock('$/sources/_shared/interfaces/SubstrateJsonRpc/client.ts', () => ({
 	substrateJsonRpc: vi.fn(),
 }))
 
 const substrateJsonRpcMock = vi.mocked(substrateJsonRpc)
 const blockHash = `0x${'a'.repeat(64)}`
-const bittensorBindings = sourceProviderDefinitions
-	.flatMap((provider) => provider.bindings)
-	.filter((binding) => (
-		binding.source === Source.Bittensor_JsonRpc
-		&& binding.target.kind === SourceTargetKind.NetworkSlug
-		&& binding.target.key === 'bittensor'
-	))
-
-if (bittensorBindings.length !== 1)
-	throw new Error('Bittensor query spec missing canonical mainnet binding')
-
-const bittensorBinding = bittensorBindings[0]
+const bittensorBinding = bindings[Source.Bittensor_JsonRpc]
 
 describe('Bittensor custom JSON-RPC SCALE transport', () => {
 	beforeEach(() => {

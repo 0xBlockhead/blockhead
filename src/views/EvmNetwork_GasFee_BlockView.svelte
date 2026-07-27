@@ -2,14 +2,9 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
@@ -26,36 +21,15 @@
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.EvmNetwork_GasFee_Block>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.EvmNetwork_GasFee_Block>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.EvmNetwork_GasFee_Block> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const evmNetworkGasFeeBlock = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {
-			baseFeePerGas: true,
-		},
-	} : {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const evmNetworkGasFeeBlock = $derived(selection({
 		fields: {
 			baseFeePerGas: true,
 		},
 	}))
-	const titleFallback = $derived([(String((pendingEntity.blockNumber) ?? '') ? 'Block ' + String((pendingEntity.blockNumber) ?? '') : ''), (String((pendingEntity.baseFeePerGas) ?? '') ? String((pendingEntity.baseFeePerGas) ?? '') + ' wei' : '')].filter(Boolean).join(' ') || 'EVM network gas fee block')
-	const viewDomId = $derived('evm-network-gas-fee-block-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const titleFallback = $derived(([(String(pendingEntity.blockNumber ?? '') ? 'Block ' + String(pendingEntity.blockNumber ?? '') : ''), (String(pendingEntity.baseFeePerGas ?? '') ? String(pendingEntity.baseFeePerGas ?? '') + ' wei' : '')].filter(Boolean).join(' ')) || 'EVM network gas fee block')
 
 
 	// Components
@@ -67,31 +41,20 @@
 
 <EntityView
 	entityType={EntityType.EvmNetwork_GasFee_Block}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
 	href={
-		href ?? (
-			selection.entitySelector != null && 'blockNumber' in selection.entitySelector
-			&& selection.entitySelector.blockNumber != null
-			&& selection.entitySelector != null && '$network' in selection.entitySelector ?
-				selection.entitySelector.$network != null && 'caip2' in selection.entitySelector.$network
-				&& selection.entitySelector.$network.caip2 != null ?
-					resolve('/network/[network=networkCaip2OrNetworkSlug]/fee-market/block/[blockNumber=nonNegativeBigInt]', {
-				blockNumber: String(selection.entitySelector.blockNumber ?? ''),
-				network: String(caip2StringFromValue(selection.entitySelector.$network.caip2) ?? ''),
-			})
-			:
-					selection.entitySelector.$network != null && 'slug' in selection.entitySelector.$network
-					&& selection.entitySelector.$network.slug != null ?
-						resolve('/network/[network=networkCaip2OrNetworkSlug]/fee-market/block/[blockNumber=nonNegativeBigInt]', {
-					blockNumber: String(selection.entitySelector.blockNumber ?? ''),
-					network: String(selection.entitySelector.$network.slug ?? ''),
-				})
-				:
-					undefined
-		:
-				undefined
+		href ?? resolve(
+			'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/fee-market/block/[blockNumber=nonNegativeBigInt]',
+			{
+				network: (
+					'caip2' in selection.entitySelector.$network ?
+						String(caip2StringFromValue(selection.entitySelector.$network.caip2))
+					:
+						String(selection.entitySelector.$network.slug)
+				),
+				blockNumber: String(selection.entitySelector.blockNumber),
+			}
 		)
 	}
 	{layout}
@@ -101,8 +64,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={evmNetworkGasFeeBlock}>
 			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[(String((resolvedEntity.blockNumber) ?? '') ? 'Block ' + String((resolvedEntity.blockNumber) ?? '') : ''), (String((resolvedEntity.baseFeePerGas) ?? '') ? String((resolvedEntity.baseFeePerGas) ?? '') + ' wei' : '')].filter(Boolean).join(' ') || title || titleFallback}
+				{([(String(pendingEntity.blockNumber) ? 'Block ' + String(pendingEntity.blockNumber) : ''), (String(entity.baseFeePerGas ?? '') ? String(entity.baseFeePerGas ?? '') + ' wei' : '')].filter(Boolean).join(' ')) || title || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -110,9 +72,8 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={evmNetworkGasFeeBlock}>
 			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const baseFeePerGas0 = resolvedEntity.baseFeePerGas}
-				{#if baseFeePerGas0 !== undefined && baseFeePerGas0 !== null}
+				{@const baseFeePerGas0 = entity.baseFeePerGas}
+				{#if baseFeePerGas0 != null}
 					<NumberValue
 						value={baseFeePerGas0}
 					/>
@@ -124,35 +85,13 @@
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		<ResourceBoundary resource={evmNetworkGasFeeBlock}>
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				<span data-text="muted">
-					<NetworkView
-						selection={select(EntityType.Network, selection.entitySelector.$network)}
-						href={
-							(
-								selection.entitySelector.$network != null && 'caip2' in selection.entitySelector.$network
-								&& selection.entitySelector.$network.caip2 != null ?
-									resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-								network: String(caip2StringFromValue(selection.entitySelector.$network.caip2) ?? ''),
-							})
-							:
-									selection.entitySelector.$network != null && 'slug' in selection.entitySelector.$network
-									&& selection.entitySelector.$network.slug != null ?
-										resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-									network: String(selection.entitySelector.$network.slug ?? ''),
-								})
-								:
-									undefined
-							)
-						}
-						layout={EntityLayout.Title}
-						open={false}
-					/>
-				</span>
-			{/snippet}
-		</ResourceBoundary>
+		<span data-text="muted">
+			<NetworkView
+				selection={select(EntityType.Network, selection.entitySelector.$network)}
+				layout={EntityLayout.Title}
+				open={false}
+			/>
+		</span>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -160,43 +99,18 @@
 			<div>
 				<dt>Block number</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									blockNumber: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const blockNumber = resolvedEntity.blockNumber}
-							{#if blockNumber !== undefined && blockNumber !== null}
-								<NumberValue
-									value={blockNumber}
-								/>
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					<NumberValue
+						value={pendingEntity.blockNumber}
+					/>
 				</dd>
 			</div>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							baseFeePerGas: true,
-						},
-					})
-				}
+				resource={evmNetworkGasFeeBlock}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const baseFeePerGas = resolvedEntity.baseFeePerGas}
-					{#if baseFeePerGas !== undefined && baseFeePerGas !== null}
+					{@const baseFeePerGas = entity.baseFeePerGas}
+					{#if baseFeePerGas != null}
 						<div>
 							<dt>Base fee per gas</dt>
 							<dd>
@@ -214,7 +128,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							legacyGasPrice: true,
 						},
@@ -222,9 +135,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const legacyGasPrice = resolvedEntity.legacyGasPrice}
-					{#if legacyGasPrice !== undefined && legacyGasPrice !== null}
+					{@const legacyGasPrice = entity.legacyGasPrice}
+					{#if legacyGasPrice != null}
 						<div>
 							<dt>Legacy gas price</dt>
 							<dd>
@@ -242,7 +154,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							maxPriorityFeePerGas: true,
 						},
@@ -250,9 +161,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const maxPriorityFeePerGas = resolvedEntity.maxPriorityFeePerGas}
-					{#if maxPriorityFeePerGas !== undefined && maxPriorityFeePerGas !== null}
+					{@const maxPriorityFeePerGas = entity.maxPriorityFeePerGas}
+					{#if maxPriorityFeePerGas != null}
 						<div>
 							<dt>Max priority fee per gas</dt>
 							<dd>
@@ -272,7 +182,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							gasUsedRatio: true,
 						},
@@ -280,9 +189,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const gasUsedRatio = resolvedEntity.gasUsedRatio}
-					{#if gasUsedRatio !== undefined && gasUsedRatio !== null}
+					{@const gasUsedRatio = entity.gasUsedRatio}
+					{#if gasUsedRatio != null}
 						<div>
 							<dt>Gas used ratio</dt>
 							<dd>
@@ -299,7 +207,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							priorityFeeRewardAt50thPercentile: true,
 						},
@@ -307,9 +214,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const priorityFeeRewardAt50thPercentile = resolvedEntity.priorityFeeRewardAt50thPercentile}
-					{#if priorityFeeRewardAt50thPercentile !== undefined && priorityFeeRewardAt50thPercentile !== null}
+					{@const priorityFeeRewardAt50thPercentile = entity.priorityFeeRewardAt50thPercentile}
+					{#if priorityFeeRewardAt50thPercentile != null}
 						<div>
 							<dt>Priority fee reward at 50th percentile</dt>
 							<dd>
@@ -327,7 +233,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							baseFeePerBlobGas: true,
 						},
@@ -335,9 +240,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const baseFeePerBlobGas = resolvedEntity.baseFeePerBlobGas}
-					{#if baseFeePerBlobGas !== undefined && baseFeePerBlobGas !== null}
+					{@const baseFeePerBlobGas = entity.baseFeePerBlobGas}
+					{#if baseFeePerBlobGas != null}
 						<div>
 							<dt>Base fee per blob gas</dt>
 							<dd>
@@ -355,7 +259,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							blobGasUsedRatio: true,
 						},
@@ -363,9 +266,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const blobGasUsedRatio = resolvedEntity.blobGasUsedRatio}
-					{#if blobGasUsedRatio !== undefined && blobGasUsedRatio !== null}
+					{@const blobGasUsedRatio = entity.blobGasUsedRatio}
+					{#if blobGasUsedRatio != null}
 						<div>
 							<dt>Blob gas used ratio</dt>
 							<dd>
@@ -386,23 +288,6 @@
 				<dd>
 					<NetworkView
 						selection={select(EntityType.Network, selection.entitySelector.$network)}
-						href={
-							(
-								selection.entitySelector.$network != null && 'caip2' in selection.entitySelector.$network
-								&& selection.entitySelector.$network.caip2 != null ?
-									resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-								network: String(caip2StringFromValue(selection.entitySelector.$network.caip2) ?? ''),
-							})
-							:
-									selection.entitySelector.$network != null && 'slug' in selection.entitySelector.$network
-									&& selection.entitySelector.$network.slug != null ?
-										resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-									network: String(selection.entitySelector.$network.slug ?? ''),
-								})
-								:
-									undefined
-							)
-						}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

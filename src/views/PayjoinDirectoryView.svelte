@@ -2,13 +2,9 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// State
@@ -16,41 +12,24 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.PayjoinDirectory>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.PayjoinDirectory>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.PayjoinDirectory> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const payjoinDirectory = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {
-			ohttpGatewayUrl: true,
-		},
-	} : {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const viewSelection = $derived(selection({
+		sources: selection.sources ?? [
+			Source.PayjoinDirectory_Rest,
+		],
+	}))
+	const payjoinDirectory = $derived(viewSelection({
 		fields: {
 			ohttpGatewayUrl: true,
 			ohttpKeyConfig: true,
 		},
 	}))
-	const titleFallback = $derived([String((pendingEntity.directoryUrl) ?? '')].filter(Boolean).join(' ') || 'payjoin directory')
-	const viewDomId = $derived('payjoin-directory-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const titleFallback = $derived((pendingEntity.directoryUrl ?? '') || 'payjoin directory')
 
 
 	// Components
@@ -63,38 +42,22 @@
 
 <EntityView
 	entityType={EntityType.PayjoinDirectory}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'ohttpGatewayUrl')}
-			{[String((pendingEntity.directoryUrl) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-		{:else}
-			<ResourceBoundary resource={payjoinDirectory}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.directoryUrl) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		{(pendingEntity.directoryUrl ?? '') || 'payjoin directory'}
 	{/snippet}
 
 	{#snippet Value()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'ohttpGatewayUrl')}
-			{[String((pendingEntity.ohttpGatewayUrl) ?? '')].filter(Boolean).join(' ') || [String((pendingEntity.directoryUrl) ?? '')].filter(Boolean).join(' ') || titleFallback}
-		{:else}
-			<ResourceBoundary resource={payjoinDirectory}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.ohttpGatewayUrl) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.directoryUrl) ?? '')].filter(Boolean).join(' ') || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={payjoinDirectory}>
+			{#snippet children(entity)}
+				{(entity.ohttpGatewayUrl ?? '') || pendingEntity.directoryUrl || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -102,59 +65,32 @@
 			<div>
 				<dt>directory URL</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									directoryUrl: true,
-								},
-							})
-						}
+					<a
+						href={String(pendingEntity.directoryUrl)}
+						target="_blank"
+						rel="noreferrer noopener"
 					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const directoryUrl = resolvedEntity.directoryUrl}
-							{#if directoryUrl !== undefined && directoryUrl !== null}
-								<svelte:element
-									this={'a'}
-									href={String(directoryUrl)}
-									target="_blank"
-									rel="noreferrer noopener"
-								>
-									<TruncatedValue value={String(directoryUrl)} />
-								</svelte:element>
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+						<TruncatedValue value={String(pendingEntity.directoryUrl)} />
+					</a>
 				</dd>
 			</div>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							ohttpGatewayUrl: true,
-						},
-					})
-				}
+				resource={payjoinDirectory}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const ohttpGatewayUrl = resolvedEntity.ohttpGatewayUrl}
-					{#if ohttpGatewayUrl !== undefined && ohttpGatewayUrl !== null}
+					{@const ohttpGatewayUrl = entity.ohttpGatewayUrl}
+					{#if ohttpGatewayUrl != null}
 						<div>
 							<dt>ohttp gateway URL</dt>
 							<dd>
-								<svelte:element
-									this={'a'}
+								<a
 									href={String(ohttpGatewayUrl)}
 									target="_blank"
 									rel="noreferrer noopener"
 								>
 									<TruncatedValue value={String(ohttpGatewayUrl)} />
-								</svelte:element>
+								</a>
 							</dd>
 						</div>
 					{/if}
@@ -163,8 +99,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							maxPayloadBytes: true,
 						},
@@ -172,9 +107,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const maxPayloadBytes = resolvedEntity.maxPayloadBytes}
-					{#if maxPayloadBytes !== undefined && maxPayloadBytes !== null}
+					{@const maxPayloadBytes = entity.maxPayloadBytes}
+					{#if maxPayloadBytes != null}
 						<div>
 							<dt>max payload bytes</dt>
 							<dd>
@@ -190,23 +124,15 @@
 
 		<dl data-column-item="center">
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							ohttpKeyConfig: true,
-						},
-					})
-				}
+				resource={payjoinDirectory}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const ohttpKeyConfig = resolvedEntity.ohttpKeyConfig}
-					{#if ohttpKeyConfig !== undefined && ohttpKeyConfig !== null}
+					{@const ohttpKeyConfig = entity.ohttpKeyConfig}
+					{#if ohttpKeyConfig != null}
 						<div>
 							<dt>ohttp key config</dt>
 							<dd>
-								<TruncatedValue value={String((ohttpKeyConfig) ?? '')} />
+								<TruncatedValue value={ohttpKeyConfig} />
 							</dd>
 						</div>
 					{/if}
@@ -222,12 +148,12 @@
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
-				<BlockheadPayjoinSessionsView
-					selection={payjoinDirectoryBlockheadPayjoinSessionsViewBlockheadSessionsResource}
-					countResource={payjoinDirectoryBlockheadPayjoinSessionsViewBlockheadSessionsResource.count}
-					title='blockhead sessions'
-					id='BlockheadPayjoinSessionsView-blockhead-sessions'
-				/>
+					<BlockheadPayjoinSessionsView
+						selection={payjoinDirectoryBlockheadPayjoinSessionsViewBlockheadSessionsResource}
+						countResource={payjoinDirectoryBlockheadPayjoinSessionsViewBlockheadSessionsResource.count}
+						title='blockhead sessions'
+						id='blockhead-sessions'
+					/>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>

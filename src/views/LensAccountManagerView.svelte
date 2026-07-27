@@ -2,14 +2,8 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
 	import { EvmAddress } from '$/schema/ZeroExHex.ts'
 
 
@@ -22,40 +16,18 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.LensAccountManager>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.LensAccountManager>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.LensAccountManager> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const lensAccountManager = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {
-			isLensManager: true,
-		},
-	} : {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const lensAccountManager = $derived(selection({
 		fields: {
 			isLensManager: true,
 		},
 	}))
-	const titleFallback = $derived([String((pendingEntity.manager) ?? '')].filter(Boolean).join(' ') || 'Lens account manager')
-	const viewDomId = $derived('lens-account-manager-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const titleFallback = $derived(String(pendingEntity.manager ?? '') || 'Lens account manager')
 
 
 	// Components
@@ -68,73 +40,31 @@
 
 <EntityView
 	entityType={EntityType.LensAccountManager}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'isLensManager')}
-			{@const manager0 = pendingEntity.manager}
-			{#if manager0 !== undefined && manager0 !== null}
-				<TruncatedValue value={String((manager0) ?? '')} />
-			{/if}
-		{:else}
-			<ResourceBoundary resource={lensAccountManager}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const manager0 = resolvedEntity.manager}
-					{#if manager0 !== undefined && manager0 !== null}
-						<TruncatedValue value={String((manager0) ?? '')} />
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<TruncatedValue value={String(pendingEntity.manager)} />
 	{/snippet}
 
 	{#snippet Value()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'isLensManager')}
-			{@const manager0 = pendingEntity.manager}
-			{#if manager0 !== undefined && manager0 !== null}
-				<TruncatedValue value={String((manager0) ?? '')} />
-			{/if}
-		{:else}
-			<ResourceBoundary resource={lensAccountManager}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const manager0 = resolvedEntity.manager}
-					{#if manager0 !== undefined && manager0 !== null}
-						<TruncatedValue value={String((manager0) ?? '')} />
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<TruncatedValue value={String(pendingEntity.manager)} />
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'isLensManager')}
-			{@const isLensManager0 = pendingEntity.isLensManager}
-			{#if isLensManager0 !== undefined && isLensManager0 !== null}
-				<span data-text="muted">
-					{isLensManager0 ? 'Yes' : 'No'}
-				</span>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={lensAccountManager}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const isLensManager0 = resolvedEntity.isLensManager}
-					{#if isLensManager0 !== undefined && isLensManager0 !== null}
-						<span data-text="muted">
-							{isLensManager0 ? 'Yes' : 'No'}
-						</span>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={lensAccountManager}>
+			{#snippet children(entity)}
+				{@const isLensManager0 = entity.isLensManager}
+				{#if isLensManager0 != null}
+					<span data-text="muted">
+						{isLensManager0 ? 'Yes' : 'No'}
+					</span>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -142,31 +72,13 @@
 			<div>
 				<dt>Manager</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									manager: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const manager = resolvedEntity.manager}
-							{#if manager !== undefined && manager !== null}
-								<TruncatedValue value={String((manager) ?? '')} />
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					<TruncatedValue value={String(pendingEntity.manager)} />
 				</dd>
 			</div>
 
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							addedAt: true,
 						},
@@ -174,9 +86,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const addedAt = resolvedEntity.addedAt}
-					{#if addedAt !== undefined && addedAt !== null}
+					{@const addedAt = entity.addedAt}
+					{#if addedAt != null}
 						<div>
 							<dt>Added at</dt>
 							<dd>
@@ -188,19 +99,11 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							isLensManager: true,
-						},
-					})
-				}
+				resource={lensAccountManager}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const isLensManager = resolvedEntity.isLensManager}
-					{#if isLensManager !== undefined && isLensManager !== null}
+					{@const isLensManager = entity.isLensManager}
+					{#if isLensManager != null}
 						<div>
 							<dt>Is Lens manager</dt>
 							<dd>
@@ -216,7 +119,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							canExecuteTransactions: true,
 						},
@@ -224,9 +126,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const canExecuteTransactions = resolvedEntity.canExecuteTransactions}
-					{#if canExecuteTransactions !== undefined && canExecuteTransactions !== null}
+					{@const canExecuteTransactions = entity.canExecuteTransactions}
+					{#if canExecuteTransactions != null}
 						<div>
 							<dt>Can execute transactions</dt>
 							<dd>
@@ -240,7 +141,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							canSetMetadataUri: true,
 						},
@@ -248,9 +148,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const canSetMetadataUri = resolvedEntity.canSetMetadataUri}
-					{#if canSetMetadataUri !== undefined && canSetMetadataUri !== null}
+					{@const canSetMetadataUri = entity.canSetMetadataUri}
+					{#if canSetMetadataUri != null}
 						<div>
 							<dt>Can set metadata URI</dt>
 							<dd>
@@ -264,7 +163,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							canTransferNative: true,
 						},
@@ -272,9 +170,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const canTransferNative = resolvedEntity.canTransferNative}
-					{#if canTransferNative !== undefined && canTransferNative !== null}
+					{@const canTransferNative = entity.canTransferNative}
+					{#if canTransferNative != null}
 						<div>
 							<dt>Can transfer native</dt>
 							<dd>
@@ -288,7 +185,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							canTransferTokens: true,
 						},
@@ -296,9 +192,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const canTransferTokens = resolvedEntity.canTransferTokens}
-					{#if canTransferTokens !== undefined && canTransferTokens !== null}
+					{@const canTransferTokens = entity.canTransferTokens}
+					{#if canTransferTokens != null}
 						<div>
 							<dt>Can transfer tokens</dt>
 							<dd>
@@ -314,17 +209,6 @@
 				<dd>
 					<LensAccountView
 						selection={select(EntityType.LensAccount, selection.entitySelector.$account)}
-						href={
-							(
-								selection.entitySelector.$account != null && 'address' in selection.entitySelector.$account
-								&& selection.entitySelector.$account.address != null ?
-									resolve('/lens/account/[address=evmAddress]', {
-								address: String(selection.entitySelector.$account.address ?? ''),
-							})
-							:
-									undefined
-							)
-						}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

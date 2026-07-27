@@ -8,7 +8,6 @@
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
@@ -38,13 +37,12 @@
 
 
 <svelte:head>
-	<title>{(data.title ?? (pageSelection.entity == null ? 'Lens' : [String((({ ...data.selector, ...pageSelection.entity }).protocolName) ?? '')].filter(Boolean).join(' ') || 'Lens'))} • Lens • Blockhead</title>
+	<title>{(data.title ?? (pageSelection.entity == null ? 'Lens' : pageSelection.entity.protocolName || 'Lens'))} • Lens • Blockhead</title>
 </svelte:head>
 
 
 <Page>
 	<LensNetworkView
-		href={resolve('/lens')}
 		selection={pageSelection}
 	/>
 </Page>

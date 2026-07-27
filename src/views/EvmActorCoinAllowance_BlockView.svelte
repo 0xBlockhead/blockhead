@@ -2,14 +2,8 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
 
 
 	// Context
@@ -21,40 +15,18 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.EvmActorCoinAllowance_Block>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.EvmActorCoinAllowance_Block>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.EvmActorCoinAllowance_Block> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const evmActorCoinAllowanceBlock = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {
-			allowance: true,
-		},
-	} : {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const evmActorCoinAllowanceBlock = $derived(selection({
 		fields: {
 			allowance: true,
 		},
 	}))
-	const titleFallback = $derived([(String((pendingEntity.blockNumber) ?? '') ? 'Block ' + String((pendingEntity.blockNumber) ?? '') : '')].filter(Boolean).join(' ') || 'EVM actor coin allowance block')
-	const viewDomId = $derived('evm-actor-coin-allowance-block-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const titleFallback = $derived((String(pendingEntity.blockNumber ?? '') ? 'Block ' + String(pendingEntity.blockNumber ?? '') : '') || 'EVM actor coin allowance block')
 
 
 	// Components
@@ -66,61 +38,28 @@
 
 <EntityView
 	entityType={EntityType.EvmActorCoinAllowance_Block}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'allowance')}
-			{[(String((pendingEntity.blockNumber) ?? '') ? 'Block ' + String((pendingEntity.blockNumber) ?? '') : '')].filter(Boolean).join(' ') || title || titleFallback}
-		{:else}
-			<ResourceBoundary resource={evmActorCoinAllowanceBlock}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[(String((resolvedEntity.blockNumber) ?? '') ? 'Block ' + String((resolvedEntity.blockNumber) ?? '') : '')].filter(Boolean).join(' ') || title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		{(String(pendingEntity.blockNumber ?? '') ? 'Block ' + String(pendingEntity.blockNumber ?? '') : '') || 'EVM actor coin allowance block'}
 	{/snippet}
 
 	{#snippet Value()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'allowance')}
-			{[String((pendingEntity.allowance) ?? '')].filter(Boolean).join(' ') || [(String((pendingEntity.blockNumber) ?? '') ? 'Block ' + String((pendingEntity.blockNumber) ?? '') : '')].filter(Boolean).join(' ') || titleFallback}
-		{:else}
-			<ResourceBoundary resource={evmActorCoinAllowanceBlock}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{[String((resolvedEntity.allowance) ?? '')].filter(Boolean).join(' ') || [(String((resolvedEntity.blockNumber) ?? '') ? 'Block ' + String((resolvedEntity.blockNumber) ?? '') : '')].filter(Boolean).join(' ') || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<ResourceBoundary resource={evmActorCoinAllowanceBlock}>
+			{#snippet children(entity)}
+				{String(entity.allowance) || (String(pendingEntity.blockNumber) ? 'Block ' + String(pendingEntity.blockNumber) : '') || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if layout !== EntityLayout.SummaryDetails && Object.hasOwn(prefetched, 'allowance')}
-			{@const source0 = pendingEntity.source}
-			{#if source0 !== undefined && source0 !== null}
-				<span data-text="muted">
-					{String((source0) ?? '')}
-				</span>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={evmActorCoinAllowanceBlock}>
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const source0 = resolvedEntity.source}
-					{#if source0 !== undefined && source0 !== null}
-						<span data-text="muted">
-							{String((source0) ?? '')}
-						</span>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+		<span data-text="muted">
+			{pendingEntity.source}
+		</span>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -128,48 +67,14 @@
 			<div>
 				<dt>Block number</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									blockNumber: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const blockNumber = resolvedEntity.blockNumber}
-							{#if blockNumber !== undefined && blockNumber !== null}
-								{String((blockNumber) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{String(pendingEntity.blockNumber)}
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									source: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const source = resolvedEntity.source}
-							{#if source !== undefined && source !== null}
-								{String((source) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{pendingEntity.source}
 				</dd>
 			</div>
 
@@ -177,21 +82,10 @@
 				<dt>Allowance</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									allowance: true,
-								},
-							})
-						}
+						resource={evmActorCoinAllowanceBlock}
 					>
 						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const allowance = resolvedEntity.allowance}
-							{#if allowance !== undefined && allowance !== null}
-								{String((allowance) ?? '')}
-							{/if}
+							{String(entity.allowance)}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -200,7 +94,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							blockTag: true,
 						},
@@ -208,13 +101,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const blockTag = resolvedEntity.blockTag}
-					{#if blockTag !== undefined && blockTag !== null}
+					{@const blockTag = entity.blockTag}
+					{#if blockTag != null}
 						<div>
 							<dt>Block tag</dt>
 							<dd>
-								{String((blockTag) ?? '')}
+								{blockTag}
 							</dd>
 						</div>
 					{/if}
@@ -224,7 +116,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							checkedAt: true,
 						},
@@ -232,9 +123,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const checkedAt = resolvedEntity.checkedAt}
-					{#if checkedAt !== undefined && checkedAt !== null}
+					{@const checkedAt = entity.checkedAt}
+					{#if checkedAt != null}
 						<div>
 							<dt>Checked at</dt>
 							<dd>
@@ -250,31 +140,6 @@
 				<dd>
 					<EvmActorCoinAllowanceView
 						selection={select(EntityType.EvmActorCoinAllowance, selection.entitySelector.$allowance)}
-						href={
-							(
-								selection.entitySelector.$allowance != null && '$actor' in selection.entitySelector.$allowance
-								&& selection.entitySelector.$allowance.$actor != null && 'address' in selection.entitySelector.$allowance.$actor
-								&& selection.entitySelector.$allowance.$actor.address != null
-								&& selection.entitySelector.$allowance != null && '$contract' in selection.entitySelector.$allowance
-								&& selection.entitySelector.$allowance.$contract != null && '$network' in selection.entitySelector.$allowance.$contract
-								&& selection.entitySelector.$allowance.$contract.$network != null && 'caip2' in selection.entitySelector.$allowance.$contract.$network
-								&& selection.entitySelector.$allowance.$contract.$network.caip2 != null && 'reference' in selection.entitySelector.$allowance.$contract.$network.caip2
-								&& selection.entitySelector.$allowance.$contract.$network.caip2.reference != null
-								&& selection.entitySelector.$allowance.$contract != null && 'address' in selection.entitySelector.$allowance.$contract
-								&& selection.entitySelector.$allowance.$contract.address != null
-								&& selection.entitySelector.$allowance != null && '$spender' in selection.entitySelector.$allowance
-								&& selection.entitySelector.$allowance.$spender != null && 'address' in selection.entitySelector.$allowance.$spender
-								&& selection.entitySelector.$allowance.$spender.address != null ?
-									resolve('/~/accounts/allowance/[chainId=eip155ChainId]/[owner=evmAddress]/[coin=evmAddress]/[spender=evmAddress]', {
-								owner: String(selection.entitySelector.$allowance.$actor.address ?? ''),
-								chainId: String(selection.entitySelector.$allowance.$contract.$network.caip2.reference ?? ''),
-								coin: String(selection.entitySelector.$allowance.$contract.address ?? ''),
-								spender: String(selection.entitySelector.$allowance.$spender.address ?? ''),
-							})
-							:
-									undefined
-							)
-						}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

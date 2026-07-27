@@ -1,15 +1,12 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { entity, facet } from '$/schema/$schema.ts'
+import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { UrlString } from '$/schema/UrlString.ts'
 import { type } from 'arktype'
 
-export enum A2aAgentInterfaceSelector {
-	CardSnapshotProtocolBindingUrl = 'CardSnapshotProtocolBindingUrl',
-}
-export const A2aAgentInterface = entity({
+export default entity({
 	entityType: EntityType.A2aAgentInterface,
 	labels: {
 		singular: 'a2a agent interface',
@@ -32,7 +29,7 @@ export const A2aAgentInterface = entity({
 		label: 'URL',
 		description: 'The URL for the source-domain resource.',
 		type: EntityFieldType.Primitive,
-		primitiveType: (UrlString),
+		primitiveType: UrlString,
 		cardinality: EntityFieldCardinality.One,
 	},
 	protocolVersion: {

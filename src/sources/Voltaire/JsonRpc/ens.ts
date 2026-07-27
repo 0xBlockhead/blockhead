@@ -8,6 +8,7 @@ import {
 } from '$/constants/Ens.ts'
 import { TransportType } from '$/constants/TransportType.ts'
 import { hexLowerOfByteSize } from '$/lib/hexLowerOfByteSize.ts'
+import type { SourceEndpoint } from '$/sources/SourceBinding.ts'
 import type { JsonValue } from '$/typescript/JsonValue.ts'
 
 import { getProviderForExecutionUrl } from './queries.ts'
@@ -16,6 +17,11 @@ const ENS_REGISTRY_MAINNET = '0x00000000000C2E074eC69A0dFb2997BA6C7d2e1e' as con
 const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000'
 
 const emptyStringRecord: Record<string, string> = {}
+
+type ExecutionTransport = {
+	endpoint: SourceEndpoint
+	transportType: TransportType
+}
 
 const ENS_REGISTRY_ABI = new Abi([
 	{
@@ -147,18 +153,16 @@ const decodedBytesAsHex = (value: JsonValue | Uint8Array) => (
 )
 
 const getRegistryAddress = async ({
-	rpcUrl,
+	endpoint,
 	transportType,
 	node,
 	method,
-}: {
-	rpcUrl: string
-	transportType: TransportType
+}: ExecutionTransport & {
 	node: `0x${string}`
 	method: 'owner' | 'resolver'
 }) => {
 	const provider = await getProviderForExecutionUrl({
-		url: rpcUrl,
+		endpoint,
 		transportType,
 	})
 	const response = await provider.request({
@@ -181,18 +185,16 @@ const getRegistryAddress = async ({
 }
 
 const resolveAddr = async ({
-	rpcUrl,
+	endpoint,
 	transportType,
 	resolverAddress,
 	node,
-}: {
-	rpcUrl: string
-	transportType: TransportType
+}: ExecutionTransport & {
 	resolverAddress: `0x${string}`
 	node: `0x${string}`
 }) => {
 	const provider = await getProviderForExecutionUrl({
-		url: rpcUrl,
+		endpoint,
 		transportType,
 	})
 	const response = await provider.request({
@@ -215,20 +217,18 @@ const resolveAddr = async ({
 }
 
 const resolveText = async ({
-	rpcUrl,
+	endpoint,
 	transportType,
 	resolverAddress,
 	node,
 	key,
-}: {
-	rpcUrl: string
-	transportType: TransportType
+}: ExecutionTransport & {
 	resolverAddress: `0x${string}`
 	node: `0x${string}`
 	key: string
 }) => {
 	const provider = await getProviderForExecutionUrl({
-		url: rpcUrl,
+		endpoint,
 		transportType,
 	})
 	const response = await provider.request({
@@ -248,18 +248,16 @@ const resolveText = async ({
 }
 
 const resolveContentHash = async ({
-	rpcUrl,
+	endpoint,
 	transportType,
 	resolverAddress,
 	node,
-}: {
-	rpcUrl: string
-	transportType: TransportType
+}: ExecutionTransport & {
 	resolverAddress: `0x${string}`
 	node: `0x${string}`
 }) => {
 	const provider = await getProviderForExecutionUrl({
-		url: rpcUrl,
+		endpoint,
 		transportType,
 	})
 	const response = await provider.request({
@@ -294,18 +292,16 @@ const resolverAbiJsonTextFromWire = (
 }
 
 const resolveResolverAbiJson = async ({
-	rpcUrl,
+	endpoint,
 	transportType,
 	resolverAddress,
 	node,
-}: {
-	rpcUrl: string
-	transportType: TransportType
+}: ExecutionTransport & {
 	resolverAddress: `0x${string}`
 	node: `0x${string}`
 }) => {
 	const provider = await getProviderForExecutionUrl({
-		url: rpcUrl,
+		endpoint,
 		transportType,
 	})
 	const response = await provider.request({
@@ -344,20 +340,18 @@ const resolveResolverAbiJson = async ({
 }
 
 const resolveMulticoinAddr = async ({
-	rpcUrl,
+	endpoint,
 	transportType,
 	resolverAddress,
 	node,
 	coinType,
-}: {
-	rpcUrl: string
-	transportType: TransportType
+}: ExecutionTransport & {
 	resolverAddress: `0x${string}`
 	node: `0x${string}`
 	coinType: number
 }) => {
 	const provider = await getProviderForExecutionUrl({
-		url: rpcUrl,
+		endpoint,
 		transportType,
 	})
 	const response = await provider.request({
@@ -386,18 +380,16 @@ const reverseNode = (address: `0x${string}`) => (
 )
 
 const resolveReverseName = async ({
-	rpcUrl,
+	endpoint,
 	transportType,
 	resolverAddress,
 	node,
-}: {
-	rpcUrl: string
-	transportType: TransportType
+}: ExecutionTransport & {
 	resolverAddress: `0x${string}`
 	node: `0x${string}`
 }) => {
 	const provider = await getProviderForExecutionUrl({
-		url: rpcUrl,
+		endpoint,
 		transportType,
 	})
 	const response = await provider.request({
@@ -423,15 +415,13 @@ export const normalizeEnsName = (raw: string) => {
 	return ensToString(ensNormalizeNode(trimmed))
 }
 
-export const resolveEnsForwardForRpcUrl = async ({
-	rpcUrl,
+export const resolveEnsForwardForEndpoint = async ({
+	endpoint,
 	transportType,
 	name,
 	textKeys = ensTextRecords.map((row) => row.key),
 	coinTypeIds = ensCoinTypes.map((row) => Number(row.key)),
-}: {
-	rpcUrl: string
-	transportType: TransportType
+}: ExecutionTransport & {
 	name: string
 	textKeys?: readonly string[]
 	coinTypeIds?: readonly number[]
@@ -439,13 +429,13 @@ export const resolveEnsForwardForRpcUrl = async ({
 	const node = bytes32FromNamehash(namehash(name))
 	const [owner, resolverAddress] = await Promise.all([
 		getRegistryAddress({
-			rpcUrl,
+			endpoint,
 			transportType,
 			node,
 			method: 'owner',
 		}),
 		getRegistryAddress({
-			rpcUrl,
+			endpoint,
 			transportType,
 			node,
 			method: 'resolver',
@@ -464,7 +454,7 @@ export const resolveEnsForwardForRpcUrl = async ({
 	}
 	const [address, textRecords, contentHash, resolverAbiJsonText, coinAddresses] = await Promise.all([
 		resolveAddr({
-			rpcUrl,
+			endpoint,
 			transportType,
 			resolverAddress,
 			node,
@@ -474,7 +464,7 @@ export const resolveEnsForwardForRpcUrl = async ({
 				[
 					key,
 					await resolveText({
-						rpcUrl,
+						endpoint,
 						transportType,
 						resolverAddress,
 						node,
@@ -485,13 +475,13 @@ export const resolveEnsForwardForRpcUrl = async ({
 		)
 			.then((entries) => Object.fromEntries(entries.filter(([, value]) => value !== ''))),
 		resolveContentHash({
-			rpcUrl,
+			endpoint,
 			transportType,
 			resolverAddress,
 			node,
 		}),
 		resolveResolverAbiJson({
-			rpcUrl,
+			endpoint,
 			transportType,
 			resolverAddress,
 			node,
@@ -501,7 +491,7 @@ export const resolveEnsForwardForRpcUrl = async ({
 				[
 					String(coinType),
 					await resolveMulticoinAddr({
-						rpcUrl,
+						endpoint,
 						transportType,
 						resolverAddress,
 						node,
@@ -527,18 +517,16 @@ export const resolveEnsForwardForRpcUrl = async ({
 	}
 }
 
-export const resolveEnsReverseForRpcUrl = async ({
-	rpcUrl,
+export const resolveEnsReverseForEndpoint = async ({
+	endpoint,
 	transportType,
 	address,
-}: {
-	rpcUrl: string
-	transportType: TransportType
+}: ExecutionTransport & {
 	address: `0x${string}`
 }) => {
 	const node = reverseNode(address)
 	const resolverAddress = await getRegistryAddress({
-		rpcUrl,
+		endpoint,
 		transportType,
 		node,
 		method: 'resolver',
@@ -547,9 +535,9 @@ export const resolveEnsReverseForRpcUrl = async ({
 			null
 		:
 			resolveReverseName({
-			rpcUrl,
-			transportType,
-			resolverAddress,
+				endpoint,
+				transportType,
+				resolverAddress,
 			node,
 		})
 }

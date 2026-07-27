@@ -1,40 +1,42 @@
 import type { DogecoinDipsGithubContents } from '$/sources/DogecoinDips/Github/types.ts'
-import { getGithubContents, getGithubRawText } from '$/sources/_shared/hosts/Github/Http/client.ts'
-import { sourceProviderDefinitions } from '$/sources/$sourceProviders.ts'
-import { Source } from '$/sources/Source.ts'
-import { SourceTargetKind } from '$/sources/SourceBinding.ts'
+import bindings from '$/sources/DogecoinDips/bindings.ts'
+import {
+	githubContentsUrl,
+	githubRawUrl,
+} from '$/sources/_shared/hosts/Github/Http/client.ts'
+import {
+	sourceGetJson,
+	sourceGetText,
+} from '$/sources/_runtime/http.ts'
 import { regex } from 'arkregex'
+import { Source } from '$/sources/Source.ts'
 
-const dogecoinDipsGithubBindings = sourceProviderDefinitions
-	.flatMap((provider) => provider.bindings)
-	.filter((binding) => (
-		binding.source === Source.DogecoinDips_Github
-		&& binding.target.kind === SourceTargetKind.GitRepository
-	))
+const binding = bindings[Source.DogecoinDips_Github]
 
-if (dogecoinDipsGithubBindings.length !== 1)
-	throw new Error('DogecoinDips_Github: canonical Git repository source binding is missing or ambiguous')
+const githubRepositoryTarget = regex('^(?<owner>[^/]+)/(?<repo>[^@]+)@(?<ref>[^:]+):(?<path>.*)$')
 
-const dogecoinDipsGithubBinding = dogecoinDipsGithubBindings[0]
-const dogecoinDipsGithubTarget = regex('^(?<owner>[^/]+)/(?<repo>[^@]+)@(?<ref>[^:]+):(?<path>.*)$')
-	.exec(dogecoinDipsGithubBinding.target.key)?.groups
+export const getContents = (): Promise<DogecoinDipsGithubContents> => {
+	const target = githubRepositoryTarget.exec(binding.target.key)?.groups
+	if (target == null)
+		throw new Error('DogecoinDips_Github: source binding has an invalid Git repository target')
 
-if (dogecoinDipsGithubTarget == null)
-	throw new Error('DogecoinDips_Github: source binding has an invalid Git repository target')
+	return sourceGetJson<DogecoinDipsGithubContents>(binding, githubContentsUrl(target))
+}
 
-export const getContents = (): Promise<DogecoinDipsGithubContents> => (
-	getGithubContents({
-		endpoints: dogecoinDipsGithubBinding.endpoints,
-		target: dogecoinDipsGithubTarget,
-	})
-)
+export const getMediaWikiText = ({
+	number,
+}: {
+	number: number
+}) => {
+	const target = githubRepositoryTarget.exec(binding.target.key)?.groups
+	if (target == null)
+		throw new Error('DogecoinDips_Github: source binding has an invalid Git repository target')
 
-export const getMediaWikiText = ({ number }: { number: number }) => (
-	getGithubRawText({
-		endpoints: dogecoinDipsGithubBinding.endpoints,
-		target: {
-			...dogecoinDipsGithubTarget,
-			path: `dip-${number.toString().padStart(4, '0')}.mediawiki`,
-		},
-	})
-)
+	return sourceGetText(binding, githubRawUrl({
+		...target,
+		path: [
+			target.path,
+			`dip-${number.toString().padStart(4, '0')}.mediawiki`,
+		].filter(Boolean).join('/'),
+	}))
+}

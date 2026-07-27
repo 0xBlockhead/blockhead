@@ -2,12 +2,12 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
@@ -23,31 +23,21 @@
 
 
 <Page>
+	{@const collectionSelection = select(EntityType._Global, {
+		scope: '$$liquidityPools',
+	})
+		.$$liquidityPools({
+			sources: [
+				Source.Dexscreener_OpenApi,
+			],
+			limit: 300,
+		})}
+
 	<LiquidityPoolsView
-		href={resolve('/pools')}
+		href={resolve('/(assets)/pools')}
 		title='Liquidity pools'
-		selection={
-			select(EntityType._Global, {
-				scope: '$$liquidityPools',
-			})
-				.$$liquidityPools({
-					sources: [
-						Source.Dexscreener_OpenApi,
-					],
-					limit: 300,
-				})
-		}
-		countResource={
-			select(EntityType._Global, {
-				scope: '$$liquidityPools',
-			})
-				.$$liquidityPools({
-					sources: [
-						Source.Dexscreener_OpenApi,
-					],
-					limit: 300,
-				}).count
-		}
+		selection={collectionSelection}
+		countResource={collectionSelection.count}
 		id='liquidity-pools'
 		data-column-item="flexible"
 		data-card

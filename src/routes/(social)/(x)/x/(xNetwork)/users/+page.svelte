@@ -2,12 +2,11 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
@@ -23,29 +22,15 @@
 
 
 <Page>
+	{@const collectionSelection = select(EntityType.XNetwork, {
+		scope: 'XNetwork',
+	}).$$xUsers}
+
 	<XUsersView
-		href={resolve('/x/users')}
+		href={resolve('/(social)/(x)/x/(xNetwork)/users')}
 		title='X users'
-		selection={
-			select(EntityType.XNetwork, {
-				scope: 'XNetwork',
-			})
-				.$$xUsers({
-					sources: [
-						Source.X_FxEmbed_Rest,
-					],
-				})
-		}
-		countResource={
-			select(EntityType.XNetwork, {
-				scope: 'XNetwork',
-			})
-				.$$xUsers({
-					sources: [
-						Source.X_FxEmbed_Rest,
-					],
-				}).count
-		}
+		selection={collectionSelection}
+		countResource={collectionSelection.count}
 		id='x-users'
 		data-column-item="flexible"
 		data-card

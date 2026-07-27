@@ -28,16 +28,16 @@
 
 
 <ParentPageCollapsible
-	href={resolve('/youtube')}
+	href={resolve('/(social)/(youtube)/youtube')}
 >
 	{#snippet Summary()}
-		{@const DetailView = GlobalYoutubeNetworkView}
-
-		<DetailView
-			selection={select(EntityType._GlobalYoutubeNetwork, data.selector, { sources: [
-	Source.Constants_Internal,
-] })}
-			href={resolve('/youtube')}
+		<GlobalYoutubeNetworkView
+			selection={
+				select(EntityType._GlobalYoutubeNetwork, data.selector, { sources: [
+					Source.Constants_Internal,
+				] })
+			}
+			href={resolve('/(social)/(youtube)/youtube')}
 			layout={EntityLayout.SummaryInline}
 		/>
 	{/snippet}

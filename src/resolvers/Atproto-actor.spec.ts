@@ -9,14 +9,12 @@ import {
 	entitySelectorsFromFields,
 	EntityMetaKey,
 } from '$/schema/$schema.ts'
-import { AtprotoActorSelector } from '$/schema/AtprotoActor.ts'
-import { AtprotoActor_TimestampSelector } from '$/schema/AtprotoActor_Timestamp.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import {
 	entityDefinitionByType,
 	schema,
 } from '$/schema/index.ts'
-import { sourceProviders } from '$/sources/$sourceProviders.ts'
+import sourceProviders from '$/sources/$sourceProviders.ts'
 import { Source } from '$/sources/Source.ts'
 
 const {
@@ -111,8 +109,8 @@ describe.each([
 		await expect(resolver(
 			EntityType.AtprotoActor,
 			'did',
-			AtprotoActorSelector.Handle
-		).resolve[AtprotoActorSelector.Handle].resolve({
+			'Handle'
+		).resolve['Handle'].resolve({
 			handle: 'alice.test',
 		}, context)).resolves.toEqual({
 			did: 'did:plc:alice',
@@ -144,8 +142,8 @@ describe.each([
 		await expect(resolver(
 			EntityType.AtprotoActor,
 			'did',
-			AtprotoActorSelector.Did
-		).resolve[AtprotoActorSelector.Did].resolve({
+			'Did'
+		).resolve['Did'].resolve({
 			did: 'did:plc:alice',
 		}, context)).resolves.toEqual({
 			did: 'did:plc:alice',
@@ -172,8 +170,8 @@ describe.each([
 		const observations = await resolver(
 			EntityType.AtprotoActor,
 			'$$timestamps',
-			AtprotoActorSelector.Did
-		).resolve[AtprotoActorSelector.Did].resolve({
+			'Did'
+		).resolve['Did'].resolve({
 			did: 'did:plc:alice',
 		}, context)
 
@@ -210,8 +208,8 @@ describe.each([
 		const actorObservations = resolver(
 			EntityType.AtprotoActor,
 			'$$timestamps',
-			AtprotoActorSelector.Did
-		).resolve[AtprotoActorSelector.Did]
+			'Did'
+		).resolve['Did']
 
 		const first = await actorObservations.resolve({
 			did: 'did:plc:alice',
@@ -248,8 +246,8 @@ describe.each([
 		await expect(resolver(
 			EntityType.AtprotoActor,
 			'$$timestamps',
-			AtprotoActorSelector.Did
-		).resolve[AtprotoActorSelector.Did].resolve({
+			'Did'
+		).resolve['Did'].resolve({
 			did: 'did:plc:alice',
 		}, context)).rejects.toThrow('profile unavailable')
 		expect(getProfile).toHaveBeenCalledTimes(1)
@@ -259,7 +257,7 @@ describe.each([
 		const historical = resolver(
 			EntityType.AtprotoActor_Timestamp,
 			'source',
-			AtprotoActor_TimestampSelector.AtprotoActorTimestampMsSource
+			'AtprotoActorTimestampMsSource'
 		)
 		const mismatchedSource = (
 			source === Source.Atproto_Xrpc ?
@@ -269,7 +267,7 @@ describe.each([
 		)
 
 		await expect(historical.resolve[
-			AtprotoActor_TimestampSelector.AtprotoActorTimestampMsSource
+			'AtprotoActorTimestampMsSource'
 		].resolve({
 			$actor: {
 				did: 'did:plc:alice',
@@ -278,7 +276,7 @@ describe.each([
 			source: mismatchedSource,
 		}, context)).rejects.toThrow('observation source mismatch')
 		await expect(historical.resolve[
-			AtprotoActor_TimestampSelector.AtprotoActorTimestampMsSource
+			'AtprotoActorTimestampMsSource'
 		].resolve({
 			$actor: {
 				did: 'did:plc:alice',
@@ -293,30 +291,30 @@ describe.each([
 		const didIdentity = resolver(
 			EntityType.AtprotoActor,
 			'did',
-			AtprotoActorSelector.Did
+			'Did'
 		)
 		const handleIdentity = resolver(
 			EntityType.AtprotoActor,
 			'did',
-			AtprotoActorSelector.Handle
+			'Handle'
 		)
 		const observations = resolver(
 			EntityType.AtprotoActor,
 			'$$timestamps',
-			AtprotoActorSelector.Did
+			'Did'
 		)
 		const posts = resolver(
 			EntityType.AtprotoActor,
 			'$$posts',
-			AtprotoActorSelector.Did
+			'Did'
 		)
 
-		expect(didIdentity.resolve[AtprotoActorSelector.Did]).toBeDefined()
-		expect(handleIdentity.resolve[AtprotoActorSelector.Handle]).toBeDefined()
-		expect(observations.resolve[AtprotoActorSelector.Did]).toBeDefined()
-		expect(observations.resolve[AtprotoActorSelector.Handle]).toBeUndefined()
-		expect(posts.resolve[AtprotoActorSelector.Did]).toBeDefined()
-		expect(posts.resolve[AtprotoActorSelector.Handle]).toBeUndefined()
+		expect(didIdentity.resolve['Did']).toBeDefined()
+		expect(handleIdentity.resolve['Handle']).toBeDefined()
+		expect(observations.resolve['Did']).toBeDefined()
+		expect(observations.resolve['Handle']).toBeUndefined()
+		expect(posts.resolve['Did']).toBeDefined()
+		expect(posts.resolve['Handle']).toBeUndefined()
 	})
 })
 

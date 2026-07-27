@@ -2,16 +2,8 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import { resolve } from '$app/paths'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
-	import { caip2StringFromValue } from '$/lib/caip2.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -23,40 +15,18 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.CosmosGovernanceProposal>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.CosmosGovernanceProposal>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.CosmosGovernanceProposal> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const cosmosGovernanceProposal = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {
-			title: true,
-		},
-	} : {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const cosmosGovernanceProposal = $derived(selection({
 		fields: {
 			title: true,
 		},
 	}))
-	const titleFallback = $derived([String((pendingEntity.title) ?? ''), (String((pendingEntity.proposalId) ?? '') ? 'Proposal ' + String((pendingEntity.proposalId) ?? '') : '')].filter(Boolean).join(' ') || 'Cosmos governance proposal')
-	const viewDomId = $derived('cosmos-governance-proposal-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
+	const titleFallback = $derived(([(pendingEntity.title ?? ''), ((pendingEntity.proposalId ?? '') ? 'Proposal ' + (pendingEntity.proposalId ?? '') : '')].filter(Boolean).join(' ')) || 'Cosmos governance proposal')
 
 
 	// Components
@@ -68,10 +38,8 @@
 
 <EntityView
 	entityType={EntityType.CosmosGovernanceProposal}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -79,51 +47,23 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={cosmosGovernanceProposal}>
 			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.title) ?? ''), (String((resolvedEntity.proposalId) ?? '') ? 'Proposal ' + String((resolvedEntity.proposalId) ?? '') : '')].filter(Boolean).join(' ') || title || titleFallback}
+				{([(entity.title ?? ''), (pendingEntity.proposalId ? 'Proposal ' + pendingEntity.proposalId : '')].filter(Boolean).join(' ')) || title || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={cosmosGovernanceProposal}>
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[(String((resolvedEntity.proposalId) ?? '') ? 'Proposal ' + String((resolvedEntity.proposalId) ?? '') : '')].filter(Boolean).join(' ') || [String((resolvedEntity.title) ?? ''), (String((resolvedEntity.proposalId) ?? '') ? 'Proposal ' + String((resolvedEntity.proposalId) ?? '') : '')].filter(Boolean).join(' ') || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
+		{((pendingEntity.proposalId ?? '') ? 'Proposal ' + (pendingEntity.proposalId ?? '') : '') || ([(pendingEntity.title ?? ''), ((pendingEntity.proposalId ?? '') ? 'Proposal ' + (pendingEntity.proposalId ?? '') : '')].filter(Boolean).join(' ')) || titleFallback}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		<ResourceBoundary resource={cosmosGovernanceProposal}>
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				<span data-text="muted">
-					<NetworkView
-						selection={select(EntityType.Network, selection.entitySelector.$network)}
-						href={
-							(
-								selection.entitySelector.$network != null && 'caip2' in selection.entitySelector.$network
-								&& selection.entitySelector.$network.caip2 != null ?
-									resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-								network: String(caip2StringFromValue(selection.entitySelector.$network.caip2) ?? ''),
-							})
-							:
-									selection.entitySelector.$network != null && 'slug' in selection.entitySelector.$network
-									&& selection.entitySelector.$network.slug != null ?
-										resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-									network: String(selection.entitySelector.$network.slug ?? ''),
-								})
-								:
-									undefined
-							)
-						}
-						layout={EntityLayout.Title}
-						open={false}
-					/>
-				</span>
-			{/snippet}
-		</ResourceBoundary>
+		<span data-text="muted">
+			<NetworkView
+				selection={select(EntityType.Network, selection.entitySelector.$network)}
+				layout={EntityLayout.Title}
+				open={false}
+			/>
+		</span>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -131,45 +71,20 @@
 			<div>
 				<dt>Proposal ID</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									proposalId: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const proposalId = resolvedEntity.proposalId}
-							{#if proposalId !== undefined && proposalId !== null}
-								{String((proposalId) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{pendingEntity.proposalId}
 				</dd>
 			</div>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							title: true,
-						},
-					})
-				}
+				resource={cosmosGovernanceProposal}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const title = resolvedEntity.title}
-					{#if title !== undefined && title !== null}
+					{@const title = entity.title}
+					{#if title != null}
 						<div>
 							<dt>Title</dt>
 							<dd>
-								{String((title) ?? '')}
+								{title}
 							</dd>
 						</div>
 					{/if}
@@ -179,7 +94,6 @@
 			<ResourceBoundary
 				resource={
 					selection({
-						sources: selection.sources,
 						fields: {
 							metadata: true,
 						},
@@ -187,13 +101,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const metadata = resolvedEntity.metadata}
-					{#if metadata !== undefined && metadata !== null}
+					{@const metadata = entity.metadata}
+					{#if metadata != null}
 						<div>
 							<dt>Metadata</dt>
 							<dd>
-								{String((metadata) ?? '')}
+								{metadata}
 							</dd>
 						</div>
 					{/if}
@@ -205,23 +118,6 @@
 				<dd>
 					<NetworkView
 						selection={select(EntityType.Network, selection.entitySelector.$network)}
-						href={
-							(
-								selection.entitySelector.$network != null && 'caip2' in selection.entitySelector.$network
-								&& selection.entitySelector.$network.caip2 != null ?
-									resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-								network: String(caip2StringFromValue(selection.entitySelector.$network.caip2) ?? ''),
-							})
-							:
-									selection.entitySelector.$network != null && 'slug' in selection.entitySelector.$network
-									&& selection.entitySelector.$network.slug != null ?
-										resolve('/network/[network=networkCaip2OrNetworkSlug]', {
-									network: String(selection.entitySelector.$network.slug ?? ''),
-								})
-								:
-									undefined
-							)
-						}
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -232,7 +128,6 @@
 		<ResourceBoundary
 			resource={
 				selection({
-					sources: selection.sources,
 					fields: {
 						summary: true,
 					},
@@ -240,10 +135,9 @@
 			}
 		>
 			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const summary = resolvedEntity.summary}
-				{#if summary !== undefined && summary !== null && summary !== ''}
-					{String((summary) ?? '')}
+				{@const summary = entity.summary}
+				{#if summary != null && summary !== ''}
+					{summary}
 				{:else}
 					<p data-text="muted">No proposal summary available.</p>
 				{/if}
@@ -252,25 +146,20 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-				{@const cosmosGovernanceProposalCosmosGovernanceProposalTimestampsViewTimestampsResource = selection
-		.$$timestamps({
-			sources: [
-				Source.CosmosSdk_Rest,
-			],
-		})}
-				<ResourceBoundary
-					resource={cosmosGovernanceProposalCosmosGovernanceProposalTimestampsViewTimestampsResource}
-				>
-					{#snippet children(entities)}
-						{#if entities.values.length > 0}
-						<CosmosGovernanceProposal_TimestampsView
-							selection={cosmosGovernanceProposalCosmosGovernanceProposalTimestampsViewTimestampsResource}
-							countResource={cosmosGovernanceProposalCosmosGovernanceProposalTimestampsViewTimestampsResource.count}
-							title='Lifecycle snapshots'
-							id='CosmosGovernanceProposal_TimestampsView-timestamps'
-						/>
-						{/if}
-					{/snippet}
-				</ResourceBoundary>
+		{@const cosmosGovernanceProposalCosmosGovernanceProposalTimestampsViewTimestampsResource = selection.$$timestamps}
+		<ResourceBoundary
+			resource={cosmosGovernanceProposalCosmosGovernanceProposalTimestampsViewTimestampsResource}
+		>
+			{#snippet children(entities)}
+				{#if entities.values.length > 0}
+					<CosmosGovernanceProposal_TimestampsView
+						selection={cosmosGovernanceProposalCosmosGovernanceProposalTimestampsViewTimestampsResource}
+						countResource={cosmosGovernanceProposalCosmosGovernanceProposalTimestampsViewTimestampsResource.count}
+						title='Lifecycle snapshots'
+						id='timestamps'
+					/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 </EntityView>

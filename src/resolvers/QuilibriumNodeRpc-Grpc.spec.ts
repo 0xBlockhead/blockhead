@@ -1,6 +1,4 @@
 import { describe, expect, it } from 'vitest'
-
-import { QuilibriumAccountSelector } from '$/schema/QuilibriumAccount.ts'
 import { implicitAccountReference } from '$/sources/QuilibriumNodeRpc/Grpc/queries.ts'
 
 const { default: quilibriumNodeRpcResolvers } = await import('$/resolvers/QuilibriumNodeRpc-Grpc.ts')
@@ -18,7 +16,7 @@ describe('Quilibrium node RPC account resolution', () => {
 			},
 		})
 		await expect(
-			resolver.resolve[QuilibriumAccountSelector.NetworkAccountAddress].resolve({
+			resolver.resolve['NetworkAccountAddress'].resolve({
 				$network: {
 					slug: 'quilibrium',
 				},
@@ -35,7 +33,7 @@ describe('Quilibrium node RPC account resolution', () => {
 		'12'.repeat(32),
 	])('rejects malformed provider account address %s', async (accountAddress) => {
 		await expect(
-			resolver.resolve[QuilibriumAccountSelector.NetworkAccountAddress].resolve({
+			resolver.resolve['NetworkAccountAddress'].resolve({
 				$network: {
 					slug: 'quilibrium',
 				},
@@ -46,7 +44,7 @@ describe('Quilibrium node RPC account resolution', () => {
 
 	it('rejects an otherwise valid account on an unrelated network', async () => {
 		await expect(
-			resolver.resolve[QuilibriumAccountSelector.NetworkAccountAddress].resolve({
+			resolver.resolve['NetworkAccountAddress'].resolve({
 				$network: {
 					slug: 'bitcoin',
 				},

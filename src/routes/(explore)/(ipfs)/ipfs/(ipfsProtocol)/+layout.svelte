@@ -28,16 +28,16 @@
 
 
 <ParentPageCollapsible
-	href={resolve('/ipfs')}
+	href={resolve('/(explore)/(ipfs)/ipfs')}
 >
 	{#snippet Summary()}
-		{@const DetailView = IpfsProtocolView}
-
-		<DetailView
-			selection={select(EntityType.IpfsProtocol, data.selector, { sources: [
-	Source.Constants_Internal,
-] })}
-			href={resolve('/ipfs')}
+		<IpfsProtocolView
+			selection={
+				select(EntityType.IpfsProtocol, data.selector, { sources: [
+					Source.Constants_Internal,
+				] })
+			}
+			href={resolve('/(explore)/(ipfs)/ipfs')}
 			layout={EntityLayout.SummaryInline}
 		/>
 	{/snippet}

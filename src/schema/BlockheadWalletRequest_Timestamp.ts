@@ -1,15 +1,12 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { entity, facet } from '$/schema/$schema.ts'
+import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 import { type } from 'arktype'
 
-export enum BlockheadWalletRequest_TimestampSelector {
-	WalletRequestTimestampMsSource = 'WalletRequestTimestampMsSource',
-}
-export const BlockheadWalletRequest_Timestamp = entity({
+export default entity({
 	entityType: EntityType.BlockheadWalletRequest_Timestamp,
 	labels: {
 		singular: 'blockhead wallet request timestamp',
@@ -67,7 +64,7 @@ export const BlockheadWalletRequest_Timestamp = entity({
 	transactionHash: {
 		label: 'transaction hash',
 		type: EntityFieldType.Primitive,
-		primitiveType: (ZeroExHex),
+		primitiveType: ZeroExHex,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	transactionId: {
@@ -79,13 +76,13 @@ export const BlockheadWalletRequest_Timestamp = entity({
 	signatureHash: {
 		label: 'signature hash',
 		type: EntityFieldType.Primitive,
-		primitiveType: (ZeroExHex),
+		primitiveType: ZeroExHex,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	statusPayloadHash: {
 		label: 'status payload hash',
 		type: EntityFieldType.Primitive,
-		primitiveType: (ZeroExHex),
+		primitiveType: ZeroExHex,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	error: {

@@ -2,13 +2,14 @@ import { print } from 'graphql'
 import type { TadaDocumentNode } from 'gql.tada'
 
 import { throwHttpError } from '$/lib/http.ts'
-import { sourceProviderDefinitions } from '$/sources/$sourceProviders.ts'
+import bindings from '$/sources/AptosIndexer/bindings.ts'
 import { Source } from '$/sources/Source.ts'
-import { SourceTargetKind } from '$/sources/SourceBinding.ts'
 import {
 	firstHttpUrlForBinding,
 	sourceFetch,
 } from '$/sources/_runtime/http.ts'
+
+const binding = bindings[Source.AptosIndexer_Graphql]
 
 type AptosIndexerGraphqlResponse<_Result> = {
 	data?: _Result
@@ -17,19 +18,6 @@ type AptosIndexerGraphqlResponse<_Result> = {
 	}[]
 }
 
-const aptosIndexerBindings = sourceProviderDefinitions
-	.flatMap((provider) => provider.bindings)
-	.filter((binding) => (
-		binding.source === Source.AptosIndexer_Graphql
-		&& binding.target.kind === SourceTargetKind.Caip2Network
-		&& binding.target.key === 'aptos:1'
-	))
-
-if (aptosIndexerBindings.length !== 1)
-	throw new Error('AptosIndexer_Graphql: canonical Aptos mainnet source binding is missing or ambiguous')
-
-const [aptosIndexerBinding] = aptosIndexerBindings
-
 export const executeAptosIndexer = async <
 	_Result extends object,
 	_Variables extends object,
@@ -37,7 +25,7 @@ export const executeAptosIndexer = async <
 	document: TadaDocumentNode<_Result, _Variables>,
 	variables: _Variables
 ) => {
-	const response = await sourceFetch(aptosIndexerBinding, firstHttpUrlForBinding(aptosIndexerBinding), {
+	const response = await sourceFetch(binding, firstHttpUrlForBinding(binding), {
 		method: 'POST',
 		headers: {
 			accept: 'application/json',

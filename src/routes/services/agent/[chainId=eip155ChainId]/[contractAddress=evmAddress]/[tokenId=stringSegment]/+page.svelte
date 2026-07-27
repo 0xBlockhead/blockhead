@@ -10,7 +10,6 @@
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
@@ -64,52 +63,12 @@
 
 
 <svelte:head>
-	<title>{(pageSelection.entity == null ? [String(({
-		$contract: {
-			$network: {
-				caip2: {
-					namespace: 'eip155',
-					reference: params.chainId,
-				},
-			},
-			address: params.contractAddress,
-		},
-		tokenId: params.tokenId,
-	}.tokenId) ?? '')].filter(Boolean).join(' ') || 'EVM NFT' : [String((({ ...{
-		$contract: {
-			$network: {
-				caip2: {
-					namespace: 'eip155',
-					reference: params.chainId,
-				},
-			},
-			address: params.contractAddress,
-		},
-		tokenId: params.tokenId,
-	}, ...pageSelection.entity }).name) ?? '')].filter(Boolean).join(' ') || [String((({ ...{
-		$contract: {
-			$network: {
-				caip2: {
-					namespace: 'eip155',
-					reference: params.chainId,
-				},
-			},
-			address: params.contractAddress,
-		},
-		tokenId: params.tokenId,
-	}, ...pageSelection.entity }).tokenId) ?? '')].filter(Boolean).join(' ') || 'EVM NFT')} • EVM NFT • Blockhead</title>
+	<title>{(pageSelection.entity == null ? (pageSelection.entitySelector.tokenId ?? '') || 'EVM NFT' : (pageSelection.entity.name ?? '') || pageSelection.entitySelector.tokenId || 'EVM NFT')} • EVM NFT • Blockhead</title>
 </svelte:head>
 
 
 <Page>
 	<EvmNftView
-		href={
-			resolve('/services/agent/[chainId=eip155ChainId]/[contractAddress=evmAddress]/[tokenId=stringSegment]', {
-				chainId: params.chainId,
-				contractAddress: params.contractAddress,
-				tokenId: params.tokenId,
-			})
-		}
 		selection={pageSelection}
 	/>
 </Page>

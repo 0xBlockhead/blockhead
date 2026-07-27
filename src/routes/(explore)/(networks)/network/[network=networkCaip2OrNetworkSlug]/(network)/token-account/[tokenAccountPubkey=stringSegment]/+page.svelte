@@ -7,14 +7,12 @@
 
 
 	// Context
-	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
 		data,
-		params,
 	}: PageProps = $props()
 
 	const pageSelection = $derived(select(EntityType.SolanaTokenAccount, data.selector, {
@@ -35,18 +33,12 @@
 
 
 <svelte:head>
-	<title>{(data.title ?? (pageSelection.entity == null ? [String((data.selector.tokenAccountPubkey) ?? '')].filter(Boolean).join(' ') || 'solana token account' : [String((({ ...data.selector, ...pageSelection.entity }).tokenAccountPubkey) ?? '')].filter(Boolean).join(' ') || 'solana token account'))} • solana token account • Blockhead</title>
+	<title>{(data.title ?? (pageSelection.entitySelector.tokenAccountPubkey || 'solana token account'))} • solana token account • Blockhead</title>
 </svelte:head>
 
 
 <Page>
 	<SolanaTokenAccountView
-		href={
-			resolve('/network/[network=networkCaip2OrNetworkSlug]/token-account/[tokenAccountPubkey=stringSegment]', {
-				network: params.network,
-				tokenAccountPubkey: params.tokenAccountPubkey,
-			})
-		}
 		selection={pageSelection}
 	/>
 </Page>

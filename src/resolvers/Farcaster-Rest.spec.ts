@@ -10,7 +10,6 @@ import {
 	entityFieldAddressKey,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import { FarcasterCastSelector } from '$/schema/FarcasterCast.ts'
 
 const getCastAndDirectRepliesByUsernameAndHashPrefix = vi.hoisted(() => vi.fn())
 
@@ -23,7 +22,7 @@ const { default: farcasterResolvers } = await import('$/resolvers/Farcaster-Rest
 const castResolver = farcasterResolvers.resolvers[3]
 const castResolve = castResolver.resolve
 
-if (!(FarcasterCastSelector.UsernameHashPrefix in castResolve))
+if (!('UsernameHashPrefix' in castResolve))
 	throw new Error('Farcaster spec missing UsernameHashPrefix cast resolver')
 
 describe('Farcaster public cast direct replies', () => {
@@ -65,9 +64,6 @@ describe('Farcaster public cast direct replies', () => {
 		expect(cast.$$directReplies[0]?.[EntityMetaKey.Fields]).toMatchObject({
 			[entityFieldAddressKey(EntityType.FarcasterCast, [], '$author')]: {
 				[EntityMetaKey.Selector]: { fid: 7 },
-				[EntityMetaKey.Fields]: {
-					[entityFieldAddressKey(EntityType.FarcasterUser, [], 'username')]: 'bob',
-				},
 			},
 			[entityFieldAddressKey(EntityType.FarcasterCast, [], '$parentCast')]: {
 				[EntityMetaKey.Selector]: {

@@ -2,69 +2,32 @@
 
 <script lang="ts">
 	// Types/constants
-	import EntitiesList, { type EntitiesListForwardProps } from '$/components/EntitiesList.svelte'
-	import type { RegisteredEntityProxyEntitiesSelection } from '$/client/$proxy.svelte.ts'
-	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
+	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-
-
 
 
 	// State
 	let {
 		selection,
-		countResource,
 		title = 'Usernames',
-		typeAnnotationParagraphs = [],
-		placeholderText = undefined,
-		emptyText = undefined,
 		open = $bindable(true),
-		collapsible = true,
-		showTypeAnnotation = true,
-		id = 'LensUsernames-list',
 		...EntitiesListProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyEntitiesSelection<EntityType.LensUsername>
-			countResource?: SvelteKitResource<number>
-			title?: string
-			typeAnnotationParagraphs?: string[]
-			placeholderText?: string
-			emptyText?: string
-			open?: boolean
-			collapsible?: boolean
-			showTypeAnnotation?: boolean
-			id?: string
-		},
-		EntitiesListForwardProps
-	> = $props()
+	}: EntityListViewProps<EntityType.LensUsername> = $props()
 
 
 	// Components
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView from '$/components/EntityView.svelte'
 </script>
 
-
-{#snippet TypeAnnotationParagraphs()}
-	{#each typeAnnotationParagraphs as paragraph (paragraph)}
-		<p>{paragraph}</p>
-	{/each}
-{/snippet}
 
 <EntitiesList
 	{...EntitiesListProps}
 	entityType={EntityType.LensUsername}
-	{id}
 	{title}
 	bind:open
-	{collapsible}
-	{showTypeAnnotation}
-	TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
 	resource={
 		selection({
-			sources: selection.sources,
 			fields: {
 				value: true,
 				localName: true,
@@ -72,38 +35,23 @@
 			},
 		})
 	}
-	{countResource}
-	getResourceItems={(lensUsernames) => [...new Map(lensUsernames.values.map((lensUsername) => [lensUsername[EntityMetaKey.SelectorKey], lensUsername])).values()]}
-	getKey={(lensUsername) => lensUsername[EntityMetaKey.SelectorKey]}
-	{placeholderText}
 >
-	{#snippet Empty()}
-		{#if emptyText != null}
-			<p data-text="muted">{emptyText}</p>
-		{:else}
-			<p data-text="muted">No Lens usernames yet.</p>
-		{/if}
-	{/snippet}
-
 	{#snippet Item({ item: lensUsername })}
-		{@const lensUsernameFields = { ...lensUsername[EntityMetaKey.Selector], ...lensUsername }}
+		{@const lensUsernameSelector = lensUsername[EntityMetaKey.Selector]}
 		<EntityView
 			entityType={EntityType.LensUsername}
-			entitySelector={lensUsername[EntityMetaKey.Selector]}
-			layout={EntityLayout.Summary}
-			open={false}
-			showTypeAnnotation={false}
+			entitySelector={lensUsernameSelector}
 		>
 			{#snippet Title()}
-				{[String((lensUsernameFields.value) ?? ''), String((lensUsernameFields.localName) ?? '')].filter(Boolean).join(' ') || 'Lens username'}
+				{[(lensUsername.value ?? ''), lensUsernameSelector.localName].filter(Boolean).join(' ') || 'Lens username'}
 			{/snippet}
 
 			{#snippet Value()}
-				{[String((lensUsernameFields.localName) ?? '')].filter(Boolean).join(' ')}
+				{lensUsernameSelector.localName}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{[String((lensUsernameFields.timestamp) ?? '')].filter(Boolean).join(' ')}</span>
+				<span data-text="annotation">{String(lensUsername.timestamp ?? '')}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

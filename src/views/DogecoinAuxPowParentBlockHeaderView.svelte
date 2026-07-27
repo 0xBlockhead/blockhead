@@ -2,13 +2,9 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -20,40 +16,22 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.DogecoinAuxPowParentBlockHeader>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.DogecoinAuxPowParentBlockHeader>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.DogecoinAuxPowParentBlockHeader> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const dogecoinAuxPowParentBlockHeader = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {
-			merkleRoot: true,
-		},
-	} : {
-		sources: selection.sources,
+	const viewSelection = $derived(selection({
+		sources: selection.sources ?? [
+			Source.DogecoinCore_JsonRpc,
+		],
+	}))
+	const dogecoinAuxPowParentBlockHeader = $derived(viewSelection({
 		fields: {
 			merkleRoot: true,
 		},
 	}))
 	const titleFallback = 'dogecoin aux pow parent block header'
-	const viewDomId = $derived('dogecoin-aux-pow-parent-block-header-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -66,32 +44,25 @@
 
 <EntityView
 	entityType={EntityType.DogecoinAuxPowParentBlockHeader}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={dogecoinAuxPowParentBlockHeader}>
-			{#snippet children(entity)}
-				<DogecoinBlockAuxPowView
-					selection={select(EntityType.DogecoinBlockAuxPow, selection.entitySelector.$auxPow)}
-					href=""
-					layout={EntityLayout.Title}
-					open={false}
-				/>
-			{/snippet}
-		</ResourceBoundary>
+		<DogecoinBlockAuxPowView
+			selection={select(EntityType.DogecoinBlockAuxPow, selection.entitySelector.$auxPow)}
+			href=""
+			layout={EntityLayout.Title}
+			open={false}
+		/>
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={dogecoinAuxPowParentBlockHeader}>
 			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.merkleRoot) ?? '')].filter(Boolean).join(' ') || titleFallback}
+				{(entity.merkleRoot ?? '') || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -111,8 +82,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							hash: true,
 						},
@@ -120,13 +90,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const hash = resolvedEntity.hash}
-					{#if hash !== undefined && hash !== null}
+					{@const hash = entity.hash}
+					{#if hash != null}
 						<div>
 							<dt>Hash</dt>
 							<dd>
-								<TruncatedValue value={String((hash) ?? '')} />
+								<TruncatedValue value={hash} />
 							</dd>
 						</div>
 					{/if}
@@ -134,23 +103,15 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						sources: selection.sources,
-						fields: {
-							merkleRoot: true,
-						},
-					})
-				}
+				resource={dogecoinAuxPowParentBlockHeader}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const merkleRoot = resolvedEntity.merkleRoot}
-					{#if merkleRoot !== undefined && merkleRoot !== null}
+					{@const merkleRoot = entity.merkleRoot}
+					{#if merkleRoot != null}
 						<div>
 							<dt>Merkle root</dt>
 							<dd>
-								{String((merkleRoot) ?? '')}
+								{merkleRoot}
 							</dd>
 						</div>
 					{/if}
@@ -159,8 +120,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							nonce: true,
 						},
@@ -168,9 +128,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const nonce = resolvedEntity.nonce}
-					{#if nonce !== undefined && nonce !== null}
+					{@const nonce = entity.nonce}
+					{#if nonce != null}
 						<div>
 							<dt>Nonce</dt>
 							<dd>

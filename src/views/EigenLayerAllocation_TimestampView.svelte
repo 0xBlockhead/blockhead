@@ -2,13 +2,9 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
-	import type { RegisteredEntityProxyPrefetchedData, RegisteredEntityProxyResource } from '$/client/$proxy.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { stringify } from 'devalue'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -20,35 +16,22 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: WithRest<
-		{
-			selection: RegisteredEntityProxyResource<EntityType.EigenLayerAllocation_Timestamp>
-			prefetched?: RegisteredEntityProxyPrefetchedData<EntityType.EigenLayerAllocation_Timestamp>
-			title?: string
-			href?: string
-			layout?: EntityLayout
-			open?: boolean
-		},
-		Pick<
-			ComponentProps<typeof EntityView>,
-			| 'collapsible'
-			| 'showTypeAnnotation'
-		>
-	> = $props()
+	}: EntitySelectionViewProps<EntityType.EigenLayerAllocation_Timestamp> = $props()
 
-	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
-	const eigenLayerAllocationTimestamp = $derived(selection(prefetched[EntityMetaKey.Selector] != null && layout !== EntityLayout.SummaryDetails ? {
-		sources: selection.sources,
-		fields: {},
-	} : {
-		sources: selection.sources,
+	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const viewSelection = $derived(selection({
+		sources: selection.sources ?? [
+			Source.EigenExplorer_Rest,
+			Source.EigenLayerContracts_Evm,
+			Source.EigenLayerSubgraph_Graphql,
+			Source.Etherscan_Rest,
+			Source.Voltaire_JsonRpc,
+		],
 	}))
 	const titleFallback = 'eigen layer allocation timestamp'
-	const viewDomId = $derived('eigen-layer-allocation-timestamp-' + encodeURIComponent(stringify(selection.entitySelector ?? prefetched[EntityMetaKey.Selector])))
 
 
 	// Components
@@ -63,53 +46,38 @@
 
 <EntityView
 	entityType={EntityType.EigenLayerAllocation_Timestamp}
-	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
-	id={viewDomId}
+	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary resource={eigenLayerAllocationTimestamp}>
-			{#snippet children(entity)}
-				<EigenLayerOperatorView
-					selection={select(EntityType.EigenLayerOperator, selection.entitySelector.$operator)}
-					href=""
-					layout={EntityLayout.Title}
-					open={false}
-				/>
-			{/snippet}
-		</ResourceBoundary>
+		<EigenLayerOperatorView
+			selection={select(EntityType.EigenLayerOperator, selection.entitySelector.$operator)}
+			href=""
+			layout={EntityLayout.Title}
+			open={false}
+		/>
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={eigenLayerAllocationTimestamp}>
-			{#snippet children(entity)}
-				<EigenLayerAvsView
-					selection={select(EntityType.EigenLayerAvs, selection.entitySelector.$avs)}
-					href=""
-					layout={EntityLayout.Value}
-					open={false}
-				/>
-			{/snippet}
-		</ResourceBoundary>
+		<EigenLayerAvsView
+			selection={select(EntityType.EigenLayerAvs, selection.entitySelector.$avs)}
+			href=""
+			layout={EntityLayout.Value}
+			open={false}
+		/>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		<ResourceBoundary resource={eigenLayerAllocationTimestamp}>
-			{#snippet children(entity)}
-				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				<span data-text="muted">
-					<EigenLayerStrategyView
-						selection={select(EntityType.EigenLayerStrategy, selection.entitySelector.$strategy)}
-						layout={EntityLayout.Title}
-						open={false}
-					/>
-				</span>
-			{/snippet}
-		</ResourceBoundary>
+		<span data-text="muted">
+			<EigenLayerStrategyView
+				selection={select(EntityType.EigenLayerStrategy, selection.entitySelector.$strategy)}
+				layout={EntityLayout.Title}
+				open={false}
+			/>
+		</span>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -150,55 +118,20 @@
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									timestampMs: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const timestampMs = resolvedEntity.timestampMs}
-							{#if timestampMs !== undefined && timestampMs !== null}
-								<Timestamp timestamp={Number(timestampMs)} />
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								sources: selection.sources,
-								fields: {
-									source: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const source = resolvedEntity.source}
-							{#if source !== undefined && source !== null}
-								{String((source) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{pendingEntity.source}
 				</dd>
 			</div>
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							allocationMagnitude: true,
 						},
@@ -206,9 +139,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const allocationMagnitude = resolvedEntity.allocationMagnitude}
-					{#if allocationMagnitude !== undefined && allocationMagnitude !== null}
+					{@const allocationMagnitude = entity.allocationMagnitude}
+					{#if allocationMagnitude != null}
 						<div>
 							<dt>allocation magnitude</dt>
 							<dd>
@@ -223,8 +155,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							allocatedShares: true,
 						},
@@ -232,9 +163,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const allocatedShares = resolvedEntity.allocatedShares}
-					{#if allocatedShares !== undefined && allocatedShares !== null}
+					{@const allocatedShares = entity.allocatedShares}
+					{#if allocatedShares != null}
 						<div>
 							<dt>allocated shares</dt>
 							<dd>
@@ -254,8 +184,7 @@
 				<dd>
 					<ResourceBoundary
 						resource={
-							selection({
-								sources: selection.sources,
+							viewSelection({
 								fields: {
 									quorumNumbers: true,
 								},
@@ -263,11 +192,7 @@
 						}
 					>
 						{#snippet children(entity)}
-							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const quorumNumbers = resolvedEntity.quorumNumbers}
-							{#if quorumNumbers !== undefined && quorumNumbers !== null}
-								{quorumNumbers.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')}
-							{/if}
+							{entity.quorumNumbers.values.join(', ')}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -275,8 +200,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							registrationStatus: true,
 						},
@@ -284,13 +208,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const registrationStatus = resolvedEntity.registrationStatus}
-					{#if registrationStatus !== undefined && registrationStatus !== null}
+					{@const registrationStatus = entity.registrationStatus}
+					{#if registrationStatus != null}
 						<div>
 							<dt>registration status</dt>
 							<dd>
-								{String((registrationStatus) ?? '')}
+								{registrationStatus}
 							</dd>
 						</div>
 					{/if}
@@ -299,8 +222,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							slashableUntilMs: true,
 						},
@@ -308,9 +230,8 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const slashableUntilMs = resolvedEntity.slashableUntilMs}
-					{#if slashableUntilMs !== undefined && slashableUntilMs !== null}
+					{@const slashableUntilMs = entity.slashableUntilMs}
+					{#if slashableUntilMs != null}
 						<div>
 							<dt>slashable until ms</dt>
 							<dd>
@@ -323,8 +244,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
-						sources: selection.sources,
+					viewSelection({
 						fields: {
 							operatorSetId: true,
 						},
@@ -332,13 +252,12 @@
 				}
 			>
 				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const operatorSetId = resolvedEntity.operatorSetId}
-					{#if operatorSetId !== undefined && operatorSetId !== null}
+					{@const operatorSetId = entity.operatorSetId}
+					{#if operatorSetId != null}
 						<div>
 							<dt>operator set ID</dt>
 							<dd>
-								{String((operatorSetId) ?? '')}
+								{operatorSetId}
 							</dd>
 						</div>
 					{/if}

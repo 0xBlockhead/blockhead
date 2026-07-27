@@ -6,7 +6,6 @@ import {
 	EntityMetaKey,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import { PolkadotAccountSelector } from '$/schema/PolkadotAccount.ts'
 import { Source } from '$/sources/Source.ts'
 
 const sourceFetch = vi.hoisted(() => vi.fn())
@@ -70,7 +69,7 @@ describe('Substrate Sidecar Polkadot account resolver', () => {
 
 	it('preserves the SS58 subject and lossless live state values', async () => {
 		const snapshot = await accountResolver.resolve[
-			PolkadotAccountSelector.NetworkAccountId
+			'NetworkAccountId'
 		].resolve(account, context)
 		const timestamps = accountResolver.projections.$$timestamps(snapshot)
 
@@ -97,7 +96,7 @@ describe('Substrate Sidecar Polkadot account resolver', () => {
 
 	it('rejects unsupported networks before transport', async () => {
 		await expect(accountResolver.resolve[
-			PolkadotAccountSelector.NetworkAccountId
+			'NetworkAccountId'
 		].resolve({
 			...account,
 			$network: {
@@ -131,7 +130,7 @@ describe('Substrate Sidecar Polkadot account resolver', () => {
 		]) {
 			sourceFetch.mockResolvedValueOnce(new Response(JSON.stringify(response)))
 			await expect(accountResolver.resolve[
-				PolkadotAccountSelector.NetworkAccountId
+				'NetworkAccountId'
 			].resolve(account, context)).rejects.toThrow('malformed account')
 		}
 	})

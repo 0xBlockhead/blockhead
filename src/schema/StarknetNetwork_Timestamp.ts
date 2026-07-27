@@ -1,14 +1,11 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { entity, facet } from '$/schema/$schema.ts'
+import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { type } from 'arktype'
 
-export enum StarknetNetwork_TimestampSelector {
-	NetworkTimestampMsSource = 'NetworkTimestampMsSource',
-}
-export const StarknetNetwork_Timestamp = entity({
+export default entity({
 	entityType: EntityType.StarknetNetwork_Timestamp,
 	labels: {
 		singular: 'starknet network timestamp',

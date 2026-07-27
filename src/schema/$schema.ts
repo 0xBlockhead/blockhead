@@ -1569,19 +1569,14 @@ export type EntityFieldDefinitionByEntityTypePathAndName<_Schema extends Schema>
 }
 
 export type EntitySelectorDefinitionByEntityTypeAndName<_Schema extends Schema> = {
-	readonly [_EntityType in EntityType<_Schema>]: (
-		& {
-			readonly [selectorName: string]: EntityDefinitionForEntityType<_Schema, _EntityType>['selectors'][number] | undefined
-		}
-		& {
-			readonly [
-				_SelectorName in EntityDefinitionForEntityType<_Schema, _EntityType>['selectors'][number]['name']
-			]: Extract<
-				EntityDefinitionForEntityType<_Schema, _EntityType>['selectors'][number],
-				{ readonly name: _SelectorName }
-			>
-		}
-	)
+	readonly [_EntityType in EntityType<_Schema>]: {
+		readonly [
+			_SelectorName in EntitySelectorName<_Schema, _EntityType>
+		]: Extract<
+			EntityDefinitionForEntityType<_Schema, _EntityType>['selectors'][number],
+			{ readonly name: _SelectorName }
+		>
+	}
 }
 
 export const indexSchema = <const _Schema extends Schema>(

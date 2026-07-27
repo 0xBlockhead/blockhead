@@ -1,5 +1,7 @@
 import { expect, type Locator, type Page, type TestInfo } from '@playwright/test'
+import { schnorr } from '@noble/curves/secp256k1.js'
 import { parse } from 'devalue'
+import * as Hex from 'ox/Hex'
 
 import { ipfsPublicGateways } from '$/constants/IpfsProtocol.ts'
 import { mastodonInstanceByKey } from '$/constants/Mastodon.ts'
@@ -15,13 +17,17 @@ import {
 } from '$/constants/Social/Reddit.ts'
 import { rssNetworkSeedFeeds } from '$/constants/Social/Rss.ts'
 import { TransportType } from '$/constants/TransportType.ts'
-import { gatewayUrls as swarmGatewayUrls } from '$/sources/Swarm/Rest/constants.ts'
-import { voltaireJsonRpcTransportWithOriginsByChainId } from '$/sources/Voltaire/JsonRpc/queries.ts'
+import sourceProviderDefinitions from '$/sources/$sourceProviders.ts'
+import { nostrEventId } from '$/sources/NostrRelay/Nip01/event.ts'
+import { Source } from '$/sources/Source.ts'
+import { voltaireJsonRpcTransports } from '$/sources/Voltaire/JsonRpc/queries.ts'
 import type { JsonValue } from '$/typescript/JsonValue.ts'
 import type {
 	ClientProbe as BlockheadClientProbe,
 	PersistenceTraceEvent,
 } from './e2e/$e2eProbe.ts'
+
+const { transportByChainId: voltaireJsonRpcTransportByChainId } = voltaireJsonRpcTransports
 
 export { e2eBrowserNewContextOptions } from '../playwright.env.ts'
 
@@ -1882,7 +1888,14 @@ export const ipfsPublicGatewayGetWire = (url: string) => {
 export const swarmPublicGatewayGetWire = (url: string) => {
 	try {
 		const u = new URL(url)
-		if (!swarmGatewayUrls.some((origin) => origin === u.origin))
+		if (!sourceProviderDefinitions.some((provider) => (
+				provider.bindings.some((binding) => (
+					binding.source === Source.Swarm_Rest
+					&& binding.endpoints.some((endpoint) => (
+						endpoint.origin === u.origin
+					))
+				))
+		)))
 			return false
 		return u.pathname.includes('/bzz/')
 	} catch {
@@ -2981,11 +2994,8 @@ export const MOCK_COINGECKO_ETHEREUM_COIN_BODY = JSON.stringify({
 
 export const coingeckoEthereumCoinWire = (url: string, method: string) => (
 	method === 'GET'
-	&& url.includes('/coins/ethereum')
-	&& (
-		url.includes('api.coingecko.com')
-		|| (url.includes('api-proxy') && url.includes('api.coingecko.com'))
-	)
+	&& decodeURIComponent(decodeURIComponent(url)).includes('/coins/ethereum')
+	&& decodeURIComponent(decodeURIComponent(url)).includes('api.coingecko.com')
 )
 
 export const coingeckoDerivativesExchangeWire = (url: string, method: string) => (
@@ -3542,16 +3552,31 @@ const snapchainCastPageBody = JSON.stringify({
 })
 
 const e2eNostrProfilePubkey = nostrNetworkSeedProfiles[0].pubkey
-const e2eNostrNoteEventId = nostrNetworkSeedNotes[0].eventId
 const e2eNostrRelayUrl = nostrNetworkSeedRelays[0].relayUrl
-const e2eNostrRepostEventId = 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb'
-const e2eNostrReactionEventId = 'cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc'
-const e2eNostrReplyEventId = 'dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd'
-const e2eNostrArticleEventId = 'eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee'
 const e2eNostrArticleIdentifier = 'blockhead-e2e-article'
+const e2eNostrSecretKey = Hex.toBytes(`0x${'03'.repeat(32)}`)
 
-const e2eNostrProfileEvent = {
-	id: 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+const signedNostrEvent = (event: {
+	pubkey: string
+	created_at: number
+	kind: number
+	tags: string[][]
+	content: string
+}) => {
+	const id = nostrEventId(event)
+
+	return {
+		id,
+		...event,
+		sig: Hex.fromBytes(schnorr.sign(
+			Hex.toBytes(`0x${id}`),
+			e2eNostrSecretKey,
+			new Uint8Array(32)
+		)).slice(2),
+	}
+}
+
+const e2eNostrProfileEvent = signedNostrEvent({
 	pubkey: e2eNostrProfilePubkey,
 	created_at: 1_710_000_000,
 	kind: 0,
@@ -3563,21 +3588,18 @@ const e2eNostrProfileEvent = {
 		website: 'https://blockhead.info',
 		nip05: 'e2e@blockhead.info',
 	}),
-	sig: '0'.repeat(128),
-}
+})
 
-const e2eNostrNoteEvent = {
-	id: e2eNostrNoteEventId,
+const e2eNostrNoteEvent = signedNostrEvent({
 	pubkey: e2eNostrProfilePubkey,
 	created_at: nostrNetworkSeedNotes[0].createdAt,
 	kind: 1,
 	tags: [],
 	content: nostrNetworkSeedNotes[0].content,
-	sig: '1'.repeat(128),
-}
+})
+const e2eNostrNoteEventId = e2eNostrNoteEvent.id
 
-const e2eNostrRepostEvent = {
-	id: e2eNostrRepostEventId,
+const e2eNostrRepostEvent = signedNostrEvent({
 	pubkey: e2eNostrProfilePubkey,
 	created_at: 1_710_000_060,
 	kind: 6,
@@ -3586,11 +3608,9 @@ const e2eNostrRepostEvent = {
 		['p', e2eNostrProfilePubkey],
 	],
 	content: '',
-	sig: '2'.repeat(128),
-}
+})
 
-const e2eNostrReactionEvent = {
-	id: e2eNostrReactionEventId,
+const e2eNostrReactionEvent = signedNostrEvent({
 	pubkey: e2eNostrProfilePubkey,
 	created_at: 1_710_000_120,
 	kind: 7,
@@ -3599,11 +3619,9 @@ const e2eNostrReactionEvent = {
 		['p', e2eNostrProfilePubkey],
 	],
 	content: '+',
-	sig: '3'.repeat(128),
-}
+})
 
-const e2eNostrReplyEvent = {
-	id: e2eNostrReplyEventId,
+const e2eNostrReplyEvent = signedNostrEvent({
 	pubkey: e2eNostrProfilePubkey,
 	created_at: 1_710_000_180,
 	kind: 1,
@@ -3613,11 +3631,9 @@ const e2eNostrReplyEvent = {
 		['p', e2eNostrProfilePubkey],
 	],
 	content: 'Blockhead Nostr e2e reply',
-	sig: '4'.repeat(128),
-}
+})
 
-const e2eNostrArticleEvent = {
-	id: e2eNostrArticleEventId,
+const e2eNostrArticleEvent = signedNostrEvent({
 	pubkey: e2eNostrProfilePubkey,
 	created_at: 1_710_000_240,
 	kind: 30023,
@@ -3628,15 +3644,14 @@ const e2eNostrArticleEvent = {
 		['published_at', '1710000240'],
 	],
 	content: 'Blockhead Nostr e2e article body',
-	sig: '5'.repeat(128),
-}
+})
 
 const e2eNostrEventById: Record<string, object> = {
 	[e2eNostrNoteEventId]: e2eNostrNoteEvent,
-	[e2eNostrRepostEventId]: e2eNostrRepostEvent,
-	[e2eNostrReactionEventId]: e2eNostrReactionEvent,
-	[e2eNostrReplyEventId]: e2eNostrReplyEvent,
-	[e2eNostrArticleEventId]: e2eNostrArticleEvent,
+	[e2eNostrRepostEvent.id]: e2eNostrRepostEvent,
+	[e2eNostrReactionEvent.id]: e2eNostrReactionEvent,
+	[e2eNostrReplyEvent.id]: e2eNostrReplyEvent,
+	[e2eNostrArticleEvent.id]: e2eNostrArticleEvent,
 }
 
 const nostrBandRestWire = (url: string, method: string) => (
@@ -3671,7 +3686,7 @@ const nostrRelayNip11Wire = (url: string, method: string) => (
 )
 
 const nostrBandRestBody = (url: string) => {
-	const decodedUrl = decodeURIComponent(url)
+	const decodedUrl = decodeURIComponent(decodeURIComponent(url))
 	const path = decodedUrl.slice(decodedUrl.indexOf('/v0/'))
 	const eventId = path.match(/\/events\/e\/([0-9a-f]{64})(?:[/?]|$)/)?.[1]
 	const authorPubkey = path.match(/\/events\/authors\/([0-9a-f]{64})(?:[/?]|$)/)?.[1]
@@ -3761,7 +3776,7 @@ const primalRestBody = (url: string, post?: {
 	kinds?: number[]
 	pubkey?: string
 }) => {
-	const decodedUrl = decodeURIComponent(url)
+	const decodedUrl = decodeURIComponent(decodeURIComponent(url))
 	const path = decodedUrl.slice(decodedUrl.indexOf('/v1/'))
 	const eventId = (
 		path.match(/\/events\/([0-9a-f]{64})(?:[/?]|$)/)?.[1]
@@ -4973,15 +4988,16 @@ export const blockStreamBlocksConsoleEvent = (page: Page, timeoutMs = 90_000) =>
 )
 
 /**
-	* HTTP JSON-RPC URL aligned with app `voltaireJsonRpcTransportWithOriginsByChainId`.
+	* HTTP JSON-RPC URL aligned with app `voltaireJsonRpcTransportByChainId`.
 	* Playwright preflight uses `fetch` only, so WebSocket-only chains cannot use this probe.
 	*/
 export const publicJsonRpcHttpUrlForChainE2e = async (chainId: number) => {
-	const t = Object.entries(voltaireJsonRpcTransportWithOriginsByChainId)
-		.find(([candidateChainId]) => Number(candidateChainId) === chainId)?.[1]
-	if (t == null) return null
-	if (t.transportType === TransportType.Http) return t.rpcUrl
-	return null
+	if (!Object.hasOwn(voltaireJsonRpcTransportByChainId, chainId)) return null
+
+	const transport = voltaireJsonRpcTransportByChainId[chainId]
+	if (transport.transportType !== TransportType.Http) return null
+
+	return transport.endpoint.locator
 }
 
 /** In-browser public RPC check — matches client `fetch` + `corsEnabled: true` (not `/api-proxy`). Two `eth_blockNumber` samples; fail-fast when the chain is stuck or rate-limited (429). */
@@ -5104,12 +5120,12 @@ const blockPathNumberFromHref = (href: string | null) => {
 	}
 }
 
-/** Parses head block height from `#network-summary-head-block` only. */
+/** Parses the head block height from the Network summary's block link. */
 export const readNetworkHeadBlockBigint = async (
 	page: Page,
 	linkWaitMs = 120_000
 ) => {
-	const summaryLink = page.locator('#network-summary-head-block').locator('a[href*="/block/"]').first()
+	const summaryLink = page.locator('.network-summary-head a[href*="/block/"]').first()
 	await summaryLink.waitFor({
 		state: 'attached',
 		timeout: linkWaitMs,
@@ -5166,23 +5182,19 @@ export const readNetworkHeadSlotBigint = async (
 /** Collapse the network `EntityView` card (summary `<dl>` stays mounted). */
 export const collapseNetworkEntityView = async (page: Page) => {
 	const networkCard = page.locator('article').filter({
-		has: page.locator('#network-summary-head-block'),
+		has: page.locator('.network-summary-head'),
 	})
 	const details = networkCard.locator('> details').first()
 	await expect(details).toHaveAttribute('open', '')
-	await details.locator('> summary').click()
+	await details.evaluate((element) => element.removeAttribute('open'))
 	await expect(details).not.toHaveAttribute('open', '')
 }
-
-/** Scroll host (`layout-carousel`) — execution carousel pane host uses `network-carousel-execution`; panes are direct children (no `[data-carousel-panes]` wrapper). */
-const networkExecutionCarouselPanesSel = '.network-carousel-execution[data-scroll-container~="layout-carousel"]'
-
 
 export const readTopBlockNumberFromNetworkCarousel = async (
 	page: Page,
 	linkWaitMs = 90_000
 ) => {
-	const first = page.locator(`${networkExecutionCarouselPanesSel} a[href*="/block/"]`).first()
+	const first = page.locator('section[data-scroll-marker-label="Blocks"] a[href*="/block/"]').first()
 	await first.waitFor({
 		state: 'visible',
 		timeout: linkWaitMs,
@@ -5205,7 +5217,7 @@ export const readTopBlockNumberFromNetworkBlocksPage = async (
 
 /** Block numbers from visible carousel links, in DOM order (per list implementation). */
 export const readNetworkCarouselBlockNumbers = async (page: Page) => {
-	const links = page.locator(`${networkExecutionCarouselPanesSel} a[href*="/block/"]`)
+	const links = page.locator('section[data-scroll-marker-label="Blocks"] a[href*="/block/"]')
 	const n = await links.count()
 	const out: bigint[] = []
 	for (let i = 0; i < n; i++) {
@@ -5217,7 +5229,7 @@ export const readNetworkCarouselBlockNumbers = async (page: Page) => {
 }
 
 export const readTxHrefsJoin = async (page: Page) => {
-	const list = page.locator(`${networkExecutionCarouselPanesSel} a[href*="/tx/"]`)
+	const list = page.locator('section[data-scroll-marker-label="Transactions"] a[href*="/tx/"]')
 	const n = await list.count()
 	if (n === 0) return ''
 	const all = await list.evaluateAll(

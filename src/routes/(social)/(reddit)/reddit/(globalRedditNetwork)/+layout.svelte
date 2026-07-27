@@ -28,16 +28,16 @@
 
 
 <ParentPageCollapsible
-	href={resolve('/reddit')}
+	href={resolve('/(social)/(reddit)/reddit')}
 >
 	{#snippet Summary()}
-		{@const DetailView = GlobalRedditNetworkView}
-
-		<DetailView
-			selection={select(EntityType._GlobalRedditNetwork, data.selector, { sources: [
-	Source.Reddit_PublicJson,
-] })}
-			href={resolve('/reddit')}
+		<GlobalRedditNetworkView
+			selection={
+				select(EntityType._GlobalRedditNetwork, data.selector, { sources: [
+					Source.Reddit_PublicJson,
+				] })
+			}
+			href={resolve('/(social)/(reddit)/reddit')}
 			layout={EntityLayout.SummaryInline}
 		/>
 	{/snippet}

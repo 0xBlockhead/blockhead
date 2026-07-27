@@ -1,15 +1,12 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { entity, facet } from '$/schema/$schema.ts'
+import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 import { type } from 'arktype'
 
-export enum EigenLayerDelegation_TimestampSelector {
-	StakerOperatorStrategyTimestampMsSource = 'StakerOperatorStrategyTimestampMsSource',
-}
-export const EigenLayerDelegation_Timestamp = entity({
+export default entity({
 	entityType: EntityType.EigenLayerDelegation_Timestamp,
 	labels: {
 		singular: 'eigen layer delegation timestamp',
@@ -63,13 +60,13 @@ export const EigenLayerDelegation_Timestamp = entity({
 	depositRoot: {
 		label: 'deposit root',
 		type: EntityFieldType.Primitive,
-		primitiveType: (ZeroExHex),
+		primitiveType: ZeroExHex,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	withdrawalRoot: {
 		label: 'withdrawal root',
 		type: EntityFieldType.Primitive,
-		primitiveType: (ZeroExHex),
+		primitiveType: ZeroExHex,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	withdrawalQueued: {
