@@ -21,14 +21,12 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.KaspaVirtualChain_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.KaspaNode_Grpc,
 			Source.KaspaNode_Wrpc,
 		],
 	}))
-	const titleFallback = 'kaspa virtual chain timestamp'
 
 
 	// Components
@@ -43,7 +41,7 @@
 <EntityView
 	entityType={EntityType.KaspaVirtualChain_Timestamp}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? 'kaspa virtual chain timestamp'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -68,21 +66,21 @@
 			<div>
 				<dt>start hash</dt>
 				<dd>
-					<TruncatedValue value={pendingEntity.startHash} />
+					<TruncatedValue value={selection.entitySelector.startHash} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+					<Timestamp timestamp={selection.entitySelector.timestampMs} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 
@@ -123,7 +121,7 @@
 						}
 					>
 						{#snippet children(entity)}
-							<TruncatedValue value={entity.addedChainBlockHashes.values.join(', ')} />
+							{entity.addedChainBlockHashes.values.join(', ')}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -144,7 +142,7 @@
 						}
 					>
 						{#snippet children(entity)}
-							<TruncatedValue value={entity.removedChainBlockHashes.values.join(', ')} />
+							{entity.removedChainBlockHashes.values.join(', ')}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>

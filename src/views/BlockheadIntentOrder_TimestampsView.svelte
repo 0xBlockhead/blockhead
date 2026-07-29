@@ -45,7 +45,7 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{String(blockheadIntentOrderTimestampSelector.timestampMs)}
+				{blockheadIntentOrderTimestampSelector.timestampMs}
 			{/snippet}
 
 			{#snippet HeadingAfter()}

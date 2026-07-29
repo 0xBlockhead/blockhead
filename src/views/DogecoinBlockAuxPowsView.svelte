@@ -40,7 +40,7 @@
 			entitySelector={dogecoinBlockAuxPowSelector}
 		>
 			{#snippet Title()}
-				{((String(dogecoinBlockAuxPowSelector.$block.height ?? '') ? 'Block #' + String(dogecoinBlockAuxPowSelector.$block.height ?? '') : '') || (dogecoinBlockAuxPowSelector.$block.hash ?? '') || 'UTXO block')}
+				{`Block #${dogecoinBlockAuxPowSelector.$block.height}`}
 			{/snippet}
 
 			{#snippet Value()}

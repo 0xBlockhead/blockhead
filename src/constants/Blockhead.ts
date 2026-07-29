@@ -1,9 +1,9 @@
 // Types
 
-import { BlockheadFarcasterConnectionAuthMethod } from '$/schema/BlockheadFarcasterAccountConnection.ts'
-import { BlockheadAgentConversationTurnStatus } from '$/schema/BlockheadAgentConversationTurn.ts'
-import { BlockheadSessionStatus } from '$/schema/BlockheadSession.ts'
-import { BlockheadConnectionStatus } from '$/schema/BlockheadWalletConnection.ts'
+import { BlockheadFarcasterConnectionAuthMethod } from '$/schema/BlockheadFarcasterConnectionAuthMethod.ts'
+import { BlockheadAgentConversationTurnStatus } from '$/schema/BlockheadAgentConversationTurnStatus.ts'
+import { BlockheadSessionStatus } from '$/schema/BlockheadSessionStatus.ts'
+import { BlockheadConnectionStatus } from '$/schema/BlockheadConnectionStatus.ts'
 
 
 // Constants

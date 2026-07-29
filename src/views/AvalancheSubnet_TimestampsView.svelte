@@ -42,7 +42,7 @@
 			entitySelector={avalancheSubnetTimestampSelector}
 		>
 			{#snippet Title()}
-				{String(avalancheSubnetTimestampSelector.timestampMs) || 'avalanche subnet timestamp'}
+				{avalancheSubnetTimestampSelector.timestampMs}
 			{/snippet}
 
 			{#snippet Value()}

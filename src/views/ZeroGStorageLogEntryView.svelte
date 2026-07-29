@@ -22,7 +22,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.ZeroGStorageLogEntry> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.ZeroGStorageScan_Rest,
@@ -33,7 +32,6 @@
 			sequenceNumber: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.logEntryId ?? '') || 'zero g storage log entry')
 
 
 	// Components
@@ -48,19 +46,19 @@
 <EntityView
 	entityType={EntityType.ZeroGStorageLogEntry}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? (selection.entitySelector.logEntryId || 'zero g storage log entry')}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{(pendingEntity.logEntryId ?? '') || 'zero g storage log entry'}
+		{selection.entitySelector.logEntryId || 'zero g storage log entry'}
 	{/snippet}
 
 	{#snippet Value()}
 		<NetworkView
 			selection={select(EntityType.Network, selection.entitySelector.$network)}
-			href=""
+			href={null}
 			layout={EntityLayout.Value}
 			open={false}
 		/>
@@ -69,11 +67,11 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={zeroGStorageLogEntry}>
 			{#snippet children(entity)}
-				{@const sequenceNumber0 = entity.sequenceNumber}
-				{#if sequenceNumber0 != null}
+				{@const sequenceNumber = entity.sequenceNumber}
+				{#if sequenceNumber != null}
 					<span data-text="muted">
 						<NumberValue
-							value={sequenceNumber0}
+							value={sequenceNumber}
 						/>
 					</span>
 				{/if}
@@ -97,7 +95,7 @@
 			<div>
 				<dt>log entry ID</dt>
 				<dd>
-					{pendingEntity.logEntryId}
+					{selection.entitySelector.logEntryId}
 				</dd>
 			</div>
 

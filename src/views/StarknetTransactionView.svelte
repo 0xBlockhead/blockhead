@@ -22,7 +22,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.StarknetTransaction> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Juno_JsonRpc,
@@ -37,7 +36,7 @@
 			transactionKind: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.transactionHash ?? '') || 'starknet transaction')
+	const titleFallback = $derived(selection.entitySelector.transactionHash || 'starknet transaction')
 
 
 	// Components
@@ -58,13 +57,13 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{(pendingEntity.transactionHash ?? '') || 'starknet transaction'}
+		{selection.entitySelector.transactionHash || 'starknet transaction'}
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={starknetTransaction}>
 			{#snippet children(entity)}
-				{(entity.transactionKind ?? '') || pendingEntity.transactionHash || titleFallback}
+				{(entity.transactionKind ?? '') || selection.entitySelector.transactionHash || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -93,7 +92,7 @@
 			<div>
 				<dt>transaction hash</dt>
 				<dd>
-					<TruncatedValue value={pendingEntity.transactionHash} />
+					<TruncatedValue value={selection.entitySelector.transactionHash} />
 				</dd>
 			</div>
 
@@ -264,30 +263,30 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const starknetTransactionStarknetEventsViewEventsResource = selection.$$events}
+		{@const eventsResource = selection.$$events}
 		<ResourceBoundary
-			resource={starknetTransactionStarknetEventsViewEventsResource}
+			resource={eventsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<StarknetEventsView
-						selection={starknetTransactionStarknetEventsViewEventsResource}
-						countResource={starknetTransactionStarknetEventsViewEventsResource.count}
+						selection={eventsResource}
+						countResource={eventsResource.count}
 						title='events'
 						id='events'
 					/>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>
-		{@const starknetTransactionStarknetTransactionTimestampsViewTimestampsResource = selection.$$timestamps}
+		{@const timestampsResource = selection.$$timestamps}
 		<ResourceBoundary
-			resource={starknetTransactionStarknetTransactionTimestampsViewTimestampsResource}
+			resource={timestampsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<StarknetTransaction_TimestampsView
-						selection={starknetTransactionStarknetTransactionTimestampsViewTimestampsResource}
-						countResource={starknetTransactionStarknetTransactionTimestampsViewTimestampsResource.count}
+						selection={timestampsResource}
+						countResource={timestampsResource.count}
 						title='timestamps'
 						id='timestamps'
 					/>

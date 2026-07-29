@@ -19,18 +19,16 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.NetworkStack> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const viewSelection = $derived(selection({
+	const networkStack = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Constants_Internal,
 		],
-	}))
-	const networkStack = $derived(viewSelection({
+	})({
 		fields: {
 			label: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.label ?? '') || (pendingEntity.networkStackId ?? '') || 'network stack')
+	const titleFallback = $derived((prefetched.label ?? '') || selection.entitySelector.networkStackId || 'network stack')
 
 
 	// Components
@@ -43,12 +41,15 @@
 	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
 	href={
-		href ?? resolve(
-			'/(explore)/network-stack/[networkStackId=stringSegment]',
-			{
-				networkStackId: String(selection.entitySelector.networkStackId),
-			}
-		)
+		href === undefined ?
+			resolve(
+				'/(explore)/network-stack/[networkStackId=stringSegment]',
+				{
+					networkStackId: selection.entitySelector.networkStackId,
+				}
+			)
+		:
+			href ?? undefined
 	}
 	{layout}
 	bind:open
@@ -73,7 +74,7 @@
 			<div>
 				<dt>Network stack ID</dt>
 				<dd>
-					{pendingEntity.networkStackId}
+					{selection.entitySelector.networkStackId}
 				</dd>
 			</div>
 

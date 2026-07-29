@@ -1,6 +1,6 @@
 // Types
 
-import { BridgeRouteTag } from '$/schema/BridgeRoute.ts'
+import { BridgeRouteTag } from '$/schema/BridgeRouteTag.ts'
 
 
 export enum BridgeRailId {

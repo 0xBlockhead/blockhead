@@ -21,14 +21,12 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.BlockheadCashuMintQuote> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const blockheadCashuMintQuote = $derived(selection({
 		fields: {
 			amount: true,
 			unit: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.quoteId ?? '') || 'blockhead Cashu mint quote')
 
 
 	// Components
@@ -43,25 +41,25 @@
 <EntityView
 	entityType={EntityType.BlockheadCashuMintQuote}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? (selection.entitySelector.quoteId || 'blockhead Cashu mint quote')}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{(pendingEntity.quoteId ?? '') || 'blockhead Cashu mint quote'}
+		{selection.entitySelector.quoteId || 'blockhead Cashu mint quote'}
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={blockheadCashuMintQuote}>
 			{#snippet children(entity)}
-				{@const amount0 = entity.amount}
-				{#if amount0 != null}
+				{@const amount = entity.amount}
+				{#if amount != null}
 					<NumberValue
-						value={amount0}
+						value={amount}
 					/>
 
-					<span>{entity.unit == null ? '' : ` ${String(entity.unit)}`}</span>
+					<span>{entity.unit == null ? '' : ` ${entity.unit}`}</span>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>
@@ -83,14 +81,14 @@
 			<div>
 				<dt>method</dt>
 				<dd>
-					{pendingEntity.method}
+					{selection.entitySelector.method}
 				</dd>
 			</div>
 
 			<div>
 				<dt>quote ID</dt>
 				<dd>
-					{pendingEntity.quoteId}
+					{selection.entitySelector.quoteId}
 				</dd>
 			</div>
 
@@ -148,7 +146,7 @@
 									value={amount}
 								/>
 
-								<span>{entity.unit == null ? '' : ` ${String(entity.unit)}`}</span>
+								<span>{entity.unit == null ? '' : ` ${entity.unit}`}</span>
 							</dd>
 						</div>
 					{/if}
@@ -158,15 +156,15 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const blockheadCashuMintQuoteBlockheadCashuMintQuoteTimestampsViewTimestampsResource = selection.$$timestamps}
+		{@const timestampsResource = selection.$$timestamps}
 		<ResourceBoundary
-			resource={blockheadCashuMintQuoteBlockheadCashuMintQuoteTimestampsViewTimestampsResource}
+			resource={timestampsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<BlockheadCashuMintQuote_TimestampsView
-						selection={blockheadCashuMintQuoteBlockheadCashuMintQuoteTimestampsViewTimestampsResource}
-						countResource={blockheadCashuMintQuoteBlockheadCashuMintQuoteTimestampsViewTimestampsResource.count}
+						selection={timestampsResource}
+						countResource={timestampsResource.count}
 						title='timestamps'
 						id='timestamps'
 					/>

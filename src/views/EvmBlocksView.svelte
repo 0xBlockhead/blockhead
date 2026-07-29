@@ -7,7 +7,6 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
-	import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 
 
 	// State
@@ -40,31 +39,30 @@
 >
 	{#snippet Item({ item: evmBlock })}
 		{@const evmBlockSelector = evmBlock[EntityMetaKey.Selector]}
+		{@const network = evmBlockSelector.$network}
 		<EntityView
 			entityType={EntityType.EvmBlock}
 			entitySelector={evmBlockSelector}
 			href={
-				(
-					'blockNumber' in evmBlockSelector ?
-						resolve(
-							'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(blocks)/block/[blockNumber=nonNegativeBigInt]',
-							{
-								network: (
-									'caip2' in evmBlockSelector.$network ?
-										String(caip2StringFromValue(evmBlockSelector.$network.caip2))
-									:
-										String(evmBlockSelector.$network.slug)
-								),
-								blockNumber: String(evmBlockSelector.blockNumber),
-							}
-						)
-					:
-						undefined
-				)
+				'blockNumber' in evmBlockSelector ?
+					resolve(
+						'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(blocks)/block/[blockNumber=nonNegativeBigInt]',
+						{
+							network: (
+								'caip2' in network ?
+									caip2StringFromValue(network.caip2)
+								:
+									network.slug
+							),
+							blockNumber: String(evmBlockSelector.blockNumber),
+						}
+					)
+				:
+					undefined
 			}
 		>
 			{#snippet Title()}
-				{(String(evmBlockSelector.blockNumber ?? '') ? 'Block #' + String(evmBlockSelector.blockNumber ?? '') : '') || String(evmBlockSelector.hash ?? '') || 'EVM block'}
+				{`Block #${evmBlockSelector.blockNumber}`}
 			{/snippet}
 		</EntityView>
 	{/snippet}

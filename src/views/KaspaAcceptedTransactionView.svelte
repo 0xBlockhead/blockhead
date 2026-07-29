@@ -27,7 +27,6 @@
 			Source.KaspaNode_Wrpc,
 		],
 	}))
-	const titleFallback = 'kaspa accepted transaction'
 
 
 	// Components
@@ -42,7 +41,7 @@
 <EntityView
 	entityType={EntityType.KaspaAcceptedTransaction}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? 'kaspa accepted transaction'}
 	{layout}
 	bind:open
 	{...EntityViewProps}

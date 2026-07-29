@@ -21,7 +21,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.ElementsAsset> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Esplora_Rest,
@@ -33,7 +32,7 @@
 			ticker: true,
 		},
 	}))
-	const titleFallback = $derived([(pendingEntity.name ?? ''), (pendingEntity.ticker ?? ''), (pendingEntity.assetId ?? '')].filter(Boolean).join(' ') || 'Elements asset')
+	const titleFallback = $derived([(prefetched.name ?? ''), (prefetched.ticker ?? ''), selection.entitySelector.assetId].filter(Boolean).join(' ') || 'Elements asset')
 
 
 	// Components
@@ -57,7 +56,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={elementsAsset}>
 			{#snippet children(entity)}
-				{[(entity.name ?? ''), (entity.ticker ?? ''), pendingEntity.assetId].filter(Boolean).join(' ') || title || titleFallback}
+				{[(entity.name ?? ''), (entity.ticker ?? ''), selection.entitySelector.assetId].filter(Boolean).join(' ') || title || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -65,14 +64,14 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={elementsAsset}>
 			{#snippet children(entity)}
-				{(entity.ticker ?? '') || [(entity.name ?? ''), (entity.ticker ?? ''), pendingEntity.assetId].filter(Boolean).join(' ') || titleFallback}
+				{(entity.ticker ?? '') || [(entity.name ?? ''), (entity.ticker ?? ''), selection.entitySelector.assetId].filter(Boolean).join(' ') || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
 		<span data-text="muted">
-			<TruncatedValue value={pendingEntity.assetId} />
+			<TruncatedValue value={selection.entitySelector.assetId} />
 		</span>
 	{/snippet}
 
@@ -92,7 +91,7 @@
 			<div>
 				<dt>Asset ID</dt>
 				<dd>
-					<TruncatedValue value={pendingEntity.assetId} />
+					<TruncatedValue value={selection.entitySelector.assetId} />
 				</dd>
 			</div>
 
@@ -223,30 +222,30 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const elementsAssetElementsAssetTimestampsViewTimestampsResource = selection.$$timestamps}
+		{@const timestampsResource = selection.$$timestamps}
 		<ResourceBoundary
-			resource={elementsAssetElementsAssetTimestampsViewTimestampsResource}
+			resource={timestampsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<ElementsAsset_TimestampsView
-						selection={elementsAssetElementsAssetTimestampsViewTimestampsResource}
-						countResource={elementsAssetElementsAssetTimestampsViewTimestampsResource.count}
+						selection={timestampsResource}
+						countResource={timestampsResource.count}
 						title='Observations'
 						id='timestamps'
 					/>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>
-		{@const elementsAssetElementsIssuancesViewIssuancesResource = selection.$$issuances}
+		{@const issuancesResource = selection.$$issuances}
 		<ResourceBoundary
-			resource={elementsAssetElementsIssuancesViewIssuancesResource}
+			resource={issuancesResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<ElementsIssuancesView
-						selection={elementsAssetElementsIssuancesViewIssuancesResource}
-						countResource={elementsAssetElementsIssuancesViewIssuancesResource.count}
+						selection={issuancesResource}
+						countResource={issuancesResource.count}
 						title='Issuances'
 						id='issuances'
 					/>

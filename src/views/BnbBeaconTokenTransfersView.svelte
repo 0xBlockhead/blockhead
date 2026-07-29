@@ -45,7 +45,7 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{String(bnbBeaconTokenTransfer.amount)}
+				{bnbBeaconTokenTransfer.amount}
 			{/snippet}
 
 			{#snippet HeadingAfter()}

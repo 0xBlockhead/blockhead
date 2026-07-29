@@ -17,14 +17,13 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.AtprotoRepoCommit> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const atprotoRepoCommit = $derived(selection({
 		fields: {
 			rev: true,
 			commitCid: true,
 		},
 	}))
-	const titleFallback = $derived([(pendingEntity.rev ?? ''), (pendingEntity.commitCid ?? '')].filter(Boolean).join(' ') || 'AT Protocol repo commit')
+	const titleFallback = $derived([(prefetched.rev ?? ''), (prefetched.commitCid ?? '')].filter(Boolean).join(' ') || 'AT Protocol repo commit')
 
 
 	// Components
@@ -52,12 +51,12 @@
 	{/snippet}
 
 	{#snippet Value()}
-		{(pendingEntity.repoDid ?? '') || [(pendingEntity.rev ?? ''), (pendingEntity.commitCid ?? '')].filter(Boolean).join(' ') || titleFallback}
+		{selection.entitySelector.repoDid || [(prefetched.rev ?? ''), (prefetched.commitCid ?? '')].filter(Boolean).join(' ') || titleFallback}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
 		<span data-text="muted">
-			{pendingEntity.source}
+			{selection.entitySelector.source}
 		</span>
 	{/snippet}
 
@@ -66,7 +65,7 @@
 			<div>
 				<dt>Repo DID</dt>
 				<dd>
-					{pendingEntity.repoDid}
+					{selection.entitySelector.repoDid}
 				</dd>
 			</div>
 
@@ -86,7 +85,7 @@
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 
@@ -188,7 +187,7 @@
 						<div>
 							<dt>Sequence</dt>
 							<dd>
-								{String(sequence)}
+								{sequence}
 							</dd>
 						</div>
 					{/if}
@@ -254,7 +253,7 @@
 						<div>
 							<dt>Time</dt>
 							<dd>
-								<Timestamp timestamp={Number(time)} />
+								<Timestamp timestamp={time} />
 							</dd>
 						</div>
 					{/if}
@@ -322,7 +321,7 @@
 						<div>
 							<dt>Operation count</dt>
 							<dd>
-								{String(operationCount)}
+								{operationCount}
 							</dd>
 						</div>
 					{/if}
@@ -344,7 +343,7 @@
 						<div>
 							<dt>Blob count</dt>
 							<dd>
-								{String(blobCount)}
+								{blobCount}
 							</dd>
 						</div>
 					{/if}
@@ -366,7 +365,7 @@
 						<div>
 							<dt>CAR byte length</dt>
 							<dd>
-								{String(carByteLength)}
+								{carByteLength}
 							</dd>
 						</div>
 					{/if}
@@ -454,15 +453,15 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const atprotoRepoCommitAtprotoPostsViewPostsResource = selection.$$posts}
+		{@const postsResource = selection.$$posts}
 		<ResourceBoundary
-			resource={atprotoRepoCommitAtprotoPostsViewPostsResource}
+			resource={postsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<AtprotoPostsView
-						selection={atprotoRepoCommitAtprotoPostsViewPostsResource}
-						countResource={atprotoRepoCommitAtprotoPostsViewPostsResource.count}
+						selection={postsResource}
+						countResource={postsResource.count}
 						title='Posts'
 						id='posts'
 					/>

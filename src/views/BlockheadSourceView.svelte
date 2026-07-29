@@ -19,7 +19,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.BlockheadSource> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Local_Internal,
@@ -33,7 +32,7 @@
 			endpointUrl: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.label ?? '') || (pendingEntity.id ?? '') || 'source')
+	const titleFallback = $derived((prefetched.label ?? '') || selection.entitySelector.id || 'source')
 
 
 	// Components
@@ -48,12 +47,15 @@
 	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
 	href={
-		href ?? resolve(
-			'/~/manage/source/[sourceId=stringSegment]',
-			{
-				sourceId: String(selection.entitySelector.id),
-			}
-		)
+		href === undefined ?
+			resolve(
+				'/~/manage/source/[sourceId=stringSegment]',
+				{
+					sourceId: selection.entitySelector.id,
+				}
+			)
+		:
+			href ?? undefined
 	}
 	{layout}
 	bind:open
@@ -119,11 +121,11 @@
 							<dt>Endpoint URL</dt>
 							<dd>
 								<a
-									href={String(endpointUrl)}
+									href={endpointUrl}
 									target="_blank"
 									rel="noreferrer noopener"
 								>
-									<TruncatedValue value={String(endpointUrl)} />
+									<TruncatedValue value={endpointUrl} />
 								</a>
 							</dd>
 						</div>
@@ -246,15 +248,15 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const blockheadSourceBlockheadSourceTimestampsViewTimestampsResource = selection.$$timestamps}
+		{@const timestampsResource = selection.$$timestamps}
 		<ResourceBoundary
-			resource={blockheadSourceBlockheadSourceTimestampsViewTimestampsResource}
+			resource={timestampsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<BlockheadSource_TimestampsView
-						selection={blockheadSourceBlockheadSourceTimestampsViewTimestampsResource}
-						countResource={blockheadSourceBlockheadSourceTimestampsViewTimestampsResource.count}
+						selection={timestampsResource}
+						countResource={timestampsResource.count}
 						title='Observations'
 						id='timestamps'
 					/>

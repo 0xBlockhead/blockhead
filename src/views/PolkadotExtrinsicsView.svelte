@@ -40,41 +40,40 @@
 >
 	{#snippet Item({ item: polkadotExtrinsic })}
 		{@const polkadotExtrinsicSelector = polkadotExtrinsic[EntityMetaKey.Selector]}
+		{@const block = polkadotExtrinsicSelector.$block}
 		<EntityView
 			entityType={EntityType.PolkadotExtrinsic}
 			entitySelector={polkadotExtrinsicSelector}
 			href={
-				(
-					'hash' in polkadotExtrinsicSelector.$block ?
-						resolve(
-							'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(blocks)/block/[blockNumber=nonNegativeBigInt]/(selection)/[hash=stringSegment]/(selection)/extrinsic/[extrinsicIndex=nonNegativeInteger]',
-							{
-								network: (
-									'caip2' in polkadotExtrinsicSelector.$block.$network ?
-										String(caip2StringFromValue(polkadotExtrinsicSelector.$block.$network.caip2))
-									:
-										String(polkadotExtrinsicSelector.$block.$network.slug)
-								),
-								blockNumber: String(polkadotExtrinsicSelector.$block.blockNumber),
-								hash: String(polkadotExtrinsicSelector.$block.hash),
-								extrinsicIndex: String(polkadotExtrinsicSelector.indexInBlock),
-							}
-						)
-					:
-						undefined
-				)
+				'hash' in block ?
+					resolve(
+						'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(blocks)/block/[blockNumber=nonNegativeBigInt]/(selection)/[hash=stringSegment]/(selection)/extrinsic/[extrinsicIndex=nonNegativeInteger]',
+						{
+							network: (
+								'caip2' in block.$network ?
+									caip2StringFromValue(block.$network.caip2)
+								:
+									block.$network.slug
+							),
+							blockNumber: String(block.blockNumber),
+							hash: block.hash,
+							extrinsicIndex: String(polkadotExtrinsicSelector.indexInBlock),
+						}
+					)
+				:
+					undefined
 			}
 		>
 			{#snippet Title()}
-				{(String(polkadotExtrinsicSelector.indexInBlock ?? '') ? 'Extrinsic #' + String(polkadotExtrinsicSelector.indexInBlock ?? '') : '') || 'Polkadot extrinsic'}
+				{`Extrinsic #${polkadotExtrinsicSelector.indexInBlock}`}
 			{/snippet}
 
 			{#snippet Value()}
-				{(polkadotExtrinsic.callName ?? '')}
+				{polkadotExtrinsic.callName ?? ''}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{String(polkadotExtrinsic.success ?? '')}</span>
+				<span data-text="annotation">{polkadotExtrinsic.success ?? ''}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

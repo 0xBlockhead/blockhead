@@ -1,7 +1,7 @@
 // Generated from APP.ts. Do not edit by hand.
 
 import { Source } from '$/sources/Source.ts'
-import { ApiFamily, SourceArtifactKind, SourceCredentialScope, SourceDelivery, SourceEndpointKind, SourceOperationGroup, SourceTargetKind, WireProtocol, type SourceBindingIndex } from '$/sources/SourceBinding.ts'
+import { ApiFamily, indexSourceBindings, SourceArtifactKind, SourceCredentialScope, SourceDelivery, SourceEndpointKind, SourceOperationGroup, SourceTargetKind, WireProtocol, type SourceBinding } from '$/sources/SourceBinding.ts'
 import { type as arktype } from 'arktype'
 
 const beaconchaInRestGenericReadOperationGroups = [
@@ -26,73 +26,70 @@ const beaconchaInRestArtifacts = [
 	},
 ] as const
 
-export default {
-	[Source.BeaconchaIn_Rest]: [
-		{
-			source: Source.BeaconchaIn_Rest,
-			target: {
-				kind: SourceTargetKind.Eip155Chain,
-				key: '1',
-			},
-			endpoints: [
-				{
-					endpointKind: SourceEndpointKind.HttpUrl,
-					locator: 'https://beaconcha.in/api/v1',
-					origin: 'https://beaconcha.in',
-					corsEnabled: false,
-				},
-			],
-			wireProtocol: WireProtocol.HttpRest,
-			apiFamily: ApiFamily.RestJson,
-			operationGroups: beaconchaInRestGenericReadOperationGroups,
-			delivery: SourceDelivery.HttpProxy,
-			credentials: beaconchaInRestCredentials,
-			proxyId: '["BeaconchaIn_Rest","Eip155Chain","1","HttpProxy","RestJson"]',
-			artifacts: beaconchaInRestArtifacts,
+const bindings = [
+	{
+		source: Source.BeaconchaIn_Rest,
+		target: {
+			kind: SourceTargetKind.Eip155Chain,
+			key: '1',
 		},
-		{
-			source: Source.BeaconchaIn_Rest,
-			target: {
-				kind: SourceTargetKind.Eip155Chain,
-				key: '17000',
+		endpoints: [
+			{
+				endpointKind: SourceEndpointKind.HttpUrl,
+				locator: 'https://beaconcha.in/api/v1',
+				origin: 'https://beaconcha.in',
+				corsEnabled: false,
 			},
-			endpoints: [
-				{
-					endpointKind: SourceEndpointKind.HttpUrl,
-					locator: 'https://holesky.beaconcha.in/api/v1',
-					origin: 'https://holesky.beaconcha.in',
-					corsEnabled: false,
-				},
-			],
-			wireProtocol: WireProtocol.HttpRest,
-			apiFamily: ApiFamily.RestJson,
-			operationGroups: beaconchaInRestGenericReadOperationGroups,
-			delivery: SourceDelivery.HttpProxy,
-			credentials: beaconchaInRestCredentials,
-			proxyId: '["BeaconchaIn_Rest","Eip155Chain","17000","HttpProxy","RestJson"]',
-			artifacts: beaconchaInRestArtifacts,
+		],
+		wireProtocol: WireProtocol.HttpRest,
+		apiFamily: ApiFamily.RestJson,
+		operationGroups: beaconchaInRestGenericReadOperationGroups,
+		delivery: SourceDelivery.HttpProxy,
+		credentials: beaconchaInRestCredentials,
+		artifacts: beaconchaInRestArtifacts,
+	},
+	{
+		source: Source.BeaconchaIn_Rest,
+		target: {
+			kind: SourceTargetKind.Eip155Chain,
+			key: '17000',
 		},
-		{
-			source: Source.BeaconchaIn_Rest,
-			target: {
-				kind: SourceTargetKind.Eip155Chain,
-				key: '560048',
+		endpoints: [
+			{
+				endpointKind: SourceEndpointKind.HttpUrl,
+				locator: 'https://holesky.beaconcha.in/api/v1',
+				origin: 'https://holesky.beaconcha.in',
+				corsEnabled: false,
 			},
-			endpoints: [
-				{
-					endpointKind: SourceEndpointKind.HttpUrl,
-					locator: 'https://hoodi.beaconcha.in/api/v1',
-					origin: 'https://hoodi.beaconcha.in',
-					corsEnabled: false,
-				},
-			],
-			wireProtocol: WireProtocol.HttpRest,
-			apiFamily: ApiFamily.RestJson,
-			operationGroups: beaconchaInRestGenericReadOperationGroups,
-			delivery: SourceDelivery.HttpProxy,
-			credentials: beaconchaInRestCredentials,
-			proxyId: '["BeaconchaIn_Rest","Eip155Chain","560048","HttpProxy","RestJson"]',
-			artifacts: beaconchaInRestArtifacts,
+		],
+		wireProtocol: WireProtocol.HttpRest,
+		apiFamily: ApiFamily.RestJson,
+		operationGroups: beaconchaInRestGenericReadOperationGroups,
+		delivery: SourceDelivery.HttpProxy,
+		credentials: beaconchaInRestCredentials,
+		artifacts: beaconchaInRestArtifacts,
+	},
+	{
+		source: Source.BeaconchaIn_Rest,
+		target: {
+			kind: SourceTargetKind.Eip155Chain,
+			key: '560048',
 		},
-	],
-} as const satisfies SourceBindingIndex
+		endpoints: [
+			{
+				endpointKind: SourceEndpointKind.HttpUrl,
+				locator: 'https://hoodi.beaconcha.in/api/v1',
+				origin: 'https://hoodi.beaconcha.in',
+				corsEnabled: false,
+			},
+		],
+		wireProtocol: WireProtocol.HttpRest,
+		apiFamily: ApiFamily.RestJson,
+		operationGroups: beaconchaInRestGenericReadOperationGroups,
+		delivery: SourceDelivery.HttpProxy,
+		credentials: beaconchaInRestCredentials,
+		artifacts: beaconchaInRestArtifacts,
+	},
+] as const satisfies readonly SourceBinding[]
+
+export default indexSourceBindings<{ readonly [Source.BeaconchaIn_Rest]: readonly [typeof bindings[0], typeof bindings[1], typeof bindings[2]] }>(bindings)

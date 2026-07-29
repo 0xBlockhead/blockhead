@@ -41,15 +41,15 @@
 			entitySelector={logosBlockchainNetworkTimestampSelector}
 		>
 			{#snippet Title()}
-				{String(logosBlockchainNetworkTimestampSelector.timestampMs) || 'Logos blockchain network timestamp'}
+				{logosBlockchainNetworkTimestampSelector.timestampMs}
 			{/snippet}
 
 			{#snippet Value()}
-				{String(logosBlockchainNetworkTimestamp.height ?? '')}
+				{logosBlockchainNetworkTimestamp.height ?? ''}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{(logosBlockchainNetworkTimestamp.mode ?? '')}</span>
+				<span data-text="annotation">{logosBlockchainNetworkTimestamp.mode ?? ''}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

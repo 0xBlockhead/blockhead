@@ -30,7 +30,7 @@
 
 
 <svelte:head>
-	<title>{(data.title ?? (pageSelection.entity == null ? String(pageSelection.entitySelector.timestampMs ?? '') || 'EVM network timestamp' : ([(String(pageSelection.entity.blockHeight) ? 'Block ' + String(pageSelection.entity.blockHeight) : ''), String(pageSelection.entitySelector.timestampMs)].filter(Boolean).join(' ')) || 'EVM network timestamp'))} • EVM network timestamp • Blockhead</title>
+	<title>{data.title ?? (pageSelection.entity == null ? String(pageSelection.entitySelector.timestampMs ?? '') || 'EVM network timestamp' : ['Block ' + String(pageSelection.entity.blockHeight), String(pageSelection.entitySelector.timestampMs)].filter(Boolean).join(' ') || 'EVM network timestamp')} • EVM network timestamp • Blockhead</title>
 </svelte:head>
 
 

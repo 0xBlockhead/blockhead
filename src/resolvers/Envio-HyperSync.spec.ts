@@ -31,8 +31,6 @@ const {
 		credentials: [{
 			scope: 'RuntimeSecret',
 		}],
-		proxyId: '["EnvioHyperSync_RawHttp","Eip155Chain","1","HttpProxy","EnvioHyperSyncApi"]',
-		serverCredentialId: '["EnvioHyperSync_RawHttp","Eip155Chain","1","HttpProxy","EnvioHyperSyncApi"]',
 		artifacts: [{
 			kind: 'HandwrittenTypes',
 			path: 'src/sources/Envio/HyperSync/types.ts',

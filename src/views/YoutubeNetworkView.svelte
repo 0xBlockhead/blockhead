@@ -5,7 +5,6 @@
 	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { UrlString } from '$/schema/UrlString.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -20,7 +19,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.YoutubeNetwork> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Constants_Internal,
@@ -31,7 +29,7 @@
 			protocolName: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.protocolName ?? '') || 'YouTube Data API')
+	const titleFallback = $derived((prefetched.protocolName ?? '') || 'YouTube Data API')
 
 
 	// Components
@@ -44,7 +42,12 @@
 	entityType={EntityType.YoutubeNetwork}
 	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	href={href ?? resolve('/(social)/(youtube)/youtube/(globalYoutubeNetwork)/api')}
+	href={
+		href === undefined ?
+			resolve('/(social)/(youtube)/youtube/(globalYoutubeNetwork)/api')
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -87,11 +90,11 @@
 						>
 							{#snippet children(entity)}
 								<a
-									href={String(entity.homeUrl)}
+									href={entity.homeUrl}
 									target="_blank"
 									rel="noreferrer noopener"
 								>
-									<TruncatedValue value={String(entity.homeUrl)} />
+									<TruncatedValue value={entity.homeUrl} />
 								</a>
 							{/snippet}
 						</ResourceBoundary>
@@ -116,11 +119,11 @@
 								<dt>Documentation</dt>
 								<dd>
 									<a
-										href={String(docsUrl)}
+										href={docsUrl}
 										target="_blank"
 										rel="noreferrer noopener"
 									>
-										<TruncatedValue value={String(docsUrl)} />
+										<TruncatedValue value={docsUrl} />
 									</a>
 								</dd>
 							</div>

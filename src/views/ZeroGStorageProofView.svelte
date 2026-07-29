@@ -22,7 +22,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.ZeroGStorageProof> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.ZeroGStorageScan_Rest,
@@ -33,7 +32,6 @@
 			proofKind: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.proofId ?? '') || 'zero g storage proof')
 
 
 	// Components
@@ -48,19 +46,18 @@
 <EntityView
 	entityType={EntityType.ZeroGStorageProof}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? (selection.entitySelector.proofId || 'zero g storage proof')}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{(pendingEntity.proofId ?? '') || 'zero g storage proof'}
+		{selection.entitySelector.proofId || 'zero g storage proof'}
 	{/snippet}
 
 	{#snippet Value()}
 		<ZeroGStorageNodeView
 			selection={select(EntityType.ZeroGStorageNode, selection.entitySelector.$storageNode)}
-			href=""
 			layout={EntityLayout.Value}
 			open={false}
 		/>
@@ -69,10 +66,10 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={zeroGStorageProof}>
 			{#snippet children(entity)}
-				{@const proofKind0 = entity.proofKind}
-				{#if proofKind0 != null}
+				{@const proofKind = entity.proofKind}
+				{#if proofKind != null}
 					<span data-text="muted">
-						{proofKind0}
+						{proofKind}
 					</span>
 				{/if}
 			{/snippet}
@@ -95,7 +92,7 @@
 			<div>
 				<dt>proof ID</dt>
 				<dd>
-					{pendingEntity.proofId}
+					{selection.entitySelector.proofId}
 				</dd>
 			</div>
 

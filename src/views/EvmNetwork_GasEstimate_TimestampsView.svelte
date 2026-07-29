@@ -38,6 +38,7 @@
 >
 	{#snippet Item({ item: evmNetworkGasEstimateTimestamp })}
 		{@const evmNetworkGasEstimateTimestampSelector = evmNetworkGasEstimateTimestamp[EntityMetaKey.Selector]}
+		{@const network = evmNetworkGasEstimateTimestampSelector.$network}
 		<EntityView
 			entityType={EntityType.EvmNetwork_GasEstimate_Timestamp}
 			entitySelector={evmNetworkGasEstimateTimestampSelector}
@@ -46,23 +47,23 @@
 					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/gas-estimates/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
 					{
 						network: (
-							'caip2' in evmNetworkGasEstimateTimestampSelector.$network ?
-								String(caip2StringFromValue(evmNetworkGasEstimateTimestampSelector.$network.caip2))
+							'caip2' in network ?
+								caip2StringFromValue(network.caip2)
 							:
-								String(evmNetworkGasEstimateTimestampSelector.$network.slug)
+								network.slug
 						),
 						timestampMs: String(evmNetworkGasEstimateTimestampSelector.timestampMs),
-						source: String(evmNetworkGasEstimateTimestampSelector.source),
+						source: evmNetworkGasEstimateTimestampSelector.source,
 					}
 				)
 			}
 		>
 			{#snippet Title()}
-				{([(String(evmNetworkGasEstimateTimestamp.fastGwei ?? '') ? String(evmNetworkGasEstimateTimestamp.fastGwei ?? '') + ' gwei' : ''), String(evmNetworkGasEstimateTimestampSelector.timestampMs)].filter(Boolean).join(' ')) || 'EVM network gas estimate timestamp'}
+				{[(evmNetworkGasEstimateTimestamp.fastGwei != null ? String(evmNetworkGasEstimateTimestamp.fastGwei) + ' gwei' : ''), String(evmNetworkGasEstimateTimestampSelector.timestampMs)].filter(Boolean).join(' ') || 'EVM network gas estimate timestamp'}
 			{/snippet}
 
 			{#snippet Value()}
-				{(String(evmNetworkGasEstimateTimestamp.fastGwei ?? '') ? String(evmNetworkGasEstimateTimestamp.fastGwei ?? '') + ' gwei' : '')}
+				{evmNetworkGasEstimateTimestamp.fastGwei != null ? evmNetworkGasEstimateTimestamp.fastGwei + ' gwei' : ''}
 			{/snippet}
 
 			{#snippet HeadingAfter()}

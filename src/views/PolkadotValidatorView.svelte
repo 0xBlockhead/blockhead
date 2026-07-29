@@ -20,9 +20,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.PolkadotValidator> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const titleFallback = $derived((pendingEntity.stashAccountId ?? '') || 'Polkadot validator')
-
 
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -34,17 +31,17 @@
 <EntityView
 	entityType={EntityType.PolkadotValidator}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? (selection.entitySelector.stashAccountId || 'Polkadot validator')}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<TruncatedValue value={pendingEntity.stashAccountId} />
+		<TruncatedValue value={selection.entitySelector.stashAccountId} />
 	{/snippet}
 
 	{#snippet Value()}
-		<TruncatedValue value={pendingEntity.stashAccountId} />
+		<TruncatedValue value={selection.entitySelector.stashAccountId} />
 	{/snippet}
 
 	{#snippet HeadingAfter()}
@@ -62,7 +59,7 @@
 			<div>
 				<dt>Stash account ID</dt>
 				<dd>
-					<TruncatedValue value={pendingEntity.stashAccountId} />
+					<TruncatedValue value={selection.entitySelector.stashAccountId} />
 				</dd>
 			</div>
 

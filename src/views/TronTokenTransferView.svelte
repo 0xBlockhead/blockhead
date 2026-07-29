@@ -21,9 +21,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.TronTokenTransfer> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const titleFallback = 'tron token transfer'
-
 
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -38,7 +35,7 @@
 <EntityView
 	entityType={EntityType.TronTokenTransfer}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? 'tron token transfer'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -63,14 +60,14 @@
 			<div>
 				<dt>Transaction ID</dt>
 				<dd>
-					{pendingEntity.transactionId}
+					{selection.entitySelector.transactionId}
 				</dd>
 			</div>
 
 			<div>
 				<dt>Transfer index</dt>
 				<dd>
-					{String(pendingEntity.transferIndex)}
+					{selection.entitySelector.transferIndex}
 				</dd>
 			</div>
 
@@ -191,7 +188,7 @@
 						<div>
 							<dt>Amount</dt>
 							<dd>
-								{String(amount)}
+								{amount}
 							</dd>
 						</div>
 					{/if}
@@ -213,7 +210,7 @@
 						<div>
 							<dt>Timestamp</dt>
 							<dd>
-								<Timestamp timestamp={Number(timestampMs)} />
+								<Timestamp timestamp={timestampMs} />
 							</dd>
 						</div>
 					{/if}

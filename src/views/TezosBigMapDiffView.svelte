@@ -21,9 +21,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.TezosBigMapDiff> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const titleFallback = 'tezos big map diff'
-
 
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -36,7 +33,7 @@
 <EntityView
 	entityType={EntityType.TezosBigMapDiff}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? 'tezos big map diff'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -61,14 +58,14 @@
 			<div>
 				<dt>big map ID</dt>
 				<dd>
-					{String(pendingEntity.bigMapId)}
+					{selection.entitySelector.bigMapId}
 				</dd>
 			</div>
 
 			<div>
 				<dt>key hash</dt>
 				<dd>
-					<TruncatedValue value={pendingEntity.keyHash} />
+					<TruncatedValue value={selection.entitySelector.keyHash} />
 				</dd>
 			</div>
 

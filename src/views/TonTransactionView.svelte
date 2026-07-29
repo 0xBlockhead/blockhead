@@ -21,9 +21,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.TonTransaction> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const titleFallback = 'TON transaction'
-
 
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -38,7 +35,7 @@
 <EntityView
 	entityType={EntityType.TonTransaction}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? 'TON transaction'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -63,7 +60,7 @@
 			<div>
 				<dt>lt</dt>
 				<dd>
-					{String(pendingEntity.lt)}
+					{selection.entitySelector.lt}
 				</dd>
 			</div>
 
@@ -101,7 +98,7 @@
 						<div>
 							<dt>now ms</dt>
 							<dd>
-								{String(nowMs)}
+								{nowMs}
 							</dd>
 						</div>
 					{/if}
@@ -189,7 +186,7 @@
 						<div>
 							<dt>out message count</dt>
 							<dd>
-								{String(outMessageCount)}
+								{outMessageCount}
 							</dd>
 						</div>
 					{/if}
@@ -211,7 +208,7 @@
 						<div>
 							<dt>total fees nano</dt>
 							<dd>
-								{String(totalFeesNano)}
+								{totalFeesNano}
 							</dd>
 						</div>
 					{/if}
@@ -255,7 +252,7 @@
 						<div>
 							<dt>previous transaction lt</dt>
 							<dd>
-								{String(previousTransactionLt)}
+								{previousTransactionLt}
 							</dd>
 						</div>
 					{/if}

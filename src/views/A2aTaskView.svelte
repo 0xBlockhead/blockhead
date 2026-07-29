@@ -22,7 +22,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.A2aTask> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [],
 	}))
@@ -34,7 +33,7 @@
 			updatedAt: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.taskId ?? '') || (pendingEntity.providerTaskId ?? '') || 'A2A task')
+	const titleFallback = $derived((prefetched.taskId ?? '') || (prefetched.providerTaskId ?? '') || 'A2A task')
 	const viewDomId = $derived('a2a-task-' + encodeURIComponent(stringify(selection.entitySelector)))
 
 
@@ -80,10 +79,10 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={a2aTask}>
 			{#snippet children(entity)}
-				{@const updatedAt0 = entity.updatedAt}
-				{#if updatedAt0 != null}
+				{@const updatedAt = entity.updatedAt}
+				{#if updatedAt != null}
 					<span data-text="muted">
-						<Timestamp timestamp={Number(updatedAt0)} />
+						<Timestamp timestamp={updatedAt} />
 					</span>
 				{/if}
 			{/snippet}
@@ -174,7 +173,7 @@
 						<div>
 							<dt>Created</dt>
 							<dd>
-								<Timestamp timestamp={Number(createdAt)} />
+								<Timestamp timestamp={createdAt} />
 							</dd>
 						</div>
 					{/if}
@@ -190,7 +189,7 @@
 						<div>
 							<dt>Updated</dt>
 							<dd>
-								<Timestamp timestamp={Number(updatedAt)} />
+								<Timestamp timestamp={updatedAt} />
 							</dd>
 						</div>
 					{/if}
@@ -212,7 +211,7 @@
 						<div>
 							<dt>cancelled AT</dt>
 							<dd>
-								<Timestamp timestamp={Number(cancelledAt)} />
+								<Timestamp timestamp={cancelledAt} />
 							</dd>
 						</div>
 					{/if}

@@ -21,13 +21,12 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.AvalanchePChainTransaction> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const avalanchePChainTransaction = $derived(selection({
 		fields: {
 			txType: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.txId ?? '') || 'avalanche p chain transaction')
+	const titleFallback = $derived(selection.entitySelector.txId || 'avalanche p chain transaction')
 
 
 	// Components
@@ -50,13 +49,13 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<TruncatedValue value={pendingEntity.txId} />
+		<TruncatedValue value={selection.entitySelector.txId} />
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={avalanchePChainTransaction}>
 			{#snippet children(entity)}
-				{(entity.txType ?? '') || pendingEntity.txId || titleFallback}
+				{(entity.txType ?? '') || selection.entitySelector.txId || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -96,7 +95,7 @@
 			<div>
 				<dt>transaction ID</dt>
 				<dd>
-					<TruncatedValue value={pendingEntity.txId} />
+					<TruncatedValue value={selection.entitySelector.txId} />
 				</dd>
 			</div>
 
@@ -219,7 +218,7 @@
 						<div>
 							<dt>start time ms</dt>
 							<dd>
-								<Timestamp timestamp={Number(startTimeMs)} />
+								<Timestamp timestamp={startTimeMs} />
 							</dd>
 						</div>
 					{/if}
@@ -241,7 +240,7 @@
 						<div>
 							<dt>end time ms</dt>
 							<dd>
-								<Timestamp timestamp={Number(endTimeMs)} />
+								<Timestamp timestamp={endTimeMs} />
 							</dd>
 						</div>
 					{/if}
@@ -367,15 +366,15 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const avalanchePChainTransactionAvalanchePChainTransactionTimestampsViewTimestampsResource = selection.$$timestamps}
+		{@const timestampsResource = selection.$$timestamps}
 		<ResourceBoundary
-			resource={avalanchePChainTransactionAvalanchePChainTransactionTimestampsViewTimestampsResource}
+			resource={timestampsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<AvalanchePChainTransaction_TimestampsView
-						selection={avalanchePChainTransactionAvalanchePChainTransactionTimestampsViewTimestampsResource}
-						countResource={avalanchePChainTransactionAvalanchePChainTransactionTimestampsViewTimestampsResource.count}
+						selection={timestampsResource}
+						countResource={timestampsResource.count}
 						title='timestamps'
 						id='timestamps'
 					/>

@@ -20,9 +20,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.SuiCoinBalance_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const titleFallback = 'Sui coin balance timestamp'
-
 
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -35,7 +32,7 @@
 <EntityView
 	entityType={EntityType.SuiCoinBalance_Timestamp}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? 'Sui coin balance timestamp'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -60,21 +57,21 @@
 			<div>
 				<dt>coin type</dt>
 				<dd>
-					{pendingEntity.coinType}
+					{selection.entitySelector.coinType}
 				</dd>
 			</div>
 
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+					<Timestamp timestamp={selection.entitySelector.timestampMs} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 
@@ -93,7 +90,7 @@
 						<div>
 							<dt>total balance</dt>
 							<dd>
-								{String(totalBalance)}
+								{totalBalance}
 							</dd>
 						</div>
 					{/if}
@@ -115,7 +112,7 @@
 						<div>
 							<dt>coin object count</dt>
 							<dd>
-								{String(coinObjectCount)}
+								{coinObjectCount}
 							</dd>
 						</div>
 					{/if}

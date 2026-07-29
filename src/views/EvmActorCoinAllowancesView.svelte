@@ -36,32 +36,31 @@
 >
 	{#snippet Item({ item: evmActorCoinAllowance })}
 		{@const evmActorCoinAllowanceSelector = evmActorCoinAllowance[EntityMetaKey.Selector]}
+		{@const contract = evmActorCoinAllowanceSelector.$contract}
 		<EntityView
 			entityType={EntityType.EvmActorCoinAllowance}
 			entitySelector={evmActorCoinAllowanceSelector}
 			href={
-				(
-					'caip2' in evmActorCoinAllowanceSelector.$contract.$network ?
-						resolve(
-							'/~/accounts/allowance/[chainId=eip155ChainId]/[owner=evmAddress]/[coin=evmAddress]/[spender=evmAddress]',
-							{
-								chainId: String(evmActorCoinAllowanceSelector.$contract.$network.caip2.reference),
-								owner: String(evmActorCoinAllowanceSelector.$actor.address),
-								coin: String(evmActorCoinAllowanceSelector.$contract.address),
-								spender: String(evmActorCoinAllowanceSelector.$spender.address),
-							}
-						)
-					:
-						undefined
-				)
+				'caip2' in contract.$network ?
+					resolve(
+						'/~/accounts/allowance/[chainId=eip155ChainId]/[owner=evmAddress]/[coin=evmAddress]/[spender=evmAddress]',
+						{
+							chainId: contract.$network.caip2.reference,
+							owner: evmActorCoinAllowanceSelector.$actor.address,
+							coin: contract.address,
+							spender: evmActorCoinAllowanceSelector.$spender.address,
+						}
+					)
+				:
+					undefined
 			}
 		>
 			{#snippet Title()}
-				{[(evmActorCoinAllowance.$contract.precompileName ?? ''), String(evmActorCoinAllowanceSelector.$contract.address)].filter(Boolean).join(' ') || 'EVM contract'}
+				{[(evmActorCoinAllowance.$contract.precompileName ?? ''), evmActorCoinAllowanceSelector.$contract.address].filter(Boolean).join(' ') || 'EVM contract'}
 			{/snippet}
 
 			{#snippet Value()}
-				{String(evmActorCoinAllowanceSelector.$spender.address) || 'EVM account'}
+				{evmActorCoinAllowanceSelector.$spender.address || 'EVM account'}
 			{/snippet}
 		</EntityView>
 	{/snippet}

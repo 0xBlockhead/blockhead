@@ -20,8 +20,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.HederaBlock> = $props()
 
-	const titleFallback = 'hedera block'
-
 
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -33,7 +31,7 @@
 <EntityView
 	entityType={EntityType.HederaBlock}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? 'hedera block'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -68,7 +66,7 @@
 						}
 					>
 						{#snippet children(entity)}
-							{String(entity.blockNumber)}
+							{entity.blockNumber}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -152,7 +150,7 @@
 						<div>
 							<dt>gas used</dt>
 							<dd>
-								{String(gasUsed)}
+								{gasUsed}
 							</dd>
 						</div>
 					{/if}
@@ -196,7 +194,7 @@
 						<div>
 							<dt>transaction count</dt>
 							<dd>
-								{String(transactionCount)}
+								{transactionCount}
 							</dd>
 						</div>
 					{/if}

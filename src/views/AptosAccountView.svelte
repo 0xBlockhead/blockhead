@@ -22,8 +22,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.AptosAccount> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const titleFallback = $derived((pendingEntity.address ?? '') || 'aptos account')
 	const viewDomId = $derived('aptos-account-' + encodeURIComponent(stringify(selection.entitySelector)))
 
 
@@ -44,19 +42,18 @@
 	entityType={EntityType.AptosAccount}
 	entitySelector={selection.entitySelector}
 	id={viewDomId}
-	title={title ?? titleFallback}
+	title={title ?? (selection.entitySelector.address || 'aptos account')}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<TruncatedValue value={pendingEntity.address} />
+		<TruncatedValue value={selection.entitySelector.address} />
 	{/snippet}
 
 	{#snippet Value()}
 		<AptosNetworkView
 			selection={select(EntityType.AptosNetwork, selection.entitySelector.$network)}
-			href=""
 			layout={EntityLayout.Value}
 			open={false}
 		/>
@@ -78,7 +75,7 @@
 			<div>
 				<dt>Address</dt>
 				<dd>
-					<TruncatedValue value={pendingEntity.address} />
+					<TruncatedValue value={selection.entitySelector.address} />
 				</dd>
 			</div>
 		</dl>

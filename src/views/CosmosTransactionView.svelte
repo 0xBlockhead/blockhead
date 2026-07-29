@@ -21,14 +21,12 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.CosmosTransaction> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const cosmosTransaction = $derived(selection({
 		fields: {
 			code: true,
 			gasUsed: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.txHash ?? '') || 'Cosmos transaction')
 
 
 	// Components
@@ -43,32 +41,32 @@
 <EntityView
 	entityType={EntityType.CosmosTransaction}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? (selection.entitySelector.txHash || 'Cosmos transaction')}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<TruncatedValue value={pendingEntity.txHash} />
+		<TruncatedValue value={selection.entitySelector.txHash} />
 	{/snippet}
 
 	{#snippet Value()}
-		<TruncatedValue value={pendingEntity.txHash} />
+		<TruncatedValue value={selection.entitySelector.txHash} />
 	{/snippet}
 
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={cosmosTransaction}>
 			{#snippet children(entity)}
-				{@const code0 = entity.code}
-				{#if code0 != null}
+				{@const code = entity.code}
+				{#if code != null}
 					<span data-text="muted">
-						{String(code0)}
+						{code}
 					</span>
 				{/if}
-				{@const gasUsed1 = entity.gasUsed}
-				{#if gasUsed1 != null}
+				{@const gasUsed = entity.gasUsed}
+				{#if gasUsed != null}
 					<span data-text="muted">
-						{String(gasUsed1)}
+						{gasUsed}
 					</span>
 				{/if}
 			{/snippet}
@@ -80,7 +78,7 @@
 			<div>
 				<dt>Transaction hash</dt>
 				<dd>
-					<TruncatedValue value={pendingEntity.txHash} />
+					<TruncatedValue value={selection.entitySelector.txHash} />
 				</dd>
 			</div>
 
@@ -93,7 +91,7 @@
 						<div>
 							<dt>Code</dt>
 							<dd>
-								{String(code)}
+								{code}
 							</dd>
 						</div>
 					{/if}
@@ -137,7 +135,7 @@
 						<div>
 							<dt>Gas wanted</dt>
 							<dd>
-								{String(gasWanted)}
+								{gasWanted}
 							</dd>
 						</div>
 					{/if}
@@ -153,7 +151,7 @@
 						<div>
 							<dt>Gas used</dt>
 							<dd>
-								{String(gasUsed)}
+								{gasUsed}
 							</dd>
 						</div>
 					{/if}
@@ -194,7 +192,7 @@
 						<div>
 							<dt>Fee gas limit</dt>
 							<dd>
-								{String(feeGasLimit)}
+								{feeGasLimit}
 							</dd>
 						</div>
 					{/if}
@@ -240,7 +238,7 @@
 						<div>
 							<dt>Timeout height</dt>
 							<dd>
-								{String(timeoutHeight)}
+								{timeoutHeight}
 							</dd>
 						</div>
 					{/if}
@@ -260,7 +258,7 @@
 						}
 					>
 						{#snippet children(entity)}
-							<TruncatedValue value={entity.signerAddresses.values.join(', ')} />
+							{entity.signerAddresses.values.join(', ')}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -279,7 +277,7 @@
 						}
 					>
 						{#snippet children(entity)}
-							<TruncatedValue value={entity.signatures.values.join(', ')} />
+							{entity.signatures.values.join(', ')}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -357,15 +355,15 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const cosmosTransactionCosmosMessagesViewMessagesResource = selection.$$messages}
+		{@const messagesResource = selection.$$messages}
 		<ResourceBoundary
-			resource={cosmosTransactionCosmosMessagesViewMessagesResource}
+			resource={messagesResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<CosmosMessagesView
-						selection={cosmosTransactionCosmosMessagesViewMessagesResource}
-						countResource={cosmosTransactionCosmosMessagesViewMessagesResource.count}
+						selection={messagesResource}
+						countResource={messagesResource.count}
 						title='Messages'
 						id='messages'
 					/>

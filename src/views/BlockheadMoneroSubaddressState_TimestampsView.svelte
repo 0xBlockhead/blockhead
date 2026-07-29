@@ -43,15 +43,15 @@
 			entitySelector={blockheadMoneroSubaddressStateTimestampSelector}
 		>
 			{#snippet Title()}
-				{String(blockheadMoneroSubaddressStateTimestampSelector.timestampMs) || 'blockhead monero subaddress state timestamp'}
+				{blockheadMoneroSubaddressStateTimestampSelector.timestampMs}
 			{/snippet}
 
 			{#snippet Value()}
-				{String(blockheadMoneroSubaddressStateTimestamp.balanceAtomicUnits ?? '')}
+				{blockheadMoneroSubaddressStateTimestamp.balanceAtomicUnits ?? ''}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{String(blockheadMoneroSubaddressStateTimestamp.used ?? '')}</span>
+				<span data-text="annotation">{blockheadMoneroSubaddressStateTimestamp.used ?? ''}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

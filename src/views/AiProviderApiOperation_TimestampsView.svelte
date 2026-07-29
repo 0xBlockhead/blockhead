@@ -51,11 +51,11 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{(aiProviderApiOperationTimestamp.availabilityStatus ?? '')}
+				{aiProviderApiOperationTimestamp.availabilityStatus ?? ''}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{(aiProviderApiOperationTimestamp.error ?? '')}</span>
+				<span data-text="annotation">{aiProviderApiOperationTimestamp.error ?? ''}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

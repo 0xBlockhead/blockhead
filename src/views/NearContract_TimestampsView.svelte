@@ -41,15 +41,15 @@
 			entitySelector={nearContractTimestampSelector}
 		>
 			{#snippet Title()}
-				{String(nearContractTimestampSelector.timestampMs) || 'near contract timestamp'}
+				{nearContractTimestampSelector.timestampMs}
 			{/snippet}
 
 			{#snippet Value()}
-				{(nearContractTimestamp.codeHash ?? '')}
+				{nearContractTimestamp.codeHash ?? ''}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{String(nearContractTimestamp.blockHeight ?? '')}</span>
+				<span data-text="annotation">{nearContractTimestamp.blockHeight ?? ''}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

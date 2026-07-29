@@ -43,11 +43,11 @@
 			entitySelector={blockheadMoneroWalletStateTimestampSelector}
 		>
 			{#snippet Title()}
-				{String(blockheadMoneroWalletStateTimestampSelector.timestampMs) || 'blockhead monero wallet state timestamp'}
+				{blockheadMoneroWalletStateTimestampSelector.timestampMs}
 			{/snippet}
 
 			{#snippet Value()}
-				{String(blockheadMoneroWalletStateTimestamp.balanceAtomicUnits ?? '')}
+				{blockheadMoneroWalletStateTimestamp.balanceAtomicUnits ?? ''}
 			{/snippet}
 
 			{#snippet HeadingAfter()}

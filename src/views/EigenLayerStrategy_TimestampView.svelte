@@ -21,7 +21,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.EigenLayerStrategy_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.EigenExplorer_Rest,
@@ -36,7 +35,6 @@
 			totalShares: true,
 		},
 	}))
-	const titleFallback = 'eigen layer strategy timestamp'
 
 
 	// Components
@@ -50,7 +48,7 @@
 <EntityView
 	entityType={EntityType.EigenLayerStrategy_Timestamp}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? 'eigen layer strategy timestamp'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -58,24 +56,23 @@
 	{#snippet Title()}
 		<EigenLayerStrategyView
 			selection={select(EntityType.EigenLayerStrategy, selection.entitySelector.$strategy)}
-			href=""
 			layout={EntityLayout.Title}
 			open={false}
 		/>
 	{/snippet}
 
 	{#snippet Value()}
-		<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+		<Timestamp timestamp={selection.entitySelector.timestampMs} />
 	{/snippet}
 
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={eigenLayerStrategyTimestamp}>
 			{#snippet children(entity)}
-				{@const totalShares0 = entity.totalShares}
-				{#if totalShares0 != null}
+				{@const totalShares = entity.totalShares}
+				{#if totalShares != null}
 					<span data-text="muted">
 						<NumberValue
-							value={totalShares0}
+							value={totalShares}
 						/>
 					</span>
 				{/if}
@@ -99,14 +96,14 @@
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+					<Timestamp timestamp={selection.entitySelector.timestampMs} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 

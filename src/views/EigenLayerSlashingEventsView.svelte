@@ -40,15 +40,15 @@
 			entitySelector={eigenLayerSlashingEvent[EntityMetaKey.Selector]}
 		>
 			{#snippet Title()}
-				{(eigenLayerSlashingEvent.$operator == null ? '' : String(eigenLayerSlashingEvent.$operator.operatorAddress) || 'eigen layer operator')}
+				{(eigenLayerSlashingEvent.$operator == null ? '' : eigenLayerSlashingEvent.$operator.operatorAddress || 'eigen layer operator') || 'eigen layer slashing event'}
 			{/snippet}
 
 			{#snippet Value()}
-				{eigenLayerSlashingEvent.$avs == null ? '' : String(eigenLayerSlashingEvent.$avs.avsAddress) || 'eigen layer avs'}
+				{eigenLayerSlashingEvent.$avs == null ? '' : eigenLayerSlashingEvent.$avs.avsAddress || 'eigen layer avs'}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{String(eigenLayerSlashingEvent.slashedShares ?? '')}</span>
+				<span data-text="annotation">{eigenLayerSlashingEvent.slashedShares ?? ''}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

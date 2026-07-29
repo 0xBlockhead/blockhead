@@ -43,11 +43,11 @@
 			entitySelector={blockheadQuilibriumAccountStateTimestampSelector}
 		>
 			{#snippet Title()}
-				{String(blockheadQuilibriumAccountStateTimestampSelector.timestampMs) || 'blockhead quilibrium account state timestamp'}
+				{blockheadQuilibriumAccountStateTimestampSelector.timestampMs}
 			{/snippet}
 
 			{#snippet Value()}
-				{String(blockheadQuilibriumAccountStateTimestamp.balance ?? '')}
+				{blockheadQuilibriumAccountStateTimestamp.balance ?? ''}
 			{/snippet}
 
 			{#snippet HeadingAfter()}

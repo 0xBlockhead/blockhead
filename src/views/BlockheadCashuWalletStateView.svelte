@@ -22,8 +22,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.BlockheadCashuWalletState> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const titleFallback = $derived((pendingEntity.walletId ?? '') || 'blockhead Cashu wallet state')
 	const viewDomId = $derived('blockhead-cashu-wallet-state-' + encodeURIComponent(stringify(selection.entitySelector)))
 
 
@@ -46,17 +44,17 @@
 	entityType={EntityType.BlockheadCashuWalletState}
 	entitySelector={selection.entitySelector}
 	id={viewDomId}
-	title={title ?? titleFallback}
+	title={title ?? (selection.entitySelector.walletId || 'blockhead Cashu wallet state')}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{(pendingEntity.walletId ?? '') || 'blockhead Cashu wallet state'}
+		{selection.entitySelector.walletId || 'blockhead Cashu wallet state'}
 	{/snippet}
 
 	{#snippet Value()}
-		{pendingEntity.unit}
+		{selection.entitySelector.unit}
 		<ResourceBoundary
 			resource={selection.$mint}
 		>
@@ -64,7 +62,6 @@
 				<CashuMintView
 					selection={select(EntityType.CashuMint, cashuMint[EntityMetaKey.Selector])}
 					prefetched={cashuMint}
-					href=""
 					layout={EntityLayout.Value}
 					open={false}
 				/>
@@ -77,7 +74,7 @@
 			<div>
 				<dt>wallet ID</dt>
 				<dd>
-					{pendingEntity.walletId}
+					{selection.entitySelector.walletId}
 				</dd>
 			</div>
 
@@ -123,11 +120,11 @@
 				<dt>mint URL</dt>
 				<dd>
 					<a
-						href={String(pendingEntity.mintUrl)}
+						href={selection.entitySelector.mintUrl}
 						target="_blank"
 						rel="noreferrer noopener"
 					>
-						<TruncatedValue value={String(pendingEntity.mintUrl)} />
+						<TruncatedValue value={selection.entitySelector.mintUrl} />
 					</a>
 				</dd>
 			</div>
@@ -135,7 +132,7 @@
 			<div>
 				<dt>unit</dt>
 				<dd>
-					{pendingEntity.unit}
+					{selection.entitySelector.unit}
 				</dd>
 			</div>
 		</dl>

@@ -45,7 +45,7 @@
 				resolve(
 					'/(social)/(nostr)/nostr/(globalNostrNetwork)/repost/[eventId=stringSegment]',
 					{
-						eventId: String(nostrRepostSelector.eventId),
+						eventId: nostrRepostSelector.eventId,
 					}
 				)
 			}
@@ -55,7 +55,7 @@
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{String(nostrRepost.createdAt ?? '')}</span>
+				<span data-text="annotation">{nostrRepost.createdAt ?? ''}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

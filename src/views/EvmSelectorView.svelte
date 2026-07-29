@@ -5,7 +5,6 @@
 	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -20,18 +19,15 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.EvmSelector> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const viewSelection = $derived(selection({
+	const evmSelector = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Openchain_Rest,
 		],
-	}))
-	const evmSelector = $derived(viewSelection({
+	})({
 		fields: {
 			signatures: true,
 		},
 	}))
-	const titleFallback = 'EVM selector'
 
 
 	// Components
@@ -44,14 +40,17 @@
 <EntityView
 	entityType={EntityType.EvmSelector}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? 'EVM selector'}
 	href={
-		href ?? resolve(
-			'/(explore)/(protocols)/evm/(evmProtocol)/(selectors)/selector/[hex=zeroExHex]',
-			{
-				hex: String(selection.entitySelector.hex),
-			}
-		)
+		href === undefined ?
+			resolve(
+				'/(explore)/(protocols)/evm/(evmProtocol)/(selectors)/selector/[hex=zeroExHex]',
+				{
+					hex: selection.entitySelector.hex,
+				}
+			)
+		:
+			href ?? undefined
 	}
 	{layout}
 	bind:open
@@ -83,7 +82,7 @@
 			<div>
 				<dt>Selector</dt>
 				<dd>
-					<TruncatedValue value={String(pendingEntity.hex)} />
+					<TruncatedValue value={selection.entitySelector.hex} />
 				</dd>
 			</div>
 
@@ -119,15 +118,15 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const evmSelectorEvmSelectorTimestampsViewTimestampsResource = selection.$$timestamps}
+		{@const timestampsResource = selection.$$timestamps}
 		<ResourceBoundary
-			resource={evmSelectorEvmSelectorTimestampsViewTimestampsResource}
+			resource={timestampsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<EvmSelector_TimestampsView
-						selection={evmSelectorEvmSelectorTimestampsViewTimestampsResource}
-						countResource={evmSelectorEvmSelectorTimestampsViewTimestampsResource.count}
+						selection={timestampsResource}
+						countResource={timestampsResource.count}
 						title='Observations'
 						id='timestamps'
 					/>

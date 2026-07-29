@@ -4,7 +4,6 @@
 	// Types/constants
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { EvmAddress } from '$/schema/ZeroExHex.ts'
 
 
 	// State
@@ -17,7 +16,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.LensUsername> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const lensUsername = $derived(selection({
 		fields: {
 			value: true,
@@ -25,7 +23,7 @@
 			timestamp: true,
 		},
 	}))
-	const titleFallback = $derived([(pendingEntity.value ?? ''), (pendingEntity.localName ?? '')].filter(Boolean).join(' ') || 'Lens username')
+	const titleFallback = $derived([(prefetched.value ?? ''), (prefetched.localName ?? '')].filter(Boolean).join(' ') || 'Lens username')
 
 
 	// Components
@@ -62,10 +60,10 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={lensUsername}>
 			{#snippet children(entity)}
-				{@const timestamp0 = entity.timestamp}
-				{#if timestamp0 != null}
+				{@const timestamp = entity.timestamp}
+				{#if timestamp != null}
 					<span data-text="muted">
-						<Timestamp timestamp={Number(timestamp0)} />
+						<Timestamp timestamp={timestamp} />
 					</span>
 				{/if}
 			{/snippet}
@@ -131,7 +129,7 @@
 						<div>
 							<dt>Timestamp</dt>
 							<dd>
-								<Timestamp timestamp={Number(timestamp)} />
+								<Timestamp timestamp={timestamp} />
 							</dd>
 						</div>
 					{/if}
@@ -153,7 +151,7 @@
 						}
 					>
 						{#snippet children(entity)}
-							<TruncatedValue value={String(entity.namespace)} />
+							<TruncatedValue value={entity.namespace} />
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -172,7 +170,7 @@
 						}
 					>
 						{#snippet children(entity)}
-							<TruncatedValue value={String(entity.ownedBy)} />
+							<TruncatedValue value={entity.ownedBy} />
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -193,7 +191,7 @@
 						<div>
 							<dt>Linked to</dt>
 							<dd>
-								<TruncatedValue value={String(linkedTo)} />
+								<TruncatedValue value={linkedTo} />
 							</dd>
 						</div>
 					{/if}

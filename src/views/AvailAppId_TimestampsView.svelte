@@ -41,11 +41,11 @@
 			entitySelector={availAppIdTimestampSelector}
 		>
 			{#snippet Title()}
-				{String(availAppIdTimestampSelector.timestampMs) || 'avail app ID timestamp'}
+				{availAppIdTimestampSelector.timestampMs}
 			{/snippet}
 
 			{#snippet Value()}
-				{String(availAppIdTimestamp.dataSubmissionCount ?? '')}
+				{availAppIdTimestamp.dataSubmissionCount ?? ''}
 			{/snippet}
 
 			{#snippet HeadingAfter()}

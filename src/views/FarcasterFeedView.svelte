@@ -19,15 +19,13 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.FarcasterFeed> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const viewSelection = $derived(selection({
+	const farcasterFeed = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Constants_Internal,
 			Source.Farcaster_Rest,
 			Source.Neynar_Rest,
 		],
-	}))
-	const farcasterFeed = $derived(viewSelection({
+	})({
 		fields: {
 			label: true,
 			fid: true,
@@ -35,7 +33,7 @@
 			viewerFid: true,
 		},
 	}))
-	const titleFallback = $derived([(pendingEntity.label ?? ''), (pendingEntity.variant ?? '')].filter(Boolean).join(' ') || 'Farcaster feed')
+	const titleFallback = $derived([(prefetched.label ?? ''), selection.entitySelector.variant].filter(Boolean).join(' ') || 'Farcaster feed')
 
 
 	// Components
@@ -50,39 +48,42 @@
 	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
 	href={
-		href ?? (
-			selection.entitySelector.variant === 'byUser'
-			&& 'fid' in selection.entitySelector ?
-				resolve(
-					'/(social)/(farcaster)/farcaster/(farcasterNetwork)/feed/user/[userId=farcasterFid]',
-					{
-						userId: String(selection.entitySelector.fid),
-					}
-				)
-			:
-				selection.entitySelector.variant === 'byChannel'
-				&& 'channelId' in selection.entitySelector ?
+		href === undefined ?
+			(
+				selection.entitySelector.variant === 'byUser'
+				&& 'fid' in selection.entitySelector ?
 					resolve(
-						'/(social)/(farcaster)/farcaster/(farcasterNetwork)/feed/channel/[channelId=stringSegment]',
+						'/(social)/(farcaster)/farcaster/(farcasterNetwork)/feed/user/[userId=farcasterFid]',
 						{
-							channelId: String(selection.entitySelector.channelId),
+							userId: String(selection.entitySelector.fid),
 						}
 					)
 				:
-					selection.entitySelector.variant === 'following'
-					&& 'viewerFid' in selection.entitySelector ?
+					selection.entitySelector.variant === 'byChannel'
+					&& 'channelId' in selection.entitySelector ?
 						resolve(
-							'/(social)/(farcaster)/farcaster/(farcasterNetwork)/feed/following/[userId=farcasterFid]',
+							'/(social)/(farcaster)/farcaster/(farcasterNetwork)/feed/channel/[channelId=stringSegment]',
 							{
-								userId: String(selection.entitySelector.viewerFid),
+								channelId: selection.entitySelector.channelId,
 							}
 						)
 					:
-						selection.entitySelector.variant === 'trending' ?
-							resolve('/(social)/(farcaster)/farcaster/(farcasterNetwork)/feed/trending')
+						selection.entitySelector.variant === 'following'
+						&& 'viewerFid' in selection.entitySelector ?
+							resolve(
+								'/(social)/(farcaster)/farcaster/(farcasterNetwork)/feed/following/[userId=farcasterFid]',
+								{
+									userId: String(selection.entitySelector.viewerFid),
+								}
+							)
 						:
-							undefined
-		)
+							selection.entitySelector.variant === 'trending' ?
+								resolve('/(social)/(farcaster)/farcaster/(farcasterNetwork)/feed/trending')
+							:
+								undefined
+			)
+		:
+			href ?? undefined
 	}
 	{layout}
 	bind:open
@@ -91,13 +92,13 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={farcasterFeed}>
 			{#snippet children(entity)}
-				{[entity.label, pendingEntity.variant].filter(Boolean).join(' ') || title || titleFallback}
+				{[entity.label, selection.entitySelector.variant].filter(Boolean).join(' ') || title || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Value()}
-		{(pendingEntity.variant ?? '') || [(pendingEntity.label ?? ''), (pendingEntity.variant ?? '')].filter(Boolean).join(' ') || titleFallback}
+		{selection.entitySelector.variant || [(prefetched.label ?? ''), selection.entitySelector.variant].filter(Boolean).join(' ') || titleFallback}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -105,7 +106,7 @@
 			<div>
 				<dt>Variant</dt>
 				<dd>
-					{pendingEntity.variant}
+					{selection.entitySelector.variant}
 				</dd>
 			</div>
 		</dl>
@@ -170,15 +171,15 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const farcasterFeedFarcasterCastsViewEntriesResource = selection.$$entries}
+		{@const entriesResource = selection.$$entries}
 		<ResourceBoundary
-			resource={farcasterFeedFarcasterCastsViewEntriesResource}
+			resource={entriesResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<FarcasterCastsView
-						selection={farcasterFeedFarcasterCastsViewEntriesResource}
-						countResource={farcasterFeedFarcasterCastsViewEntriesResource.count}
+						selection={entriesResource}
+						countResource={entriesResource.count}
 						title='Entries'
 						href={resolve('/(social)/(farcaster)/farcaster/(farcasterNetwork)/feed/trending')}
 						id='entries'

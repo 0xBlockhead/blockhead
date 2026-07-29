@@ -4,7 +4,6 @@
 	// Types/constants
 	import type { PageProps } from './$types.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -57,7 +56,7 @@
 
 
 <svelte:head>
-	<title>{(data.title ?? (pageSelection.entitySelector.hash || 'User operation'))} • User operation • Blockhead</title>
+	<title>{data.title ?? (pageSelection.entitySelector.hash || 'User operation')} • User operation • Blockhead</title>
 </svelte:head>
 
 

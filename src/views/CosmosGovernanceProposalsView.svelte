@@ -43,11 +43,11 @@
 			entitySelector={cosmosGovernanceProposalSelector}
 		>
 			{#snippet Title()}
-				{([(cosmosGovernanceProposal.title ?? ''), (cosmosGovernanceProposalSelector.proposalId ? 'Proposal ' + cosmosGovernanceProposalSelector.proposalId : '')].filter(Boolean).join(' ')) || 'Cosmos governance proposal'}
+				{[(cosmosGovernanceProposal.title ?? ''), 'Proposal ' + cosmosGovernanceProposalSelector.proposalId].filter(Boolean).join(' ') || 'Cosmos governance proposal'}
 			{/snippet}
 
 			{#snippet Value()}
-				{(cosmosGovernanceProposalSelector.proposalId ? 'Proposal ' + cosmosGovernanceProposalSelector.proposalId : '')}
+				{'Proposal ' + cosmosGovernanceProposalSelector.proposalId}
 			{/snippet}
 
 			{#snippet HeadingAfter()}

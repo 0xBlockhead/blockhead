@@ -6,7 +6,7 @@ import {
 	WalletProtocol,
 	WalletTransportKind,
 } from '$/constants/Wallet.ts'
-import { BlockheadConnectionStatus } from '$/schema/BlockheadWalletConnection.ts'
+import { BlockheadConnectionStatus } from '$/schema/BlockheadConnectionStatus.ts'
 import {
 	createWalletConnectV2Adapter,
 	type WalletConnectV2Client,

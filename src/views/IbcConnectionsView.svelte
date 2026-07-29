@@ -49,7 +49,7 @@
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{(ibcConnection.clientId ?? '')}</span>
+				<span data-text="annotation">{ibcConnection.clientId ?? ''}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

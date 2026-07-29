@@ -28,7 +28,7 @@ import {
 } from '$/schema/$schema.ts'
 import { schema } from '$/schema/index.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import { MediaType } from '$/schema/Media.ts'
+import { MediaType } from '$/schema/MediaType.ts'
 import { Source } from '$/sources/Source.ts'
 import type { RpcLog } from '$/sources/_shared/interfaces/EvmExecutionJsonRpc/types.ts'
 import type {

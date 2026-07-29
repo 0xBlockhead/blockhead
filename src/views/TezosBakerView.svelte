@@ -21,9 +21,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.TezosBaker> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const titleFallback = 'tezos baker'
-
 
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -36,7 +33,7 @@
 <EntityView
 	entityType={EntityType.TezosBaker}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? 'tezos baker'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -61,7 +58,7 @@
 			<div>
 				<dt>Address</dt>
 				<dd>
-					<TruncatedValue value={pendingEntity.address} />
+					<TruncatedValue value={selection.entitySelector.address} />
 				</dd>
 			</div>
 

@@ -6,8 +6,6 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { stringify } from 'devalue'
-	import { UrlString } from '$/schema/UrlString.ts'
-	import { EvmAddress } from '$/schema/ZeroExHex.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -25,7 +23,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.EigenLayerAvs> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.EigenExplorer_Rest,
@@ -40,7 +37,7 @@
 			name: true,
 		},
 	}))
-	const titleFallback = $derived(String(pendingEntity.avsAddress ?? '') || 'eigen layer avs')
+	const titleFallback = $derived(selection.entitySelector.avsAddress || 'eigen layer avs')
 	const viewDomId = $derived('eigen-layer-avs-' + encodeURIComponent(stringify(selection.entitySelector)))
 
 
@@ -68,13 +65,13 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{String(pendingEntity.avsAddress ?? '') || 'eigen layer avs'}
+		{selection.entitySelector.avsAddress || 'eigen layer avs'}
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={eigenLayerAvs}>
 			{#snippet children(entity)}
-				{(entity.name ?? '') || String(pendingEntity.avsAddress) || titleFallback}
+				{(entity.name ?? '') || selection.entitySelector.avsAddress || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -94,7 +91,7 @@
 			<div>
 				<dt>AVS address</dt>
 				<dd>
-					<TruncatedValue value={String(pendingEntity.avsAddress)} />
+					<TruncatedValue value={selection.entitySelector.avsAddress} />
 				</dd>
 			</div>
 
@@ -130,11 +127,11 @@
 							<dt>website</dt>
 							<dd>
 								<a
-									href={String(website)}
+									href={website}
 									target="_blank"
 									rel="noreferrer noopener"
 								>
-									<TruncatedValue value={String(website)} />
+									<TruncatedValue value={website} />
 								</a>
 							</dd>
 						</div>
@@ -158,11 +155,11 @@
 							<dt>metadata URI</dt>
 							<dd>
 								<a
-									href={String(metadataUri)}
+									href={metadataUri}
 									target="_blank"
 									rel="noreferrer noopener"
 								>
-									<TruncatedValue value={String(metadataUri)} />
+									<TruncatedValue value={metadataUri} />
 								</a>
 							</dd>
 						</div>

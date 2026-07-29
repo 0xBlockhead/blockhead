@@ -5,7 +5,6 @@
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 
 
 	// State
@@ -58,11 +57,11 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{(aiArtifactAttestation.$artifact.artifactType ?? '') || [(aiArtifactAttestationSelector.$artifact.providerArtifactId ?? ''), (aiArtifactAttestationSelector.$artifact.ociDigest ?? ''), (aiArtifactAttestationSelector.$artifact.ipfsCid ?? ''), (aiArtifactAttestationSelector.$artifact.arweaveId ?? ''), (aiArtifactAttestationSelector.$artifact.gitObject ?? ''), String(aiArtifactAttestationSelector.$artifact.digest ?? '')].filter(Boolean).join(' ') || 'AI artifact'}
+				{(aiArtifactAttestation.$artifact.artifactType ?? '') || [(aiArtifactAttestationSelector.$artifact.providerArtifactId ?? ''), (aiArtifactAttestationSelector.$artifact.ociDigest ?? ''), (aiArtifactAttestationSelector.$artifact.ipfsCid ?? ''), (aiArtifactAttestationSelector.$artifact.arweaveId ?? ''), (aiArtifactAttestationSelector.$artifact.gitObject ?? ''), (aiArtifactAttestationSelector.$artifact.digest ?? '')].filter(Boolean).join(' ') || 'AI artifact'}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{(aiArtifactAttestationSelector.logEntryId ?? '')}</span>
+				<span data-text="annotation">{aiArtifactAttestationSelector.logEntryId ?? ''}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

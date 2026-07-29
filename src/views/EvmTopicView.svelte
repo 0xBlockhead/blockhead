@@ -5,7 +5,6 @@
 	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { EvmTopicHash } from '$/schema/ZeroExHex.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -20,18 +19,15 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.EvmTopic> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const viewSelection = $derived(selection({
+	const evmTopic = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Openchain_Rest,
 		],
-	}))
-	const evmTopic = $derived(viewSelection({
+	})({
 		fields: {
 			signatures: true,
 		},
 	}))
-	const titleFallback = 'EVM topic'
 
 
 	// Components
@@ -44,14 +40,17 @@
 <EntityView
 	entityType={EntityType.EvmTopic}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? 'EVM topic'}
 	href={
-		href ?? resolve(
-			'/(explore)/(protocols)/evm/(evmProtocol)/(topics)/topic/[hex=evmTopicHash]',
-			{
-				hex: String(selection.entitySelector.hex),
-			}
-		)
+		href === undefined ?
+			resolve(
+				'/(explore)/(protocols)/evm/(evmProtocol)/(topics)/topic/[hex=evmTopicHash]',
+				{
+					hex: selection.entitySelector.hex,
+				}
+			)
+		:
+			href ?? undefined
 	}
 	{layout}
 	bind:open
@@ -83,7 +82,7 @@
 			<div>
 				<dt>Topic</dt>
 				<dd>
-					<TruncatedValue value={String(pendingEntity.hex)} />
+					<TruncatedValue value={selection.entitySelector.hex} />
 				</dd>
 			</div>
 
@@ -119,15 +118,15 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const evmTopicEvmTopicTimestampsViewTimestampsResource = selection.$$timestamps}
+		{@const timestampsResource = selection.$$timestamps}
 		<ResourceBoundary
-			resource={evmTopicEvmTopicTimestampsViewTimestampsResource}
+			resource={timestampsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<EvmTopic_TimestampsView
-						selection={evmTopicEvmTopicTimestampsViewTimestampsResource}
-						countResource={evmTopicEvmTopicTimestampsViewTimestampsResource.count}
+						selection={timestampsResource}
+						countResource={timestampsResource.count}
 						title='Observations'
 						id='timestamps'
 					/>

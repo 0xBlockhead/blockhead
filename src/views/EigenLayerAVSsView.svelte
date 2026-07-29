@@ -5,7 +5,6 @@
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { EvmAddress } from '$/schema/ZeroExHex.ts'
 
 
 	// State
@@ -44,11 +43,11 @@
 			entitySelector={eigenLayerAvsSelector}
 		>
 			{#snippet Title()}
-				{String(eigenLayerAvsSelector.avsAddress) || 'eigen layer avs'}
+				{eigenLayerAvsSelector.avsAddress || 'eigen layer avs'}
 			{/snippet}
 
 			{#snippet Value()}
-				{(eigenLayerAvs.name ?? '')}
+				{eigenLayerAvs.name ?? ''}
 			{/snippet}
 
 			{#snippet HeadingAfter()}

@@ -20,14 +20,12 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.FedimintFederation_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const fedimintFederationTimestamp = $derived(selection({
 		fields: {
 			health: true,
 			reachable: true,
 		},
 	}))
-	const titleFallback = $derived(String(pendingEntity.timestampMs ?? '') || 'Fedimint federation timestamp')
 
 
 	// Components
@@ -42,26 +40,26 @@
 <EntityView
 	entityType={EntityType.FedimintFederation_Timestamp}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? String(selection.entitySelector.timestampMs)}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+		<Timestamp timestamp={selection.entitySelector.timestampMs} />
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={fedimintFederationTimestamp}>
 			{#snippet children(entity)}
-				{[(entity.health ?? ''), String(entity.reachable ?? '')].filter(Boolean).join(' ') || String(pendingEntity.timestampMs) || titleFallback}
+				{[(entity.health ?? ''), String(entity.reachable ?? '')].filter(Boolean).join(' ') || String(selection.entitySelector.timestampMs)}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
 		<span data-text="muted">
-			{pendingEntity.source}
+			{selection.entitySelector.source}
 		</span>
 	{/snippet}
 
@@ -81,14 +79,14 @@
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+					<Timestamp timestamp={selection.entitySelector.timestampMs} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 

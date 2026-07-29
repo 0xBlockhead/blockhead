@@ -24,8 +24,7 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.XrplAccount> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const titleFallback = $derived((pendingEntity.account ?? '') || 'XRPL account')
+	const network = $derived(selection.entitySelector.$network)
 	const viewDomId = $derived('xrpl-account-' + encodeURIComponent(stringify(selection.entitySelector)))
 
 
@@ -46,33 +45,36 @@
 	entityType={EntityType.XrplAccount}
 	entitySelector={selection.entitySelector}
 	id={viewDomId}
-	title={title ?? titleFallback}
+	title={title ?? (selection.entitySelector.account || 'XRPL account')}
 	href={
-		href ?? resolve(
-			'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(accounts)/account/[accountId=polkadotAccountIdOrStringSegmentOrEvmAddressOrSolanaPubkey]',
-			{
-				network: (
-					'caip2' in selection.entitySelector.$network ?
-						String(caip2StringFromValue(selection.entitySelector.$network.caip2))
-					:
-						String(selection.entitySelector.$network.slug)
-				),
-				accountId: String(selection.entitySelector.account),
-			}
-		)
+		href === undefined ?
+			resolve(
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(accounts)/account/[accountId=polkadotAccountIdOrStringSegmentOrEvmAddressOrSolanaPubkey]',
+				{
+					network: (
+						'caip2' in network ?
+							caip2StringFromValue(network.caip2)
+						:
+							network.slug
+					),
+					accountId: selection.entitySelector.account,
+				}
+			)
+		:
+			href ?? undefined
 	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{(pendingEntity.account ?? '') || 'XRPL account'}
+		{selection.entitySelector.account || 'XRPL account'}
 	{/snippet}
 
 	{#snippet Value()}
 		<NetworkView
 			selection={select(EntityType.Network, selection.entitySelector.$network)}
-			href=""
+			href={null}
 			layout={EntityLayout.Value}
 			open={false}
 		/>
@@ -94,7 +96,7 @@
 			<div>
 				<dt>account</dt>
 				<dd>
-					<TruncatedValue value={pendingEntity.account} />
+					<TruncatedValue value={selection.entitySelector.account} />
 				</dd>
 			</div>
 		</dl>

@@ -31,7 +31,7 @@
 
 
 <svelte:head>
-	<title>{(data.title ?? ('global ActivityPub network'))} • global ActivityPub network • Blockhead</title>
+	<title>{data.title ?? 'global ActivityPub network'} • global ActivityPub network • Blockhead</title>
 </svelte:head>
 
 

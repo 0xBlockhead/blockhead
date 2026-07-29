@@ -16,13 +16,11 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.MagnetResolution_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const magnetResolutionTimestamp = $derived(selection({
 		fields: {
 			status: true,
 		},
 	}))
-	const titleFallback = $derived(String(pendingEntity.timestampMs ?? '') || 'magnet resolution timestamp')
 
 
 	// Components
@@ -36,26 +34,26 @@
 <EntityView
 	entityType={EntityType.MagnetResolution_Timestamp}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? String(selection.entitySelector.timestampMs)}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+		<Timestamp timestamp={selection.entitySelector.timestampMs} />
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={magnetResolutionTimestamp}>
 			{#snippet children(entity)}
-				{entity.status || String(pendingEntity.timestampMs) || titleFallback}
+				{entity.status || String(selection.entitySelector.timestampMs)}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
 		<span data-text="muted">
-			{pendingEntity.source}
+			{selection.entitySelector.source}
 		</span>
 	{/snippet}
 
@@ -64,21 +62,21 @@
 			<div>
 				<dt>magnet URI</dt>
 				<dd>
-					<TruncatedValue value={pendingEntity.magnetUri} />
+					<TruncatedValue value={selection.entitySelector.magnetUri} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+					<Timestamp timestamp={selection.entitySelector.timestampMs} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 

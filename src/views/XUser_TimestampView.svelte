@@ -22,8 +22,7 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.XUser_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const titleFallback = 'X user observation'
+	const user = $derived(selection.entitySelector.$user)
 
 
 	// Components
@@ -37,21 +36,24 @@
 <EntityView
 	entityType={EntityType.XUser_Timestamp}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? 'X user observation'}
 	href={
-		href ?? (
-			'id' in selection.entitySelector.$user ?
-				resolve(
-					'/(social)/(x)/x/(xNetwork)/user/[userId=stringSegment]/(xUser)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
-					{
-						userId: String(selection.entitySelector.$user.id),
-						timestampMs: String(selection.entitySelector.timestampMs),
-						source: String(selection.entitySelector.source),
-					}
-				)
-			:
-				undefined
-		)
+		href === undefined ?
+			(
+				'id' in user ?
+					resolve(
+						'/(social)/(x)/x/(xNetwork)/user/[userId=stringSegment]/(xUser)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
+						{
+							userId: user.id,
+							timestampMs: String(selection.entitySelector.timestampMs),
+							source: selection.entitySelector.source,
+						}
+					)
+				:
+					undefined
+			)
+		:
+			href ?? undefined
 	}
 	{layout}
 	bind:open
@@ -60,19 +62,19 @@
 	{#snippet Title()}
 		<XUserView
 			selection={select(EntityType.XUser, selection.entitySelector.$user)}
-			href=""
+			href={null}
 			layout={EntityLayout.Title}
 			open={false}
 		/>
 	{/snippet}
 
 	{#snippet Value()}
-		<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+		<Timestamp timestamp={selection.entitySelector.timestampMs} />
 	{/snippet}
 
 	{#snippet HeadingAfter()}
 		<span data-text="muted">
-			{pendingEntity.source}
+			{selection.entitySelector.source}
 		</span>
 	{/snippet}
 
@@ -94,7 +96,7 @@
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+					<Timestamp timestamp={selection.entitySelector.timestampMs} />
 				</dd>
 			</div>
 		</dl>
@@ -103,7 +105,7 @@
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 		</dl>

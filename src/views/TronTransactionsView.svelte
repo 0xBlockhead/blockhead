@@ -46,7 +46,7 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{(tronTransaction.result ?? '')}
+				{tronTransaction.result ?? ''}
 			{/snippet}
 
 			{#snippet HeadingAfter()}

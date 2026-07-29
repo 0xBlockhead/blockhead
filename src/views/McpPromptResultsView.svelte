@@ -5,7 +5,6 @@
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { UrlString } from '$/schema/UrlString.ts'
 
 
 	// State
@@ -54,7 +53,7 @@
 			entitySelector={mcpPromptResultSelector}
 		>
 			{#snippet Title()}
-				{String(mcpPromptResultSelector.timestampMs) || 'mcp prompt result'}
+				{mcpPromptResultSelector.timestampMs}
 			{/snippet}
 
 			{#snippet Value()}
@@ -62,7 +61,7 @@
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{(mcpPromptResult.error ?? '')}</span>
+				<span data-text="annotation">{mcpPromptResult.error ?? ''}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

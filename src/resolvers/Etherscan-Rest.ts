@@ -15,7 +15,7 @@ import { EntityType } from '$/schema/EntityType.ts'
 import type { EntitySelectorForSelectorName } from '$/schema/$schema.ts'
 import type { Entity, EntitySelector } from '$/schema/$schema.ts'
 import { schema } from '$/schema/index.ts'
-import { CoinInstanceType } from '$/schema/EvmCoinInstance.ts'
+import { CoinInstanceType } from '$/schema/CoinInstanceType.ts'
 import { Source } from '$/sources/Source.ts'
 import type {
 	EtherscanInternalTransaction,

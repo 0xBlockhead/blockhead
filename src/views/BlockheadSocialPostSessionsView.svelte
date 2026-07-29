@@ -53,7 +53,7 @@
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{String(blockheadSocialPostSession.updatedAt)}</span>
+				<span data-text="annotation">{blockheadSocialPostSession.updatedAt}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

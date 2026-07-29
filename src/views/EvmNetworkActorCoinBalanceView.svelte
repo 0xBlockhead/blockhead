@@ -24,19 +24,18 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.EvmNetworkActorCoinBalance> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const viewSelection = $derived(selection({
+	const contract = $derived(selection.entitySelector.$contract)
+	const evmNetworkActorCoinBalance = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Constants_Internal,
 		],
-	}))
-	const evmNetworkActorCoinBalance = $derived(viewSelection({
+	})({
 		fields: {
 			symbol: true,
 			decimals: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.symbol ?? '') || 'balance')
+	const titleFallback = $derived((prefetched.symbol ?? '') || 'balance')
 
 
 	// Components
@@ -56,20 +55,23 @@
 	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
 	href={
-		href ?? (
-			'$contract' in selection.entitySelector
-			&& 'caip2' in selection.entitySelector.$contract.$network ?
-				resolve(
-					'/~/accounts/balance/[chainId=eip155ChainId]/[owner=evmAddress]/[coin=evmAddress]',
-					{
-						chainId: String(selection.entitySelector.$contract.$network.caip2.reference),
-						owner: String(selection.entitySelector.$actor.address),
-						coin: String(selection.entitySelector.$contract.address),
-					}
-				)
-			:
-				undefined
-		)
+		href === undefined ?
+			(
+				'$contract' in selection.entitySelector
+				&& 'caip2' in contract.$network ?
+					resolve(
+						'/~/accounts/balance/[chainId=eip155ChainId]/[owner=evmAddress]/[coin=evmAddress]',
+						{
+							chainId: contract.$network.caip2.reference,
+							owner: selection.entitySelector.$actor.address,
+							coin: contract.address,
+						}
+					)
+				:
+					undefined
+			)
+		:
+			href ?? undefined
 	}
 	{layout}
 	bind:open
@@ -86,7 +88,7 @@
 	{#snippet Value()}
 		<EvmAccountView
 			selection={select(EntityType.EvmAccount, selection.entitySelector.$actor)}
-			href=""
+			href={null}
 			layout={EntityLayout.Value}
 			open={false}
 		/>
@@ -204,30 +206,30 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const evmNetworkActorCoinBalanceEvmNetworkActorCoinBalanceTimestampsViewTimestampsResource = selection.$$timestamps}
+		{@const timestampsResource = selection.$$timestamps}
 		<ResourceBoundary
-			resource={evmNetworkActorCoinBalanceEvmNetworkActorCoinBalanceTimestampsViewTimestampsResource}
+			resource={timestampsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<EvmNetworkActorCoinBalance_TimestampsView
-						selection={evmNetworkActorCoinBalanceEvmNetworkActorCoinBalanceTimestampsViewTimestampsResource}
-						countResource={evmNetworkActorCoinBalanceEvmNetworkActorCoinBalanceTimestampsViewTimestampsResource.count}
+						selection={timestampsResource}
+						countResource={timestampsResource.count}
 						title='Observations'
 						id='timestamps'
 					/>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>
-		{@const evmNetworkActorCoinBalanceEvmNetworkActorCoinBalanceEvmBlocksViewBlocksResource = selection.$$blocks}
+		{@const blocksResource = selection.$$blocks}
 		<ResourceBoundary
-			resource={evmNetworkActorCoinBalanceEvmNetworkActorCoinBalanceEvmBlocksViewBlocksResource}
+			resource={blocksResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<EvmNetworkActorCoinBalance_EvmBlocksView
-						selection={evmNetworkActorCoinBalanceEvmNetworkActorCoinBalanceEvmBlocksViewBlocksResource}
-						countResource={evmNetworkActorCoinBalanceEvmNetworkActorCoinBalanceEvmBlocksViewBlocksResource.count}
+						selection={blocksResource}
+						countResource={blocksResource.count}
 						title='Blocks'
 						id='blocks'
 					/>

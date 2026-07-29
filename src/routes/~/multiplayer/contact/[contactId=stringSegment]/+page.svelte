@@ -42,7 +42,7 @@
 
 
 <svelte:head>
-	<title>{(pageSelection.entity == null ? 'contact' : (pageSelection.entity.displayName ?? '') || pageSelection.entity.peerId || 'contact')} • contact • Blockhead</title>
+	<title>{pageSelection.entity == null ? 'contact' : (pageSelection.entity.displayName ?? '') || pageSelection.entity.peerId || 'contact'} • contact • Blockhead</title>
 </svelte:head>
 
 

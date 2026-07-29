@@ -21,7 +21,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.BlockheadLitecoinMwebOutputState_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Local_Internal,
@@ -33,7 +32,6 @@
 			confirmations: true,
 		},
 	}))
-	const titleFallback = $derived(String(pendingEntity.timestampMs ?? '') || 'blockhead litecoin mweb output state timestamp')
 
 
 	// Components
@@ -47,19 +45,19 @@
 <EntityView
 	entityType={EntityType.BlockheadLitecoinMwebOutputState_Timestamp}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? String(selection.entitySelector.timestampMs)}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+		<Timestamp timestamp={selection.entitySelector.timestampMs} />
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={blockheadLitecoinMwebOutputStateTimestamp}>
 			{#snippet children(entity)}
-				{String(entity.spent ?? '') || String(pendingEntity.timestampMs) || titleFallback}
+				{String(entity.spent ?? '') || String(selection.entitySelector.timestampMs)}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -67,11 +65,11 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={blockheadLitecoinMwebOutputStateTimestamp}>
 			{#snippet children(entity)}
-				{@const confirmations0 = entity.confirmations}
-				{#if confirmations0 != null}
+				{@const confirmations = entity.confirmations}
+				{#if confirmations != null}
 					<span data-text="muted">
 						<NumberValue
-							value={confirmations0}
+							value={confirmations}
 						/>
 					</span>
 				{/if}
@@ -95,14 +93,14 @@
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+					<Timestamp timestamp={selection.entitySelector.timestampMs} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 
@@ -227,7 +225,7 @@
 						<div>
 							<dt>last scanned AT</dt>
 							<dd>
-								<Timestamp timestamp={Number(lastScannedAt)} />
+								<Timestamp timestamp={lastScannedAt} />
 							</dd>
 						</div>
 					{/if}

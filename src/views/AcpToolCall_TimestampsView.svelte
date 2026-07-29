@@ -41,15 +41,15 @@
 			entitySelector={acpToolCallTimestampSelector}
 		>
 			{#snippet Title()}
-				{String(acpToolCallTimestampSelector.timestampMs) || 'ACP tool call timestamp'}
+				{acpToolCallTimestampSelector.timestampMs}
 			{/snippet}
 
 			{#snippet Value()}
-				{(acpToolCallTimestamp.status ?? '')}
+				{acpToolCallTimestamp.status ?? ''}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{String(acpToolCallTimestamp.latencyMs ?? '')}</span>
+				<span data-text="annotation">{acpToolCallTimestamp.latencyMs ?? ''}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

@@ -2,7 +2,6 @@
 
 import type { LayoutLoad } from './$types'
 import { error } from '@sveltejs/kit'
-import { networkByCaip2, networkBySlug } from '$/constants/Network.ts'
 import { match as matchNonNegativeInteger } from '$/params/nonNegativeInteger.ts'
 import { match as matchSolanaPubkey } from '$/params/solanaPubkey.ts'
 import { parseEntitySelector, type EntitySelectorForSelectorName } from '$/schema/$schema.ts'
@@ -14,9 +13,6 @@ import { type as arktype } from 'arktype'
 
 export const load: LayoutLoad = async ({ params, parent }) => {
 	const parentData = await parent()
-
-	const projectionNetwork = (Object.getOwnPropertyDescriptor(networkByCaip2, decodeURIComponent(params.network))?.value ?? Object.getOwnPropertyDescriptor(networkBySlug, params.network)?.value)
-	if (projectionNetwork == null) error(404, 'Network projection context not found')
 
 	const routeCandidates: (
 		| {
@@ -39,7 +35,13 @@ export const load: LayoutLoad = async ({ params, parent }) => {
 		}
 	)[] = []
 
-	if ((projectionNetwork.executionModels !== undefined && projectionNetwork.executionModels.some((value: string | number | boolean | null) => value === 'Evm')) && matchNonNegativeInteger(params.validatorId)) {
+	if (
+		(
+			parentData.projectionNetwork.executionModels !== undefined
+			&& parentData.projectionNetwork.executionModels.some((value: string | number | boolean | null) => value === 'Evm')
+		)
+		&& matchNonNegativeInteger(params.validatorId)
+	) {
 		const beaconValidatorNetworkIndexInNetworkSelector = parseEntitySelector(
 			schema,
 			BeaconValidatorSchema,
@@ -48,11 +50,25 @@ export const load: LayoutLoad = async ({ params, parent }) => {
 				indexInNetwork: Number(params.validatorId),
 			}
 		)
-		if (!(beaconValidatorNetworkIndexInNetworkSelector instanceof arktype.errors) && '$network' in beaconValidatorNetworkIndexInNetworkSelector && 'indexInNetwork' in beaconValidatorNetworkIndexInNetworkSelector)
-			routeCandidates.push({ entityType: EntityType.BeaconValidator, selectorName: 'NetworkIndexInNetwork', selector: beaconValidatorNetworkIndexInNetworkSelector })
+		if (
+			!(beaconValidatorNetworkIndexInNetworkSelector instanceof arktype.errors)
+			&& '$network' in beaconValidatorNetworkIndexInNetworkSelector
+			&& 'indexInNetwork' in beaconValidatorNetworkIndexInNetworkSelector
+		)
+			routeCandidates.push({
+				entityType: EntityType.BeaconValidator,
+				selectorName: 'NetworkIndexInNetwork',
+				selector: beaconValidatorNetworkIndexInNetworkSelector,
+			})
 	}
 
-	if ((projectionNetwork.executionModels !== undefined && projectionNetwork.executionModels.some((value: string | number | boolean | null) => value === 'SolanaRuntime')) && matchSolanaPubkey(params.validatorId)) {
+	if (
+		(
+			parentData.projectionNetwork.executionModels !== undefined
+			&& parentData.projectionNetwork.executionModels.some((value: string | number | boolean | null) => value === 'SolanaRuntime')
+		)
+		&& matchSolanaPubkey(params.validatorId)
+	) {
 		const solanaValidatorNetworkVotePubkeySelector = parseEntitySelector(
 			schema,
 			SolanaValidatorSchema,
@@ -61,12 +77,23 @@ export const load: LayoutLoad = async ({ params, parent }) => {
 				votePubkey: params.validatorId,
 			}
 		)
-		if (!(solanaValidatorNetworkVotePubkeySelector instanceof arktype.errors) && '$network' in solanaValidatorNetworkVotePubkeySelector && 'votePubkey' in solanaValidatorNetworkVotePubkeySelector)
-			routeCandidates.push({ entityType: EntityType.SolanaValidator, selectorName: 'NetworkVotePubkey', selector: solanaValidatorNetworkVotePubkeySelector })
+		if (
+			!(solanaValidatorNetworkVotePubkeySelector instanceof arktype.errors)
+			&& '$network' in solanaValidatorNetworkVotePubkeySelector
+			&& 'votePubkey' in solanaValidatorNetworkVotePubkeySelector
+		)
+			routeCandidates.push({
+				entityType: EntityType.SolanaValidator,
+				selectorName: 'NetworkVotePubkey',
+				selector: solanaValidatorNetworkVotePubkeySelector,
+			})
 	}
 
-	if (routeCandidates.length === 0) error(404, 'Route selector not applicable')
-	if (routeCandidates.length > 1) error(500, 'Route selector is ambiguous')
+	if (routeCandidates.length === 0)
+		error(404, 'Route selector not applicable')
+
+	if (routeCandidates.length > 1)
+		error(500, 'Route selector is ambiguous')
 
 	return routeCandidates[0]
 }

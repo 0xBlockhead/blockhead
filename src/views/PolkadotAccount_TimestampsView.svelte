@@ -41,6 +41,7 @@
 >
 	{#snippet Item({ item: polkadotAccountTimestamp })}
 		{@const polkadotAccountTimestampSelector = polkadotAccountTimestamp[EntityMetaKey.Selector]}
+		{@const account = polkadotAccountTimestampSelector.$account}
 		<EntityView
 			entityType={EntityType.PolkadotAccount_Timestamp}
 			entitySelector={polkadotAccountTimestampSelector}
@@ -49,14 +50,14 @@
 					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(accounts)/account/[accountId=polkadotAccountIdOrStringSegmentOrEvmAddressOrSolanaPubkey]/(selection)/observation/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
 					{
 						network: (
-							'caip2' in polkadotAccountTimestampSelector.$account.$network ?
-								String(caip2StringFromValue(polkadotAccountTimestampSelector.$account.$network.caip2))
+							'caip2' in account.$network ?
+								caip2StringFromValue(account.$network.caip2)
 							:
-								String(polkadotAccountTimestampSelector.$account.$network.slug)
+								account.$network.slug
 						),
-						accountId: String(polkadotAccountTimestampSelector.$account.accountId),
+						accountId: account.accountId,
 						timestampMs: String(polkadotAccountTimestampSelector.timestampMs),
-						source: String(polkadotAccountTimestampSelector.source),
+						source: polkadotAccountTimestampSelector.source,
 					}
 				)
 			}
@@ -66,7 +67,7 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{String(polkadotAccountTimestamp.freeBalancePlancks ?? '')}
+				{polkadotAccountTimestamp.freeBalancePlancks ?? ''}
 			{/snippet}
 
 			{#snippet HeadingAfter()}

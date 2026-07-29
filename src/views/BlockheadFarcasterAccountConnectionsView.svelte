@@ -43,7 +43,7 @@
 				resolve(
 					'/(social)/(farcaster)/farcaster/(farcasterNetwork)/account/[connectionId=stringSegment]',
 					{
-						connectionId: String(blockheadFarcasterAccountConnectionSelector.connectionId),
+						connectionId: blockheadFarcasterAccountConnectionSelector.connectionId,
 					}
 				)
 			}
@@ -57,7 +57,7 @@
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{(blockheadFarcasterAccountConnection.authMethod ?? '')}</span>
+				<span data-text="annotation">{blockheadFarcasterAccountConnection.authMethod ?? ''}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

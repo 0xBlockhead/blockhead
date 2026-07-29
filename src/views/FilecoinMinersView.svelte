@@ -40,6 +40,7 @@
 >
 	{#snippet Item({ item: filecoinMiner })}
 		{@const filecoinMinerSelector = filecoinMiner[EntityMetaKey.Selector]}
+		{@const network = filecoinMinerSelector.$network}
 		<EntityView
 			entityType={EntityType.FilecoinMiner}
 			entitySelector={filecoinMinerSelector}
@@ -48,12 +49,12 @@
 					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/miner/[minerAddress=stringSegment]',
 					{
 						network: (
-							'caip2' in filecoinMinerSelector.$network ?
-								String(caip2StringFromValue(filecoinMinerSelector.$network.caip2))
+							'caip2' in network ?
+								caip2StringFromValue(network.caip2)
 							:
-								String(filecoinMinerSelector.$network.slug)
+								network.slug
 						),
-						minerAddress: String(filecoinMinerSelector.minerAddress),
+						minerAddress: filecoinMinerSelector.minerAddress,
 					}
 				)
 			}

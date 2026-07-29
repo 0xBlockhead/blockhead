@@ -20,14 +20,13 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.BnbValidator> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const bnbValidator = $derived(selection({
 		fields: {
 			moniker: true,
 			consensusAddress: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.moniker ?? '') || (pendingEntity.operatorAddress ?? '') || 'bnb validator')
+	const titleFallback = $derived((prefetched.moniker ?? '') || selection.entitySelector.operatorAddress || 'bnb validator')
 
 
 	// Components
@@ -78,7 +77,7 @@
 			<div>
 				<dt>operator address</dt>
 				<dd>
-					<TruncatedValue value={pendingEntity.operatorAddress} />
+					<TruncatedValue value={selection.entitySelector.operatorAddress} />
 				</dd>
 			</div>
 
@@ -117,15 +116,15 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const bnbValidatorBnbValidatorTimestampsViewTimestampsResource = selection.$$timestamps}
+		{@const timestampsResource = selection.$$timestamps}
 		<ResourceBoundary
-			resource={bnbValidatorBnbValidatorTimestampsViewTimestampsResource}
+			resource={timestampsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<BnbValidator_TimestampsView
-						selection={bnbValidatorBnbValidatorTimestampsViewTimestampsResource}
-						countResource={bnbValidatorBnbValidatorTimestampsViewTimestampsResource.count}
+						selection={timestampsResource}
+						countResource={timestampsResource.count}
 						title='timestamps'
 						id='timestamps'
 					/>

@@ -22,7 +22,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.FilecoinNetwork_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Lotus_JsonRpc,
@@ -34,7 +33,6 @@
 			headTipsetKey: true,
 		},
 	}))
-	const titleFallback = $derived(String(pendingEntity.timestampMs ?? '') || 'filecoin network timestamp')
 
 
 	// Components
@@ -50,22 +48,22 @@
 <EntityView
 	entityType={EntityType.FilecoinNetwork_Timestamp}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? String(selection.entitySelector.timestampMs)}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+		<Timestamp timestamp={selection.entitySelector.timestampMs} />
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={filecoinNetworkTimestamp}>
 			{#snippet children(entity)}
-				{@const headHeight0 = entity.headHeight}
-				{#if headHeight0 != null}
+				{@const headHeight = entity.headHeight}
+				{#if headHeight != null}
 					<NumberValue
-						value={headHeight0}
+						value={headHeight}
 					/>
 				{/if}
 			{/snippet}
@@ -75,10 +73,10 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={filecoinNetworkTimestamp}>
 			{#snippet children(entity)}
-				{@const headTipsetKey0 = entity.headTipsetKey}
-				{#if headTipsetKey0 != null}
+				{@const headTipsetKey = entity.headTipsetKey}
+				{#if headTipsetKey != null}
 					<span data-text="muted">
-						{headTipsetKey0}
+						{headTipsetKey}
 					</span>
 				{/if}
 			{/snippet}
@@ -101,14 +99,14 @@
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+					<Timestamp timestamp={selection.entitySelector.timestampMs} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 
@@ -185,7 +183,7 @@
 						<div>
 							<dt>Head timestamp</dt>
 							<dd>
-								<Timestamp timestamp={Number(headTimestampMs)} />
+								<Timestamp timestamp={headTimestampMs} />
 							</dd>
 						</div>
 					{/if}
@@ -357,15 +355,15 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const filecoinNetworkTimestampFilecoinMinersViewHeadMinersResource = selection.$$headMiners}
+		{@const headMinersResource = selection.$$headMiners}
 		<ResourceBoundary
-			resource={filecoinNetworkTimestampFilecoinMinersViewHeadMinersResource}
+			resource={headMinersResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<FilecoinMinersView
-						selection={filecoinNetworkTimestampFilecoinMinersViewHeadMinersResource}
-						countResource={filecoinNetworkTimestampFilecoinMinersViewHeadMinersResource.count}
+						selection={headMinersResource}
+						countResource={headMinersResource.count}
 						title='Head miners'
 						id='head-miners'
 					/>

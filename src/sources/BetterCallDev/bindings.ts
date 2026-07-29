@@ -1,10 +1,10 @@
 // Generated from APP.ts. Do not edit by hand.
 
 import { Source } from '$/sources/Source.ts'
-import { ApiFamily, SourceCredentialScope, SourceDelivery, SourceEndpointKind, SourceOperationGroup, SourceTargetKind, WireProtocol, type SourceBindingIndex } from '$/sources/SourceBinding.ts'
+import { ApiFamily, indexSourceBindings, SourceCredentialScope, SourceDelivery, SourceEndpointKind, SourceOperationGroup, SourceTargetKind, WireProtocol, type SourceBinding } from '$/sources/SourceBinding.ts'
 
-export default {
-	[Source.BetterCallDev_Rest]: {
+const bindings = [
+	{
 		source: Source.BetterCallDev_Rest,
 		target: {
 			kind: SourceTargetKind.Global,
@@ -29,6 +29,7 @@ export default {
 				scope: SourceCredentialScope.None,
 			},
 		],
-		proxyId: '["BetterCallDev_Rest","Global","better-call-dev-api","HttpProxy","RestJson"]',
 	},
-} as const satisfies SourceBindingIndex
+] as const satisfies readonly SourceBinding[]
+
+export default indexSourceBindings<{ readonly [Source.BetterCallDev_Rest]: typeof bindings[0] }>(bindings)

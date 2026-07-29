@@ -40,11 +40,11 @@
 			entitySelector={elementsAssetTimestampSelector}
 		>
 			{#snippet Title()}
-				{String(elementsAssetTimestampSelector.timestampMs) || 'Elements asset observation'}
+				{elementsAssetTimestampSelector.timestampMs}
 			{/snippet}
 
 			{#snippet Value()}
-				{String(elementsAssetTimestamp.issuedAmount ?? '')}
+				{elementsAssetTimestamp.issuedAmount ?? ''}
 			{/snippet}
 		</EntityView>
 	{/snippet}

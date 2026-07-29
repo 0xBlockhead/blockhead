@@ -24,7 +24,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.RedditLink> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Reddit_PublicJson,
@@ -36,7 +35,7 @@
 			createdAt: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.title ?? '') || (pendingEntity.fullname ?? '') || 'Reddit submission')
+	const titleFallback = $derived((prefetched.title ?? '') || selection.entitySelector.fullname || 'Reddit submission')
 
 
 	// Components
@@ -54,12 +53,15 @@
 	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
 	href={
-		href ?? resolve(
-			'/(social)/(reddit)/reddit/(globalRedditNetwork)/link/[fullname=stringSegment]',
-			{
-				fullname: encodeURIComponent(String(selection.entitySelector.fullname)),
-			}
-		)
+		href === undefined ?
+			resolve(
+				'/(social)/(reddit)/reddit/(globalRedditNetwork)/link/[fullname=stringSegment]',
+				{
+					fullname: encodeURIComponent(selection.entitySelector.fullname),
+				}
+			)
+		:
+			href ?? undefined
 	}
 	{layout}
 	bind:open
@@ -76,10 +78,10 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={redditLink}>
 			{#snippet children(entity)}
-				{@const createdAt0 = entity.createdAt}
-				{#if createdAt0 != null}
+				{@const createdAt = entity.createdAt}
+				{#if createdAt != null}
 					<span data-text="muted">
-						<Timestamp timestamp={Number(createdAt0)} />
+						<Timestamp timestamp={createdAt} />
 					</span>
 				{/if}
 			{/snippet}
@@ -91,7 +93,7 @@
 			<div>
 				<dt>Submission ID</dt>
 				<dd>
-					<TruncatedValue value={pendingEntity.fullname} />
+					<TruncatedValue value={selection.entitySelector.fullname} />
 				</dd>
 			</div>
 
@@ -169,7 +171,7 @@
 							<div>
 								<dt>Created</dt>
 								<dd>
-									<Timestamp timestamp={Number(createdAt)} />
+									<Timestamp timestamp={createdAt} />
 								</dd>
 							</div>
 						{/if}
@@ -216,11 +218,11 @@
 								<dt>URL</dt>
 								<dd>
 									<a
-										href={String(url)}
+										href={url}
 										target="_blank"
 										rel="noreferrer noopener"
 									>
-										<TruncatedValue value={String(url)} />
+										<TruncatedValue value={url} />
 									</a>
 								</dd>
 							</div>
@@ -246,11 +248,11 @@
 								<dt>Reddit permalink</dt>
 								<dd>
 									<a
-										href={String(permalink)}
+										href={permalink}
 										target="_blank"
 										rel="noreferrer noopener"
 									>
-										<TruncatedValue value={String(permalink)} />
+										<TruncatedValue value={permalink} />
 									</a>
 								</dd>
 							</div>
@@ -262,21 +264,21 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const redditLinkRedditCommentsViewCommentsResource = selection.$$comments}
+		{@const commentsResource = selection.$$comments}
 		<ResourceBoundary
-			resource={redditLinkRedditCommentsViewCommentsResource}
+			resource={commentsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<RedditCommentsView
-						selection={redditLinkRedditCommentsViewCommentsResource}
-						countResource={redditLinkRedditCommentsViewCommentsResource.count}
+						selection={commentsResource}
+						countResource={commentsResource.count}
 						title='Comments'
 						href={
 							resolve(
 								'/(social)/(reddit)/reddit/(globalRedditNetwork)/link/[fullname=stringSegment]/(redditLink)/comments',
 								{
-									fullname: encodeURIComponent(String(selection.entitySelector.fullname)),
+									fullname: encodeURIComponent(selection.entitySelector.fullname),
 								}
 							)
 						}
@@ -285,21 +287,21 @@
 				{/if}
 			{/snippet}
 		</ResourceBoundary>
-		{@const redditLinkRedditLinkTimestampsViewTimestampsResource = selection.$$timestamps}
+		{@const timestampsResource = selection.$$timestamps}
 		<ResourceBoundary
-			resource={redditLinkRedditLinkTimestampsViewTimestampsResource}
+			resource={timestampsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<RedditLink_TimestampsView
-						selection={redditLinkRedditLinkTimestampsViewTimestampsResource}
-						countResource={redditLinkRedditLinkTimestampsViewTimestampsResource.count}
+						selection={timestampsResource}
+						countResource={timestampsResource.count}
 						title='Observations'
 						href={
 							resolve(
 								'/(social)/(reddit)/reddit/(globalRedditNetwork)/link/[fullname=stringSegment]/(redditLink)/observations',
 								{
-									fullname: encodeURIComponent(String(selection.entitySelector.fullname)),
+									fullname: encodeURIComponent(selection.entitySelector.fullname),
 								}
 							)
 						}

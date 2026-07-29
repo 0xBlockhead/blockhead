@@ -42,11 +42,11 @@
 			entitySelector={dydxChainNetworkTimestampSelector}
 		>
 			{#snippet Title()}
-				{String(dydxChainNetworkTimestampSelector.timestampMs) || 'dydx chain network timestamp'}
+				{dydxChainNetworkTimestampSelector.timestampMs}
 			{/snippet}
 
 			{#snippet Value()}
-				{(dydxChainNetworkTimestamp.health ?? '')}
+				{dydxChainNetworkTimestamp.health ?? ''}
 			{/snippet}
 		</EntityView>
 	{/snippet}

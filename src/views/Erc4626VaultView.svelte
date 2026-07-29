@@ -22,7 +22,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.Erc4626Vault> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Blockscout_Rest,
@@ -38,7 +37,7 @@
 			symbol: true,
 		},
 	}))
-	const titleFallback = $derived([(pendingEntity.name ?? ''), (pendingEntity.symbol ?? '')].filter(Boolean).join(' ') || 'erc4626 vault')
+	const titleFallback = $derived([(prefetched.name ?? ''), (prefetched.symbol ?? '')].filter(Boolean).join(' ') || 'erc4626 vault')
 
 
 	// Components
@@ -77,7 +76,7 @@
 					<EvmCoinInstanceView
 						selection={select(EntityType.EvmCoinInstance, evmCoinInstance[EntityMetaKey.Selector])}
 						prefetched={evmCoinInstance}
-						href=""
+						href={null}
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -218,30 +217,30 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const erc4626VaultErc4626VaultBlocksViewBlocksResource = selection.$$blocks}
+		{@const blocksResource = selection.$$blocks}
 		<ResourceBoundary
-			resource={erc4626VaultErc4626VaultBlocksViewBlocksResource}
+			resource={blocksResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<Erc4626Vault_BlocksView
-						selection={erc4626VaultErc4626VaultBlocksViewBlocksResource}
-						countResource={erc4626VaultErc4626VaultBlocksViewBlocksResource.count}
+						selection={blocksResource}
+						countResource={blocksResource.count}
 						title='Blocks'
 						id='blocks'
 					/>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>
-		{@const erc4626VaultErc4626VaultTimestampsViewTimestampsResource = selection.$$timestamps}
+		{@const timestampsResource = selection.$$timestamps}
 		<ResourceBoundary
-			resource={erc4626VaultErc4626VaultTimestampsViewTimestampsResource}
+			resource={timestampsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<Erc4626Vault_TimestampsView
-						selection={erc4626VaultErc4626VaultTimestampsViewTimestampsResource}
-						countResource={erc4626VaultErc4626VaultTimestampsViewTimestampsResource.count}
+						selection={timestampsResource}
+						countResource={timestampsResource.count}
 						title='Observations'
 						id='timestamps'
 					/>

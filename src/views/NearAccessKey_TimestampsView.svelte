@@ -41,15 +41,15 @@
 			entitySelector={nearAccessKeyTimestampSelector}
 		>
 			{#snippet Title()}
-				{String(nearAccessKeyTimestampSelector.timestampMs) || 'near access key timestamp'}
+				{nearAccessKeyTimestampSelector.timestampMs}
 			{/snippet}
 
 			{#snippet Value()}
-				{(nearAccessKeyTimestamp.permission ?? '')}
+				{nearAccessKeyTimestamp.permission ?? ''}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{String(nearAccessKeyTimestamp.blockHeight ?? '')}</span>
+				<span data-text="annotation">{nearAccessKeyTimestamp.blockHeight ?? ''}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

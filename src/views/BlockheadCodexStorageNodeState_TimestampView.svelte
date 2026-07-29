@@ -21,7 +21,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.BlockheadCodexStorageNodeState_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Local_Internal,
@@ -33,14 +32,12 @@
 			peerCount: true,
 		},
 	}))
-	const titleFallback = $derived(String(pendingEntity.timestampMs ?? '') || 'blockhead codex storage node state timestamp')
 
 
 	// Components
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
-	import TruncatedValue from '$/components/TruncatedValue.svelte'
 	import BlockheadCodexStorageNodeStateView from '$/views/BlockheadCodexStorageNodeStateView.svelte'
 </script>
 
@@ -48,19 +45,19 @@
 <EntityView
 	entityType={EntityType.BlockheadCodexStorageNodeState_Timestamp}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? String(selection.entitySelector.timestampMs)}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+		<Timestamp timestamp={selection.entitySelector.timestampMs} />
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={blockheadCodexStorageNodeStateTimestamp}>
 			{#snippet children(entity)}
-				{(entity.version ?? '') || String(pendingEntity.timestampMs) || titleFallback}
+				{(entity.version ?? '') || String(selection.entitySelector.timestampMs)}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -68,11 +65,11 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={blockheadCodexStorageNodeStateTimestamp}>
 			{#snippet children(entity)}
-				{@const peerCount0 = entity.peerCount}
-				{#if peerCount0 != null}
+				{@const peerCount = entity.peerCount}
+				{#if peerCount != null}
 					<span data-text="muted">
 						<NumberValue
-							value={peerCount0}
+							value={peerCount}
 						/>
 					</span>
 				{/if}
@@ -96,14 +93,14 @@
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+					<Timestamp timestamp={selection.entitySelector.timestampMs} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 
@@ -182,7 +179,7 @@
 						}
 					>
 						{#snippet children(entity)}
-							<TruncatedValue value={entity.listenAddresses.values.join(', ')} />
+							{entity.listenAddresses.values.join(', ')}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -201,7 +198,7 @@
 						}
 					>
 						{#snippet children(entity)}
-							<TruncatedValue value={entity.announceAddresses.values.join(', ')} />
+							{entity.announceAddresses.values.join(', ')}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>

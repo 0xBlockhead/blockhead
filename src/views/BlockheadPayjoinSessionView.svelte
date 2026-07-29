@@ -21,7 +21,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.BlockheadPayjoinSession> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const blockheadPayjoinSession = $derived(selection({
 		fields: {
 			status: true,
@@ -29,7 +28,7 @@
 			amountSats: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.sessionId ?? '') || 'blockhead payjoin session')
+	const titleFallback = $derived(selection.entitySelector.sessionId || 'blockhead payjoin session')
 
 
 	// Components
@@ -53,13 +52,13 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{(pendingEntity.sessionId ?? '') || 'blockhead payjoin session'}
+		{selection.entitySelector.sessionId || 'blockhead payjoin session'}
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={blockheadPayjoinSession}>
 			{#snippet children(entity)}
-				{[entity.status, entity.role].filter(Boolean).join(' ') || pendingEntity.sessionId || titleFallback}
+				{[entity.status, entity.role].filter(Boolean).join(' ') || selection.entitySelector.sessionId || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -67,11 +66,11 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={blockheadPayjoinSession}>
 			{#snippet children(entity)}
-				{@const amountSats0 = entity.amountSats}
-				{#if amountSats0 != null}
+				{@const amountSats = entity.amountSats}
+				{#if amountSats != null}
 					<span data-text="muted">
 						<NumberValue
-							value={amountSats0}
+							value={amountSats}
 						/>
 					</span>
 				{/if}
@@ -84,7 +83,7 @@
 			<div>
 				<dt>session ID</dt>
 				<dd>
-					{pendingEntity.sessionId}
+					{selection.entitySelector.sessionId}
 				</dd>
 			</div>
 
@@ -190,11 +189,11 @@
 							<dt>endpoint URL</dt>
 							<dd>
 								<a
-									href={String(endpointUrl)}
+									href={endpointUrl}
 									target="_blank"
 									rel="noreferrer noopener"
 								>
-									<TruncatedValue value={String(endpointUrl)} />
+									<TruncatedValue value={endpointUrl} />
 								</a>
 							</dd>
 						</div>
@@ -218,11 +217,11 @@
 							<dt>bip21 URI</dt>
 							<dd>
 								<a
-									href={String(bip21Uri)}
+									href={bip21Uri}
 									target="_blank"
 									rel="noreferrer noopener"
 								>
-									<TruncatedValue value={String(bip21Uri)} />
+									<TruncatedValue value={bip21Uri} />
 								</a>
 							</dd>
 						</div>
@@ -493,7 +492,7 @@
 						}
 					>
 						{#snippet children(entity)}
-							<Timestamp timestamp={Number(entity.createdAt)} />
+							<Timestamp timestamp={entity.createdAt} />
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -514,7 +513,7 @@
 						<div>
 							<dt>Updated</dt>
 							<dd>
-								<Timestamp timestamp={Number(updatedAt)} />
+								<Timestamp timestamp={updatedAt} />
 							</dd>
 						</div>
 					{/if}
@@ -536,7 +535,7 @@
 						<div>
 							<dt>completed AT</dt>
 							<dd>
-								<Timestamp timestamp={Number(completedAt)} />
+								<Timestamp timestamp={completedAt} />
 							</dd>
 						</div>
 					{/if}

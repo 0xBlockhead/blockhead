@@ -5,7 +5,6 @@
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -23,7 +22,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.BlockheadSessionSimulation> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Local_Internal,
@@ -36,7 +34,7 @@
 			paramsHash: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.status ?? '') || 'blockhead session simulation')
+	const titleFallback = $derived((prefetched.status ?? '') || 'blockhead session simulation')
 
 
 	// Components
@@ -69,7 +67,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={blockheadSessionSimulation}>
 			{#snippet children(entity)}
-				<Timestamp timestamp={Number(entity.createdAt)} />
+				<Timestamp timestamp={entity.createdAt} />
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -131,7 +129,7 @@
 						resource={blockheadSessionSimulation}
 					>
 						{#snippet children(entity)}
-							<Timestamp timestamp={Number(entity.createdAt)} />
+							<Timestamp timestamp={entity.createdAt} />
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -152,7 +150,7 @@
 						<div>
 							<dt>completed AT</dt>
 							<dd>
-								<Timestamp timestamp={Number(completedAt)} />
+								<Timestamp timestamp={completedAt} />
 							</dd>
 						</div>
 					{/if}
@@ -166,7 +164,7 @@
 						resource={blockheadSessionSimulation}
 					>
 						{#snippet children(entity)}
-							<TruncatedValue value={String(entity.paramsHash)} />
+							<TruncatedValue value={entity.paramsHash} />
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -261,7 +259,7 @@
 						<div>
 							<dt>result payload hash</dt>
 							<dd>
-								<TruncatedValue value={String(resultPayloadHash)} />
+								<TruncatedValue value={resultPayloadHash} />
 							</dd>
 						</div>
 					{/if}
@@ -293,30 +291,30 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const blockheadSessionSimulationBlockheadSessionSimulationCallsViewCallsResource = selection.$$calls}
+		{@const callsResource = selection.$$calls}
 		<ResourceBoundary
-			resource={blockheadSessionSimulationBlockheadSessionSimulationCallsViewCallsResource}
+			resource={callsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<BlockheadSessionSimulationCallsView
-						selection={blockheadSessionSimulationBlockheadSessionSimulationCallsViewCallsResource}
-						countResource={blockheadSessionSimulationBlockheadSessionSimulationCallsViewCallsResource.count}
+						selection={callsResource}
+						countResource={callsResource.count}
 						title='calls'
 						id='calls'
 					/>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>
-		{@const blockheadSessionSimulationBlockheadSessionSimulationLogsViewLogsResource = selection.$$logs}
+		{@const logsResource = selection.$$logs}
 		<ResourceBoundary
-			resource={blockheadSessionSimulationBlockheadSessionSimulationLogsViewLogsResource}
+			resource={logsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<BlockheadSessionSimulationLogsView
-						selection={blockheadSessionSimulationBlockheadSessionSimulationLogsViewLogsResource}
-						countResource={blockheadSessionSimulationBlockheadSessionSimulationLogsViewLogsResource.count}
+						selection={logsResource}
+						countResource={logsResource.count}
 						title='logs'
 						id='logs'
 					/>

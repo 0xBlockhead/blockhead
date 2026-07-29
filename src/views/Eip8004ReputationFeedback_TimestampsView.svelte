@@ -46,7 +46,7 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{String(eip8004ReputationFeedbackTimestampSelector.timestampMs)}
+				{eip8004ReputationFeedbackTimestampSelector.timestampMs}
 			{/snippet}
 
 			{#snippet HeadingAfter()}

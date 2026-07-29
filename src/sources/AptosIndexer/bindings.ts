@@ -1,10 +1,10 @@
 // Generated from APP.ts. Do not edit by hand.
 
 import { Source } from '$/sources/Source.ts'
-import { ApiFamily, SourceArtifactKind, SourceCredentialScope, SourceDelivery, SourceEndpointKind, SourceOperationGroup, SourceTargetKind, WireProtocol, type SourceBindingIndex } from '$/sources/SourceBinding.ts'
+import { ApiFamily, indexSourceBindings, SourceArtifactKind, SourceCredentialScope, SourceDelivery, SourceEndpointKind, SourceOperationGroup, SourceTargetKind, WireProtocol, type SourceBinding } from '$/sources/SourceBinding.ts'
 
-export default {
-	[Source.AptosIndexer_Graphql]: {
+const bindings = [
+	{
 		source: Source.AptosIndexer_Graphql,
 		target: {
 			kind: SourceTargetKind.Caip2Network,
@@ -29,7 +29,6 @@ export default {
 				scope: SourceCredentialScope.None,
 			},
 		],
-		proxyId: '["AptosIndexer_Graphql","Caip2Network","aptos:1","HttpProxy","GraphqlHttp"]',
 		artifacts: [
 			{
 				kind: SourceArtifactKind.GraphqlSchema,
@@ -49,4 +48,6 @@ export default {
 			},
 		],
 	},
-} as const satisfies SourceBindingIndex
+] as const satisfies readonly SourceBinding[]
+
+export default indexSourceBindings<{ readonly [Source.AptosIndexer_Graphql]: typeof bindings[0] }>(bindings)

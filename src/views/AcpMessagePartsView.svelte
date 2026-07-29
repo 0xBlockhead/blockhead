@@ -45,11 +45,11 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{String(acpMessagePartSelector.partIndex)}
+				{acpMessagePartSelector.partIndex}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{(acpMessagePart.mimeType ?? '')}</span>
+				<span data-text="annotation">{acpMessagePart.mimeType ?? ''}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

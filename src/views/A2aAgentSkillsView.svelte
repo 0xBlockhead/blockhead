@@ -51,7 +51,7 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{(a2aAgentSkill.$cardSnapshot.name ?? '') || String(a2aAgentSkillSelector.$cardSnapshot.contentHash) || 'A2A agent card snapshot'}
+				{(a2aAgentSkill.$cardSnapshot.name ?? '') || a2aAgentSkillSelector.$cardSnapshot.contentHash || 'A2A agent card snapshot'}
 			{/snippet}
 		</EntityView>
 	{/snippet}

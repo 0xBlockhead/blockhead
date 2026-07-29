@@ -40,11 +40,11 @@
 			entitySelector={starknetNetworkSelector}
 		>
 			{#snippet Title()}
-				{(starknetNetwork.$network.name || (starknetNetworkSelector.$network.caip2 == null ? '' : `${starknetNetworkSelector.$network.caip2.namespace}:${starknetNetworkSelector.$network.caip2.reference}`) || 'Network')}
+				{starknetNetwork.$network.name || (starknetNetworkSelector.$network.caip2 == null ? '' : `${starknetNetworkSelector.$network.caip2.namespace}:${starknetNetworkSelector.$network.caip2.reference}`) || 'Network'}
 			{/snippet}
 
 			{#snippet Value()}
-				{(starknetNetwork.chainId ?? '')}
+				{starknetNetwork.chainId ?? ''}
 			{/snippet}
 		</EntityView>
 	{/snippet}

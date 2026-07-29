@@ -2,7 +2,8 @@
 
 import bindings from '$/sources/BitTorrent/bindings.ts'
 import { Source } from '$/sources/Source.ts'
-import { SourceProvider, type SourceProviderDefinition } from '$/sources/SourceProvider.ts'
+import { SourceProvider } from '$/sources/SourceProvider.ts'
+import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinition.ts'
 
 export default {
 	provider: SourceProvider.BitTorrent,
@@ -33,12 +34,5 @@ export default {
 			label: 'BitTorrent peer wire',
 		},
 	],
-	bindings: [
-		bindings[Source.BitTorrentMetainfo_File],
-		bindings[Source.BitTorrent_HttpTracker],
-		bindings[Source.BitTorrent_UdpTracker],
-		bindings[Source.BitTorrent_MainlineDht],
-		bindings[Source.BitTorrent_MetadataExchange],
-		bindings[Source.BitTorrent_PeerWire],
-	],
+	bindings: Object.values(bindings).flat(),
 } satisfies SourceProviderDefinition

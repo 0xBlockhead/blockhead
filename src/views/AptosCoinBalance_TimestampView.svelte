@@ -20,7 +20,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.AptosCoinBalance_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const aptosCoinBalanceTimestamp = $derived(selection({
 		fields: {
 			assetType: true,
@@ -28,7 +27,7 @@
 			unit: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.assetType ?? '') || 'current Aptos coin balance observation')
+	const titleFallback = $derived((prefetched.assetType ?? '') || 'current Aptos coin balance observation')
 
 
 	// Components
@@ -63,7 +62,7 @@
 					value={entity.amount}
 				/>
 
-				<span>{entity.unit == null ? '' : ` ${String(entity.unit)}`}</span>
+				<span>{entity.unit == null ? '' : ` ${entity.unit}`}</span>
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -71,7 +70,7 @@
 	{#snippet HeadingAfter()}
 		<span data-text="muted">
 			<NumberValue
-				value={pendingEntity.ledgerVersion}
+				value={selection.entitySelector.ledgerVersion}
 			/>
 		</span>
 	{/snippet}
@@ -111,7 +110,7 @@
 			<div>
 				<dt>storage ID</dt>
 				<dd>
-					{pendingEntity.storageId}
+					{selection.entitySelector.storageId}
 				</dd>
 			</div>
 
@@ -177,7 +176,7 @@
 				<dt>last transaction version</dt>
 				<dd>
 					<NumberValue
-						value={pendingEntity.ledgerVersion}
+						value={selection.entitySelector.ledgerVersion}
 					/>
 				</dd>
 			</div>
@@ -185,7 +184,7 @@
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 
@@ -204,7 +203,7 @@
 						<div>
 							<dt>Timestamp</dt>
 							<dd>
-								<Timestamp timestamp={Number(timestampMs)} />
+								<Timestamp timestamp={timestampMs} />
 							</dd>
 						</div>
 					{/if}

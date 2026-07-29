@@ -20,7 +20,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.BlockheadSource_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const blockheadSourceTimestamp = $derived(selection({
 		fields: {
 			health: true,
@@ -28,7 +27,6 @@
 			latencyMs: true,
 		},
 	}))
-	const titleFallback = $derived(String(pendingEntity.timestampMs ?? '') || 'blockhead source timestamp')
 
 
 	// Components
@@ -41,19 +39,19 @@
 <EntityView
 	entityType={EntityType.BlockheadSource_Timestamp}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? String(selection.entitySelector.timestampMs)}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+		<Timestamp timestamp={selection.entitySelector.timestampMs} />
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={blockheadSourceTimestamp}>
 			{#snippet children(entity)}
-				{[(entity.health ?? ''), String(entity.enabled ?? '')].filter(Boolean).join(' ') || String(pendingEntity.timestampMs) || titleFallback}
+				{[(entity.health ?? ''), String(entity.enabled ?? '')].filter(Boolean).join(' ') || String(selection.entitySelector.timestampMs)}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -61,10 +59,10 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={blockheadSourceTimestamp}>
 			{#snippet children(entity)}
-				{@const latencyMs0 = entity.latencyMs}
-				{#if latencyMs0 != null}
+				{@const latencyMs = entity.latencyMs}
+				{#if latencyMs != null}
 					<span data-text="muted">
-						{String(latencyMs0)}
+						{latencyMs}
 					</span>
 				{/if}
 			{/snippet}
@@ -76,7 +74,7 @@
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+					<Timestamp timestamp={selection.entitySelector.timestampMs} />
 				</dd>
 			</div>
 
@@ -121,7 +119,7 @@
 						<div>
 							<dt>Latency ms</dt>
 							<dd>
-								{String(latencyMs)}
+								{latencyMs}
 							</dd>
 						</div>
 					{/if}
@@ -143,7 +141,7 @@
 						<div>
 							<dt>Status code</dt>
 							<dd>
-								{String(statusCode)}
+								{statusCode}
 							</dd>
 						</div>
 					{/if}
@@ -189,7 +187,7 @@
 						<div>
 							<dt>Rate limit remaining</dt>
 							<dd>
-								{String(rateLimitRemaining)}
+								{rateLimitRemaining}
 							</dd>
 						</div>
 					{/if}
@@ -211,7 +209,7 @@
 						<div>
 							<dt>Rate limit reset ms</dt>
 							<dd>
-								<Timestamp timestamp={Number(rateLimitResetMs)} />
+								<Timestamp timestamp={rateLimitResetMs} />
 							</dd>
 						</div>
 					{/if}
@@ -233,7 +231,7 @@
 						<div>
 							<dt>Resolver count</dt>
 							<dd>
-								{String(resolverCount)}
+								{resolverCount}
 							</dd>
 						</div>
 					{/if}

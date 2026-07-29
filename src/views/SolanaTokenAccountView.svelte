@@ -24,8 +24,7 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.SolanaTokenAccount> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const titleFallback = $derived((pendingEntity.tokenAccountPubkey ?? '') || 'solana token account')
+	const network = $derived(selection.entitySelector.$network)
 
 
 	// Components
@@ -40,31 +39,34 @@
 <EntityView
 	entityType={EntityType.SolanaTokenAccount}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? (selection.entitySelector.tokenAccountPubkey || 'solana token account')}
 	href={
-		href ?? resolve(
-			'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/token-account/[tokenAccountPubkey=stringSegment]',
-			{
-				network: (
-					'caip2' in selection.entitySelector.$network ?
-						String(caip2StringFromValue(selection.entitySelector.$network.caip2))
-					:
-						String(selection.entitySelector.$network.slug)
-				),
-				tokenAccountPubkey: String(selection.entitySelector.tokenAccountPubkey),
-			}
-		)
+		href === undefined ?
+			resolve(
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/token-account/[tokenAccountPubkey=stringSegment]',
+				{
+					network: (
+						'caip2' in network ?
+							caip2StringFromValue(network.caip2)
+						:
+							network.slug
+					),
+					tokenAccountPubkey: selection.entitySelector.tokenAccountPubkey,
+				}
+			)
+		:
+			href ?? undefined
 	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<TruncatedValue value={pendingEntity.tokenAccountPubkey} />
+		<TruncatedValue value={selection.entitySelector.tokenAccountPubkey} />
 	{/snippet}
 
 	{#snippet Value()}
-		<TruncatedValue value={pendingEntity.tokenAccountPubkey} />
+		<TruncatedValue value={selection.entitySelector.tokenAccountPubkey} />
 	{/snippet}
 
 	{#snippet HeadingAfter()}
@@ -89,7 +91,7 @@
 			<div>
 				<dt>Token account public key</dt>
 				<dd>
-					<TruncatedValue value={pendingEntity.tokenAccountPubkey} />
+					<TruncatedValue value={selection.entitySelector.tokenAccountPubkey} />
 				</dd>
 			</div>
 

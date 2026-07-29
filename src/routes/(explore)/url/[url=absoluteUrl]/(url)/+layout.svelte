@@ -32,7 +32,7 @@
 			resolve(
 				'/(explore)/url/[url=absoluteUrl]',
 				{
-					url: String(params.url),
+					url: params.url,
 				}
 			)
 		}
@@ -44,7 +44,7 @@
 					resolve(
 						'/(explore)/url/[url=absoluteUrl]',
 						{
-							url: String(params.url),
+							url: params.url,
 						}
 					)
 				}

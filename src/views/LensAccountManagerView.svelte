@@ -4,7 +4,6 @@
 	// Types/constants
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { EvmAddress } from '$/schema/ZeroExHex.ts'
 
 
 	// Context
@@ -21,13 +20,11 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.LensAccountManager> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const lensAccountManager = $derived(selection({
 		fields: {
 			isLensManager: true,
 		},
 	}))
-	const titleFallback = $derived(String(pendingEntity.manager ?? '') || 'Lens account manager')
 
 
 	// Components
@@ -41,26 +38,26 @@
 <EntityView
 	entityType={EntityType.LensAccountManager}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? (selection.entitySelector.manager || 'Lens account manager')}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<TruncatedValue value={String(pendingEntity.manager)} />
+		<TruncatedValue value={selection.entitySelector.manager} />
 	{/snippet}
 
 	{#snippet Value()}
-		<TruncatedValue value={String(pendingEntity.manager)} />
+		<TruncatedValue value={selection.entitySelector.manager} />
 	{/snippet}
 
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={lensAccountManager}>
 			{#snippet children(entity)}
-				{@const isLensManager0 = entity.isLensManager}
-				{#if isLensManager0 != null}
+				{@const isLensManager = entity.isLensManager}
+				{#if isLensManager != null}
 					<span data-text="muted">
-						{isLensManager0 ? 'Yes' : 'No'}
+						{isLensManager ? 'Yes' : 'No'}
 					</span>
 				{/if}
 			{/snippet}
@@ -72,7 +69,7 @@
 			<div>
 				<dt>Manager</dt>
 				<dd>
-					<TruncatedValue value={String(pendingEntity.manager)} />
+					<TruncatedValue value={selection.entitySelector.manager} />
 				</dd>
 			</div>
 
@@ -91,7 +88,7 @@
 						<div>
 							<dt>Added at</dt>
 							<dd>
-								<Timestamp timestamp={Number(addedAt)} />
+								<Timestamp timestamp={addedAt} />
 							</dd>
 						</div>
 					{/if}

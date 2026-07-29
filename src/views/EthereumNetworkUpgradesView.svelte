@@ -42,27 +42,26 @@
 >
 	{#snippet Item({ item: ethereumNetworkUpgrade })}
 		{@const ethereumNetworkUpgradeSelector = ethereumNetworkUpgrade[EntityMetaKey.Selector]}
+		{@const network = ethereumNetworkUpgradeSelector.$network}
 		<EntityView
 			entityType={EntityType.EthereumNetworkUpgrade}
 			entitySelector={ethereumNetworkUpgradeSelector}
 			href={
-				(
-					'slug' in ethereumNetworkUpgradeSelector ?
-						resolve(
-							'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(upgrades)/upgrade/[upgradeSlug=stringSegment]',
-							{
-								network: (
-									'caip2' in ethereumNetworkUpgradeSelector.$network ?
-										String(caip2StringFromValue(ethereumNetworkUpgradeSelector.$network.caip2))
-									:
-										String(ethereumNetworkUpgradeSelector.$network.slug)
-								),
-								upgradeSlug: String(ethereumNetworkUpgradeSelector.slug),
-							}
-						)
-					:
-						undefined
-				)
+				'slug' in ethereumNetworkUpgradeSelector ?
+					resolve(
+						'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(upgrades)/upgrade/[upgradeSlug=stringSegment]',
+						{
+							network: (
+								'caip2' in network ?
+									caip2StringFromValue(network.caip2)
+								:
+									network.slug
+							),
+							upgradeSlug: ethereumNetworkUpgradeSelector.slug,
+						}
+					)
+				:
+					undefined
 			}
 		>
 			{#snippet Title()}

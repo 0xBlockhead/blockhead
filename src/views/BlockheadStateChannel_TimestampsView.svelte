@@ -43,7 +43,7 @@
 			entitySelector={blockheadStateChannelTimestampSelector}
 		>
 			{#snippet Title()}
-				{String(blockheadStateChannelTimestampSelector.timestampMs) || 'blockhead state channel timestamp'}
+				{blockheadStateChannelTimestampSelector.timestampMs}
 			{/snippet}
 
 			{#snippet Value()}

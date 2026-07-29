@@ -21,7 +21,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.BlockheadZcashViewingKey_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Local_Internal,
@@ -35,7 +34,6 @@
 			lastScannedHeight: true,
 		},
 	}))
-	const titleFallback = $derived(String(pendingEntity.timestampMs ?? '') || 'blockhead zcash viewing key timestamp')
 
 
 	// Components
@@ -49,22 +47,22 @@
 <EntityView
 	entityType={EntityType.BlockheadZcashViewingKey_Timestamp}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? String(selection.entitySelector.timestampMs)}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+		<Timestamp timestamp={selection.entitySelector.timestampMs} />
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={blockheadZcashViewingKeyTimestamp}>
 			{#snippet children(entity)}
-				{@const lastScannedHeight0 = entity.lastScannedHeight}
-				{#if lastScannedHeight0 != null}
+				{@const lastScannedHeight = entity.lastScannedHeight}
+				{#if lastScannedHeight != null}
 					<NumberValue
-						value={lastScannedHeight0}
+						value={lastScannedHeight}
 					/>
 				{/if}
 			{/snippet}
@@ -73,7 +71,7 @@
 
 	{#snippet HeadingAfter()}
 		<span data-text="muted">
-			{pendingEntity.source}
+			{selection.entitySelector.source}
 		</span>
 	{/snippet}
 
@@ -93,14 +91,14 @@
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+					<Timestamp timestamp={selection.entitySelector.timestampMs} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 		</dl>
@@ -139,7 +137,7 @@
 						<div>
 							<dt>last scanned AT</dt>
 							<dd>
-								<Timestamp timestamp={Number(lastScannedAt)} />
+								<Timestamp timestamp={lastScannedAt} />
 							</dd>
 						</div>
 					{/if}

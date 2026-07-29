@@ -9,7 +9,8 @@ import YoutubeVideoSchema from '$/schema/YoutubeVideo.ts'
 import { type as arktype } from 'arktype'
 
 export const load: LayoutLoad = ({ params }) => {
-	if (!(matchStringSegment(params.videoId))) error(404, 'Route mapping not applicable')
+	if (!(matchStringSegment(params.videoId)))
+		error(404, 'Route mapping not applicable')
 
 	const youtubeVideoVideoIdSelector = parseEntitySelector(
 		schema,
@@ -18,7 +19,8 @@ export const load: LayoutLoad = ({ params }) => {
 			videoId: decodeURIComponent(params.videoId),
 		}
 	)
-	if (youtubeVideoVideoIdSelector instanceof arktype.errors) error(404, 'Invalid YoutubeVideo selector')
+	if (youtubeVideoVideoIdSelector instanceof arktype.errors)
+		error(404, 'Invalid YoutubeVideo selector')
 
 	return {
 		selector: youtubeVideoVideoIdSelector,

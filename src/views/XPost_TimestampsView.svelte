@@ -49,9 +49,9 @@
 				resolve(
 					'/(social)/(x)/x/(xNetwork)/post/[postId=stringSegment]/(xPost)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
 					{
-						postId: String(xPostTimestampSelector.$post.id),
+						postId: xPostTimestampSelector.$post.id,
 						timestampMs: String(xPostTimestampSelector.timestampMs),
-						source: String(xPostTimestampSelector.source),
+						source: xPostTimestampSelector.source,
 					}
 				)
 			}
@@ -61,7 +61,7 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{String(xPostTimestampSelector.timestampMs)}
+				{xPostTimestampSelector.timestampMs}
 			{/snippet}
 
 			{#snippet HeadingAfter()}

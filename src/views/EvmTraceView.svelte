@@ -5,8 +5,6 @@
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { EvmInternalCallType } from '$/constants/Evm.ts'
-	import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 
 
 	// Context
@@ -31,7 +29,6 @@
 			error: true,
 		},
 	}))
-	const titleFallback = $derived((String(pendingEntity.index ?? '') ? 'Trace #' + String(pendingEntity.index ?? '') : '') || (pendingEntity.traceAddress ?? '') || 'EVM trace')
 
 
 	// Components
@@ -47,7 +44,7 @@
 <EntityView
 	entityType={EntityType.EvmTrace}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? `Trace #${pendingEntity.index}`}
 	idDragPlainText={String(pendingEntity.index ?? '')}
 	{layout}
 	bind:open
@@ -59,7 +56,7 @@
 				<span data-row="inline align-center gap-2 wrap">
 					<span>Trace </span>
 					<span data-badge="small">
-						#{String(entity.index)}
+						#{entity.index}
 					</span>
 				</span>
 			{/snippet}
@@ -70,7 +67,7 @@
 		<ResourceBoundary resource={evmTrace}>
 			{#snippet children(entity)}
 				<span data-badge="small">
-					#{String(entity.index)}
+					#{entity.index}
 				</span>
 			{/snippet}
 		</ResourceBoundary>
@@ -82,10 +79,10 @@
 				<span data-text="muted">
 					{entity.type}
 				</span>
-				{@const error1 = entity.error}
-				{#if error1 != null}
+				{@const error = entity.error}
+				{#if error != null}
 					<span data-text="muted">
-						{error1}
+						{error}
 					</span>
 				{/if}
 			{/snippet}
@@ -97,7 +94,7 @@
 			<div>
 				<dt>Trace address</dt>
 				<dd>
-					<TruncatedValue value={pendingEntity.traceAddress} />
+					<TruncatedValue value={selection.entitySelector.traceAddress} />
 				</dd>
 			</div>
 
@@ -108,7 +105,7 @@
 						resource={evmTrace}
 					>
 						{#snippet children(entity)}
-							{String(entity.index)}
+							{entity.index}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -200,7 +197,7 @@
 						<div>
 							<dt>Value</dt>
 							<dd>
-								<TruncatedValue value={String(value)} />
+								<TruncatedValue value={value} />
 							</dd>
 						</div>
 					{/if}
@@ -222,7 +219,7 @@
 						<div>
 							<dt>Gas</dt>
 							<dd>
-								{String(gas)}
+								{gas}
 							</dd>
 						</div>
 					{/if}
@@ -244,7 +241,7 @@
 						<div>
 							<dt>Gas used</dt>
 							<dd>
-								{String(gasUsed)}
+								{gasUsed}
 							</dd>
 						</div>
 					{/if}
@@ -268,7 +265,7 @@
 						<div>
 							<dt>Input</dt>
 							<dd>
-								<TruncatedValue value={String(input)} />
+								<TruncatedValue value={input} />
 							</dd>
 						</div>
 					{/if}
@@ -290,7 +287,7 @@
 						<div>
 							<dt>Output</dt>
 							<dd>
-								<TruncatedValue value={String(output)} />
+								<TruncatedValue value={output} />
 							</dd>
 						</div>
 					{/if}
@@ -311,15 +308,15 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const evmTraceEvmTracesViewChildrenResource = selection.$$children}
+		{@const childrenResource = selection.$$children}
 		<ResourceBoundary
-			resource={evmTraceEvmTracesViewChildrenResource}
+			resource={childrenResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<EvmTracesView
-						selection={evmTraceEvmTracesViewChildrenResource}
-						countResource={evmTraceEvmTracesViewChildrenResource.count}
+						selection={childrenResource}
+						countResource={childrenResource.count}
 						title='Children'
 						id='children'
 					/>

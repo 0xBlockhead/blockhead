@@ -4,7 +4,6 @@
 	// Types/constants
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 
 
 	// Context
@@ -21,13 +20,11 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType._GlobalAiArtifactCatalog_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const globalAiArtifactCatalogTimestamp = $derived(selection({
 		fields: {
 			status: true,
 		},
 	}))
-	const titleFallback = $derived(String(pendingEntity.timestampMs ?? '') || 'global AI artifact catalog timestamp')
 
 
 	// Components
@@ -42,26 +39,26 @@
 <EntityView
 	entityType={EntityType._GlobalAiArtifactCatalog_Timestamp}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? String(selection.entitySelector.timestampMs)}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+		<Timestamp timestamp={selection.entitySelector.timestampMs} />
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={globalAiArtifactCatalogTimestamp}>
 			{#snippet children(entity)}
-				{(entity.status ?? '') || String(pendingEntity.timestampMs) || titleFallback}
+				{(entity.status ?? '') || String(selection.entitySelector.timestampMs)}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
 		<span data-text="muted">
-			{pendingEntity.source}
+			{selection.entitySelector.source}
 		</span>
 	{/snippet}
 
@@ -81,14 +78,14 @@
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+					<Timestamp timestamp={selection.entitySelector.timestampMs} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 
@@ -295,7 +292,7 @@
 						<div>
 							<dt>query hash algorithm</dt>
 							<dd>
-								<TruncatedValue value={queryHashAlgorithm} />
+								{queryHashAlgorithm}
 							</dd>
 						</div>
 					{/if}
@@ -317,7 +314,7 @@
 						<div>
 							<dt>query hash</dt>
 							<dd>
-								<TruncatedValue value={String(queryHash)} />
+								<TruncatedValue value={queryHash} />
 							</dd>
 						</div>
 					{/if}

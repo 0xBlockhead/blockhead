@@ -45,11 +45,11 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{String(cctpAllowance.allowance ?? '')}
+				{cctpAllowance.allowance ?? ''}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{String(cctpAllowance.fetchedAt)}</span>
+				<span data-text="annotation">{cctpAllowance.fetchedAt}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

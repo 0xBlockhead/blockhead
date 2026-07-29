@@ -17,7 +17,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType._GlobalArweaveNetwork> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const titleFallback = 'global Arweave network'
 	const viewDomId = $derived('-global-arweave-network-' + encodeURIComponent(stringify(selection.entitySelector)))
 
@@ -47,7 +46,7 @@
 	{/snippet}
 
 	{#snippet Value()}
-		{(pendingEntity.scope ?? '') || titleFallback}
+		{selection.entitySelector.scope || titleFallback}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -55,7 +54,7 @@
 			<div>
 				<dt>Scope</dt>
 				<dd>
-					{pendingEntity.scope}
+					{selection.entitySelector.scope}
 				</dd>
 			</div>
 		</dl>

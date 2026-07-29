@@ -21,7 +21,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.QuilibriumProver> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.QuilibriumNode_Grpc,
@@ -32,7 +31,6 @@
 			version: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.proverPeerId ?? '') || 'quilibrium prover')
 
 
 	// Components
@@ -46,19 +44,19 @@
 <EntityView
 	entityType={EntityType.QuilibriumProver}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? (selection.entitySelector.proverPeerId || 'quilibrium prover')}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{(pendingEntity.proverPeerId ?? '') || 'quilibrium prover'}
+		{selection.entitySelector.proverPeerId || 'quilibrium prover'}
 	{/snippet}
 
 	{#snippet Value()}
 		<NetworkView
 			selection={select(EntityType.Network, selection.entitySelector.$network)}
-			href=""
+			href={null}
 			layout={EntityLayout.Value}
 			open={false}
 		/>
@@ -67,10 +65,10 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={quilibriumProver}>
 			{#snippet children(entity)}
-				{@const version0 = entity.version}
-				{#if version0 != null}
+				{@const version = entity.version}
+				{#if version != null}
 					<span data-text="muted">
-						{version0}
+						{version}
 					</span>
 				{/if}
 			{/snippet}
@@ -93,7 +91,7 @@
 			<div>
 				<dt>prover peer ID</dt>
 				<dd>
-					{pendingEntity.proverPeerId}
+					{selection.entitySelector.proverPeerId}
 				</dd>
 			</div>
 
@@ -150,7 +148,7 @@
 						<div>
 							<dt>last seen AT</dt>
 							<dd>
-								<Timestamp timestamp={Number(lastSeenAt)} />
+								<Timestamp timestamp={lastSeenAt} />
 							</dd>
 						</div>
 					{/if}
@@ -160,15 +158,15 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const quilibriumProverQuilibriumFramesViewFramesResource = selection.$$frames}
+		{@const framesResource = selection.$$frames}
 		<ResourceBoundary
-			resource={quilibriumProverQuilibriumFramesViewFramesResource}
+			resource={framesResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<QuilibriumFramesView
-						selection={quilibriumProverQuilibriumFramesViewFramesResource}
-						countResource={quilibriumProverQuilibriumFramesViewFramesResource.count}
+						selection={framesResource}
+						countResource={framesResource.count}
 						title='frames'
 						id='frames'
 					/>

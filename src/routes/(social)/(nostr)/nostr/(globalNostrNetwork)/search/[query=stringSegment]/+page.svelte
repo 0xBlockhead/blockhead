@@ -36,7 +36,7 @@
 
 
 <svelte:head>
-	<title>{(pageSelection.entitySelector.query || 'Nostr profile search')} • Nostr profile search • Blockhead</title>
+	<title>{pageSelection.entitySelector.query || 'Nostr profile search'} • Nostr profile search • Blockhead</title>
 </svelte:head>
 
 

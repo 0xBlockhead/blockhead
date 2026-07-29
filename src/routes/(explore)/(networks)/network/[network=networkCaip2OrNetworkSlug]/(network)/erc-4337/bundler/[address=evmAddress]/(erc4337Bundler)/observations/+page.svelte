@@ -35,8 +35,8 @@
 			resolve(
 				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/erc-4337/bundler/[address=evmAddress]/(erc4337Bundler)/observations',
 				{
-					network: String(params.network),
-					address: String(params.address),
+					network: params.network,
+					address: params.address,
 				}
 			)
 		}

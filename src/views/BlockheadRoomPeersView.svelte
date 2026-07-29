@@ -48,7 +48,7 @@
 				resolve(
 					'/~/multiplayer/contact/[contactId=stringSegment]',
 					{
-						contactId: String(blockheadRoomPeerSelector.id),
+						contactId: blockheadRoomPeerSelector.id,
 					}
 				)
 			}
@@ -58,7 +58,7 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{String(blockheadRoomPeer.isConnected)}
+				{blockheadRoomPeer.isConnected}
 			{/snippet}
 		</EntityView>
 	{/snippet}

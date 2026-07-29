@@ -2,7 +2,6 @@
 
 import type { PageLoad } from './$types'
 import { error } from '@sveltejs/kit'
-import { networkByCaip2, networkBySlug } from '$/constants/Network.ts'
 import { caip2SelectorValueFromString } from '$/lib/caip2.ts'
 import { match as matchAbsoluteUrl } from '$/params/absoluteUrl.ts'
 import { match as matchNetworkCaip2 } from '$/params/networkCaip2.ts'
@@ -15,10 +14,15 @@ import { type as arktype } from 'arktype'
 export const load: PageLoad = async ({ params, parent }) => {
 	const parentData = await parent()
 
-	const projectionNetwork = (Object.getOwnPropertyDescriptor(networkByCaip2, decodeURIComponent(params.network))?.value ?? Object.getOwnPropertyDescriptor(networkBySlug, params.network)?.value)
-	if (projectionNetwork == null) error(404, 'Network projection context not found')
-
-	if (!((projectionNetwork.executionModels !== undefined && projectionNetwork.executionModels.some((value: string | number | boolean | null) => value === 'Evm')) && matchNetworkCaip2(params.toCaip2) && matchAbsoluteUrl(params.url))) error(404, 'Route mapping not applicable')
+	if (!(
+		(
+			parentData.projectionNetwork.executionModels !== undefined
+			&& parentData.projectionNetwork.executionModels.some((value: string | number | boolean | null) => value === 'Evm')
+		)
+		&& matchNetworkCaip2(params.toCaip2)
+		&& matchAbsoluteUrl(params.url)
+	))
+		error(404, 'Route mapping not applicable')
 
 	const evmNetworkBridgeFromToUrlSelector = parseEntitySelector(
 		schema,
@@ -31,7 +35,8 @@ export const load: PageLoad = async ({ params, parent }) => {
 			url: decodeURIComponent(params.url),
 		}
 	)
-	if (evmNetworkBridgeFromToUrlSelector instanceof arktype.errors) error(404, 'Invalid EvmNetworkBridge selector')
+	if (evmNetworkBridgeFromToUrlSelector instanceof arktype.errors)
+		error(404, 'Invalid EvmNetworkBridge selector')
 
 	return {
 		selector: evmNetworkBridgeFromToUrlSelector,

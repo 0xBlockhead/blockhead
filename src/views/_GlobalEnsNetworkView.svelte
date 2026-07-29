@@ -37,7 +37,12 @@
 	entityType={EntityType._GlobalEnsNetwork}
 	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	href={href ?? resolve('/(explore)/(ens)/ens')}
+	href={
+		href === undefined ?
+			resolve('/(explore)/(ens)/ens')
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -141,15 +146,15 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const globalEnsNetworkGlobalEnsNetworkTimestampsViewTimestampsResource = selection.$$timestamps}
+		{@const timestampsResource = selection.$$timestamps}
 		<ResourceBoundary
-			resource={globalEnsNetworkGlobalEnsNetworkTimestampsViewTimestampsResource}
+			resource={timestampsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<GlobalEnsNetwork_TimestampsView
-						selection={globalEnsNetworkGlobalEnsNetworkTimestampsViewTimestampsResource}
-						countResource={globalEnsNetworkGlobalEnsNetworkTimestampsViewTimestampsResource.count}
+						selection={timestampsResource}
+						countResource={timestampsResource.count}
 						title='Observations'
 						id='timestamps'
 					/>

@@ -47,11 +47,11 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{String(eip8004EndpointDomainVerificationTimestamp.verified ?? '')}
+				{eip8004EndpointDomainVerificationTimestamp.verified ?? ''}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{String(eip8004EndpointDomainVerificationTimestampSelector.timestampMs)}</span>
+				<span data-text="annotation">{eip8004EndpointDomainVerificationTimestampSelector.timestampMs}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

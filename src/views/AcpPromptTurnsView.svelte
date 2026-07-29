@@ -45,11 +45,11 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{(acpPromptTurn.stopReason ?? '')}
+				{acpPromptTurn.stopReason ?? ''}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{String(acpPromptTurn.startedAt ?? '')}</span>
+				<span data-text="annotation">{acpPromptTurn.startedAt ?? ''}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

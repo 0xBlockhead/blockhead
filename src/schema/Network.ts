@@ -2,7 +2,8 @@
 
 import { NetworkExecutionModel, NetworkLedgerModel, NetworkNamespace } from '$/constants/Network.ts'
 import { entity, facet } from '$/schema/$schema.ts'
-import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
+import { EntityFieldCardinality } from '$/schema/EntityFieldCardinality.ts'
+import { EntityFieldType } from '$/schema/EntityFieldType.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { ConsensusProtocol } from '$/schema/NetworkUpgradeProtocols.ts'
 import { Source } from '$/sources/Source.ts'
@@ -20,7 +21,10 @@ export default entity({
 		label: 'CAIP-2',
 		description: 'The chain identifier in CAIP-2 namespace and reference form.',
 		type: EntityFieldType.Primitive,
-		primitiveType: type({ 'namespace': type('string'), 'reference': type('string') }),
+		primitiveType: type({
+			namespace: type('string'),
+			reference: type('string'),
+		}),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	slug: {
@@ -287,7 +291,10 @@ export default entity({
 			consensusEndpoints: {
 				label: 'Consensus endpoints',
 				type: EntityFieldType.Primitive,
-				primitiveType: type({ 'restBaseUrl': type('string'), 'consensusProtocol': type.enumerated(...Object.values(ConsensusProtocol)) }),
+				primitiveType: type({
+					restBaseUrl: type('string'),
+					consensusProtocol: type.enumerated(...Object.values(ConsensusProtocol)),
+				}),
 				cardinality: EntityFieldCardinality.Many,
 				defaultSources: [
 					Source.Constants_Internal,
@@ -559,7 +566,11 @@ export default entity({
 			restEndpoints: {
 				label: 'REST endpoints',
 				type: EntityFieldType.Primitive,
-				primitiveType: type({ 'url': type('string'), 'transportType': type('string'), 'providerName': type('string') }),
+				primitiveType: type({
+					url: type('string'),
+					transportType: type('string'),
+					providerName: type('string'),
+				}),
 				cardinality: EntityFieldCardinality.Many,
 				defaultSources: [
 					Source.CosmosSdk_Rest,
@@ -611,7 +622,11 @@ export default entity({
 			rpcEndpoints: {
 				label: 'RPC endpoints',
 				type: EntityFieldType.Primitive,
-				primitiveType: type({ 'url': type('string'), 'transportType': type('string'), 'providerName': type('string') }),
+				primitiveType: type({
+					url: type('string'),
+					transportType: type('string'),
+					providerName: type('string'),
+				}),
 				cardinality: EntityFieldCardinality.Many,
 				defaultSources: [
 					Source.Polkadot_JsonRpc,
@@ -645,7 +660,11 @@ export default entity({
 			rpcEndpoints: {
 				label: 'RPC endpoints',
 				type: EntityFieldType.Primitive,
-				primitiveType: type({ 'url': type('string'), 'transportType': type('string'), 'providerName': type('string') }),
+				primitiveType: type({
+					url: type('string'),
+					transportType: type('string'),
+					providerName: type('string'),
+				}),
 				cardinality: EntityFieldCardinality.Many,
 				defaultSources: [
 					Source.Solana_JsonRpc,
@@ -857,7 +876,11 @@ export default entity({
 			rpcEndpoints: {
 				label: 'RPC endpoints',
 				type: EntityFieldType.Primitive,
-				primitiveType: type({ 'url': type('string'), 'transportType': type('string'), 'providerName': type('string') }),
+				primitiveType: type({
+					url: type('string'),
+					transportType: type('string'),
+					providerName: type('string'),
+				}),
 				cardinality: EntityFieldCardinality.Many,
 				defaultSources: [
 					Source.Lotus_JsonRpc,
@@ -891,7 +914,11 @@ export default entity({
 			rpcEndpoints: {
 				label: 'RPC endpoints',
 				type: EntityFieldType.Primitive,
-				primitiveType: type({ 'url': type('string'), 'transportType': type('string'), 'providerName': type('string') }),
+				primitiveType: type({
+					url: type('string'),
+					transportType: type('string'),
+					providerName: type('string'),
+				}),
 				cardinality: EntityFieldCardinality.Many,
 				defaultSources: [
 					Source.Constants_Internal,
@@ -934,7 +961,11 @@ export default entity({
 			rpcEndpoints: {
 				label: 'RPC endpoints',
 				type: EntityFieldType.Primitive,
-				primitiveType: type({ 'url': type('string'), 'transportType': type('string'), 'providerName': type('string') }),
+				primitiveType: type({
+					url: type('string'),
+					transportType: type('string'),
+					providerName: type('string'),
+				}),
 				cardinality: EntityFieldCardinality.Many,
 				defaultSources: [
 					Source.MoneroDaemonRpc_JsonRpc,
@@ -999,7 +1030,11 @@ export default entity({
 			restEndpoints: {
 				label: 'REST endpoints',
 				type: EntityFieldType.Primitive,
-				primitiveType: type({ 'url': type('string'), 'transportType': type('string'), 'providerName': type('string') }),
+				primitiveType: type({
+					url: type('string'),
+					transportType: type('string'),
+					providerName: type('string'),
+				}),
 				cardinality: EntityFieldCardinality.Many,
 				defaultSources: [
 					Source.CardanoKoios_Rest,
@@ -1096,7 +1131,11 @@ export default entity({
 			restEndpoints: {
 				label: 'REST endpoints',
 				type: EntityFieldType.Primitive,
-				primitiveType: type({ 'url': type('string'), 'transportType': type('string'), 'providerName': type('string') }),
+				primitiveType: type({
+					url: type('string'),
+					transportType: type('string'),
+					providerName: type('string'),
+				}),
 				cardinality: EntityFieldCardinality.Many,
 				defaultSources: [
 					Source.TronGrid_Rest,
@@ -1313,7 +1352,11 @@ export default entity({
 			rpcEndpoints: {
 				label: 'RPC endpoints',
 				type: EntityFieldType.Primitive,
-				primitiveType: type({ 'url': type('string'), 'transportType': type('string'), 'providerName': type('string') }),
+				primitiveType: type({
+					url: type('string'),
+					transportType: type('string'),
+					providerName: type('string'),
+				}),
 				cardinality: EntityFieldCardinality.Many,
 				defaultSources: [
 					Source.Hyperliquid_JsonRpc,
@@ -1322,7 +1365,11 @@ export default entity({
 			restEndpoints: {
 				label: 'REST endpoints',
 				type: EntityFieldType.Primitive,
-				primitiveType: type({ 'url': type('string'), 'transportType': type('string'), 'providerName': type('string') }),
+				primitiveType: type({
+					url: type('string'),
+					transportType: type('string'),
+					providerName: type('string'),
+				}),
 				cardinality: EntityFieldCardinality.Many,
 				defaultSources: [
 					Source.Hyperliquid_Rest,

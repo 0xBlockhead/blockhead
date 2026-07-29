@@ -4,8 +4,6 @@
 	// Types/constants
 	import type { PageProps } from './$types.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { ZcashShieldedActionKind } from '$/schema/ZcashShieldedAction.ts'
-	import { ZcashShieldedPoolKind } from '$/schema/ZcashShieldedPool.ts'
 
 
 	// Context
@@ -34,7 +32,7 @@
 
 
 <svelte:head>
-	<title>{(data.title ?? ([pageSelection.entitySelector.actionKind, String(pageSelection.entitySelector.indexInTransaction)].filter(Boolean).join(' ') || 'Zcash shielded action'))} • Zcash shielded action • Blockhead</title>
+	<title>{data.title ?? ([pageSelection.entitySelector.actionKind, String(pageSelection.entitySelector.indexInTransaction)].filter(Boolean).join(' ') || 'Zcash shielded action')} • Zcash shielded action • Blockhead</title>
 </svelte:head>
 
 

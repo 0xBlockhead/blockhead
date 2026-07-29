@@ -21,7 +21,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.BlockheadMoneroSubaddressState_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Local_Internal,
@@ -33,14 +32,12 @@
 			used: true,
 		},
 	}))
-	const titleFallback = $derived(String(pendingEntity.timestampMs ?? '') || 'blockhead monero subaddress state timestamp')
 
 
 	// Components
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
-	import TruncatedValue from '$/components/TruncatedValue.svelte'
 	import BlockheadMoneroSubaddressStateView from '$/views/BlockheadMoneroSubaddressStateView.svelte'
 </script>
 
@@ -48,22 +45,22 @@
 <EntityView
 	entityType={EntityType.BlockheadMoneroSubaddressState_Timestamp}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? String(selection.entitySelector.timestampMs)}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+		<Timestamp timestamp={selection.entitySelector.timestampMs} />
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={blockheadMoneroSubaddressStateTimestamp}>
 			{#snippet children(entity)}
-				{@const balanceAtomicUnits0 = entity.balanceAtomicUnits}
-				{#if balanceAtomicUnits0 != null}
+				{@const balanceAtomicUnits = entity.balanceAtomicUnits}
+				{#if balanceAtomicUnits != null}
 					<NumberValue
-						value={balanceAtomicUnits0}
+						value={balanceAtomicUnits}
 					/>
 				{/if}
 			{/snippet}
@@ -73,10 +70,10 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={blockheadMoneroSubaddressStateTimestamp}>
 			{#snippet children(entity)}
-				{@const used0 = entity.used}
-				{#if used0 != null}
+				{@const used = entity.used}
+				{#if used != null}
 					<span data-text="muted">
-						{used0 ? 'Yes' : 'No'}
+						{used ? 'Yes' : 'No'}
 					</span>
 				{/if}
 			{/snippet}
@@ -99,14 +96,14 @@
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+					<Timestamp timestamp={selection.entitySelector.timestampMs} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 
@@ -259,7 +256,7 @@
 						<div>
 							<dt>last synced AT</dt>
 							<dd>
-								<Timestamp timestamp={Number(lastSyncedAt)} />
+								<Timestamp timestamp={lastSyncedAt} />
 							</dd>
 						</div>
 					{/if}

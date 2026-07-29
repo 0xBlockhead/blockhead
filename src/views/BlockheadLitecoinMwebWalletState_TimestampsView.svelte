@@ -43,11 +43,11 @@
 			entitySelector={blockheadLitecoinMwebWalletStateTimestampSelector}
 		>
 			{#snippet Title()}
-				{String(blockheadLitecoinMwebWalletStateTimestampSelector.timestampMs) || 'blockhead litecoin mweb wallet state timestamp'}
+				{blockheadLitecoinMwebWalletStateTimestampSelector.timestampMs}
 			{/snippet}
 
 			{#snippet Value()}
-				{String(blockheadLitecoinMwebWalletStateTimestamp.balanceLitoshis ?? '')}
+				{blockheadLitecoinMwebWalletStateTimestamp.balanceLitoshis ?? ''}
 			{/snippet}
 
 			{#snippet HeadingAfter()}

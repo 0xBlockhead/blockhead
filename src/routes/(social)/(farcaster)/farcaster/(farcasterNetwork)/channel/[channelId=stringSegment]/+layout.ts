@@ -9,7 +9,8 @@ import { schema } from '$/schema/index.ts'
 import { type as arktype } from 'arktype'
 
 export const load: LayoutLoad = ({ params }) => {
-	if (!(matchStringSegment(params.channelId))) error(404, 'Route mapping not applicable')
+	if (!(matchStringSegment(params.channelId)))
+		error(404, 'Route mapping not applicable')
 
 	const farcasterChannelIdSelector = parseEntitySelector(
 		schema,
@@ -18,7 +19,8 @@ export const load: LayoutLoad = ({ params }) => {
 			id: params.channelId,
 		}
 	)
-	if (farcasterChannelIdSelector instanceof arktype.errors) error(404, 'Invalid FarcasterChannel selector')
+	if (farcasterChannelIdSelector instanceof arktype.errors)
+		error(404, 'Invalid FarcasterChannel selector')
 
 	return {
 		selector: farcasterChannelIdSelector,

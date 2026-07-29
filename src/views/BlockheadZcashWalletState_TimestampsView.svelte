@@ -43,15 +43,15 @@
 			entitySelector={blockheadZcashWalletStateTimestampSelector}
 		>
 			{#snippet Title()}
-				{String(blockheadZcashWalletStateTimestampSelector.timestampMs) || 'blockhead zcash wallet state timestamp'}
+				{blockheadZcashWalletStateTimestampSelector.timestampMs}
 			{/snippet}
 
 			{#snippet Value()}
-				{String(blockheadZcashWalletStateTimestamp.balanceZatoshis ?? '')}
+				{blockheadZcashWalletStateTimestamp.balanceZatoshis ?? ''}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{(blockheadZcashWalletStateTimestamp.recoveryState ?? '')}</span>
+				<span data-text="annotation">{blockheadZcashWalletStateTimestamp.recoveryState ?? ''}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

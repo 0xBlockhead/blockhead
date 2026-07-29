@@ -23,8 +23,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.TronAccount> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const titleFallback = $derived((pendingEntity.address ?? '') || 'tron account')
 	const viewDomId = $derived('tron-account-' + encodeURIComponent(stringify(selection.entitySelector)))
 
 
@@ -45,13 +43,13 @@
 	entityType={EntityType.TronAccount}
 	entitySelector={selection.entitySelector}
 	id={viewDomId}
-	title={title ?? titleFallback}
+	title={title ?? (selection.entitySelector.address || 'tron account')}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<TruncatedValue value={pendingEntity.address} />
+		<TruncatedValue value={selection.entitySelector.address} />
 	{/snippet}
 
 	{#snippet HeadingAfter()}

@@ -21,19 +21,16 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.EnsReverseRecord_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const viewSelection = $derived(selection({
+	const ensReverseRecordTimestamp = $derived(selection({
 		sources: selection.sources ?? [
 			Source.TheGraph_Graphql,
 			Source.Voltaire_JsonRpc,
 		],
-	}))
-	const ensReverseRecordTimestamp = $derived(viewSelection({
+	})({
 		fields: {
 			verified: true,
 		},
 	}))
-	const titleFallback = $derived(String(pendingEntity.timestampMs ?? '') || 'ENS reverse record timestamp')
 
 
 	// Components
@@ -46,26 +43,26 @@
 <EntityView
 	entityType={EntityType.EnsReverseRecord_Timestamp}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? String(selection.entitySelector.timestampMs)}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+		<Timestamp timestamp={selection.entitySelector.timestampMs} />
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={ensReverseRecordTimestamp}>
 			{#snippet children(entity)}
-				{String(entity.verified ?? '') || String(pendingEntity.timestampMs) || titleFallback}
+				{String(entity.verified ?? '') || String(selection.entitySelector.timestampMs)}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
 		<span data-text="muted">
-			{pendingEntity.source}
+			{selection.entitySelector.source}
 		</span>
 	{/snippet}
 
@@ -85,14 +82,14 @@
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+					<Timestamp timestamp={selection.entitySelector.timestampMs} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 

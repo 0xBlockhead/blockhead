@@ -42,7 +42,7 @@
 			entitySelector={aptosNetworkTimestampSelector}
 		>
 			{#snippet Title()}
-				{String(aptosNetworkTimestampSelector.ledgerVersion) || 'aptos network timestamp'}
+				{aptosNetworkTimestampSelector.ledgerVersion}
 			{/snippet}
 
 			{#snippet Value()}

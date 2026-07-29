@@ -20,13 +20,11 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.AptosAccountResource_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const aptosAccountResourceTimestamp = $derived(selection({
 		fields: {
 			timestampMs: true,
 		},
 	}))
-	const titleFallback = $derived(String(pendingEntity.ledgerVersion ?? '') || 'aptos account resource timestamp')
 
 
 	// Components
@@ -40,23 +38,23 @@
 <EntityView
 	entityType={EntityType.AptosAccountResource_Timestamp}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? String(selection.entitySelector.ledgerVersion)}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
 		<NumberValue
-			value={pendingEntity.ledgerVersion}
+			value={selection.entitySelector.ledgerVersion}
 		/>
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={aptosAccountResourceTimestamp}>
 			{#snippet children(entity)}
-				{@const timestampMs0 = entity.timestampMs}
-				{#if timestampMs0 != null}
-					<Timestamp timestamp={Number(timestampMs0)} />
+				{@const timestampMs = entity.timestampMs}
+				{#if timestampMs != null}
+					<Timestamp timestamp={timestampMs} />
 				{/if}
 			{/snippet}
 		</ResourceBoundary>
@@ -64,7 +62,7 @@
 
 	{#snippet HeadingAfter()}
 		<span data-text="muted">
-			{pendingEntity.source}
+			{selection.entitySelector.source}
 		</span>
 	{/snippet}
 
@@ -85,7 +83,7 @@
 				<dt>ledger version</dt>
 				<dd>
 					<NumberValue
-						value={pendingEntity.ledgerVersion}
+						value={selection.entitySelector.ledgerVersion}
 					/>
 				</dd>
 			</div>
@@ -93,7 +91,7 @@
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 
@@ -106,7 +104,7 @@
 						<div>
 							<dt>Timestamp</dt>
 							<dd>
-								<Timestamp timestamp={Number(timestampMs)} />
+								<Timestamp timestamp={timestampMs} />
 							</dd>
 						</div>
 					{/if}

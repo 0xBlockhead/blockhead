@@ -5,7 +5,6 @@
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { UrlString } from '$/schema/UrlString.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -23,7 +22,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.AcpMessagePart> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.AcpLocal_JsonRpc,
@@ -35,7 +33,7 @@
 			mimeType: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.partKind ?? '') || 'ACP message part')
+	const titleFallback = $derived((prefetched.partKind ?? '') || 'ACP message part')
 
 
 	// Components
@@ -65,17 +63,17 @@
 
 	{#snippet Value()}
 		<NumberValue
-			value={pendingEntity.partIndex}
+			value={selection.entitySelector.partIndex}
 		/>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={acpMessagePart}>
 			{#snippet children(entity)}
-				{@const mimeType0 = entity.mimeType}
-				{#if mimeType0 != null}
+				{@const mimeType = entity.mimeType}
+				{#if mimeType != null}
 					<span data-text="muted">
-						{mimeType0}
+						{mimeType}
 					</span>
 				{/if}
 			{/snippet}
@@ -99,7 +97,7 @@
 				<dt>part index</dt>
 				<dd>
 					<NumberValue
-						value={pendingEntity.partIndex}
+						value={selection.entitySelector.partIndex}
 					/>
 				</dd>
 			</div>
@@ -149,11 +147,11 @@
 							<dt>URI</dt>
 							<dd>
 								<a
-									href={String(uri)}
+									href={uri}
 									target="_blank"
 									rel="noreferrer noopener"
 								>
-									<TruncatedValue value={String(uri)} />
+									<TruncatedValue value={uri} />
 								</a>
 							</dd>
 						</div>

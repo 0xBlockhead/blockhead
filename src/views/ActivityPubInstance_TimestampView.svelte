@@ -23,7 +23,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.ActivityPubInstance_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Mastodon_Rest,
@@ -35,7 +34,7 @@
 			version: true,
 		},
 	}))
-	const titleFallback = $derived([(pendingEntity.title ?? ''), String(pendingEntity.timestampMs ?? '')].filter(Boolean).join(' ') || 'ActivityPub instance observation')
+	const titleFallback = $derived([(prefetched.title ?? ''), String(selection.entitySelector.timestampMs)].filter(Boolean).join(' ') || 'ActivityPub instance observation')
 
 
 	// Components
@@ -52,14 +51,17 @@
 	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
 	href={
-		href ?? resolve(
-			'/(social)/(activitypub)/activitypub/(globalActivityPubNetwork)/instance/[instanceOrigin=absoluteUrl]/(activityPubInstance)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
-			{
-				instanceOrigin: encodeURIComponent(String(selection.entitySelector.$instance.instanceOrigin)),
-				timestampMs: String(selection.entitySelector.timestampMs),
-				source: String(selection.entitySelector.source),
-			}
-		)
+		href === undefined ?
+			resolve(
+				'/(social)/(activitypub)/activitypub/(globalActivityPubNetwork)/instance/[instanceOrigin=absoluteUrl]/(activityPubInstance)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
+				{
+					instanceOrigin: encodeURIComponent(selection.entitySelector.$instance.instanceOrigin),
+					timestampMs: String(selection.entitySelector.timestampMs),
+					source: selection.entitySelector.source,
+				}
+			)
+		:
+			href ?? undefined
 	}
 	{layout}
 	bind:open
@@ -68,7 +70,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={activityPubInstanceTimestamp}>
 			{#snippet children(entity)}
-				{[(entity.title ?? ''), String(pendingEntity.timestampMs)].filter(Boolean).join(' ') || title || titleFallback}
+				{[(entity.title ?? ''), String(selection.entitySelector.timestampMs)].filter(Boolean).join(' ') || title || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -78,14 +80,14 @@
 			{#snippet children(entity)}
 				<ActivityPubInstanceView
 					selection={select(EntityType.ActivityPubInstance, selection.entitySelector.$instance)}
-					href=""
+					href={null}
 					layout={EntityLayout.Value}
 					open={false}
 				/>
-				{pendingEntity.source}
-				{@const version2 = entity.version}
-				{#if version2 != null}
-					{version2}
+				{selection.entitySelector.source}
+				{@const version = entity.version}
+				{#if version != null}
+					{version}
 				{/if}
 			{/snippet}
 		</ResourceBoundary>
@@ -107,14 +109,14 @@
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+					<Timestamp timestamp={selection.entitySelector.timestampMs} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 		</dl>
@@ -179,30 +181,30 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const activityPubInstanceTimestampActivityPubInstancePeersViewPeersResource = selection.$$peers}
+		{@const peersResource = selection.$$peers}
 		<ResourceBoundary
-			resource={activityPubInstanceTimestampActivityPubInstancePeersViewPeersResource}
+			resource={peersResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<ActivityPubInstancePeersView
-						selection={activityPubInstanceTimestampActivityPubInstancePeersViewPeersResource}
-						countResource={activityPubInstanceTimestampActivityPubInstancePeersViewPeersResource.count}
+						selection={peersResource}
+						countResource={peersResource.count}
 						title='Peers'
 						id='peers'
 					/>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>
-		{@const activityPubInstanceTimestampActivityPubInstanceModeratedDomainsViewModeratedDomainsResource = selection.$$moderatedDomains}
+		{@const moderatedDomainsResource = selection.$$moderatedDomains}
 		<ResourceBoundary
-			resource={activityPubInstanceTimestampActivityPubInstanceModeratedDomainsViewModeratedDomainsResource}
+			resource={moderatedDomainsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<ActivityPubInstanceModeratedDomainsView
-						selection={activityPubInstanceTimestampActivityPubInstanceModeratedDomainsViewModeratedDomainsResource}
-						countResource={activityPubInstanceTimestampActivityPubInstanceModeratedDomainsViewModeratedDomainsResource.count}
+						selection={moderatedDomainsResource}
+						countResource={moderatedDomainsResource.count}
 						title='Moderated domains'
 						id='moderated-domains'
 					/>

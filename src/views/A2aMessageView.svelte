@@ -20,7 +20,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.A2aMessage> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [],
 	}))
@@ -30,7 +29,7 @@
 			createdAt: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.messageId ?? '') || 'A2A message')
+	const titleFallback = $derived(selection.entitySelector.messageId || 'A2A message')
 
 
 	// Components
@@ -50,13 +49,13 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{(pendingEntity.messageId ?? '') || 'A2A message'}
+		{selection.entitySelector.messageId || 'A2A message'}
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={a2aMessage}>
 			{#snippet children(entity)}
-				{entity.role || pendingEntity.messageId || titleFallback}
+				{entity.role || selection.entitySelector.messageId || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -64,10 +63,10 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={a2aMessage}>
 			{#snippet children(entity)}
-				{@const createdAt0 = entity.createdAt}
-				{#if createdAt0 != null}
+				{@const createdAt = entity.createdAt}
+				{#if createdAt != null}
 					<span data-text="muted">
-						<Timestamp timestamp={Number(createdAt0)} />
+						<Timestamp timestamp={createdAt} />
 					</span>
 				{/if}
 			{/snippet}
@@ -90,7 +89,7 @@
 			<div>
 				<dt>message ID</dt>
 				<dd>
-					{pendingEntity.messageId}
+					{selection.entitySelector.messageId}
 				</dd>
 			</div>
 
@@ -138,7 +137,7 @@
 						<div>
 							<dt>Created</dt>
 							<dd>
-								<Timestamp timestamp={Number(createdAt)} />
+								<Timestamp timestamp={createdAt} />
 							</dd>
 						</div>
 					{/if}
@@ -148,15 +147,15 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const a2aMessageA2aMessagePartsViewPartsResource = selection.$$parts}
+		{@const partsResource = selection.$$parts}
 		<ResourceBoundary
-			resource={a2aMessageA2aMessagePartsViewPartsResource}
+			resource={partsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<A2aMessagePartsView
-						selection={a2aMessageA2aMessagePartsViewPartsResource}
-						countResource={a2aMessageA2aMessagePartsViewPartsResource.count}
+						selection={partsResource}
+						countResource={partsResource.count}
 						title='parts'
 						id='parts'
 					/>

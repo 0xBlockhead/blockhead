@@ -22,7 +22,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.BlockheadWallet> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Local_Internal,
@@ -36,7 +35,7 @@
 			transportKind: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.name ?? '') || 'blockhead wallet')
+	const titleFallback = $derived((prefetched.name ?? '') || 'blockhead wallet')
 
 
 	// Components
@@ -76,7 +75,7 @@
 			<div>
 				<dt>ID</dt>
 				<dd>
-					{pendingEntity.id}
+					{selection.entitySelector.id}
 				</dd>
 			</div>
 
@@ -211,11 +210,11 @@
 							<dt>website URL</dt>
 							<dd>
 								<a
-									href={String(websiteUrl)}
+									href={websiteUrl}
 									target="_blank"
 									rel="noreferrer noopener"
 								>
-									<TruncatedValue value={String(websiteUrl)} />
+									<TruncatedValue value={websiteUrl} />
 								</a>
 							</dd>
 						</div>
@@ -301,7 +300,7 @@
 						<div>
 							<dt>detected AT</dt>
 							<dd>
-								<Timestamp timestamp={Number(detectedAt)} />
+								<Timestamp timestamp={detectedAt} />
 							</dd>
 						</div>
 					{/if}

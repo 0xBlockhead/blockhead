@@ -2,7 +2,6 @@
 
 <script lang="ts">
 	// Types/constants
-	import { resolve } from '$app/paths'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { goto } from '$app/navigation'
 

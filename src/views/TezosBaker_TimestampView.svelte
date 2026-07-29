@@ -20,9 +20,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.TezosBaker_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const titleFallback = 'tezos baker timestamp'
-
 
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -34,7 +31,7 @@
 <EntityView
 	entityType={EntityType.TezosBaker_Timestamp}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? 'tezos baker timestamp'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -59,14 +56,14 @@
 			<div>
 				<dt>level</dt>
 				<dd>
-					{String(pendingEntity.level)}
+					{selection.entitySelector.level}
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 
@@ -85,7 +82,7 @@
 						<div>
 							<dt>Timestamp</dt>
 							<dd>
-								<Timestamp timestamp={Number(timestampMs)} />
+								<Timestamp timestamp={timestampMs} />
 							</dd>
 						</div>
 					{/if}
@@ -129,7 +126,7 @@
 						<div>
 							<dt>staking balance mutez</dt>
 							<dd>
-								{String(stakingBalanceMutez)}
+								{stakingBalanceMutez}
 							</dd>
 						</div>
 					{/if}
@@ -151,7 +148,7 @@
 						<div>
 							<dt>delegated balance mutez</dt>
 							<dd>
-								{String(delegatedBalanceMutez)}
+								{delegatedBalanceMutez}
 							</dd>
 						</div>
 					{/if}
@@ -173,7 +170,7 @@
 						<div>
 							<dt>own delegated balance mutez</dt>
 							<dd>
-								{String(ownDelegatedBalanceMutez)}
+								{ownDelegatedBalanceMutez}
 							</dd>
 						</div>
 					{/if}
@@ -195,7 +192,7 @@
 						<div>
 							<dt>voting power</dt>
 							<dd>
-								{String(votingPower)}
+								{votingPower}
 							</dd>
 						</div>
 					{/if}

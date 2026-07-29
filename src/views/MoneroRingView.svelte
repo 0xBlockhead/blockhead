@@ -41,7 +41,6 @@
 	{#snippet Title()}
 		<MoneroKeyImageView
 			selection={select(EntityType.MoneroKeyImage, selection.entitySelector.$keyImage)}
-			href=""
 			layout={EntityLayout.Title}
 			open={false}
 		/>
@@ -67,15 +66,15 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const moneroRingMoneroRingMembersViewMembersResource = selection.$$members}
+		{@const membersResource = selection.$$members}
 		<ResourceBoundary
-			resource={moneroRingMoneroRingMembersViewMembersResource}
+			resource={membersResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<MoneroRingMembersView
-						selection={moneroRingMoneroRingMembersViewMembersResource}
-						countResource={moneroRingMoneroRingMembersViewMembersResource.count}
+						selection={membersResource}
+						countResource={membersResource.count}
 						title='Members'
 						id='members'
 					/>

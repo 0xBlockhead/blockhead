@@ -4,6 +4,7 @@
 	// Types/constants
 	import type { PageProps } from './$types.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { entityDefinitionByType } from '$/schema/index.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -55,20 +56,14 @@
 	const pageTitle = $derived(
 		(
 			data.entityType === EntityType.CardanoTxOutput && data.selectorName === 'TransactionOutputIndex' ?
-				(String(data.selector.outputIndex) || 'Cardano transaction output')
+				String(data.selector.outputIndex) || 'Cardano transaction output'
 			:
-				((String(data.selector.indexInTransaction ?? '') ? 'Output #' + String(data.selector.indexInTransaction ?? '') : '') || 'UTXO output')
+				(String(data.selector.indexInTransaction ?? '') ? 'Output #' + String(data.selector.indexInTransaction ?? '') : '') || 'UTXO output'
 		)
 	)
 	const entityViewByType = {
-		[EntityType.CardanoTxOutput]: {
-			Component: CardanoTxOutputView,
-			label: 'Cardano transaction output',
-		},
-		[EntityType.UtxoOutput]: {
-			Component: UtxoOutputView,
-			label: 'UTXO output',
-		},
+		[EntityType.CardanoTxOutput]: CardanoTxOutputView,
+		[EntityType.UtxoOutput]: UtxoOutputView,
 	}
 
 	// Components
@@ -79,12 +74,12 @@
 
 
 <svelte:head>
-	<title>{pageTitle} • {entityViewByType[data.entityType].label} • Blockhead</title>
+	<title>{pageTitle} • {entityDefinitionByType[data.entityType].labels.singular} • Blockhead</title>
 </svelte:head>
 
 
 <Page>
-	{@const EntityView = entityViewByType[data.entityType].Component}
+	{@const EntityView = entityViewByType[data.entityType]}
 
 	<EntityView
 		selection={pageSelection}

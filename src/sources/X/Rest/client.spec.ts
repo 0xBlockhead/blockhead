@@ -60,7 +60,6 @@ it('uses the proxied X origin with the configured bearer', async () => {
 			scope: SourceCredentialScope.PublicConfig,
 			keys: ['PUBLIC_X_API_BEARER'],
 		}],
-		proxyId: '["X_Rest","Global","api-v2","HttpProxy","RestJson"]',
 	})
 	expect(sourceFetch.mock.calls[0][1]).toContain(
 		'https://api.x.com/2/users/user%2Fwith%20reserved/tweets?'

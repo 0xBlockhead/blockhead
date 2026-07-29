@@ -39,7 +39,7 @@
 			entitySelector={logosBlockchainNetworkSelector}
 		>
 			{#snippet Title()}
-				{(logosBlockchainNetwork.$network.name || (logosBlockchainNetworkSelector.$network.caip2 == null ? '' : `${logosBlockchainNetworkSelector.$network.caip2.namespace}:${logosBlockchainNetworkSelector.$network.caip2.reference}`) || 'Network')}
+				{logosBlockchainNetwork.$network.name || (logosBlockchainNetworkSelector.$network.caip2 == null ? '' : `${logosBlockchainNetworkSelector.$network.caip2.namespace}:${logosBlockchainNetworkSelector.$network.caip2.reference}`) || 'Network'}
 			{/snippet}
 
 			{#snippet Value()}

@@ -35,7 +35,7 @@
 			resolve(
 				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/block-explorers',
 				{
-					network: String(params.network),
+					network: params.network,
 				}
 			)
 		}

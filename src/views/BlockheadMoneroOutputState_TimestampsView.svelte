@@ -44,7 +44,7 @@
 			entitySelector={blockheadMoneroOutputStateTimestampSelector}
 		>
 			{#snippet Title()}
-				{String(blockheadMoneroOutputStateTimestampSelector.timestampMs) || 'blockhead monero output state timestamp'}
+				{blockheadMoneroOutputStateTimestampSelector.timestampMs}
 			{/snippet}
 
 			{#snippet Value()}
@@ -52,7 +52,7 @@
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{String(blockheadMoneroOutputStateTimestamp.confirmations ?? '')}</span>
+				<span data-text="annotation">{blockheadMoneroOutputStateTimestamp.confirmations ?? ''}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

@@ -33,8 +33,8 @@
 			resolve(
 				'/(explore)/(ens)/ens/(globalEnsNetwork)/name/[ensName=stringSegment]/(ensName)/record/[recordId=stringSegment]',
 				{
-					ensName: String(params.ensName),
-					recordId: String(params.recordId),
+					ensName: params.ensName,
+					recordId: params.recordId,
 				}
 			)
 		}
@@ -51,8 +51,8 @@
 					resolve(
 						'/(explore)/(ens)/ens/(globalEnsNetwork)/name/[ensName=stringSegment]/(ensName)/record/[recordId=stringSegment]',
 						{
-							ensName: String(params.ensName),
-							recordId: String(params.recordId),
+							ensName: params.ensName,
+							recordId: params.recordId,
 						}
 					)
 				}

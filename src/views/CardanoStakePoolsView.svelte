@@ -38,6 +38,7 @@
 >
 	{#snippet Item({ item: cardanoStakePool })}
 		{@const cardanoStakePoolSelector = cardanoStakePool[EntityMetaKey.Selector]}
+		{@const network = cardanoStakePoolSelector.$network}
 		<EntityView
 			entityType={EntityType.CardanoStakePool}
 			entitySelector={cardanoStakePoolSelector}
@@ -46,12 +47,12 @@
 					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/stake-pool/[poolId=stringSegment]',
 					{
 						network: (
-							'caip2' in cardanoStakePoolSelector.$network ?
-								String(caip2StringFromValue(cardanoStakePoolSelector.$network.caip2))
+							'caip2' in network ?
+								caip2StringFromValue(network.caip2)
 							:
-								String(cardanoStakePoolSelector.$network.slug)
+								network.slug
 						),
-						poolId: String(cardanoStakePoolSelector.poolId),
+						poolId: cardanoStakePoolSelector.poolId,
 					}
 				)
 			}
@@ -61,7 +62,7 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{(cardanoStakePool.vrfKeyHash ?? '')}
+				{cardanoStakePool.vrfKeyHash ?? ''}
 			{/snippet}
 		</EntityView>
 	{/snippet}

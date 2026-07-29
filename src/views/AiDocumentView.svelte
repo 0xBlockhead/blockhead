@@ -5,8 +5,6 @@
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { UrlString } from '$/schema/UrlString.ts'
-	import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -24,7 +22,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.AiDocument> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Eip8004Scan_Rest,
@@ -40,7 +37,7 @@
 			documentUrl: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.documentKind ?? '') || 'AI document')
+	const titleFallback = $derived((prefetched.documentKind ?? '') || 'AI document')
 
 
 	// Components
@@ -78,15 +75,15 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={aiDocument}>
 			{#snippet children(entity)}
-				{@const documentUrl0 = entity.documentUrl}
-				{#if documentUrl0 != null}
+				{@const documentUrl = entity.documentUrl}
+				{#if documentUrl != null}
 					<span data-text="muted">
 						<a
-							href={String(documentUrl0)}
+							href={documentUrl}
 							target="_blank"
 							rel="noreferrer noopener"
 						>
-							<TruncatedValue value={String(documentUrl0)} />
+							<TruncatedValue value={documentUrl} />
 						</a>
 					</span>
 				{/if}
@@ -124,7 +121,7 @@
 						<div>
 							<dt>content hash algorithm</dt>
 							<dd>
-								<TruncatedValue value={contentHashAlgorithm} />
+								{contentHashAlgorithm}
 							</dd>
 						</div>
 					{/if}
@@ -146,7 +143,7 @@
 						<div>
 							<dt>content hash</dt>
 							<dd>
-								<TruncatedValue value={String(contentHash)} />
+								<TruncatedValue value={contentHash} />
 							</dd>
 						</div>
 					{/if}
@@ -183,11 +180,11 @@
 							<dt>document URL</dt>
 							<dd>
 								<a
-									href={String(documentUrl)}
+									href={documentUrl}
 									target="_blank"
 									rel="noreferrer noopener"
 								>
-									<TruncatedValue value={String(documentUrl)} />
+									<TruncatedValue value={documentUrl} />
 								</a>
 							</dd>
 						</div>
@@ -272,7 +269,7 @@
 						<div>
 							<dt>conforms to</dt>
 							<dd>
-								{String(conformsTo)}
+								{conformsTo}
 							</dd>
 						</div>
 					{/if}
@@ -304,15 +301,15 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const aiDocumentAiDocumentClaimsViewClaimsResource = selection.$$claims}
+		{@const claimsResource = selection.$$claims}
 		<ResourceBoundary
-			resource={aiDocumentAiDocumentClaimsViewClaimsResource}
+			resource={claimsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<AiDocumentClaimsView
-						selection={aiDocumentAiDocumentClaimsViewClaimsResource}
-						countResource={aiDocumentAiDocumentClaimsViewClaimsResource.count}
+						selection={claimsResource}
+						countResource={claimsResource.count}
 						title='claims'
 						id='claims'
 					/>

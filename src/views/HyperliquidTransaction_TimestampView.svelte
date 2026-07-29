@@ -20,9 +20,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.HyperliquidTransaction_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const titleFallback = 'hyperliquid transaction timestamp'
-
 
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -34,7 +31,7 @@
 <EntityView
 	entityType={EntityType.HyperliquidTransaction_Timestamp}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? 'hyperliquid transaction timestamp'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -59,14 +56,14 @@
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+					<Timestamp timestamp={selection.entitySelector.timestampMs} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 
@@ -107,7 +104,7 @@
 						<div>
 							<dt>Block number</dt>
 							<dd>
-								{String(blockNumber)}
+								{blockNumber}
 							</dd>
 						</div>
 					{/if}

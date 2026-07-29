@@ -271,14 +271,6 @@ export type SourceBinding<
 	delivery: SourceDelivery
 	credentials: readonly SourceCredentialRequirement[]
 	artifacts?: readonly SourceArtifact[]
-	proxyId?: string
-	serverCredentialId?: string
-}
-
-export type SourceBindingIndex = {
-	readonly [_Source in Source]?:
-		| SourceBinding<_Source>
-		| readonly SourceBinding<_Source>[]
 }
 
 export const sourceBindingId = ({
@@ -288,7 +280,10 @@ export const sourceBindingId = ({
 	apiFamily,
 }: Pick<
 	SourceBinding,
-	'source' | 'target' | 'delivery' | 'apiFamily'
+	| 'source'
+	| 'target'
+	| 'delivery'
+	| 'apiFamily'
 >) => JSON.stringify([
 	source,
 	target.kind,
@@ -296,3 +291,21 @@ export const sourceBindingId = ({
 	delivery,
 	apiFamily,
 ])
+
+export type SourceBindingIndex = {
+	readonly [_Source in Source]?:
+		| SourceBinding<_Source>
+		| readonly SourceBinding<_Source>[]
+}
+
+export const indexSourceBindings = <
+	_Index extends SourceBindingIndex,
+>(
+	bindings: readonly SourceBinding[]
+) => Object.fromEntries(
+	Object.entries(Object.groupBy(bindings, ({ source }) => source))
+		.map(([source, sourceBindings]) => [
+			source,
+			sourceBindings.length === 1 ? sourceBindings[0] : sourceBindings,
+		])
+) as _Index

@@ -21,9 +21,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.IcpCanister_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const titleFallback = 'ICP canister timestamp'
-
 
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -37,7 +34,7 @@
 <EntityView
 	entityType={EntityType.IcpCanister_Timestamp}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? 'ICP canister timestamp'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -62,14 +59,14 @@
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+					<Timestamp timestamp={selection.entitySelector.timestampMs} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 
@@ -237,7 +234,7 @@
 						<div>
 							<dt>cycles balance</dt>
 							<dd>
-								{String(cyclesBalance)}
+								{cyclesBalance}
 							</dd>
 						</div>
 					{/if}
@@ -259,7 +256,7 @@
 						<div>
 							<dt>memory size bytes</dt>
 							<dd>
-								{String(memorySizeBytes)}
+								{memorySizeBytes}
 							</dd>
 						</div>
 					{/if}
@@ -281,7 +278,7 @@
 						<div>
 							<dt>freezing threshold seconds</dt>
 							<dd>
-								{String(freezingThresholdSeconds)}
+								{freezingThresholdSeconds}
 							</dd>
 						</div>
 					{/if}
@@ -303,7 +300,7 @@
 						<div>
 							<dt>idle cycles burned per day</dt>
 							<dd>
-								{String(idleCyclesBurnedPerDay)}
+								{idleCyclesBurnedPerDay}
 							</dd>
 						</div>
 					{/if}
@@ -325,7 +322,7 @@
 						<div>
 							<dt>canister version</dt>
 							<dd>
-								{String(canisterVersion)}
+								{canisterVersion}
 							</dd>
 						</div>
 					{/if}
@@ -347,7 +344,7 @@
 						<div>
 							<dt>reserved cycles</dt>
 							<dd>
-								{String(reservedCycles)}
+								{reservedCycles}
 							</dd>
 						</div>
 					{/if}

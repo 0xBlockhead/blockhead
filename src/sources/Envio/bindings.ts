@@ -1,10 +1,10 @@
 // Generated from APP.ts. Do not edit by hand.
 
 import { Source } from '$/sources/Source.ts'
-import { ApiFamily, SourceArtifactKind, SourceCredentialScope, SourceDelivery, SourceEndpointKind, SourceOperationGroup, SourceTargetKind, WireProtocol, type SourceBindingIndex } from '$/sources/SourceBinding.ts'
+import { ApiFamily, indexSourceBindings, SourceArtifactKind, SourceCredentialScope, SourceDelivery, SourceEndpointKind, SourceOperationGroup, SourceTargetKind, WireProtocol, type SourceBinding } from '$/sources/SourceBinding.ts'
 
-export default {
-	[Source.EnvioHyperRpc_JsonRpc]: {
+const bindings = [
+	{
 		source: Source.EnvioHyperRpc_JsonRpc,
 		target: {
 			kind: SourceTargetKind.Eip155Chain,
@@ -29,8 +29,6 @@ export default {
 				scope: SourceCredentialScope.RuntimeSecret,
 			},
 		],
-		proxyId: '["EnvioHyperRpc_JsonRpc","Eip155Chain","1","HttpProxy","EvmExecutionJsonRpc"]',
-		serverCredentialId: '["EnvioHyperRpc_JsonRpc","Eip155Chain","1","HttpProxy","EvmExecutionJsonRpc"]',
 		artifacts: [
 			{
 				kind: SourceArtifactKind.OpenRpcSpec,
@@ -44,7 +42,7 @@ export default {
 			},
 		],
 	},
-	[Source.EnvioHyperSync_RawHttp]: {
+	{
 		source: Source.EnvioHyperSync_RawHttp,
 		target: {
 			kind: SourceTargetKind.Eip155Chain,
@@ -69,8 +67,6 @@ export default {
 				scope: SourceCredentialScope.RuntimeSecret,
 			},
 		],
-		proxyId: '["EnvioHyperSync_RawHttp","Eip155Chain","1","HttpProxy","EnvioHyperSyncApi"]',
-		serverCredentialId: '["EnvioHyperSync_RawHttp","Eip155Chain","1","HttpProxy","EnvioHyperSyncApi"]',
 		artifacts: [
 			{
 				kind: SourceArtifactKind.HandwrittenTypes,
@@ -80,4 +76,9 @@ export default {
 			},
 		],
 	},
-} as const satisfies SourceBindingIndex
+] as const satisfies readonly SourceBinding[]
+
+export default indexSourceBindings<{
+	readonly [Source.EnvioHyperRpc_JsonRpc]: typeof bindings[0]
+	readonly [Source.EnvioHyperSync_RawHttp]: typeof bindings[1]
+}>(bindings)

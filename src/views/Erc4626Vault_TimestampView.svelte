@@ -4,7 +4,6 @@
 	// Types/constants
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { EvmAddress } from '$/schema/ZeroExHex.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -22,7 +21,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.Erc4626Vault_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Defillama_OpenApi,
@@ -33,7 +31,6 @@
 			apyTotal: true,
 		},
 	}))
-	const titleFallback = $derived(String(pendingEntity.timestampMs ?? '') || 'erc4626 vault timestamp')
 
 
 	// Components
@@ -47,22 +44,22 @@
 <EntityView
 	entityType={EntityType.Erc4626Vault_Timestamp}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? String(selection.entitySelector.timestampMs)}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+		<Timestamp timestamp={selection.entitySelector.timestampMs} />
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={erc4626VaultTimestamp}>
 			{#snippet children(entity)}
-				{@const apyTotal0 = entity.apyTotal}
-				{#if apyTotal0 != null}
+				{@const apyTotal = entity.apyTotal}
+				{#if apyTotal != null}
 					<NumberValue
-						value={apyTotal0}
+						value={apyTotal}
 					/>
 				{/if}
 			{/snippet}
@@ -85,14 +82,14 @@
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+					<Timestamp timestamp={selection.entitySelector.timestampMs} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 		</dl>

@@ -4,7 +4,6 @@
 	// Types/constants
 	import type { PageProps } from './$types.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { EvmAddress } from '$/schema/ZeroExHex.ts'
 
 
 	// Context
@@ -30,7 +29,7 @@
 
 
 <svelte:head>
-	<title>{(data.title ?? (String(pageSelection.entitySelector.address) || 'ERC-4337 paymaster'))} • ERC-4337 paymaster • Blockhead</title>
+	<title>{data.title ?? (pageSelection.entitySelector.address || 'ERC-4337 paymaster')} • ERC-4337 paymaster • Blockhead</title>
 </svelte:head>
 
 

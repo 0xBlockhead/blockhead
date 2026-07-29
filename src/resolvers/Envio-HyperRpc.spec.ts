@@ -37,8 +37,6 @@ const {
 		credentials: [{
 			scope: 'RuntimeSecret',
 		}],
-		proxyId: '["EnvioHyperRpc_JsonRpc","Eip155Chain","1","HttpProxy","EvmExecutionJsonRpc"]',
-		serverCredentialId: '["EnvioHyperRpc_JsonRpc","Eip155Chain","1","HttpProxy","EvmExecutionJsonRpc"]',
 		artifacts: [
 			{
 				kind: 'OpenRpcSpec',

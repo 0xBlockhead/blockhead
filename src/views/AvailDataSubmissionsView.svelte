@@ -45,7 +45,7 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{String(availDataSubmission.blockNumber ?? '')}
+				{availDataSubmission.blockNumber ?? ''}
 			{/snippet}
 
 			{#snippet HeadingAfter()}

@@ -21,14 +21,13 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.BnbBeaconToken> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const bnbBeaconToken = $derived(selection({
 		fields: {
 			tokenName: true,
 			tokenType: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.symbol ?? '') || 'bnb beacon token')
+	const titleFallback = $derived(selection.entitySelector.symbol || 'bnb beacon token')
 	const viewDomId = $derived('bnb-beacon-token-' + encodeURIComponent(stringify(selection.entitySelector)))
 
 
@@ -54,13 +53,13 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{(pendingEntity.symbol ?? '') || 'bnb beacon token'}
+		{selection.entitySelector.symbol || 'bnb beacon token'}
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={bnbBeaconToken}>
 			{#snippet children(entity)}
-				{[(entity.tokenName ?? ''), (entity.tokenType ?? '')].filter(Boolean).join(' ') || pendingEntity.symbol || titleFallback}
+				{[(entity.tokenName ?? ''), (entity.tokenType ?? '')].filter(Boolean).join(' ') || selection.entitySelector.symbol || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -81,7 +80,7 @@
 			<div>
 				<dt>Symbol</dt>
 				<dd>
-					{pendingEntity.symbol}
+					{selection.entitySelector.symbol}
 				</dd>
 			</div>
 

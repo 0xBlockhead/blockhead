@@ -1,4 +1,5 @@
 import { throwHttpError } from '$/lib/http.ts'
+import { zeroExLowerCase } from '$/lib/hexLowerOfByteSize.ts'
 import { Source } from '$/sources/Source.ts'
 import {
 	SourceEndpointKind,
@@ -26,10 +27,10 @@ const functionSelector = {
 	latestRoundData: '0xfeaf968c',
 }
 
-const assertAddress = (
+const assertAddress: (
 	value: string,
 	label: string
-): asserts value is `0x${string}` => {
+) => asserts value is `0x${string}` = (value, label) => {
 	if (!addressPattern.test(value))
 		throw new Error(`ChainlinkDataFeeds_Contracts: invalid ${label}`)
 }
@@ -64,22 +65,30 @@ const decodeSigned = (
 }
 
 const decodeAddress = (value: string) => {
-	const words = decodeWords(value, 1)
-	const address = `0x${words[0].slice(24)}`
+	const word = decodeWords(value, 1)[0]
+	if (word == null)
+		throw new Error('ChainlinkDataFeeds_Contracts: missing ABI address word')
+
+	const address = `0x${word.slice(24)}`
 	assertAddress(address, 'aggregator address')
 	if (/^0x0{40}$/.test(address))
 		throw new Error('ChainlinkDataFeeds_Contracts: zero aggregator address')
 
-	return address.toLowerCase() as `0x${string}`
+	return zeroExLowerCase(address)
 }
 
 const decodeString = (value: string) => {
 	const words = decodeWords(value, 2)
-	const offset = decodeUnsigned(words[0])
+	const offsetWord = words[0]
+	if (offsetWord == null)
+		throw new Error('ChainlinkDataFeeds_Contracts: missing ABI string offset')
+
+	const offset = decodeUnsigned(offsetWord)
 	if (offset !== 32n)
 		throw new Error('ChainlinkDataFeeds_Contracts: invalid ABI string offset')
 
-	const byteLength = decodeUnsigned(words[1])
+	const byteLengthWord = words[1]
+	const byteLength = decodeUnsigned(byteLengthWord)
 	if (byteLength > 256n || byteLength > BigInt((words.length - 2) * 32))
 		throw new Error('ChainlinkDataFeeds_Contracts: invalid ABI string length')
 
@@ -166,7 +175,7 @@ export const getLatestRound = async ({
 	if (
 		binding.source !== Source.ChainlinkDataFeeds_Contracts
 		|| binding.target.kind !== SourceTargetKind.Caip2Network
-		|| binding.target.key !== network
+		|| String(binding.target.key) !== network
 		|| !binding.endpoints.some((endpoint) => endpoint.endpointKind === SourceEndpointKind.HttpUrl)
 	)
 		throw new Error('ChainlinkDataFeeds_Contracts: expected exact EVM network JSON-RPC binding')
@@ -237,7 +246,11 @@ export const getLatestRound = async ({
 		}),
 	])
 
-	const decimalsValue = decodeUnsigned(decodeWords(decimalsResponse, 1)[0])
+	const decimalsWord = decodeWords(decimalsResponse, 1)[0]
+	if (decimalsWord == null)
+		throw new Error('ChainlinkDataFeeds_Contracts: missing ABI decimals word')
+
+	const decimalsValue = decodeUnsigned(decimalsWord)
 	if (decimalsValue > 255n)
 		throw new Error('ChainlinkDataFeeds_Contracts: invalid feed decimals')
 	const description = decodeString(descriptionResponse)
@@ -276,7 +289,7 @@ export const getLatestRound = async ({
 
 	return {
 		network,
-		feedAddress: feedAddress.toLowerCase() as `0x${string}`,
+		feedAddress: zeroExLowerCase(feedAddress),
 		aggregatorAddress,
 		baseAsset,
 		quoteAsset,

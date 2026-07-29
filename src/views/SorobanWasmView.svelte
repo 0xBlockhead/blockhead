@@ -20,9 +20,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.SorobanWasm> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const titleFallback = 'soroban Wasm'
-
 
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -34,7 +31,7 @@
 <EntityView
 	entityType={EntityType.SorobanWasm}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? 'soroban Wasm'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -59,7 +56,7 @@
 			<div>
 				<dt>Wasm hash</dt>
 				<dd>
-					<TruncatedValue value={pendingEntity.wasmHash} />
+					<TruncatedValue value={selection.entitySelector.wasmHash} />
 				</dd>
 			</div>
 		</dl>

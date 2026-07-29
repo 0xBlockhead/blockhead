@@ -5,7 +5,6 @@
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 
 
 	// State
@@ -46,11 +45,11 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{String(cctpMessageSelector.sourceDomain)}
+				{cctpMessageSelector.sourceDomain}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{String(cctpMessage.messageHash ?? '')}</span>
+				<span data-text="annotation">{cctpMessage.messageHash ?? ''}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

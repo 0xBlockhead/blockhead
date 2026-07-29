@@ -9,7 +9,8 @@ import LensPostSchema from '$/schema/LensPost.ts'
 import { type as arktype } from 'arktype'
 
 export const load: LayoutLoad = ({ params }) => {
-	if (!(matchStringSegment(params.postId))) error(404, 'Route mapping not applicable')
+	if (!(matchStringSegment(params.postId)))
+		error(404, 'Route mapping not applicable')
 
 	const lensPostIdSelector = parseEntitySelector(
 		schema,
@@ -18,7 +19,8 @@ export const load: LayoutLoad = ({ params }) => {
 			id: params.postId,
 		}
 	)
-	if (lensPostIdSelector instanceof arktype.errors) error(404, 'Invalid LensPost selector')
+	if (lensPostIdSelector instanceof arktype.errors)
+		error(404, 'Invalid LensPost selector')
 
 	return {
 		selector: lensPostIdSelector,

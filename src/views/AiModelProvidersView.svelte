@@ -46,7 +46,7 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{(aiModelProvider.organizationKind ?? '')}
+				{aiModelProvider.organizationKind ?? ''}
 			{/snippet}
 		</EntityView>
 	{/snippet}

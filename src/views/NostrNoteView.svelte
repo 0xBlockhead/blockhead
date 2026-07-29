@@ -45,7 +45,12 @@
 			contentWarning: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.sensitive === true || String(pendingEntity.contentWarning ?? '').trim() !== '' ? [String(pendingEntity.contentWarning ?? '').trim() || 'Sensitive content', (pendingEntity.eventId ?? '')].filter(Boolean).join(' ') : (pendingEntity.content ?? '') || (pendingEntity.eventId ?? '') || 'Nostr note'))
+	const titleFallback = $derived((
+		pendingEntity.sensitive === true || (pendingEntity.contentWarning ?? '').trim() !== '' ?
+			[(pendingEntity.contentWarning ?? '').trim() || 'Sensitive content', (pendingEntity.eventId ?? '')].filter(Boolean).join(' ')
+		:
+			(prefetched.content ?? '') || selection.entitySelector.eventId || 'Nostr note'
+	))
 
 
 	// Components
@@ -65,12 +70,15 @@
 	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
 	href={
-		href ?? resolve(
-			'/(social)/(nostr)/nostr/(globalNostrNetwork)/note/[eventId=stringSegment]',
-			{
-				eventId: String(selection.entitySelector.eventId),
-			}
-		)
+		href === undefined ?
+			resolve(
+				'/(social)/(nostr)/nostr/(globalNostrNetwork)/note/[eventId=stringSegment]',
+				{
+					eventId: selection.entitySelector.eventId,
+				}
+			)
+		:
+			href ?? undefined
 	}
 	{layout}
 	bind:open
@@ -79,7 +87,12 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={nostrNote}>
 			{#snippet children(entity)}
-				{(entity.sensitive === true || String(entity.contentWarning ?? '').trim() !== '' ? [String(entity.contentWarning ?? '').trim() || 'Sensitive content', (pendingEntity.eventId ?? '')].filter(Boolean).join(' ') : (entity.content ?? '') || title || titleFallback)}
+				{
+					entity.sensitive === true || (entity.contentWarning ?? '').trim() !== '' ?
+							[(entity.contentWarning ?? '').trim() || 'Sensitive content', (pendingEntity.eventId ?? '')].filter(Boolean).join(' ')
+						:
+							(entity.content ?? '') || title || titleFallback
+				}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -87,10 +100,10 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={nostrNote}>
 			{#snippet children(entity)}
-				{@const createdAt0 = entity.createdAt}
-				{#if createdAt0 != null}
+				{@const createdAt = entity.createdAt}
+				{#if createdAt != null}
 					<span data-text="muted">
-						<Timestamp timestamp={Number(createdAt0)} />
+						<Timestamp timestamp={createdAt} />
 					</span>
 				{/if}
 			{/snippet}
@@ -114,7 +127,7 @@
 			<div>
 				<dt>Event ID</dt>
 				<dd>
-					<TruncatedValue value={pendingEntity.eventId} />
+					<TruncatedValue value={selection.entitySelector.eventId} />
 				</dd>
 			</div>
 
@@ -128,7 +141,7 @@
 							<div>
 								<dt>Created</dt>
 								<dd>
-									<Timestamp timestamp={Number(createdAt)} />
+									<Timestamp timestamp={createdAt} />
 								</dd>
 							</div>
 						{/if}
@@ -144,7 +157,7 @@
 							resource={nostrNote}
 						>
 							{#snippet children(entity)}
-								{String(entity.kind)}
+								{entity.kind}
 							{/snippet}
 						</ResourceBoundary>
 					</dd>
@@ -246,7 +259,7 @@
 		>
 			{#snippet children(entity)}
 				{@const content = entity.content}
-				{@const contentWarningText = String(entity.contentWarning ?? '').trim()}
+				{@const contentWarningText = (entity.contentWarning ?? '').trim()}
 				{#if entity.sensitive === true || contentWarningText !== ''}
 					<Collapsible
 						open={revealedContentWarningSelectorKey === contentWarningSelectorKey}
@@ -273,30 +286,30 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const nostrNoteNostrNotesViewRepliesResource = selection.$$replies}
+		{@const repliesResource = selection.$$replies}
 		<ResourceBoundary
-			resource={nostrNoteNostrNotesViewRepliesResource}
+			resource={repliesResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<NostrNotesView
-						selection={nostrNoteNostrNotesViewRepliesResource}
-						countResource={nostrNoteNostrNotesViewRepliesResource.count}
+						selection={repliesResource}
+						countResource={repliesResource.count}
 						title='Replies'
 						id='replies'
 					/>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>
-		{@const nostrNoteNostrReactionsViewReactionsResource = selection.$$reactions}
+		{@const reactionsResource = selection.$$reactions}
 		<ResourceBoundary
-			resource={nostrNoteNostrReactionsViewReactionsResource}
+			resource={reactionsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<NostrReactionsView
-						selection={nostrNoteNostrReactionsViewReactionsResource}
-						countResource={nostrNoteNostrReactionsViewReactionsResource.count}
+						selection={reactionsResource}
+						countResource={reactionsResource.count}
 						title='Reactions'
 						id='reactions'
 					/>

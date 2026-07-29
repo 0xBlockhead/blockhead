@@ -17,8 +17,7 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.CashuMint> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const titleFallback = $derived((pendingEntity.mintUrl ?? '') || 'Cashu mint')
+	const titleFallback = $derived(selection.entitySelector.mintUrl || 'Cashu mint')
 	const viewDomId = $derived('cashu-mint-' + encodeURIComponent(stringify(selection.entitySelector)))
 
 
@@ -42,11 +41,11 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{(pendingEntity.mintUrl ?? '') || 'Cashu mint'}
+		{selection.entitySelector.mintUrl || 'Cashu mint'}
 	{/snippet}
 
 	{#snippet Value()}
-		{(pendingEntity.mintUrl ?? '') || titleFallback}
+		{selection.entitySelector.mintUrl || titleFallback}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -55,11 +54,11 @@
 				<dt>mint URL</dt>
 				<dd>
 					<a
-						href={String(pendingEntity.mintUrl)}
+						href={selection.entitySelector.mintUrl}
 						target="_blank"
 						rel="noreferrer noopener"
 					>
-						<TruncatedValue value={String(pendingEntity.mintUrl)} />
+						<TruncatedValue value={selection.entitySelector.mintUrl} />
 					</a>
 				</dd>
 			</div>

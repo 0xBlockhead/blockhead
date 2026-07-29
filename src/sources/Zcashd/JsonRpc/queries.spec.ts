@@ -13,8 +13,8 @@ import {
 } from '$/sources/Zcashd/JsonRpc/queries.ts'
 import { networkBySlug } from '$/constants/Network.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import { ZcashShieldedActionKind } from '$/schema/ZcashShieldedAction.ts'
-import { ZcashShieldedPoolKind } from '$/schema/ZcashShieldedPool.ts'
+import { ZcashShieldedActionKind } from '$/schema/ZcashShieldedActionKind.ts'
+import { ZcashShieldedPoolKind } from '$/schema/ZcashShieldedPoolKind.ts'
 import bindings from '$/sources/Zcashd/bindings.ts'
 import { Source } from '$/sources/Source.ts'
 

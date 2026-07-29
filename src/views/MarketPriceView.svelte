@@ -25,7 +25,7 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.MarketPrice> = $props()
 
-	const titleFallback = 'Market price'
+	const market = $derived(selection.entitySelector.$market)
 
 
 	// Components
@@ -39,19 +39,22 @@
 <EntityView
 	entityType={EntityType.MarketPrice}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? 'Market price'}
 	href={
-		href ?? resolve(
-			'/(assets)/venue/[marketVenue=marketVenueId]/market/[baseKind=stringSegment]/[base=stringSegment]/[quoteKind=stringSegment]/[quote=stringSegment]/[marketKind=stringSegment]/(market)/price',
-			{
-				marketVenue: String(selection.entitySelector.$market.$marketVenue.marketVenueId),
-				baseKind: String(marketAssetRouteLabelByKind[String(selection.entitySelector.$market.$base.kind)]),
-				base: String(selection.entitySelector.$market.$base.assetKey),
-				quoteKind: String(marketAssetRouteLabelByKind[String(selection.entitySelector.$market.$quote.kind)]),
-				quote: String(selection.entitySelector.$market.$quote.assetKey),
-				marketKind: String(selection.entitySelector.$market.marketKind),
-			}
-		)
+		href === undefined ?
+			resolve(
+				'/(assets)/venue/[marketVenue=marketVenueId]/market/[baseKind=stringSegment]/[base=stringSegment]/[quoteKind=stringSegment]/[quote=stringSegment]/[marketKind=stringSegment]/(market)/price',
+				{
+					marketVenue: market.$marketVenue.marketVenueId,
+					baseKind: marketAssetRouteLabelByKind[market.$base.kind],
+					base: market.$base.assetKey,
+					quoteKind: marketAssetRouteLabelByKind[market.$quote.kind],
+					quote: market.$quote.assetKey,
+					marketKind: market.marketKind,
+				}
+			)
+		:
+			href ?? undefined
 	}
 	{layout}
 	bind:open
@@ -60,7 +63,7 @@
 	{#snippet Title()}
 		<MarketView
 			selection={select(EntityType.Market, selection.entitySelector.$market)}
-			href=""
+			href={null}
 			layout={EntityLayout.Title}
 			open={false}
 		/>
@@ -69,7 +72,7 @@
 	{#snippet Value()}
 		<MarketView
 			selection={select(EntityType.Market, selection.entitySelector.$market)}
-			href=""
+			href={null}
 			layout={EntityLayout.Value}
 			open={false}
 		/>
@@ -83,21 +86,21 @@
 					<ResourceBoundary
 						resource={
 							selection
-								.$$quotes({
-									sources: [
-										Source.Coingecko_Rest,
-										Source.Coingecko_OpenApi,
-										Source.CoinMarketCap_Rest,
-										Source.Coinpaprika_OpenApi,
-										Source.Defillama_OpenApi,
-										Source.Blockscout_Rest,
-										Source.Defillama_Rest,
-									],
-									limit: 1,
-									orderBy: [
-										[({ fieldRow }) => fieldRow[EntityMetaKey.Value][EntityMetaKey.Selector].timestampMs ?? Number.NEGATIVE_INFINITY, 'desc'],
-									],
-								})
+							.$$quotes({
+								sources: [
+									Source.Coingecko_Rest,
+									Source.Coingecko_OpenApi,
+									Source.CoinMarketCap_Rest,
+									Source.Coinpaprika_OpenApi,
+									Source.Defillama_OpenApi,
+									Source.Blockscout_Rest,
+									Source.Defillama_Rest,
+								],
+								limit: 1,
+								orderBy: [
+									[({ fieldRow }) => fieldRow[EntityMetaKey.Value][EntityMetaKey.Selector].timestampMs ?? Number.NEGATIVE_INFINITY, 'desc'],
+								],
+							})
 						}
 					>
 						{#snippet children(marketTimestamps)}
@@ -164,27 +167,27 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const marketPriceMarketTimestampsViewQuotesResource = selection
-		.$$quotes({
-			sources: [
-				Source.Coingecko_Rest,
-				Source.Coingecko_OpenApi,
-				Source.CoinMarketCap_Rest,
-				Source.Coinpaprika_OpenApi,
-				Source.Defillama_OpenApi,
-				Source.Blockscout_Rest,
-				Source.Defillama_Rest,
-			],
-			limit: 64,
-		})}
+		{@const quotesResource = selection
+			.$$quotes({
+				sources: [
+					Source.Coingecko_Rest,
+					Source.Coingecko_OpenApi,
+					Source.CoinMarketCap_Rest,
+					Source.Coinpaprika_OpenApi,
+					Source.Defillama_OpenApi,
+					Source.Blockscout_Rest,
+					Source.Defillama_Rest,
+				],
+				limit: 64,
+			})}
 		<ResourceBoundary
-			resource={marketPriceMarketTimestampsViewQuotesResource}
+			resource={quotesResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<Market_TimestampsView
-						selection={marketPriceMarketTimestampsViewQuotesResource}
-						countResource={marketPriceMarketTimestampsViewQuotesResource.count}
+						selection={quotesResource}
+						countResource={quotesResource.count}
 						title='Quote history'
 						id='quotes'
 					/>

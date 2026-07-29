@@ -44,7 +44,7 @@
 
 
 <svelte:head>
-	<title>{(pageSelection.entity == null ? 'Farcaster cast embed' : [(pageSelection.entity.title ?? ''), (pageSelection.entity.url ?? '')].filter(Boolean).join(' ') || 'Farcaster cast embed')} • Farcaster cast embed • Blockhead</title>
+	<title>{pageSelection.entity == null ? 'Farcaster cast embed' : [(pageSelection.entity.title ?? ''), (pageSelection.entity.url ?? '')].filter(Boolean).join(' ') || 'Farcaster cast embed'} • Farcaster cast embed • Blockhead</title>
 </svelte:head>
 
 

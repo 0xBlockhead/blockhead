@@ -41,15 +41,15 @@
 			entitySelector={eigenLayerAvsTimestampSelector}
 		>
 			{#snippet Title()}
-				{String(eigenLayerAvsTimestampSelector.$avs.avsAddress) || 'eigen layer avs'}
+				{eigenLayerAvsTimestampSelector.$avs.avsAddress || 'eigen layer avs'}
 			{/snippet}
 
 			{#snippet Value()}
-				{String(eigenLayerAvsTimestampSelector.timestampMs)}
+				{eigenLayerAvsTimestampSelector.timestampMs}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{String(eigenLayerAvsTimestamp.operatorCount ?? '')}</span>
+				<span data-text="annotation">{eigenLayerAvsTimestamp.operatorCount ?? ''}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

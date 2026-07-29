@@ -4,7 +4,6 @@
 	// Types/constants
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { EvmAddress } from '$/schema/ZeroExHex.ts'
 
 
 	// State
@@ -17,7 +16,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.LensUsernameNamespace> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const lensUsernameNamespace = $derived(selection({
 		fields: {
 			namespace: true,
@@ -25,7 +23,7 @@
 			totalUsernames: true,
 		},
 	}))
-	const titleFallback = $derived([(pendingEntity.namespace ?? ''), (pendingEntity.tokenName ?? '')].filter(Boolean).join(' ') || 'Lens username namespace')
+	const titleFallback = $derived([(prefetched.namespace ?? ''), (prefetched.tokenName ?? '')].filter(Boolean).join(' ') || 'Lens username namespace')
 
 
 	// Components
@@ -53,16 +51,16 @@
 	{/snippet}
 
 	{#snippet Value()}
-		<TruncatedValue value={String(pendingEntity.address)} />
+		<TruncatedValue value={selection.entitySelector.address} />
 	{/snippet}
 
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={lensUsernameNamespace}>
 			{#snippet children(entity)}
-				{@const totalUsernames0 = entity.totalUsernames}
-				{#if totalUsernames0 != null}
+				{@const totalUsernames = entity.totalUsernames}
+				{#if totalUsernames != null}
 					<span data-text="muted">
-						{String(totalUsernames0)}
+						{totalUsernames}
 					</span>
 				{/if}
 			{/snippet}
@@ -131,7 +129,7 @@
 						<div>
 							<dt>Total usernames</dt>
 							<dd>
-								{String(totalUsernames)}
+								{totalUsernames}
 							</dd>
 						</div>
 					{/if}
@@ -143,7 +141,7 @@
 			<div>
 				<dt>Address</dt>
 				<dd>
-					<TruncatedValue value={String(pendingEntity.address)} />
+					<TruncatedValue value={selection.entitySelector.address} />
 				</dd>
 			</div>
 
@@ -162,7 +160,7 @@
 						<div>
 							<dt>Owner</dt>
 							<dd>
-								<TruncatedValue value={String(owner)} />
+								<TruncatedValue value={owner} />
 							</dd>
 						</div>
 					{/if}
@@ -184,7 +182,7 @@
 						<div>
 							<dt>Created</dt>
 							<dd>
-								<Timestamp timestamp={Number(createdAt)} />
+								<Timestamp timestamp={createdAt} />
 							</dd>
 						</div>
 					{/if}
@@ -211,15 +209,15 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const lensUsernameNamespaceLensUsernamesViewUsernamesResource = selection.$$usernames}
+		{@const usernamesResource = selection.$$usernames}
 		<ResourceBoundary
-			resource={lensUsernameNamespaceLensUsernamesViewUsernamesResource}
+			resource={usernamesResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<LensUsernamesView
-						selection={lensUsernameNamespaceLensUsernamesViewUsernamesResource}
-						countResource={lensUsernameNamespaceLensUsernamesViewUsernamesResource.count}
+						selection={usernamesResource}
+						countResource={usernamesResource.count}
 						title='Usernames'
 						id='usernames'
 					/>

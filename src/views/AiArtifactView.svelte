@@ -5,8 +5,6 @@
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { UrlString } from '$/schema/UrlString.ts'
-	import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -24,7 +22,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.AiArtifact> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.HuggingFaceHub_Rest,
@@ -45,7 +42,7 @@
 			size: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.artifactType ?? '') || [(pendingEntity.providerArtifactId ?? ''), (pendingEntity.ociDigest ?? ''), (pendingEntity.ipfsCid ?? ''), (pendingEntity.arweaveId ?? ''), (pendingEntity.gitObject ?? ''), String(pendingEntity.digest ?? '')].filter(Boolean).join(' ') || 'AI artifact')
+	const titleFallback = $derived((prefetched.artifactType ?? '') || [(prefetched.providerArtifactId ?? ''), (prefetched.ociDigest ?? ''), (prefetched.ipfsCid ?? ''), (prefetched.arweaveId ?? ''), (prefetched.gitObject ?? ''), (prefetched.digest ?? '')].filter(Boolean).join(' ') || 'AI artifact')
 
 
 	// Components
@@ -85,11 +82,11 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={aiArtifact}>
 			{#snippet children(entity)}
-				{@const size0 = entity.size}
-				{#if size0 != null}
+				{@const size = entity.size}
+				{#if size != null}
 					<span data-text="muted">
 						<NumberValue
-							value={size0}
+							value={size}
 						/>
 					</span>
 				{/if}
@@ -150,7 +147,7 @@
 						<div>
 							<dt>digest algorithm</dt>
 							<dd>
-								<TruncatedValue value={digestAlgorithm} />
+								{digestAlgorithm}
 							</dd>
 						</div>
 					{/if}
@@ -166,7 +163,7 @@
 						<div>
 							<dt>digest</dt>
 							<dd>
-								<TruncatedValue value={String(digest)} />
+								<TruncatedValue value={digest} />
 							</dd>
 						</div>
 					{/if}
@@ -255,11 +252,11 @@
 							<dt>URI</dt>
 							<dd>
 								<a
-									href={String(uri)}
+									href={uri}
 									target="_blank"
 									rel="noreferrer noopener"
 								>
-									<TruncatedValue value={String(uri)} />
+									<TruncatedValue value={uri} />
 								</a>
 							</dd>
 						</div>
@@ -320,30 +317,30 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const aiArtifactAiDocumentsViewDocumentsResource = selection.$$documents}
+		{@const documentsResource = selection.$$documents}
 		<ResourceBoundary
-			resource={aiArtifactAiDocumentsViewDocumentsResource}
+			resource={documentsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<AiDocumentsView
-						selection={aiArtifactAiDocumentsViewDocumentsResource}
-						countResource={aiArtifactAiDocumentsViewDocumentsResource.count}
+						selection={documentsResource}
+						countResource={documentsResource.count}
 						title='documents'
 						id='documents'
 					/>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>
-		{@const aiArtifactAiArtifactAttestationsViewAttestationsResource = selection.$$attestations}
+		{@const attestationsResource = selection.$$attestations}
 		<ResourceBoundary
-			resource={aiArtifactAiArtifactAttestationsViewAttestationsResource}
+			resource={attestationsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<AiArtifactAttestationsView
-						selection={aiArtifactAiArtifactAttestationsViewAttestationsResource}
-						countResource={aiArtifactAiArtifactAttestationsViewAttestationsResource.count}
+						selection={attestationsResource}
+						countResource={attestationsResource.count}
 						title='attestations'
 						id='attestations'
 					/>

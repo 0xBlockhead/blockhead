@@ -22,9 +22,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.XPost_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const titleFallback = 'X post observation'
-
 
 	// Components
 	import NumberValue from '$/components/NumberValue.svelte'
@@ -37,16 +34,19 @@
 <EntityView
 	entityType={EntityType.XPost_Timestamp}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? 'X post observation'}
 	href={
-		href ?? resolve(
-			'/(social)/(x)/x/(xNetwork)/post/[postId=stringSegment]/(xPost)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
-			{
-				postId: String(selection.entitySelector.$post.id),
-				timestampMs: String(selection.entitySelector.timestampMs),
-				source: String(selection.entitySelector.source),
-			}
-		)
+		href === undefined ?
+			resolve(
+				'/(social)/(x)/x/(xNetwork)/post/[postId=stringSegment]/(xPost)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
+				{
+					postId: selection.entitySelector.$post.id,
+					timestampMs: String(selection.entitySelector.timestampMs),
+					source: selection.entitySelector.source,
+				}
+			)
+		:
+			href ?? undefined
 	}
 	{layout}
 	bind:open
@@ -55,19 +55,19 @@
 	{#snippet Title()}
 		<XPostView
 			selection={select(EntityType.XPost, selection.entitySelector.$post)}
-			href=""
+			href={null}
 			layout={EntityLayout.Title}
 			open={false}
 		/>
 	{/snippet}
 
 	{#snippet Value()}
-		<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+		<Timestamp timestamp={selection.entitySelector.timestampMs} />
 	{/snippet}
 
 	{#snippet HeadingAfter()}
 		<span data-text="muted">
-			{pendingEntity.source}
+			{selection.entitySelector.source}
 		</span>
 	{/snippet}
 
@@ -89,7 +89,7 @@
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+					<Timestamp timestamp={selection.entitySelector.timestampMs} />
 				</dd>
 			</div>
 		</dl>
@@ -98,7 +98,7 @@
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 		</dl>

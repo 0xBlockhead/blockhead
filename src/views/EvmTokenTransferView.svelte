@@ -7,7 +7,6 @@
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { EvmTokenStandard } from '$/constants/Evm.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
 	import { Source } from '$/sources/Source.ts'
 
@@ -27,7 +26,7 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.EvmTokenTransfer> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const log = $derived(selection.entitySelector.$log)
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Blockscout_Rest,
@@ -39,7 +38,7 @@
 			amount: true,
 		},
 	}))
-	const titleFallback = $derived((String(pendingEntity.indexInLog ?? '') ? 'Transfer #' + String(pendingEntity.indexInLog ?? '') : '') || 'Token transfer')
+	const titleFallback = $derived(`Transfer #${selection.entitySelector.indexInLog}`)
 
 
 	// Components
@@ -56,22 +55,25 @@
 	entityType={EntityType.EvmTokenTransfer}
 	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	idDragPlainText={String(pendingEntity.indexInLog ?? '')}
+	idDragPlainText={String(selection.entitySelector.indexInLog)}
 	href={
-		href ?? resolve(
-			'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(transactions)/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/(selection)/log/[indexInTransaction=nonNegativeInteger]/(evmLog)/token-transfer/[transferIndex=nonNegativeInteger]',
-			{
-				network: (
-					'caip2' in selection.entitySelector.$log.$transaction.$network ?
-						String(caip2StringFromValue(selection.entitySelector.$log.$transaction.$network.caip2))
-					:
-						String(selection.entitySelector.$log.$transaction.$network.slug)
-				),
-				transactionId: String(selection.entitySelector.$log.$transaction.txHash),
-				indexInTransaction: String(selection.entitySelector.$log.indexInTransaction),
-				transferIndex: String(selection.entitySelector.indexInLog),
-			}
-		)
+		href === undefined ?
+			resolve(
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(transactions)/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/(selection)/log/[indexInTransaction=nonNegativeInteger]/(evmLog)/token-transfer/[transferIndex=nonNegativeInteger]',
+				{
+					network: (
+						'caip2' in log.$transaction.$network ?
+							caip2StringFromValue(log.$transaction.$network.caip2)
+						:
+							log.$transaction.$network.slug
+					),
+					transactionId: log.$transaction.txHash,
+					indexInTransaction: String(log.indexInTransaction),
+					transferIndex: String(selection.entitySelector.indexInLog),
+				}
+			)
+		:
+			href ?? undefined
 	}
 	{layout}
 	bind:open
@@ -87,7 +89,7 @@
 
 	{#snippet Value()}
 		<span data-badge="small">
-			#{String(pendingEntity.indexInLog)}
+			#{selection.entitySelector.indexInLog}
 		</span>
 	{/snippet}
 
@@ -97,7 +99,7 @@
 				<dt>Index in log</dt>
 				<dd>
 					<span>#</span>
-					{String(pendingEntity.indexInLog)}
+					{selection.entitySelector.indexInLog}
 				</dd>
 			</div>
 

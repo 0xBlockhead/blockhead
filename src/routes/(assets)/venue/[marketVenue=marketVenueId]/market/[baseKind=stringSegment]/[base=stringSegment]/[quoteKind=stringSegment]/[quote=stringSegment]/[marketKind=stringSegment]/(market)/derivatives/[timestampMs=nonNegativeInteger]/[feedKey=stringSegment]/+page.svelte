@@ -43,7 +43,7 @@
 
 
 <svelte:head>
-	<title>{(data.title ?? (pageSelection.entitySelector.feedKey || 'market derivative timestamp'))} • market derivative timestamp • Blockhead</title>
+	<title>{data.title ?? (pageSelection.entitySelector.feedKey || 'market derivative timestamp')} • market derivative timestamp • Blockhead</title>
 </svelte:head>
 
 

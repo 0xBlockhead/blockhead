@@ -20,9 +20,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.TezosAccount_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const titleFallback = 'tezos account timestamp'
-
 
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -35,7 +32,7 @@
 <EntityView
 	entityType={EntityType.TezosAccount_Timestamp}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? 'tezos account timestamp'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -60,14 +57,14 @@
 			<div>
 				<dt>level</dt>
 				<dd>
-					{String(pendingEntity.level)}
+					{selection.entitySelector.level}
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 
@@ -86,7 +83,7 @@
 						<div>
 							<dt>Timestamp</dt>
 							<dd>
-								<Timestamp timestamp={Number(timestampMs)} />
+								<Timestamp timestamp={timestampMs} />
 							</dd>
 						</div>
 					{/if}
@@ -108,7 +105,7 @@
 						<div>
 							<dt>balance mutez</dt>
 							<dd>
-								{String(balanceMutez)}
+								{balanceMutez}
 							</dd>
 						</div>
 					{/if}
@@ -130,7 +127,7 @@
 						<div>
 							<dt>counter</dt>
 							<dd>
-								{String(counter)}
+								{counter}
 							</dd>
 						</div>
 					{/if}

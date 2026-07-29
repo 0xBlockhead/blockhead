@@ -24,13 +24,12 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.SolanaTransaction> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const network = $derived(selection.entitySelector.$network)
 	const solanaTransaction = $derived(selection({
 		fields: {
 			status: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.signature ?? '') || 'solana transaction')
 
 
 	// Components
@@ -46,40 +45,43 @@
 <EntityView
 	entityType={EntityType.SolanaTransaction}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? (selection.entitySelector.signature || 'solana transaction')}
 	href={
-		href ?? resolve(
-			'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(transactions)/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]',
-			{
-				network: (
-					'caip2' in selection.entitySelector.$network ?
-						String(caip2StringFromValue(selection.entitySelector.$network.caip2))
-					:
-						String(selection.entitySelector.$network.slug)
-				),
-				transactionId: String(selection.entitySelector.signature),
-			}
-		)
+		href === undefined ?
+			resolve(
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(transactions)/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]',
+				{
+					network: (
+						'caip2' in network ?
+							caip2StringFromValue(network.caip2)
+						:
+							network.slug
+					),
+					transactionId: selection.entitySelector.signature,
+				}
+			)
+		:
+			href ?? undefined
 	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<TruncatedValue value={pendingEntity.signature} />
+		<TruncatedValue value={selection.entitySelector.signature} />
 	{/snippet}
 
 	{#snippet Value()}
-		<TruncatedValue value={pendingEntity.signature} />
+		<TruncatedValue value={selection.entitySelector.signature} />
 	{/snippet}
 
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={solanaTransaction}>
 			{#snippet children(entity)}
-				{@const status0 = entity.status}
-				{#if status0 != null}
+				{@const status = entity.status}
+				{#if status != null}
 					<span data-text="muted">
-						{status0}
+						{status}
 					</span>
 				{/if}
 			{/snippet}
@@ -91,7 +93,7 @@
 			<div>
 				<dt>Signature</dt>
 				<dd>
-					<TruncatedValue value={pendingEntity.signature} />
+					<TruncatedValue value={selection.entitySelector.signature} />
 				</dd>
 			</div>
 
@@ -126,7 +128,7 @@
 						<div>
 							<dt>Slot</dt>
 							<dd>
-								{String(slot)}
+								{slot}
 							</dd>
 						</div>
 					{/if}
@@ -148,7 +150,7 @@
 						<div>
 							<dt>Fee</dt>
 							<dd>
-								{String(feeLamports)}
+								{feeLamports}
 							</dd>
 						</div>
 					{/if}
@@ -170,7 +172,7 @@
 						<div>
 							<dt>Compute units consumed</dt>
 							<dd>
-								{String(computeUnitsConsumed)}
+								{computeUnitsConsumed}
 							</dd>
 						</div>
 					{/if}
@@ -233,15 +235,15 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const solanaTransactionSolanaInstructionsViewInstructionsResource = selection.$$instructions}
+		{@const instructionsResource = selection.$$instructions}
 		<ResourceBoundary
-			resource={solanaTransactionSolanaInstructionsViewInstructionsResource}
+			resource={instructionsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<SolanaInstructionsView
-						selection={solanaTransactionSolanaInstructionsViewInstructionsResource}
-						countResource={solanaTransactionSolanaInstructionsViewInstructionsResource.count}
+						selection={instructionsResource}
+						countResource={instructionsResource.count}
 						title='Instructions'
 						id='instructions'
 					/>

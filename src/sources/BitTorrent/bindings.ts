@@ -1,10 +1,10 @@
 // Generated from APP.ts. Do not edit by hand.
 
 import { Source } from '$/sources/Source.ts'
-import { ApiFamily, SourceCredentialScope, SourceDelivery, SourceEndpointKind, SourceOperationGroup, SourceTargetKind, WireProtocol, type SourceBindingIndex } from '$/sources/SourceBinding.ts'
+import { ApiFamily, indexSourceBindings, SourceCredentialScope, SourceDelivery, SourceEndpointKind, SourceOperationGroup, SourceTargetKind, WireProtocol, type SourceBinding } from '$/sources/SourceBinding.ts'
 
-export default {
-	[Source.BitTorrentMetainfo_File]: {
+const bindings = [
+	{
 		source: Source.BitTorrentMetainfo_File,
 		target: {
 			kind: SourceTargetKind.TorrentSwarm,
@@ -28,7 +28,7 @@ export default {
 			},
 		],
 	},
-	[Source.BitTorrent_HttpTracker]: {
+	{
 		source: Source.BitTorrent_HttpTracker,
 		target: {
 			kind: SourceTargetKind.TorrentSwarm,
@@ -54,7 +54,7 @@ export default {
 			},
 		],
 	},
-	[Source.BitTorrent_UdpTracker]: {
+	{
 		source: Source.BitTorrent_UdpTracker,
 		target: {
 			kind: SourceTargetKind.TorrentSwarm,
@@ -78,7 +78,7 @@ export default {
 			},
 		],
 	},
-	[Source.BitTorrent_MainlineDht]: {
+	{
 		source: Source.BitTorrent_MainlineDht,
 		target: {
 			kind: SourceTargetKind.TorrentSwarm,
@@ -102,7 +102,7 @@ export default {
 			},
 		],
 	},
-	[Source.BitTorrent_MetadataExchange]: {
+	{
 		source: Source.BitTorrent_MetadataExchange,
 		target: {
 			kind: SourceTargetKind.TorrentSwarm,
@@ -126,7 +126,7 @@ export default {
 			},
 		],
 	},
-	[Source.BitTorrent_PeerWire]: {
+	{
 		source: Source.BitTorrent_PeerWire,
 		target: {
 			kind: SourceTargetKind.TorrentSwarm,
@@ -150,4 +150,13 @@ export default {
 			},
 		],
 	},
-} as const satisfies SourceBindingIndex
+] as const satisfies readonly SourceBinding[]
+
+export default indexSourceBindings<{
+	readonly [Source.BitTorrentMetainfo_File]: typeof bindings[0]
+	readonly [Source.BitTorrent_HttpTracker]: typeof bindings[1]
+	readonly [Source.BitTorrent_UdpTracker]: typeof bindings[2]
+	readonly [Source.BitTorrent_MainlineDht]: typeof bindings[3]
+	readonly [Source.BitTorrent_MetadataExchange]: typeof bindings[4]
+	readonly [Source.BitTorrent_PeerWire]: typeof bindings[5]
+}>(bindings)

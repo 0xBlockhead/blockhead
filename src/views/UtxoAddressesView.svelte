@@ -39,6 +39,7 @@
 >
 	{#snippet Item({ item: utxoAddress })}
 		{@const utxoAddressSelector = utxoAddress[EntityMetaKey.Selector]}
+		{@const network = utxoAddressSelector.$network}
 		<EntityView
 			entityType={EntityType.UtxoAddress}
 			entitySelector={utxoAddressSelector}
@@ -47,12 +48,12 @@
 					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/address/[address=stringSegment]',
 					{
 						network: (
-							'caip2' in utxoAddressSelector.$network ?
-								String(caip2StringFromValue(utxoAddressSelector.$network.caip2))
+							'caip2' in network ?
+								caip2StringFromValue(network.caip2)
 							:
-								String(utxoAddressSelector.$network.slug)
+								network.slug
 						),
-						address: String(utxoAddressSelector.address),
+						address: utxoAddressSelector.address,
 					}
 				)
 			}

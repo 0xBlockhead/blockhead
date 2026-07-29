@@ -3,10 +3,8 @@ import { type as arktype } from 'arktype'
 import type { SourceResolverModule } from '$/resolvers/$resolvers.ts'
 import { defineResolver } from '$/resolvers/defineResolver.ts'
 import { entity } from '$/schema/$schema.ts'
-import {
-	EntityFieldCardinality,
-	EntityFieldType,
-} from '$/schema/EntityField.ts'
+import { EntityFieldCardinality } from '$/schema/EntityFieldCardinality.ts'
+import { EntityFieldType } from '$/schema/EntityFieldType.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 

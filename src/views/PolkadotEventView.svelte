@@ -24,13 +24,13 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.PolkadotEvent> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const block = $derived(selection.entitySelector.$block)
 	const polkadotEvent = $derived(selection({
 		fields: {
 			eventName: true,
 		},
 	}))
-	const titleFallback = $derived(([(pendingEntity.eventName ?? ''), (String(pendingEntity.indexInBlock ?? '') ? 'Event ' + String(pendingEntity.indexInBlock ?? '') : '')].filter(Boolean).join(' ')) || 'Polkadot event')
+	const titleFallback = $derived([(prefetched.eventName ?? ''), 'Event ' + String(selection.entitySelector.indexInBlock)].filter(Boolean).join(' ') || 'Polkadot event')
 
 
 	// Components
@@ -47,25 +47,28 @@
 	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
 	href={
-		href ?? (
-			'hash' in selection.entitySelector.$block ?
-				resolve(
-					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(blocks)/block/[blockNumber=nonNegativeBigInt]/(selection)/[hash=stringSegment]/(selection)/event/[eventIndex=nonNegativeInteger]',
-					{
-						network: (
-							'caip2' in selection.entitySelector.$block.$network ?
-								String(caip2StringFromValue(selection.entitySelector.$block.$network.caip2))
-							:
-								String(selection.entitySelector.$block.$network.slug)
-						),
-						blockNumber: String(selection.entitySelector.$block.blockNumber),
-						hash: String(selection.entitySelector.$block.hash),
-						eventIndex: String(selection.entitySelector.indexInBlock),
-					}
-				)
-			:
-				undefined
-		)
+		href === undefined ?
+			(
+				'hash' in block ?
+					resolve(
+						'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(blocks)/block/[blockNumber=nonNegativeBigInt]/(selection)/[hash=stringSegment]/(selection)/event/[eventIndex=nonNegativeInteger]',
+						{
+							network: (
+								'caip2' in block.$network ?
+									caip2StringFromValue(block.$network.caip2)
+								:
+									block.$network.slug
+							),
+							blockNumber: String(block.blockNumber),
+							hash: block.hash,
+							eventIndex: String(selection.entitySelector.indexInBlock),
+						}
+					)
+				:
+					undefined
+			)
+		:
+			href ?? undefined
 	}
 	{layout}
 	bind:open
@@ -74,7 +77,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={polkadotEvent}>
 			{#snippet children(entity)}
-				{([entity.eventName, (String(pendingEntity.indexInBlock) ? 'Event ' + String(pendingEntity.indexInBlock) : '')].filter(Boolean).join(' ')) || title || titleFallback}
+				{[entity.eventName, 'Event ' + String(selection.entitySelector.indexInBlock)].filter(Boolean).join(' ') || title || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -82,7 +85,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={polkadotEvent}>
 			{#snippet children(entity)}
-				{entity.eventName || ([entity.eventName, (String(pendingEntity.indexInBlock) ? 'Event ' + String(pendingEntity.indexInBlock) : '')].filter(Boolean).join(' ')) || titleFallback}
+				{entity.eventName || [entity.eventName, 'Event ' + String(selection.entitySelector.indexInBlock)].filter(Boolean).join(' ') || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -111,7 +114,7 @@
 			<div>
 				<dt>Index in block</dt>
 				<dd>
-					{String(pendingEntity.indexInBlock)}
+					{selection.entitySelector.indexInBlock}
 				</dd>
 			</div>
 

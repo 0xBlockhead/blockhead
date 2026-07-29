@@ -20,18 +20,16 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.AssetClass> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const assetClass = $derived(selection({
 		fields: {
 			label: true,
 		},
 	}))
-	const titleFallback = $derived([(pendingEntity.label ?? ''), (pendingEntity.classKey ?? '')].filter(Boolean).join(' ') || 'asset class')
+	const titleFallback = $derived([(prefetched.label ?? ''), selection.entitySelector.classKey].filter(Boolean).join(' ') || 'asset class')
 
 
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import TruncatedValue from '$/components/TruncatedValue.svelte'
 	import AssetInstanceView from '$/views/AssetInstanceView.svelte'
 </script>
 
@@ -47,13 +45,13 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={assetClass}>
 			{#snippet children(entity)}
-				{[(entity.label ?? ''), pendingEntity.classKey].filter(Boolean).join(' ') || title || titleFallback}
+				{[(entity.label ?? ''), selection.entitySelector.classKey].filter(Boolean).join(' ') || title || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Value()}
-		{[(pendingEntity.classKind ?? ''), (pendingEntity.classKey ?? '')].filter(Boolean).join(' ') || [(pendingEntity.label ?? ''), (pendingEntity.classKey ?? '')].filter(Boolean).join(' ') || titleFallback}
+		{[selection.entitySelector.classKind, selection.entitySelector.classKey].filter(Boolean).join(' ') || [(prefetched.label ?? ''), selection.entitySelector.classKey].filter(Boolean).join(' ') || titleFallback}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
@@ -77,14 +75,14 @@
 			<div>
 				<dt>Class kind</dt>
 				<dd>
-					{pendingEntity.classKind}
+					{selection.entitySelector.classKind}
 				</dd>
 			</div>
 
 			<div>
 				<dt>Class key</dt>
 				<dd>
-					{pendingEntity.classKey}
+					{selection.entitySelector.classKey}
 				</dd>
 			</div>
 
@@ -171,13 +169,7 @@
 						<div>
 							<dt>Maturity</dt>
 							<dd>
-								<a
-									href={String(maturityMs)}
-									target="_blank"
-									rel="noreferrer noopener"
-								>
-									<TruncatedValue value={String(maturityMs)} />
-								</a>
+								{maturityMs}
 							</dd>
 						</div>
 					{/if}
@@ -199,7 +191,7 @@
 						<div>
 							<dt>Value decimals</dt>
 							<dd>
-								{String(valueDecimals)}
+								{valueDecimals}
 							</dd>
 						</div>
 					{/if}

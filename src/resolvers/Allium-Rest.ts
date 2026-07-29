@@ -9,9 +9,9 @@ import {
 	EntityMetaKey,
 } from '$/schema/$schema.ts'
 import type { EntitySelector } from '$/schema/$schema.ts'
-import { CoinInstanceType } from '$/schema/EvmCoinInstance.ts'
+import { CoinInstanceType } from '$/schema/CoinInstanceType.ts'
 import { schema } from '$/schema/index.ts'
-import { MediaType } from '$/schema/Media.ts'
+import { MediaType } from '$/schema/MediaType.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 const evmNetworkIdFromChainId = (chainId: number) => ({

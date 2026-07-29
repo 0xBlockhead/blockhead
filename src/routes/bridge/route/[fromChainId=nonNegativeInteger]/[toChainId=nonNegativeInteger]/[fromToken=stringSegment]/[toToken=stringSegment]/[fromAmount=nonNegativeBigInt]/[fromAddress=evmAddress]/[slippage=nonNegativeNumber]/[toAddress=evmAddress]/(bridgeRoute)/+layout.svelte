@@ -33,14 +33,14 @@
 			resolve(
 				'/bridge/route/[fromChainId=nonNegativeInteger]/[toChainId=nonNegativeInteger]/[fromToken=stringSegment]/[toToken=stringSegment]/[fromAmount=nonNegativeBigInt]/[fromAddress=evmAddress]/[slippage=nonNegativeNumber]/[toAddress=evmAddress]',
 				{
-					fromChainId: String(params.fromChainId),
-					toChainId: String(params.toChainId),
-					fromToken: String(params.fromToken),
-					toToken: String(params.toToken),
-					fromAmount: String(params.fromAmount),
-					fromAddress: String(params.fromAddress),
-					slippage: String(params.slippage),
-					toAddress: String(params.toAddress),
+					fromChainId: params.fromChainId,
+					toChainId: params.toChainId,
+					fromToken: params.fromToken,
+					toToken: params.toToken,
+					fromAmount: params.fromAmount,
+					fromAddress: params.fromAddress,
+					slippage: params.slippage,
+					toAddress: params.toAddress,
 				}
 			)
 		}
@@ -56,14 +56,14 @@
 					resolve(
 						'/bridge/route/[fromChainId=nonNegativeInteger]/[toChainId=nonNegativeInteger]/[fromToken=stringSegment]/[toToken=stringSegment]/[fromAmount=nonNegativeBigInt]/[fromAddress=evmAddress]/[slippage=nonNegativeNumber]/[toAddress=evmAddress]',
 						{
-							fromChainId: String(params.fromChainId),
-							toChainId: String(params.toChainId),
-							fromToken: String(params.fromToken),
-							toToken: String(params.toToken),
-							fromAmount: String(params.fromAmount),
-							fromAddress: String(params.fromAddress),
-							slippage: String(params.slippage),
-							toAddress: String(params.toAddress),
+							fromChainId: params.fromChainId,
+							toChainId: params.toChainId,
+							fromToken: params.fromToken,
+							toToken: params.toToken,
+							fromAmount: params.fromAmount,
+							fromAddress: params.fromAddress,
+							slippage: params.slippage,
+							toAddress: params.toAddress,
 						}
 					)
 				}

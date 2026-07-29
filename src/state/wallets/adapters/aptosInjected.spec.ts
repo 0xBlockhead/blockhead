@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import { WalletCapability, WalletProtocol } from '$/constants/Wallet.ts'
-import { BlockheadConnectionStatus } from '$/schema/BlockheadWalletConnection.ts'
+import { BlockheadConnectionStatus } from '$/schema/BlockheadConnectionStatus.ts'
 import { createAptosInjectedAdapter } from './aptosInjected.ts'
 import type { WalletCandidate, WalletConnection } from './types.ts'
 

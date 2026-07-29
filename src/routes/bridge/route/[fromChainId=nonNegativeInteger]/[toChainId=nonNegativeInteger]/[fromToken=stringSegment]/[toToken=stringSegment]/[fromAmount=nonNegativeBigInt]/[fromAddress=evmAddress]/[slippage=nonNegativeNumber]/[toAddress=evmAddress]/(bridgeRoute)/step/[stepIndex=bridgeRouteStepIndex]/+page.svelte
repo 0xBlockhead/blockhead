@@ -54,7 +54,7 @@
 
 
 <svelte:head>
-	<title>{((String(pageSelection.entitySelector.indexInRoute ?? '') ? 'Step #' + String(pageSelection.entitySelector.indexInRoute ?? '') : '') || 'bridge route step')} • bridge route step • Blockhead</title>
+	<title>{(String(pageSelection.entitySelector.indexInRoute ?? '') ? 'Step #' + String(pageSelection.entitySelector.indexInRoute ?? '') : '') || 'bridge route step'} • bridge route step • Blockhead</title>
 </svelte:head>
 
 

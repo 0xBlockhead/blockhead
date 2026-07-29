@@ -46,7 +46,7 @@
 			entitySelector={filecoinTipsetSelector}
 		>
 			{#snippet Title()}
-				{String(filecoinTipsetSelector.height) || 'filecoin tipset'}
+				{filecoinTipsetSelector.height}
 			{/snippet}
 
 			{#snippet Value()}
@@ -54,7 +54,7 @@
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{String(filecoinTipset.timestampMs ?? '')}</span>
+				<span data-text="annotation">{filecoinTipset.timestampMs ?? ''}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

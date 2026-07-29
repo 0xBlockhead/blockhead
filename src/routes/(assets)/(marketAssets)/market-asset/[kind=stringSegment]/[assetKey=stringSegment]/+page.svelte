@@ -4,7 +4,6 @@
 	// Types/constants
 	import type { PageProps } from './$types.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { MarketAssetKind } from '$/constants/Market.ts'
 
 
 	// Context
@@ -47,7 +46,7 @@
 
 
 <svelte:head>
-	<title>{(pageSelection.entitySelector.assetKey || 'Market asset')} • Market asset • Blockhead</title>
+	<title>{pageSelection.entitySelector.assetKey || 'Market asset'} • Market asset • Blockhead</title>
 </svelte:head>
 
 

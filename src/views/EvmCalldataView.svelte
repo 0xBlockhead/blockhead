@@ -5,7 +5,6 @@
 	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 
 
 	// State
@@ -19,9 +18,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.EvmCalldata> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const titleFallback = $derived(String(pendingEntity.hex ?? '') || 'EVM calldata')
-
 
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -32,21 +28,24 @@
 <EntityView
 	entityType={EntityType.EvmCalldata}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? (selection.entitySelector.hex || 'EVM calldata')}
 	href={
-		href ?? resolve(
-			'/(explore)/(protocols)/evm/(evmProtocol)/(calldata)/calldata/[hex=zeroExHex]',
-			{
-				hex: String(selection.entitySelector.hex),
-			}
-		)
+		href === undefined ?
+			resolve(
+				'/(explore)/(protocols)/evm/(evmProtocol)/(calldata)/calldata/[hex=zeroExHex]',
+				{
+					hex: selection.entitySelector.hex,
+				}
+			)
+		:
+			href ?? undefined
 	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<TruncatedValue value={String(pendingEntity.hex)} />
+		<TruncatedValue value={selection.entitySelector.hex} />
 	{/snippet}
 
 	{#snippet Value()}
@@ -60,7 +59,7 @@
 			<div>
 				<dt>Call/input data</dt>
 				<dd>
-					<TruncatedValue value={String(pendingEntity.hex)} />
+					<TruncatedValue value={selection.entitySelector.hex} />
 				</dd>
 			</div>
 		</dl>

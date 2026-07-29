@@ -39,6 +39,7 @@
 >
 	{#snippet Item({ item: cardanoAddress })}
 		{@const cardanoAddressSelector = cardanoAddress[EntityMetaKey.Selector]}
+		{@const network = cardanoAddressSelector.$network}
 		<EntityView
 			entityType={EntityType.CardanoAddress}
 			entitySelector={cardanoAddressSelector}
@@ -47,12 +48,12 @@
 					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(accounts)/account/[accountId=polkadotAccountIdOrStringSegmentOrEvmAddressOrSolanaPubkey]',
 					{
 						network: (
-							'caip2' in cardanoAddressSelector.$network ?
-								String(caip2StringFromValue(cardanoAddressSelector.$network.caip2))
+							'caip2' in network ?
+								caip2StringFromValue(network.caip2)
 							:
-								String(cardanoAddressSelector.$network.slug)
+								network.slug
 						),
-						accountId: String(cardanoAddressSelector.address),
+						accountId: cardanoAddressSelector.address,
 					}
 				)
 			}
@@ -62,7 +63,7 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{(cardanoAddress.addressKind ?? '')}
+				{cardanoAddress.addressKind ?? ''}
 			{/snippet}
 		</EntityView>
 	{/snippet}

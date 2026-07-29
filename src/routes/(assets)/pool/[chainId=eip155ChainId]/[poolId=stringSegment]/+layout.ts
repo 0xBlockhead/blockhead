@@ -10,7 +10,8 @@ import LiquidityPoolSchema from '$/schema/LiquidityPool.ts'
 import { type as arktype } from 'arktype'
 
 export const load: LayoutLoad = ({ params }) => {
-	if (!(matchStringSegment(params.poolId) && matchEip155ChainId(params.chainId))) error(404, 'Route mapping not applicable')
+	if (!(matchStringSegment(params.poolId) && matchEip155ChainId(params.chainId)))
+		error(404, 'Route mapping not applicable')
 
 	const liquidityPoolEvmNetworkIdSelector = parseEntitySelector(
 		schema,
@@ -25,7 +26,8 @@ export const load: LayoutLoad = ({ params }) => {
 			id: params.poolId,
 		}
 	)
-	if (liquidityPoolEvmNetworkIdSelector instanceof arktype.errors) error(404, 'Invalid LiquidityPool selector')
+	if (liquidityPoolEvmNetworkIdSelector instanceof arktype.errors)
+		error(404, 'Invalid LiquidityPool selector')
 
 	return {
 		selector: liquidityPoolEvmNetworkIdSelector,

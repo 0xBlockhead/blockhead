@@ -23,7 +23,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.EvmSelector_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Openchain_Rest,
@@ -34,14 +33,13 @@
 			signatures: true,
 		},
 	}))
-	const titleFallback = $derived(pendingEntity.signatures.values.join(', ') || 'EVM selector observation')
+	const titleFallback = $derived(prefetched.signatures.values.join(', ') || 'EVM selector observation')
 
 
 	// Components
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
-	import TruncatedValue from '$/components/TruncatedValue.svelte'
 	import EvmSelectorView from '$/views/EvmSelectorView.svelte'
 </script>
 
@@ -51,14 +49,17 @@
 	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
 	href={
-		href ?? resolve(
-			'/(explore)/(protocols)/evm/(evmProtocol)/(selectors)/selector/[hex=zeroExHex]/(evmSelector)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
-			{
-				hex: String(selection.entitySelector.$selector.hex),
-				timestampMs: String(selection.entitySelector.timestampMs),
-				source: String(selection.entitySelector.source),
-			}
-		)
+		href === undefined ?
+			resolve(
+				'/(explore)/(protocols)/evm/(evmProtocol)/(selectors)/selector/[hex=zeroExHex]/(evmSelector)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
+				{
+					hex: selection.entitySelector.$selector.hex,
+					timestampMs: String(selection.entitySelector.timestampMs),
+					source: selection.entitySelector.source,
+				}
+			)
+		:
+			href ?? undefined
 	}
 	{layout}
 	bind:open
@@ -73,12 +74,12 @@
 	{/snippet}
 
 	{#snippet Value()}
-		<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+		<Timestamp timestamp={selection.entitySelector.timestampMs} />
 	{/snippet}
 
 	{#snippet HeadingAfter()}
 		<span data-text="muted">
-			{pendingEntity.source}
+			{selection.entitySelector.source}
 		</span>
 	{/snippet}
 
@@ -98,14 +99,14 @@
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+					<Timestamp timestamp={selection.entitySelector.timestampMs} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 		</dl>

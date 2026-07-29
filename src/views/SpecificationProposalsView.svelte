@@ -26,10 +26,6 @@
 			filterCategory?: RegisteredEntitySelector<EntityType.SpecificationProposal>['category']
 		}
 	> = $props()
-	const selectedSources = $derived(specificationProposalSources({
-		realm: filterRealm,
-		category: filterCategory,
-	}))
 
 
 	// Components
@@ -55,10 +51,20 @@
 	TypeAnnotationTooltip={ModelTypeAnnotationTooltip}
 	resource={
 		selection({
-			sources: selectedSources,
+			sources: specificationProposalSources({
+				realm: filterRealm,
+				category: filterCategory,
+			}),
 		})
 	}
-	getResourceItems={(specificationProposals) => specificationProposals.values.filter((specificationProposal) => (filterRealm == null || specificationProposal[EntityMetaKey.Selector].realm === filterRealm) && (filterCategory == null || specificationProposal[EntityMetaKey.Selector].category === filterCategory))}
+	getResourceItems={
+		(specificationProposals) => specificationProposals.values.filter(
+			(specificationProposal) => (
+				(filterRealm == null || specificationProposal[EntityMetaKey.Selector].realm === filterRealm)
+				&& (filterCategory == null || specificationProposal[EntityMetaKey.Selector].category === filterCategory)
+			)
+		)
+	}
 >
 	{#snippet Item({ item: specificationProposal })}
 		{@const specificationProposalSelector = specificationProposal[EntityMetaKey.Selector]}
@@ -69,28 +75,40 @@
 				resolve(
 					'/(proposals)/proposals/[specificationRealmSlug=specificationRealmSlug]/(specificationRealm)/[proposalKindSlug=proposalKindSlug]/(specificationProposalKind)/[proposalRef=proposalRef]',
 					{
-						specificationRealmSlug: String(specificationRealmById[String(specificationProposalSelector.realm)].slug),
-						proposalKindSlug: String(proposalCategoryById[String(specificationProposalSelector.category)].slug),
-						proposalRef: `${proposalCategoryById[String(specificationProposalSelector.category)].label}-${specificationProposalSelector.number}`,
+						specificationRealmSlug: specificationRealmById[specificationProposalSelector.realm].slug,
+						proposalKindSlug: proposalCategoryById[specificationProposalSelector.category].slug,
+						proposalRef: `${proposalCategoryById[specificationProposalSelector.category].label}-${specificationProposalSelector.number}`,
 					}
 				)
 			}
 		>
 			{#snippet Title()}
-				{([
-		[(String((proposalCategoryById[String(specificationProposalSelector.category)]?.label ?? (specificationProposalSelector.category)) ?? '') ? String((proposalCategoryById[String(specificationProposalSelector.category)]?.label ?? (specificationProposalSelector.category)) ?? '') + '-' : ''), String(specificationProposalSelector.number)].filter(Boolean).join(''),
-		(specificationProposal.documentTitle ?? ''),
-	].filter(Boolean).join(': ')) || [
-		String((proposalCategoryById[String(specificationProposalSelector.category)]?.label ?? (specificationProposalSelector.category)) ?? ''),
-		String(specificationProposalSelector.number),
-	].filter(Boolean).join('-') || 'Specification proposal'}
+				{
+					[
+							[(proposalCategoryById[specificationProposalSelector.category]?.label ?? specificationProposalSelector.category) + '-', String(specificationProposalSelector.number)].filter(Boolean).join(''),
+							(specificationProposal.documentTitle ?? ''),
+						]
+							.filter(Boolean)
+							.join(': ')
+						|| [
+							(proposalCategoryById[specificationProposalSelector.category]?.label ?? specificationProposalSelector.category),
+							String(specificationProposalSelector.number),
+						]
+							.filter(Boolean)
+							.join('-')
+						|| 'Specification proposal'
+				}
 			{/snippet}
 
 			{#snippet Value()}
-				{[
-		String((proposalCategoryById[String(specificationProposalSelector.category)]?.label ?? (specificationProposalSelector.category)) ?? ''),
-		String(specificationProposalSelector.number),
-	].filter(Boolean).join('-')}
+				{
+					[
+						(proposalCategoryById[specificationProposalSelector.category]?.label ?? specificationProposalSelector.category),
+						specificationProposalSelector.number,
+					]
+						.filter(Boolean)
+						.join('-')
+				}
 			{/snippet}
 		</EntityView>
 	{/snippet}

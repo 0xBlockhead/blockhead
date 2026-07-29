@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { EntityMetaKey } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import { CoinInstanceType } from '$/schema/EvmCoinInstance.ts'
+import { CoinInstanceType } from '$/schema/CoinInstanceType.ts'
 import { schema } from '$/schema/index.ts'
 import { indexResolvers } from '$/resolvers/$resolvers.ts'
 import { Source } from '$/sources/Source.ts'

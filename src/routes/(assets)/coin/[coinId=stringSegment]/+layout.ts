@@ -9,7 +9,8 @@ import { schema } from '$/schema/index.ts'
 import { type as arktype } from 'arktype'
 
 export const load: LayoutLoad = ({ params }) => {
-	if (!(matchStringSegment(params.coinId))) error(404, 'Route mapping not applicable')
+	if (!(matchStringSegment(params.coinId)))
+		error(404, 'Route mapping not applicable')
 
 	const coinCoinIdSelector = parseEntitySelector(
 		schema,
@@ -18,7 +19,8 @@ export const load: LayoutLoad = ({ params }) => {
 			coinId: params.coinId,
 		}
 	)
-	if (coinCoinIdSelector instanceof arktype.errors) error(404, 'Invalid Coin selector')
+	if (coinCoinIdSelector instanceof arktype.errors)
+		error(404, 'Invalid Coin selector')
 
 	return {
 		selector: coinCoinIdSelector,

@@ -25,7 +25,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.FarcasterChannel> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Farcaster_Rest,
@@ -39,7 +38,7 @@
 			createdAt: true,
 		},
 	}))
-	const titleFallback = $derived([(pendingEntity.name ?? ''), (pendingEntity.id ?? '')].filter(Boolean).join(' ') || 'Farcaster channel')
+	const titleFallback = $derived([(prefetched.name ?? ''), selection.entitySelector.id].filter(Boolean).join(' ') || 'Farcaster channel')
 	const viewDomId = $derived('farcaster-channel-' + encodeURIComponent(stringify(selection.entitySelector)))
 
 
@@ -62,12 +61,15 @@
 	id={viewDomId}
 	title={title ?? titleFallback}
 	href={
-		href ?? resolve(
-			'/(social)/(farcaster)/farcaster/(farcasterNetwork)/channel/[channelId=stringSegment]',
-			{
-				channelId: String(selection.entitySelector.id),
-			}
-		)
+		href === undefined ?
+			resolve(
+				'/(social)/(farcaster)/farcaster/(farcasterNetwork)/channel/[channelId=stringSegment]',
+				{
+					channelId: selection.entitySelector.id,
+				}
+			)
+		:
+			href ?? undefined
 	}
 	{layout}
 	bind:open
@@ -78,7 +80,7 @@
 		<ResourceBoundary resource={farcasterChannel}>
 			{#snippet children(entity)}
 				{@const reference = entity.$icon}
-				{#if reference != null && reference[EntityMetaKey.Selector] !== undefined}
+				{#if reference != null}
 					<MediaView
 						selection={select(EntityType.Media, reference[EntityMetaKey.Selector])}
 						prefetched={reference}
@@ -93,22 +95,22 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={farcasterChannel}>
 			{#snippet children(entity)}
-				{[entity.name, pendingEntity.id].filter(Boolean).join(' ') || title || titleFallback}
+				{[entity.name, selection.entitySelector.id].filter(Boolean).join(' ') || title || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Value()}
-		{(pendingEntity.id ?? '') || [(pendingEntity.name ?? ''), (pendingEntity.id ?? '')].filter(Boolean).join(' ') || titleFallback}
+		{selection.entitySelector.id || [(prefetched.name ?? ''), selection.entitySelector.id].filter(Boolean).join(' ') || titleFallback}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={farcasterChannel}>
 			{#snippet children(entity)}
-				{@const createdAt0 = entity.createdAt}
-				{#if createdAt0 != null}
+				{@const createdAt = entity.createdAt}
+				{#if createdAt != null}
 					<span data-text="muted">
-						<Timestamp timestamp={Number(createdAt0)} />
+						<Timestamp timestamp={createdAt} />
 					</span>
 				{/if}
 			{/snippet}
@@ -120,7 +122,7 @@
 			<div>
 				<dt>ID</dt>
 				<dd>
-					{pendingEntity.id}
+					{selection.entitySelector.id}
 				</dd>
 			</div>
 		</dl>
@@ -136,11 +138,11 @@
 							<dt>URL</dt>
 							<dd>
 								<a
-									href={String(url)}
+									href={url}
 									target="_blank"
 									rel="noreferrer noopener"
 								>
-									<TruncatedValue value={String(url)} />
+									<TruncatedValue value={url} />
 								</a>
 							</dd>
 						</div>
@@ -203,7 +205,7 @@
 						<div>
 							<dt>Created</dt>
 							<dd>
-								<Timestamp timestamp={Number(createdAt)} />
+								<Timestamp timestamp={createdAt} />
 							</dd>
 						</div>
 					{/if}
@@ -228,11 +230,11 @@
 							<dt>External link URL</dt>
 							<dd>
 								<a
-									href={String(externalLinkUrl)}
+									href={externalLinkUrl}
 									target="_blank"
 									rel="noreferrer noopener"
 								>
-									<TruncatedValue value={String(externalLinkUrl)} />
+									<TruncatedValue value={externalLinkUrl} />
 								</a>
 							</dd>
 						</div>
@@ -281,7 +283,7 @@
 						resolve(
 							'/(social)/(farcaster)/farcaster/(farcasterNetwork)/channel/[channelId=stringSegment]/(farcasterChannel)/casts',
 							{
-								channelId: String(selection.entitySelector.id),
+								channelId: selection.entitySelector.id,
 							}
 						)
 					}

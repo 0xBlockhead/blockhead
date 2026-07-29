@@ -49,7 +49,7 @@
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{String(blockheadLightningChannelState.private ?? '')}</span>
+				<span data-text="annotation">{blockheadLightningChannelState.private ?? ''}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

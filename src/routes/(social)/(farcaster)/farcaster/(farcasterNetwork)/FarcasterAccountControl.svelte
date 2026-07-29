@@ -5,7 +5,7 @@
 		deleteLocalBlockheadFarcasterAccountConnection,
 		writeLocalBlockheadFarcasterAccountConnection,
 	} from '$/collections/localMutations.ts'
-	import { BlockheadFarcasterConnectionAuthMethod } from '$/schema/BlockheadFarcasterAccountConnection.ts'
+	import { BlockheadFarcasterConnectionAuthMethod } from '$/schema/BlockheadFarcasterConnectionAuthMethod.ts'
 	import { getAppClient } from '$/routes/+layout.svelte'
 
 	let {

@@ -37,31 +37,30 @@
 >
 	{#snippet Item({ item: liquidityPoolBlock })}
 		{@const liquidityPoolBlockSelector = liquidityPoolBlock[EntityMetaKey.Selector]}
+		{@const liquidityPool = liquidityPoolBlockSelector.$liquidityPool}
 		<EntityView
 			entityType={EntityType.LiquidityPool_Block}
 			entitySelector={liquidityPoolBlockSelector}
 			href={
-				(
-					'caip2' in liquidityPoolBlockSelector.$liquidityPool.$network ?
-						resolve(
-							'/(assets)/pool/[chainId=eip155ChainId]/[poolId=stringSegment]/(liquidityPool)/block/[blockNumber=nonNegativeBigInt]',
-							{
-								chainId: String(liquidityPoolBlockSelector.$liquidityPool.$network.caip2.reference),
-								poolId: String(liquidityPoolBlockSelector.$liquidityPool.id),
-								blockNumber: String(liquidityPoolBlockSelector.blockNumber),
-							}
-						)
-					:
-						undefined
-				)
+				'caip2' in liquidityPool.$network ?
+					resolve(
+						'/(assets)/pool/[chainId=eip155ChainId]/[poolId=stringSegment]/(liquidityPool)/block/[blockNumber=nonNegativeBigInt]',
+						{
+							chainId: liquidityPool.$network.caip2.reference,
+							poolId: liquidityPool.id,
+							blockNumber: String(liquidityPoolBlockSelector.blockNumber),
+						}
+					)
+				:
+					undefined
 			}
 		>
 			{#snippet Title()}
-				{String(liquidityPoolBlockSelector.blockNumber) || 'liquidity pool block'}
+				{liquidityPoolBlockSelector.blockNumber}
 			{/snippet}
 
 			{#snippet Value()}
-				{String(liquidityPoolBlock.tick ?? '')}
+				{liquidityPoolBlock.tick ?? ''}
 			{/snippet}
 
 			{#snippet HeadingAfter()}

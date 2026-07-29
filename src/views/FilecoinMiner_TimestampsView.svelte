@@ -38,6 +38,7 @@
 >
 	{#snippet Item({ item: filecoinMinerTimestamp })}
 		{@const filecoinMinerTimestampSelector = filecoinMinerTimestamp[EntityMetaKey.Selector]}
+		{@const miner = filecoinMinerTimestampSelector.$miner}
 		<EntityView
 			entityType={EntityType.FilecoinMiner_Timestamp}
 			entitySelector={filecoinMinerTimestampSelector}
@@ -46,29 +47,29 @@
 					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/miner/[minerAddress=stringSegment]/(filecoinMiner)/observations/[height=nonNegativeBigInt]/[tipsetKey=stringSegment]/[source=stringSegment]',
 					{
 						network: (
-							'caip2' in filecoinMinerTimestampSelector.$miner.$network ?
-								String(caip2StringFromValue(filecoinMinerTimestampSelector.$miner.$network.caip2))
+							'caip2' in miner.$network ?
+								caip2StringFromValue(miner.$network.caip2)
 							:
-								String(filecoinMinerTimestampSelector.$miner.$network.slug)
+								miner.$network.slug
 						),
-						minerAddress: String(filecoinMinerTimestampSelector.$miner.minerAddress),
+						minerAddress: miner.minerAddress,
 						height: String(filecoinMinerTimestampSelector.height),
-						tipsetKey: String(filecoinMinerTimestampSelector.tipsetKey),
-						source: String(filecoinMinerTimestampSelector.source),
+						tipsetKey: filecoinMinerTimestampSelector.tipsetKey,
+						source: filecoinMinerTimestampSelector.source,
 					}
 				)
 			}
 		>
 			{#snippet Title()}
-				{String(filecoinMinerTimestamp.timestampMs) || 'filecoin miner timestamp'}
+				{filecoinMinerTimestamp.timestampMs}
 			{/snippet}
 
 			{#snippet Value()}
-				{String(filecoinMinerTimestamp.qualityAdjustedPower ?? '')}
+				{filecoinMinerTimestamp.qualityAdjustedPower ?? ''}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{String(filecoinMinerTimestampSelector.height)}</span>
+				<span data-text="annotation">{filecoinMinerTimestampSelector.height}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

@@ -1,10 +1,10 @@
 // Generated from APP.ts. Do not edit by hand.
 
 import { Source } from '$/sources/Source.ts'
-import { ApiFamily, SourceCredentialScope, SourceDelivery, SourceEndpointKind, SourceOperationGroup, SourceTargetKind, WireProtocol, type SourceBindingIndex } from '$/sources/SourceBinding.ts'
+import { ApiFamily, indexSourceBindings, SourceCredentialScope, SourceDelivery, SourceEndpointKind, SourceOperationGroup, SourceTargetKind, WireProtocol, type SourceBinding } from '$/sources/SourceBinding.ts'
 
-export default {
-	[Source.ChainlinkDataFeeds_AddressCatalog]: {
+const bindings = [
+	{
 		source: Source.ChainlinkDataFeeds_AddressCatalog,
 		target: {
 			kind: SourceTargetKind.Global,
@@ -28,7 +28,7 @@ export default {
 			},
 		],
 	},
-	[Source.ChainlinkDataFeeds_Contracts]: {
+	{
 		source: Source.ChainlinkDataFeeds_Contracts,
 		target: {
 			kind: SourceTargetKind.Global,
@@ -52,4 +52,9 @@ export default {
 			},
 		],
 	},
-} as const satisfies SourceBindingIndex
+] as const satisfies readonly SourceBinding[]
+
+export default indexSourceBindings<{
+	readonly [Source.ChainlinkDataFeeds_AddressCatalog]: typeof bindings[0]
+	readonly [Source.ChainlinkDataFeeds_Contracts]: typeof bindings[1]
+}>(bindings)

@@ -37,7 +37,7 @@
 
 
 <svelte:head>
-	<title>{(data.title ?? ((String(pageSelection.entitySelector.indexInBlock ?? '') ? 'Extrinsic #' + String(pageSelection.entitySelector.indexInBlock ?? '') : '') || 'Polkadot extrinsic'))} • Polkadot extrinsic • Blockhead</title>
+	<title>{data.title ?? ((String(pageSelection.entitySelector.indexInBlock ?? '') ? 'Extrinsic #' + String(pageSelection.entitySelector.indexInBlock ?? '') : '') || 'Polkadot extrinsic')} • Polkadot extrinsic • Blockhead</title>
 </svelte:head>
 
 

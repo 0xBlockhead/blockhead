@@ -41,7 +41,7 @@
 			entitySelector={blockheadStateChannelDepositTimestampSelector}
 		>
 			{#snippet Title()}
-				{String(blockheadStateChannelDepositTimestampSelector.timestampMs) || 'blockhead state channel deposit timestamp'}
+				{blockheadStateChannelDepositTimestampSelector.timestampMs}
 			{/snippet}
 
 			{#snippet Value()}
@@ -49,7 +49,7 @@
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{String(blockheadStateChannelDepositTimestamp.availableBalance)}</span>
+				<span data-text="annotation">{blockheadStateChannelDepositTimestamp.availableBalance}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

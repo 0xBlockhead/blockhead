@@ -5,7 +5,6 @@
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { EvmAddress } from '$/schema/ZeroExHex.ts'
 
 
 	// State
@@ -49,7 +48,7 @@
 			entitySelector={blockheadZeroGStorageNodeStateSelector}
 		>
 			{#snippet Title()}
-				{String(blockheadZeroGStorageNodeStateSelector.nodeId) || 'blockhead zero g storage node state'}
+				{blockheadZeroGStorageNodeStateSelector.nodeId || 'blockhead zero g storage node state'}
 			{/snippet}
 
 			{#snippet Value()}

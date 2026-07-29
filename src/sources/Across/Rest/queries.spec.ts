@@ -50,7 +50,6 @@ const binding = {
 	operationGroups: [SourceOperationGroup.GenericRead],
 	delivery: SourceDelivery.HttpProxy,
 	credentials: [{ scope: SourceCredentialScope.None }],
-	proxyId: 'Across_Rest-4',
 } as const satisfies SourceBinding
 
 const depositor = '0xA4d353BBc130cbeF1811f27ac70989F9d568CeAB'

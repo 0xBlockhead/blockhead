@@ -21,19 +21,17 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.AcpMessage> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const viewSelection = $derived(selection({
+	const acpMessage = $derived(selection({
 		sources: selection.sources ?? [
 			Source.AcpLocal_JsonRpc,
 		],
-	}))
-	const acpMessage = $derived(viewSelection({
+	})({
 		fields: {
 			role: true,
 			createdAt: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.messageId ?? '') || 'ACP message')
+	const titleFallback = $derived(selection.entitySelector.messageId || 'ACP message')
 
 
 	// Components
@@ -53,13 +51,13 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{(pendingEntity.messageId ?? '') || 'ACP message'}
+		{selection.entitySelector.messageId || 'ACP message'}
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={acpMessage}>
 			{#snippet children(entity)}
-				{entity.role || pendingEntity.messageId || titleFallback}
+				{entity.role || selection.entitySelector.messageId || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -67,10 +65,10 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={acpMessage}>
 			{#snippet children(entity)}
-				{@const createdAt0 = entity.createdAt}
-				{#if createdAt0 != null}
+				{@const createdAt = entity.createdAt}
+				{#if createdAt != null}
 					<span data-text="muted">
-						<Timestamp timestamp={Number(createdAt0)} />
+						<Timestamp timestamp={createdAt} />
 					</span>
 				{/if}
 			{/snippet}
@@ -93,7 +91,7 @@
 			<div>
 				<dt>message ID</dt>
 				<dd>
-					{pendingEntity.messageId}
+					{selection.entitySelector.messageId}
 				</dd>
 			</div>
 
@@ -119,7 +117,7 @@
 						<div>
 							<dt>Created</dt>
 							<dd>
-								<Timestamp timestamp={Number(createdAt)} />
+								<Timestamp timestamp={createdAt} />
 							</dd>
 						</div>
 					{/if}
@@ -129,15 +127,15 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const acpMessageAcpMessagePartsViewPartsResource = selection.$$parts}
+		{@const partsResource = selection.$$parts}
 		<ResourceBoundary
-			resource={acpMessageAcpMessagePartsViewPartsResource}
+			resource={partsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<AcpMessagePartsView
-						selection={acpMessageAcpMessagePartsViewPartsResource}
-						countResource={acpMessageAcpMessagePartsViewPartsResource.count}
+						selection={partsResource}
+						countResource={partsResource.count}
 						title='parts'
 						id='parts'
 					/>

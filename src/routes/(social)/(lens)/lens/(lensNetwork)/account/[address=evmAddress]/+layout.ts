@@ -9,7 +9,8 @@ import LensAccountSchema from '$/schema/LensAccount.ts'
 import { type as arktype } from 'arktype'
 
 export const load: LayoutLoad = ({ params }) => {
-	if (!(matchEvmAddress(params.address))) error(404, 'Route mapping not applicable')
+	if (!(matchEvmAddress(params.address)))
+		error(404, 'Route mapping not applicable')
 
 	const lensAccountAddressSelector = parseEntitySelector(
 		schema,
@@ -18,7 +19,8 @@ export const load: LayoutLoad = ({ params }) => {
 			address: params.address,
 		}
 	)
-	if (lensAccountAddressSelector instanceof arktype.errors) error(404, 'Invalid LensAccount selector')
+	if (lensAccountAddressSelector instanceof arktype.errors)
+		error(404, 'Invalid LensAccount selector')
 
 	return {
 		selector: lensAccountAddressSelector,

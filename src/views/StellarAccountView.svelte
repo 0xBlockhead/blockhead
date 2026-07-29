@@ -21,8 +21,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.StellarAccount> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const titleFallback = 'stellar account'
 	const viewDomId = $derived('stellar-account-' + encodeURIComponent(stringify(selection.entitySelector)))
 
 
@@ -45,7 +43,7 @@
 	entityType={EntityType.StellarAccount}
 	entitySelector={selection.entitySelector}
 	id={viewDomId}
-	title={title ?? titleFallback}
+	title={title ?? 'stellar account'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -70,7 +68,7 @@
 			<div>
 				<dt>account ID</dt>
 				<dd>
-					<TruncatedValue value={pendingEntity.accountId} />
+					<TruncatedValue value={selection.entitySelector.accountId} />
 				</dd>
 			</div>
 		</dl>

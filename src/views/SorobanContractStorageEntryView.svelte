@@ -20,9 +20,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.SorobanContractStorageEntry> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const titleFallback = 'soroban contract storage entry'
-
 
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -34,7 +31,7 @@
 <EntityView
 	entityType={EntityType.SorobanContractStorageEntry}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? 'soroban contract storage entry'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -59,7 +56,7 @@
 			<div>
 				<dt>key hash</dt>
 				<dd>
-					<TruncatedValue value={pendingEntity.keyHash} />
+					<TruncatedValue value={selection.entitySelector.keyHash} />
 				</dd>
 			</div>
 		</dl>

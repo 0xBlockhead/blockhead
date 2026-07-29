@@ -43,7 +43,7 @@
 			entitySelector={blockheadStateChannelTransferSelector}
 		>
 			{#snippet Title()}
-				{String(blockheadStateChannelTransferSelector.amount) || 'blockhead state channel transfer'}
+				{blockheadStateChannelTransferSelector.amount}
 			{/snippet}
 
 			{#snippet Value()}
@@ -51,7 +51,7 @@
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{String(blockheadStateChannelTransfer.timestamp)}</span>
+				<span data-text="annotation">{blockheadStateChannelTransfer.timestamp}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

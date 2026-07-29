@@ -20,9 +20,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.HederaNode> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const titleFallback = 'hedera node'
-
 
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -33,7 +30,7 @@
 <EntityView
 	entityType={EntityType.HederaNode}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? 'hedera node'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -58,7 +55,7 @@
 			<div>
 				<dt>node ID</dt>
 				<dd>
-					{String(pendingEntity.nodeId)}
+					{selection.entitySelector.nodeId}
 				</dd>
 			</div>
 		</dl>

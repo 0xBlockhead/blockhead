@@ -41,7 +41,7 @@
 			entitySelector={algorandApplicationSelector}
 		>
 			{#snippet Title()}
-				{String(algorandApplicationSelector.applicationId) || 'algorand application'}
+				{algorandApplicationSelector.applicationId}
 			{/snippet}
 
 			{#snippet Value()}
@@ -49,7 +49,7 @@
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{(algorandApplication.creator ?? '')}</span>
+				<span data-text="annotation">{algorandApplication.creator ?? ''}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

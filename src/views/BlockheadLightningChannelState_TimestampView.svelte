@@ -21,7 +21,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.BlockheadLightningChannelState_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.LightningLnd_Grpc,
@@ -35,7 +34,6 @@
 			localBalanceSats: true,
 		},
 	}))
-	const titleFallback = $derived(String(pendingEntity.timestampMs ?? '') || 'blockhead Lightning channel state timestamp')
 
 
 	// Components
@@ -49,19 +47,19 @@
 <EntityView
 	entityType={EntityType.BlockheadLightningChannelState_Timestamp}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? String(selection.entitySelector.timestampMs)}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+		<Timestamp timestamp={selection.entitySelector.timestampMs} />
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={blockheadLightningChannelStateTimestamp}>
 			{#snippet children(entity)}
-				{String(entity.active ?? '') || String(pendingEntity.timestampMs) || titleFallback}
+				{String(entity.active ?? '') || String(selection.entitySelector.timestampMs)}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -69,11 +67,11 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={blockheadLightningChannelStateTimestamp}>
 			{#snippet children(entity)}
-				{@const localBalanceSats0 = entity.localBalanceSats}
-				{#if localBalanceSats0 != null}
+				{@const localBalanceSats = entity.localBalanceSats}
+				{#if localBalanceSats != null}
 					<span data-text="muted">
 						<NumberValue
-							value={localBalanceSats0}
+							value={localBalanceSats}
 						/>
 					</span>
 				{/if}
@@ -97,14 +95,14 @@
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+					<Timestamp timestamp={selection.entitySelector.timestampMs} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 
@@ -307,7 +305,7 @@
 						<div>
 							<dt>last synced AT</dt>
 							<dd>
-								<Timestamp timestamp={Number(lastSyncedAt)} />
+								<Timestamp timestamp={lastSyncedAt} />
 							</dd>
 						</div>
 					{/if}

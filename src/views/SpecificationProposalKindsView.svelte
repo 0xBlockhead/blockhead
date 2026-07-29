@@ -47,14 +47,14 @@
 				resolve(
 					'/(proposals)/proposals/[specificationRealmSlug=specificationRealmSlug]/(specificationRealm)/[proposalKindSlug=proposalKindSlug]',
 					{
-						specificationRealmSlug: String(specificationRealmById[String(specificationProposalKindSelector.realm)].slug),
-						proposalKindSlug: String(proposalCategoryById[String(specificationProposalKindSelector.category)].slug),
+						specificationRealmSlug: specificationRealmById[specificationProposalKindSelector.realm].slug,
+						proposalKindSlug: proposalCategoryById[specificationProposalKindSelector.category].slug,
 					}
 				)
 			}
 		>
 			{#snippet Title()}
-				{specificationProposalKind.labelPlural || String((proposalCategoryById[String(specificationProposalKindSelector.category)]?.labelPlural ?? (specificationProposalKindSelector.category)) ?? '') || 'Specification proposal kind'}
+				{specificationProposalKind.labelPlural || (proposalCategoryById[specificationProposalKindSelector.category]?.labelPlural ?? specificationProposalKindSelector.category) || 'Specification proposal kind'}
 			{/snippet}
 
 			{#snippet Value()}

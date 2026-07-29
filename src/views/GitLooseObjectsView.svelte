@@ -5,7 +5,6 @@
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 
 
 	// State
@@ -41,7 +40,7 @@
 			entitySelector={gitLooseObjectSelector}
 		>
 			{#snippet Title()}
-				{String(gitLooseObjectSelector.objectId) || 'Git loose object'}
+				{gitLooseObjectSelector.objectId || 'Git loose object'}
 			{/snippet}
 
 			{#snippet Value()}

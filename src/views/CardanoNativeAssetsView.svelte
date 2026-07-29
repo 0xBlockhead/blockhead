@@ -45,7 +45,7 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{(cardanoNativeAsset.fingerprint ?? '')}
+				{cardanoNativeAsset.fingerprint ?? ''}
 			{/snippet}
 		</EntityView>
 	{/snippet}

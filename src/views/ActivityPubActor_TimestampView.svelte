@@ -23,13 +23,12 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.ActivityPubActor_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const actor = $derived(selection.entitySelector.$actor)
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Mastodon_Rest,
 		],
 	}))
-	const titleFallback = 'ActivityPub actor observation'
 
 
 	// Components
@@ -43,23 +42,26 @@
 <EntityView
 	entityType={EntityType.ActivityPubActor_Timestamp}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? 'ActivityPub actor observation'}
 	href={
-		href ?? (
-			'instanceOrigin' in selection.entitySelector.$actor
-			&& 'localAccountId' in selection.entitySelector.$actor ?
-				resolve(
-					'/(social)/(activitypub)/activitypub/(globalActivityPubNetwork)/actor/[instanceOrigin=absoluteUrl]/[localAccountId=stringSegment]/(activityPubActor)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
-					{
-						instanceOrigin: encodeURIComponent(String(selection.entitySelector.$actor.instanceOrigin)),
-						localAccountId: String(selection.entitySelector.$actor.localAccountId),
-						timestampMs: String(selection.entitySelector.timestampMs),
-						source: String(selection.entitySelector.source),
-					}
-				)
-			:
-				undefined
-		)
+		href === undefined ?
+			(
+				'instanceOrigin' in actor
+				&& 'localAccountId' in actor ?
+					resolve(
+						'/(social)/(activitypub)/activitypub/(globalActivityPubNetwork)/actor/[instanceOrigin=absoluteUrl]/[localAccountId=stringSegment]/(activityPubActor)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
+						{
+							instanceOrigin: encodeURIComponent(actor.instanceOrigin),
+							localAccountId: actor.localAccountId,
+							timestampMs: String(selection.entitySelector.timestampMs),
+							source: selection.entitySelector.source,
+						}
+					)
+				:
+					undefined
+			)
+		:
+			href ?? undefined
 	}
 	{layout}
 	bind:open
@@ -68,14 +70,14 @@
 	{#snippet Title()}
 		<ActivityPubActorView
 			selection={select(EntityType.ActivityPubActor, selection.entitySelector.$actor)}
-			href=""
+			href={null}
 			layout={EntityLayout.Title}
 			open={false}
 		/>
 	{/snippet}
 
 	{#snippet Value()}
-		<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+		<Timestamp timestamp={selection.entitySelector.timestampMs} />
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -96,7 +98,7 @@
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+					<Timestamp timestamp={selection.entitySelector.timestampMs} />
 				</dd>
 			</div>
 		</dl>
@@ -105,7 +107,7 @@
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 		</dl>

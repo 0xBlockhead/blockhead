@@ -5,7 +5,6 @@
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { EvmAddress, ZeroExHex } from '$/schema/ZeroExHex.ts'
 
 
 	// State
@@ -42,15 +41,15 @@
 			entitySelector={eip8004ValidationTimestampSelector}
 		>
 			{#snippet Title()}
-				{String(eip8004ValidationTimestampSelector.requestHash) || 'EIP-8004 validation timestamp'}
+				{eip8004ValidationTimestampSelector.requestHash || 'EIP-8004 validation timestamp'}
 			{/snippet}
 
 			{#snippet Value()}
-				{String(eip8004ValidationTimestamp.response ?? '')}
+				{eip8004ValidationTimestamp.response ?? ''}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{String(eip8004ValidationTimestamp.validatorAddress ?? '')}</span>
+				<span data-text="annotation">{eip8004ValidationTimestamp.validatorAddress ?? ''}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

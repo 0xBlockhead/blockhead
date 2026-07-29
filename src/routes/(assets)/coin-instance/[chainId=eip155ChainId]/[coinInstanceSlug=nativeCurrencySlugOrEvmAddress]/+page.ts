@@ -47,8 +47,17 @@ export const load: PageLoad = ({ params }) => {
 				type: 'NativeCurrency',
 			}
 		)
-		if (!(evmCoinInstanceNetworkTypeSelector instanceof arktype.errors) && '$network' in evmCoinInstanceNetworkTypeSelector && 'type' in evmCoinInstanceNetworkTypeSelector && evmCoinInstanceNetworkTypeSelector.type === 'NativeCurrency')
-			routeCandidates.push({ entityType: EntityType.EvmCoinInstance, selectorName: 'NetworkType', selector: evmCoinInstanceNetworkTypeSelector })
+		if (
+			!(evmCoinInstanceNetworkTypeSelector instanceof arktype.errors)
+			&& '$network' in evmCoinInstanceNetworkTypeSelector
+			&& 'type' in evmCoinInstanceNetworkTypeSelector
+			&& evmCoinInstanceNetworkTypeSelector.type === 'NativeCurrency'
+		)
+			routeCandidates.push({
+				entityType: EntityType.EvmCoinInstance,
+				selectorName: 'NetworkType',
+				selector: evmCoinInstanceNetworkTypeSelector,
+			})
 	}
 
 	if (matchEvmAddress(params.coinInstanceSlug) && matchEip155ChainId(params.chainId)) {
@@ -74,12 +83,25 @@ export const load: PageLoad = ({ params }) => {
 				},
 			}
 		)
-		if (!(evmCoinInstanceNetworkTypeContractSelector instanceof arktype.errors) && '$network' in evmCoinInstanceNetworkTypeContractSelector && 'type' in evmCoinInstanceNetworkTypeContractSelector && '$contract' in evmCoinInstanceNetworkTypeContractSelector && evmCoinInstanceNetworkTypeContractSelector.type === 'Erc20Token')
-			routeCandidates.push({ entityType: EntityType.EvmCoinInstance, selectorName: 'NetworkTypeContract', selector: evmCoinInstanceNetworkTypeContractSelector })
+		if (
+			!(evmCoinInstanceNetworkTypeContractSelector instanceof arktype.errors)
+			&& '$network' in evmCoinInstanceNetworkTypeContractSelector
+			&& 'type' in evmCoinInstanceNetworkTypeContractSelector
+			&& '$contract' in evmCoinInstanceNetworkTypeContractSelector
+			&& evmCoinInstanceNetworkTypeContractSelector.type === 'Erc20Token'
+		)
+			routeCandidates.push({
+				entityType: EntityType.EvmCoinInstance,
+				selectorName: 'NetworkTypeContract',
+				selector: evmCoinInstanceNetworkTypeContractSelector,
+			})
 	}
 
-	if (routeCandidates.length === 0) error(404, 'Route selector not applicable')
-	if (routeCandidates.length > 1) error(500, 'Route selector is ambiguous')
+	if (routeCandidates.length === 0)
+		error(404, 'Route selector not applicable')
+
+	if (routeCandidates.length > 1)
+		error(500, 'Route selector is ambiguous')
 
 	return routeCandidates[0]
 }

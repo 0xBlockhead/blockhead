@@ -1,4 +1,4 @@
-import type { SourceOrigin } from '$/sources/SourceProvider.ts'
+import type { SourceOrigin } from '$/sources/SourceProviderDefinition.ts'
 import { SourceDelivery } from '$/sources/SourceBinding.ts'
 import { isJsonObject, jsonMessage, type JsonValue } from '$/typescript/JsonValue.ts'
 

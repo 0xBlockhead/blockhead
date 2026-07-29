@@ -20,9 +20,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.BitcoinCashCashTokenCategory> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const titleFallback = $derived((pendingEntity.categoryId ?? '') || 'Bitcoin Cash CashToken category')
-
 
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -34,17 +31,17 @@
 <EntityView
 	entityType={EntityType.BitcoinCashCashTokenCategory}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? (selection.entitySelector.categoryId || 'Bitcoin Cash CashToken category')}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<TruncatedValue value={pendingEntity.categoryId} />
+		<TruncatedValue value={selection.entitySelector.categoryId} />
 	{/snippet}
 
 	{#snippet Value()}
-		<TruncatedValue value={pendingEntity.categoryId} />
+		<TruncatedValue value={selection.entitySelector.categoryId} />
 	{/snippet}
 
 	{#snippet HeadingAfter()}
@@ -62,7 +59,7 @@
 			<div>
 				<dt>Category ID</dt>
 				<dd>
-					<TruncatedValue value={pendingEntity.categoryId} />
+					<TruncatedValue value={selection.entitySelector.categoryId} />
 				</dd>
 			</div>
 

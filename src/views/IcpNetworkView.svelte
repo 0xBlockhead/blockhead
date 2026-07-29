@@ -21,7 +21,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.IcpNetwork> = $props()
 
-	const titleFallback = 'ICP network'
 	const viewDomId = $derived('icp-network-' + encodeURIComponent(stringify(selection.entitySelector)))
 
 
@@ -42,7 +41,7 @@
 	entityType={EntityType.IcpNetwork}
 	entitySelector={selection.entitySelector}
 	id={viewDomId}
-	title={title ?? titleFallback}
+	title={title ?? 'ICP network'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -50,7 +49,7 @@
 	{#snippet Title()}
 		<NetworkView
 			selection={select(EntityType.Network, selection.entitySelector.$network)}
-			href=""
+			href={null}
 			layout={EntityLayout.Title}
 			open={false}
 		/>

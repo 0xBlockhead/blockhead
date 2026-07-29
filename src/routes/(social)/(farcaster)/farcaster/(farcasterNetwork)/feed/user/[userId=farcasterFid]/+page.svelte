@@ -45,7 +45,7 @@
 			resolve(
 				'/(social)/(farcaster)/farcaster/(farcasterNetwork)/feed/user/[userId=farcasterFid]',
 				{
-					userId: String(params.userId),
+					userId: params.userId,
 				}
 			)
 		}

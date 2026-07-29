@@ -21,7 +21,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.A2aArtifact> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [],
 	}))
@@ -31,7 +30,7 @@
 			createdAt: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.name ?? '') || (pendingEntity.artifactId ?? '') || 'A2A artifact')
+	const titleFallback = $derived((prefetched.name ?? '') || selection.entitySelector.artifactId || 'A2A artifact')
 
 
 	// Components
@@ -62,7 +61,6 @@
 	{#snippet Value()}
 		<A2aTaskView
 			selection={select(EntityType.A2aTask, selection.entitySelector.$task)}
-			href=""
 			layout={EntityLayout.Value}
 			open={false}
 		/>
@@ -71,10 +69,10 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={a2aArtifact}>
 			{#snippet children(entity)}
-				{@const createdAt0 = entity.createdAt}
-				{#if createdAt0 != null}
+				{@const createdAt = entity.createdAt}
+				{#if createdAt != null}
 					<span data-text="muted">
-						<Timestamp timestamp={Number(createdAt0)} />
+						<Timestamp timestamp={createdAt} />
 					</span>
 				{/if}
 			{/snippet}
@@ -97,7 +95,7 @@
 			<div>
 				<dt>artifact ID</dt>
 				<dd>
-					{pendingEntity.artifactId}
+					{selection.entitySelector.artifactId}
 				</dd>
 			</div>
 
@@ -148,7 +146,7 @@
 						<div>
 							<dt>Created</dt>
 							<dd>
-								<Timestamp timestamp={Number(createdAt)} />
+								<Timestamp timestamp={createdAt} />
 							</dd>
 						</div>
 					{/if}
@@ -178,15 +176,15 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const a2aArtifactA2aMessagePartsViewPartsResource = selection.$$parts}
+		{@const partsResource = selection.$$parts}
 		<ResourceBoundary
-			resource={a2aArtifactA2aMessagePartsViewPartsResource}
+			resource={partsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<A2aMessagePartsView
-						selection={a2aArtifactA2aMessagePartsViewPartsResource}
-						countResource={a2aArtifactA2aMessagePartsViewPartsResource.count}
+						selection={partsResource}
+						countResource={partsResource.count}
 						title='parts'
 						id='parts'
 					/>

@@ -37,31 +37,30 @@
 >
 	{#snippet Item({ item: atprotoActorTimestamp })}
 		{@const atprotoActorTimestampSelector = atprotoActorTimestamp[EntityMetaKey.Selector]}
+		{@const actor = atprotoActorTimestampSelector.$actor}
 		<EntityView
 			entityType={EntityType.AtprotoActor_Timestamp}
 			entitySelector={atprotoActorTimestampSelector}
 			href={
-				(
-					'did' in atprotoActorTimestampSelector.$actor ?
-						resolve(
-							'/(social)/(atproto)/atproto/(globalAtprotoNetwork)/actor/[did=stringSegment]/(atprotoActor)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
-							{
-								did: encodeURIComponent(String(atprotoActorTimestampSelector.$actor.did)),
-								timestampMs: String(atprotoActorTimestampSelector.timestampMs),
-								source: String(atprotoActorTimestampSelector.source),
-							}
-						)
-					:
-						undefined
-				)
+				'did' in actor ?
+					resolve(
+						'/(social)/(atproto)/atproto/(globalAtprotoNetwork)/actor/[did=stringSegment]/(atprotoActor)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
+						{
+							did: encodeURIComponent(actor.did),
+							timestampMs: String(atprotoActorTimestampSelector.timestampMs),
+							source: atprotoActorTimestampSelector.source,
+						}
+					)
+				:
+					undefined
 			}
 		>
 			{#snippet Title()}
-				{String(atprotoActorTimestampSelector.timestampMs) || 'AT Protocol account observation'}
+				{atprotoActorTimestampSelector.timestampMs}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{[(String(atprotoActorTimestamp.followersCount ?? '') ? String(atprotoActorTimestamp.followersCount ?? '') + ' followers' : ''), (String(atprotoActorTimestamp.postsCount ?? '') ? String(atprotoActorTimestamp.postsCount ?? '') + ' posts' : '')].filter(Boolean).join(' ')}</span>
+				<span data-text="annotation">{[(atprotoActorTimestamp.followersCount != null ? String(atprotoActorTimestamp.followersCount) + ' followers' : ''), (atprotoActorTimestamp.postsCount != null ? String(atprotoActorTimestamp.postsCount) + ' posts' : '')].filter(Boolean).join(' ')}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

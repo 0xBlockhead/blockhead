@@ -48,11 +48,11 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{(polkadotAssetTimestamp.status ?? '')}
+				{polkadotAssetTimestamp.status ?? ''}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{String(polkadotAssetTimestampSelector.timestampMs)}</span>
+				<span data-text="annotation">{polkadotAssetTimestampSelector.timestampMs}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

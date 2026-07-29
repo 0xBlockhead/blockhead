@@ -20,14 +20,13 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.CelestiaNamespace> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const celestiaNamespace = $derived(selection({
 		fields: {
 			label: true,
 			namespaceVersion: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.label ?? '') || (pendingEntity.namespaceId ?? '') || 'celestia namespace')
+	const titleFallback = $derived((prefetched.label ?? '') || selection.entitySelector.namespaceId || 'celestia namespace')
 
 
 	// Components
@@ -59,10 +58,10 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={celestiaNamespace}>
 			{#snippet children(entity)}
-				{@const namespaceVersion0 = entity.namespaceVersion}
-				{#if namespaceVersion0 != null}
+				{@const namespaceVersion = entity.namespaceVersion}
+				{#if namespaceVersion != null}
 					<NumberValue
-						value={namespaceVersion0}
+						value={namespaceVersion}
 					/>
 				{/if}
 			{/snippet}
@@ -85,7 +84,7 @@
 			<div>
 				<dt>namespace ID</dt>
 				<dd>
-					<TruncatedValue value={pendingEntity.namespaceId} />
+					<TruncatedValue value={selection.entitySelector.namespaceId} />
 				</dd>
 			</div>
 
@@ -126,30 +125,30 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const celestiaNamespaceCelestiaNamespaceTimestampsViewTimestampsResource = selection.$$timestamps}
+		{@const timestampsResource = selection.$$timestamps}
 		<ResourceBoundary
-			resource={celestiaNamespaceCelestiaNamespaceTimestampsViewTimestampsResource}
+			resource={timestampsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<CelestiaNamespace_TimestampsView
-						selection={celestiaNamespaceCelestiaNamespaceTimestampsViewTimestampsResource}
-						countResource={celestiaNamespaceCelestiaNamespaceTimestampsViewTimestampsResource.count}
+						selection={timestampsResource}
+						countResource={timestampsResource.count}
 						title='timestamps'
 						id='timestamps'
 					/>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>
-		{@const celestiaNamespaceCelestiaBlobsViewBlobsResource = selection.$$blobs}
+		{@const blobsResource = selection.$$blobs}
 		<ResourceBoundary
-			resource={celestiaNamespaceCelestiaBlobsViewBlobsResource}
+			resource={blobsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<CelestiaBlobsView
-						selection={celestiaNamespaceCelestiaBlobsViewBlobsResource}
-						countResource={celestiaNamespaceCelestiaBlobsViewBlobsResource.count}
+						selection={blobsResource}
+						countResource={blobsResource.count}
 						title='blobs'
 						id='blobs'
 					/>

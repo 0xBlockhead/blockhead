@@ -21,9 +21,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.HyperliquidFill> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const titleFallback = 'hyperliquid fill'
-
 
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -37,7 +34,7 @@
 <EntityView
 	entityType={EntityType.HyperliquidFill}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? 'hyperliquid fill'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -62,7 +59,7 @@
 			<div>
 				<dt>tid</dt>
 				<dd>
-					{String(pendingEntity.tid)}
+					{selection.entitySelector.tid}
 				</dd>
 			</div>
 
@@ -79,7 +76,7 @@
 						}
 					>
 						{#snippet children(entity)}
-							{String(entity.oid)}
+							{entity.oid}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -295,7 +292,7 @@
 						<div>
 							<dt>time ms</dt>
 							<dd>
-								{String(timeMs)}
+								{timeMs}
 							</dd>
 						</div>
 					{/if}
@@ -339,7 +336,7 @@
 						<div>
 							<dt>crossed</dt>
 							<dd>
-								{String(crossed)}
+								{crossed}
 							</dd>
 						</div>
 					{/if}

@@ -21,7 +21,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.NearContractStorageEntry> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.NearRpc_JsonRpc,
@@ -32,7 +31,6 @@
 			valueHash: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.keyBase64 ?? '') || 'near contract storage entry')
 
 
 	// Components
@@ -46,21 +44,21 @@
 <EntityView
 	entityType={EntityType.NearContractStorageEntry}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? (selection.entitySelector.keyBase64 || 'near contract storage entry')}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<TruncatedValue value={pendingEntity.keyBase64} />
+		<TruncatedValue value={selection.entitySelector.keyBase64} />
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={nearContractStorageEntry}>
 			{#snippet children(entity)}
-				{@const valueHash0 = entity.valueHash}
-				{#if valueHash0 != null}
-					<TruncatedValue value={valueHash0} />
+				{@const valueHash = entity.valueHash}
+				{#if valueHash != null}
+					<TruncatedValue value={valueHash} />
 				{/if}
 			{/snippet}
 		</ResourceBoundary>
@@ -69,7 +67,7 @@
 	{#snippet HeadingAfter()}
 		<span data-text="muted">
 			<NumberValue
-				value={pendingEntity.blockHeight}
+				value={selection.entitySelector.blockHeight}
 			/>
 		</span>
 	{/snippet}
@@ -90,7 +88,7 @@
 			<div>
 				<dt>Key base64</dt>
 				<dd>
-					<TruncatedValue value={pendingEntity.keyBase64} />
+					<TruncatedValue value={selection.entitySelector.keyBase64} />
 				</dd>
 			</div>
 
@@ -98,7 +96,7 @@
 				<dt>Block height</dt>
 				<dd>
 					<NumberValue
-						value={pendingEntity.blockHeight}
+						value={selection.entitySelector.blockHeight}
 					/>
 				</dd>
 			</div>
@@ -106,7 +104,7 @@
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 

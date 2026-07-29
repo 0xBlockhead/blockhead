@@ -40,11 +40,11 @@
 			entitySelector={bitTorrentPieceSelector}
 		>
 			{#snippet Title()}
-				{String(bitTorrentPieceSelector.pieceIndex) || 'bit torrent piece'}
+				{bitTorrentPieceSelector.pieceIndex}
 			{/snippet}
 
 			{#snippet Value()}
-				{String(bitTorrentPiece.length ?? '')}
+				{bitTorrentPiece.length ?? ''}
 			{/snippet}
 		</EntityView>
 	{/snippet}

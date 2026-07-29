@@ -32,8 +32,8 @@
 			resolve(
 				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/rollup/[projectId=stringSegment]',
 				{
-					network: String(params.network),
-					projectId: String(params.projectId),
+					network: params.network,
+					projectId: params.projectId,
 				}
 			)
 		}
@@ -45,8 +45,8 @@
 					resolve(
 						'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/rollup/[projectId=stringSegment]',
 						{
-							network: String(params.network),
-							projectId: String(params.projectId),
+							network: params.network,
+							projectId: params.projectId,
 						}
 					)
 				}

@@ -37,6 +37,7 @@
 >
 	{#snippet Item({ item: utxoInput })}
 		{@const utxoInputSelector = utxoInput[EntityMetaKey.Selector]}
+		{@const transaction = utxoInputSelector.$transaction}
 		<EntityView
 			entityType={EntityType.UtxoInput}
 			entitySelector={utxoInputSelector}
@@ -45,23 +46,23 @@
 					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(transactions)/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/(selection)/input/[inputIndex=nonNegativeInteger]',
 					{
 						network: (
-							'caip2' in utxoInputSelector.$transaction.$network ?
-								String(caip2StringFromValue(utxoInputSelector.$transaction.$network.caip2))
+							'caip2' in transaction.$network ?
+								caip2StringFromValue(transaction.$network.caip2)
 							:
-								String(utxoInputSelector.$transaction.$network.slug)
+								transaction.$network.slug
 						),
-						transactionId: String(utxoInputSelector.$transaction.txId),
+						transactionId: transaction.txId,
 						inputIndex: String(utxoInputSelector.indexInTransaction),
 					}
 				)
 			}
 		>
 			{#snippet Title()}
-				{(String(utxoInputSelector.indexInTransaction ?? '') ? 'Input #' + String(utxoInputSelector.indexInTransaction ?? '') : '') || 'UTXO input'}
+				{`Input #${utxoInputSelector.indexInTransaction}`}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{utxoInput.$spentOutput == null ? '' : (String(utxoInput.$spentOutput.indexInTransaction ?? '') ? 'Output #' + String(utxoInput.$spentOutput.indexInTransaction ?? '') : '') || 'UTXO output'}</span>
+				<span data-text="annotation">{utxoInput.$spentOutput == null ? '' : `Output #${utxoInput.$spentOutput.indexInTransaction}`}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

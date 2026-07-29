@@ -4,7 +4,6 @@
 	// Types/constants
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 
 
 	// Context
@@ -21,9 +20,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.AlgorandTealProgram_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const titleFallback = 'algorand teal program timestamp'
-
 
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -36,7 +32,7 @@
 <EntityView
 	entityType={EntityType.AlgorandTealProgram_Timestamp}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? 'algorand teal program timestamp'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -61,14 +57,14 @@
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+					<Timestamp timestamp={selection.entitySelector.timestampMs} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 		</dl>
@@ -89,7 +85,7 @@
 						<div>
 							<dt>bytecode</dt>
 							<dd>
-								{String(bytecode)}
+								{bytecode}
 							</dd>
 						</div>
 					{/if}
@@ -133,7 +129,7 @@
 						<div>
 							<dt>compile result hash</dt>
 							<dd>
-								<TruncatedValue value={String(compileResultHash)} />
+								<TruncatedValue value={compileResultHash} />
 							</dd>
 						</div>
 					{/if}

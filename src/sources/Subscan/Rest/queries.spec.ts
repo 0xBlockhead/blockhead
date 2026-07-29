@@ -4,6 +4,7 @@ import { Source } from '$/sources/Source.ts'
 import {
 	SourceEndpointKind,
 	SourceTargetKind,
+	sourceBindingId,
 } from '$/sources/SourceBinding.ts'
 
 const corsFetch = vi.hoisted(() => vi.fn())
@@ -93,7 +94,7 @@ describe('Subscan referendum list', () => {
 					corsEnabled: false,
 				}],
 				proxy: {
-					proxyId: binding.proxyId,
+					proxyId: sourceBindingId(binding),
 					endpointIndex: 0,
 				},
 				init: {

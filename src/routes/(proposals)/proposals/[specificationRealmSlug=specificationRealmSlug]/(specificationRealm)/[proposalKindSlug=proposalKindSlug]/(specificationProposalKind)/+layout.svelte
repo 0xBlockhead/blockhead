@@ -33,8 +33,8 @@
 			resolve(
 				'/(proposals)/proposals/[specificationRealmSlug=specificationRealmSlug]/(specificationRealm)/[proposalKindSlug=proposalKindSlug]',
 				{
-					specificationRealmSlug: String(params.specificationRealmSlug),
-					proposalKindSlug: String(params.proposalKindSlug),
+					specificationRealmSlug: params.specificationRealmSlug,
+					proposalKindSlug: params.proposalKindSlug,
 				}
 			)
 		}
@@ -50,8 +50,8 @@
 					resolve(
 						'/(proposals)/proposals/[specificationRealmSlug=specificationRealmSlug]/(specificationRealm)/[proposalKindSlug=proposalKindSlug]',
 						{
-							specificationRealmSlug: String(params.specificationRealmSlug),
-							proposalKindSlug: String(params.proposalKindSlug),
+							specificationRealmSlug: params.specificationRealmSlug,
+							proposalKindSlug: params.proposalKindSlug,
 						}
 					)
 				}

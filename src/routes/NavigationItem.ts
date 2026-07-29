@@ -1,5 +1,3 @@
-// Generated from APP.ts. Do not edit by hand.
-
 export type NavigationItem = {
 	id: string
 	title: string

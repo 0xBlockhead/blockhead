@@ -1,10 +1,10 @@
 // Generated from APP.ts. Do not edit by hand.
 
 import { Source } from '$/sources/Source.ts'
-import { ApiFamily, SourceArtifactKind, SourceCredentialScope, SourceDelivery, SourceEndpointKind, SourceOperationGroup, SourceTargetKind, WireProtocol, type SourceBindingIndex } from '$/sources/SourceBinding.ts'
+import { ApiFamily, indexSourceBindings, SourceArtifactKind, SourceCredentialScope, SourceDelivery, SourceEndpointKind, SourceOperationGroup, SourceTargetKind, WireProtocol, type SourceBinding } from '$/sources/SourceBinding.ts'
 
-export default {
-	[Source.ZeroGChain_JsonRpc]: {
+const bindings = [
+	{
 		source: Source.ZeroGChain_JsonRpc,
 		target: {
 			kind: SourceTargetKind.Eip155Chain,
@@ -29,7 +29,6 @@ export default {
 				scope: SourceCredentialScope.None,
 			},
 		],
-		proxyId: '["ZeroGChain_JsonRpc","Eip155Chain","16661","HttpProxy","EvmExecutionJsonRpc"]',
 		artifacts: [
 			{
 				kind: SourceArtifactKind.OpenRpcSpec,
@@ -43,7 +42,7 @@ export default {
 			},
 		],
 	},
-	[Source.ZeroGStorageNode_JsonRpc]: {
+	{
 		source: Source.ZeroGStorageNode_JsonRpc,
 		target: {
 			kind: SourceTargetKind.LocalDevice,
@@ -76,7 +75,7 @@ export default {
 			},
 		],
 	},
-	[Source.ZeroGChainScan_Rest]: {
+	{
 		source: Source.ZeroGChainScan_Rest,
 		target: {
 			kind: SourceTargetKind.Eip155Chain,
@@ -109,7 +108,7 @@ export default {
 			},
 		],
 	},
-	[Source.ZeroGStorageScan_Rest]: {
+	{
 		source: Source.ZeroGStorageScan_Rest,
 		target: {
 			kind: SourceTargetKind.Global,
@@ -142,4 +141,11 @@ export default {
 			},
 		],
 	},
-} as const satisfies SourceBindingIndex
+] as const satisfies readonly SourceBinding[]
+
+export default indexSourceBindings<{
+	readonly [Source.ZeroGChain_JsonRpc]: typeof bindings[0]
+	readonly [Source.ZeroGStorageNode_JsonRpc]: typeof bindings[1]
+	readonly [Source.ZeroGChainScan_Rest]: typeof bindings[2]
+	readonly [Source.ZeroGStorageScan_Rest]: typeof bindings[3]
+}>(bindings)

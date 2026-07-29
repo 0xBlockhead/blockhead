@@ -45,7 +45,7 @@
 			entitySelector={assetEligibilitySelector}
 		>
 			{#snippet Title()}
-				{String(assetEligibilitySelector.timestampMs) || 'asset eligibility'}
+				{assetEligibilitySelector.timestampMs}
 			{/snippet}
 
 			{#snippet Value()}

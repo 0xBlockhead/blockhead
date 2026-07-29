@@ -42,7 +42,7 @@
 			entitySelector={celestiaNamespaceTimestampSelector}
 		>
 			{#snippet Title()}
-				{String(celestiaNamespaceTimestampSelector.timestampMs) || 'celestia namespace timestamp'}
+				{celestiaNamespaceTimestampSelector.timestampMs}
 			{/snippet}
 
 			{#snippet Value()}

@@ -20,13 +20,11 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.HederaNft> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const hederaNft = $derived(selection({
 		fields: {
 			createdTimestamp: true,
 		},
 	}))
-	const titleFallback = $derived(String(pendingEntity.serialNumber ?? '') || 'hedera NFT')
 
 
 	// Components
@@ -41,21 +39,20 @@
 <EntityView
 	entityType={EntityType.HederaNft}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? String(selection.entitySelector.serialNumber)}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
 		<NumberValue
-			value={pendingEntity.serialNumber}
+			value={selection.entitySelector.serialNumber}
 		/>
 	{/snippet}
 
 	{#snippet Value()}
 		<HederaTokenView
 			selection={select(EntityType.HederaToken, selection.entitySelector.$token)}
-			href=""
 			layout={EntityLayout.Value}
 			open={false}
 		/>
@@ -64,10 +61,10 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={hederaNft}>
 			{#snippet children(entity)}
-				{@const createdTimestamp0 = entity.createdTimestamp}
-				{#if createdTimestamp0 != null}
+				{@const createdTimestamp = entity.createdTimestamp}
+				{#if createdTimestamp != null}
 					<span data-text="muted">
-						{createdTimestamp0}
+						{createdTimestamp}
 					</span>
 				{/if}
 			{/snippet}
@@ -91,7 +88,7 @@
 				<dt>serial number</dt>
 				<dd>
 					<NumberValue
-						value={pendingEntity.serialNumber}
+						value={selection.entitySelector.serialNumber}
 					/>
 				</dd>
 			</div>
@@ -139,30 +136,30 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const hederaNftHederaTokenTransfersViewTransfersResource = selection.$$transfers}
+		{@const transfersResource = selection.$$transfers}
 		<ResourceBoundary
-			resource={hederaNftHederaTokenTransfersViewTransfersResource}
+			resource={transfersResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<HederaTokenTransfersView
-						selection={hederaNftHederaTokenTransfersViewTransfersResource}
-						countResource={hederaNftHederaTokenTransfersViewTransfersResource.count}
+						selection={transfersResource}
+						countResource={transfersResource.count}
 						title='Transfers'
 						id='transfers'
 					/>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>
-		{@const hederaNftHederaNftTimestampsViewTimestampsResource = selection.$$timestamps}
+		{@const timestampsResource = selection.$$timestamps}
 		<ResourceBoundary
-			resource={hederaNftHederaNftTimestampsViewTimestampsResource}
+			resource={timestampsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<HederaNft_TimestampsView
-						selection={hederaNftHederaNftTimestampsViewTimestampsResource}
-						countResource={hederaNftHederaNftTimestampsViewTimestampsResource.count}
+						selection={timestampsResource}
+						countResource={timestampsResource.count}
 						title='Observations'
 						id='timestamps'
 					/>

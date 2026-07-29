@@ -5,7 +5,6 @@
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { EvmAddress } from '$/schema/ZeroExHex.ts'
 
 
 	// Context
@@ -22,9 +21,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.UsageRight_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const titleFallback = 'usage right timestamp'
-
 
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -39,7 +35,7 @@
 <EntityView
 	entityType={EntityType.UsageRight_Timestamp}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? 'usage right timestamp'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -53,28 +49,28 @@
 			<div>
 				<dt>subject key</dt>
 				<dd>
-					{pendingEntity.subjectKey}
+					{selection.entitySelector.subjectKey}
 				</dd>
 			</div>
 
 			<div>
 				<dt>right key</dt>
 				<dd>
-					{pendingEntity.rightKey}
+					{selection.entitySelector.rightKey}
 				</dd>
 			</div>
 
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+					<Timestamp timestamp={selection.entitySelector.timestampMs} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 
@@ -193,7 +189,7 @@
 						<div>
 							<dt>expires AT</dt>
 							<dd>
-								<Timestamp timestamp={Number(expiresAt)} />
+								<Timestamp timestamp={expiresAt} />
 							</dd>
 						</div>
 					{/if}
@@ -239,7 +235,7 @@
 						<div>
 							<dt>ledger coordinate value</dt>
 							<dd>
-								{String(ledgerCoordinateValue)}
+								{ledgerCoordinateValue}
 							</dd>
 						</div>
 					{/if}
@@ -261,7 +257,7 @@
 						<div>
 							<dt>contract address</dt>
 							<dd>
-								<TruncatedValue value={String(contractAddress)} />
+								<TruncatedValue value={contractAddress} />
 							</dd>
 						</div>
 					{/if}

@@ -20,13 +20,11 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.EvmNetworkAccount_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const evmNetworkAccountTimestamp = $derived(selection({
 		fields: {
 			transactionCount: true,
 		},
 	}))
-	const titleFallback = 'EVM network account timestamp'
 
 
 	// Components
@@ -41,7 +39,7 @@
 <EntityView
 	entityType={EntityType.EvmNetworkAccount_Timestamp}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? 'EVM network account timestamp'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -49,7 +47,7 @@
 	{#snippet Title()}
 		<EvmNetworkAccountView
 			selection={select(EntityType.EvmNetworkAccount, selection.entitySelector.$account)}
-			href=""
+			href={null}
 			layout={EntityLayout.Title}
 			open={false}
 		/>
@@ -58,10 +56,10 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={evmNetworkAccountTimestamp}>
 			{#snippet children(entity)}
-				{@const transactionCount0 = entity.transactionCount}
-				{#if transactionCount0 != null}
+				{@const transactionCount = entity.transactionCount}
+				{#if transactionCount != null}
 					<NumberValue
-						value={transactionCount0}
+						value={transactionCount}
 					/>
 				{/if}
 			{/snippet}
@@ -70,7 +68,7 @@
 
 	{#snippet HeadingAfter()}
 		<span data-text="muted">
-			<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+			<Timestamp timestamp={selection.entitySelector.timestampMs} />
 		</span>
 	{/snippet}
 
@@ -90,14 +88,14 @@
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+					<Timestamp timestamp={selection.entitySelector.timestampMs} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 
@@ -116,7 +114,7 @@
 						<div>
 							<dt>Block number</dt>
 							<dd>
-								{String(blockNumber)}
+								{blockNumber}
 							</dd>
 						</div>
 					{/if}
@@ -134,7 +132,7 @@
 						<div>
 							<dt>transaction count</dt>
 							<dd>
-								{String(transactionCount)}
+								{transactionCount}
 							</dd>
 						</div>
 					{/if}
@@ -156,7 +154,7 @@
 						<div>
 							<dt>token transfer count</dt>
 							<dd>
-								{String(tokenTransferCount)}
+								{tokenTransferCount}
 							</dd>
 						</div>
 					{/if}
@@ -178,7 +176,7 @@
 						<div>
 							<dt>internal transfer count</dt>
 							<dd>
-								{String(internalTransferCount)}
+								{internalTransferCount}
 							</dd>
 						</div>
 					{/if}
@@ -200,7 +198,7 @@
 						<div>
 							<dt>NFT count</dt>
 							<dd>
-								{String(nftCount)}
+								{nftCount}
 							</dd>
 						</div>
 					{/if}
@@ -224,7 +222,7 @@
 						<div>
 							<dt>first transaction AT</dt>
 							<dd>
-								<Timestamp timestamp={Number(firstTransactionAt)} />
+								<Timestamp timestamp={firstTransactionAt} />
 							</dd>
 						</div>
 					{/if}
@@ -246,7 +244,7 @@
 						<div>
 							<dt>last transaction AT</dt>
 							<dd>
-								<Timestamp timestamp={Number(lastTransactionAt)} />
+								<Timestamp timestamp={lastTransactionAt} />
 							</dd>
 						</div>
 					{/if}

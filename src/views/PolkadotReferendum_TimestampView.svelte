@@ -20,13 +20,12 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.PolkadotReferendum_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const polkadotReferendumTimestamp = $derived(selection({
 		fields: {
 			status: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.status ?? '') || 'Polkadot referendum timestamp')
+	const titleFallback = $derived((prefetched.status ?? '') || 'Polkadot referendum timestamp')
 
 
 	// Components
@@ -55,12 +54,12 @@
 	{/snippet}
 
 	{#snippet Value()}
-		<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+		<Timestamp timestamp={selection.entitySelector.timestampMs} />
 	{/snippet}
 
 	{#snippet HeadingAfter()}
 		<span data-text="muted">
-			{pendingEntity.source}
+			{selection.entitySelector.source}
 		</span>
 	{/snippet}
 
@@ -80,14 +79,14 @@
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+					<Timestamp timestamp={selection.entitySelector.timestampMs} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 

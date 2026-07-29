@@ -20,7 +20,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.AssetEligibility> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const assetEligibility = $derived(selection({
 		fields: {
 			canHold: true,
@@ -28,7 +27,6 @@
 			canReceive: true,
 		},
 	}))
-	const titleFallback = $derived(String(pendingEntity.timestampMs ?? '') || 'asset eligibility')
 
 
 	// Components
@@ -44,26 +42,26 @@
 <EntityView
 	entityType={EntityType.AssetEligibility}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? String(selection.entitySelector.timestampMs)}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+		<Timestamp timestamp={selection.entitySelector.timestampMs} />
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={assetEligibility}>
 			{#snippet children(entity)}
-				{[String(entity.canHold ?? ''), String(entity.canSend ?? ''), String(entity.canReceive ?? '')].filter(Boolean).join(' ') || String(pendingEntity.timestampMs) || titleFallback}
+				{[String(entity.canHold ?? ''), String(entity.canSend ?? ''), String(entity.canReceive ?? '')].filter(Boolean).join(' ') || String(selection.entitySelector.timestampMs)}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
 		<span data-text="muted">
-			{pendingEntity.source}
+			{selection.entitySelector.source}
 		</span>
 	{/snippet}
 
@@ -94,14 +92,14 @@
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+					<Timestamp timestamp={selection.entitySelector.timestampMs} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 		</dl>

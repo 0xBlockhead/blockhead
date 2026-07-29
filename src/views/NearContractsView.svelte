@@ -45,11 +45,11 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{(nearContract.codeHash ?? '')}
+				{nearContract.codeHash ?? ''}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{String(nearContract.codeSizeBytes ?? '')}</span>
+				<span data-text="annotation">{nearContract.codeSizeBytes ?? ''}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

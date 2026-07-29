@@ -5,7 +5,6 @@
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { EvmAddress, ZeroExHex } from '$/schema/ZeroExHex.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -23,7 +22,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.EasSchema> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Blockscout_Rest,
@@ -39,7 +37,7 @@
 			resolver: true,
 		},
 	}))
-	const titleFallback = $derived(String(pendingEntity.schemaUid ?? '') || 'EAS schema')
+	const titleFallback = $derived(selection.entitySelector.schemaUid || 'EAS schema')
 
 
 	// Components
@@ -63,13 +61,13 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{String(pendingEntity.schemaUid ?? '') || 'EAS schema'}
+		{selection.entitySelector.schemaUid || 'EAS schema'}
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={easSchema}>
 			{#snippet children(entity)}
-				{entity.schema || String(pendingEntity.schemaUid) || titleFallback}
+				{entity.schema || selection.entitySelector.schemaUid || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -77,10 +75,10 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={easSchema}>
 			{#snippet children(entity)}
-				{@const resolver0 = entity.resolver}
-				{#if resolver0 != null}
+				{@const resolver = entity.resolver}
+				{#if resolver != null}
 					<span data-text="muted">
-						{String(resolver0)}
+						{resolver}
 					</span>
 				{/if}
 			{/snippet}
@@ -92,7 +90,7 @@
 			<div>
 				<dt>Schema UID</dt>
 				<dd>
-					{String(pendingEntity.schemaUid)}
+					{selection.entitySelector.schemaUid}
 				</dd>
 			</div>
 
@@ -129,7 +127,7 @@
 						<div>
 							<dt>Resolver</dt>
 							<dd>
-								{String(resolver)}
+								{resolver}
 							</dd>
 						</div>
 					{/if}
@@ -173,7 +171,7 @@
 						<div>
 							<dt>Registerer</dt>
 							<dd>
-								{String(registerer)}
+								{registerer}
 							</dd>
 						</div>
 					{/if}
@@ -195,7 +193,7 @@
 						<div>
 							<dt>Registered at</dt>
 							<dd>
-								<Timestamp timestamp={Number(registeredAt)} />
+								<Timestamp timestamp={registeredAt} />
 							</dd>
 						</div>
 					{/if}
@@ -219,7 +217,7 @@
 						<div>
 							<dt>Registered transaction hash</dt>
 							<dd>
-								<TruncatedValue value={String(registeredTransactionHash)} />
+								<TruncatedValue value={registeredTransactionHash} />
 							</dd>
 						</div>
 					{/if}
@@ -293,15 +291,15 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const easSchemaEasAttestationsViewAttestationsResource = selection.$$attestations}
+		{@const attestationsResource = selection.$$attestations}
 		<ResourceBoundary
-			resource={easSchemaEasAttestationsViewAttestationsResource}
+			resource={attestationsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<EasAttestationsView
-						selection={easSchemaEasAttestationsViewAttestationsResource}
-						countResource={easSchemaEasAttestationsViewAttestationsResource.count}
+						selection={attestationsResource}
+						countResource={attestationsResource.count}
 						title='Attestations'
 						id='attestations'
 					/>

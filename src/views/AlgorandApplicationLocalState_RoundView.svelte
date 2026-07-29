@@ -20,9 +20,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.AlgorandApplicationLocalState_Round> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const titleFallback = 'algorand application local state round'
-
 
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -35,7 +32,7 @@
 <EntityView
 	entityType={EntityType.AlgorandApplicationLocalState_Round}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? 'algorand application local state round'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -71,14 +68,14 @@
 			<div>
 				<dt>round</dt>
 				<dd>
-					{String(pendingEntity.round)}
+					{selection.entitySelector.round}
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 		</dl>

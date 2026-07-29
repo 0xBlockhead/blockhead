@@ -41,15 +41,15 @@
 			entitySelector={nearAccountTimestampSelector}
 		>
 			{#snippet Title()}
-				{String(nearAccountTimestampSelector.timestampMs) || 'near account timestamp'}
+				{nearAccountTimestampSelector.timestampMs}
 			{/snippet}
 
 			{#snippet Value()}
-				{String(nearAccountTimestamp.amountYoctoNear ?? '')}
+				{nearAccountTimestamp.amountYoctoNear ?? ''}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{String(nearAccountTimestamp.blockHeight ?? '')}</span>
+				<span data-text="annotation">{nearAccountTimestamp.blockHeight ?? ''}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

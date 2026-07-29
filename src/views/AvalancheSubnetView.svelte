@@ -16,14 +16,13 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.AvalancheSubnet> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const avalancheSubnet = $derived(selection({
 		fields: {
 			label: true,
 			threshold: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.label ?? '') || (pendingEntity.subnetId ?? '') || 'avalanche subnet')
+	const titleFallback = $derived((prefetched.label ?? '') || selection.entitySelector.subnetId || 'avalanche subnet')
 
 
 	// Components
@@ -56,10 +55,10 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={avalancheSubnet}>
 			{#snippet children(entity)}
-				{@const threshold0 = entity.threshold}
-				{#if threshold0 != null}
+				{@const threshold = entity.threshold}
+				{#if threshold != null}
 					<NumberValue
-						value={threshold0}
+						value={threshold}
 					/>
 				{/if}
 			{/snippet}
@@ -71,7 +70,7 @@
 			<div>
 				<dt>subnet ID</dt>
 				<dd>
-					<TruncatedValue value={pendingEntity.subnetId} />
+					<TruncatedValue value={selection.entitySelector.subnetId} />
 				</dd>
 			</div>
 
@@ -96,60 +95,60 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const avalancheSubnetAvalancheSubnetTimestampsViewTimestampsResource = selection.$$timestamps}
+		{@const timestampsResource = selection.$$timestamps}
 		<ResourceBoundary
-			resource={avalancheSubnetAvalancheSubnetTimestampsViewTimestampsResource}
+			resource={timestampsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<AvalancheSubnet_TimestampsView
-						selection={avalancheSubnetAvalancheSubnetTimestampsViewTimestampsResource}
-						countResource={avalancheSubnetAvalancheSubnetTimestampsViewTimestampsResource.count}
+						selection={timestampsResource}
+						countResource={timestampsResource.count}
 						title='timestamps'
 						id='timestamps'
 					/>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>
-		{@const avalancheSubnetAvalancheBlockchainsViewBlockchainsResource = selection.$$blockchains}
+		{@const blockchainsResource = selection.$$blockchains}
 		<ResourceBoundary
-			resource={avalancheSubnetAvalancheBlockchainsViewBlockchainsResource}
+			resource={blockchainsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<AvalancheBlockchainsView
-						selection={avalancheSubnetAvalancheBlockchainsViewBlockchainsResource}
-						countResource={avalancheSubnetAvalancheBlockchainsViewBlockchainsResource.count}
+						selection={blockchainsResource}
+						countResource={blockchainsResource.count}
 						title='blockchains'
 						id='blockchains'
 					/>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>
-		{@const avalancheSubnetAvalancheValidatorsViewValidatorsResource = selection.$$validators}
+		{@const validatorsResource = selection.$$validators}
 		<ResourceBoundary
-			resource={avalancheSubnetAvalancheValidatorsViewValidatorsResource}
+			resource={validatorsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<AvalancheValidatorsView
-						selection={avalancheSubnetAvalancheValidatorsViewValidatorsResource}
-						countResource={avalancheSubnetAvalancheValidatorsViewValidatorsResource.count}
+						selection={validatorsResource}
+						countResource={validatorsResource.count}
 						title='validators'
 						id='validators'
 					/>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>
-		{@const avalancheSubnetAvalancheDelegatorsViewDelegatorsResource = selection.$$delegators}
+		{@const delegatorsResource = selection.$$delegators}
 		<ResourceBoundary
-			resource={avalancheSubnetAvalancheDelegatorsViewDelegatorsResource}
+			resource={delegatorsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<AvalancheDelegatorsView
-						selection={avalancheSubnetAvalancheDelegatorsViewDelegatorsResource}
-						countResource={avalancheSubnetAvalancheDelegatorsViewDelegatorsResource.count}
+						selection={delegatorsResource}
+						countResource={delegatorsResource.count}
 						title='delegators'
 						id='delegators'
 					/>

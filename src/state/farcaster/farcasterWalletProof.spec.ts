@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from 'vitest'
 
 import { signFarcasterAccountConnectionChallenge } from '$/state/farcaster/farcasterWalletProof.ts'
 import { WalletProtocol, WalletTransportKind } from '$/constants/Wallet.ts'
-import { BlockheadConnectionStatus } from '$/schema/BlockheadWalletConnection.ts'
+import { BlockheadConnectionStatus } from '$/schema/BlockheadConnectionStatus.ts'
 
 const challenge = {
 	challengeId: 'challenge',

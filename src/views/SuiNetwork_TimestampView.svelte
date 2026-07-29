@@ -20,9 +20,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.SuiNetwork_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const titleFallback = 'Sui network timestamp'
-
 
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -35,7 +32,7 @@
 <EntityView
 	entityType={EntityType.SuiNetwork_Timestamp}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? 'Sui network timestamp'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -60,14 +57,14 @@
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+					<Timestamp timestamp={selection.entitySelector.timestampMs} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 
@@ -86,7 +83,7 @@
 						<div>
 							<dt>latest checkpoint sequence</dt>
 							<dd>
-								{String(latestCheckpointSequence)}
+								{latestCheckpointSequence}
 							</dd>
 						</div>
 					{/if}
@@ -130,7 +127,7 @@
 						<div>
 							<dt>epoch</dt>
 							<dd>
-								{String(epoch)}
+								{epoch}
 							</dd>
 						</div>
 					{/if}
@@ -152,7 +149,7 @@
 						<div>
 							<dt>protocol version</dt>
 							<dd>
-								{String(protocolVersion)}
+								{protocolVersion}
 							</dd>
 						</div>
 					{/if}
@@ -174,7 +171,7 @@
 						<div>
 							<dt>total transaction count</dt>
 							<dd>
-								{String(totalTransactionCount)}
+								{totalTransactionCount}
 							</dd>
 						</div>
 					{/if}

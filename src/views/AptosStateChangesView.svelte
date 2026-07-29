@@ -52,7 +52,7 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{String(aptosStateChangeSelector.changeIndex)}
+				{aptosStateChangeSelector.changeIndex}
 			{/snippet}
 
 			{#snippet HeadingAfter()}

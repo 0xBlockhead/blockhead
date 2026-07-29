@@ -20,13 +20,11 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.BitTorrentPiece> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const bitTorrentPiece = $derived(selection({
 		fields: {
 			length: true,
 		},
 	}))
-	const titleFallback = $derived(String(pendingEntity.pieceIndex ?? '') || 'bit torrent piece')
 
 
 	// Components
@@ -40,24 +38,24 @@
 <EntityView
 	entityType={EntityType.BitTorrentPiece}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? String(selection.entitySelector.pieceIndex)}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
 		<NumberValue
-			value={pendingEntity.pieceIndex}
+			value={selection.entitySelector.pieceIndex}
 		/>
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={bitTorrentPiece}>
 			{#snippet children(entity)}
-				{@const length0 = entity.length}
-				{#if length0 != null}
+				{@const length = entity.length}
+				{#if length != null}
 					<NumberValue
-						value={length0}
+						value={length}
 					/>
 				{/if}
 			{/snippet}
@@ -81,7 +79,7 @@
 				<dt>piece index</dt>
 				<dd>
 					<NumberValue
-						value={pendingEntity.pieceIndex}
+						value={selection.entitySelector.pieceIndex}
 					/>
 				</dd>
 			</div>
@@ -101,7 +99,7 @@
 						<div>
 							<dt>piece hash v1</dt>
 							<dd>
-								<TruncatedValue value={pieceHashV1} />
+								{pieceHashV1}
 							</dd>
 						</div>
 					{/if}

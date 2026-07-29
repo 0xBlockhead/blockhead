@@ -11,7 +11,8 @@ import SpecificationProposalKindSchema from '$/schema/SpecificationProposalKind.
 import { type as arktype } from 'arktype'
 
 export const load: LayoutLoad = ({ params }) => {
-	if (!(matchSpecificationRealmSlug(params.specificationRealmSlug) && matchProposalKindSlug(params.proposalKindSlug))) error(404, 'Route mapping not applicable')
+	if (!(matchSpecificationRealmSlug(params.specificationRealmSlug) && matchProposalKindSlug(params.proposalKindSlug)))
+		error(404, 'Route mapping not applicable')
 
 	const specificationProposalKindRealmCategorySelector = parseEntitySelector(
 		schema,
@@ -21,7 +22,8 @@ export const load: LayoutLoad = ({ params }) => {
 			category: proposalCategoryBySlug[params.proposalKindSlug].id,
 		}
 	)
-	if (specificationProposalKindRealmCategorySelector instanceof arktype.errors) error(404, 'Invalid SpecificationProposalKind selector')
+	if (specificationProposalKindRealmCategorySelector instanceof arktype.errors)
+		error(404, 'Invalid SpecificationProposalKind selector')
 
 	return {
 		selector: specificationProposalKindRealmCategorySelector,

@@ -38,7 +38,7 @@
 
 
 <svelte:head>
-	<title>{(data.title ?? (pageSelection.entitySelector.paymentHash || 'Lightning payment'))} • Lightning payment • Blockhead</title>
+	<title>{data.title ?? (pageSelection.entitySelector.paymentHash || 'Lightning payment')} • Lightning payment • Blockhead</title>
 </svelte:head>
 
 

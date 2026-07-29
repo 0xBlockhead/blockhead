@@ -36,30 +36,29 @@
 >
 	{#snippet Item({ item: lensAccountTimestamp })}
 		{@const lensAccountTimestampSelector = lensAccountTimestamp[EntityMetaKey.Selector]}
+		{@const account = lensAccountTimestampSelector.$account}
 		<EntityView
 			entityType={EntityType.LensAccount_Timestamp}
 			entitySelector={lensAccountTimestampSelector}
 			href={
-				(
-					'address' in lensAccountTimestampSelector.$account ?
-						resolve(
-							'/(social)/(lens)/lens/(lensNetwork)/account/[address=evmAddress]/(lensAccount)/observations/[timestampMs=nonNegativeInteger]',
-							{
-								address: String(lensAccountTimestampSelector.$account.address),
-								timestampMs: String(lensAccountTimestampSelector.timestampMs),
-							}
-						)
-					:
-						undefined
-				)
+				'address' in account ?
+					resolve(
+						'/(social)/(lens)/lens/(lensNetwork)/account/[address=evmAddress]/(lensAccount)/observations/[timestampMs=nonNegativeInteger]',
+						{
+							address: account.address,
+							timestampMs: String(lensAccountTimestampSelector.timestampMs),
+						}
+					)
+				:
+					undefined
 			}
 		>
 			{#snippet Title()}
-				{[(lensAccountTimestamp.$account.displayName ?? ''), (lensAccountTimestampSelector.$account.localName ?? ''), String(lensAccountTimestampSelector.$account.address), (lensAccountTimestampSelector.$account.legacyProfileId ?? '')].filter(Boolean).join(' ') || 'Lens account'}
+				{[(lensAccountTimestamp.$account.displayName ?? ''), (lensAccountTimestampSelector.$account.localName ?? ''), lensAccountTimestampSelector.$account.address, (lensAccountTimestampSelector.$account.legacyProfileId ?? '')].filter(Boolean).join(' ') || 'Lens account'}
 			{/snippet}
 
 			{#snippet Value()}
-				{String(lensAccountTimestampSelector.timestampMs)}
+				{lensAccountTimestampSelector.timestampMs}
 			{/snippet}
 		</EntityView>
 	{/snippet}

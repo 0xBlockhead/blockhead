@@ -5,7 +5,6 @@
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { UrlString } from '$/schema/UrlString.ts'
 
 
 	// State
@@ -46,15 +45,15 @@
 			entitySelector={mcpResourceSelector}
 		>
 			{#snippet Title()}
-				{(mcpResource.title ?? '') || [(mcpResource.name ?? ''), String(mcpResourceSelector.uri)].filter(Boolean).join(' ') || 'mcp resource'}
+				{(mcpResource.title ?? '') || [(mcpResource.name ?? ''), mcpResourceSelector.uri].filter(Boolean).join(' ') || 'mcp resource'}
 			{/snippet}
 
 			{#snippet Value()}
-				{(mcpResource.mimeType ?? '')}
+				{mcpResource.mimeType ?? ''}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{String(mcpResource.subscribed ?? '')}</span>
+				<span data-text="annotation">{mcpResource.subscribed ?? ''}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

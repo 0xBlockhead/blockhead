@@ -5,7 +5,6 @@
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { EvmAddress } from '$/schema/ZeroExHex.ts'
 
 
 	// State
@@ -43,7 +42,7 @@
 			entitySelector={oracleFeedSelector}
 		>
 			{#snippet Title()}
-				{(oracleFeed.label ?? '') || String(oracleFeedSelector.address) || 'oracle feed'}
+				{(oracleFeed.label ?? '') || oracleFeedSelector.address || 'oracle feed'}
 			{/snippet}
 
 			{#snippet Value()}

@@ -21,8 +21,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.IcpSubnet> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const titleFallback = 'ICP subnet'
 	const viewDomId = $derived('icp-subnet-' + encodeURIComponent(stringify(selection.entitySelector)))
 
 
@@ -41,7 +39,7 @@
 	entityType={EntityType.IcpSubnet}
 	entitySelector={selection.entitySelector}
 	id={viewDomId}
-	title={title ?? titleFallback}
+	title={title ?? 'ICP subnet'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -66,7 +64,7 @@
 			<div>
 				<dt>subnet ID</dt>
 				<dd>
-					{pendingEntity.subnetId}
+					{selection.entitySelector.subnetId}
 				</dd>
 			</div>
 		</dl>

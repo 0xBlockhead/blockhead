@@ -39,6 +39,7 @@
 >
 	{#snippet Item({ item: cosmosAccount })}
 		{@const cosmosAccountSelector = cosmosAccount[EntityMetaKey.Selector]}
+		{@const network = cosmosAccountSelector.$network}
 		<EntityView
 			entityType={EntityType.CosmosAccount}
 			entitySelector={cosmosAccountSelector}
@@ -47,12 +48,12 @@
 					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(accounts)/account/[accountId=polkadotAccountIdOrStringSegmentOrEvmAddressOrSolanaPubkey]',
 					{
 						network: (
-							'caip2' in cosmosAccountSelector.$network ?
-								String(caip2StringFromValue(cosmosAccountSelector.$network.caip2))
+							'caip2' in network ?
+								caip2StringFromValue(network.caip2)
 							:
-								String(cosmosAccountSelector.$network.slug)
+								network.slug
 						),
-						accountId: String(cosmosAccountSelector.address),
+						accountId: cosmosAccountSelector.address,
 					}
 				)
 			}

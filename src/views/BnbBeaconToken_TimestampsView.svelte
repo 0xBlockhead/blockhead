@@ -41,11 +41,11 @@
 			entitySelector={bnbBeaconTokenTimestampSelector}
 		>
 			{#snippet Title()}
-				{String(bnbBeaconTokenTimestampSelector.timestampMs) || 'bnb beacon token timestamp'}
+				{bnbBeaconTokenTimestampSelector.timestampMs}
 			{/snippet}
 
 			{#snippet Value()}
-				{String(bnbBeaconTokenTimestamp.totalSupply ?? '')}
+				{bnbBeaconTokenTimestamp.totalSupply ?? ''}
 			{/snippet}
 
 			{#snippet HeadingAfter()}

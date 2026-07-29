@@ -20,13 +20,12 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.CardanoNativeAsset> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const cardanoNativeAsset = $derived(selection({
 		fields: {
 			fingerprint: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.assetName ?? '') || (pendingEntity.policyId ?? '') || 'Cardano native asset')
+	const titleFallback = $derived(selection.entitySelector.assetName || selection.entitySelector.policyId || 'Cardano native asset')
 
 
 	// Components
@@ -44,13 +43,13 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{(pendingEntity.assetName ?? '') || (pendingEntity.policyId ?? '') || 'Cardano native asset'}
+		{selection.entitySelector.assetName || selection.entitySelector.policyId || 'Cardano native asset'}
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={cardanoNativeAsset}>
 			{#snippet children(entity)}
-				{(entity.fingerprint ?? '') || pendingEntity.assetName || titleFallback}
+				{(entity.fingerprint ?? '') || selection.entitySelector.assetName || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -71,14 +70,14 @@
 			<div>
 				<dt>policy ID</dt>
 				<dd>
-					{pendingEntity.policyId}
+					{selection.entitySelector.policyId}
 				</dd>
 			</div>
 
 			<div>
 				<dt>asset name</dt>
 				<dd>
-					{pendingEntity.assetName}
+					{selection.entitySelector.assetName}
 				</dd>
 			</div>
 

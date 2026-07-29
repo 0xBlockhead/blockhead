@@ -6,7 +6,6 @@
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
-	import { ZcashShieldedPoolKind } from '$/schema/ZcashShieldedPool.ts'
 
 
 	// Context
@@ -24,14 +23,14 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.ZcashShieldedPool> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const network = $derived(selection.entitySelector.$network)
 	const zcashShieldedPool = $derived(selection({
 		fields: {
 			noteProtocol: true,
 			activationNetworkUpgrade: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.pool ?? '') || 'Zcash shielded pool')
+	const titleFallback = $derived(selection.entitySelector.pool || 'Zcash shielded pool')
 
 
 	// Components
@@ -45,31 +44,34 @@
 	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
 	href={
-		href ?? resolve(
-			'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/shielded-pool/[pool=stringSegment]',
-			{
-				network: (
-					'caip2' in selection.entitySelector.$network ?
-						String(caip2StringFromValue(selection.entitySelector.$network.caip2))
-					:
-						String(selection.entitySelector.$network.slug)
-				),
-				pool: String(selection.entitySelector.pool),
-			}
-		)
+		href === undefined ?
+			resolve(
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/shielded-pool/[pool=stringSegment]',
+				{
+					network: (
+						'caip2' in network ?
+							caip2StringFromValue(network.caip2)
+						:
+							network.slug
+					),
+					pool: selection.entitySelector.pool,
+				}
+			)
+		:
+			href ?? undefined
 	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{(pendingEntity.pool ?? '') || 'Zcash shielded pool'}
+		{selection.entitySelector.pool || 'Zcash shielded pool'}
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={zcashShieldedPool}>
 			{#snippet children(entity)}
-				{entity.noteProtocol || pendingEntity.pool || titleFallback}
+				{entity.noteProtocol || selection.entitySelector.pool || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -89,7 +91,7 @@
 			<div>
 				<dt>Pool</dt>
 				<dd>
-					{pendingEntity.pool}
+					{selection.entitySelector.pool}
 				</dd>
 			</div>
 

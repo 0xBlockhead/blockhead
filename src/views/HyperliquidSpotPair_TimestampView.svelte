@@ -20,9 +20,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.HyperliquidSpotPair_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const titleFallback = 'hyperliquid spot pair timestamp'
-
 
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -34,7 +31,7 @@
 <EntityView
 	entityType={EntityType.HyperliquidSpotPair_Timestamp}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? 'hyperliquid spot pair timestamp'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -59,14 +56,14 @@
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+					<Timestamp timestamp={selection.entitySelector.timestampMs} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 
@@ -107,7 +104,7 @@
 						<div>
 							<dt>base asset ID</dt>
 							<dd>
-								{String(baseAssetId)}
+								{baseAssetId}
 							</dd>
 						</div>
 					{/if}
@@ -129,7 +126,7 @@
 						<div>
 							<dt>quote asset ID</dt>
 							<dd>
-								{String(quoteAssetId)}
+								{quoteAssetId}
 							</dd>
 						</div>
 					{/if}
@@ -151,7 +148,7 @@
 						<div>
 							<dt>is canonical</dt>
 							<dd>
-								{String(isCanonical)}
+								{isCanonical}
 							</dd>
 						</div>
 					{/if}

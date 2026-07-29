@@ -33,7 +33,7 @@
 			resolve(
 				'/(social)/(farcaster)/farcaster/(farcasterNetwork)/user/[userId=farcasterFid]',
 				{
-					userId: String(params.userId),
+					userId: params.userId,
 				}
 			)
 		}
@@ -49,7 +49,7 @@
 					resolve(
 						'/(social)/(farcaster)/farcaster/(farcasterNetwork)/user/[userId=farcasterFid]',
 						{
-							userId: String(params.userId),
+							userId: params.userId,
 						}
 					)
 				}

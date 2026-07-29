@@ -9,7 +9,8 @@ import YoutubeCommentSchema from '$/schema/YoutubeComment.ts'
 import { type as arktype } from 'arktype'
 
 export const load: LayoutLoad = ({ params }) => {
-	if (!(matchStringSegment(params.videoId) && matchStringSegment(params.commentId))) error(404, 'Route mapping not applicable')
+	if (!(matchStringSegment(params.videoId) && matchStringSegment(params.commentId)))
+		error(404, 'Route mapping not applicable')
 
 	const youtubeCommentVideoIdCommentIdSelector = parseEntitySelector(
 		schema,
@@ -19,7 +20,8 @@ export const load: LayoutLoad = ({ params }) => {
 			commentId: decodeURIComponent(params.commentId),
 		}
 	)
-	if (youtubeCommentVideoIdCommentIdSelector instanceof arktype.errors) error(404, 'Invalid YoutubeComment selector')
+	if (youtubeCommentVideoIdCommentIdSelector instanceof arktype.errors)
+		error(404, 'Invalid YoutubeComment selector')
 
 	return {
 		selector: youtubeCommentVideoIdCommentIdSelector,

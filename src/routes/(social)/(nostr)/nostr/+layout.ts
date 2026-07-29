@@ -15,7 +15,8 @@ export const load: LayoutLoad = ({ params }) => {
 			scope: '_GlobalNostrNetwork',
 		}
 	)
-	if (globalNostrNetworkScopeSelector instanceof arktype.errors) error(404, 'Invalid _GlobalNostrNetwork selector')
+	if (globalNostrNetworkScopeSelector instanceof arktype.errors)
+		error(404, 'Invalid _GlobalNostrNetwork selector')
 
 	return {
 		selector: globalNostrNetworkScopeSelector,

@@ -20,9 +20,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.SuiPackage> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const titleFallback = 'Sui package'
-
 
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -33,7 +30,7 @@
 <EntityView
 	entityType={EntityType.SuiPackage}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? 'Sui package'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -58,7 +55,7 @@
 			<div>
 				<dt>original package ID</dt>
 				<dd>
-					{pendingEntity.originalPackageId}
+					{selection.entitySelector.originalPackageId}
 				</dd>
 			</div>
 		</dl>

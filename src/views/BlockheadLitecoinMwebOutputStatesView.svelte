@@ -51,7 +51,7 @@
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{String(blockheadLitecoinMwebOutputState.amountLitoshis ?? '')}</span>
+				<span data-text="annotation">{blockheadLitecoinMwebOutputState.amountLitoshis ?? ''}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

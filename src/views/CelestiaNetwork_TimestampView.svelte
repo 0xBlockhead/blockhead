@@ -20,14 +20,12 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.CelestiaNetwork_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const celestiaNetworkTimestamp = $derived(selection({
 		fields: {
 			latestHeight: true,
 			health: true,
 		},
 	}))
-	const titleFallback = $derived(String(pendingEntity.timestampMs ?? '') || 'celestia network timestamp')
 
 
 	// Components
@@ -42,26 +40,26 @@
 <EntityView
 	entityType={EntityType.CelestiaNetwork_Timestamp}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? String(selection.entitySelector.timestampMs)}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+		<Timestamp timestamp={selection.entitySelector.timestampMs} />
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={celestiaNetworkTimestamp}>
 			{#snippet children(entity)}
-				{[String(entity.latestHeight ?? ''), (entity.health ?? '')].filter(Boolean).join(' ') || String(pendingEntity.timestampMs) || titleFallback}
+				{[String(entity.latestHeight ?? ''), (entity.health ?? '')].filter(Boolean).join(' ') || String(selection.entitySelector.timestampMs)}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
 		<span data-text="muted">
-			{pendingEntity.source}
+			{selection.entitySelector.source}
 		</span>
 	{/snippet}
 
@@ -81,14 +79,14 @@
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+					<Timestamp timestamp={selection.entitySelector.timestampMs} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 
@@ -187,7 +185,7 @@
 						<div>
 							<dt>latest block time ms</dt>
 							<dd>
-								<Timestamp timestamp={Number(latestBlockTimeMs)} />
+								<Timestamp timestamp={latestBlockTimeMs} />
 							</dd>
 						</div>
 					{/if}

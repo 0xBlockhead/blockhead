@@ -32,10 +32,10 @@
 			resolve(
 				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(transactions)/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/(selection)/instruction/[instructionKind=stringSegment]/[indexInTransaction=nonNegativeInteger]',
 				{
-					network: String(params.network),
-					transactionId: String(params.transactionId),
-					instructionKind: String(params.instructionKind),
-					indexInTransaction: String(params.indexInTransaction),
+					network: params.network,
+					transactionId: params.transactionId,
+					instructionKind: params.instructionKind,
+					indexInTransaction: params.indexInTransaction,
 				}
 			)
 		}
@@ -47,10 +47,10 @@
 					resolve(
 						'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(transactions)/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/(selection)/instruction/[instructionKind=stringSegment]/[indexInTransaction=nonNegativeInteger]',
 						{
-							network: String(params.network),
-							transactionId: String(params.transactionId),
-							instructionKind: String(params.instructionKind),
-							indexInTransaction: String(params.indexInTransaction),
+							network: params.network,
+							transactionId: params.transactionId,
+							instructionKind: params.instructionKind,
+							indexInTransaction: params.indexInTransaction,
 						}
 					)
 				}

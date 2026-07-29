@@ -20,9 +20,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.HederaNetworkExchangeRate_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const titleFallback = 'hedera network exchange rate timestamp'
-
 
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -34,7 +31,7 @@
 <EntityView
 	entityType={EntityType.HederaNetworkExchangeRate_Timestamp}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? 'hedera network exchange rate timestamp'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -59,14 +56,14 @@
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+					<Timestamp timestamp={selection.entitySelector.timestampMs} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 
@@ -85,7 +82,7 @@
 						<div>
 							<dt>current rate cent equivalent</dt>
 							<dd>
-								{String(currentRateCentEquivalent)}
+								{currentRateCentEquivalent}
 							</dd>
 						</div>
 					{/if}
@@ -107,7 +104,7 @@
 						<div>
 							<dt>current rate HBAR equivalent</dt>
 							<dd>
-								{String(currentRateHbarEquivalent)}
+								{currentRateHbarEquivalent}
 							</dd>
 						</div>
 					{/if}
@@ -151,7 +148,7 @@
 						<div>
 							<dt>next rate cent equivalent</dt>
 							<dd>
-								{String(nextRateCentEquivalent)}
+								{nextRateCentEquivalent}
 							</dd>
 						</div>
 					{/if}
@@ -173,7 +170,7 @@
 						<div>
 							<dt>next rate HBAR equivalent</dt>
 							<dd>
-								{String(nextRateHbarEquivalent)}
+								{nextRateHbarEquivalent}
 							</dd>
 						</div>
 					{/if}

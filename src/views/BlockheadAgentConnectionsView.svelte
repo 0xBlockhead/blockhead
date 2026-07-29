@@ -45,11 +45,11 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{(blockheadAgentConnection.connectionKind ?? '')}
+				{blockheadAgentConnection.connectionKind ?? ''}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{String(blockheadAgentConnection.enabled ?? '')}</span>
+				<span data-text="annotation">{blockheadAgentConnection.enabled ?? ''}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

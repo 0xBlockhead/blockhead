@@ -2,7 +2,8 @@
 
 import bindings from '$/sources/MempoolSpace/bindings.ts'
 import { Source } from '$/sources/Source.ts'
-import { SourceProvider, type SourceProviderDefinition } from '$/sources/SourceProvider.ts'
+import { SourceProvider } from '$/sources/SourceProvider.ts'
+import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinition.ts'
 
 export default {
 	provider: SourceProvider.MempoolSpace,
@@ -13,5 +14,5 @@ export default {
 			label: 'mempool.space REST',
 		},
 	],
-	bindings: [bindings[Source.MempoolSpace_Rest]],
+	bindings: Object.values(bindings).flat(),
 } satisfies SourceProviderDefinition

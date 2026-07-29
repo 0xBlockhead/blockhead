@@ -4,7 +4,6 @@
 	// Types/constants
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 
 
 	// Context
@@ -21,9 +20,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.AlgorandTransactionGroup> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const titleFallback = 'algorand transaction group'
-
 
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -35,7 +31,7 @@
 <EntityView
 	entityType={EntityType.AlgorandTransactionGroup}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? 'algorand transaction group'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -60,22 +56,22 @@
 			<div>
 				<dt>group</dt>
 				<dd>
-					{String(pendingEntity.group)}
+					{selection.entitySelector.group}
 				</dd>
 			</div>
 		</dl>
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const algorandTransactionGroupAlgorandTransactionsViewTransactionsResource = selection.$$transactions}
+		{@const transactionsResource = selection.$$transactions}
 		<ResourceBoundary
-			resource={algorandTransactionGroupAlgorandTransactionsViewTransactionsResource}
+			resource={transactionsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<AlgorandTransactionsView
-						selection={algorandTransactionGroupAlgorandTransactionsViewTransactionsResource}
-						countResource={algorandTransactionGroupAlgorandTransactionsViewTransactionsResource.count}
+						selection={transactionsResource}
+						countResource={transactionsResource.count}
 						title='transactions'
 						id='transactions'
 					/>

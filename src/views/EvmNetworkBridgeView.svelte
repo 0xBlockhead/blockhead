@@ -6,7 +6,6 @@
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
-	import { UrlString } from '$/schema/UrlString.ts'
 
 
 	// Context
@@ -24,13 +23,13 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.EvmNetworkBridge> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const fromNetwork = $derived(selection.entitySelector.$fromNetwork)
+	const toNetwork = $derived(selection.entitySelector.$toNetwork)
 	const evmNetworkBridge = $derived(selection({
 		fields: {
 			relationshipType: true,
 		},
 	}))
-	const titleFallback = $derived(String(pendingEntity.url ?? '') || 'EVM network bridge')
 
 
 	// Components
@@ -43,26 +42,29 @@
 <EntityView
 	entityType={EntityType.EvmNetworkBridge}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? (selection.entitySelector.url || 'EVM network bridge')}
 	href={
-		href ?? (
-			'caip2' in selection.entitySelector.$toNetwork ?
-				resolve(
-					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/bridges/[toCaip2=networkCaip2]/[url=absoluteUrl]',
-					{
-						network: (
-							'caip2' in selection.entitySelector.$fromNetwork ?
-								String(caip2StringFromValue(selection.entitySelector.$fromNetwork.caip2))
-							:
-								String(selection.entitySelector.$fromNetwork.slug)
-						),
-						toCaip2: String(caip2StringFromValue(selection.entitySelector.$toNetwork.caip2)),
-						url: encodeURIComponent(String(selection.entitySelector.url)),
-					}
-				)
-			:
-				undefined
-		)
+		href === undefined ?
+			(
+				'caip2' in toNetwork ?
+					resolve(
+						'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/bridges/[toCaip2=networkCaip2]/[url=absoluteUrl]',
+						{
+							network: (
+								'caip2' in fromNetwork ?
+									caip2StringFromValue(fromNetwork.caip2)
+								:
+									fromNetwork.slug
+							),
+							toCaip2: caip2StringFromValue(toNetwork.caip2),
+							url: encodeURIComponent(selection.entitySelector.url),
+						}
+					)
+				:
+					undefined
+			)
+		:
+			href ?? undefined
 	}
 	{layout}
 	bind:open
@@ -70,25 +72,25 @@
 >
 	{#snippet Title()}
 		<a
-			href={String(pendingEntity.url)}
+			href={selection.entitySelector.url}
 			target="_blank"
 			rel="noreferrer noopener"
 		>
-			<TruncatedValue value={String(pendingEntity.url)} />
+			<TruncatedValue value={selection.entitySelector.url} />
 		</a>
 	{/snippet}
 
 	{#snippet Value()}
-		<TruncatedValue value={String(pendingEntity.url)} />
+		<TruncatedValue value={selection.entitySelector.url} />
 	{/snippet}
 
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={evmNetworkBridge}>
 			{#snippet children(entity)}
-				{@const relationshipType0 = entity.relationshipType}
-				{#if relationshipType0 != null}
+				{@const relationshipType = entity.relationshipType}
+				{#if relationshipType != null}
 					<span data-text="muted">
-						{relationshipType0}
+						{relationshipType}
 					</span>
 				{/if}
 			{/snippet}
@@ -101,11 +103,11 @@
 				<dt>URL</dt>
 				<dd>
 					<a
-						href={String(pendingEntity.url)}
+						href={selection.entitySelector.url}
 						target="_blank"
 						rel="noreferrer noopener"
 					>
-						<TruncatedValue value={String(pendingEntity.url)} />
+						<TruncatedValue value={selection.entitySelector.url} />
 					</a>
 				</dd>
 			</div>

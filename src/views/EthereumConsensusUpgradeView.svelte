@@ -6,7 +6,6 @@
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
-	import { ConsensusProtocol } from '$/schema/NetworkUpgradeProtocols.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -21,7 +20,7 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.EthereumConsensusUpgrade> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const network = $derived(selection.entitySelector.$network)
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Constants_Internal,
@@ -37,7 +36,7 @@
 			activationTimestampMs: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.upgradeId ?? '') || (pendingEntity.name ?? '') || 'Ethereum consensus upgrade')
+	const titleFallback = $derived((prefetched.upgradeId ?? '') || (prefetched.name ?? '') || 'Ethereum consensus upgrade')
 
 
 	// Components
@@ -54,23 +53,26 @@
 	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
 	href={
-		href ?? (
-			'slug' in selection.entitySelector ?
-				resolve(
-					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(upgrades)/consensus/[upgradeSlug=stringSegment]',
-					{
-						network: (
-							'caip2' in selection.entitySelector.$network ?
-								String(caip2StringFromValue(selection.entitySelector.$network.caip2))
-							:
-								String(selection.entitySelector.$network.slug)
-						),
-						upgradeSlug: String(selection.entitySelector.slug),
-					}
-				)
-			:
-				undefined
-		)
+		href === undefined ?
+			(
+				'slug' in selection.entitySelector ?
+					resolve(
+						'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(upgrades)/consensus/[upgradeSlug=stringSegment]',
+						{
+							network: (
+								'caip2' in network ?
+									caip2StringFromValue(network.caip2)
+								:
+									network.slug
+							),
+							upgradeSlug: selection.entitySelector.slug,
+						}
+					)
+				:
+					undefined
+			)
+		:
+			href ?? undefined
 	}
 	{layout}
 	bind:open
@@ -155,7 +157,7 @@
 						<div>
 							<dt>Activation time</dt>
 							<dd>
-								<Timestamp timestamp={Number(activationTimestampMs)} />
+								<Timestamp timestamp={activationTimestampMs} />
 							</dd>
 						</div>
 					{/if}
@@ -213,15 +215,15 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const ethereumConsensusUpgradeSpecificationProposalsViewProposalsResource = selection.$$proposals}
+		{@const proposalsResource = selection.$$proposals}
 		<ResourceBoundary
-			resource={ethereumConsensusUpgradeSpecificationProposalsViewProposalsResource}
+			resource={proposalsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<SpecificationProposalsView
-						selection={ethereumConsensusUpgradeSpecificationProposalsViewProposalsResource}
-						countResource={ethereumConsensusUpgradeSpecificationProposalsViewProposalsResource.count}
+						selection={proposalsResource}
+						countResource={proposalsResource.count}
 						title='Specification proposals'
 						id='proposals'
 					/>

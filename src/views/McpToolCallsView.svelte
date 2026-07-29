@@ -51,7 +51,7 @@
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{String(mcpToolCall.startedAt ?? '')}</span>
+				<span data-text="annotation">{mcpToolCall.startedAt ?? ''}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

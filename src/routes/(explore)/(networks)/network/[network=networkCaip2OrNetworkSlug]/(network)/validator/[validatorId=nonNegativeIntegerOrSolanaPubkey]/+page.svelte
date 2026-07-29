@@ -4,6 +4,7 @@
 	// Types/constants
 	import type { PageProps } from './$types.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { entityDefinitionByType } from '$/schema/index.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -38,20 +39,14 @@
 	const pageTitle = $derived(
 		(
 			data.entityType === EntityType.BeaconValidator && data.selectorName === 'NetworkIndexInNetwork' ?
-				((String(data.selector.indexInNetwork ?? '') ? 'Validator #' + String(data.selector.indexInNetwork ?? '') : '') || 'beacon validator')
+				(String(data.selector.indexInNetwork ?? '') ? 'Validator #' + String(data.selector.indexInNetwork ?? '') : '') || 'beacon validator'
 			:
-				(data.selector.votePubkey || 'solana validator')
+				data.selector.votePubkey || 'solana validator'
 		)
 	)
 	const entityViewByType = {
-		[EntityType.BeaconValidator]: {
-			Component: BeaconValidatorView,
-			label: 'beacon validator',
-		},
-		[EntityType.SolanaValidator]: {
-			Component: SolanaValidatorView,
-			label: 'solana validator',
-		},
+		[EntityType.BeaconValidator]: BeaconValidatorView,
+		[EntityType.SolanaValidator]: SolanaValidatorView,
 	}
 
 	// Components
@@ -62,12 +57,12 @@
 
 
 <svelte:head>
-	<title>{pageTitle} • {entityViewByType[data.entityType].label} • Blockhead</title>
+	<title>{pageTitle} • {entityDefinitionByType[data.entityType].labels.singular} • Blockhead</title>
 </svelte:head>
 
 
 <Page>
-	{@const EntityView = entityViewByType[data.entityType].Component}
+	{@const EntityView = entityViewByType[data.entityType]}
 
 	<EntityView
 		selection={pageSelection}

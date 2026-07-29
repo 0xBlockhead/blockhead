@@ -20,9 +20,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.TonContract_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const titleFallback = 'TON contract timestamp'
-
 
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -35,7 +32,7 @@
 <EntityView
 	entityType={EntityType.TonContract_Timestamp}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? 'TON contract timestamp'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -60,14 +57,14 @@
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+					<Timestamp timestamp={selection.entitySelector.timestampMs} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 
@@ -153,11 +150,11 @@
 							<dt>verified source URL</dt>
 							<dd>
 								<a
-									href={String(verifiedSourceUrl)}
+									href={verifiedSourceUrl}
 									target="_blank"
 									rel="noreferrer noopener"
 								>
-									<TruncatedValue value={String(verifiedSourceUrl)} />
+									<TruncatedValue value={verifiedSourceUrl} />
 								</a>
 							</dd>
 						</div>
@@ -180,7 +177,7 @@
 						<div>
 							<dt>verified AT ms</dt>
 							<dd>
-								{String(verifiedAtMs)}
+								{verifiedAtMs}
 							</dd>
 						</div>
 					{/if}

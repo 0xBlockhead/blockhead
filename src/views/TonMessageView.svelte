@@ -21,8 +21,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.TonMessage> = $props()
 
-	const titleFallback = 'TON message'
-
 
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -36,7 +34,7 @@
 <EntityView
 	entityType={EntityType.TonMessage}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? 'TON message'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -119,7 +117,7 @@
 						<div>
 							<dt>out index</dt>
 							<dd>
-								{String(outIndex)}
+								{outIndex}
 							</dd>
 						</div>
 					{/if}
@@ -204,7 +202,7 @@
 						<div>
 							<dt>value nano</dt>
 							<dd>
-								{String(valueNano)}
+								{valueNano}
 							</dd>
 						</div>
 					{/if}
@@ -226,7 +224,7 @@
 						<div>
 							<dt>created lt</dt>
 							<dd>
-								{String(createdLt)}
+								{createdLt}
 							</dd>
 						</div>
 					{/if}
@@ -314,7 +312,7 @@
 						<div>
 							<dt>opcode</dt>
 							<dd>
-								{String(opcode)}
+								{opcode}
 							</dd>
 						</div>
 					{/if}

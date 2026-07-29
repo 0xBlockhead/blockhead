@@ -6,7 +6,6 @@
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { EvmInternalCallType } from '$/constants/Evm.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
 	import { Source } from '$/sources/Source.ts'
 
@@ -51,6 +50,7 @@
 >
 	{#snippet Item({ item: evmInternalTransfer })}
 		{@const evmInternalTransferSelector = evmInternalTransfer[EntityMetaKey.Selector]}
+		{@const transaction = evmInternalTransferSelector.$transaction}
 		<EntityView
 			entityType={EntityType.EvmInternalTransfer}
 			entitySelector={evmInternalTransferSelector}
@@ -59,23 +59,23 @@
 					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(transactions)/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/(selection)/internal-transfer/[indexInTransaction=nonNegativeInteger]',
 					{
 						network: (
-							'caip2' in evmInternalTransferSelector.$transaction.$network ?
-								String(caip2StringFromValue(evmInternalTransferSelector.$transaction.$network.caip2))
+							'caip2' in transaction.$network ?
+								caip2StringFromValue(transaction.$network.caip2)
 							:
-								String(evmInternalTransferSelector.$transaction.$network.slug)
+								transaction.$network.slug
 						),
-						transactionId: String(evmInternalTransferSelector.$transaction.txHash),
+						transactionId: transaction.txHash,
 						indexInTransaction: String(evmInternalTransferSelector.indexInTransaction),
 					}
 				)
 			}
 		>
 			{#snippet Title()}
-				{(String(evmInternalTransferSelector.indexInTransaction ?? '') ? 'Internal #' + String(evmInternalTransferSelector.indexInTransaction ?? '') : '') || ([(String(evmInternalTransferSelector.indexInTransaction) ? 'Internal #' + String(evmInternalTransferSelector.indexInTransaction) : ''), evmInternalTransfer.callType, String(evmInternalTransfer.value)].filter(Boolean).join(' ')) || (String(evmInternalTransferSelector.indexInTransaction) ? '#' + String(evmInternalTransferSelector.indexInTransaction) : '') || 'EVM internal transfer'}
+				{`Internal #${evmInternalTransferSelector.indexInTransaction}`}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{String(evmInternalTransfer.success ?? '')}</span>
+				<span data-text="annotation">{evmInternalTransfer.success ?? ''}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

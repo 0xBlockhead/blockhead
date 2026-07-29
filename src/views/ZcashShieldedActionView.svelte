@@ -7,8 +7,6 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
-	import { ZcashShieldedActionKind } from '$/schema/ZcashShieldedAction.ts'
-	import { ZcashShieldedPoolKind } from '$/schema/ZcashShieldedPool.ts'
 
 
 	// Context
@@ -26,14 +24,14 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.ZcashShieldedAction> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const transaction = $derived(selection.entitySelector.$transaction)
 	const zcashShieldedAction = $derived(selection({
 		fields: {
 			nullifier: true,
 			noteCommitment: true,
 		},
 	}))
-	const titleFallback = $derived([(pendingEntity.actionKind ?? ''), String(pendingEntity.indexInTransaction ?? '')].filter(Boolean).join(' ') || 'Zcash shielded action')
+	const titleFallback = $derived([selection.entitySelector.actionKind, String(selection.entitySelector.indexInTransaction)].filter(Boolean).join(' ') || 'Zcash shielded action')
 
 
 	// Components
@@ -49,47 +47,50 @@
 	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
 	href={
-		href ?? resolve(
-			'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(transactions)/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/(selection)/shielded-action/[pool=stringSegment]/[actionKind=stringSegment]/[actionIndex=nonNegativeInteger]',
-			{
-				network: (
-					'caip2' in selection.entitySelector.$transaction.$network ?
-						String(caip2StringFromValue(selection.entitySelector.$transaction.$network.caip2))
-					:
-						String(selection.entitySelector.$transaction.$network.slug)
-				),
-				transactionId: String(selection.entitySelector.$transaction.txId),
-				pool: String(selection.entitySelector.pool),
-				actionKind: String(selection.entitySelector.actionKind),
-				actionIndex: String(selection.entitySelector.indexInTransaction),
-			}
-		)
+		href === undefined ?
+			resolve(
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(transactions)/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/(selection)/shielded-action/[pool=stringSegment]/[actionKind=stringSegment]/[actionIndex=nonNegativeInteger]',
+				{
+					network: (
+						'caip2' in transaction.$network ?
+							caip2StringFromValue(transaction.$network.caip2)
+						:
+							transaction.$network.slug
+					),
+					transactionId: transaction.txId,
+					pool: selection.entitySelector.pool,
+					actionKind: selection.entitySelector.actionKind,
+					actionIndex: String(selection.entitySelector.indexInTransaction),
+				}
+			)
+		:
+			href ?? undefined
 	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{[(pendingEntity.actionKind ?? ''), String(pendingEntity.indexInTransaction ?? '')].filter(Boolean).join(' ') || 'Zcash shielded action'}
+		{[selection.entitySelector.actionKind, String(selection.entitySelector.indexInTransaction)].filter(Boolean).join(' ') || 'Zcash shielded action'}
 	{/snippet}
 
 	{#snippet Value()}
-		{(pendingEntity.pool ?? '') || [(pendingEntity.actionKind ?? ''), String(pendingEntity.indexInTransaction ?? '')].filter(Boolean).join(' ') || titleFallback}
+		{selection.entitySelector.pool || [selection.entitySelector.actionKind, String(selection.entitySelector.indexInTransaction)].filter(Boolean).join(' ') || titleFallback}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={zcashShieldedAction}>
 			{#snippet children(entity)}
-				{@const nullifier0 = entity.nullifier}
-				{#if nullifier0 != null}
+				{@const nullifier = entity.nullifier}
+				{#if nullifier != null}
 					<span data-text="muted">
-						{nullifier0}
+						{nullifier}
 					</span>
 				{/if}
-				{@const noteCommitment1 = entity.noteCommitment}
-				{#if noteCommitment1 != null}
+				{@const noteCommitment = entity.noteCommitment}
+				{#if noteCommitment != null}
 					<span data-text="muted">
-						{noteCommitment1}
+						{noteCommitment}
 					</span>
 				{/if}
 			{/snippet}
@@ -101,14 +102,14 @@
 			<div>
 				<dt>Pool</dt>
 				<dd>
-					{pendingEntity.pool}
+					{selection.entitySelector.pool}
 				</dd>
 			</div>
 
 			<div>
 				<dt>Action kind</dt>
 				<dd>
-					{pendingEntity.actionKind}
+					{selection.entitySelector.actionKind}
 				</dd>
 			</div>
 
@@ -116,7 +117,7 @@
 				<dt>Index in transaction</dt>
 				<dd>
 					<NumberValue
-						value={pendingEntity.indexInTransaction}
+						value={selection.entitySelector.indexInTransaction}
 					/>
 				</dd>
 			</div>

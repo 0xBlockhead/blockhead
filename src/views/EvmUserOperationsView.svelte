@@ -49,6 +49,7 @@
 >
 	{#snippet Item({ item: evmUserOperation })}
 		{@const evmUserOperationSelector = evmUserOperation[EntityMetaKey.Selector]}
+		{@const network = evmUserOperationSelector.$network}
 		<EntityView
 			entityType={EntityType.EvmUserOperation}
 			entitySelector={evmUserOperationSelector}
@@ -57,12 +58,12 @@
 					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/user-operation/[userOperationHash=userOperationHash]',
 					{
 						network: (
-							'caip2' in evmUserOperationSelector.$network ?
-								String(caip2StringFromValue(evmUserOperationSelector.$network.caip2))
+							'caip2' in network ?
+								caip2StringFromValue(network.caip2)
 							:
-								String(evmUserOperationSelector.$network.slug)
+								network.slug
 						),
-						userOperationHash: String(evmUserOperationSelector.hash),
+						userOperationHash: evmUserOperationSelector.hash,
 					}
 				)
 			}
@@ -76,7 +77,7 @@
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{String(evmUserOperation.successful ?? '')}</span>
+				<span data-text="annotation">{evmUserOperation.successful ?? ''}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

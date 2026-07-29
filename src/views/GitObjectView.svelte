@@ -5,7 +5,6 @@
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 
 
 	// Context
@@ -22,13 +21,12 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.GitObject> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const gitObject = $derived(selection({
 		fields: {
 			objectKind: true,
 		},
 	}))
-	const titleFallback = $derived(String(pendingEntity.objectId ?? '') || 'Git object')
+	const titleFallback = $derived(selection.entitySelector.objectId || 'Git object')
 
 
 	// Components
@@ -48,13 +46,13 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<TruncatedValue value={String(pendingEntity.objectId)} />
+		<TruncatedValue value={selection.entitySelector.objectId} />
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={gitObject}>
 			{#snippet children(entity)}
-				{[entity.objectKind, pendingEntity.objectFormat].filter(Boolean).join(' ') || String(pendingEntity.objectId) || titleFallback}
+				{[entity.objectKind, selection.entitySelector.objectFormat].filter(Boolean).join(' ') || selection.entitySelector.objectId || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -64,14 +62,14 @@
 			<div>
 				<dt>object ID</dt>
 				<dd>
-					<TruncatedValue value={String(pendingEntity.objectId)} />
+					<TruncatedValue value={selection.entitySelector.objectId} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>object format</dt>
 				<dd>
-					{pendingEntity.objectFormat}
+					{selection.entitySelector.objectFormat}
 				</dd>
 			</div>
 

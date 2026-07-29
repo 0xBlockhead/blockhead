@@ -20,9 +20,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.HederaContractAction> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const titleFallback = 'hedera contract action'
-
 
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -34,7 +31,7 @@
 <EntityView
 	entityType={EntityType.HederaContractAction}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? 'hedera contract action'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -59,14 +56,14 @@
 			<div>
 				<dt>call depth</dt>
 				<dd>
-					{String(pendingEntity.callDepth)}
+					{selection.entitySelector.callDepth}
 				</dd>
 			</div>
 
 			<div>
 				<dt>call index</dt>
 				<dd>
-					{String(pendingEntity.callIndex)}
+					{selection.entitySelector.callIndex}
 				</dd>
 			</div>
 
@@ -107,7 +104,7 @@
 						<div>
 							<dt>from address</dt>
 							<dd>
-								<TruncatedValue value={String(fromAddress)} />
+								<TruncatedValue value={fromAddress} />
 							</dd>
 						</div>
 					{/if}
@@ -129,7 +126,7 @@
 						<div>
 							<dt>to address</dt>
 							<dd>
-								<TruncatedValue value={String(toAddress)} />
+								<TruncatedValue value={toAddress} />
 							</dd>
 						</div>
 					{/if}
@@ -151,7 +148,7 @@
 						<div>
 							<dt>gas</dt>
 							<dd>
-								{String(gas)}
+								{gas}
 							</dd>
 						</div>
 					{/if}
@@ -173,7 +170,7 @@
 						<div>
 							<dt>gas used</dt>
 							<dd>
-								{String(gasUsed)}
+								{gasUsed}
 							</dd>
 						</div>
 					{/if}
@@ -195,7 +192,7 @@
 						<div>
 							<dt>value tinybar</dt>
 							<dd>
-								{String(valueTinybar)}
+								{valueTinybar}
 							</dd>
 						</div>
 					{/if}

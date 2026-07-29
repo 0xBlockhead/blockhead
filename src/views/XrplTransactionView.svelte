@@ -23,8 +23,7 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.XrplTransaction> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const titleFallback = 'XRPL transaction'
+	const network = $derived(selection.entitySelector.$network)
 
 
 	// Components
@@ -37,20 +36,23 @@
 <EntityView
 	entityType={EntityType.XrplTransaction}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? 'XRPL transaction'}
 	href={
-		href ?? resolve(
-			'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/transaction/[hash=stringSegment]',
-			{
-				network: (
-					'caip2' in selection.entitySelector.$network ?
-						String(caip2StringFromValue(selection.entitySelector.$network.caip2))
-					:
-						String(selection.entitySelector.$network.slug)
-				),
-				hash: String(selection.entitySelector.hash),
-			}
-		)
+		href === undefined ?
+			resolve(
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/transaction/[hash=stringSegment]',
+				{
+					network: (
+						'caip2' in network ?
+							caip2StringFromValue(network.caip2)
+						:
+							network.slug
+					),
+					hash: selection.entitySelector.hash,
+				}
+			)
+		:
+			href ?? undefined
 	}
 	{layout}
 	bind:open
@@ -76,7 +78,7 @@
 			<div>
 				<dt>Hash</dt>
 				<dd>
-					<TruncatedValue value={pendingEntity.hash} />
+					<TruncatedValue value={selection.entitySelector.hash} />
 				</dd>
 			</div>
 
@@ -133,7 +135,7 @@
 						<div>
 							<dt>sequence</dt>
 							<dd>
-								{String(sequence)}
+								{sequence}
 							</dd>
 						</div>
 					{/if}

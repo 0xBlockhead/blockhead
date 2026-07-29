@@ -24,13 +24,12 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.Market_TimeInterval_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const market = $derived(selection.entitySelector.$market)
 	const marketTimeIntervalTimestamp = $derived(selection({
 		fields: {
 			close: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.timeInterval == null ? '' : `${pendingEntity.timeInterval.value}${pendingEntity.timeInterval.unit}`) || 'OHLC candle')
 
 
 	// Components
@@ -44,38 +43,41 @@
 <EntityView
 	entityType={EntityType.Market_TimeInterval_Timestamp}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? (`${selection.entitySelector.timeInterval.value}${selection.entitySelector.timeInterval.unit}` || 'OHLC candle')}
 	href={
-		href ?? resolve(
-			'/(assets)/venue/[marketVenue=marketVenueId]/market/[baseKind=stringSegment]/[base=stringSegment]/[quoteKind=stringSegment]/[quote=stringSegment]/[marketKind=stringSegment]/(market)/candles/[timeIntervalUnit=stringSegment]/[timeIntervalValue=nonNegativeInteger]/[timestampMs=nonNegativeInteger]',
-			{
-				marketVenue: String(selection.entitySelector.$market.$marketVenue.marketVenueId),
-				baseKind: String(marketAssetRouteLabelByKind[String(selection.entitySelector.$market.$base.kind)]),
-				base: String(selection.entitySelector.$market.$base.assetKey),
-				quoteKind: String(marketAssetRouteLabelByKind[String(selection.entitySelector.$market.$quote.kind)]),
-				quote: String(selection.entitySelector.$market.$quote.assetKey),
-				marketKind: String(selection.entitySelector.$market.marketKind),
-				timeIntervalUnit: String(selection.entitySelector.timeInterval.unit),
-				timeIntervalValue: String(selection.entitySelector.timeInterval.value),
-				timestampMs: String(selection.entitySelector.timestampMs),
-			}
-		)
+		href === undefined ?
+			resolve(
+				'/(assets)/venue/[marketVenue=marketVenueId]/market/[baseKind=stringSegment]/[base=stringSegment]/[quoteKind=stringSegment]/[quote=stringSegment]/[marketKind=stringSegment]/(market)/candles/[timeIntervalUnit=stringSegment]/[timeIntervalValue=nonNegativeInteger]/[timestampMs=nonNegativeInteger]',
+				{
+					marketVenue: market.$marketVenue.marketVenueId,
+					baseKind: marketAssetRouteLabelByKind[market.$base.kind],
+					base: market.$base.assetKey,
+					quoteKind: marketAssetRouteLabelByKind[market.$quote.kind],
+					quote: market.$quote.assetKey,
+					marketKind: market.marketKind,
+					timeIntervalUnit: selection.entitySelector.timeInterval.unit,
+					timeIntervalValue: String(selection.entitySelector.timeInterval.value),
+					timestampMs: String(selection.entitySelector.timestampMs),
+				}
+			)
+		:
+			href ?? undefined
 	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{(pendingEntity.timeInterval == null ? '' : `${pendingEntity.timeInterval.value}${pendingEntity.timeInterval.unit}`) || 'OHLC candle'}
+		{`${selection.entitySelector.timeInterval.value}${selection.entitySelector.timeInterval.unit}` || 'OHLC candle'}
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={marketTimeIntervalTimestamp}>
 			{#snippet children(entity)}
-				{@const close0 = entity.close}
-				{#if close0 != null}
+				{@const close = entity.close}
+				{#if close != null}
 					<NumberValue
-						value={Number(close0) / 1e8}
+						value={Number(close) / 1e8}
 						formatValueOptions={{ currency: 'USD', showDecimalPlaces: 2, useGrouping: true }}
 					/>
 				{/if}
@@ -85,7 +87,7 @@
 
 	{#snippet HeadingAfter()}
 		<span data-text="muted">
-			<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+			<Timestamp timestamp={selection.entitySelector.timestampMs} />
 		</span>
 	{/snippet}
 
@@ -105,14 +107,14 @@
 			<div>
 				<dt>Time Interval</dt>
 				<dd>
-					{`${pendingEntity.timeInterval.value}${pendingEntity.timeInterval.unit}`}
+					{`${selection.entitySelector.timeInterval.value}${selection.entitySelector.timeInterval.unit}`}
 				</dd>
 			</div>
 
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+					<Timestamp timestamp={selection.entitySelector.timestampMs} />
 				</dd>
 			</div>
 

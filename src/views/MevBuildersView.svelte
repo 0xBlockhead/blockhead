@@ -37,6 +37,7 @@
 >
 	{#snippet Item({ item: mevBuilder })}
 		{@const mevBuilderSelector = mevBuilder[EntityMetaKey.Selector]}
+		{@const network = mevBuilderSelector.$network}
 		<EntityView
 			entityType={EntityType.MevBuilder}
 			entitySelector={mevBuilderSelector}
@@ -45,12 +46,12 @@
 					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/mev/builder/[builderPubkey=stringSegment]',
 					{
 						network: (
-							'caip2' in mevBuilderSelector.$network ?
-								String(caip2StringFromValue(mevBuilderSelector.$network.caip2))
+							'caip2' in network ?
+								caip2StringFromValue(network.caip2)
 							:
-								String(mevBuilderSelector.$network.slug)
+								network.slug
 						),
-						builderPubkey: String(mevBuilderSelector.builderPubkey),
+						builderPubkey: mevBuilderSelector.builderPubkey,
 					}
 				)
 			}

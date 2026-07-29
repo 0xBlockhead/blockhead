@@ -33,8 +33,8 @@
 			resolve(
 				'/(explore)/(ipfs)/[namespace=ipfsNamespace]/[target=stringSegment]',
 				{
-					namespace: String(params.namespace),
-					target: String(params.target),
+					namespace: params.namespace,
+					target: params.target,
 				}
 			)
 		}
@@ -50,8 +50,8 @@
 					resolve(
 						'/(explore)/(ipfs)/[namespace=ipfsNamespace]/[target=stringSegment]',
 						{
-							namespace: String(params.namespace),
-							target: String(params.target),
+							namespace: params.namespace,
+							target: params.target,
 						}
 					)
 				}

@@ -25,7 +25,7 @@
 
 
 <svelte:head>
-	<title>{('global IPFS access')} • global IPFS access • Blockhead</title>
+	<title>{'global IPFS access'} • global IPFS access • Blockhead</title>
 </svelte:head>
 
 

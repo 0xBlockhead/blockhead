@@ -36,7 +36,7 @@
 
 
 <svelte:head>
-	<title>{(data.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.iso4217 ?? '') || 'currency' : pageSelection.entity.name || pageSelection.entitySelector.iso4217 || 'currency'))} • currency • Blockhead</title>
+	<title>{data.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.iso4217 ?? '') || 'currency' : pageSelection.entity.name || pageSelection.entitySelector.iso4217 || 'currency')} • currency • Blockhead</title>
 </svelte:head>
 
 

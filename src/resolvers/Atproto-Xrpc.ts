@@ -9,7 +9,7 @@ import {
 	entityFieldAddressKey,
 	EntityMetaKey,
 } from '$/schema/$schema.ts'
-import { MediaType } from '$/schema/Media.ts'
+import { MediaType } from '$/schema/MediaType.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 import type { BskyAppViewPostView } from '$/sources/AtprotoBsky/Rest/types.ts'

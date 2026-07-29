@@ -20,9 +20,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.ZeroGDataChunk> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const titleFallback = 'zero g data chunk'
-
 
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -33,7 +30,7 @@
 <EntityView
 	entityType={EntityType.ZeroGDataChunk}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? 'zero g data chunk'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -58,7 +55,7 @@
 			<div>
 				<dt>chunk index</dt>
 				<dd>
-					{String(pendingEntity.chunkIndex)}
+					{selection.entitySelector.chunkIndex}
 				</dd>
 			</div>
 
@@ -99,7 +96,7 @@
 						<div>
 							<dt>size bytes</dt>
 							<dd>
-								{String(sizeBytes)}
+								{sizeBytes}
 							</dd>
 						</div>
 					{/if}

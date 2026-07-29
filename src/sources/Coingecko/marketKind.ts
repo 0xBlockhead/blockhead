@@ -1,4 +1,4 @@
-import type { CoinId } from '$/constants/Coin.ts'
+import { CoinId } from '$/constants/Coin.ts'
 import { Iso4217 } from '$/constants/Currency.ts'
 import { MarketAssetKind, MarketKind } from '$/constants/Market.ts'
 import { MarketVenueId } from '$/constants/MarketVenue.ts'
@@ -30,13 +30,8 @@ export const marketVenueIdFromCoingeckoExchangeIdentifier = (
 	if (identifier == null || identifier === '') {
 		return null
 	}
-	for (const [marketVenueId, exchangeIdentifier] of (
-		Object.entries(coingeckoSpotExchangeIdentifierByMarketVenueId) as [
-			_MarketVenueId,
-			string,
-		][]
-	)) {
-		if (exchangeIdentifier === identifier) {
+	for (const marketVenueId of Object.values(MarketVenueId)) {
+		if (coingeckoSpotExchangeIdentifierByMarketVenueId[marketVenueId] === identifier) {
 			return marketVenueId
 		}
 	}
@@ -64,13 +59,11 @@ export const catalogCoinIdByCoingeckoId = (
 	idByCoinId: Partial<Record<CoinId, string>>
 ): Record<string, CoinId> => (
 	Object.fromEntries(
-		(
-			Object.entries(idByCoinId) as [CoinId, string | undefined][]
-		).flatMap(([catalogCoinId, coingeckoId]) => (
-			coingeckoId == null ?
+		Object.values(CoinId).flatMap((catalogCoinId) => (
+			idByCoinId[catalogCoinId] == null ?
 				[]
 			:
-				[[coingeckoId, catalogCoinId]]
+				[[idByCoinId[catalogCoinId], catalogCoinId]]
 		))
 	)
 )

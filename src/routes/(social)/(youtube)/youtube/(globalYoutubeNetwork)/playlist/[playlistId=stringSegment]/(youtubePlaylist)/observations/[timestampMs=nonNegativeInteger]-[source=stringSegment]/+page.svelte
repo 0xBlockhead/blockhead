@@ -39,7 +39,7 @@
 
 
 <svelte:head>
-	<title>{([String(pageSelection.entitySelector.timestampMs), pageSelection.entitySelector.source].filter(Boolean).join(' ') || 'YouTube playlist observation')} • YouTube playlist observation • Blockhead</title>
+	<title>{[String(pageSelection.entitySelector.timestampMs), pageSelection.entitySelector.source].filter(Boolean).join(' ') || 'YouTube playlist observation'} • YouTube playlist observation • Blockhead</title>
 </svelte:head>
 
 

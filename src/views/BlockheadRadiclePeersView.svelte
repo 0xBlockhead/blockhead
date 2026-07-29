@@ -47,11 +47,11 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{(blockheadRadiclePeer.connectionKind ?? '')}
+				{blockheadRadiclePeer.connectionKind ?? ''}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{(blockheadRadiclePeer.remoteAlias ?? '')}</span>
+				<span data-text="annotation">{blockheadRadiclePeer.remoteAlias ?? ''}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

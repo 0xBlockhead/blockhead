@@ -35,8 +35,8 @@
 			resolve(
 				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(blocks)/block/[blockNumber=nonNegativeBigInt]',
 				{
-					network: String(params.network),
-					blockNumber: String(params.blockNumber),
+					network: params.network,
+					blockNumber: params.blockNumber,
 				}
 			)
 		}
@@ -50,8 +50,8 @@
 					resolve(
 						'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(blocks)/block/[blockNumber=nonNegativeBigInt]',
 						{
-							network: String(params.network),
-							blockNumber: String(params.blockNumber),
+							network: params.network,
+							blockNumber: params.blockNumber,
 						}
 					)
 				}

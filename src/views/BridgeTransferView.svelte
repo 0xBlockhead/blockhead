@@ -22,7 +22,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.BridgeTransfer> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.LifiStatus_Rest,
@@ -37,7 +36,7 @@
 			railId: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.transferId ?? '') || 'bridge transfer')
+	const titleFallback = $derived((prefetched.transferId ?? '') || 'bridge transfer')
 
 
 	// Components
@@ -70,7 +69,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={bridgeTransfer}>
 			{#snippet children(entity)}
-				{[pendingEntity.source, (entity.railId ?? '')].filter(Boolean).join(' ') || entity.transferId || titleFallback}
+				{[selection.entitySelector.source, (entity.railId ?? '')].filter(Boolean).join(' ') || entity.transferId || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -93,7 +92,7 @@
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 
@@ -132,7 +131,7 @@
 						<div>
 							<dt>log index</dt>
 							<dd>
-								{String(logIndex)}
+								{logIndex}
 							</dd>
 						</div>
 					{/if}
@@ -416,15 +415,15 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const bridgeTransferBridgeTransferTimestampsViewTimestampsResource = selection.$$timestamps}
+		{@const timestampsResource = selection.$$timestamps}
 		<ResourceBoundary
-			resource={bridgeTransferBridgeTransferTimestampsViewTimestampsResource}
+			resource={timestampsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<BridgeTransfer_TimestampsView
-						selection={bridgeTransferBridgeTransferTimestampsViewTimestampsResource}
-						countResource={bridgeTransferBridgeTransferTimestampsViewTimestampsResource.count}
+						selection={timestampsResource}
+						countResource={timestampsResource.count}
 						title='timestamps'
 						id='timestamps'
 					/>

@@ -48,7 +48,7 @@
 				resolve(
 					'/~/multiplayer/room/[roomId=stringSegment]',
 					{
-						roomId: String(blockheadRoomSelector.id),
+						roomId: blockheadRoomSelector.id,
 					}
 				)
 			}
@@ -58,7 +58,7 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{String(blockheadRoom.createdAt)}
+				{blockheadRoom.createdAt}
 			{/snippet}
 		</EntityView>
 	{/snippet}

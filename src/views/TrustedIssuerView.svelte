@@ -20,13 +20,9 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.TrustedIssuer> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const titleFallback = 'trusted issuer'
-
 
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import TruncatedValue from '$/components/TruncatedValue.svelte'
 	import RegulatedAssetProfileView from '$/views/RegulatedAssetProfileView.svelte'
 </script>
 
@@ -34,7 +30,7 @@
 <EntityView
 	entityType={EntityType.TrustedIssuer}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? 'trusted issuer'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -59,7 +55,7 @@
 			<div>
 				<dt>issuer key</dt>
 				<dd>
-					<TruncatedValue value={pendingEntity.issuerKey} />
+					{selection.entitySelector.issuerKey}
 				</dd>
 			</div>
 

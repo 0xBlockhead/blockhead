@@ -45,11 +45,11 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{(nearAccessKey.permission ?? '')}
+				{nearAccessKey.permission ?? ''}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{String(nearAccessKey.nonce ?? '')}</span>
+				<span data-text="annotation">{nearAccessKey.nonce ?? ''}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

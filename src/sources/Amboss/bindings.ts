@@ -1,10 +1,10 @@
 // Generated from APP.ts. Do not edit by hand.
 
 import { Source } from '$/sources/Source.ts'
-import { ApiFamily, SourceArtifactKind, SourceCredentialScope, SourceDelivery, SourceEndpointKind, SourceOperationGroup, SourceTargetKind, WireProtocol, type SourceBindingIndex } from '$/sources/SourceBinding.ts'
+import { ApiFamily, indexSourceBindings, SourceArtifactKind, SourceCredentialScope, SourceDelivery, SourceEndpointKind, SourceOperationGroup, SourceTargetKind, WireProtocol, type SourceBinding } from '$/sources/SourceBinding.ts'
 
-export default {
-	[Source.Amboss_Graphql]: {
+const bindings = [
+	{
 		source: Source.Amboss_Graphql,
 		target: {
 			kind: SourceTargetKind.Global,
@@ -29,8 +29,6 @@ export default {
 				scope: SourceCredentialScope.RuntimeSecret,
 			},
 		],
-		proxyId: '["Amboss_Graphql","Global","amboss-space","HttpProxy","GraphqlHttp"]',
-		serverCredentialId: '["Amboss_Graphql","Global","amboss-space","HttpProxy","GraphqlHttp"]',
 		artifacts: [
 			{
 				kind: SourceArtifactKind.GraphqlSchema,
@@ -49,4 +47,6 @@ export default {
 			},
 		],
 	},
-} as const satisfies SourceBindingIndex
+] as const satisfies readonly SourceBinding[]
+
+export default indexSourceBindings<{ readonly [Source.Amboss_Graphql]: typeof bindings[0] }>(bindings)

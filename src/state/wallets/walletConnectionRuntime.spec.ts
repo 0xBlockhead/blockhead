@@ -21,7 +21,7 @@ import {
 	WalletTransportKind,
 	walletConnectionMethods,
 } from '$/constants/Wallet.ts'
-import { BlockheadConnectionStatus } from '$/schema/BlockheadWalletConnection.ts'
+import { BlockheadConnectionStatus } from '$/schema/BlockheadConnectionStatus.ts'
 import { EntityMetaKey, entityFieldAddressKey } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'

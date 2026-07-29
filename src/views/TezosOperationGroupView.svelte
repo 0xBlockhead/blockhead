@@ -21,9 +21,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.TezosOperationGroup> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const titleFallback = 'tezos operation group'
-
 
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -36,7 +33,7 @@
 <EntityView
 	entityType={EntityType.TezosOperationGroup}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? 'tezos operation group'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -61,7 +58,7 @@
 			<div>
 				<dt>operation hash</dt>
 				<dd>
-					<TruncatedValue value={pendingEntity.operationHash} />
+					<TruncatedValue value={selection.entitySelector.operationHash} />
 				</dd>
 			</div>
 
@@ -144,7 +141,7 @@
 						<div>
 							<dt>validation pass</dt>
 							<dd>
-								{String(validationPass)}
+								{validationPass}
 							</dd>
 						</div>
 					{/if}
@@ -166,7 +163,7 @@
 						<div>
 							<dt>operation count</dt>
 							<dd>
-								{String(operationCount)}
+								{operationCount}
 							</dd>
 						</div>
 					{/if}

@@ -45,7 +45,7 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{(zeroGServiceProvider.serviceKind ?? '')}
+				{zeroGServiceProvider.serviceKind ?? ''}
 			{/snippet}
 
 			{#snippet HeadingAfter()}

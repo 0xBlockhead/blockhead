@@ -20,9 +20,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.IcpCertifiedState> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const titleFallback = 'ICP certified state'
-
 
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -34,7 +31,7 @@
 <EntityView
 	entityType={EntityType.IcpCertifiedState}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? 'ICP certified state'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -59,14 +56,14 @@
 			<div>
 				<dt>certificate hash</dt>
 				<dd>
-					<TruncatedValue value={pendingEntity.certificateHash} />
+					<TruncatedValue value={selection.entitySelector.certificateHash} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>path hash</dt>
 				<dd>
-					<TruncatedValue value={pendingEntity.pathHash} />
+					<TruncatedValue value={selection.entitySelector.pathHash} />
 				</dd>
 			</div>
 
@@ -107,7 +104,7 @@
 						<div>
 							<dt>certified AT ms</dt>
 							<dd>
-								{String(certifiedAtMs)}
+								{certifiedAtMs}
 							</dd>
 						</div>
 					{/if}

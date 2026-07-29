@@ -41,12 +41,10 @@
 			entityType={EntityType.RssNetwork}
 			entitySelector={rssNetworkSelector}
 			href={
-				(
-					rssNetworkSelector.scope === 'RssNetwork' ?
-						resolve('/(social)/(rss)/rss')
-					:
-						undefined
-				)
+				rssNetworkSelector.scope === 'RssNetwork' ?
+					resolve('/(social)/(rss)/rss')
+				:
+					undefined
 			}
 		>
 			{#snippet Title()}

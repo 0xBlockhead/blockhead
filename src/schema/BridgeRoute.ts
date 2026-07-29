@@ -1,18 +1,13 @@
 // Generated from APP.ts. Do not edit by hand.
 
 import { entity } from '$/schema/$schema.ts'
-import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
+import { BridgeRouteTag } from '$/schema/BridgeRouteTag.ts'
+import { EntityFieldCardinality } from '$/schema/EntityFieldCardinality.ts'
+import { EntityFieldType } from '$/schema/EntityFieldType.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { EvmAddress } from '$/schema/ZeroExHex.ts'
 import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
-
-export enum BridgeRouteTag {
-	Best = 'BEST',
-	Cheapest = 'CHEAPEST',
-	Fastest = 'FASTEST',
-	Recommended = 'RECOMMENDED',
-}
 
 export default entity({
 	entityType: EntityType.BridgeRoute,

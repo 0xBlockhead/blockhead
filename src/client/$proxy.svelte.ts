@@ -43,10 +43,8 @@ import {
 	entityFieldAddressKey,
 	entitySelectorKey,
 } from '$/schema/$schema.ts'
-import {
-	EntityFieldCardinality,
-	EntityFieldType,
-} from '$/schema/EntityField.ts'
+import { EntityFieldCardinality } from '$/schema/EntityFieldCardinality.ts'
+import { EntityFieldType } from '$/schema/EntityFieldType.ts'
 
 
 export const EntityProxyField = Symbol('EntityProxyField')

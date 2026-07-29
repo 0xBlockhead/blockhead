@@ -48,7 +48,7 @@
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{String(blockheadIntentOrder.submittedAt)}</span>
+				<span data-text="annotation">{blockheadIntentOrder.submittedAt}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

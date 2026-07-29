@@ -5,7 +5,6 @@
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { UrlString } from '$/schema/UrlString.ts'
 
 
 	// State
@@ -48,11 +47,11 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{(mcpServer.transportKind ?? '')}
+				{mcpServer.transportKind ?? ''}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{String(mcpServer.endpointUrl ?? '')}</span>
+				<span data-text="annotation">{mcpServer.endpointUrl ?? ''}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

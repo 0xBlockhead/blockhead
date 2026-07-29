@@ -45,7 +45,7 @@
 				resolve(
 					'/(social)/(xmtp)/xmtp/(xmtpNetwork)/conversation/[conversationId=stringSegment]',
 					{
-						conversationId: String(xmtpConversationSelector.id),
+						conversationId: xmtpConversationSelector.id,
 					}
 				)
 			}
@@ -59,7 +59,7 @@
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{String(xmtpConversation.createdAtMs ?? '')}</span>
+				<span data-text="annotation">{xmtpConversation.createdAtMs ?? ''}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

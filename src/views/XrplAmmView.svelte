@@ -23,8 +23,7 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.XrplAmm> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const titleFallback = 'XRPL AMM'
+	const network = $derived(selection.entitySelector.$network)
 
 
 	// Components
@@ -37,20 +36,23 @@
 <EntityView
 	entityType={EntityType.XrplAmm}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? 'XRPL AMM'}
 	href={
-		href ?? resolve(
-			'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/amm/[ammAccount=stringSegment]',
-			{
-				network: (
-					'caip2' in selection.entitySelector.$network ?
-						String(caip2StringFromValue(selection.entitySelector.$network.caip2))
-					:
-						String(selection.entitySelector.$network.slug)
-				),
-				ammAccount: String(selection.entitySelector.ammAccount),
-			}
-		)
+		href === undefined ?
+			resolve(
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/amm/[ammAccount=stringSegment]',
+				{
+					network: (
+						'caip2' in network ?
+							caip2StringFromValue(network.caip2)
+						:
+							network.slug
+					),
+					ammAccount: selection.entitySelector.ammAccount,
+				}
+			)
+		:
+			href ?? undefined
 	}
 	{layout}
 	bind:open
@@ -76,7 +78,7 @@
 			<div>
 				<dt>AMM account</dt>
 				<dd>
-					<TruncatedValue value={pendingEntity.ammAccount} />
+					<TruncatedValue value={selection.entitySelector.ammAccount} />
 				</dd>
 			</div>
 

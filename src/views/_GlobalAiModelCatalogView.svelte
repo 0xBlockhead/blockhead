@@ -17,8 +17,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType._GlobalAiModelCatalog> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const titleFallback = 'global AI model catalog'
 	const viewDomId = $derived('-global-ai-model-catalog-' + encodeURIComponent(stringify(selection.entitySelector)))
 
 
@@ -40,7 +38,7 @@
 	entityType={EntityType._GlobalAiModelCatalog}
 	entitySelector={selection.entitySelector}
 	id={viewDomId}
-	title={title ?? titleFallback}
+	title={title ?? 'global AI model catalog'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -54,7 +52,7 @@
 			<div>
 				<dt>catalog ID</dt>
 				<dd>
-					{pendingEntity.catalogId}
+					{selection.entitySelector.catalogId}
 				</dd>
 			</div>
 

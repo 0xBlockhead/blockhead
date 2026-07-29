@@ -22,13 +22,11 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.RedditComment_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const redditCommentTimestamp = $derived(selection({
 		fields: {
 			score: true,
 		},
 	}))
-	const titleFallback = $derived(String(pendingEntity.timestampMs ?? '') || 'Reddit comment timestamp')
 
 
 	// Components
@@ -42,32 +40,35 @@
 <EntityView
 	entityType={EntityType.RedditComment_Timestamp}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? String(selection.entitySelector.timestampMs)}
 	href={
-		href ?? resolve(
-			'/(social)/(reddit)/reddit/(globalRedditNetwork)/comment/[fullname=stringSegment]/(redditComment)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
-			{
-				fullname: encodeURIComponent(String(selection.entitySelector.$comment.fullname)),
-				timestampMs: String(selection.entitySelector.timestampMs),
-				source: String(selection.entitySelector.source),
-			}
-		)
+		href === undefined ?
+			resolve(
+				'/(social)/(reddit)/reddit/(globalRedditNetwork)/comment/[fullname=stringSegment]/(redditComment)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
+				{
+					fullname: encodeURIComponent(selection.entitySelector.$comment.fullname),
+					timestampMs: String(selection.entitySelector.timestampMs),
+					source: selection.entitySelector.source,
+				}
+			)
+		:
+			href ?? undefined
 	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+		<Timestamp timestamp={selection.entitySelector.timestampMs} />
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={redditCommentTimestamp}>
 			{#snippet children(entity)}
-				{@const score0 = entity.score}
-				{#if score0 != null}
+				{@const score = entity.score}
+				{#if score != null}
 					<NumberValue
-						value={score0}
+						value={score}
 					/>
 				{/if}
 			{/snippet}
@@ -76,7 +77,7 @@
 
 	{#snippet HeadingAfter()}
 		<span data-text="muted">
-			{pendingEntity.source}
+			{selection.entitySelector.source}
 		</span>
 	{/snippet}
 
@@ -85,14 +86,14 @@
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+					<Timestamp timestamp={selection.entitySelector.timestampMs} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 

@@ -22,9 +22,9 @@ import {
 import { EntityType } from '$/schema/EntityType.ts'
 import type { Entity, EntitySelectorForSelectorName } from '$/schema/$schema.ts'
 import { UrlString } from '$/schema/UrlString.ts'
-import { CoinInstanceType } from '$/schema/EvmCoinInstance.ts'
+import { CoinInstanceType } from '$/schema/CoinInstanceType.ts'
 import { schema } from '$/schema/index.ts'
-import { MediaType } from '$/schema/Media.ts'
+import { MediaType } from '$/schema/MediaType.ts'
 import { Source } from '$/sources/Source.ts'
 import type {
 	ChainlistExplorerLike,

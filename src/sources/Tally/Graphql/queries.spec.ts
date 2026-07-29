@@ -50,8 +50,6 @@ const binding = {
 	credentials: [{
 		scope: SourceCredentialScope.RuntimeSecret,
 	}],
-	proxyId: 'Tally_Graphql-fc5d2b1cde50',
-	serverCredentialId: 'Tally_Graphql-fc5d2b1cde50',
 	artifacts: [{
 		kind: SourceArtifactKind.HandwrittenTypes,
 		path: 'src/sources/Tally/Graphql/types.ts',

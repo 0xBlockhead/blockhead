@@ -22,7 +22,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.AcpAgentRuntime> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.AcpLocal_JsonRpc,
@@ -34,7 +33,6 @@
 			transportKind: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.runtimeId ?? '') || 'ACP agent runtime')
 
 
 	// Components
@@ -51,13 +49,13 @@
 <EntityView
 	entityType={EntityType.AcpAgentRuntime}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? (selection.entitySelector.runtimeId || 'ACP agent runtime')}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{(pendingEntity.runtimeId ?? '') || 'ACP agent runtime'}
+		{selection.entitySelector.runtimeId || 'ACP agent runtime'}
 	{/snippet}
 
 	{#snippet Value()}
@@ -69,7 +67,6 @@
 					<AcpAgentProgramVersionView
 						selection={select(EntityType.AcpAgentProgramVersion, acpAgentProgramVersion[EntityMetaKey.Selector])}
 						prefetched={acpAgentProgramVersion}
-						href=""
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -81,10 +78,10 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={acpAgentRuntime}>
 			{#snippet children(entity)}
-				{@const transportKind0 = entity.transportKind}
-				{#if transportKind0 != null}
+				{@const transportKind = entity.transportKind}
+				{#if transportKind != null}
 					<span data-text="muted">
-						{transportKind0}
+						{transportKind}
 					</span>
 				{/if}
 			{/snippet}
@@ -96,7 +93,7 @@
 			<div>
 				<dt>runtime ID</dt>
 				<dd>
-					{pendingEntity.runtimeId}
+					{selection.entitySelector.runtimeId}
 				</dd>
 			</div>
 
@@ -215,7 +212,7 @@
 						<div>
 							<dt>initialized AT</dt>
 							<dd>
-								<Timestamp timestamp={Number(initializedAt)} />
+								<Timestamp timestamp={initializedAt} />
 							</dd>
 						</div>
 					{/if}
@@ -225,30 +222,30 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const acpAgentRuntimeAcpSessionsViewSessionsResource = selection.$$sessions}
+		{@const sessionsResource = selection.$$sessions}
 		<ResourceBoundary
-			resource={acpAgentRuntimeAcpSessionsViewSessionsResource}
+			resource={sessionsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<AcpSessionsView
-						selection={acpAgentRuntimeAcpSessionsViewSessionsResource}
-						countResource={acpAgentRuntimeAcpSessionsViewSessionsResource.count}
+						selection={sessionsResource}
+						countResource={sessionsResource.count}
 						title='sessions'
 						id='sessions'
 					/>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>
-		{@const acpAgentRuntimeAcpAgentRuntimeTimestampsViewTimestampsResource = selection.$$timestamps}
+		{@const timestampsResource = selection.$$timestamps}
 		<ResourceBoundary
-			resource={acpAgentRuntimeAcpAgentRuntimeTimestampsViewTimestampsResource}
+			resource={timestampsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<AcpAgentRuntime_TimestampsView
-						selection={acpAgentRuntimeAcpAgentRuntimeTimestampsViewTimestampsResource}
-						countResource={acpAgentRuntimeAcpAgentRuntimeTimestampsViewTimestampsResource.count}
+						selection={timestampsResource}
+						countResource={timestampsResource.count}
 						title='timestamps'
 						id='timestamps'
 					/>

@@ -20,9 +20,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.StellarLedger> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const titleFallback = 'stellar ledger'
-
 
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -34,7 +31,7 @@
 <EntityView
 	entityType={EntityType.StellarLedger}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? 'stellar ledger'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -59,7 +56,7 @@
 			<div>
 				<dt>sequence</dt>
 				<dd>
-					{String(pendingEntity.sequence)}
+					{selection.entitySelector.sequence}
 				</dd>
 			</div>
 
@@ -100,7 +97,7 @@
 						<div>
 							<dt>close time ms</dt>
 							<dd>
-								{String(closeTimeMs)}
+								{closeTimeMs}
 							</dd>
 						</div>
 					{/if}
@@ -122,7 +119,7 @@
 						<div>
 							<dt>protocol version</dt>
 							<dd>
-								{String(protocolVersion)}
+								{protocolVersion}
 							</dd>
 						</div>
 					{/if}
@@ -144,7 +141,7 @@
 						<div>
 							<dt>transaction count</dt>
 							<dd>
-								{String(transactionCount)}
+								{transactionCount}
 							</dd>
 						</div>
 					{/if}
@@ -166,7 +163,7 @@
 						<div>
 							<dt>operation count</dt>
 							<dd>
-								{String(operationCount)}
+								{operationCount}
 							</dd>
 						</div>
 					{/if}
@@ -188,7 +185,7 @@
 						<div>
 							<dt>successful transaction count</dt>
 							<dd>
-								{String(successfulTransactionCount)}
+								{successfulTransactionCount}
 							</dd>
 						</div>
 					{/if}
@@ -210,7 +207,7 @@
 						<div>
 							<dt>failed transaction count</dt>
 							<dd>
-								{String(failedTransactionCount)}
+								{failedTransactionCount}
 							</dd>
 						</div>
 					{/if}

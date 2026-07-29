@@ -21,7 +21,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.DydxChainMarket> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.DydxIndexer_Rest,
@@ -34,7 +33,7 @@
 			baseAsset: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.ticker ?? '') || 'dydx chain market')
+	const titleFallback = $derived(selection.entitySelector.ticker || 'dydx chain market')
 
 
 	// Components
@@ -53,13 +52,13 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{(pendingEntity.ticker ?? '') || 'dydx chain market'}
+		{selection.entitySelector.ticker || 'dydx chain market'}
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={dydxChainMarket}>
 			{#snippet children(entity)}
-				{entity.marketKind || pendingEntity.ticker || titleFallback}
+				{entity.marketKind || selection.entitySelector.ticker || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -67,10 +66,10 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={dydxChainMarket}>
 			{#snippet children(entity)}
-				{@const baseAsset0 = entity.baseAsset}
-				{#if baseAsset0 != null}
+				{@const baseAsset = entity.baseAsset}
+				{#if baseAsset != null}
 					<span data-text="muted">
-						{baseAsset0}
+						{baseAsset}
 					</span>
 				{/if}
 			{/snippet}
@@ -93,7 +92,7 @@
 			<div>
 				<dt>ticker</dt>
 				<dd>
-					{pendingEntity.ticker}
+					{selection.entitySelector.ticker}
 				</dd>
 			</div>
 
@@ -151,15 +150,15 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const dydxChainMarketDydxChainMarketTimestampsViewTimestampsResource = selection.$$timestamps}
+		{@const timestampsResource = selection.$$timestamps}
 		<ResourceBoundary
-			resource={dydxChainMarketDydxChainMarketTimestampsViewTimestampsResource}
+			resource={timestampsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<DydxChainMarket_TimestampsView
-						selection={dydxChainMarketDydxChainMarketTimestampsViewTimestampsResource}
-						countResource={dydxChainMarketDydxChainMarketTimestampsViewTimestampsResource.count}
+						selection={timestampsResource}
+						countResource={timestampsResource.count}
 						title='timestamps'
 						id='timestamps'
 					/>

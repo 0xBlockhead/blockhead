@@ -22,18 +22,16 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.BitcoinCashCashTokenNft> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const viewSelection = $derived(selection({
+	const bitcoinCashCashTokenNft = $derived(selection({
 		sources: selection.sources ?? [
 			Source.BitcoinCashNode_JsonRpc,
 		],
-	}))
-	const bitcoinCashCashTokenNft = $derived(viewSelection({
+	})({
 		fields: {
 			capability: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.capability ?? '') || 'Bitcoin Cash CashToken NFT')
+	const titleFallback = $derived((prefetched.capability ?? '') || 'Bitcoin Cash CashToken NFT')
 
 
 	// Components
@@ -68,7 +66,6 @@
 				<BitcoinCashCashTokenCategoryView
 					selection={select(EntityType.BitcoinCashCashTokenCategory, bitcoinCashCashTokenCategory[EntityMetaKey.Selector])}
 					prefetched={bitcoinCashCashTokenCategory}
-					href=""
 					layout={EntityLayout.Value}
 					open={false}
 				/>

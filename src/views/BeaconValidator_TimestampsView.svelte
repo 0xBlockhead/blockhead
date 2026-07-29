@@ -37,37 +37,36 @@
 >
 	{#snippet Item({ item: beaconValidatorTimestamp })}
 		{@const beaconValidatorTimestampSelector = beaconValidatorTimestamp[EntityMetaKey.Selector]}
+		{@const validator = beaconValidatorTimestampSelector.$validator}
 		<EntityView
 			entityType={EntityType.BeaconValidator_Timestamp}
 			entitySelector={beaconValidatorTimestampSelector}
 			href={
-				(
-					'indexInNetwork' in beaconValidatorTimestampSelector.$validator ?
-						resolve(
-							'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/validator/[validatorId=nonNegativeIntegerOrSolanaPubkey]/(selection)/observations/[slot=nonNegativeInteger]/[source=stringSegment]',
-							{
-								network: (
-									'caip2' in beaconValidatorTimestampSelector.$validator.$network ?
-										String(caip2StringFromValue(beaconValidatorTimestampSelector.$validator.$network.caip2))
-									:
-										String(beaconValidatorTimestampSelector.$validator.$network.slug)
-								),
-								validatorId: String(beaconValidatorTimestampSelector.$validator.indexInNetwork),
-								slot: String(beaconValidatorTimestampSelector.slot),
-								source: String(beaconValidatorTimestampSelector.source),
-							}
-						)
-					:
-						undefined
-				)
+				'indexInNetwork' in validator ?
+					resolve(
+						'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/validator/[validatorId=nonNegativeIntegerOrSolanaPubkey]/(selection)/observations/[slot=nonNegativeInteger]/[source=stringSegment]',
+						{
+							network: (
+								'caip2' in validator.$network ?
+									caip2StringFromValue(validator.$network.caip2)
+								:
+									validator.$network.slug
+							),
+							validatorId: String(validator.indexInNetwork),
+							slot: String(beaconValidatorTimestampSelector.slot),
+							source: beaconValidatorTimestampSelector.source,
+						}
+					)
+				:
+					undefined
 			}
 		>
 			{#snippet Title()}
-				{(String(beaconValidatorTimestampSelector.slot ?? '') ? 'Slot #' + String(beaconValidatorTimestampSelector.slot ?? '') : '') || 'beacon validator timestamp'}
+				{`Slot #${beaconValidatorTimestampSelector.slot}`}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{(beaconValidatorTimestamp.status ?? '')}</span>
+				<span data-text="annotation">{beaconValidatorTimestamp.status ?? ''}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

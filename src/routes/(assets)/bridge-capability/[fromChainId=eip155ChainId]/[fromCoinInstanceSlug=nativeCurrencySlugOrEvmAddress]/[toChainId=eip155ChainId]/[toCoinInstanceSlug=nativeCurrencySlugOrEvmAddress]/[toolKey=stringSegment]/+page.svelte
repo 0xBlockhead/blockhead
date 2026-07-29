@@ -17,66 +17,66 @@
 
 	const pageSelection = $derived(select(EntityType.CoinBridgeCapability, {
 		$fromInstance: (
-		params.fromCoinInstanceSlug === 'native' ?
-			{
-				$network: {
-					caip2: {
-						namespace: 'eip155',
-						reference: params.fromChainId,
-					},
-				},
-				type: 'NativeCurrency',
-			}
-		:
-			{
-				$network: {
-					caip2: {
-						namespace: 'eip155',
-						reference: params.fromChainId,
-					},
-				},
-				type: 'Erc20Token',
-				$contract: {
+			params.fromCoinInstanceSlug === 'native' ?
+				{
 					$network: {
 						caip2: {
 							namespace: 'eip155',
 							reference: params.fromChainId,
 						},
 					},
-					address: params.fromCoinInstanceSlug,
-				},
-			}
+					type: 'NativeCurrency',
+				}
+			:
+				{
+					$network: {
+						caip2: {
+							namespace: 'eip155',
+							reference: params.fromChainId,
+						},
+					},
+					type: 'Erc20Token',
+					$contract: {
+						$network: {
+							caip2: {
+								namespace: 'eip155',
+								reference: params.fromChainId,
+							},
+						},
+						address: params.fromCoinInstanceSlug,
+					},
+				}
 		),
 		$toInstance: (
-		params.toCoinInstanceSlug === 'native' ?
-			{
-				$network: {
-					caip2: {
-						namespace: 'eip155',
-						reference: params.toChainId,
-					},
-				},
-				type: 'NativeCurrency',
-			}
-		:
-			{
-				$network: {
-					caip2: {
-						namespace: 'eip155',
-						reference: params.toChainId,
-					},
-				},
-				type: 'Erc20Token',
-				$contract: {
+			params.toCoinInstanceSlug === 'native' ?
+				{
 					$network: {
 						caip2: {
 							namespace: 'eip155',
 							reference: params.toChainId,
 						},
 					},
-					address: params.toCoinInstanceSlug,
-				},
-			}
+					type: 'NativeCurrency',
+				}
+			:
+				{
+					$network: {
+						caip2: {
+							namespace: 'eip155',
+							reference: params.toChainId,
+						},
+					},
+					type: 'Erc20Token',
+					$contract: {
+						$network: {
+							caip2: {
+								namespace: 'eip155',
+								reference: params.toChainId,
+							},
+						},
+						address: params.toCoinInstanceSlug,
+					},
+				}
 		),
 		toolKey: params.toolKey,
 	}, {
@@ -96,7 +96,7 @@
 
 
 <svelte:head>
-	<title>{(pageSelection.entitySelector.toolKey || 'Coin bridge capability')} • Coin bridge capability • Blockhead</title>
+	<title>{pageSelection.entitySelector.toolKey || 'Coin bridge capability'} • Coin bridge capability • Blockhead</title>
 </svelte:head>
 
 

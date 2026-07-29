@@ -25,8 +25,7 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.FilecoinMiner> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const titleFallback = $derived((pendingEntity.minerAddress ?? '') || 'filecoin miner')
+	const network = $derived(selection.entitySelector.$network)
 
 
 	// Components
@@ -42,27 +41,30 @@
 <EntityView
 	entityType={EntityType.FilecoinMiner}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? (selection.entitySelector.minerAddress || 'filecoin miner')}
 	href={
-		href ?? resolve(
-			'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/miner/[minerAddress=stringSegment]',
-			{
-				network: (
-					'caip2' in selection.entitySelector.$network ?
-						String(caip2StringFromValue(selection.entitySelector.$network.caip2))
-					:
-						String(selection.entitySelector.$network.slug)
-				),
-				minerAddress: String(selection.entitySelector.minerAddress),
-			}
-		)
+		href === undefined ?
+			resolve(
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/miner/[minerAddress=stringSegment]',
+				{
+					network: (
+						'caip2' in network ?
+							caip2StringFromValue(network.caip2)
+						:
+							network.slug
+					),
+					minerAddress: selection.entitySelector.minerAddress,
+				}
+			)
+		:
+			href ?? undefined
 	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{(pendingEntity.minerAddress ?? '') || 'filecoin miner'}
+		{selection.entitySelector.minerAddress || 'filecoin miner'}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -73,22 +75,22 @@
 					<ResourceBoundary
 						resource={
 							selection
-								.$$timestamps({
-									sources: [
-										Source.Lotus_JsonRpc,
-									],
-									fields: {
-										height: true,
-										timestampMs: true,
-										qualityAdjustedPower: true,
-										liveSectorCount: true,
-										source: true,
-									},
-									limit: 1,
-									orderBy: [
-										[({ fieldRow }) => fieldRow[EntityMetaKey.Value][EntityMetaKey.Selector].height ?? Number.NEGATIVE_INFINITY, 'desc'],
-									],
-								})
+							.$$timestamps({
+								sources: [
+									Source.Lotus_JsonRpc,
+								],
+								fields: {
+									height: true,
+									timestampMs: true,
+									qualityAdjustedPower: true,
+									liveSectorCount: true,
+									source: true,
+								},
+								limit: 1,
+								orderBy: [
+									[({ fieldRow }) => fieldRow[EntityMetaKey.Value][EntityMetaKey.Selector].height ?? Number.NEGATIVE_INFINITY, 'desc'],
+								],
+							})
 						}
 					>
 						{#snippet children(filecoinMinerTimestamps)}
@@ -131,37 +133,37 @@
 			<div>
 				<dt>Miner address</dt>
 				<dd>
-					<TruncatedValue value={pendingEntity.minerAddress} />
+					<TruncatedValue value={selection.entitySelector.minerAddress} />
 				</dd>
 			</div>
 		</dl>
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const filecoinMinerFilecoinMinerTimestampsViewTimestampsResource = selection.$$timestamps}
+		{@const timestampsResource = selection.$$timestamps}
 		<ResourceBoundary
-			resource={filecoinMinerFilecoinMinerTimestampsViewTimestampsResource}
+			resource={timestampsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<FilecoinMiner_TimestampsView
-						selection={filecoinMinerFilecoinMinerTimestampsViewTimestampsResource}
-						countResource={filecoinMinerFilecoinMinerTimestampsViewTimestampsResource.count}
+						selection={timestampsResource}
+						countResource={timestampsResource.count}
 						title='Observations'
 						id='timestamps'
 					/>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>
-		{@const filecoinMinerFilecoinSectorsViewSectorsResource = selection.$$sectors}
+		{@const sectorsResource = selection.$$sectors}
 		<ResourceBoundary
-			resource={filecoinMinerFilecoinSectorsViewSectorsResource}
+			resource={sectorsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<FilecoinSectorsView
-						selection={filecoinMinerFilecoinSectorsViewSectorsResource}
-						countResource={filecoinMinerFilecoinSectorsViewSectorsResource.count}
+						selection={sectorsResource}
+						countResource={sectorsResource.count}
 						title='Sectors'
 						id='sectors'
 					/>

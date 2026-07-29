@@ -41,7 +41,7 @@
 			entitySelector={filecoinSectorSelector}
 		>
 			{#snippet Title()}
-				{String(filecoinSectorSelector.sectorNumber) || 'filecoin sector'}
+				{filecoinSectorSelector.sectorNumber}
 			{/snippet}
 
 			{#snippet Value()}
@@ -49,7 +49,7 @@
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{(filecoinSector.sealedCid ?? '')}</span>
+				<span data-text="annotation">{filecoinSector.sealedCid ?? ''}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

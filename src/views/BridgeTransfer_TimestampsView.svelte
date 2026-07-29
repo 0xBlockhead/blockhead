@@ -42,7 +42,7 @@
 			entitySelector={bridgeTransferTimestampSelector}
 		>
 			{#snippet Title()}
-				{String(bridgeTransferTimestampSelector.timestampMs) || 'bridge transfer timestamp'}
+				{bridgeTransferTimestampSelector.timestampMs}
 			{/snippet}
 
 			{#snippet Value()}

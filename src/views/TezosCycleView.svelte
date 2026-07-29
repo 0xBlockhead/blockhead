@@ -20,9 +20,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.TezosCycle> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const titleFallback = 'tezos cycle'
-
 
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -33,7 +30,7 @@
 <EntityView
 	entityType={EntityType.TezosCycle}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? 'tezos cycle'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -58,7 +55,7 @@
 			<div>
 				<dt>cycle</dt>
 				<dd>
-					{String(pendingEntity.cycle)}
+					{selection.entitySelector.cycle}
 				</dd>
 			</div>
 
@@ -77,7 +74,7 @@
 						<div>
 							<dt>first level</dt>
 							<dd>
-								{String(firstLevel)}
+								{firstLevel}
 							</dd>
 						</div>
 					{/if}
@@ -99,7 +96,7 @@
 						<div>
 							<dt>last level</dt>
 							<dd>
-								{String(lastLevel)}
+								{lastLevel}
 							</dd>
 						</div>
 					{/if}
@@ -121,7 +118,7 @@
 						<div>
 							<dt>snapshot level</dt>
 							<dd>
-								{String(snapshotLevel)}
+								{snapshotLevel}
 							</dd>
 						</div>
 					{/if}

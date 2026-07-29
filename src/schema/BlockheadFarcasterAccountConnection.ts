@@ -1,14 +1,11 @@
 // Generated from APP.ts. Do not edit by hand.
 
 import { entity } from '$/schema/$schema.ts'
-import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
+import { BlockheadFarcasterConnectionAuthMethod } from '$/schema/BlockheadFarcasterConnectionAuthMethod.ts'
+import { EntityFieldCardinality } from '$/schema/EntityFieldCardinality.ts'
+import { EntityFieldType } from '$/schema/EntityFieldType.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { type } from 'arktype'
-
-export enum BlockheadFarcasterConnectionAuthMethod {
-	Custody = 'custody',
-	AuthAddress = 'authAddress',
-}
 
 export default entity({
 	entityType: EntityType.BlockheadFarcasterAccountConnection,

@@ -21,7 +21,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.BlockheadRadicleNodeInventory_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Local_Internal,
@@ -33,7 +32,7 @@
 			repositoryCount: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.status ?? '') || 'blockhead radicle node inventory timestamp')
+	const titleFallback = $derived((prefetched.status ?? '') || 'blockhead radicle node inventory timestamp')
 
 
 	// Components
@@ -61,17 +60,17 @@
 	{/snippet}
 
 	{#snippet Value()}
-		<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+		<Timestamp timestamp={selection.entitySelector.timestampMs} />
 	{/snippet}
 
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={blockheadRadicleNodeInventoryTimestamp}>
 			{#snippet children(entity)}
-				{@const repositoryCount0 = entity.repositoryCount}
-				{#if repositoryCount0 != null}
+				{@const repositoryCount = entity.repositoryCount}
+				{#if repositoryCount != null}
 					<span data-text="muted">
 						<NumberValue
-							value={repositoryCount0}
+							value={repositoryCount}
 						/>
 					</span>
 				{/if}
@@ -95,14 +94,14 @@
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+					<Timestamp timestamp={selection.entitySelector.timestampMs} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 

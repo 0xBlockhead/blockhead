@@ -23,13 +23,12 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.ActivityPubNote_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const note = $derived(selection.entitySelector.$note)
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Mastodon_Rest,
 		],
 	}))
-	const titleFallback = 'ActivityPub note observation'
 
 
 	// Components
@@ -43,23 +42,26 @@
 <EntityView
 	entityType={EntityType.ActivityPubNote_Timestamp}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? 'ActivityPub note observation'}
 	href={
-		href ?? (
-			'instanceOrigin' in selection.entitySelector.$note
-			&& 'localStatusId' in selection.entitySelector.$note ?
-				resolve(
-					'/(social)/(activitypub)/activitypub/(globalActivityPubNetwork)/note/[instanceOrigin=absoluteUrl]/[localStatusId=stringSegment]/(activityPubNote)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
-					{
-						instanceOrigin: encodeURIComponent(String(selection.entitySelector.$note.instanceOrigin)),
-						localStatusId: String(selection.entitySelector.$note.localStatusId),
-						timestampMs: String(selection.entitySelector.timestampMs),
-						source: String(selection.entitySelector.source),
-					}
-				)
-			:
-				undefined
-		)
+		href === undefined ?
+			(
+				'instanceOrigin' in note
+				&& 'localStatusId' in note ?
+					resolve(
+						'/(social)/(activitypub)/activitypub/(globalActivityPubNetwork)/note/[instanceOrigin=absoluteUrl]/[localStatusId=stringSegment]/(activityPubNote)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
+						{
+							instanceOrigin: encodeURIComponent(note.instanceOrigin),
+							localStatusId: note.localStatusId,
+							timestampMs: String(selection.entitySelector.timestampMs),
+							source: selection.entitySelector.source,
+						}
+					)
+				:
+					undefined
+			)
+		:
+			href ?? undefined
 	}
 	{layout}
 	bind:open
@@ -68,14 +70,14 @@
 	{#snippet Title()}
 		<ActivityPubNoteView
 			selection={select(EntityType.ActivityPubNote, selection.entitySelector.$note)}
-			href=""
+			href={null}
 			layout={EntityLayout.Title}
 			open={false}
 		/>
 	{/snippet}
 
 	{#snippet Value()}
-		<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+		<Timestamp timestamp={selection.entitySelector.timestampMs} />
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -96,7 +98,7 @@
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+					<Timestamp timestamp={selection.entitySelector.timestampMs} />
 				</dd>
 			</div>
 		</dl>
@@ -105,7 +107,7 @@
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 		</dl>

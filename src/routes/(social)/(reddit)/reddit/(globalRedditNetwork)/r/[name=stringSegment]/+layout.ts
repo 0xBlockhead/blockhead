@@ -9,7 +9,8 @@ import RedditSubredditSchema from '$/schema/RedditSubreddit.ts'
 import { type as arktype } from 'arktype'
 
 export const load: LayoutLoad = ({ params }) => {
-	if (!(matchStringSegment(params.name))) error(404, 'Route mapping not applicable')
+	if (!(matchStringSegment(params.name)))
+		error(404, 'Route mapping not applicable')
 
 	const redditSubredditNameSelector = parseEntitySelector(
 		schema,
@@ -18,7 +19,8 @@ export const load: LayoutLoad = ({ params }) => {
 			name: decodeURIComponent(params.name),
 		}
 	)
-	if (redditSubredditNameSelector instanceof arktype.errors) error(404, 'Invalid RedditSubreddit selector')
+	if (redditSubredditNameSelector instanceof arktype.errors)
+		error(404, 'Invalid RedditSubreddit selector')
 
 	return {
 		selector: redditSubredditNameSelector,

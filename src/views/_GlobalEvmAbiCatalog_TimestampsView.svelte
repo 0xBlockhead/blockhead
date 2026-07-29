@@ -46,7 +46,7 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{String(globalEvmAbiCatalogTimestampSelector.timestampMs)}
+				{globalEvmAbiCatalogTimestampSelector.timestampMs}
 			{/snippet}
 		</EntityView>
 	{/snippet}

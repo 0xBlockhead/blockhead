@@ -44,7 +44,7 @@
 
 
 <svelte:head>
-	<title>{(pageSelection.entity == null ? String(pageSelection.entitySelector.timestampMs ?? '') || 'ActivityPub instance observation' : [(pageSelection.entity.title ?? ''), String(pageSelection.entitySelector.timestampMs)].filter(Boolean).join(' ') || 'ActivityPub instance observation')} • ActivityPub instance observation • Blockhead</title>
+	<title>{pageSelection.entity == null ? String(pageSelection.entitySelector.timestampMs ?? '') || 'ActivityPub instance observation' : [(pageSelection.entity.title ?? ''), String(pageSelection.entitySelector.timestampMs)].filter(Boolean).join(' ') || 'ActivityPub instance observation'} • ActivityPub instance observation • Blockhead</title>
 </svelte:head>
 
 

@@ -20,9 +20,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.HederaNetworkStake_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const titleFallback = 'hedera network stake timestamp'
-
 
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -34,7 +31,7 @@
 <EntityView
 	entityType={EntityType.HederaNetworkStake_Timestamp}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? 'hedera network stake timestamp'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -59,14 +56,14 @@
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+					<Timestamp timestamp={selection.entitySelector.timestampMs} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 
@@ -85,7 +82,7 @@
 						<div>
 							<dt>epoch day</dt>
 							<dd>
-								{String(epochDay)}
+								{epochDay}
 							</dd>
 						</div>
 					{/if}
@@ -107,7 +104,7 @@
 						<div>
 							<dt>max stake rewarded tinybar</dt>
 							<dd>
-								{String(maxStakeRewardedTinybar)}
+								{maxStakeRewardedTinybar}
 							</dd>
 						</div>
 					{/if}
@@ -129,7 +126,7 @@
 						<div>
 							<dt>max staking reward rate per HBAR</dt>
 							<dd>
-								{String(maxStakingRewardRatePerHbar)}
+								{maxStakingRewardRatePerHbar}
 							</dd>
 						</div>
 					{/if}
@@ -151,7 +148,7 @@
 						<div>
 							<dt>max total reward tinybar</dt>
 							<dd>
-								{String(maxTotalRewardTinybar)}
+								{maxTotalRewardTinybar}
 							</dd>
 						</div>
 					{/if}
@@ -173,7 +170,7 @@
 						<div>
 							<dt>node reward fee fraction</dt>
 							<dd>
-								{String(nodeRewardFeeFraction)}
+								{nodeRewardFeeFraction}
 							</dd>
 						</div>
 					{/if}
@@ -195,7 +192,7 @@
 						<div>
 							<dt>reserved staking rewards tinybar</dt>
 							<dd>
-								{String(reservedStakingRewardsTinybar)}
+								{reservedStakingRewardsTinybar}
 							</dd>
 						</div>
 					{/if}
@@ -217,7 +214,7 @@
 						<div>
 							<dt>reward balance tinybar</dt>
 							<dd>
-								{String(rewardBalanceTinybar)}
+								{rewardBalanceTinybar}
 							</dd>
 						</div>
 					{/if}
@@ -239,7 +236,7 @@
 						<div>
 							<dt>stake total tinybar</dt>
 							<dd>
-								{String(stakeTotalTinybar)}
+								{stakeTotalTinybar}
 							</dd>
 						</div>
 					{/if}
@@ -261,7 +258,7 @@
 						<div>
 							<dt>staking periods stored</dt>
 							<dd>
-								{String(stakingPeriodsStored)}
+								{stakingPeriodsStored}
 							</dd>
 						</div>
 					{/if}
@@ -283,7 +280,7 @@
 						<div>
 							<dt>staking reward fee fraction</dt>
 							<dd>
-								{String(stakingRewardFeeFraction)}
+								{stakingRewardFeeFraction}
 							</dd>
 						</div>
 					{/if}
@@ -305,7 +302,7 @@
 						<div>
 							<dt>staking start threshold tinybar</dt>
 							<dd>
-								{String(stakingStartThresholdTinybar)}
+								{stakingStartThresholdTinybar}
 							</dd>
 						</div>
 					{/if}
@@ -327,7 +324,7 @@
 						<div>
 							<dt>unreserved staking reward balance tinybar</dt>
 							<dd>
-								{String(unreservedStakingRewardBalanceTinybar)}
+								{unreservedStakingRewardBalanceTinybar}
 							</dd>
 						</div>
 					{/if}

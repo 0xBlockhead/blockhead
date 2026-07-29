@@ -4,7 +4,6 @@
 	// Types/constants
 	import type { PageProps } from './$types.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { UrlString } from '$/schema/UrlString.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -38,7 +37,7 @@
 
 
 <svelte:head>
-	<title>{(data.title ?? ('Nostr'))} • Nostr • Blockhead</title>
+	<title>{data.title ?? 'Nostr'} • Nostr • Blockhead</title>
 </svelte:head>
 
 

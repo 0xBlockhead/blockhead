@@ -43,7 +43,7 @@
 				resolve(
 					'/(social)/(youtube)/youtube/(globalYoutubeNetwork)/channel/[channelId=stringSegment]',
 					{
-						channelId: encodeURIComponent(String(youtubeChannelSelector.channelId)),
+						channelId: encodeURIComponent(youtubeChannelSelector.channelId),
 					}
 				)
 			}

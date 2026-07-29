@@ -20,9 +20,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.StellarAccountSigner> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const titleFallback = 'stellar account signer'
-
 
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -34,7 +31,7 @@
 <EntityView
 	entityType={EntityType.StellarAccountSigner}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? 'stellar account signer'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -59,14 +56,14 @@
 			<div>
 				<dt>signer key</dt>
 				<dd>
-					{pendingEntity.signerKey}
+					{selection.entitySelector.signerKey}
 				</dd>
 			</div>
 
 			<div>
 				<dt>signer type</dt>
 				<dd>
-					{pendingEntity.signerType}
+					{selection.entitySelector.signerType}
 				</dd>
 			</div>
 		</dl>

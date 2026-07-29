@@ -32,8 +32,8 @@
 			resolve(
 				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/mev/relay/[host=stringSegment]',
 				{
-					network: String(params.network),
-					host: String(params.host),
+					network: params.network,
+					host: params.host,
 				}
 			)
 		}
@@ -45,8 +45,8 @@
 					resolve(
 						'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/mev/relay/[host=stringSegment]',
 						{
-							network: String(params.network),
-							host: String(params.host),
+							network: params.network,
+							host: params.host,
 						}
 					)
 				}

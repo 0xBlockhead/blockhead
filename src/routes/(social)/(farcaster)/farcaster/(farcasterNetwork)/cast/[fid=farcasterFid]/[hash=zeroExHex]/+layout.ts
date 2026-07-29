@@ -10,7 +10,8 @@ import { schema } from '$/schema/index.ts'
 import { type as arktype } from 'arktype'
 
 export const load: LayoutLoad = ({ params }) => {
-	if (!(matchFarcasterFid(params.fid) && matchZeroExHex(params.hash))) error(404, 'Route mapping not applicable')
+	if (!(matchFarcasterFid(params.fid) && matchZeroExHex(params.hash)))
+		error(404, 'Route mapping not applicable')
 
 	const farcasterCastFidHashSelector = parseEntitySelector(
 		schema,
@@ -20,7 +21,8 @@ export const load: LayoutLoad = ({ params }) => {
 			hash: params.hash,
 		}
 	)
-	if (farcasterCastFidHashSelector instanceof arktype.errors) error(404, 'Invalid FarcasterCast selector')
+	if (farcasterCastFidHashSelector instanceof arktype.errors)
+		error(404, 'Invalid FarcasterCast selector')
 
 	return {
 		selector: farcasterCastFidHashSelector,

@@ -46,7 +46,7 @@
 				resolve(
 					'/(social)/(nostr)/nostr/(globalNostrNetwork)/reaction/[eventId=stringSegment]',
 					{
-						eventId: String(nostrReactionSelector.eventId),
+						eventId: nostrReactionSelector.eventId,
 					}
 				)
 			}
@@ -56,7 +56,7 @@
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{String(nostrReaction.createdAt ?? '')}</span>
+				<span data-text="annotation">{nostrReaction.createdAt ?? ''}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

@@ -46,7 +46,7 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{(hederaTransaction.result ?? '')}
+				{hederaTransaction.result ?? ''}
 			{/snippet}
 
 			{#snippet HeadingAfter()}

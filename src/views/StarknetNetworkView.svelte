@@ -22,7 +22,7 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.StarknetNetwork> = $props()
 
-	const viewSelection = $derived(selection({
+	const starknetNetwork = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Constants_Internal,
 			Source.Juno_JsonRpc,
@@ -32,8 +32,7 @@
 			Source.Starkscan_Rest,
 			Source.Voyager_Rest,
 		],
-	}))
-	const starknetNetwork = $derived(viewSelection({
+	})({
 		fields: {
 			chainId: true,
 		},
@@ -67,7 +66,7 @@
 	{#snippet Title()}
 		<NetworkView
 			selection={select(EntityType.Network, selection.entitySelector.$network)}
-			href=""
+			href={null}
 			layout={EntityLayout.Title}
 			open={false}
 		/>

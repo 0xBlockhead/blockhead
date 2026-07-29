@@ -21,9 +21,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.HyperliquidOrderbook_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const titleFallback = 'hyperliquid orderbook timestamp'
-
 
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -37,7 +34,7 @@
 <EntityView
 	entityType={EntityType.HyperliquidOrderbook_Timestamp}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? 'hyperliquid orderbook timestamp'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -62,21 +59,21 @@
 			<div>
 				<dt>book key</dt>
 				<dd>
-					{pendingEntity.bookKey}
+					{selection.entitySelector.bookKey}
 				</dd>
 			</div>
 
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+					<Timestamp timestamp={selection.entitySelector.timestampMs} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 
@@ -135,7 +132,7 @@
 						<div>
 							<dt>n sig figs</dt>
 							<dd>
-								{String(nSigFigs)}
+								{nSigFigs}
 							</dd>
 						</div>
 					{/if}
@@ -157,7 +154,7 @@
 						<div>
 							<dt>mantissa</dt>
 							<dd>
-								{String(mantissa)}
+								{mantissa}
 							</dd>
 						</div>
 					{/if}
@@ -179,7 +176,7 @@
 						<div>
 							<dt>depth limit</dt>
 							<dd>
-								{String(depthLimit)}
+								{depthLimit}
 							</dd>
 						</div>
 					{/if}

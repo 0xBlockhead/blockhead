@@ -5,7 +5,6 @@
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { UrlString } from '$/schema/UrlString.ts'
 
 
 	// Context
@@ -22,7 +21,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.AiBenchmark> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const aiBenchmark = $derived(selection({
 		fields: {
 			label: true,
@@ -32,7 +30,7 @@
 			metricName: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.label ?? '') || [(pendingEntity.benchmarkId ?? ''), String(pendingEntity.benchmarkUri ?? '')].filter(Boolean).join(' ') || 'AI benchmark')
+	const titleFallback = $derived((prefetched.label ?? '') || [(prefetched.benchmarkId ?? ''), (prefetched.benchmarkUri ?? '')].filter(Boolean).join(' ') || 'AI benchmark')
 
 
 	// Components
@@ -70,10 +68,10 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={aiBenchmark}>
 			{#snippet children(entity)}
-				{@const metricName0 = entity.metricName}
-				{#if metricName0 != null}
+				{@const metricName = entity.metricName}
+				{#if metricName != null}
 					<span data-text="muted">
-						{metricName0}
+						{metricName}
 					</span>
 				{/if}
 			{/snippet}
@@ -108,11 +106,11 @@
 							<dt>benchmark URI</dt>
 							<dd>
 								<a
-									href={String(benchmarkUri)}
+									href={benchmarkUri}
 									target="_blank"
 									rel="noreferrer noopener"
 								>
-									<TruncatedValue value={String(benchmarkUri)} />
+									<TruncatedValue value={benchmarkUri} />
 								</a>
 							</dd>
 						</div>
@@ -281,15 +279,15 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const aiBenchmarkAiDocumentsViewDocumentsResource = selection.$$documents}
+		{@const documentsResource = selection.$$documents}
 		<ResourceBoundary
-			resource={aiBenchmarkAiDocumentsViewDocumentsResource}
+			resource={documentsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<AiDocumentsView
-						selection={aiBenchmarkAiDocumentsViewDocumentsResource}
-						countResource={aiBenchmarkAiDocumentsViewDocumentsResource.count}
+						selection={documentsResource}
+						countResource={documentsResource.count}
 						title='documents'
 						id='documents'
 					/>

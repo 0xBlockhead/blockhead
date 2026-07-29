@@ -1,7 +1,8 @@
 // Generated from APP.ts. Do not edit by hand.
 
 import { Source } from '$/sources/Source.ts'
-import { SourceProvider, type SourceProviderDefinition } from '$/sources/SourceProvider.ts'
+import { SourceProvider } from '$/sources/SourceProvider.ts'
+import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinition.ts'
 import bindings from '$/sources/Youtube/bindings.ts'
 import { type as arktype } from 'arktype'
 
@@ -20,5 +21,5 @@ export default {
 			}),
 		},
 	],
-	bindings: [bindings[Source.Youtube_Rest]],
+	bindings: Object.values(bindings).flat(),
 } satisfies SourceProviderDefinition

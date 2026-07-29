@@ -38,6 +38,7 @@
 >
 	{#snippet Item({ item: utxoAddressTimestamp })}
 		{@const utxoAddressTimestampSelector = utxoAddressTimestamp[EntityMetaKey.Selector]}
+		{@const address = utxoAddressTimestampSelector.$address}
 		<EntityView
 			entityType={EntityType.UtxoAddress_Timestamp}
 			entitySelector={utxoAddressTimestampSelector}
@@ -46,24 +47,24 @@
 					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/address/[address=stringSegment]/(utxoAddress)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
 					{
 						network: (
-							'caip2' in utxoAddressTimestampSelector.$address.$network ?
-								String(caip2StringFromValue(utxoAddressTimestampSelector.$address.$network.caip2))
+							'caip2' in address.$network ?
+								caip2StringFromValue(address.$network.caip2)
 							:
-								String(utxoAddressTimestampSelector.$address.$network.slug)
+								address.$network.slug
 						),
-						address: String(utxoAddressTimestampSelector.$address.address),
+						address: address.address,
 						timestampMs: String(utxoAddressTimestampSelector.timestampMs),
-						source: String(utxoAddressTimestampSelector.source),
+						source: utxoAddressTimestampSelector.source,
 					}
 				)
 			}
 		>
 			{#snippet Title()}
-				{String(utxoAddressTimestampSelector.timestampMs) || 'UTXO address timestamp'}
+				{utxoAddressTimestampSelector.timestampMs}
 			{/snippet}
 
 			{#snippet Value()}
-				{String(utxoAddressTimestamp.balanceSats ?? '')}
+				{utxoAddressTimestamp.balanceSats ?? ''}
 			{/snippet}
 
 			{#snippet HeadingAfter()}

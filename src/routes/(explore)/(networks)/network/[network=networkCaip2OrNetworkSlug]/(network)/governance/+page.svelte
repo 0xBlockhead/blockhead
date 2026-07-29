@@ -38,7 +38,7 @@
 			resolve(
 				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/governance',
 				{
-					network: String(params.network),
+					network: params.network,
 				}
 			)
 		}
@@ -55,7 +55,7 @@
 			resolve(
 				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/governance',
 				{
-					network: String(params.network),
+					network: params.network,
 				}
 			)
 		}

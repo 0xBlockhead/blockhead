@@ -20,13 +20,12 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.PolkadotReferendum> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const polkadotReferendum = $derived(selection({
 		fields: {
 			track: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.referendumId ?? '') || 'Polkadot referendum')
+	const titleFallback = $derived(selection.entitySelector.referendumId || 'Polkadot referendum')
 
 
 	// Components
@@ -46,13 +45,13 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{(pendingEntity.referendumId ?? '') || 'Polkadot referendum'}
+		{selection.entitySelector.referendumId || 'Polkadot referendum'}
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={polkadotReferendum}>
 			{#snippet children(entity)}
-				{(entity.track ?? '') || pendingEntity.referendumId || titleFallback}
+				{(entity.track ?? '') || selection.entitySelector.referendumId || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -83,7 +82,7 @@
 			<div>
 				<dt>Referendum ID</dt>
 				<dd>
-					{pendingEntity.referendumId}
+					{selection.entitySelector.referendumId}
 				</dd>
 			</div>
 
@@ -130,15 +129,15 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const polkadotReferendumPolkadotReferendumTimestampsViewTimestampsResource = selection.$$timestamps}
+		{@const timestampsResource = selection.$$timestamps}
 		<ResourceBoundary
-			resource={polkadotReferendumPolkadotReferendumTimestampsViewTimestampsResource}
+			resource={timestampsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<PolkadotReferendum_TimestampsView
-						selection={polkadotReferendumPolkadotReferendumTimestampsViewTimestampsResource}
-						countResource={polkadotReferendumPolkadotReferendumTimestampsViewTimestampsResource.count}
+						selection={timestampsResource}
+						countResource={timestampsResource.count}
 						title='Lifecycle observations'
 						id='timestamps'
 					/>

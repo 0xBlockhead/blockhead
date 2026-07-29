@@ -19,7 +19,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType._GlobalRedditNetwork> = $props()
 
-	const titleFallback = 'Reddit'
 	const viewDomId = $derived('-global-reddit-network-' + encodeURIComponent(stringify(selection.entitySelector)))
 
 
@@ -36,8 +35,13 @@
 	entityType={EntityType._GlobalRedditNetwork}
 	entitySelector={selection.entitySelector}
 	id={viewDomId}
-	title={title ?? titleFallback}
-	href={href ?? resolve('/(social)/(reddit)/reddit')}
+	title={title ?? 'Reddit'}
+	href={
+		href === undefined ?
+			resolve('/(social)/(reddit)/reddit')
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}

@@ -20,13 +20,12 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.AvailAppId> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const availAppId = $derived(selection({
 		fields: {
 			label: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.label ?? '') || String(pendingEntity.appId ?? '') || 'avail app ID')
+	const titleFallback = $derived((prefetched.label ?? '') || String(selection.entitySelector.appId) || 'avail app ID')
 
 
 	// Components
@@ -56,7 +55,7 @@
 
 	{#snippet Value()}
 		<NumberValue
-			value={pendingEntity.appId}
+			value={selection.entitySelector.appId}
 		/>
 	{/snippet}
 
@@ -77,7 +76,7 @@
 				<dt>app ID</dt>
 				<dd>
 					<NumberValue
-						value={pendingEntity.appId}
+						value={selection.entitySelector.appId}
 					/>
 				</dd>
 			</div>
@@ -101,30 +100,30 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const availAppIdAvailAppIdTimestampsViewTimestampsResource = selection.$$timestamps}
+		{@const timestampsResource = selection.$$timestamps}
 		<ResourceBoundary
-			resource={availAppIdAvailAppIdTimestampsViewTimestampsResource}
+			resource={timestampsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<AvailAppId_TimestampsView
-						selection={availAppIdAvailAppIdTimestampsViewTimestampsResource}
-						countResource={availAppIdAvailAppIdTimestampsViewTimestampsResource.count}
+						selection={timestampsResource}
+						countResource={timestampsResource.count}
 						title='timestamps'
 						id='timestamps'
 					/>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>
-		{@const availAppIdAvailDataSubmissionsViewDataSubmissionsResource = selection.$$dataSubmissions}
+		{@const dataSubmissionsResource = selection.$$dataSubmissions}
 		<ResourceBoundary
-			resource={availAppIdAvailDataSubmissionsViewDataSubmissionsResource}
+			resource={dataSubmissionsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<AvailDataSubmissionsView
-						selection={availAppIdAvailDataSubmissionsViewDataSubmissionsResource}
-						countResource={availAppIdAvailDataSubmissionsViewDataSubmissionsResource.count}
+						selection={dataSubmissionsResource}
+						countResource={dataSubmissionsResource.count}
 						title='data submissions'
 						id='data-submissions'
 					/>

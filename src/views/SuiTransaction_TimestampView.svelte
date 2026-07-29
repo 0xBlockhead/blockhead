@@ -20,9 +20,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.SuiTransaction_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const titleFallback = 'Sui transaction timestamp'
-
 
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -35,7 +32,7 @@
 <EntityView
 	entityType={EntityType.SuiTransaction_Timestamp}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? 'Sui transaction timestamp'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -60,14 +57,14 @@
 			<div>
 				<dt>checkpoint sequence</dt>
 				<dd>
-					{String(pendingEntity.checkpointSequence)}
+					{selection.entitySelector.checkpointSequence}
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 
@@ -86,7 +83,7 @@
 						<div>
 							<dt>Timestamp</dt>
 							<dd>
-								<Timestamp timestamp={Number(timestampMs)} />
+								<Timestamp timestamp={timestampMs} />
 							</dd>
 						</div>
 					{/if}
@@ -130,7 +127,7 @@
 						<div>
 							<dt>gas budget</dt>
 							<dd>
-								{String(gasBudget)}
+								{gasBudget}
 							</dd>
 						</div>
 					{/if}
@@ -152,7 +149,7 @@
 						<div>
 							<dt>gas price</dt>
 							<dd>
-								{String(gasPrice)}
+								{gasPrice}
 							</dd>
 						</div>
 					{/if}

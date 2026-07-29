@@ -5,7 +5,6 @@
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -23,7 +22,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.McpToolCall> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.McpDeclared_Protocol,
@@ -34,7 +32,6 @@
 			startedAt: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.callId ?? '') || 'mcp tool call')
 
 
 	// Components
@@ -50,13 +47,13 @@
 <EntityView
 	entityType={EntityType.McpToolCall}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? (selection.entitySelector.callId || 'mcp tool call')}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{(pendingEntity.callId ?? '') || 'mcp tool call'}
+		{selection.entitySelector.callId || 'mcp tool call'}
 	{/snippet}
 
 	{#snippet Value()}
@@ -68,7 +65,6 @@
 					<McpToolView
 						selection={select(EntityType.McpTool, mcpTool[EntityMetaKey.Selector])}
 						prefetched={mcpTool}
-						href=""
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -80,10 +76,10 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={mcpToolCall}>
 			{#snippet children(entity)}
-				{@const startedAt0 = entity.startedAt}
-				{#if startedAt0 != null}
+				{@const startedAt = entity.startedAt}
+				{#if startedAt != null}
 					<span data-text="muted">
-						<Timestamp timestamp={Number(startedAt0)} />
+						<Timestamp timestamp={startedAt} />
 					</span>
 				{/if}
 			{/snippet}
@@ -106,7 +102,7 @@
 			<div>
 				<dt>call ID</dt>
 				<dd>
-					{pendingEntity.callId}
+					{selection.entitySelector.callId}
 				</dd>
 			</div>
 
@@ -141,7 +137,7 @@
 						<div>
 							<dt>started AT</dt>
 							<dd>
-								<Timestamp timestamp={Number(startedAt)} />
+								<Timestamp timestamp={startedAt} />
 							</dd>
 						</div>
 					{/if}
@@ -163,7 +159,7 @@
 						<div>
 							<dt>completed AT</dt>
 							<dd>
-								<Timestamp timestamp={Number(completedAt)} />
+								<Timestamp timestamp={completedAt} />
 							</dd>
 						</div>
 					{/if}
@@ -185,7 +181,7 @@
 						<div>
 							<dt>input hash algorithm</dt>
 							<dd>
-								<TruncatedValue value={inputHashAlgorithm} />
+								{inputHashAlgorithm}
 							</dd>
 						</div>
 					{/if}
@@ -207,7 +203,7 @@
 						<div>
 							<dt>input hash</dt>
 							<dd>
-								<TruncatedValue value={String(inputHash)} />
+								<TruncatedValue value={inputHash} />
 							</dd>
 						</div>
 					{/if}
@@ -229,7 +225,7 @@
 						<div>
 							<dt>output hash algorithm</dt>
 							<dd>
-								<TruncatedValue value={outputHashAlgorithm} />
+								{outputHashAlgorithm}
 							</dd>
 						</div>
 					{/if}
@@ -251,7 +247,7 @@
 						<div>
 							<dt>output hash</dt>
 							<dd>
-								<TruncatedValue value={String(outputHash)} />
+								<TruncatedValue value={outputHash} />
 							</dd>
 						</div>
 					{/if}
@@ -261,15 +257,15 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const mcpToolCallMcpToolCallTimestampsViewTimestampsResource = selection.$$timestamps}
+		{@const timestampsResource = selection.$$timestamps}
 		<ResourceBoundary
-			resource={mcpToolCallMcpToolCallTimestampsViewTimestampsResource}
+			resource={timestampsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<McpToolCall_TimestampsView
-						selection={mcpToolCallMcpToolCallTimestampsViewTimestampsResource}
-						countResource={mcpToolCallMcpToolCallTimestampsViewTimestampsResource.count}
+						selection={timestampsResource}
+						countResource={timestampsResource.count}
 						title='timestamps'
 						id='timestamps'
 					/>

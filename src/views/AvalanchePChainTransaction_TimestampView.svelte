@@ -20,14 +20,12 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.AvalanchePChainTransaction_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const avalanchePChainTransactionTimestamp = $derived(selection({
 		fields: {
 			status: true,
 			blockHeight: true,
 		},
 	}))
-	const titleFallback = $derived(String(pendingEntity.timestampMs ?? '') || 'avalanche p chain transaction timestamp')
 
 
 	// Components
@@ -42,26 +40,26 @@
 <EntityView
 	entityType={EntityType.AvalanchePChainTransaction_Timestamp}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? String(selection.entitySelector.timestampMs)}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+		<Timestamp timestamp={selection.entitySelector.timestampMs} />
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={avalanchePChainTransactionTimestamp}>
 			{#snippet children(entity)}
-				{[(entity.status ?? ''), String(entity.blockHeight ?? '')].filter(Boolean).join(' ') || String(pendingEntity.timestampMs) || titleFallback}
+				{[(entity.status ?? ''), String(entity.blockHeight ?? '')].filter(Boolean).join(' ') || String(selection.entitySelector.timestampMs)}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
 		<span data-text="muted">
-			{pendingEntity.source}
+			{selection.entitySelector.source}
 		</span>
 	{/snippet}
 
@@ -81,14 +79,14 @@
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+					<Timestamp timestamp={selection.entitySelector.timestampMs} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 

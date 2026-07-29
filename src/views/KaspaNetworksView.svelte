@@ -39,7 +39,7 @@
 			entitySelector={kaspaNetworkSelector}
 		>
 			{#snippet Title()}
-				{(kaspaNetwork.$network.name || (kaspaNetworkSelector.$network.caip2 == null ? '' : `${kaspaNetworkSelector.$network.caip2.namespace}:${kaspaNetworkSelector.$network.caip2.reference}`) || 'Network')}
+				{kaspaNetwork.$network.name || (kaspaNetworkSelector.$network.caip2 == null ? '' : `${kaspaNetworkSelector.$network.caip2.namespace}:${kaspaNetworkSelector.$network.caip2.reference}`) || 'Network'}
 			{/snippet}
 		</EntityView>
 	{/snippet}

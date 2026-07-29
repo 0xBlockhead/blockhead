@@ -20,14 +20,10 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.StellarLiquidityPool_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const titleFallback = 'stellar liquidity pool timestamp'
-
 
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
-	import TruncatedValue from '$/components/TruncatedValue.svelte'
 	import StellarLiquidityPoolView from '$/views/StellarLiquidityPoolView.svelte'
 </script>
 
@@ -35,7 +31,7 @@
 <EntityView
 	entityType={EntityType.StellarLiquidityPool_Timestamp}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? 'stellar liquidity pool timestamp'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -60,14 +56,14 @@
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+					<Timestamp timestamp={selection.entitySelector.timestampMs} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 
@@ -86,7 +82,7 @@
 						<div>
 							<dt>ledger sequence</dt>
 							<dd>
-								{String(ledgerSequence)}
+								{ledgerSequence}
 							</dd>
 						</div>
 					{/if}
@@ -174,7 +170,7 @@
 						<div>
 							<dt>accounts</dt>
 							<dd>
-								<TruncatedValue value={String(accounts)} />
+								{accounts}
 							</dd>
 						</div>
 					{/if}

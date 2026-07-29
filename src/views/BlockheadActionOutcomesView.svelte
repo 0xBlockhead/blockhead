@@ -5,7 +5,6 @@
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 
 
 	// State
@@ -45,11 +44,11 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{String(blockheadActionOutcome.transactionHash ?? '')}
+				{blockheadActionOutcome.transactionHash ?? ''}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{String(blockheadActionOutcome.createdAt)}</span>
+				<span data-text="annotation">{blockheadActionOutcome.createdAt}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

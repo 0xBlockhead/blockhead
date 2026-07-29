@@ -15,7 +15,8 @@ export const load: LayoutLoad = ({ params }) => {
 			scope: '_GlobalSwarmAccess',
 		}
 	)
-	if (globalSwarmAccessScopeSelector instanceof arktype.errors) error(404, 'Invalid _GlobalSwarmAccess selector')
+	if (globalSwarmAccessScopeSelector instanceof arktype.errors)
+		error(404, 'Invalid _GlobalSwarmAccess selector')
 
 	return {
 		selector: globalSwarmAccessScopeSelector,

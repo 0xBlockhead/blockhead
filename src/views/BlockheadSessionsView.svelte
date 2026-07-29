@@ -45,7 +45,7 @@
 				resolve(
 					'/~/session/[sessionId=stringSegment]',
 					{
-						sessionId: String(blockheadSessionSelector.id),
+						sessionId: blockheadSessionSelector.id,
 					}
 				)
 			}
@@ -59,7 +59,7 @@
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{String(blockheadSession.updatedAt)}</span>
+				<span data-text="annotation">{blockheadSession.updatedAt}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

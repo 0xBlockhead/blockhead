@@ -45,23 +45,23 @@
 				resolve(
 					'/(social)/(reddit)/reddit/(globalRedditNetwork)/r/[name=stringSegment]/(redditSubreddit)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
 					{
-						name: encodeURIComponent(String(redditSubredditTimestampSelector.$subreddit.name)),
+						name: encodeURIComponent(redditSubredditTimestampSelector.$subreddit.name),
 						timestampMs: String(redditSubredditTimestampSelector.timestampMs),
-						source: String(redditSubredditTimestampSelector.source),
+						source: redditSubredditTimestampSelector.source,
 					}
 				)
 			}
 		>
 			{#snippet Title()}
-				{String(redditSubredditTimestampSelector.timestampMs) || 'Reddit subreddit timestamp'}
+				{redditSubredditTimestampSelector.timestampMs}
 			{/snippet}
 
 			{#snippet Value()}
-				{String(redditSubredditTimestamp.subscriberCount ?? '')}
+				{redditSubredditTimestamp.subscriberCount ?? ''}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{[redditSubredditTimestampSelector.source, (String(redditSubredditTimestamp.activeUserCount ?? '') ? String(redditSubredditTimestamp.activeUserCount ?? '') + ' active' : '')].filter(Boolean).join(' ')}</span>
+				<span data-text="annotation">{[redditSubredditTimestampSelector.source, (redditSubredditTimestamp.activeUserCount != null ? String(redditSubredditTimestamp.activeUserCount) + ' active' : '')].filter(Boolean).join(' ')}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

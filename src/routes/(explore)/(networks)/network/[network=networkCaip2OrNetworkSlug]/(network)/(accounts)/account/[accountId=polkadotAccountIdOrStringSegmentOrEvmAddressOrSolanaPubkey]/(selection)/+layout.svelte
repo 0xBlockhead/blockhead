@@ -39,8 +39,8 @@
 			resolve(
 				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(accounts)/account/[accountId=polkadotAccountIdOrStringSegmentOrEvmAddressOrSolanaPubkey]',
 				{
-					network: String(params.network),
-					accountId: String(params.accountId),
+					network: params.network,
+					accountId: params.accountId,
 				}
 			)
 		}
@@ -54,8 +54,8 @@
 					resolve(
 						'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(accounts)/account/[accountId=polkadotAccountIdOrStringSegmentOrEvmAddressOrSolanaPubkey]',
 						{
-							network: String(params.network),
-							accountId: String(params.accountId),
+							network: params.network,
+							accountId: params.accountId,
 						}
 					)
 				}

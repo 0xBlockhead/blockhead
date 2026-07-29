@@ -45,7 +45,7 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{String(blockheadWalletRequestTimestampSelector.timestampMs)}
+				{blockheadWalletRequestTimestampSelector.timestampMs}
 			{/snippet}
 
 			{#snippet HeadingAfter()}

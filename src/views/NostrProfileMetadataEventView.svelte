@@ -6,7 +6,6 @@
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { UrlString } from '$/schema/UrlString.ts'
 
 
 	// Context
@@ -24,7 +23,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.NostrProfileMetadataEvent> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const nostrProfileMetadataEvent = $derived(selection({
 		fields: {
 			pubkey: true,
@@ -38,7 +36,7 @@
 			website: true,
 		},
 	}))
-	const titleFallback = $derived([(pendingEntity.displayName ?? ''), (pendingEntity.nip05 ?? '')].filter(Boolean).join(' ') || (pendingEntity.pubkey ?? '') || 'Nostr profile metadata event')
+	const titleFallback = $derived([(prefetched.displayName ?? ''), (prefetched.nip05 ?? '')].filter(Boolean).join(' ') || (prefetched.pubkey ?? '') || 'Nostr profile metadata event')
 
 
 	// Components
@@ -55,12 +53,15 @@
 	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
 	href={
-		href ?? resolve(
-			'/(social)/(nostr)/nostr/(globalNostrNetwork)/profile-metadata-version/[eventId=stringSegment]',
-			{
-				eventId: String(selection.entitySelector.eventId),
-			}
-		)
+		href === undefined ?
+			resolve(
+				'/(social)/(nostr)/nostr/(globalNostrNetwork)/profile-metadata-version/[eventId=stringSegment]',
+				{
+					eventId: selection.entitySelector.eventId,
+				}
+			)
+		:
+			href ?? undefined
 	}
 	{layout}
 	bind:open
@@ -71,7 +72,7 @@
 		<ResourceBoundary resource={nostrProfileMetadataEvent}>
 			{#snippet children(entity)}
 				{@const reference = entity.$icon}
-				{#if reference != null && reference[EntityMetaKey.Selector] !== undefined}
+				{#if reference != null}
 					<MediaView
 						selection={select(EntityType.Media, reference[EntityMetaKey.Selector])}
 						prefetched={reference}
@@ -92,14 +93,14 @@
 	{/snippet}
 
 	{#snippet Value()}
-		<TruncatedValue value={pendingEntity.eventId} />
+		<TruncatedValue value={selection.entitySelector.eventId} />
 	{/snippet}
 
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={nostrProfileMetadataEvent}>
 			{#snippet children(entity)}
 				<span data-text="muted">
-					<Timestamp timestamp={Number(entity.createdAt)} />
+					<Timestamp timestamp={entity.createdAt} />
 				</span>
 			{/snippet}
 		</ResourceBoundary>
@@ -173,11 +174,11 @@
 							<dt>Website</dt>
 							<dd>
 								<a
-									href={String(website)}
+									href={website}
 									target="_blank"
 									rel="noreferrer noopener"
 								>
-									<TruncatedValue value={String(website)} />
+									<TruncatedValue value={website} />
 								</a>
 							</dd>
 						</div>
@@ -208,7 +209,7 @@
 						resource={nostrProfileMetadataEvent}
 					>
 						{#snippet children(entity)}
-							<Timestamp timestamp={Number(entity.createdAt)} />
+							<Timestamp timestamp={entity.createdAt} />
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -217,7 +218,7 @@
 			<div>
 				<dt>Event ID</dt>
 				<dd>
-					<TruncatedValue value={pendingEntity.eventId} />
+					<TruncatedValue value={selection.entitySelector.eventId} />
 				</dd>
 			</div>
 

@@ -48,7 +48,7 @@
 				resolve(
 					'/(assets)/(currencies)/currency/[iso4217=iso4217]/(currency)/observations/[timestampMs=nonNegativeInteger]',
 					{
-						iso4217: String(currencyTimestampSelector.$currency.iso4217),
+						iso4217: currencyTimestampSelector.$currency.iso4217,
 						timestampMs: String(currencyTimestampSelector.timestampMs),
 					}
 				)
@@ -59,11 +59,11 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{String(currencyTimestamp.marketCap ?? '')}
+				{currencyTimestamp.marketCap ?? ''}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{String(currencyTimestampSelector.timestampMs)}</span>
+				<span data-text="annotation">{currencyTimestampSelector.timestampMs}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

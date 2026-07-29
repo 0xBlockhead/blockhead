@@ -5,7 +5,6 @@
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 
 
 	// Context
@@ -22,9 +21,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.PayoutClaim_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const titleFallback = 'payout claim timestamp'
-
 
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -39,7 +35,7 @@
 <EntityView
 	entityType={EntityType.PayoutClaim_Timestamp}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? 'payout claim timestamp'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -75,14 +71,14 @@
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+					<Timestamp timestamp={selection.entitySelector.timestampMs} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 		</dl>
@@ -103,7 +99,7 @@
 						<div>
 							<dt>eligible amount</dt>
 							<dd>
-								{String(eligibleAmount)}
+								{eligibleAmount}
 							</dd>
 						</div>
 					{/if}
@@ -125,7 +121,7 @@
 						<div>
 							<dt>claimed amount</dt>
 							<dd>
-								{String(claimedAmount)}
+								{claimedAmount}
 							</dd>
 						</div>
 					{/if}
@@ -169,7 +165,7 @@
 						<div>
 							<dt>proof hash</dt>
 							<dd>
-								<TruncatedValue value={String(proofHash)} />
+								<TruncatedValue value={proofHash} />
 							</dd>
 						</div>
 					{/if}
@@ -211,7 +207,7 @@
 						<div>
 							<dt>expires AT</dt>
 							<dd>
-								<Timestamp timestamp={Number(expiresAt)} />
+								<Timestamp timestamp={expiresAt} />
 							</dd>
 						</div>
 					{/if}

@@ -20,9 +20,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.CardanoStakeCredential> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const titleFallback = 'Cardano stake credential'
-
 
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -34,7 +31,7 @@
 <EntityView
 	entityType={EntityType.CardanoStakeCredential}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? 'Cardano stake credential'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -59,7 +56,7 @@
 			<div>
 				<dt>credential</dt>
 				<dd>
-					<TruncatedValue value={pendingEntity.credential} />
+					<TruncatedValue value={selection.entitySelector.credential} />
 				</dd>
 			</div>
 
@@ -78,7 +75,7 @@
 						<div>
 							<dt>credential kind</dt>
 							<dd>
-								<TruncatedValue value={credentialKind} />
+								{credentialKind}
 							</dd>
 						</div>
 					{/if}

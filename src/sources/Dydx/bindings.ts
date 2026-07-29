@@ -1,10 +1,10 @@
 // Generated from APP.ts. Do not edit by hand.
 
 import { Source } from '$/sources/Source.ts'
-import { ApiFamily, SourceCredentialScope, SourceDelivery, SourceEndpointKind, SourceOperationGroup, SourceTargetKind, WireProtocol, type SourceBindingIndex } from '$/sources/SourceBinding.ts'
+import { ApiFamily, indexSourceBindings, SourceCredentialScope, SourceDelivery, SourceEndpointKind, SourceOperationGroup, SourceTargetKind, WireProtocol, type SourceBinding } from '$/sources/SourceBinding.ts'
 
-export default {
-	[Source.DydxIndexer_Rest]: {
+const bindings = [
+	{
 		source: Source.DydxIndexer_Rest,
 		target: {
 			kind: SourceTargetKind.NetworkSlug,
@@ -30,7 +30,7 @@ export default {
 			},
 		],
 	},
-	[Source.DydxValidator_Rest]: {
+	{
 		source: Source.DydxValidator_Rest,
 		target: {
 			kind: SourceTargetKind.NetworkSlug,
@@ -56,4 +56,9 @@ export default {
 			},
 		],
 	},
-} as const satisfies SourceBindingIndex
+] as const satisfies readonly SourceBinding[]
+
+export default indexSourceBindings<{
+	readonly [Source.DydxIndexer_Rest]: typeof bindings[0]
+	readonly [Source.DydxValidator_Rest]: typeof bindings[1]
+}>(bindings)

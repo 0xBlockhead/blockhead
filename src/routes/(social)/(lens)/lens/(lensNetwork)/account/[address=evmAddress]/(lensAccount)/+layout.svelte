@@ -33,7 +33,7 @@
 			resolve(
 				'/(social)/(lens)/lens/(lensNetwork)/account/[address=evmAddress]',
 				{
-					address: String(params.address),
+					address: params.address,
 				}
 			)
 		}
@@ -49,7 +49,7 @@
 					resolve(
 						'/(social)/(lens)/lens/(lensNetwork)/account/[address=evmAddress]',
 						{
-							address: String(params.address),
+							address: params.address,
 						}
 					)
 				}

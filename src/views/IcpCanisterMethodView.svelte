@@ -20,9 +20,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.IcpCanisterMethod> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const titleFallback = 'ICP canister method'
-
 
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -33,7 +30,7 @@
 <EntityView
 	entityType={EntityType.IcpCanisterMethod}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? 'ICP canister method'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -58,14 +55,14 @@
 			<div>
 				<dt>method name</dt>
 				<dd>
-					{pendingEntity.methodName}
+					{selection.entitySelector.methodName}
 				</dd>
 			</div>
 
 			<div>
 				<dt>method kind</dt>
 				<dd>
-					{pendingEntity.methodKind}
+					{selection.entitySelector.methodKind}
 				</dd>
 			</div>
 		</dl>

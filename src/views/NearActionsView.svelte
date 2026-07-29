@@ -45,11 +45,11 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{(nearAction.methodName ?? '')}
+				{nearAction.methodName ?? ''}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{String(nearActionSelector.actionIndex)}</span>
+				<span data-text="annotation">{nearActionSelector.actionIndex}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

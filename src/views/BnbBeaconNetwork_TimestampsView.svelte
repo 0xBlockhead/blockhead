@@ -42,7 +42,7 @@
 			entitySelector={bnbBeaconNetworkTimestampSelector}
 		>
 			{#snippet Title()}
-				{String(bnbBeaconNetworkTimestampSelector.timestampMs) || 'bnb beacon network timestamp'}
+				{bnbBeaconNetworkTimestampSelector.timestampMs}
 			{/snippet}
 
 			{#snippet Value()}

@@ -44,7 +44,7 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{erc4626Vault.$asset == null ? '' : [String(erc4626Vault.$asset.NativeCurrency.symbol ?? ''), String(erc4626Vault.$asset.NativeCurrency.name ?? ''), String(erc4626Vault.$asset.Erc20Token.symbol ?? ''), String(erc4626Vault.$asset.Erc20Token.name ?? '')].filter(Boolean).join(' ') || 'EVM coin instance'}
+				{erc4626Vault.$asset == null ? '' : [erc4626Vault.$asset.NativeCurrency.symbol, (erc4626Vault.$asset.NativeCurrency.name ?? ''), erc4626Vault.$asset.Erc20Token.symbol, (erc4626Vault.$asset.Erc20Token.name ?? '')].filter(Boolean).join(' ') || 'EVM coin instance'}
 			{/snippet}
 		</EntityView>
 	{/snippet}

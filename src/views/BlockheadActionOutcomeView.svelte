@@ -5,7 +5,6 @@
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -23,7 +22,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.BlockheadActionOutcome> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Local_Internal,
@@ -36,7 +34,7 @@
 			transactionHash: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.outcomeKind ?? '') || 'blockhead action outcome')
+	const titleFallback = $derived((prefetched.outcomeKind ?? '') || 'blockhead action outcome')
 
 
 	// Components
@@ -70,7 +68,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={blockheadActionOutcome}>
 			{#snippet children(entity)}
-				{String(entity.transactionHash ?? '') || entity.outcomeKind || titleFallback}
+				{(entity.transactionHash ?? '') || entity.outcomeKind || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -79,7 +77,7 @@
 		<ResourceBoundary resource={blockheadActionOutcome}>
 			{#snippet children(entity)}
 				<span data-text="muted">
-					<Timestamp timestamp={Number(entity.createdAt)} />
+					<Timestamp timestamp={entity.createdAt} />
 				</span>
 			{/snippet}
 		</ResourceBoundary>
@@ -108,7 +106,7 @@
 			<div>
 				<dt>outcome ID</dt>
 				<dd>
-					{pendingEntity.outcomeId}
+					{selection.entitySelector.outcomeId}
 				</dd>
 			</div>
 
@@ -196,7 +194,7 @@
 						<div>
 							<dt>transaction hash</dt>
 							<dd>
-								<TruncatedValue value={String(transactionHash)} />
+								<TruncatedValue value={transactionHash} />
 							</dd>
 						</div>
 					{/if}
@@ -262,7 +260,7 @@
 						<div>
 							<dt>outcome payload hash</dt>
 							<dd>
-								<TruncatedValue value={String(outcomePayloadHash)} />
+								<TruncatedValue value={outcomePayloadHash} />
 							</dd>
 						</div>
 					{/if}
@@ -276,7 +274,7 @@
 						resource={blockheadActionOutcome}
 					>
 						{#snippet children(entity)}
-							<Timestamp timestamp={Number(entity.createdAt)} />
+							<Timestamp timestamp={entity.createdAt} />
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -285,15 +283,15 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const blockheadActionOutcomeBlockheadActionOutcomeTimestampsViewTimestampsResource = selection.$$timestamps}
+		{@const timestampsResource = selection.$$timestamps}
 		<ResourceBoundary
-			resource={blockheadActionOutcomeBlockheadActionOutcomeTimestampsViewTimestampsResource}
+			resource={timestampsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<BlockheadActionOutcome_TimestampsView
-						selection={blockheadActionOutcomeBlockheadActionOutcomeTimestampsViewTimestampsResource}
-						countResource={blockheadActionOutcomeBlockheadActionOutcomeTimestampsViewTimestampsResource.count}
+						selection={timestampsResource}
+						countResource={timestampsResource.count}
 						title='timestamps'
 						id='timestamps'
 					/>

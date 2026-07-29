@@ -5,7 +5,6 @@
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -23,7 +22,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.BlockheadAgentProgramInstall> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Local_Internal,
@@ -35,7 +33,7 @@
 			updatedAt: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.installId ?? '') || 'blockhead agent program install')
+	const titleFallback = $derived(selection.entitySelector.installId || 'blockhead agent program install')
 
 
 	// Components
@@ -56,13 +54,13 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{(pendingEntity.installId ?? '') || 'blockhead agent program install'}
+		{selection.entitySelector.installId || 'blockhead agent program install'}
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={blockheadAgentProgramInstall}>
 			{#snippet children(entity)}
-				{(entity.command ?? '') || pendingEntity.installId || titleFallback}
+				{(entity.command ?? '') || selection.entitySelector.installId || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -70,10 +68,10 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={blockheadAgentProgramInstall}>
 			{#snippet children(entity)}
-				{@const updatedAt0 = entity.updatedAt}
-				{#if updatedAt0 != null}
+				{@const updatedAt = entity.updatedAt}
+				{#if updatedAt != null}
 					<span data-text="muted">
-						<Timestamp timestamp={Number(updatedAt0)} />
+						<Timestamp timestamp={updatedAt} />
 					</span>
 				{/if}
 			{/snippet}
@@ -85,7 +83,7 @@
 			<div>
 				<dt>install ID</dt>
 				<dd>
-					{pendingEntity.installId}
+					{selection.entitySelector.installId}
 				</dd>
 			</div>
 
@@ -164,7 +162,7 @@
 						<div>
 							<dt>args hash algorithm</dt>
 							<dd>
-								<TruncatedValue value={argsHashAlgorithm} />
+								{argsHashAlgorithm}
 							</dd>
 						</div>
 					{/if}
@@ -186,7 +184,7 @@
 						<div>
 							<dt>args hash</dt>
 							<dd>
-								<TruncatedValue value={String(argsHash)} />
+								<TruncatedValue value={argsHash} />
 							</dd>
 						</div>
 					{/if}
@@ -232,7 +230,7 @@
 						<div>
 							<dt>Created</dt>
 							<dd>
-								<Timestamp timestamp={Number(createdAt)} />
+								<Timestamp timestamp={createdAt} />
 							</dd>
 						</div>
 					{/if}
@@ -248,7 +246,7 @@
 						<div>
 							<dt>Updated</dt>
 							<dd>
-								<Timestamp timestamp={Number(updatedAt)} />
+								<Timestamp timestamp={updatedAt} />
 							</dd>
 						</div>
 					{/if}
@@ -258,15 +256,15 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const blockheadAgentProgramInstallBlockheadAgentProgramInstallTimestampsViewTimestampsResource = selection.$$timestamps}
+		{@const timestampsResource = selection.$$timestamps}
 		<ResourceBoundary
-			resource={blockheadAgentProgramInstallBlockheadAgentProgramInstallTimestampsViewTimestampsResource}
+			resource={timestampsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<BlockheadAgentProgramInstall_TimestampsView
-						selection={blockheadAgentProgramInstallBlockheadAgentProgramInstallTimestampsViewTimestampsResource}
-						countResource={blockheadAgentProgramInstallBlockheadAgentProgramInstallTimestampsViewTimestampsResource.count}
+						selection={timestampsResource}
+						countResource={timestampsResource.count}
 						title='timestamps'
 						id='timestamps'
 					/>

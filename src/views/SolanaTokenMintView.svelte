@@ -24,8 +24,7 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.SolanaTokenMint> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const titleFallback = $derived((pendingEntity.mintAddress ?? '') || 'solana token mint')
+	const network = $derived(selection.entitySelector.$network)
 	const viewDomId = $derived('solana-token-mint-' + encodeURIComponent(stringify(selection.entitySelector)))
 
 
@@ -43,31 +42,34 @@
 	entityType={EntityType.SolanaTokenMint}
 	entitySelector={selection.entitySelector}
 	id={viewDomId}
-	title={title ?? titleFallback}
+	title={title ?? (selection.entitySelector.mintAddress || 'solana token mint')}
 	href={
-		href ?? resolve(
-			'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/token-mint/[mintAddress=stringSegment]',
-			{
-				network: (
-					'caip2' in selection.entitySelector.$network ?
-						String(caip2StringFromValue(selection.entitySelector.$network.caip2))
-					:
-						String(selection.entitySelector.$network.slug)
-				),
-				mintAddress: String(selection.entitySelector.mintAddress),
-			}
-		)
+		href === undefined ?
+			resolve(
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/token-mint/[mintAddress=stringSegment]',
+				{
+					network: (
+						'caip2' in network ?
+							caip2StringFromValue(network.caip2)
+						:
+							network.slug
+					),
+					mintAddress: selection.entitySelector.mintAddress,
+				}
+			)
+		:
+			href ?? undefined
 	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<TruncatedValue value={pendingEntity.mintAddress} />
+		<TruncatedValue value={selection.entitySelector.mintAddress} />
 	{/snippet}
 
 	{#snippet Value()}
-		<TruncatedValue value={pendingEntity.mintAddress} />
+		<TruncatedValue value={selection.entitySelector.mintAddress} />
 	{/snippet}
 
 	{#snippet HeadingAfter()}
@@ -85,7 +87,7 @@
 			<div>
 				<dt>Mint address</dt>
 				<dd>
-					<TruncatedValue value={pendingEntity.mintAddress} />
+					<TruncatedValue value={selection.entitySelector.mintAddress} />
 				</dd>
 			</div>
 

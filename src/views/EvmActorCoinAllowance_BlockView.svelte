@@ -20,13 +20,11 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.EvmActorCoinAllowance_Block> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const evmActorCoinAllowanceBlock = $derived(selection({
 		fields: {
 			allowance: true,
 		},
 	}))
-	const titleFallback = $derived((String(pendingEntity.blockNumber ?? '') ? 'Block ' + String(pendingEntity.blockNumber ?? '') : '') || 'EVM actor coin allowance block')
 
 
 	// Components
@@ -39,26 +37,26 @@
 <EntityView
 	entityType={EntityType.EvmActorCoinAllowance_Block}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? 'Block ' + String(selection.entitySelector.blockNumber)}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{(String(pendingEntity.blockNumber ?? '') ? 'Block ' + String(pendingEntity.blockNumber ?? '') : '') || 'EVM actor coin allowance block'}
+		{'Block ' + String(selection.entitySelector.blockNumber)}
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={evmActorCoinAllowanceBlock}>
 			{#snippet children(entity)}
-				{String(entity.allowance) || (String(pendingEntity.blockNumber) ? 'Block ' + String(pendingEntity.blockNumber) : '') || titleFallback}
+				{String(entity.allowance) || 'Block ' + String(selection.entitySelector.blockNumber)}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
 		<span data-text="muted">
-			{pendingEntity.source}
+			{selection.entitySelector.source}
 		</span>
 	{/snippet}
 
@@ -67,14 +65,14 @@
 			<div>
 				<dt>Block number</dt>
 				<dd>
-					{String(pendingEntity.blockNumber)}
+					{selection.entitySelector.blockNumber}
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 
@@ -85,7 +83,7 @@
 						resource={evmActorCoinAllowanceBlock}
 					>
 						{#snippet children(entity)}
-							{String(entity.allowance)}
+							{entity.allowance}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -128,7 +126,7 @@
 						<div>
 							<dt>Checked at</dt>
 							<dd>
-								<Timestamp timestamp={Number(checkedAt)} />
+								<Timestamp timestamp={checkedAt} />
 							</dd>
 						</div>
 					{/if}

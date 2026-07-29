@@ -16,13 +16,12 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.BitTorrentTracker> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const bitTorrentTracker = $derived(selection({
 		fields: {
 			trackerKind: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.trackerUrl ?? '') || 'bit torrent tracker')
+	const titleFallback = $derived(selection.entitySelector.trackerUrl || 'bit torrent tracker')
 
 
 	// Components
@@ -42,13 +41,13 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{(pendingEntity.trackerUrl ?? '') || 'bit torrent tracker'}
+		{selection.entitySelector.trackerUrl || 'bit torrent tracker'}
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={bitTorrentTracker}>
 			{#snippet children(entity)}
-				{entity.trackerKind || pendingEntity.trackerUrl || titleFallback}
+				{entity.trackerKind || selection.entitySelector.trackerUrl || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -59,11 +58,11 @@
 				<dt>tracker URL</dt>
 				<dd>
 					<a
-						href={String(pendingEntity.trackerUrl)}
+						href={selection.entitySelector.trackerUrl}
 						target="_blank"
 						rel="noreferrer noopener"
 					>
-						<TruncatedValue value={String(pendingEntity.trackerUrl)} />
+						<TruncatedValue value={selection.entitySelector.trackerUrl} />
 					</a>
 				</dd>
 			</div>
@@ -84,30 +83,30 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const bitTorrentTrackerBitTorrentAnnounceTimestampsViewAnnouncesResource = selection.$$announces}
+		{@const announcesResource = selection.$$announces}
 		<ResourceBoundary
-			resource={bitTorrentTrackerBitTorrentAnnounceTimestampsViewAnnouncesResource}
+			resource={announcesResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<BitTorrentAnnounce_TimestampsView
-						selection={bitTorrentTrackerBitTorrentAnnounceTimestampsViewAnnouncesResource}
-						countResource={bitTorrentTrackerBitTorrentAnnounceTimestampsViewAnnouncesResource.count}
+						selection={announcesResource}
+						countResource={announcesResource.count}
 						title='announces'
 						id='announces'
 					/>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>
-		{@const bitTorrentTrackerBitTorrentTrackerScrapeTimestampsViewScrapesResource = selection.$$scrapes}
+		{@const scrapesResource = selection.$$scrapes}
 		<ResourceBoundary
-			resource={bitTorrentTrackerBitTorrentTrackerScrapeTimestampsViewScrapesResource}
+			resource={scrapesResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<BitTorrentTrackerScrape_TimestampsView
-						selection={bitTorrentTrackerBitTorrentTrackerScrapeTimestampsViewScrapesResource}
-						countResource={bitTorrentTrackerBitTorrentTrackerScrapeTimestampsViewScrapesResource.count}
+						selection={scrapesResource}
+						countResource={scrapesResource.count}
 						title='scrapes'
 						id='scrapes'
 					/>

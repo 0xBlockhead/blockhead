@@ -2,7 +2,8 @@
 
 import bindings from '$/sources/Dydx/bindings.ts'
 import { Source } from '$/sources/Source.ts'
-import { SourceProvider, type SourceProviderDefinition } from '$/sources/SourceProvider.ts'
+import { SourceProvider } from '$/sources/SourceProvider.ts'
+import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinition.ts'
 
 export default {
 	provider: SourceProvider.Dydx,
@@ -17,8 +18,5 @@ export default {
 			label: 'dYdX Validator REST',
 		},
 	],
-	bindings: [
-		bindings[Source.DydxIndexer_Rest],
-		bindings[Source.DydxValidator_Rest],
-	],
+	bindings: Object.values(bindings).flat(),
 } satisfies SourceProviderDefinition

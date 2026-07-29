@@ -22,7 +22,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.FilecoinTipset> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Lotus_JsonRpc,
@@ -34,7 +33,6 @@
 			timestampMs: true,
 		},
 	}))
-	const titleFallback = $derived(String(pendingEntity.height ?? '') || 'filecoin tipset')
 
 
 	// Components
@@ -50,28 +48,28 @@
 <EntityView
 	entityType={EntityType.FilecoinTipset}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? String(selection.entitySelector.height)}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
 		<NumberValue
-			value={pendingEntity.height}
+			value={selection.entitySelector.height}
 		/>
 	{/snippet}
 
 	{#snippet Value()}
-		{(pendingEntity.tipsetKey ?? '') || String(pendingEntity.height ?? '') || titleFallback}
+		{selection.entitySelector.tipsetKey || String(selection.entitySelector.height)}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={filecoinTipset}>
 			{#snippet children(entity)}
-				{@const timestampMs0 = entity.timestampMs}
-				{#if timestampMs0 != null}
+				{@const timestampMs = entity.timestampMs}
+				{#if timestampMs != null}
 					<span data-text="muted">
-						<Timestamp timestamp={Number(timestampMs0)} />
+						<Timestamp timestamp={timestampMs} />
 					</span>
 				{/if}
 			{/snippet}
@@ -95,7 +93,7 @@
 				<dt>Height</dt>
 				<dd>
 					<NumberValue
-						value={pendingEntity.height}
+						value={selection.entitySelector.height}
 					/>
 				</dd>
 			</div>
@@ -103,7 +101,7 @@
 			<div>
 				<dt>Tipset key</dt>
 				<dd>
-					{pendingEntity.tipsetKey}
+					{selection.entitySelector.tipsetKey}
 				</dd>
 			</div>
 
@@ -160,7 +158,7 @@
 						<div>
 							<dt>Timestamp</dt>
 							<dd>
-								<Timestamp timestamp={Number(timestampMs)} />
+								<Timestamp timestamp={timestampMs} />
 							</dd>
 						</div>
 					{/if}
@@ -170,15 +168,15 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const filecoinTipsetFilecoinBlocksViewBlocksResource = selection.$$blocks}
+		{@const blocksResource = selection.$$blocks}
 		<ResourceBoundary
-			resource={filecoinTipsetFilecoinBlocksViewBlocksResource}
+			resource={blocksResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<FilecoinBlocksView
-						selection={filecoinTipsetFilecoinBlocksViewBlocksResource}
-						countResource={filecoinTipsetFilecoinBlocksViewBlocksResource.count}
+						selection={blocksResource}
+						countResource={blocksResource.count}
 						title='Blocks'
 						id='blocks'
 					/>

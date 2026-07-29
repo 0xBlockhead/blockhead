@@ -39,6 +39,7 @@
 >
 	{#snippet Item({ item: solanaTokenAccount })}
 		{@const solanaTokenAccountSelector = solanaTokenAccount[EntityMetaKey.Selector]}
+		{@const network = solanaTokenAccountSelector.$network}
 		<EntityView
 			entityType={EntityType.SolanaTokenAccount}
 			entitySelector={solanaTokenAccountSelector}
@@ -47,12 +48,12 @@
 					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/token-account/[tokenAccountPubkey=stringSegment]',
 					{
 						network: (
-							'caip2' in solanaTokenAccountSelector.$network ?
-								String(caip2StringFromValue(solanaTokenAccountSelector.$network.caip2))
+							'caip2' in network ?
+								caip2StringFromValue(network.caip2)
 							:
-								String(solanaTokenAccountSelector.$network.slug)
+								network.slug
 						),
-						tokenAccountPubkey: String(solanaTokenAccountSelector.tokenAccountPubkey),
+						tokenAccountPubkey: solanaTokenAccountSelector.tokenAccountPubkey,
 					}
 				)
 			}

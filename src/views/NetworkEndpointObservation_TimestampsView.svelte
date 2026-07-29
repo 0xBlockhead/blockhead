@@ -43,7 +43,7 @@
 			entitySelector={networkEndpointObservationTimestampSelector}
 		>
 			{#snippet Title()}
-				{String(networkEndpointObservationTimestampSelector.timestampMs) || 'network endpoint observation timestamp'}
+				{networkEndpointObservationTimestampSelector.timestampMs}
 			{/snippet}
 
 			{#snippet Value()}

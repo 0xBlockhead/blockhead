@@ -4,8 +4,6 @@
 	// Types/constants
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { UrlString } from '$/schema/UrlString.ts'
-	import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -23,7 +21,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.McpResourceContent_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.McpDeclared_Protocol,
@@ -36,7 +33,6 @@
 			error: true,
 		},
 	}))
-	const titleFallback = $derived(String(pendingEntity.timestampMs ?? '') || 'mcp resource content timestamp')
 
 
 	// Components
@@ -51,19 +47,19 @@
 <EntityView
 	entityType={EntityType.McpResourceContent_Timestamp}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? String(selection.entitySelector.timestampMs)}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+		<Timestamp timestamp={selection.entitySelector.timestampMs} />
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={mcpResourceContentTimestamp}>
 			{#snippet children(entity)}
-				{[(entity.contentKind ?? ''), (entity.mimeType ?? '')].filter(Boolean).join(' ') || String(pendingEntity.timestampMs) || titleFallback}
+				{[(entity.contentKind ?? ''), (entity.mimeType ?? '')].filter(Boolean).join(' ') || String(selection.entitySelector.timestampMs)}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -71,10 +67,10 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={mcpResourceContentTimestamp}>
 			{#snippet children(entity)}
-				{@const error0 = entity.error}
-				{#if error0 != null}
+				{@const error = entity.error}
+				{#if error != null}
 					<span data-text="muted">
-						{error0}
+						{error}
 					</span>
 				{/if}
 			{/snippet}
@@ -97,14 +93,14 @@
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+					<Timestamp timestamp={selection.entitySelector.timestampMs} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 
@@ -142,11 +138,11 @@
 							<dt>URI</dt>
 							<dd>
 								<a
-									href={String(uri)}
+									href={uri}
 									target="_blank"
 									rel="noreferrer noopener"
 								>
-									<TruncatedValue value={String(uri)} />
+									<TruncatedValue value={uri} />
 								</a>
 							</dd>
 						</div>
@@ -209,7 +205,7 @@
 						<div>
 							<dt>blob hash algorithm</dt>
 							<dd>
-								<TruncatedValue value={blobHashAlgorithm} />
+								{blobHashAlgorithm}
 							</dd>
 						</div>
 					{/if}
@@ -231,7 +227,7 @@
 						<div>
 							<dt>blob hash</dt>
 							<dd>
-								<TruncatedValue value={String(blobHash)} />
+								<TruncatedValue value={blobHash} />
 							</dd>
 						</div>
 					{/if}

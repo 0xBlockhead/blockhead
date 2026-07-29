@@ -4,7 +4,6 @@
 	// Types/constants
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { EvmAddress, ZeroExHex } from '$/schema/ZeroExHex.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -22,7 +21,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.BridgeTransfer_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.LifiStatus_Rest,
@@ -37,7 +35,6 @@
 			substatus: true,
 		},
 	}))
-	const titleFallback = $derived(String(pendingEntity.timestampMs ?? '') || 'bridge transfer timestamp')
 
 
 	// Components
@@ -52,26 +49,26 @@
 <EntityView
 	entityType={EntityType.BridgeTransfer_Timestamp}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? String(selection.entitySelector.timestampMs)}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+		<Timestamp timestamp={selection.entitySelector.timestampMs} />
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={bridgeTransferTimestamp}>
 			{#snippet children(entity)}
-				{[(entity.status ?? ''), (entity.substatus ?? '')].filter(Boolean).join(' ') || String(pendingEntity.timestampMs) || titleFallback}
+				{[(entity.status ?? ''), (entity.substatus ?? '')].filter(Boolean).join(' ') || String(selection.entitySelector.timestampMs)}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
 		<span data-text="muted">
-			{pendingEntity.source}
+			{selection.entitySelector.source}
 		</span>
 	{/snippet}
 
@@ -91,14 +88,14 @@
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+					<Timestamp timestamp={selection.entitySelector.timestampMs} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 
@@ -199,7 +196,7 @@
 						<div>
 							<dt>destination tx hash</dt>
 							<dd>
-								<TruncatedValue value={String(destinationTxHash)} />
+								<TruncatedValue value={destinationTxHash} />
 							</dd>
 						</div>
 					{/if}
@@ -221,7 +218,7 @@
 						<div>
 							<dt>relayer</dt>
 							<dd>
-								{String(relayer)}
+								{relayer}
 							</dd>
 						</div>
 					{/if}
@@ -243,7 +240,7 @@
 						<div>
 							<dt>refund tx hash</dt>
 							<dd>
-								<TruncatedValue value={String(refundTxHash)} />
+								<TruncatedValue value={refundTxHash} />
 							</dd>
 						</div>
 					{/if}
@@ -267,7 +264,7 @@
 						<div>
 							<dt>estimated completion ms</dt>
 							<dd>
-								<Timestamp timestamp={Number(estimatedCompletionMs)} />
+								<Timestamp timestamp={estimatedCompletionMs} />
 							</dd>
 						</div>
 					{/if}
@@ -289,7 +286,7 @@
 						<div>
 							<dt>completed AT</dt>
 							<dd>
-								<Timestamp timestamp={Number(completedAt)} />
+								<Timestamp timestamp={completedAt} />
 							</dd>
 						</div>
 					{/if}

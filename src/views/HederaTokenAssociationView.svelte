@@ -20,8 +20,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.HederaTokenAssociation> = $props()
 
-	const titleFallback = 'hedera token association'
-
 
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -35,7 +33,7 @@
 <EntityView
 	entityType={EntityType.HederaTokenAssociation}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? 'hedera token association'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -43,7 +41,6 @@
 	{#snippet Title()}
 		<HederaTokenView
 			selection={select(EntityType.HederaToken, selection.entitySelector.$token)}
-			href=""
 			layout={EntityLayout.Title}
 			open={false}
 		/>
@@ -52,7 +49,7 @@
 	{#snippet Value()}
 		<HederaAccountView
 			selection={select(EntityType.HederaAccount, selection.entitySelector.$account)}
-			href=""
+			href={null}
 			layout={EntityLayout.Value}
 			open={false}
 		/>
@@ -85,15 +82,15 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const hederaTokenAssociationHederaTokenAssociationTimestampsViewTimestampsResource = selection.$$timestamps}
+		{@const timestampsResource = selection.$$timestamps}
 		<ResourceBoundary
-			resource={hederaTokenAssociationHederaTokenAssociationTimestampsViewTimestampsResource}
+			resource={timestampsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<HederaTokenAssociation_TimestampsView
-						selection={hederaTokenAssociationHederaTokenAssociationTimestampsViewTimestampsResource}
-						countResource={hederaTokenAssociationHederaTokenAssociationTimestampsViewTimestampsResource.count}
+						selection={timestampsResource}
+						countResource={timestampsResource.count}
 						title='Observations'
 						id='timestamps'
 					/>

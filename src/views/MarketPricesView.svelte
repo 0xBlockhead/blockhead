@@ -59,12 +59,12 @@
 				resolve(
 					'/(assets)/venue/[marketVenue=marketVenueId]/market/[baseKind]/[base]/[quoteKind]/[quote]/[marketKind]',
 					{
-						marketVenue: String(marketPriceSelector.$market.$marketVenue.marketVenueId),
-						baseKind: String(marketAssetRouteLabelByKind[String(marketPriceSelector.$market.$base.kind)]),
-						base: String(marketPriceSelector.$market.$base.assetKey),
-						quoteKind: String(marketAssetRouteLabelByKind[String(marketPriceSelector.$market.$quote.kind)]),
-						quote: String(marketPriceSelector.$market.$quote.assetKey),
-						marketKind: String(marketPriceSelector.$market.marketKind),
+						marketVenue: marketPriceSelector.$market.$marketVenue.marketVenueId,
+						baseKind: marketAssetRouteLabelByKind[marketPriceSelector.$market.$base.kind],
+						base: marketPriceSelector.$market.$base.assetKey,
+						quoteKind: marketAssetRouteLabelByKind[marketPriceSelector.$market.$quote.kind],
+						quote: marketPriceSelector.$market.$quote.assetKey,
+						marketKind: marketPriceSelector.$market.marketKind,
 					}
 				)
 			}

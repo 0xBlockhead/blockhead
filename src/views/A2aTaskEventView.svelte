@@ -21,7 +21,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.A2aTaskEvent> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [],
 	}))
@@ -31,7 +30,6 @@
 			timestampMs: true,
 		},
 	}))
-	const titleFallback = $derived(String(pendingEntity.sequence ?? '') || 'A2A task event')
 
 
 	// Components
@@ -45,19 +43,19 @@
 <EntityView
 	entityType={EntityType.A2aTaskEvent}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? String(selection.entitySelector.sequence)}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{String(pendingEntity.sequence ?? '') || 'A2A task event'}
+		{String(selection.entitySelector.sequence)}
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={a2aTaskEvent}>
 			{#snippet children(entity)}
-				{entity.eventKind || String(pendingEntity.sequence) || titleFallback}
+				{entity.eventKind || String(selection.entitySelector.sequence)}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -65,10 +63,10 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={a2aTaskEvent}>
 			{#snippet children(entity)}
-				{@const timestampMs0 = entity.timestampMs}
-				{#if timestampMs0 != null}
+				{@const timestampMs = entity.timestampMs}
+				{#if timestampMs != null}
 					<span data-text="muted">
-						<Timestamp timestamp={Number(timestampMs0)} />
+						<Timestamp timestamp={timestampMs} />
 					</span>
 				{/if}
 			{/snippet}
@@ -91,7 +89,7 @@
 			<div>
 				<dt>sequence</dt>
 				<dd>
-					{String(pendingEntity.sequence)}
+					{selection.entitySelector.sequence}
 				</dd>
 			</div>
 
@@ -117,7 +115,7 @@
 						<div>
 							<dt>Timestamp</dt>
 							<dd>
-								<Timestamp timestamp={Number(timestampMs)} />
+								<Timestamp timestamp={timestampMs} />
 							</dd>
 						</div>
 					{/if}

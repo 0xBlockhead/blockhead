@@ -10,7 +10,8 @@ import SwarmResourceSchema from '$/schema/SwarmResource.ts'
 import { type as arktype } from 'arktype'
 
 export const load: LayoutLoad = ({ params }) => {
-	if (!(matchStringSegment(params.reference))) error(404, 'Route mapping not applicable')
+	if (!(matchStringSegment(params.reference)))
+		error(404, 'Route mapping not applicable')
 
 	const swarmResourceResourceAddressSelector = parseEntitySelector(
 		schema,
@@ -20,7 +21,8 @@ export const load: LayoutLoad = ({ params }) => {
 			contentPath: '',
 		}
 	)
-	if (swarmResourceResourceAddressSelector instanceof arktype.errors) error(404, 'Invalid SwarmResource selector')
+	if (swarmResourceResourceAddressSelector instanceof arktype.errors)
+		error(404, 'Invalid SwarmResource selector')
 
 	return {
 		selector: swarmResourceResourceAddressSelector,

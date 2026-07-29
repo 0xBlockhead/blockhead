@@ -21,7 +21,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.DydxChainPerpetualPosition_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.DydxIndexer_Rest,
@@ -33,7 +32,6 @@
 			side: true,
 		},
 	}))
-	const titleFallback = $derived(String(pendingEntity.timestampMs ?? '') || 'dydx chain perpetual position timestamp')
 
 
 	// Components
@@ -48,19 +46,19 @@
 <EntityView
 	entityType={EntityType.DydxChainPerpetualPosition_Timestamp}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? String(selection.entitySelector.timestampMs)}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+		<Timestamp timestamp={selection.entitySelector.timestampMs} />
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={dydxChainPerpetualPositionTimestamp}>
 			{#snippet children(entity)}
-				{(entity.side ?? '') || String(pendingEntity.timestampMs) || titleFallback}
+				{(entity.side ?? '') || String(selection.entitySelector.timestampMs)}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -92,14 +90,14 @@
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+					<Timestamp timestamp={selection.entitySelector.timestampMs} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 
@@ -118,7 +116,7 @@
 						<div>
 							<dt>block height</dt>
 							<dd>
-								{String(blockHeight)}
+								{blockHeight}
 							</dd>
 						</div>
 					{/if}
@@ -158,7 +156,7 @@
 						<div>
 							<dt>size</dt>
 							<dd>
-								{String(size)}
+								{size}
 							</dd>
 						</div>
 					{/if}
@@ -180,7 +178,7 @@
 						<div>
 							<dt>entry price</dt>
 							<dd>
-								{String(entryPrice)}
+								{entryPrice}
 							</dd>
 						</div>
 					{/if}
@@ -202,7 +200,7 @@
 						<div>
 							<dt>unrealized pnl</dt>
 							<dd>
-								{String(unrealizedPnl)}
+								{unrealizedPnl}
 							</dd>
 						</div>
 					{/if}
@@ -224,7 +222,7 @@
 						<div>
 							<dt>realized pnl</dt>
 							<dd>
-								{String(realizedPnl)}
+								{realizedPnl}
 							</dd>
 						</div>
 					{/if}
@@ -246,7 +244,7 @@
 						<div>
 							<dt>funding index</dt>
 							<dd>
-								{String(fundingIndex)}
+								{fundingIndex}
 							</dd>
 						</div>
 					{/if}

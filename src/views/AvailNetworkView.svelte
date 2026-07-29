@@ -44,7 +44,7 @@
 	{#snippet Title()}
 		<NetworkView
 			selection={select(EntityType.Network, selection.entitySelector.$network)}
-			href=""
+			href={null}
 			layout={EntityLayout.Title}
 			open={false}
 		/>
@@ -70,60 +70,60 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const availNetworkAvailNetworkTimestampsViewTimestampsResource = selection.$$timestamps}
+		{@const timestampsResource = selection.$$timestamps}
 		<ResourceBoundary
-			resource={availNetworkAvailNetworkTimestampsViewTimestampsResource}
+			resource={timestampsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<AvailNetwork_TimestampsView
-						selection={availNetworkAvailNetworkTimestampsViewTimestampsResource}
-						countResource={availNetworkAvailNetworkTimestampsViewTimestampsResource.count}
+						selection={timestampsResource}
+						countResource={timestampsResource.count}
 						title='timestamps'
 						id='timestamps'
 					/>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>
-		{@const availNetworkAvailBlocksViewBlocksResource = selection.$$blocks}
+		{@const blocksResource = selection.$$blocks}
 		<ResourceBoundary
-			resource={availNetworkAvailBlocksViewBlocksResource}
+			resource={blocksResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<AvailBlocksView
-						selection={availNetworkAvailBlocksViewBlocksResource}
-						countResource={availNetworkAvailBlocksViewBlocksResource.count}
+						selection={blocksResource}
+						countResource={blocksResource.count}
 						title='blocks'
 						id='blocks'
 					/>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>
-		{@const availNetworkAvailAppIdsViewAppIdsResource = selection.$$appIds}
+		{@const appIdsResource = selection.$$appIds}
 		<ResourceBoundary
-			resource={availNetworkAvailAppIdsViewAppIdsResource}
+			resource={appIdsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<AvailAppIdsView
-						selection={availNetworkAvailAppIdsViewAppIdsResource}
-						countResource={availNetworkAvailAppIdsViewAppIdsResource.count}
+						selection={appIdsResource}
+						countResource={appIdsResource.count}
 						title='app ids'
 						id='app-ids'
 					/>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>
-		{@const availNetworkAvailDataSubmissionsViewDataSubmissionsResource = selection.$$dataSubmissions}
+		{@const dataSubmissionsResource = selection.$$dataSubmissions}
 		<ResourceBoundary
-			resource={availNetworkAvailDataSubmissionsViewDataSubmissionsResource}
+			resource={dataSubmissionsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<AvailDataSubmissionsView
-						selection={availNetworkAvailDataSubmissionsViewDataSubmissionsResource}
-						countResource={availNetworkAvailDataSubmissionsViewDataSubmissionsResource.count}
+						selection={dataSubmissionsResource}
+						countResource={dataSubmissionsResource.count}
 						title='data submissions'
 						id='data-submissions'
 					/>

@@ -48,7 +48,7 @@
 	{#snippet Title()}
 		<NetworkView
 			selection={select(EntityType.Network, selection.entitySelector.$network)}
-			href=""
+			href={null}
 			layout={EntityLayout.Title}
 			open={false}
 		/>
@@ -99,30 +99,30 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const filecoinNetworkFilecoinNetworkTimestampsViewTimestampsResource = selection.$$timestamps}
+		{@const timestampsResource = selection.$$timestamps}
 		<ResourceBoundary
-			resource={filecoinNetworkFilecoinNetworkTimestampsViewTimestampsResource}
+			resource={timestampsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<FilecoinNetwork_TimestampsView
-						selection={filecoinNetworkFilecoinNetworkTimestampsViewTimestampsResource}
-						countResource={filecoinNetworkFilecoinNetworkTimestampsViewTimestampsResource.count}
+						selection={timestampsResource}
+						countResource={timestampsResource.count}
 						title='Observations'
 						id='timestamps'
 					/>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>
-		{@const filecoinNetworkFilecoinTipsetsViewTipsetsResource = selection.$$tipsets}
+		{@const tipsetsResource = selection.$$tipsets}
 		<ResourceBoundary
-			resource={filecoinNetworkFilecoinTipsetsViewTipsetsResource}
+			resource={tipsetsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<FilecoinTipsetsView
-						selection={filecoinNetworkFilecoinTipsetsViewTipsetsResource}
-						countResource={filecoinNetworkFilecoinTipsetsViewTipsetsResource.count}
+						selection={tipsetsResource}
+						countResource={tipsetsResource.count}
 						title='Tipsets'
 						id='tipsets'
 					/>

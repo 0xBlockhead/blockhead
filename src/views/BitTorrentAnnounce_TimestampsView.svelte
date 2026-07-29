@@ -41,7 +41,7 @@
 			entitySelector={bitTorrentAnnounceTimestampSelector}
 		>
 			{#snippet Title()}
-				{String(bitTorrentAnnounceTimestampSelector.timestampMs) || 'bit torrent announce timestamp'}
+				{bitTorrentAnnounceTimestampSelector.timestampMs}
 			{/snippet}
 
 			{#snippet Value()}

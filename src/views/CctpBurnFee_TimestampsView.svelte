@@ -50,7 +50,7 @@
 			entitySelector={cctpBurnFeeTimestampSelector}
 		>
 			{#snippet Title()}
-				{String(cctpBurnFeeTimestampSelector.timestampMs) || 'CCTP burn fee timestamp'}
+				{cctpBurnFeeTimestampSelector.timestampMs}
 			{/snippet}
 
 			{#snippet Value()}

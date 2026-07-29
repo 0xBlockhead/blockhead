@@ -21,7 +21,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.FilecoinSector> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Lotus_JsonRpc,
@@ -32,7 +31,6 @@
 			sealedCid: true,
 		},
 	}))
-	const titleFallback = $derived(String(pendingEntity.sectorNumber ?? '') || 'filecoin sector')
 
 
 	// Components
@@ -45,21 +43,21 @@
 <EntityView
 	entityType={EntityType.FilecoinSector}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? String(selection.entitySelector.sectorNumber)}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
 		<NumberValue
-			value={pendingEntity.sectorNumber}
+			value={selection.entitySelector.sectorNumber}
 		/>
 	{/snippet}
 
 	{#snippet Value()}
 		<FilecoinMinerView
 			selection={select(EntityType.FilecoinMiner, selection.entitySelector.$miner)}
-			href=""
+			href={null}
 			layout={EntityLayout.Value}
 			open={false}
 		/>
@@ -68,10 +66,10 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={filecoinSector}>
 			{#snippet children(entity)}
-				{@const sealedCid0 = entity.sealedCid}
-				{#if sealedCid0 != null}
+				{@const sealedCid = entity.sealedCid}
+				{#if sealedCid != null}
 					<span data-text="muted">
-						{sealedCid0}
+						{sealedCid}
 					</span>
 				{/if}
 			{/snippet}
@@ -95,7 +93,7 @@
 				<dt>Sector number</dt>
 				<dd>
 					<NumberValue
-						value={pendingEntity.sectorNumber}
+						value={selection.entitySelector.sectorNumber}
 					/>
 				</dd>
 			</div>

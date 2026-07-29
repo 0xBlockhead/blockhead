@@ -21,7 +21,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.NearContract_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.NearRpc_JsonRpc,
@@ -33,7 +32,6 @@
 			blockHeight: true,
 		},
 	}))
-	const titleFallback = $derived(String(pendingEntity.timestampMs ?? '') || 'near contract timestamp')
 
 
 	// Components
@@ -48,21 +46,21 @@
 <EntityView
 	entityType={EntityType.NearContract_Timestamp}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? String(selection.entitySelector.timestampMs)}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+		<Timestamp timestamp={selection.entitySelector.timestampMs} />
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={nearContractTimestamp}>
 			{#snippet children(entity)}
-				{@const codeHash0 = entity.codeHash}
-				{#if codeHash0 != null}
-					<TruncatedValue value={codeHash0} />
+				{@const codeHash = entity.codeHash}
+				{#if codeHash != null}
+					<TruncatedValue value={codeHash} />
 				{/if}
 			{/snippet}
 		</ResourceBoundary>
@@ -71,11 +69,11 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={nearContractTimestamp}>
 			{#snippet children(entity)}
-				{@const blockHeight0 = entity.blockHeight}
-				{#if blockHeight0 != null}
+				{@const blockHeight = entity.blockHeight}
+				{#if blockHeight != null}
 					<span data-text="muted">
 						<NumberValue
-							value={blockHeight0}
+							value={blockHeight}
 						/>
 					</span>
 				{/if}
@@ -99,14 +97,14 @@
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+					<Timestamp timestamp={selection.entitySelector.timestampMs} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 

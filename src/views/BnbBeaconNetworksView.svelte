@@ -40,11 +40,11 @@
 			entitySelector={bnbBeaconNetworkSelector}
 		>
 			{#snippet Title()}
-				{(bnbBeaconNetwork.$network.name || (bnbBeaconNetworkSelector.$network.caip2 == null ? '' : `${bnbBeaconNetworkSelector.$network.caip2.namespace}:${bnbBeaconNetworkSelector.$network.caip2.reference}`) || 'Network')}
+				{bnbBeaconNetwork.$network.name || (bnbBeaconNetworkSelector.$network.caip2 == null ? '' : `${bnbBeaconNetworkSelector.$network.caip2.namespace}:${bnbBeaconNetworkSelector.$network.caip2.reference}`) || 'Network'}
 			{/snippet}
 
 			{#snippet Value()}
-				{String(bnbBeaconNetwork.decommissionedAtMs ?? '')}
+				{bnbBeaconNetwork.decommissionedAtMs ?? ''}
 			{/snippet}
 		</EntityView>
 	{/snippet}

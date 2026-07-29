@@ -22,14 +22,12 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.FilecoinBlock> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Lotus_JsonRpc,
 			Source.Filfox_Rest,
 		],
 	}))
-	const titleFallback = $derived((pendingEntity.cid ?? '') || 'filecoin block')
 
 
 	// Components
@@ -46,13 +44,13 @@
 <EntityView
 	entityType={EntityType.FilecoinBlock}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? (selection.entitySelector.cid || 'filecoin block')}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<TruncatedValue value={pendingEntity.cid} />
+		<TruncatedValue value={selection.entitySelector.cid} />
 	{/snippet}
 
 	{#snippet Value()}
@@ -64,7 +62,7 @@
 					<FilecoinMinerView
 						selection={select(EntityType.FilecoinMiner, filecoinMiner[EntityMetaKey.Selector])}
 						prefetched={filecoinMiner}
-						href=""
+						href={null}
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -108,7 +106,7 @@
 			<div>
 				<dt>CID</dt>
 				<dd>
-					<TruncatedValue value={pendingEntity.cid} />
+					<TruncatedValue value={selection.entitySelector.cid} />
 				</dd>
 			</div>
 
@@ -201,15 +199,15 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const filecoinBlockFilecoinMessagesViewMessagesResource = selection.$$messages}
+		{@const messagesResource = selection.$$messages}
 		<ResourceBoundary
-			resource={filecoinBlockFilecoinMessagesViewMessagesResource}
+			resource={messagesResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<FilecoinMessagesView
-						selection={filecoinBlockFilecoinMessagesViewMessagesResource}
-						countResource={filecoinBlockFilecoinMessagesViewMessagesResource.count}
+						selection={messagesResource}
+						countResource={messagesResource.count}
 						title='Messages'
 						id='messages'
 					/>

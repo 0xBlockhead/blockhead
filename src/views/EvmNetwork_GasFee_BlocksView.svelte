@@ -38,6 +38,7 @@
 >
 	{#snippet Item({ item: evmNetworkGasFeeBlock })}
 		{@const evmNetworkGasFeeBlockSelector = evmNetworkGasFeeBlock[EntityMetaKey.Selector]}
+		{@const network = evmNetworkGasFeeBlockSelector.$network}
 		<EntityView
 			entityType={EntityType.EvmNetwork_GasFee_Block}
 			entitySelector={evmNetworkGasFeeBlockSelector}
@@ -46,10 +47,10 @@
 					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/fee-market/block/[blockNumber=nonNegativeBigInt]',
 					{
 						network: (
-							'caip2' in evmNetworkGasFeeBlockSelector.$network ?
-								String(caip2StringFromValue(evmNetworkGasFeeBlockSelector.$network.caip2))
+							'caip2' in network ?
+								caip2StringFromValue(network.caip2)
 							:
-								String(evmNetworkGasFeeBlockSelector.$network.slug)
+								network.slug
 						),
 						blockNumber: String(evmNetworkGasFeeBlockSelector.blockNumber),
 					}
@@ -57,11 +58,11 @@
 			}
 		>
 			{#snippet Title()}
-				{([(String(evmNetworkGasFeeBlockSelector.blockNumber) ? 'Block ' + String(evmNetworkGasFeeBlockSelector.blockNumber) : ''), (String(evmNetworkGasFeeBlock.baseFeePerGas ?? '') ? String(evmNetworkGasFeeBlock.baseFeePerGas ?? '') + ' wei' : '')].filter(Boolean).join(' ')) || 'EVM network gas fee block'}
+				{['Block ' + String(evmNetworkGasFeeBlockSelector.blockNumber), (evmNetworkGasFeeBlock.baseFeePerGas != null ? String(evmNetworkGasFeeBlock.baseFeePerGas) + ' wei' : '')].filter(Boolean).join(' ') || 'EVM network gas fee block'}
 			{/snippet}
 
 			{#snippet Value()}
-				{(String(evmNetworkGasFeeBlock.baseFeePerGas ?? '') ? String(evmNetworkGasFeeBlock.baseFeePerGas ?? '') + ' wei' : '')}
+				{evmNetworkGasFeeBlock.baseFeePerGas != null ? evmNetworkGasFeeBlock.baseFeePerGas + ' wei' : ''}
 			{/snippet}
 
 			{#snippet HeadingAfter()}

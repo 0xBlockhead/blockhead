@@ -39,6 +39,7 @@
 >
 	{#snippet Item({ item: beaconSyncCommittee })}
 		{@const beaconSyncCommitteeSelector = beaconSyncCommittee[EntityMetaKey.Selector]}
+		{@const network = beaconSyncCommitteeSelector.$network}
 		<EntityView
 			entityType={EntityType.BeaconSyncCommittee}
 			entitySelector={beaconSyncCommitteeSelector}
@@ -47,10 +48,10 @@
 					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/sync-committee/[period=nonNegativeInteger]',
 					{
 						network: (
-							'caip2' in beaconSyncCommitteeSelector.$network ?
-								String(caip2StringFromValue(beaconSyncCommitteeSelector.$network.caip2))
+							'caip2' in network ?
+								caip2StringFromValue(network.caip2)
 							:
-								String(beaconSyncCommitteeSelector.$network.slug)
+								network.slug
 						),
 						period: String(beaconSyncCommitteeSelector.period),
 					}
@@ -58,7 +59,7 @@
 			}
 		>
 			{#snippet Title()}
-				{(String(beaconSyncCommitteeSelector.period ?? '') ? 'Sync committee #' + String(beaconSyncCommitteeSelector.period ?? '') : '') || 'beacon sync committee'}
+				{`Sync committee #${beaconSyncCommitteeSelector.period}`}
 			{/snippet}
 
 			{#snippet HeadingAfter()}

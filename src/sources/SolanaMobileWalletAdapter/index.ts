@@ -2,7 +2,8 @@
 
 import bindings from '$/sources/SolanaMobileWalletAdapter/bindings.ts'
 import { Source } from '$/sources/Source.ts'
-import { SourceProvider, type SourceProviderDefinition } from '$/sources/SourceProvider.ts'
+import { SourceProvider } from '$/sources/SourceProvider.ts'
+import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinition.ts'
 
 export default {
 	provider: SourceProvider.SolanaMobileWalletAdapter,
@@ -13,5 +14,5 @@ export default {
 			label: 'Solana Mobile Wallet Adapter API',
 		},
 	],
-	bindings: [bindings[Source.SolanaMobileWalletAdapter_WalletApi]],
+	bindings: Object.values(bindings).flat(),
 } satisfies SourceProviderDefinition

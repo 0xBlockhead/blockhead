@@ -43,7 +43,7 @@
 
 
 <svelte:head>
-	<title>{(pageSelection.entity == null ? (pageSelection.entitySelector.id ?? '') || 'source' : (pageSelection.entity.label ?? '') || pageSelection.entitySelector.id || 'source')} • source • Blockhead</title>
+	<title>{pageSelection.entity == null ? (pageSelection.entitySelector.id ?? '') || 'source' : (pageSelection.entity.label ?? '') || pageSelection.entitySelector.id || 'source'} • source • Blockhead</title>
 </svelte:head>
 
 

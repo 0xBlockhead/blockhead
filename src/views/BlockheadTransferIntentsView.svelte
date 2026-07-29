@@ -44,7 +44,7 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{String(blockheadTransferIntent.amount ?? '')}
+				{blockheadTransferIntent.amount ?? ''}
 			{/snippet}
 
 			{#snippet HeadingAfter()}

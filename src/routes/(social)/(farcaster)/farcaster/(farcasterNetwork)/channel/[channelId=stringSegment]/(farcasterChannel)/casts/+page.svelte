@@ -44,7 +44,7 @@
 			resolve(
 				'/(social)/(farcaster)/farcaster/(farcasterNetwork)/channel/[channelId=stringSegment]/(farcasterChannel)/casts',
 				{
-					channelId: String(params.channelId),
+					channelId: params.channelId,
 				}
 			)
 		}

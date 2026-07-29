@@ -21,14 +21,13 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.BnbBeaconTransaction> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const bnbBeaconTransaction = $derived(selection({
 		fields: {
 			txType: true,
 			tokenSymbol: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.txHash ?? '') || 'bnb beacon transaction')
+	const titleFallback = $derived(selection.entitySelector.txHash || 'bnb beacon transaction')
 
 
 	// Components
@@ -50,13 +49,13 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<TruncatedValue value={pendingEntity.txHash} />
+		<TruncatedValue value={selection.entitySelector.txHash} />
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={bnbBeaconTransaction}>
 			{#snippet children(entity)}
-				{[(entity.txType ?? ''), (entity.tokenSymbol ?? '')].filter(Boolean).join(' ') || pendingEntity.txHash || titleFallback}
+				{[(entity.txType ?? ''), (entity.tokenSymbol ?? '')].filter(Boolean).join(' ') || selection.entitySelector.txHash || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -96,7 +95,7 @@
 			<div>
 				<dt>Transaction hash</dt>
 				<dd>
-					<TruncatedValue value={pendingEntity.txHash} />
+					<TruncatedValue value={selection.entitySelector.txHash} />
 				</dd>
 			</div>
 
@@ -345,15 +344,15 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const bnbBeaconTransactionBnbBeaconTokenTransfersViewTokenEffectsResource = selection.$$tokenEffects}
+		{@const tokenEffectsResource = selection.$$tokenEffects}
 		<ResourceBoundary
-			resource={bnbBeaconTransactionBnbBeaconTokenTransfersViewTokenEffectsResource}
+			resource={tokenEffectsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<BnbBeaconTokenTransfersView
-						selection={bnbBeaconTransactionBnbBeaconTokenTransfersViewTokenEffectsResource}
-						countResource={bnbBeaconTransactionBnbBeaconTokenTransfersViewTokenEffectsResource.count}
+						selection={tokenEffectsResource}
+						countResource={tokenEffectsResource.count}
 						title='token effects'
 						id='token-effects'
 					/>

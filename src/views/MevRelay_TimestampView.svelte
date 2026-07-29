@@ -23,14 +23,14 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.MevRelay_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const relay = $derived(selection.entitySelector.$relay)
 	const mevRelayTimestamp = $derived(selection({
 		fields: {
 			reachable: true,
 			statusCode: true,
 		},
 	}))
-	const titleFallback = $derived([String(pendingEntity.reachable ?? ''), String(pendingEntity.statusCode ?? ''), String(pendingEntity.timestampMs ?? '')].filter(Boolean).join(' ') || 'MEV relay timestamp')
+	const titleFallback = $derived([String(prefetched.reachable ?? ''), String(prefetched.statusCode ?? ''), String(selection.entitySelector.timestampMs)].filter(Boolean).join(' ') || 'MEV relay timestamp')
 
 
 	// Components
@@ -46,20 +46,23 @@
 	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
 	href={
-		href ?? resolve(
-			'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/mev/relay/[host=stringSegment]/(mevRelay)/timestamp/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
-			{
-				network: (
-					'caip2' in selection.entitySelector.$relay.$network ?
-						String(caip2StringFromValue(selection.entitySelector.$relay.$network.caip2))
-					:
-						String(selection.entitySelector.$relay.$network.slug)
-				),
-				host: String(selection.entitySelector.$relay.host),
-				timestampMs: String(selection.entitySelector.timestampMs),
-				source: String(selection.entitySelector.source),
-			}
-		)
+		href === undefined ?
+			resolve(
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/mev/relay/[host=stringSegment]/(mevRelay)/timestamp/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
+				{
+					network: (
+						'caip2' in relay.$network ?
+							caip2StringFromValue(relay.$network.caip2)
+						:
+							relay.$network.slug
+					),
+					host: relay.host,
+					timestampMs: String(selection.entitySelector.timestampMs),
+					source: selection.entitySelector.source,
+				}
+			)
+		:
+			href ?? undefined
 	}
 	{layout}
 	bind:open
@@ -68,7 +71,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={mevRelayTimestamp}>
 			{#snippet children(entity)}
-				{[String(entity.reachable ?? ''), String(entity.statusCode ?? ''), String(pendingEntity.timestampMs)].filter(Boolean).join(' ') || title || titleFallback}
+				{[String(entity.reachable ?? ''), String(entity.statusCode ?? ''), String(selection.entitySelector.timestampMs)].filter(Boolean).join(' ') || title || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -76,7 +79,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={mevRelayTimestamp}>
 			{#snippet children(entity)}
-				{[String(entity.reachable ?? ''), String(entity.statusCode ?? '')].filter(Boolean).join(' ') || [String(entity.reachable ?? ''), String(entity.statusCode ?? ''), String(pendingEntity.timestampMs)].filter(Boolean).join(' ') || titleFallback}
+				{[String(entity.reachable ?? ''), String(entity.statusCode ?? '')].filter(Boolean).join(' ') || [String(entity.reachable ?? ''), String(entity.statusCode ?? ''), String(selection.entitySelector.timestampMs)].filter(Boolean).join(' ') || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -118,7 +121,7 @@
 						<div>
 							<dt>Status code</dt>
 							<dd>
-								{String(statusCode)}
+								{statusCode}
 							</dd>
 						</div>
 					{/if}
@@ -274,14 +277,14 @@
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+					<Timestamp timestamp={selection.entitySelector.timestampMs} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 

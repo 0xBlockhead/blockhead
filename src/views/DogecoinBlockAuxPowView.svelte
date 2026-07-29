@@ -21,8 +21,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.DogecoinBlockAuxPow> = $props()
 
-	const titleFallback = 'dogecoin block aux pow'
-
 
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -35,7 +33,7 @@
 <EntityView
 	entityType={EntityType.DogecoinBlockAuxPow}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? 'dogecoin block aux pow'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -43,7 +41,7 @@
 	{#snippet Title()}
 		<UtxoBlockView
 			selection={select(EntityType.UtxoBlock, selection.entitySelector.$block)}
-			href=""
+			href={null}
 			layout={EntityLayout.Title}
 			open={false}
 		/>
@@ -58,7 +56,6 @@
 					<DogecoinAuxPowParentBlockHeaderView
 						selection={select(EntityType.DogecoinAuxPowParentBlockHeader, dogecoinAuxPowParentBlockHeader[EntityMetaKey.Selector])}
 						prefetched={dogecoinAuxPowParentBlockHeader}
-						href=""
 						layout={EntityLayout.Value}
 						open={false}
 					/>

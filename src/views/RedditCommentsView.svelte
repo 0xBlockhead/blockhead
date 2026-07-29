@@ -48,7 +48,7 @@
 				resolve(
 					'/(social)/(reddit)/reddit/(globalRedditNetwork)/comment/[fullname=stringSegment]',
 					{
-						fullname: encodeURIComponent(String(redditCommentSelector.fullname)),
+						fullname: encodeURIComponent(redditCommentSelector.fullname),
 					}
 				)
 			}
@@ -58,7 +58,7 @@
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{String(redditComment.createdAt ?? '')}</span>
+				<span data-text="annotation">{redditComment.createdAt ?? ''}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

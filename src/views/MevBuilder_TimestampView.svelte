@@ -23,14 +23,14 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.MevBuilder_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const builder = $derived(selection.entitySelector.$builder)
 	const mevBuilderTimestamp = $derived(selection({
 		fields: {
 			deliveredPayloadCount: true,
 			deliveredValueWei: true,
 		},
 	}))
-	const titleFallback = $derived(([(String(pendingEntity.deliveredPayloadCount ?? '') ? String(pendingEntity.deliveredPayloadCount ?? '') + ' payloads' : ''), (String(pendingEntity.deliveredValueWei ?? '') ? String(pendingEntity.deliveredValueWei ?? '') + ' wei' : '')].filter(Boolean).join(' ')) || 'MEV builder timestamp')
+	const titleFallback = $derived([(prefetched.deliveredPayloadCount != null ? String(prefetched.deliveredPayloadCount) + ' payloads' : ''), (prefetched.deliveredValueWei != null ? String(prefetched.deliveredValueWei) + ' wei' : '')].filter(Boolean).join(' ') || 'MEV builder timestamp')
 
 
 	// Components
@@ -46,20 +46,23 @@
 	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
 	href={
-		href ?? resolve(
-			'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/mev/builder/[builderPubkey=stringSegment]/(mevBuilder)/timestamp/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
-			{
-				network: (
-					'caip2' in selection.entitySelector.$builder.$network ?
-						String(caip2StringFromValue(selection.entitySelector.$builder.$network.caip2))
-					:
-						String(selection.entitySelector.$builder.$network.slug)
-				),
-				builderPubkey: String(selection.entitySelector.$builder.builderPubkey),
-				timestampMs: String(selection.entitySelector.timestampMs),
-				source: String(selection.entitySelector.source),
-			}
-		)
+		href === undefined ?
+			resolve(
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/mev/builder/[builderPubkey=stringSegment]/(mevBuilder)/timestamp/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
+				{
+					network: (
+						'caip2' in builder.$network ?
+							caip2StringFromValue(builder.$network.caip2)
+						:
+							builder.$network.slug
+					),
+					builderPubkey: builder.builderPubkey,
+					timestampMs: String(selection.entitySelector.timestampMs),
+					source: selection.entitySelector.source,
+				}
+			)
+		:
+			href ?? undefined
 	}
 	{layout}
 	bind:open
@@ -68,7 +71,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={mevBuilderTimestamp}>
 			{#snippet children(entity)}
-				{([(String(entity.deliveredPayloadCount ?? '') ? String(entity.deliveredPayloadCount ?? '') + ' payloads' : ''), (String(entity.deliveredValueWei ?? '') ? String(entity.deliveredValueWei ?? '') + ' wei' : '')].filter(Boolean).join(' ')) || title || titleFallback}
+				{[(entity.deliveredPayloadCount != null ? String(entity.deliveredPayloadCount) + ' payloads' : ''), (entity.deliveredValueWei != null ? String(entity.deliveredValueWei) + ' wei' : '')].filter(Boolean).join(' ') || title || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -76,10 +79,10 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={mevBuilderTimestamp}>
 			{#snippet children(entity)}
-				{@const deliveredPayloadCount0 = entity.deliveredPayloadCount}
-				{#if deliveredPayloadCount0 != null}
+				{@const deliveredPayloadCount = entity.deliveredPayloadCount}
+				{#if deliveredPayloadCount != null}
 					<NumberValue
-						value={deliveredPayloadCount0}
+						value={deliveredPayloadCount}
 					/>
 
 					<span> payloads</span>
@@ -241,14 +244,14 @@
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+					<Timestamp timestamp={selection.entitySelector.timestampMs} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 

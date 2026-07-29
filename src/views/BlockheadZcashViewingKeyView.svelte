@@ -22,7 +22,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.BlockheadZcashViewingKey> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Local_Internal,
@@ -39,7 +38,7 @@
 			importedAt: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.keyFingerprint ?? '') || 'blockhead zcash viewing key')
+	const titleFallback = $derived(selection.entitySelector.keyFingerprint || 'blockhead zcash viewing key')
 
 
 	// Components
@@ -61,13 +60,13 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{(pendingEntity.keyFingerprint ?? '') || 'blockhead zcash viewing key'}
+		{selection.entitySelector.keyFingerprint || 'blockhead zcash viewing key'}
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={blockheadZcashViewingKey}>
 			{#snippet children(entity)}
-				{entity.keyKind || pendingEntity.keyFingerprint || titleFallback}
+				{entity.keyKind || selection.entitySelector.keyFingerprint || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -94,7 +93,7 @@
 			<div>
 				<dt>wallet ID</dt>
 				<dd>
-					{pendingEntity.walletId}
+					{selection.entitySelector.walletId}
 				</dd>
 			</div>
 
@@ -139,7 +138,7 @@
 			<div>
 				<dt>key fingerprint</dt>
 				<dd>
-					{pendingEntity.keyFingerprint}
+					{selection.entitySelector.keyFingerprint}
 				</dd>
 			</div>
 
@@ -276,7 +275,7 @@
 						resource={blockheadZcashViewingKey}
 					>
 						{#snippet children(entity)}
-							<Timestamp timestamp={Number(entity.importedAt)} />
+							<Timestamp timestamp={entity.importedAt} />
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -307,15 +306,15 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const blockheadZcashViewingKeyBlockheadZcashViewingKeyTimestampsViewTimestampsResource = selection.$$timestamps}
+		{@const timestampsResource = selection.$$timestamps}
 		<ResourceBoundary
-			resource={blockheadZcashViewingKeyBlockheadZcashViewingKeyTimestampsViewTimestampsResource}
+			resource={timestampsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<BlockheadZcashViewingKey_TimestampsView
-						selection={blockheadZcashViewingKeyBlockheadZcashViewingKeyTimestampsViewTimestampsResource}
-						countResource={blockheadZcashViewingKeyBlockheadZcashViewingKeyTimestampsViewTimestampsResource.count}
+						selection={timestampsResource}
+						countResource={timestampsResource.count}
 						title='timestamps'
 						id='timestamps'
 					/>

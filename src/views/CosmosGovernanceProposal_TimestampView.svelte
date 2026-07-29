@@ -20,13 +20,12 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.CosmosGovernanceProposal_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const cosmosGovernanceProposalTimestamp = $derived(selection({
 		fields: {
 			status: true,
 		},
 	}))
-	const titleFallback = $derived([(pendingEntity.status ?? ''), (pendingEntity.source ?? '')].filter(Boolean).join(' ') || 'Cosmos governance proposal timestamp')
+	const titleFallback = $derived([(prefetched.status ?? ''), selection.entitySelector.source].filter(Boolean).join(' ') || 'Cosmos governance proposal timestamp')
 
 
 	// Components
@@ -47,7 +46,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={cosmosGovernanceProposalTimestamp}>
 			{#snippet children(entity)}
-				{[(entity.status ?? ''), pendingEntity.source].filter(Boolean).join(' ') || title || titleFallback}
+				{[(entity.status ?? ''), selection.entitySelector.source].filter(Boolean).join(' ') || title || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -55,14 +54,14 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={cosmosGovernanceProposalTimestamp}>
 			{#snippet children(entity)}
-				{(entity.status ?? '') || [(entity.status ?? ''), pendingEntity.source].filter(Boolean).join(' ') || titleFallback}
+				{(entity.status ?? '') || [(entity.status ?? ''), selection.entitySelector.source].filter(Boolean).join(' ') || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
 		<span data-text="muted">
-			<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+			<Timestamp timestamp={selection.entitySelector.timestampMs} />
 		</span>
 	{/snippet}
 
@@ -71,14 +70,14 @@
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+					<Timestamp timestamp={selection.entitySelector.timestampMs} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 
@@ -113,7 +112,7 @@
 						<div>
 							<dt>Submit time</dt>
 							<dd>
-								{String(submitTimeMs)}
+								{submitTimeMs}
 							</dd>
 						</div>
 					{/if}
@@ -135,7 +134,7 @@
 						<div>
 							<dt>Deposit end time</dt>
 							<dd>
-								{String(depositEndTimeMs)}
+								{depositEndTimeMs}
 							</dd>
 						</div>
 					{/if}
@@ -159,7 +158,7 @@
 						<div>
 							<dt>Voting start time</dt>
 							<dd>
-								{String(votingStartTimeMs)}
+								{votingStartTimeMs}
 							</dd>
 						</div>
 					{/if}
@@ -181,7 +180,7 @@
 						<div>
 							<dt>Voting end time</dt>
 							<dd>
-								{String(votingEndTimeMs)}
+								{votingEndTimeMs}
 							</dd>
 						</div>
 					{/if}

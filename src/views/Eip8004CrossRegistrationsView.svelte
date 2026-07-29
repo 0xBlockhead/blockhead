@@ -5,7 +5,6 @@
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 
 
 	// State
@@ -46,7 +45,7 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{String(eip8004CrossRegistrationSelector.targetSelectorHash)}
+				{eip8004CrossRegistrationSelector.targetSelectorHash}
 			{/snippet}
 
 			{#snippet HeadingAfter()}

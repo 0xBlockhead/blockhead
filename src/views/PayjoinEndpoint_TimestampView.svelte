@@ -20,7 +20,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.PayjoinEndpoint_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const payjoinEndpointTimestamp = $derived(selection({
 		fields: {
 			responseStatus: true,
@@ -29,7 +28,6 @@
 			supportsOutputSubstitution: true,
 		},
 	}))
-	const titleFallback = $derived(String(pendingEntity.timestampMs ?? '') || 'payjoin endpoint timestamp')
 
 
 	// Components
@@ -43,19 +41,19 @@
 <EntityView
 	entityType={EntityType.PayjoinEndpoint_Timestamp}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? String(selection.entitySelector.timestampMs)}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+		<Timestamp timestamp={selection.entitySelector.timestampMs} />
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={payjoinEndpointTimestamp}>
 			{#snippet children(entity)}
-				{[String(entity.responseStatus ?? ''), (entity.error ?? '')].filter(Boolean).join(' ') || String(pendingEntity.timestampMs) || titleFallback}
+				{[String(entity.responseStatus ?? ''), (entity.error ?? '')].filter(Boolean).join(' ') || String(selection.entitySelector.timestampMs)}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -63,16 +61,16 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={payjoinEndpointTimestamp}>
 			{#snippet children(entity)}
-				{@const requiresOhttp0 = entity.requiresOhttp}
-				{#if requiresOhttp0 != null}
+				{@const requiresOhttp = entity.requiresOhttp}
+				{#if requiresOhttp != null}
 					<span data-text="muted">
-						{requiresOhttp0 ? 'Yes' : 'No'}
+						{requiresOhttp ? 'Yes' : 'No'}
 					</span>
 				{/if}
-				{@const supportsOutputSubstitution1 = entity.supportsOutputSubstitution}
-				{#if supportsOutputSubstitution1 != null}
+				{@const supportsOutputSubstitution = entity.supportsOutputSubstitution}
+				{#if supportsOutputSubstitution != null}
 					<span data-text="muted">
-						{supportsOutputSubstitution1 ? 'Yes' : 'No'}
+						{supportsOutputSubstitution ? 'Yes' : 'No'}
 					</span>
 				{/if}
 			{/snippet}
@@ -95,14 +93,14 @@
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+					<Timestamp timestamp={selection.entitySelector.timestampMs} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 		</dl>
@@ -181,7 +179,7 @@
 						<div>
 							<dt>last seen AT</dt>
 							<dd>
-								<Timestamp timestamp={Number(lastSeenAt)} />
+								<Timestamp timestamp={lastSeenAt} />
 							</dd>
 						</div>
 					{/if}

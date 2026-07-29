@@ -51,7 +51,7 @@
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{(blockheadZcashWalletState.unifiedAddress ?? '')}</span>
+				<span data-text="annotation">{blockheadZcashWalletState.unifiedAddress ?? ''}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

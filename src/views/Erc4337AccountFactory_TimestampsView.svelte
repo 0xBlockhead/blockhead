@@ -39,6 +39,7 @@
 >
 	{#snippet Item({ item: erc4337AccountFactoryTimestamp })}
 		{@const erc4337AccountFactoryTimestampSelector = erc4337AccountFactoryTimestamp[EntityMetaKey.Selector]}
+		{@const factory = erc4337AccountFactoryTimestampSelector.$factory}
 		<EntityView
 			entityType={EntityType.Erc4337AccountFactory_Timestamp}
 			entitySelector={erc4337AccountFactoryTimestampSelector}
@@ -47,28 +48,28 @@
 					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/erc-4337/account-factory/[address=evmAddress]/(erc4337AccountFactory)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
 					{
 						network: (
-							'caip2' in erc4337AccountFactoryTimestampSelector.$factory.$network ?
-								String(caip2StringFromValue(erc4337AccountFactoryTimestampSelector.$factory.$network.caip2))
+							'caip2' in factory.$network ?
+								caip2StringFromValue(factory.$network.caip2)
 							:
-								String(erc4337AccountFactoryTimestampSelector.$factory.$network.slug)
+								factory.$network.slug
 						),
-						address: String(erc4337AccountFactoryTimestampSelector.$factory.address),
+						address: factory.address,
 						timestampMs: String(erc4337AccountFactoryTimestampSelector.timestampMs),
-						source: String(erc4337AccountFactoryTimestampSelector.source),
+						source: erc4337AccountFactoryTimestampSelector.source,
 					}
 				)
 			}
 		>
 			{#snippet Title()}
-				{String(erc4337AccountFactoryTimestampSelector.timestampMs) || 'ERC-4337 account factory timestamp'}
+				{erc4337AccountFactoryTimestampSelector.timestampMs}
 			{/snippet}
 
 			{#snippet Value()}
-				{String(erc4337AccountFactoryTimestamp.userOperationsCount ?? '')}
+				{erc4337AccountFactoryTimestamp.userOperationsCount ?? ''}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{[erc4337AccountFactoryTimestampSelector.source, (String(erc4337AccountFactoryTimestamp.smartAccountsCount ?? '') ? String(erc4337AccountFactoryTimestamp.smartAccountsCount ?? '') + ' smart accounts' : '')].filter(Boolean).join(' ')}</span>
+				<span data-text="annotation">{[erc4337AccountFactoryTimestampSelector.source, (erc4337AccountFactoryTimestamp.smartAccountsCount != null ? String(erc4337AccountFactoryTimestamp.smartAccountsCount) + ' smart accounts' : '')].filter(Boolean).join(' ')}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

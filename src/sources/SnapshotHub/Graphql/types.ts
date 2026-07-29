@@ -92,10 +92,3 @@ export type SnapshotHubPage<_Value> = {
 	items: _Value[]
 	nextOffset?: number
 }
-
-export type SnapshotHubGraphqlResponse<_Data> = {
-	data?: _Data
-	errors?: {
-		message?: string
-	}[]
-}

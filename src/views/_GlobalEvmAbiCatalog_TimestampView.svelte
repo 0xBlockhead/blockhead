@@ -21,13 +21,11 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType._GlobalEvmAbiCatalog_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Local_Internal,
 		],
 	}))
-	const titleFallback = 'global EVM ABI catalog timestamp'
 
 
 	// Components
@@ -41,7 +39,7 @@
 <EntityView
 	entityType={EntityType._GlobalEvmAbiCatalog_Timestamp}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? 'global EVM ABI catalog timestamp'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -49,14 +47,13 @@
 	{#snippet Title()}
 		<GlobalEvmAbiCatalogView
 			selection={select(EntityType._GlobalEvmAbiCatalog, selection.entitySelector.$hub)}
-			href=""
 			layout={EntityLayout.Title}
 			open={false}
 		/>
 	{/snippet}
 
 	{#snippet Value()}
-		<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+		<Timestamp timestamp={selection.entitySelector.timestampMs} />
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -75,14 +72,14 @@
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+					<Timestamp timestamp={selection.entitySelector.timestampMs} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 		</dl>

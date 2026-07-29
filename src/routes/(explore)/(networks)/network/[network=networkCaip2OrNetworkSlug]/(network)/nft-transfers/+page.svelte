@@ -33,7 +33,7 @@
 			resolve(
 				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/nft-transfers',
 				{
-					network: String(params.network),
+					network: params.network,
 				}
 			)
 		}

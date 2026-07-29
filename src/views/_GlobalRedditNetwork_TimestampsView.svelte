@@ -46,7 +46,7 @@
 			entitySelector={globalRedditNetworkTimestampSelector}
 		>
 			{#snippet Title()}
-				{String(globalRedditNetworkTimestampSelector.timestampMs) || 'global Reddit network timestamp'}
+				{globalRedditNetworkTimestampSelector.timestampMs}
 			{/snippet}
 
 			{#snippet Value()}
@@ -54,7 +54,7 @@
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{String(globalRedditNetworkTimestamp.observedLinkCount ?? '')}</span>
+				<span data-text="annotation">{globalRedditNetworkTimestamp.observedLinkCount ?? ''}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

@@ -17,7 +17,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.WalletConnectionMethod> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Local_Internal,
@@ -32,12 +31,11 @@
 			implementationStatus: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.label ?? '') || 'wallet connection method')
+	const titleFallback = $derived((prefetched.label ?? '') || 'wallet connection method')
 
 
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import TruncatedValue from '$/components/TruncatedValue.svelte'
 </script>
 
 
@@ -70,7 +68,7 @@
 			<div>
 				<dt>ID</dt>
 				<dd>
-					{pendingEntity.id}
+					{selection.entitySelector.id}
 				</dd>
 			</div>
 
@@ -228,7 +226,7 @@
 						<div>
 							<dt>account exposure kind</dt>
 							<dd>
-								<TruncatedValue value={accountExposureKind} />
+								{accountExposureKind}
 							</dd>
 						</div>
 					{/if}

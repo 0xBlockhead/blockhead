@@ -45,7 +45,7 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{(magnetLink.infoHash ?? '')}
+				{magnetLink.infoHash ?? ''}
 			{/snippet}
 		</EntityView>
 	{/snippet}

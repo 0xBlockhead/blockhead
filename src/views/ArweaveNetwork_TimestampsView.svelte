@@ -42,11 +42,11 @@
 			entitySelector={arweaveNetworkTimestampSelector}
 		>
 			{#snippet Title()}
-				{String(arweaveNetworkTimestampSelector.timestampMs) || 'arweave network timestamp'}
+				{arweaveNetworkTimestampSelector.timestampMs}
 			{/snippet}
 
 			{#snippet Value()}
-				{String(arweaveNetworkTimestamp.latestHeight ?? '')}
+				{arweaveNetworkTimestamp.latestHeight ?? ''}
 			{/snippet}
 
 			{#snippet HeadingAfter()}

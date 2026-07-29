@@ -6,6 +6,7 @@
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { htmlToPlainText } from '$/lib/html.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -24,13 +25,11 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.ActivityPubActor> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const viewSelection = $derived(selection({
+	const activityPubActor = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Mastodon_Rest,
 		],
-	}))
-	const activityPubActor = $derived(viewSelection({
+	})({
 		fields: {
 			displayName: true,
 			username: true,
@@ -42,7 +41,7 @@
 			note: true,
 		},
 	}))
-	const titleFallback = $derived([(pendingEntity.displayName ?? ''), (pendingEntity.acct ?? ''), (pendingEntity.username ?? ''), (pendingEntity.localAccountId ?? '')].filter(Boolean).join(' ') || 'ActivityPub actor')
+	const titleFallback = $derived([(prefetched.displayName ?? ''), (prefetched.acct ?? ''), (prefetched.username ?? ''), (prefetched.localAccountId ?? '')].filter(Boolean).join(' ') || 'ActivityPub actor')
 
 
 	// Components
@@ -61,19 +60,22 @@
 	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
 	href={
-		href ?? (
-			'instanceOrigin' in selection.entitySelector
-			&& 'localAccountId' in selection.entitySelector ?
-				resolve(
-					'/(social)/(activitypub)/activitypub/(globalActivityPubNetwork)/actor/[instanceOrigin=absoluteUrl]/[localAccountId=stringSegment]',
-					{
-						instanceOrigin: encodeURIComponent(String(selection.entitySelector.instanceOrigin)),
-						localAccountId: String(selection.entitySelector.localAccountId),
-					}
-				)
-			:
-				undefined
-		)
+		href === undefined ?
+			(
+				'instanceOrigin' in selection.entitySelector
+				&& 'localAccountId' in selection.entitySelector ?
+					resolve(
+						'/(social)/(activitypub)/activitypub/(globalActivityPubNetwork)/actor/[instanceOrigin=absoluteUrl]/[localAccountId=stringSegment]',
+						{
+							instanceOrigin: encodeURIComponent(selection.entitySelector.instanceOrigin),
+							localAccountId: selection.entitySelector.localAccountId,
+						}
+					)
+				:
+					undefined
+			)
+		:
+			href ?? undefined
 	}
 	{layout}
 	bind:open
@@ -84,7 +86,7 @@
 		<ResourceBoundary resource={activityPubActor}>
 			{#snippet children(entity)}
 				{@const reference = entity.$icon}
-				{#if reference != null && reference[EntityMetaKey.Selector] !== undefined}
+				{#if reference != null}
 					<MediaView
 						selection={select(EntityType.Media, reference[EntityMetaKey.Selector])}
 						prefetched={reference}
@@ -157,11 +159,11 @@
 							<dt>Profile URL</dt>
 							<dd>
 								<a
-									href={String(profileUrl)}
+									href={profileUrl}
 									target="_blank"
 									rel="noreferrer noopener"
 								>
-									<TruncatedValue value={String(profileUrl)} />
+									<TruncatedValue value={profileUrl} />
 								</a>
 							</dd>
 						</div>
@@ -179,11 +181,11 @@
 					>
 						{#snippet children(entity)}
 							<a
-								href={String(entity.activityStreamsUri)}
+								href={entity.activityStreamsUri}
 								target="_blank"
 								rel="noreferrer noopener"
 							>
-								<TruncatedValue value={String(entity.activityStreamsUri)} />
+								<TruncatedValue value={entity.activityStreamsUri} />
 							</a>
 						{/snippet}
 					</ResourceBoundary>
@@ -201,7 +203,7 @@
 						<div>
 							<dt>Created</dt>
 							<dd>
-								<Timestamp timestamp={Number(createdAt)} />
+								<Timestamp timestamp={createdAt} />
 							</dd>
 						</div>
 					{/if}
@@ -215,16 +217,16 @@
 			{#snippet children(entity)}
 				{@const note = entity.note}
 				{#if note != null && note !== ''}
-					<Markdown content={String(note)} mode="syndication" />
+					<Markdown content={htmlToPlainText(note)} mode="syndication" />
 				{/if}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const activityPubActorActivityPubNotesViewNotesResource = selection.$$notes}
+		{@const notesResource = selection.$$notes}
 		<ResourceBoundary
-			resource={activityPubActorActivityPubNotesViewNotesResource}
+			resource={notesResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
@@ -240,17 +242,17 @@
 					>
 						{#snippet children(entity)}
 							<ActivityPubNotesView
-								selection={activityPubActorActivityPubNotesViewNotesResource}
-								countResource={activityPubActorActivityPubNotesViewNotesResource.count}
+								selection={notesResource}
+								countResource={notesResource.count}
 								title='Notes'
 								href={
-									(entity.instanceOrigin != null && entity.localAccountId != null ? resolve(
+									entity.instanceOrigin != null && entity.localAccountId != null ? resolve(
 										'/(social)/(activitypub)/activitypub/(globalActivityPubNetwork)/actor/[instanceOrigin=absoluteUrl]/[localAccountId=stringSegment]/(activityPubActor)/notes',
 										{
-											instanceOrigin: encodeURIComponent(String(entity.instanceOrigin)),
-											localAccountId: String(entity.localAccountId),
+											instanceOrigin: encodeURIComponent(entity.instanceOrigin),
+											localAccountId: entity.localAccountId,
 										}
-									) : undefined)
+									) : undefined
 								}
 								id='notes'
 							/>
@@ -259,15 +261,15 @@
 				{/if}
 			{/snippet}
 		</ResourceBoundary>
-		{@const activityPubActorActivityPubActorTimestampsViewTimestampsResource = selection.$$timestamps}
+		{@const timestampsResource = selection.$$timestamps}
 		<ResourceBoundary
-			resource={activityPubActorActivityPubActorTimestampsViewTimestampsResource}
+			resource={timestampsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<ActivityPubActor_TimestampsView
-						selection={activityPubActorActivityPubActorTimestampsViewTimestampsResource}
-						countResource={activityPubActorActivityPubActorTimestampsViewTimestampsResource.count}
+						selection={timestampsResource}
+						countResource={timestampsResource.count}
 						title='Observations'
 						id='timestamps'
 					/>

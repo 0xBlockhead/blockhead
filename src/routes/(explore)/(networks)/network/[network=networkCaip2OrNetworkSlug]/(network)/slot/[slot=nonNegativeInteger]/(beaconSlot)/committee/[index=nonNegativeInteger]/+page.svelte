@@ -34,7 +34,7 @@
 
 
 <svelte:head>
-	<title>{(data.title ?? ((String(pageSelection.entitySelector.indexInSlot ?? '') ? 'Committee #' + String(pageSelection.entitySelector.indexInSlot ?? '') : '') || 'beacon committee'))} • beacon committee • Blockhead</title>
+	<title>{data.title ?? ((String(pageSelection.entitySelector.indexInSlot ?? '') ? 'Committee #' + String(pageSelection.entitySelector.indexInSlot ?? '') : '') || 'beacon committee')} • beacon committee • Blockhead</title>
 </svelte:head>
 
 

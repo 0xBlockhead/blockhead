@@ -21,7 +21,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.NearNetwork_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.NearRpc_JsonRpc,
@@ -33,7 +32,6 @@
 			headHash: true,
 		},
 	}))
-	const titleFallback = $derived(String(pendingEntity.timestampMs ?? '') || 'near network timestamp')
 
 
 	// Components
@@ -48,22 +46,22 @@
 <EntityView
 	entityType={EntityType.NearNetwork_Timestamp}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? String(selection.entitySelector.timestampMs)}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+		<Timestamp timestamp={selection.entitySelector.timestampMs} />
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={nearNetworkTimestamp}>
 			{#snippet children(entity)}
-				{@const headHeight0 = entity.headHeight}
-				{#if headHeight0 != null}
+				{@const headHeight = entity.headHeight}
+				{#if headHeight != null}
 					<NumberValue
-						value={headHeight0}
+						value={headHeight}
 					/>
 				{/if}
 			{/snippet}
@@ -73,10 +71,10 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={nearNetworkTimestamp}>
 			{#snippet children(entity)}
-				{@const headHash0 = entity.headHash}
-				{#if headHash0 != null}
+				{@const headHash = entity.headHash}
+				{#if headHash != null}
 					<span data-text="muted">
-						<TruncatedValue value={headHash0} />
+						<TruncatedValue value={headHash} />
 					</span>
 				{/if}
 			{/snippet}
@@ -99,14 +97,14 @@
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+					<Timestamp timestamp={selection.entitySelector.timestampMs} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 

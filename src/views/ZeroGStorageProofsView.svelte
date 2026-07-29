@@ -49,7 +49,7 @@
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{(zeroGStorageProof.proofKind ?? '')}</span>
+				<span data-text="annotation">{zeroGStorageProof.proofKind ?? ''}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

@@ -22,14 +22,12 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.RedditLink_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const redditLinkTimestamp = $derived(selection({
 		fields: {
 			score: true,
 			commentCount: true,
 		},
 	}))
-	const titleFallback = $derived(String(pendingEntity.timestampMs ?? '') || 'Reddit submission timestamp')
 
 
 	// Components
@@ -43,32 +41,35 @@
 <EntityView
 	entityType={EntityType.RedditLink_Timestamp}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? String(selection.entitySelector.timestampMs)}
 	href={
-		href ?? resolve(
-			'/(social)/(reddit)/reddit/(globalRedditNetwork)/link/[fullname=stringSegment]/(redditLink)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
-			{
-				fullname: encodeURIComponent(String(selection.entitySelector.$link.fullname)),
-				timestampMs: String(selection.entitySelector.timestampMs),
-				source: String(selection.entitySelector.source),
-			}
-		)
+		href === undefined ?
+			resolve(
+				'/(social)/(reddit)/reddit/(globalRedditNetwork)/link/[fullname=stringSegment]/(redditLink)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
+				{
+					fullname: encodeURIComponent(selection.entitySelector.$link.fullname),
+					timestampMs: String(selection.entitySelector.timestampMs),
+					source: selection.entitySelector.source,
+				}
+			)
+		:
+			href ?? undefined
 	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+		<Timestamp timestamp={selection.entitySelector.timestampMs} />
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={redditLinkTimestamp}>
 			{#snippet children(entity)}
-				{@const score0 = entity.score}
-				{#if score0 != null}
+				{@const score = entity.score}
+				{#if score != null}
 					<NumberValue
-						value={score0}
+						value={score}
 					/>
 				{/if}
 			{/snippet}
@@ -79,13 +80,13 @@
 		<ResourceBoundary resource={redditLinkTimestamp}>
 			{#snippet children(entity)}
 				<span data-text="muted">
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</span>
-				{@const commentCount1 = entity.commentCount}
-				{#if commentCount1 != null}
+				{@const commentCount = entity.commentCount}
+				{#if commentCount != null}
 					<span data-text="muted">
 						<NumberValue
-							value={commentCount1}
+							value={commentCount}
 						/>
 
 						<span> comments</span>
@@ -100,14 +101,14 @@
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+					<Timestamp timestamp={selection.entitySelector.timestampMs} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 

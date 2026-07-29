@@ -41,15 +41,15 @@
 			entitySelector={blockheadAgentConnectionTimestampSelector}
 		>
 			{#snippet Title()}
-				{String(blockheadAgentConnectionTimestampSelector.timestampMs) || 'blockhead agent connection timestamp'}
+				{blockheadAgentConnectionTimestampSelector.timestampMs}
 			{/snippet}
 
 			{#snippet Value()}
-				{(blockheadAgentConnectionTimestamp.health ?? '')}
+				{blockheadAgentConnectionTimestamp.health ?? ''}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{String(blockheadAgentConnectionTimestamp.latencyMs ?? '')}</span>
+				<span data-text="annotation">{blockheadAgentConnectionTimestamp.latencyMs ?? ''}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

@@ -21,7 +21,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.BlockheadAvalancheNodeState_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Local_Internal,
@@ -34,7 +33,6 @@
 			connectedPeerCount: true,
 		},
 	}))
-	const titleFallback = $derived(String(pendingEntity.timestampMs ?? '') || 'blockhead avalanche node state timestamp')
 
 
 	// Components
@@ -48,19 +46,19 @@
 <EntityView
 	entityType={EntityType.BlockheadAvalancheNodeState_Timestamp}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? String(selection.entitySelector.timestampMs)}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+		<Timestamp timestamp={selection.entitySelector.timestampMs} />
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={blockheadAvalancheNodeStateTimestamp}>
 			{#snippet children(entity)}
-				{[(entity.nodeVersion ?? ''), (entity.networkName ?? '')].filter(Boolean).join(' ') || String(pendingEntity.timestampMs) || titleFallback}
+				{[(entity.nodeVersion ?? ''), (entity.networkName ?? '')].filter(Boolean).join(' ') || String(selection.entitySelector.timestampMs)}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -68,11 +66,11 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={blockheadAvalancheNodeStateTimestamp}>
 			{#snippet children(entity)}
-				{@const connectedPeerCount0 = entity.connectedPeerCount}
-				{#if connectedPeerCount0 != null}
+				{@const connectedPeerCount = entity.connectedPeerCount}
+				{#if connectedPeerCount != null}
 					<span data-text="muted">
 						<NumberValue
-							value={connectedPeerCount0}
+							value={connectedPeerCount}
 						/>
 					</span>
 				{/if}
@@ -96,14 +94,14 @@
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+					<Timestamp timestamp={selection.entitySelector.timestampMs} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 
@@ -266,7 +264,7 @@
 						<div>
 							<dt>last synced AT</dt>
 							<dd>
-								<Timestamp timestamp={Number(lastSyncedAt)} />
+								<Timestamp timestamp={lastSyncedAt} />
 							</dd>
 						</div>
 					{/if}

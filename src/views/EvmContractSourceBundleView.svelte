@@ -20,8 +20,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.EvmContractSourceBundle> = $props()
 
-	const titleFallback = 'EVM contract source bundle'
-
 
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -32,7 +30,7 @@
 <EntityView
 	entityType={EntityType.EvmContractSourceBundle}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? 'EVM contract source bundle'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -40,7 +38,7 @@
 	{#snippet Title()}
 		<EvmContractView
 			selection={select(EntityType.EvmContract, selection.entitySelector.$contract)}
-			href=""
+			href={null}
 			layout={EntityLayout.Title}
 			open={false}
 		/>
@@ -49,7 +47,7 @@
 	{#snippet Value()}
 		<EvmContractView
 			selection={select(EntityType.EvmContract, selection.entitySelector.$contract)}
-			href=""
+			href={null}
 			layout={EntityLayout.Value}
 			open={false}
 		/>

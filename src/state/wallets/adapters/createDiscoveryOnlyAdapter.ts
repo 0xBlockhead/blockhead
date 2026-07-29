@@ -1,5 +1,5 @@
 import { WalletCapability, WalletProtocol, WalletTransportKind } from '$/constants/Wallet.ts'
-import { BlockheadConnectionStatus } from '$/schema/BlockheadWalletConnection.ts'
+import { BlockheadConnectionStatus } from '$/schema/BlockheadConnectionStatus.ts'
 import type { WalletAdapter, WalletCandidate } from './types.ts'
 
 export const createDiscoveryOnlyAdapter = ({

@@ -21,13 +21,11 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.ArweaveTransaction> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const arweaveTransaction = $derived(selection({
 		fields: {
 			quantityWinston: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.transactionId ?? '') || 'arweave transaction')
 
 
 	// Components
@@ -43,22 +41,22 @@
 <EntityView
 	entityType={EntityType.ArweaveTransaction}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? (selection.entitySelector.transactionId || 'arweave transaction')}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<TruncatedValue value={pendingEntity.transactionId} />
+		<TruncatedValue value={selection.entitySelector.transactionId} />
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={arweaveTransaction}>
 			{#snippet children(entity)}
-				{@const quantityWinston0 = entity.quantityWinston}
-				{#if quantityWinston0 != null}
+				{@const quantityWinston = entity.quantityWinston}
+				{#if quantityWinston != null}
 					<NumberValue
-						value={quantityWinston0}
+						value={quantityWinston}
 					/>
 				{/if}
 			{/snippet}
@@ -117,7 +115,7 @@
 			<div>
 				<dt>transaction ID</dt>
 				<dd>
-					<TruncatedValue value={pendingEntity.transactionId} />
+					<TruncatedValue value={selection.entitySelector.transactionId} />
 				</dd>
 			</div>
 

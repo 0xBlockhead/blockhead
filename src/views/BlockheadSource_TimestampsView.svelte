@@ -44,7 +44,7 @@
 			entitySelector={blockheadSourceTimestampSelector}
 		>
 			{#snippet Title()}
-				{String(blockheadSourceTimestampSelector.timestampMs) || 'blockhead source timestamp'}
+				{blockheadSourceTimestampSelector.timestampMs}
 			{/snippet}
 
 			{#snippet Value()}
@@ -52,7 +52,7 @@
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{String(blockheadSourceTimestamp.latencyMs ?? '')}</span>
+				<span data-text="annotation">{blockheadSourceTimestamp.latencyMs ?? ''}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

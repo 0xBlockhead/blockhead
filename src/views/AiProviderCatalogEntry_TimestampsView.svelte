@@ -50,11 +50,11 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{String(aiProviderCatalogEntryTimestampSelector.timestampMs)}
+				{aiProviderCatalogEntryTimestampSelector.timestampMs}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{(aiProviderCatalogEntryTimestamp.availabilityStatus ?? '')}</span>
+				<span data-text="annotation">{aiProviderCatalogEntryTimestamp.availabilityStatus ?? ''}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

@@ -20,9 +20,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.HederaNetworkFee_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const titleFallback = 'hedera network fee timestamp'
-
 
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -34,7 +31,7 @@
 <EntityView
 	entityType={EntityType.HederaNetworkFee_Timestamp}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? 'hedera network fee timestamp'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -59,21 +56,21 @@
 			<div>
 				<dt>transaction type</dt>
 				<dd>
-					{pendingEntity.transactionType}
+					{selection.entitySelector.transactionType}
 				</dd>
 			</div>
 
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+					<Timestamp timestamp={selection.entitySelector.timestampMs} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 
@@ -92,7 +89,7 @@
 						<div>
 							<dt>gas tinybar</dt>
 							<dd>
-								{String(gasTinybar)}
+								{gasTinybar}
 							</dd>
 						</div>
 					{/if}
@@ -114,7 +111,7 @@
 						<div>
 							<dt>base tinycent</dt>
 							<dd>
-								{String(baseTinycent)}
+								{baseTinycent}
 							</dd>
 						</div>
 					{/if}
@@ -136,7 +133,7 @@
 						<div>
 							<dt>node tinycent</dt>
 							<dd>
-								{String(nodeTinycent)}
+								{nodeTinycent}
 							</dd>
 						</div>
 					{/if}
@@ -158,7 +155,7 @@
 						<div>
 							<dt>network tinycent</dt>
 							<dd>
-								{String(networkTinycent)}
+								{networkTinycent}
 							</dd>
 						</div>
 					{/if}
@@ -180,7 +177,7 @@
 						<div>
 							<dt>service tinycent</dt>
 							<dd>
-								{String(serviceTinycent)}
+								{serviceTinycent}
 							</dd>
 						</div>
 					{/if}
@@ -202,7 +199,7 @@
 						<div>
 							<dt>total tinycent</dt>
 							<dd>
-								{String(totalTinycent)}
+								{totalTinycent}
 							</dd>
 						</div>
 					{/if}

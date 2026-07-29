@@ -16,14 +16,13 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.FedimintFederation> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const fedimintFederation = $derived(selection({
 		fields: {
 			name: true,
 			consensusVersion: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.name ?? '') || (pendingEntity.federationId ?? '') || 'Fedimint federation')
+	const titleFallback = $derived((prefetched.name ?? '') || selection.entitySelector.federationId || 'Fedimint federation')
 
 
 	// Components
@@ -63,7 +62,7 @@
 			<div>
 				<dt>federation ID</dt>
 				<dd>
-					{pendingEntity.federationId}
+					{selection.entitySelector.federationId}
 				</dd>
 			</div>
 
@@ -196,30 +195,30 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const fedimintFederationFedimintFederationTimestampsViewTimestampsResource = selection.$$timestamps}
+		{@const timestampsResource = selection.$$timestamps}
 		<ResourceBoundary
-			resource={fedimintFederationFedimintFederationTimestampsViewTimestampsResource}
+			resource={timestampsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<FedimintFederation_TimestampsView
-						selection={fedimintFederationFedimintFederationTimestampsViewTimestampsResource}
-						countResource={fedimintFederationFedimintFederationTimestampsViewTimestampsResource.count}
+						selection={timestampsResource}
+						countResource={timestampsResource.count}
 						title='timestamps'
 						id='timestamps'
 					/>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>
-		{@const fedimintFederationFedimintGatewaysViewGatewaysResource = selection.$$gateways}
+		{@const gatewaysResource = selection.$$gateways}
 		<ResourceBoundary
-			resource={fedimintFederationFedimintGatewaysViewGatewaysResource}
+			resource={gatewaysResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<FedimintGatewaysView
-						selection={fedimintFederationFedimintGatewaysViewGatewaysResource}
-						countResource={fedimintFederationFedimintGatewaysViewGatewaysResource.count}
+						selection={gatewaysResource}
+						countResource={gatewaysResource.count}
 						title='gateways'
 						id='gateways'
 					/>

@@ -1,7 +1,5 @@
-import {
-	firstHttpUrlForBinding,
-	sourceFetch,
-} from '$/sources/_runtime/http.ts'
+import { firstHttpUrlForBinding } from '$/sources/_runtime/http.ts'
+import { graphql as queryGraphql } from '$/sources/_shared/wire/Graphql/client.ts'
 import type { SourceBinding } from '$/sources/SourceBinding.ts'
 import type {
 	TallyAccount,
@@ -10,7 +8,6 @@ import type {
 	TallyExecutableCallType,
 	TallyGovernor,
 	TallyGovernorReference,
-	TallyGraphqlResponse,
 	TallyIntId,
 	TallyObservation,
 	TallyOrganization,
@@ -381,43 +378,6 @@ const assertPageInput = ({
 		assertOpaqueIdentity(afterCursor, 'pagination cursor', 1_024)
 }
 
-const readBoundedResponse = async (
-	response: Response
-) => {
-	const declaredLength = Number(response.headers.get('content-length'))
-	if (
-		Number.isFinite(declaredLength)
-		&& declaredLength > maximumTallyGraphqlResponseBytes
-	)
-		throw new Error('Tally_Graphql: response exceeds byte limit')
-	if (response.body == null)
-		throw new Error('Tally_Graphql: response body is missing')
-
-	const reader = response.body.getReader()
-	const chunks: Uint8Array[] = []
-	let byteLength = 0
-
-	for (;;) {
-		const { done, value } = await reader.read()
-		if (done)
-			break
-		byteLength += value.byteLength
-		if (byteLength > maximumTallyGraphqlResponseBytes) {
-			await reader.cancel()
-			throw new Error('Tally_Graphql: response exceeds byte limit')
-		}
-		chunks.push(value)
-	}
-
-	const bytes = new Uint8Array(byteLength)
-	let offset = 0
-	for (const chunk of chunks) {
-		bytes.set(chunk, offset)
-		offset += chunk.byteLength
-	}
-	return new TextDecoder().decode(bytes)
-}
-
 const graphql = async <_Data>({
 	binding,
 	query,
@@ -427,32 +387,16 @@ const graphql = async <_Data>({
 	query: string
 	variables: JsonValue
 }) => {
-	const response = await sourceFetch(
+	const data = await queryGraphql<_Data>({
 		binding,
-		firstHttpUrlForBinding(binding),
-		{
-			method: 'POST',
-			headers: {
-				accept: 'application/json',
-				'content-type': 'application/json',
-			},
-			body: JSON.stringify({
-				query,
-				variables,
-			}),
-		}
-	)
-	const responseText = await readBoundedResponse(response)
-	if (!response.ok)
-		throw new Error(`Tally GraphQL: ${response.status} ${response.statusText}`)
-	const payload = JSON.parse(
-		responseText
-	) as TallyGraphqlResponse<_Data>
-	if (payload.errors?.[0]?.message != null)
-		throw new Error(`Tally_Graphql: ${payload.errors[0].message}`)
-	if (payload.data == null)
+		maximumResponseBytes: maximumTallyGraphqlResponseBytes,
+		query,
+		variables,
+	})
+	if (data == null)
 		throw new Error('Tally_Graphql: response is missing data')
-	return payload.data
+
+	return data
 }
 
 const observation = <_Value>(

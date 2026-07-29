@@ -20,13 +20,12 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.AssetFormatSupport_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const assetFormatSupportTimestamp = $derived(selection({
 		fields: {
 			confidence: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.formatId ?? '') || 'asset format support timestamp')
+	const titleFallback = $derived(selection.entitySelector.formatId || 'asset format support timestamp')
 
 
 	// Components
@@ -46,20 +45,20 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{(pendingEntity.formatId ?? '') || 'asset format support timestamp'}
+		{selection.entitySelector.formatId || 'asset format support timestamp'}
 	{/snippet}
 
 	{#snippet Value()}
-		{(pendingEntity.formatId ?? '') || titleFallback}
+		{selection.entitySelector.formatId || titleFallback}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={assetFormatSupportTimestamp}>
 			{#snippet children(entity)}
-				{@const confidence0 = entity.confidence}
-				{#if confidence0 != null}
+				{@const confidence = entity.confidence}
+				{#if confidence != null}
 					<span data-text="muted">
-						{confidence0}
+						{confidence}
 					</span>
 				{/if}
 			{/snippet}
@@ -71,21 +70,21 @@
 			<div>
 				<dt>Format ID</dt>
 				<dd>
-					{pendingEntity.formatId}
+					{selection.entitySelector.formatId}
 				</dd>
 			</div>
 
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+					<Timestamp timestamp={selection.entitySelector.timestampMs} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 
@@ -164,7 +163,7 @@
 						<div>
 							<dt>Ledger coordinate value</dt>
 							<dd>
-								{String(ledgerCoordinateValue)}
+								{ledgerCoordinateValue}
 							</dd>
 						</div>
 					{/if}

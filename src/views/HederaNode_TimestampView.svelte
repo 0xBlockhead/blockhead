@@ -21,9 +21,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.HederaNode_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const titleFallback = 'hedera node timestamp'
-
 
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -37,7 +34,7 @@
 <EntityView
 	entityType={EntityType.HederaNode_Timestamp}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? 'hedera node timestamp'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -62,14 +59,14 @@
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+					<Timestamp timestamp={selection.entitySelector.timestampMs} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 
@@ -240,7 +237,7 @@
 						<div>
 							<dt>stake tinybar</dt>
 							<dd>
-								{String(stakeTinybar)}
+								{stakeTinybar}
 							</dd>
 						</div>
 					{/if}
@@ -262,7 +259,7 @@
 						<div>
 							<dt>stake rewarded tinybar</dt>
 							<dd>
-								{String(stakeRewardedTinybar)}
+								{stakeRewardedTinybar}
 							</dd>
 						</div>
 					{/if}
@@ -284,7 +281,7 @@
 						<div>
 							<dt>stake not rewarded tinybar</dt>
 							<dd>
-								{String(stakeNotRewardedTinybar)}
+								{stakeNotRewardedTinybar}
 							</dd>
 						</div>
 					{/if}
@@ -306,7 +303,7 @@
 						<div>
 							<dt>min stake tinybar</dt>
 							<dd>
-								{String(minStakeTinybar)}
+								{minStakeTinybar}
 							</dd>
 						</div>
 					{/if}
@@ -328,7 +325,7 @@
 						<div>
 							<dt>max stake tinybar</dt>
 							<dd>
-								{String(maxStakeTinybar)}
+								{maxStakeTinybar}
 							</dd>
 						</div>
 					{/if}

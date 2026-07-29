@@ -21,13 +21,12 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.ArweaveResource> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const arweaveResource = $derived(selection({
 		fields: {
 			canonicalUri: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.canonicalUri ?? '') || (pendingEntity.transactionId ?? '') || 'arweave resource')
+	const titleFallback = $derived((prefetched.canonicalUri ?? '') || selection.entitySelector.transactionId || 'arweave resource')
 
 
 	// Components
@@ -55,7 +54,7 @@
 	{/snippet}
 
 	{#snippet Value()}
-		{(pendingEntity.contentPath ?? '') || (pendingEntity.canonicalUri ?? '') || titleFallback}
+		{selection.entitySelector.contentPath || (prefetched.canonicalUri ?? '') || titleFallback}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -63,14 +62,14 @@
 			<div>
 				<dt>transaction ID</dt>
 				<dd>
-					<TruncatedValue value={pendingEntity.transactionId} />
+					<TruncatedValue value={selection.entitySelector.transactionId} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>content path</dt>
 				<dd>
-					{pendingEntity.contentPath}
+					{selection.entitySelector.contentPath}
 				</dd>
 			</div>
 
@@ -82,11 +81,11 @@
 					>
 						{#snippet children(entity)}
 							<a
-								href={String(entity.canonicalUri)}
+								href={entity.canonicalUri}
 								target="_blank"
 								rel="noreferrer noopener"
 							>
-								<TruncatedValue value={String(entity.canonicalUri)} />
+								<TruncatedValue value={entity.canonicalUri} />
 							</a>
 						{/snippet}
 					</ResourceBoundary>
@@ -116,15 +115,15 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const arweaveResourceArweaveResourceTimestampsViewTimestampsResource = selection.$$timestamps}
+		{@const timestampsResource = selection.$$timestamps}
 		<ResourceBoundary
-			resource={arweaveResourceArweaveResourceTimestampsViewTimestampsResource}
+			resource={timestampsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<ArweaveResource_TimestampsView
-						selection={arweaveResourceArweaveResourceTimestampsViewTimestampsResource}
-						countResource={arweaveResourceArweaveResourceTimestampsViewTimestampsResource.count}
+						selection={timestampsResource}
+						countResource={timestampsResource.count}
 						title='timestamps'
 						id='timestamps'
 					/>

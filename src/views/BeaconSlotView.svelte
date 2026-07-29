@@ -25,8 +25,7 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.BeaconSlot> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const titleFallback = $derived((String(pendingEntity.slot ?? '') ? 'Slot #' + String(pendingEntity.slot ?? '') : '') || 'beacon slot')
+	const network = $derived(selection.entitySelector.$network)
 	const viewDomId = $derived('beacon-slot-' + encodeURIComponent(stringify(selection.entitySelector)))
 
 
@@ -48,21 +47,24 @@
 	entityType={EntityType.BeaconSlot}
 	entitySelector={selection.entitySelector}
 	id={viewDomId}
-	title={title ?? titleFallback}
-	idDragPlainText={String(pendingEntity.slot ?? '')}
+	title={title ?? `Slot #${selection.entitySelector.slot}`}
+	idDragPlainText={String(selection.entitySelector.slot)}
 	href={
-		href ?? resolve(
-			'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/slot/[slot=nonNegativeInteger]',
-			{
-				network: (
-					'caip2' in selection.entitySelector.$network ?
-						String(caip2StringFromValue(selection.entitySelector.$network.caip2))
-					:
-						String(selection.entitySelector.$network.slug)
-				),
-				slot: String(selection.entitySelector.slot),
-			}
-		)
+		href === undefined ?
+			resolve(
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/slot/[slot=nonNegativeInteger]',
+				{
+					network: (
+						'caip2' in network ?
+							caip2StringFromValue(network.caip2)
+						:
+							network.slug
+					),
+					slot: String(selection.entitySelector.slot),
+				}
+			)
+		:
+			href ?? undefined
 	}
 	{layout}
 	bind:open
@@ -72,14 +74,14 @@
 		<span data-row="inline align-center gap-2 wrap">
 			<span>Slot </span>
 			<span data-badge="small">
-				#{String(pendingEntity.slot)}
+				#{selection.entitySelector.slot}
 			</span>
 		</span>
 	{/snippet}
 
 	{#snippet Value()}
 		<span data-badge="small">
-			#{String(pendingEntity.slot)}
+			#{selection.entitySelector.slot}
 		</span>
 	{/snippet}
 

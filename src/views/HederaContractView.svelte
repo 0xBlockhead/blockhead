@@ -21,8 +21,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.HederaContract> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const titleFallback = 'hedera contract'
 	const viewDomId = $derived('hedera-contract-' + encodeURIComponent(stringify(selection.entitySelector)))
 
 
@@ -43,7 +41,7 @@
 	entityType={EntityType.HederaContract}
 	entitySelector={selection.entitySelector}
 	id={viewDomId}
-	title={title ?? titleFallback}
+	title={title ?? 'hedera contract'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -68,7 +66,7 @@
 			<div>
 				<dt>contract ID</dt>
 				<dd>
-					{pendingEntity.contractId}
+					{selection.entitySelector.contractId}
 				</dd>
 			</div>
 
@@ -87,7 +85,7 @@
 						<div>
 							<dt>EVM address</dt>
 							<dd>
-								<TruncatedValue value={String(evmAddress)} />
+								<TruncatedValue value={evmAddress} />
 							</dd>
 						</div>
 					{/if}

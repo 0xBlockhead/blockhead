@@ -21,14 +21,12 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.DydxChainSubaccount_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.DydxIndexer_Rest,
 			Source.DydxValidator_Rest,
 		],
 	}))
-	const titleFallback = $derived(String(pendingEntity.timestampMs ?? '') || 'dydx chain subaccount timestamp')
 
 
 	// Components
@@ -43,19 +41,18 @@
 <EntityView
 	entityType={EntityType.DydxChainSubaccount_Timestamp}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? String(selection.entitySelector.timestampMs)}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+		<Timestamp timestamp={selection.entitySelector.timestampMs} />
 	{/snippet}
 
 	{#snippet Value()}
 		<DydxChainSubaccountView
 			selection={select(EntityType.DydxChainSubaccount, selection.entitySelector.$subaccount)}
-			href=""
 			layout={EntityLayout.Value}
 			open={false}
 		/>
@@ -77,14 +74,14 @@
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+					<Timestamp timestamp={selection.entitySelector.timestampMs} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 
@@ -103,7 +100,7 @@
 						<div>
 							<dt>block height</dt>
 							<dd>
-								{String(blockHeight)}
+								{blockHeight}
 							</dd>
 						</div>
 					{/if}
@@ -127,7 +124,7 @@
 						<div>
 							<dt>equity</dt>
 							<dd>
-								{String(equity)}
+								{equity}
 							</dd>
 						</div>
 					{/if}
@@ -149,7 +146,7 @@
 						<div>
 							<dt>free collateral</dt>
 							<dd>
-								{String(freeCollateral)}
+								{freeCollateral}
 							</dd>
 						</div>
 					{/if}

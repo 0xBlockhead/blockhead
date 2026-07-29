@@ -396,8 +396,10 @@ const invalidEvmArtifact = {
 
 const invalidHandwrittenOfficialArtifact = {
 	...validHttpBinding,
+	wireProtocol: WireProtocol.Graphql,
+	apiFamily: ApiFamily.GraphqlHttp,
 	artifacts: [
-		// @ts-expect-error Handwritten types cite documentation with referenceUrl, never officialUrl.
+		// @ts-expect-error Handwritten types cannot declare an official artifact URL.
 		{
 			kind: SourceArtifactKind.HandwrittenTypes,
 			path: 'types.ts',
@@ -409,8 +411,9 @@ const invalidHandwrittenOfficialArtifact = {
 
 const invalidGeneratedReferenceArtifact = {
 	...validHttpBinding,
+	apiFamily: ApiFamily.OpenApiHttp,
 	artifacts: [
-		// @ts-expect-error Generated official artifacts use officialUrl, never referenceUrl.
+		// @ts-expect-error Generated official artifacts cannot declare a documentation reference URL.
 		{
 			kind: SourceArtifactKind.OpenApiTypes,
 			path: 'openapi.d.ts',

@@ -6,7 +6,6 @@
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { UrlString } from '$/schema/UrlString.ts'
 
 
 	// State
@@ -42,29 +41,27 @@
 			entityType={EntityType.IpfsResource}
 			entitySelector={ipfsResourceSelector}
 			href={
-				(
-					ipfsResourceSelector.contentPath === '' ?
-						resolve(
-							'/(explore)/(ipfs)/[namespace=ipfsNamespace]/[target=stringSegment]',
-							{
-								namespace: String(ipfsResourceSelector.namespace),
-								target: String(ipfsResourceSelector.target),
-							}
-						)
-					:
-						resolve(
-							'/(explore)/(ipfs)/[namespace=ipfsNamespace]/[target=stringSegment]/path/[...contentPath=stringSegment]',
-							{
-								namespace: String(ipfsResourceSelector.namespace),
-								target: String(ipfsResourceSelector.target),
-								contentPath: String(ipfsResourceSelector.contentPath),
-							}
-						)
-				)
+				ipfsResourceSelector.contentPath === '' ?
+					resolve(
+						'/(explore)/(ipfs)/[namespace=ipfsNamespace]/[target=stringSegment]',
+						{
+							namespace: ipfsResourceSelector.namespace,
+							target: ipfsResourceSelector.target,
+						}
+					)
+				:
+					resolve(
+						'/(explore)/(ipfs)/[namespace=ipfsNamespace]/[target=stringSegment]/path/[...contentPath=stringSegment]',
+						{
+							namespace: ipfsResourceSelector.namespace,
+							target: ipfsResourceSelector.target,
+							contentPath: ipfsResourceSelector.contentPath,
+						}
+					)
 			}
 		>
 			{#snippet Title()}
-				{String(ipfsResource.canonicalUri) || 'IPFS resource'}
+				{ipfsResource.canonicalUri || 'IPFS resource'}
 			{/snippet}
 
 			{#snippet Value()}

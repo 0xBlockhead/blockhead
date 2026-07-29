@@ -1,5 +1,5 @@
 import { WalletCapability, WalletDiscoveryKind, WalletProtocol, WalletTransportKind } from '$/constants/Wallet.ts'
-import { BlockheadConnectionStatus } from '$/schema/BlockheadWalletConnection.ts'
+import { BlockheadConnectionStatus } from '$/schema/BlockheadConnectionStatus.ts'
 import { isJsonArray, isJsonObject, isJsonString, type JsonObject, type JsonValue } from '$/typescript/JsonValue.ts'
 import { base58, bech32, bech32m } from '@scure/base'
 import * as Hash from 'ox/Hash'

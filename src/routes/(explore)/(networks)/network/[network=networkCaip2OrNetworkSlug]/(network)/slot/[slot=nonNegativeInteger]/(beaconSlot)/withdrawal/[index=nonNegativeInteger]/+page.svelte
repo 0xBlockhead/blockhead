@@ -41,7 +41,7 @@
 
 
 <svelte:head>
-	<title>{(data.title ?? ((String(pageSelection.entitySelector.indexInSlot ?? '') ? 'Withdrawal #' + String(pageSelection.entitySelector.indexInSlot ?? '') : '') || 'beacon withdrawal'))} • beacon withdrawal • Blockhead</title>
+	<title>{data.title ?? ((String(pageSelection.entitySelector.indexInSlot ?? '') ? 'Withdrawal #' + String(pageSelection.entitySelector.indexInSlot ?? '') : '') || 'beacon withdrawal')} • beacon withdrawal • Blockhead</title>
 </svelte:head>
 
 

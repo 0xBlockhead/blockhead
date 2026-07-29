@@ -45,11 +45,11 @@
 			entitySelector={blockheadBitTorrentTransferTimestampSelector}
 		>
 			{#snippet Title()}
-				{String(blockheadBitTorrentTransferTimestampSelector.timestampMs) || 'blockhead bit torrent transfer timestamp'}
+				{blockheadBitTorrentTransferTimestampSelector.timestampMs}
 			{/snippet}
 
 			{#snippet Value()}
-				{(blockheadBitTorrentTransferTimestamp.status ?? '')}
+				{blockheadBitTorrentTransferTimestamp.status ?? ''}
 			{/snippet}
 
 			{#snippet HeadingAfter()}

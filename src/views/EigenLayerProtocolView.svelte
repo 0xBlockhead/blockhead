@@ -23,8 +23,7 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.EigenLayerProtocol> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const viewSelection = $derived(selection({
+	const eigenLayerProtocol = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Constants_Internal,
 			Source.EigenExplorer_Rest,
@@ -33,13 +32,12 @@
 			Source.Etherscan_Rest,
 			Source.Voltaire_JsonRpc,
 		],
-	}))
-	const eigenLayerProtocol = $derived(viewSelection({
+	})({
 		fields: {
 			protocolName: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.protocolName ?? '') || 'eigen layer protocol')
+	const titleFallback = $derived((prefetched.protocolName ?? '') || 'eigen layer protocol')
 	const viewDomId = $derived('eigen-layer-protocol-' + encodeURIComponent(stringify(selection.entitySelector)))
 
 
@@ -77,7 +75,7 @@
 	{#snippet Value()}
 		<NetworkView
 			selection={select(EntityType.Network, selection.entitySelector.$network)}
-			href=""
+			href={null}
 			layout={EntityLayout.Value}
 			open={false}
 		/>

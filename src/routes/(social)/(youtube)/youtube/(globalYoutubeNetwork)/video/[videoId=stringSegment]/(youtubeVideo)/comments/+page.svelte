@@ -36,7 +36,7 @@
 			resolve(
 				'/(social)/(youtube)/youtube/(globalYoutubeNetwork)/video/[videoId=stringSegment]/(youtubeVideo)/comments',
 				{
-					videoId: String(params.videoId),
+					videoId: params.videoId,
 				}
 			)
 		}

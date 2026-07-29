@@ -48,9 +48,9 @@
 				resolve(
 					'/(social)/(nostr)/nostr/(globalNostrNetwork)/relay/[relayKey=stringSegment]/(nostrRelay)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
 					{
-						relayKey: encodeURIComponent(String(nostrRelayTimestampSelector.$relay.relayUrl)),
+						relayKey: encodeURIComponent(nostrRelayTimestampSelector.$relay.relayUrl),
 						timestampMs: String(nostrRelayTimestampSelector.timestampMs),
-						source: String(nostrRelayTimestampSelector.source),
+						source: nostrRelayTimestampSelector.source,
 					}
 				)
 			}
@@ -64,7 +64,7 @@
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{String(nostrRelayTimestampSelector.timestampMs)}</span>
+				<span data-text="annotation">{nostrRelayTimestampSelector.timestampMs}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

@@ -47,11 +47,11 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{(dydxChainOrder.side ?? '')}
+				{dydxChainOrder.side ?? ''}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{(dydxChainOrder.orderType ?? '')}</span>
+				<span data-text="annotation">{dydxChainOrder.orderType ?? ''}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

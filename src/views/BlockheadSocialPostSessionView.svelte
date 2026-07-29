@@ -22,7 +22,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.BlockheadSocialPostSession> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Local_Internal,
@@ -37,7 +36,7 @@
 			name: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.name ?? '') || (pendingEntity.id ?? '') || 'blockhead social post session')
+	const titleFallback = $derived((prefetched.name ?? '') || selection.entitySelector.id || 'blockhead social post session')
 
 
 	// Components
@@ -78,7 +77,7 @@
 		<ResourceBoundary resource={blockheadSocialPostSession}>
 			{#snippet children(entity)}
 				<span data-text="muted">
-					<Timestamp timestamp={Number(entity.updatedAt)} />
+					<Timestamp timestamp={entity.updatedAt} />
 				</span>
 			{/snippet}
 		</ResourceBoundary>
@@ -89,7 +88,7 @@
 			<div>
 				<dt>ID</dt>
 				<dd>
-					{pendingEntity.id}
+					{selection.entitySelector.id}
 				</dd>
 			</div>
 
@@ -252,7 +251,7 @@
 						resource={blockheadSocialPostSession}
 					>
 						{#snippet children(entity)}
-							<Timestamp timestamp={Number(entity.createdAt)} />
+							<Timestamp timestamp={entity.createdAt} />
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -265,7 +264,7 @@
 						resource={blockheadSocialPostSession}
 					>
 						{#snippet children(entity)}
-							<Timestamp timestamp={Number(entity.updatedAt)} />
+							<Timestamp timestamp={entity.updatedAt} />
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -286,7 +285,7 @@
 						<div>
 							<dt>locked AT</dt>
 							<dd>
-								<Timestamp timestamp={Number(lockedAt)} />
+								<Timestamp timestamp={lockedAt} />
 							</dd>
 						</div>
 					{/if}
@@ -296,15 +295,15 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const blockheadSocialPostSessionMediaListViewMediaResource = selection.$$media}
+		{@const mediaResource = selection.$$media}
 		<ResourceBoundary
-			resource={blockheadSocialPostSessionMediaListViewMediaResource}
+			resource={mediaResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<MediaListView
-						selection={blockheadSocialPostSessionMediaListViewMediaResource}
-						countResource={blockheadSocialPostSessionMediaListViewMediaResource.count}
+						selection={mediaResource}
+						countResource={mediaResource.count}
 						title='media'
 						id='media'
 					/>

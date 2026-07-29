@@ -21,13 +21,11 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.HederaAllowance> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const hederaAllowance = $derived(selection({
 		fields: {
 			serialNumber: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.allowanceKind ?? '') || 'hedera allowance')
 
 
 	// Components
@@ -43,19 +41,19 @@
 <EntityView
 	entityType={EntityType.HederaAllowance}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? (selection.entitySelector.allowanceKind || 'hedera allowance')}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{(pendingEntity.allowanceKind ?? '') || 'hedera allowance'}
+		{selection.entitySelector.allowanceKind || 'hedera allowance'}
 	{/snippet}
 
 	{#snippet Value()}
 		<HederaAccountView
 			selection={select(EntityType.HederaAccount, selection.entitySelector.$spender)}
-			href=""
+			href={null}
 			layout={EntityLayout.Value}
 			open={false}
 		/>
@@ -80,11 +78,11 @@
 						{/if}
 					{/snippet}
 				</ResourceBoundary>
-				{@const serialNumber1 = entity.serialNumber}
-				{#if serialNumber1 != null}
+				{@const serialNumber = entity.serialNumber}
+				{#if serialNumber != null}
 					<span data-text="muted">
 						<NumberValue
-							value={serialNumber1}
+							value={serialNumber}
 						/>
 					</span>
 				{/if}
@@ -119,7 +117,7 @@
 			<div>
 				<dt>allowance kind</dt>
 				<dd>
-					{pendingEntity.allowanceKind}
+					{selection.entitySelector.allowanceKind}
 				</dd>
 			</div>
 		</dl>
@@ -186,15 +184,15 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const hederaAllowanceHederaAllowanceTimestampsViewTimestampsResource = selection.$$timestamps}
+		{@const timestampsResource = selection.$$timestamps}
 		<ResourceBoundary
-			resource={hederaAllowanceHederaAllowanceTimestampsViewTimestampsResource}
+			resource={timestampsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<HederaAllowance_TimestampsView
-						selection={hederaAllowanceHederaAllowanceTimestampsViewTimestampsResource}
-						countResource={hederaAllowanceHederaAllowanceTimestampsViewTimestampsResource.count}
+						selection={timestampsResource}
+						countResource={timestampsResource.count}
 						title='Observations'
 						id='timestamps'
 					/>

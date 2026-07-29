@@ -49,7 +49,7 @@
 				resolve(
 					'/(social)/(nostr)/nostr/(globalNostrNetwork)/article-version/[eventId=stringSegment]',
 					{
-						eventId: String(nostrArticleEventSelector.eventId),
+						eventId: nostrArticleEventSelector.eventId,
 					}
 				)
 			}
@@ -63,7 +63,7 @@
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{String(nostrArticleEvent.createdAt)}</span>
+				<span data-text="annotation">{nostrArticleEvent.createdAt}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

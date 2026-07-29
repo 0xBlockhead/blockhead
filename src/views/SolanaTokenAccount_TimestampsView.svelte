@@ -41,15 +41,15 @@
 			entitySelector={solanaTokenAccountTimestampSelector}
 		>
 			{#snippet Title()}
-				{String(solanaTokenAccountTimestampSelector.slot) || 'solana token account timestamp'}
+				{solanaTokenAccountTimestampSelector.slot}
 			{/snippet}
 
 			{#snippet Value()}
-				{String(solanaTokenAccountTimestamp.amount ?? '')}
+				{solanaTokenAccountTimestamp.amount ?? ''}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{String(solanaTokenAccountTimestamp.timestampMs ?? '')}</span>
+				<span data-text="annotation">{solanaTokenAccountTimestamp.timestampMs ?? ''}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

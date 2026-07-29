@@ -43,16 +43,33 @@
 
 
 <svelte:head>
-	<title>{(pageSelection.entity == null ? [
-			(proposalCategoryById[String(pageSelection.entitySelector.category)]?.label ?? ((pageSelection.entitySelector.category ?? ''))),
-			String(pageSelection.entitySelector.number ?? ''),
-		].filter(Boolean).join('-') || 'Specification proposal' : ([
-			[(String((proposalCategoryById[String(pageSelection.entitySelector.category)]?.label ?? (pageSelection.entitySelector.category)) ?? '') ? String((proposalCategoryById[String(pageSelection.entitySelector.category)]?.label ?? (pageSelection.entitySelector.category)) ?? '') + '-' : ''), String(pageSelection.entitySelector.number)].filter(Boolean).join(''),
-			(pageSelection.entity.documentTitle ?? ''),
-		].filter(Boolean).join(': ')) || [
-			String((proposalCategoryById[String(pageSelection.entitySelector.category)]?.label ?? (pageSelection.entitySelector.category)) ?? ''),
-			String(pageSelection.entitySelector.number),
-		].filter(Boolean).join('-') || 'Specification proposal')} • Specification proposal • Blockhead</title>
+	<title>{pageSelection.entity == null ? (
+		(
+			[
+				(proposalCategoryById[pageSelection.entitySelector.category]?.label ?? pageSelection.entitySelector.category ?? ''),
+				String(pageSelection.entitySelector.number ?? ''),
+			]
+				.filter(Boolean)
+				.join('-')
+		)
+		|| 'Specification proposal'
+	) : (
+		(
+			[
+				[(proposalCategoryById[pageSelection.entitySelector.category]?.label ?? pageSelection.entitySelector.category) + '-', String(pageSelection.entitySelector.number)].filter(Boolean).join(''),
+				(pageSelection.entity.documentTitle ?? ''),
+			]
+				.filter(Boolean)
+				.join(': ')
+			|| [
+				(proposalCategoryById[pageSelection.entitySelector.category]?.label ?? pageSelection.entitySelector.category),
+				String(pageSelection.entitySelector.number),
+			]
+				.filter(Boolean)
+				.join('-')
+		)
+		|| 'Specification proposal'
+	)} • Specification proposal • Blockhead</title>
 </svelte:head>
 
 

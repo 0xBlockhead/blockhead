@@ -4,7 +4,6 @@
 	// Types/constants
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { UrlString } from '$/schema/UrlString.ts'
 
 
 	// Context
@@ -21,7 +20,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.A2aPushNotificationConfig> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [],
 	}))
@@ -31,7 +29,7 @@
 			url: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.configId ?? '') || 'A2A push notification config')
+	const titleFallback = $derived(selection.entitySelector.configId || 'A2A push notification config')
 
 
 	// Components
@@ -51,13 +49,13 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{(pendingEntity.configId ?? '') || 'A2A push notification config'}
+		{selection.entitySelector.configId || 'A2A push notification config'}
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={a2aPushNotificationConfig}>
 			{#snippet children(entity)}
-				{(entity.status ?? '') || pendingEntity.configId || titleFallback}
+				{(entity.status ?? '') || selection.entitySelector.configId || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -65,15 +63,15 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={a2aPushNotificationConfig}>
 			{#snippet children(entity)}
-				{@const url0 = entity.url}
-				{#if url0 != null}
+				{@const url = entity.url}
+				{#if url != null}
 					<span data-text="muted">
 						<a
-							href={String(url0)}
+							href={url}
 							target="_blank"
 							rel="noreferrer noopener"
 						>
-							<TruncatedValue value={String(url0)} />
+							<TruncatedValue value={url} />
 						</a>
 					</span>
 				{/if}
@@ -97,7 +95,7 @@
 			<div>
 				<dt>config ID</dt>
 				<dd>
-					{pendingEntity.configId}
+					{selection.entitySelector.configId}
 				</dd>
 			</div>
 
@@ -111,11 +109,11 @@
 							<dt>URL</dt>
 							<dd>
 								<a
-									href={String(url)}
+									href={url}
 									target="_blank"
 									rel="noreferrer noopener"
 								>
-									<TruncatedValue value={String(url)} />
+									<TruncatedValue value={url} />
 								</a>
 							</dd>
 						</div>
@@ -160,7 +158,7 @@
 						<div>
 							<dt>Created</dt>
 							<dd>
-								<Timestamp timestamp={Number(createdAt)} />
+								<Timestamp timestamp={createdAt} />
 							</dd>
 						</div>
 					{/if}
@@ -182,7 +180,7 @@
 						<div>
 							<dt>deleted AT</dt>
 							<dd>
-								<Timestamp timestamp={Number(deletedAt)} />
+								<Timestamp timestamp={deletedAt} />
 							</dd>
 						</div>
 					{/if}

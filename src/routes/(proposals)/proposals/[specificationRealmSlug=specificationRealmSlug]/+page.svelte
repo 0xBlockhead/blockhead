@@ -35,7 +35,7 @@
 
 
 <svelte:head>
-	<title>{(data.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.realm ?? '') || 'Specification realm' : pageSelection.entity.label || pageSelection.entitySelector.realm || 'Specification realm'))} • Specification realm • Blockhead</title>
+	<title>{data.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.realm ?? '') || 'Specification realm' : pageSelection.entity.label || pageSelection.entitySelector.realm || 'Specification realm')} • Specification realm • Blockhead</title>
 </svelte:head>
 
 

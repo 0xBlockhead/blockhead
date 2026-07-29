@@ -35,7 +35,7 @@
 
 
 <svelte:head>
-	<title>{(pageSelection.entitySelector.id || 'dashboard')} • dashboard • Blockhead</title>
+	<title>{pageSelection.entitySelector.id || 'dashboard'} • dashboard • Blockhead</title>
 </svelte:head>
 
 

@@ -21,7 +21,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.CelestiaNetwork> = $props()
 
-	const titleFallback = 'celestia network'
 	const viewDomId = $derived('celestia-network-' + encodeURIComponent(stringify(selection.entitySelector)))
 
 
@@ -41,7 +40,7 @@
 	entityType={EntityType.CelestiaNetwork}
 	entitySelector={selection.entitySelector}
 	id={viewDomId}
-	title={title ?? titleFallback}
+	title={title ?? 'celestia network'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -49,7 +48,7 @@
 	{#snippet Title()}
 		<NetworkView
 			selection={select(EntityType.Network, selection.entitySelector.$network)}
-			href=""
+			href={null}
 			layout={EntityLayout.Title}
 			open={false}
 		/>

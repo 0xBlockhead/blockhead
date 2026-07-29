@@ -20,9 +20,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.SuiObjectChange> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const titleFallback = 'Sui object change'
-
 
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -34,7 +31,7 @@
 <EntityView
 	entityType={EntityType.SuiObjectChange}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? 'Sui object change'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -59,7 +56,7 @@
 			<div>
 				<dt>change index</dt>
 				<dd>
-					{String(pendingEntity.changeIndex)}
+					{selection.entitySelector.changeIndex}
 				</dd>
 			</div>
 
@@ -141,7 +138,7 @@
 						<div>
 							<dt>version</dt>
 							<dd>
-								{String(version)}
+								{version}
 							</dd>
 						</div>
 					{/if}

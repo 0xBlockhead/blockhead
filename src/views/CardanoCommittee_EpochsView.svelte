@@ -37,6 +37,7 @@
 >
 	{#snippet Item({ item: cardanoCommitteeEpoch })}
 		{@const cardanoCommitteeEpochSelector = cardanoCommitteeEpoch[EntityMetaKey.Selector]}
+		{@const network = cardanoCommitteeEpochSelector.$network}
 		<EntityView
 			entityType={EntityType.CardanoCommittee_Epoch}
 			entitySelector={cardanoCommitteeEpochSelector}
@@ -45,23 +46,23 @@
 					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/governance/committee/epoch/[epoch=nonNegativeInteger]/[source=stringSegment]',
 					{
 						network: (
-							'caip2' in cardanoCommitteeEpochSelector.$network ?
-								String(caip2StringFromValue(cardanoCommitteeEpochSelector.$network.caip2))
+							'caip2' in network ?
+								caip2StringFromValue(network.caip2)
 							:
-								String(cardanoCommitteeEpochSelector.$network.slug)
+								network.slug
 						),
 						epoch: String(cardanoCommitteeEpochSelector.epoch),
-						source: String(cardanoCommitteeEpochSelector.source),
+						source: cardanoCommitteeEpochSelector.source,
 					}
 				)
 			}
 		>
 			{#snippet Title()}
-				{(String(cardanoCommitteeEpochSelector.epoch) ? 'Epoch ' + String(cardanoCommitteeEpochSelector.epoch) : '') || 'Cardano committee epoch'}
+				{'Epoch ' + cardanoCommitteeEpochSelector.epoch}
 			{/snippet}
 
 			{#snippet Value()}
-				{String(cardanoCommitteeEpoch.memberCount ?? '')}
+				{cardanoCommitteeEpoch.memberCount ?? ''}
 			{/snippet}
 		</EntityView>
 	{/snippet}

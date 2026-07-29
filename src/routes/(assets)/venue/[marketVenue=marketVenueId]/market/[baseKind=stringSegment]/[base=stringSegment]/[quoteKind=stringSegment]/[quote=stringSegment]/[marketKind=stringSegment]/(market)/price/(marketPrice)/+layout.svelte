@@ -32,12 +32,12 @@
 			resolve(
 				'/(assets)/venue/[marketVenue=marketVenueId]/market/[baseKind=stringSegment]/[base=stringSegment]/[quoteKind=stringSegment]/[quote=stringSegment]/[marketKind=stringSegment]/(market)/price',
 				{
-					marketVenue: String(params.marketVenue),
-					baseKind: String(params.baseKind),
-					base: String(params.base),
-					quoteKind: String(params.quoteKind),
-					quote: String(params.quote),
-					marketKind: String(params.marketKind),
+					marketVenue: params.marketVenue,
+					baseKind: params.baseKind,
+					base: params.base,
+					quoteKind: params.quoteKind,
+					quote: params.quote,
+					marketKind: params.marketKind,
 				}
 			)
 		}
@@ -49,12 +49,12 @@
 					resolve(
 						'/(assets)/venue/[marketVenue=marketVenueId]/market/[baseKind=stringSegment]/[base=stringSegment]/[quoteKind=stringSegment]/[quote=stringSegment]/[marketKind=stringSegment]/(market)/price',
 						{
-							marketVenue: String(params.marketVenue),
-							baseKind: String(params.baseKind),
-							base: String(params.base),
-							quoteKind: String(params.quoteKind),
-							quote: String(params.quote),
-							marketKind: String(params.marketKind),
+							marketVenue: params.marketVenue,
+							baseKind: params.baseKind,
+							base: params.base,
+							quoteKind: params.quoteKind,
+							quote: params.quote,
+							marketKind: params.marketKind,
 						}
 					)
 				}

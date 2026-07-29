@@ -24,8 +24,7 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.UtxoAddress> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const titleFallback = $derived((pendingEntity.address ?? '') || 'UTXO address')
+	const network = $derived(selection.entitySelector.$network)
 	const viewDomId = $derived('utxo-address-' + encodeURIComponent(stringify(selection.entitySelector)))
 
 
@@ -45,31 +44,34 @@
 	entityType={EntityType.UtxoAddress}
 	entitySelector={selection.entitySelector}
 	id={viewDomId}
-	title={title ?? titleFallback}
+	title={title ?? (selection.entitySelector.address || 'UTXO address')}
 	href={
-		href ?? resolve(
-			'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/address/[address=stringSegment]',
-			{
-				network: (
-					'caip2' in selection.entitySelector.$network ?
-						String(caip2StringFromValue(selection.entitySelector.$network.caip2))
-					:
-						String(selection.entitySelector.$network.slug)
-				),
-				address: String(selection.entitySelector.address),
-			}
-		)
+		href === undefined ?
+			resolve(
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/address/[address=stringSegment]',
+				{
+					network: (
+						'caip2' in network ?
+							caip2StringFromValue(network.caip2)
+						:
+							network.slug
+					),
+					address: selection.entitySelector.address,
+				}
+			)
+		:
+			href ?? undefined
 	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<TruncatedValue value={pendingEntity.address} />
+		<TruncatedValue value={selection.entitySelector.address} />
 	{/snippet}
 
 	{#snippet Value()}
-		<TruncatedValue value={pendingEntity.address} />
+		<TruncatedValue value={selection.entitySelector.address} />
 	{/snippet}
 
 	{#snippet HeadingAfter()}
@@ -87,7 +89,7 @@
 			<div>
 				<dt>Address</dt>
 				<dd>
-					<TruncatedValue value={pendingEntity.address} />
+					<TruncatedValue value={selection.entitySelector.address} />
 				</dd>
 			</div>
 

@@ -49,7 +49,7 @@
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{zeroGServiceRequest.$requester == null ? '' : String(zeroGServiceRequest.$requester.address) || 'EVM account'}</span>
+				<span data-text="annotation">{zeroGServiceRequest.$requester == null ? '' : zeroGServiceRequest.$requester.address || 'EVM account'}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

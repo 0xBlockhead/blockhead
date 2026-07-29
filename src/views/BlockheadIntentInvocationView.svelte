@@ -5,7 +5,6 @@
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -23,7 +22,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.BlockheadIntentInvocation> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Local_Internal,
@@ -36,7 +34,7 @@
 			resolvedIntentType: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.modality ?? '') || 'blockhead intent invocation')
+	const titleFallback = $derived((prefetched.modality ?? '') || 'blockhead intent invocation')
 
 
 	// Components
@@ -77,7 +75,7 @@
 		<ResourceBoundary resource={blockheadIntentInvocation}>
 			{#snippet children(entity)}
 				<span data-text="muted">
-					<Timestamp timestamp={Number(entity.createdAt)} />
+					<Timestamp timestamp={entity.createdAt} />
 				</span>
 			{/snippet}
 		</ResourceBoundary>
@@ -106,7 +104,7 @@
 			<div>
 				<dt>invocation ID</dt>
 				<dd>
-					{pendingEntity.invocationId}
+					{selection.entitySelector.invocationId}
 				</dd>
 			</div>
 
@@ -292,7 +290,7 @@
 						<div>
 							<dt>invocation payload hash</dt>
 							<dd>
-								<TruncatedValue value={String(invocationPayloadHash)} />
+								<TruncatedValue value={invocationPayloadHash} />
 							</dd>
 						</div>
 					{/if}
@@ -314,7 +312,7 @@
 						<div>
 							<dt>intent definition hash</dt>
 							<dd>
-								<TruncatedValue value={String(intentDefinitionHash)} />
+								<TruncatedValue value={intentDefinitionHash} />
 							</dd>
 						</div>
 					{/if}
@@ -336,7 +334,7 @@
 						<div>
 							<dt>selected option hash</dt>
 							<dd>
-								<TruncatedValue value={String(selectedOptionHash)} />
+								<TruncatedValue value={selectedOptionHash} />
 							</dd>
 						</div>
 					{/if}
@@ -350,7 +348,7 @@
 						resource={blockheadIntentInvocation}
 					>
 						{#snippet children(entity)}
-							<Timestamp timestamp={Number(entity.createdAt)} />
+							<Timestamp timestamp={entity.createdAt} />
 						{/snippet}
 					</ResourceBoundary>
 				</dd>

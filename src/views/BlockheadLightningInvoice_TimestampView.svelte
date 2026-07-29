@@ -20,14 +20,12 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.BlockheadLightningInvoice_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const blockheadLightningInvoiceTimestamp = $derived(selection({
 		fields: {
 			state: true,
 			amountPaidMsat: true,
 		},
 	}))
-	const titleFallback = $derived(String(pendingEntity.timestampMs ?? '') || 'Lightning invoice timestamp')
 
 
 	// Components
@@ -41,19 +39,19 @@
 <EntityView
 	entityType={EntityType.BlockheadLightningInvoice_Timestamp}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? String(selection.entitySelector.timestampMs)}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+		<Timestamp timestamp={selection.entitySelector.timestampMs} />
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={blockheadLightningInvoiceTimestamp}>
 			{#snippet children(entity)}
-				{[(entity.state ?? ''), String(entity.amountPaidMsat ?? '')].filter(Boolean).join(' ') || String(pendingEntity.timestampMs) || titleFallback}
+				{[(entity.state ?? ''), String(entity.amountPaidMsat ?? '')].filter(Boolean).join(' ') || String(selection.entitySelector.timestampMs)}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -74,7 +72,7 @@
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 
@@ -93,7 +91,7 @@
 						<div>
 							<dt>Settled</dt>
 							<dd>
-								{String(settledAtMs)}
+								{settledAtMs}
 							</dd>
 						</div>
 					{/if}
@@ -115,7 +113,7 @@
 						<div>
 							<dt>Settle index</dt>
 							<dd>
-								{String(settleIndex)}
+								{settleIndex}
 							</dd>
 						</div>
 					{/if}

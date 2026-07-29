@@ -1,4 +1,4 @@
-import { MediaTransport } from '$/schema/Media.ts'
+import { MediaTransport } from '$/schema/MediaTransport.ts'
 import { ipfsPublicGateways } from '$/constants/IpfsProtocol.ts'
 import { parseIpfsCid } from '$/lib/multiformats.ts'
 

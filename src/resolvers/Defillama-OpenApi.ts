@@ -14,7 +14,7 @@ import {
 import type { EntitySelector } from '$/schema/$schema.ts'
 import { schema } from '$/schema/index.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import { MediaType } from '$/schema/Media.ts'
+import { MediaType } from '$/schema/MediaType.ts'
 import { Source } from '$/sources/Source.ts'
 
 /** Coin prices use `$/sources/Defillama/OpenApi` + checked-in `openapi.d.ts` (`GET /prices/current/{coins}`). */

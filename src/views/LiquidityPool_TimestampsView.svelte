@@ -39,24 +39,23 @@
 >
 	{#snippet Item({ item: liquidityPoolTimestamp })}
 		{@const liquidityPoolTimestampSelector = liquidityPoolTimestamp[EntityMetaKey.Selector]}
+		{@const liquidityPool = liquidityPoolTimestampSelector.$liquidityPool}
 		<EntityView
 			entityType={EntityType.LiquidityPool_Timestamp}
 			entitySelector={liquidityPoolTimestampSelector}
 			href={
-				(
-					'caip2' in liquidityPoolTimestampSelector.$liquidityPool.$network ?
-						resolve(
-							'/(assets)/pool/[chainId=eip155ChainId]/[poolId=stringSegment]/(liquidityPool)/observations/[timestampMs=nonNegativeInteger]/[feedKey=stringSegment]',
-							{
-								chainId: String(liquidityPoolTimestampSelector.$liquidityPool.$network.caip2.reference),
-								poolId: String(liquidityPoolTimestampSelector.$liquidityPool.id),
-								timestampMs: String(liquidityPoolTimestampSelector.timestampMs),
-								feedKey: encodeURIComponent(String(liquidityPoolTimestampSelector.feedKey)),
-							}
-						)
-					:
-						undefined
-				)
+				'caip2' in liquidityPool.$network ?
+					resolve(
+						'/(assets)/pool/[chainId=eip155ChainId]/[poolId=stringSegment]/(liquidityPool)/observations/[timestampMs=nonNegativeInteger]/[feedKey=stringSegment]',
+						{
+							chainId: liquidityPool.$network.caip2.reference,
+							poolId: liquidityPool.id,
+							timestampMs: String(liquidityPoolTimestampSelector.timestampMs),
+							feedKey: encodeURIComponent(liquidityPoolTimestampSelector.feedKey),
+						}
+					)
+				:
+					undefined
 			}
 		>
 			{#snippet Title()}
@@ -68,7 +67,7 @@
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{String(liquidityPoolTimestampSelector.timestampMs)}</span>
+				<span data-text="annotation">{liquidityPoolTimestampSelector.timestampMs}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

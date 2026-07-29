@@ -21,8 +21,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.BlockheadStateChannelDeposit> = $props()
 
-	const titleFallback = 'blockhead state channel deposit'
-
 
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -37,7 +35,7 @@
 <EntityView
 	entityType={EntityType.BlockheadStateChannelDeposit}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? 'blockhead state channel deposit'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -45,7 +43,7 @@
 	{#snippet Title()}
 		<EvmAccountView
 			selection={select(EntityType.EvmAccount, selection.entitySelector.$account)}
-			href=""
+			href={null}
 			layout={EntityLayout.Title}
 			open={false}
 		/>
@@ -59,7 +57,7 @@
 				<NetworkView
 					selection={select(EntityType.Network, network[EntityMetaKey.Selector])}
 					prefetched={network}
-					href=""
+					href={null}
 					layout={EntityLayout.Value}
 					open={false}
 				/>
@@ -122,15 +120,15 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const blockheadStateChannelDepositBlockheadStateChannelDepositTimestampsViewTimestampsResource = selection.$$timestamps}
+		{@const timestampsResource = selection.$$timestamps}
 		<ResourceBoundary
-			resource={blockheadStateChannelDepositBlockheadStateChannelDepositTimestampsViewTimestampsResource}
+			resource={timestampsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<BlockheadStateChannelDeposit_TimestampsView
-						selection={blockheadStateChannelDepositBlockheadStateChannelDepositTimestampsViewTimestampsResource}
-						countResource={blockheadStateChannelDepositBlockheadStateChannelDepositTimestampsViewTimestampsResource.count}
+						selection={timestampsResource}
+						countResource={timestampsResource.count}
 						title='timestamps'
 						id='timestamps'
 					/>

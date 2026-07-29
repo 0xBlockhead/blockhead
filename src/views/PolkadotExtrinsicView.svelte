@@ -24,14 +24,14 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.PolkadotExtrinsic> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const block = $derived(selection.entitySelector.$block)
 	const polkadotExtrinsic = $derived(selection({
 		fields: {
 			callName: true,
 			success: true,
 		},
 	}))
-	const titleFallback = $derived((String(pendingEntity.indexInBlock ?? '') ? 'Extrinsic #' + String(pendingEntity.indexInBlock ?? '') : '') || 'Polkadot extrinsic')
+	const titleFallback = $derived(`Extrinsic #${selection.entitySelector.indexInBlock}`)
 
 
 	// Components
@@ -48,27 +48,30 @@
 	entityType={EntityType.PolkadotExtrinsic}
 	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	idDragPlainText={String(pendingEntity.indexInBlock ?? '')}
+	idDragPlainText={String(selection.entitySelector.indexInBlock)}
 	href={
-		href ?? (
-			'hash' in selection.entitySelector.$block ?
-				resolve(
-					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(blocks)/block/[blockNumber=nonNegativeBigInt]/(selection)/[hash=stringSegment]/(selection)/extrinsic/[extrinsicIndex=nonNegativeInteger]',
-					{
-						network: (
-							'caip2' in selection.entitySelector.$block.$network ?
-								String(caip2StringFromValue(selection.entitySelector.$block.$network.caip2))
-							:
-								String(selection.entitySelector.$block.$network.slug)
-						),
-						blockNumber: String(selection.entitySelector.$block.blockNumber),
-						hash: String(selection.entitySelector.$block.hash),
-						extrinsicIndex: String(selection.entitySelector.indexInBlock),
-					}
-				)
-			:
-				undefined
-		)
+		href === undefined ?
+			(
+				'hash' in block ?
+					resolve(
+						'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(blocks)/block/[blockNumber=nonNegativeBigInt]/(selection)/[hash=stringSegment]/(selection)/extrinsic/[extrinsicIndex=nonNegativeInteger]',
+						{
+							network: (
+								'caip2' in block.$network ?
+									caip2StringFromValue(block.$network.caip2)
+								:
+									block.$network.slug
+							),
+							blockNumber: String(block.blockNumber),
+							hash: block.hash,
+							extrinsicIndex: String(selection.entitySelector.indexInBlock),
+						}
+					)
+				:
+					undefined
+			)
+		:
+			href ?? undefined
 	}
 	{layout}
 	bind:open
@@ -78,7 +81,7 @@
 		<span data-row="inline align-center gap-2 wrap">
 			<span>Extrinsic </span>
 			<span data-badge="small">
-				#{String(pendingEntity.indexInBlock)}
+				#{selection.entitySelector.indexInBlock}
 			</span>
 		</span>
 	{/snippet}
@@ -94,10 +97,10 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={polkadotExtrinsic}>
 			{#snippet children(entity)}
-				{@const success0 = entity.success}
-				{#if success0 != null}
+				{@const success = entity.success}
+				{#if success != null}
 					<span data-text="muted">
-						{success0 ? 'Yes' : 'No'}
+						{success ? 'Yes' : 'No'}
 					</span>
 				{/if}
 			{/snippet}
@@ -109,7 +112,7 @@
 			<div>
 				<dt>Index in block</dt>
 				<dd>
-					{String(pendingEntity.indexInBlock)}
+					{selection.entitySelector.indexInBlock}
 				</dd>
 			</div>
 

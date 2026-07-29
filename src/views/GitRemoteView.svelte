@@ -20,7 +20,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.GitRemote> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const gitRemote = $derived(selection({
 		fields: {
 			url: true,
@@ -28,7 +27,6 @@
 			hostKind: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.remoteName ?? '') || 'Git remote')
 
 
 	// Components
@@ -41,24 +39,24 @@
 <EntityView
 	entityType={EntityType.GitRemote}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? (selection.entitySelector.remoteName || 'Git remote')}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{(pendingEntity.remoteName ?? '') || 'Git remote'}
+		{selection.entitySelector.remoteName || 'Git remote'}
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={gitRemote}>
 			{#snippet children(entity)}
 				<a
-					href={String(entity.url)}
+					href={entity.url}
 					target="_blank"
 					rel="noreferrer noopener"
 				>
-					<TruncatedValue value={String(entity.url)} />
+					<TruncatedValue value={entity.url} />
 				</a>
 			{/snippet}
 		</ResourceBoundary>
@@ -70,10 +68,10 @@
 				<span data-text="muted">
 					{entity.transportKind}
 				</span>
-				{@const hostKind1 = entity.hostKind}
-				{#if hostKind1 != null}
+				{@const hostKind = entity.hostKind}
+				{#if hostKind != null}
 					<span data-text="muted">
-						{hostKind1}
+						{hostKind}
 					</span>
 				{/if}
 			{/snippet}
@@ -96,7 +94,7 @@
 			<div>
 				<dt>remote name</dt>
 				<dd>
-					{pendingEntity.remoteName}
+					{selection.entitySelector.remoteName}
 				</dd>
 			</div>
 
@@ -108,11 +106,11 @@
 					>
 						{#snippet children(entity)}
 							<a
-								href={String(entity.url)}
+								href={entity.url}
 								target="_blank"
 								rel="noreferrer noopener"
 							>
-								<TruncatedValue value={String(entity.url)} />
+								<TruncatedValue value={entity.url} />
 							</a>
 						{/snippet}
 					</ResourceBoundary>

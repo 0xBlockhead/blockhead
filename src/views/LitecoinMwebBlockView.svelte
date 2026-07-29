@@ -21,12 +21,11 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.LitecoinMwebBlock> = $props()
 
-	const viewSelection = $derived(selection({
+	const litecoinMwebBlock = $derived(selection({
 		sources: selection.sources ?? [
 			Source.LitecoinCore_JsonRpc,
 		],
-	}))
-	const litecoinMwebBlock = $derived(viewSelection({
+	})({
 		fields: {
 			hogExTransactionId: true,
 			kernelRoot: true,
@@ -53,7 +52,7 @@
 	{#snippet Title()}
 		<UtxoBlockView
 			selection={select(EntityType.UtxoBlock, selection.entitySelector.$block)}
-			href=""
+			href={null}
 			layout={EntityLayout.Title}
 			open={false}
 		/>
@@ -70,10 +69,10 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={litecoinMwebBlock}>
 			{#snippet children(entity)}
-				{@const kernelRoot0 = entity.kernelRoot}
-				{#if kernelRoot0 != null}
+				{@const kernelRoot = entity.kernelRoot}
+				{#if kernelRoot != null}
 					<span data-text="muted">
-						{kernelRoot0}
+						{kernelRoot}
 					</span>
 				{/if}
 			{/snippet}
@@ -128,15 +127,15 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const litecoinMwebBlockLitecoinMwebTransactionsViewTransactionsResource = selection.$$transactions}
+		{@const transactionsResource = selection.$$transactions}
 		<ResourceBoundary
-			resource={litecoinMwebBlockLitecoinMwebTransactionsViewTransactionsResource}
+			resource={transactionsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<LitecoinMwebTransactionsView
-						selection={litecoinMwebBlockLitecoinMwebTransactionsViewTransactionsResource}
-						countResource={litecoinMwebBlockLitecoinMwebTransactionsViewTransactionsResource.count}
+						selection={transactionsResource}
+						countResource={transactionsResource.count}
 						title='transactions'
 						id='transactions'
 					/>

@@ -21,13 +21,12 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.CardanoGovernanceVote> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const cardanoGovernanceVote = $derived(selection({
 		fields: {
 			vote: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.vote ?? '') || 'Cardano governance vote')
+	const titleFallback = $derived((prefetched.vote ?? '') || 'Cardano governance vote')
 
 
 	// Components
@@ -58,7 +57,7 @@
 	{/snippet}
 
 	{#snippet Value()}
-		{[(pendingEntity.voterKind ?? ''), (pendingEntity.voterCredential ?? '')].filter(Boolean).join(' ') || (pendingEntity.vote ?? '') || titleFallback}
+		{[selection.entitySelector.voterKind, selection.entitySelector.voterCredential].filter(Boolean).join(' ') || (prefetched.vote ?? '') || titleFallback}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -90,21 +89,21 @@
 			<div>
 				<dt>voter kind</dt>
 				<dd>
-					{pendingEntity.voterKind}
+					{selection.entitySelector.voterKind}
 				</dd>
 			</div>
 
 			<div>
 				<dt>voter credential</dt>
 				<dd>
-					<TruncatedValue value={pendingEntity.voterCredential} />
+					<TruncatedValue value={selection.entitySelector.voterCredential} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 		</dl>
@@ -173,7 +172,7 @@
 			<div>
 				<dt>vote transaction hash</dt>
 				<dd>
-					<TruncatedValue value={pendingEntity.voteTxHash} />
+					<TruncatedValue value={selection.entitySelector.voteTxHash} />
 				</dd>
 			</div>
 
@@ -192,7 +191,7 @@
 						<div>
 							<dt>vote index</dt>
 							<dd>
-								{String(voteIndex)}
+								{voteIndex}
 							</dd>
 						</div>
 					{/if}
@@ -217,11 +216,11 @@
 							<dt>anchor URL</dt>
 							<dd>
 								<a
-									href={String(anchorUrl)}
+									href={anchorUrl}
 									target="_blank"
 									rel="noreferrer noopener"
 								>
-									<TruncatedValue value={String(anchorUrl)} />
+									<TruncatedValue value={anchorUrl} />
 								</a>
 							</dd>
 						</div>
@@ -266,7 +265,7 @@
 						<div>
 							<dt>epoch</dt>
 							<dd>
-								{String(epoch)}
+								{epoch}
 							</dd>
 						</div>
 					{/if}
@@ -288,7 +287,7 @@
 						<div>
 							<dt>slot</dt>
 							<dd>
-								{String(slot)}
+								{slot}
 							</dd>
 						</div>
 					{/if}
@@ -310,7 +309,7 @@
 						<div>
 							<dt>timestamp</dt>
 							<dd>
-								<Timestamp timestamp={Number(timestampMs)} />
+								<Timestamp timestamp={timestampMs} />
 							</dd>
 						</div>
 					{/if}

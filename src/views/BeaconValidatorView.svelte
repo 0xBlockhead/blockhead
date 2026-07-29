@@ -25,6 +25,7 @@
 	}: EntitySelectionViewProps<EntityType.BeaconValidator> = $props()
 
 	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const network = $derived(selection.entitySelector.$network)
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Beacon_Rest,
@@ -36,7 +37,6 @@
 			status: true,
 		},
 	}))
-	const titleFallback = $derived((String(pendingEntity.indexInNetwork ?? '') ? 'Validator #' + String(pendingEntity.indexInNetwork ?? '') : '') || 'beacon validator')
 
 
 	// Components
@@ -50,53 +50,64 @@
 <EntityView
 	entityType={EntityType.BeaconValidator}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? `Validator #${pendingEntity.indexInNetwork}`}
 	idDragPlainText={String(pendingEntity.indexInNetwork ?? '')}
 	href={
-		href ?? (
-			'indexInNetwork' in selection.entitySelector ?
-				resolve(
-					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/validator/[validatorId=nonNegativeIntegerOrSolanaPubkey]',
-					{
-						network: (
-							'caip2' in selection.entitySelector.$network ?
-								String(caip2StringFromValue(selection.entitySelector.$network.caip2))
-							:
-								String(selection.entitySelector.$network.slug)
-						),
-						validatorId: String(selection.entitySelector.indexInNetwork),
-					}
-				)
-			:
-				undefined
-		)
+		href === undefined ?
+			(
+				'indexInNetwork' in selection.entitySelector ?
+					resolve(
+						'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/validator/[validatorId=nonNegativeIntegerOrSolanaPubkey]',
+						{
+							network: (
+								'caip2' in network ?
+									caip2StringFromValue(network.caip2)
+								:
+									network.slug
+							),
+							validatorId: String(selection.entitySelector.indexInNetwork),
+						}
+					)
+				:
+					undefined
+			)
+		:
+			href ?? undefined
 	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<span data-row="inline align-center gap-2 wrap">
-			<span>Validator </span>
-			<span data-badge="small">
-				#{String(pendingEntity.indexInNetwork)}
-			</span>
-		</span>
+		<ResourceBoundary resource={beaconValidator}>
+			{#snippet children(entity)}
+				<span data-row="inline align-center gap-2 wrap">
+					<span>Validator </span>
+					<span data-badge="small">
+						#{entity.indexInNetwork}
+					</span>
+				</span>
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Value()}
-		<span data-badge="small">
-			#{String(pendingEntity.indexInNetwork)}
-		</span>
+		<ResourceBoundary resource={beaconValidator}>
+			{#snippet children(entity)}
+				<span data-badge="small">
+					#{entity.indexInNetwork}
+				</span>
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={beaconValidator}>
 			{#snippet children(entity)}
-				{@const status0 = entity.status}
-				{#if status0 != null}
+				{@const status = entity.status}
+				{#if status != null}
 					<span data-text="muted">
-						{status0}
+						{status}
 					</span>
 				{/if}
 			{/snippet}

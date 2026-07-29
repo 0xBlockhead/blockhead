@@ -161,7 +161,6 @@ describe('TzKT block transport and resolver', () => {
 			credentials: [{
 				scope: SourceCredentialScope.None,
 			}],
-			proxyId: '["Tzkt_Rest","Caip2Network","tezos:NetXdQprcVkpaWU","HttpProxy","RestJson"]',
 		})
 	})
 

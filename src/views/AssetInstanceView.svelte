@@ -6,9 +6,7 @@
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { CoinId } from '$/constants/Coin.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
-	import { AssetInstanceKind } from '$/schema/AssetInstance.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -27,7 +25,7 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.AssetInstance> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const network = $derived(selection.entitySelector.$network)
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Constants_Internal,
@@ -39,7 +37,7 @@
 			name: true,
 		},
 	}))
-	const titleFallback = $derived([(pendingEntity.symbol ?? ''), (pendingEntity.name ?? '')].filter(Boolean).join(' ') || 'Asset instance')
+	const titleFallback = $derived([(prefetched.symbol ?? ''), (prefetched.name ?? '')].filter(Boolean).join(' ') || 'Asset instance')
 
 
 	// Components
@@ -60,19 +58,22 @@
 	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
 	href={
-		href ?? resolve(
-			'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/asset/[kind=stringSegment]/[assetKey=stringSegment]',
-			{
-				network: (
-					'caip2' in selection.entitySelector.$network ?
-						String(caip2StringFromValue(selection.entitySelector.$network.caip2))
-					:
-						String(selection.entitySelector.$network.slug)
-				),
-				kind: String(selection.entitySelector.kind),
-				assetKey: String(selection.entitySelector.assetKey),
-			}
-		)
+		href === undefined ?
+			resolve(
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/asset/[kind=stringSegment]/[assetKey=stringSegment]',
+				{
+					network: (
+						'caip2' in network ?
+							caip2StringFromValue(network.caip2)
+						:
+							network.slug
+					),
+					kind: selection.entitySelector.kind,
+					assetKey: selection.entitySelector.assetKey,
+				}
+			)
+		:
+			href ?? undefined
 	}
 	{layout}
 	bind:open
@@ -105,14 +106,14 @@
 			<div>
 				<dt>Kind</dt>
 				<dd>
-					{pendingEntity.kind}
+					{selection.entitySelector.kind}
 				</dd>
 			</div>
 
 			<div>
 				<dt>Asset key</dt>
 				<dd>
-					{pendingEntity.assetKey}
+					{selection.entitySelector.assetKey}
 				</dd>
 			</div>
 
@@ -181,7 +182,7 @@
 						<div>
 							<dt>Decimals</dt>
 							<dd>
-								{String(decimals)}
+								{decimals}
 							</dd>
 						</div>
 					{/if}
@@ -222,90 +223,90 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const assetInstanceTokenMetadataDocumentsViewMetadataResource = selection.$$metadata}
+		{@const metadataResource = selection.$$metadata}
 		<ResourceBoundary
-			resource={assetInstanceTokenMetadataDocumentsViewMetadataResource}
+			resource={metadataResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<TokenMetadataDocumentsView
-						selection={assetInstanceTokenMetadataDocumentsViewMetadataResource}
-						countResource={assetInstanceTokenMetadataDocumentsViewMetadataResource.count}
+						selection={metadataResource}
+						countResource={metadataResource.count}
 						title='Metadata'
 						id='metadata'
 					/>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>
-		{@const assetInstanceTokenProgramExtensionTimestampsViewTokenProgramExtensionsResource = selection.$$tokenProgramExtensions}
+		{@const tokenProgramExtensionsResource = selection.$$tokenProgramExtensions}
 		<ResourceBoundary
-			resource={assetInstanceTokenProgramExtensionTimestampsViewTokenProgramExtensionsResource}
+			resource={tokenProgramExtensionsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<TokenProgramExtension_TimestampsView
-						selection={assetInstanceTokenProgramExtensionTimestampsViewTokenProgramExtensionsResource}
-						countResource={assetInstanceTokenProgramExtensionTimestampsViewTokenProgramExtensionsResource.count}
+						selection={tokenProgramExtensionsResource}
+						countResource={tokenProgramExtensionsResource.count}
 						title='Token program extensions'
 						id='token-program-extensions'
 					/>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>
-		{@const assetInstanceRegulatedAssetProfilesViewRegulatedProfilesResource = selection.$$regulatedProfiles}
+		{@const regulatedProfilesResource = selection.$$regulatedProfiles}
 		<ResourceBoundary
-			resource={assetInstanceRegulatedAssetProfilesViewRegulatedProfilesResource}
+			resource={regulatedProfilesResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<RegulatedAssetProfilesView
-						selection={assetInstanceRegulatedAssetProfilesViewRegulatedProfilesResource}
-						countResource={assetInstanceRegulatedAssetProfilesViewRegulatedProfilesResource.count}
+						selection={regulatedProfilesResource}
+						countResource={regulatedProfilesResource.count}
 						title='Regulated profiles'
 						id='regulated-profiles'
 					/>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>
-		{@const assetInstanceTransferRestrictionsViewTransferRestrictionsResource = selection.$$transferRestrictions}
+		{@const transferRestrictionsResource = selection.$$transferRestrictions}
 		<ResourceBoundary
-			resource={assetInstanceTransferRestrictionsViewTransferRestrictionsResource}
+			resource={transferRestrictionsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<TransferRestrictionsView
-						selection={assetInstanceTransferRestrictionsViewTransferRestrictionsResource}
-						countResource={assetInstanceTransferRestrictionsViewTransferRestrictionsResource.count}
+						selection={transferRestrictionsResource}
+						countResource={transferRestrictionsResource.count}
 						title='Transfer restrictions'
 						id='transfer-restrictions'
 					/>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>
-		{@const assetInstanceNftCollectionsViewNftCollectionsResource = selection.$$nftCollections}
+		{@const nftCollectionsResource = selection.$$nftCollections}
 		<ResourceBoundary
-			resource={assetInstanceNftCollectionsViewNftCollectionsResource}
+			resource={nftCollectionsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<NftCollectionsView
-						selection={assetInstanceNftCollectionsViewNftCollectionsResource}
-						countResource={assetInstanceNftCollectionsViewNftCollectionsResource.count}
+						selection={nftCollectionsResource}
+						countResource={nftCollectionsResource.count}
 						title='NFT collections'
 						id='nft-collections'
 					/>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>
-		{@const assetInstancePayoutsViewPayoutsResource = selection.$$payouts}
+		{@const payoutsResource = selection.$$payouts}
 		<ResourceBoundary
-			resource={assetInstancePayoutsViewPayoutsResource}
+			resource={payoutsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<PayoutsView
-						selection={assetInstancePayoutsViewPayoutsResource}
-						countResource={assetInstancePayoutsViewPayoutsResource.count}
+						selection={payoutsResource}
+						countResource={payoutsResource.count}
 						title='Payouts'
 						id='payouts'
 					/>

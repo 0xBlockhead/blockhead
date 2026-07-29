@@ -16,7 +16,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.ContractInterfaceMember> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const contractInterfaceMember = $derived(selection({
 		fields: {
 			name: true,
@@ -24,7 +23,7 @@
 			memberKind: true,
 		},
 	}))
-	const titleFallback = $derived([(pendingEntity.name ?? ''), (pendingEntity.canonicalSignature ?? ''), (pendingEntity.memberKey ?? '')].filter(Boolean).join(' ') || 'contract interface member')
+	const titleFallback = $derived([(prefetched.name ?? ''), (prefetched.canonicalSignature ?? ''), selection.entitySelector.memberKey].filter(Boolean).join(' ') || 'contract interface member')
 
 
 	// Components
@@ -44,7 +43,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={contractInterfaceMember}>
 			{#snippet children(entity)}
-				{[(entity.name ?? ''), (entity.canonicalSignature ?? ''), pendingEntity.memberKey].filter(Boolean).join(' ') || title || titleFallback}
+				{[(entity.name ?? ''), (entity.canonicalSignature ?? ''), selection.entitySelector.memberKey].filter(Boolean).join(' ') || title || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -52,14 +51,14 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={contractInterfaceMember}>
 			{#snippet children(entity)}
-				{entity.memberKind || [(entity.name ?? ''), (entity.canonicalSignature ?? ''), pendingEntity.memberKey].filter(Boolean).join(' ') || titleFallback}
+				{entity.memberKind || [(entity.name ?? ''), (entity.canonicalSignature ?? ''), selection.entitySelector.memberKey].filter(Boolean).join(' ') || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
 		<span data-text="muted">
-			{pendingEntity.interfaceId}
+			{selection.entitySelector.interfaceId}
 		</span>
 	{/snippet}
 
@@ -68,14 +67,14 @@
 			<div>
 				<dt>Interface ID</dt>
 				<dd>
-					{pendingEntity.interfaceId}
+					{selection.entitySelector.interfaceId}
 				</dd>
 			</div>
 
 			<div>
 				<dt>Member key</dt>
 				<dd>
-					{pendingEntity.memberKey}
+					{selection.entitySelector.memberKey}
 				</dd>
 			</div>
 

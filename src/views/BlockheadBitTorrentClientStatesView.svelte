@@ -45,7 +45,7 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{(blockheadBitTorrentClientState.peerId ?? '')}
+				{blockheadBitTorrentClientState.peerId ?? ''}
 			{/snippet}
 		</EntityView>
 	{/snippet}

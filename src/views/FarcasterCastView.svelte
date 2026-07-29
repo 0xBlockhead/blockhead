@@ -6,7 +6,6 @@
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -25,7 +24,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.FarcasterCast> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Snapchain_Rest,
@@ -41,7 +39,7 @@
 			hash: true,
 		},
 	}))
-	const titleFallback = $derived([(pendingEntity.text ?? ''), String(pendingEntity.hash ?? '')].filter(Boolean).join(' ') || 'Farcaster cast')
+	const titleFallback = $derived([(prefetched.text ?? ''), (prefetched.hash ?? '')].filter(Boolean).join(' ') || 'Farcaster cast')
 
 
 	// Components
@@ -62,29 +60,32 @@
 	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
 	href={
-		href ?? (
-			'fid' in selection.entitySelector
-			&& 'hash' in selection.entitySelector ?
-				resolve(
-					'/(social)/(farcaster)/farcaster/(farcasterNetwork)/cast/[fid=farcasterFid]/[hash=zeroExHex]',
-					{
-						fid: String(selection.entitySelector.fid),
-						hash: String(selection.entitySelector.hash),
-					}
-				)
-			:
-				'username' in selection.entitySelector
-				&& 'hashPrefix' in selection.entitySelector ?
+		href === undefined ?
+			(
+				'fid' in selection.entitySelector
+				&& 'hash' in selection.entitySelector ?
 					resolve(
-						'/(social)/(farcaster)/farcaster/(farcasterNetwork)/c/[fname=stringSegment]/[hash=zeroExHex]',
+						'/(social)/(farcaster)/farcaster/(farcasterNetwork)/cast/[fid=farcasterFid]/[hash=zeroExHex]',
 						{
-							fname: String(selection.entitySelector.username),
-							hash: String(selection.entitySelector.hashPrefix),
+							fid: String(selection.entitySelector.fid),
+							hash: selection.entitySelector.hash,
 						}
 					)
 				:
-					undefined
-		)
+					'username' in selection.entitySelector
+					&& 'hashPrefix' in selection.entitySelector ?
+						resolve(
+							'/(social)/(farcaster)/farcaster/(farcasterNetwork)/c/[fname=stringSegment]/[hash=zeroExHex]',
+							{
+								fname: selection.entitySelector.username,
+								hash: selection.entitySelector.hashPrefix,
+							}
+						)
+					:
+						undefined
+			)
+		:
+			href ?? undefined
 	}
 	{layout}
 	bind:open
@@ -93,7 +94,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={farcasterCast}>
 			{#snippet children(entity)}
-				{[(entity.text ?? ''), String(entity.hash)].filter(Boolean).join(' ') || title || titleFallback}
+				{[(entity.text ?? ''), entity.hash].filter(Boolean).join(' ') || title || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -101,7 +102,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={farcasterCast}>
 			{#snippet children(entity)}
-				{[String(entity.fid), String(entity.hash)].filter(Boolean).join(' ') || [(entity.text ?? ''), String(entity.hash)].filter(Boolean).join(' ') || titleFallback}
+				{[String(entity.fid), entity.hash].filter(Boolean).join(' ') || [(entity.text ?? ''), entity.hash].filter(Boolean).join(' ') || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -109,10 +110,10 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={farcasterCast}>
 			{#snippet children(entity)}
-				{@const timestamp0 = entity.timestamp}
-				{#if timestamp0 != null}
+				{@const timestamp = entity.timestamp}
+				{#if timestamp != null}
 					<span data-text="muted">
-						<Timestamp timestamp={Number(timestamp0)} />
+						<Timestamp timestamp={timestamp} />
 					</span>
 				{/if}
 			{/snippet}
@@ -152,7 +153,7 @@
 						<div>
 							<dt>Timestamp</dt>
 							<dd>
-								<Timestamp timestamp={Number(timestamp)} />
+								<Timestamp timestamp={timestamp} />
 							</dd>
 						</div>
 					{/if}
@@ -221,11 +222,11 @@
 							<dt>Parent URL</dt>
 							<dd>
 								<a
-									href={String(parentUrl)}
+									href={parentUrl}
 									target="_blank"
 									rel="noreferrer noopener"
 								>
-									<TruncatedValue value={String(parentUrl)} />
+									<TruncatedValue value={parentUrl} />
 								</a>
 							</dd>
 						</div>
@@ -251,11 +252,11 @@
 							<dt>Root parent URL</dt>
 							<dd>
 								<a
-									href={String(rootParentUrl)}
+									href={rootParentUrl}
 									target="_blank"
 									rel="noreferrer noopener"
 								>
-									<TruncatedValue value={String(rootParentUrl)} />
+									<TruncatedValue value={rootParentUrl} />
 								</a>
 							</dd>
 						</div>
@@ -280,7 +281,7 @@
 						<div>
 							<dt>Thread hash</dt>
 							<dd>
-								<TruncatedValue value={String(threadHash)} />
+								<TruncatedValue value={threadHash} />
 							</dd>
 						</div>
 					{/if}
@@ -305,11 +306,11 @@
 							<dt>Client URL</dt>
 							<dd>
 								<a
-									href={String(clientUrl)}
+									href={clientUrl}
 									target="_blank"
 									rel="noreferrer noopener"
 								>
-									<TruncatedValue value={String(clientUrl)} />
+									<TruncatedValue value={clientUrl} />
 								</a>
 							</dd>
 						</div>
@@ -331,45 +332,45 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const farcasterCastFarcasterCastsViewDirectRepliesResource = selection.$$directReplies}
+		{@const directRepliesResource = selection.$$directReplies}
 		<ResourceBoundary
-			resource={farcasterCastFarcasterCastsViewDirectRepliesResource}
+			resource={directRepliesResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<FarcasterCastsView
-						selection={farcasterCastFarcasterCastsViewDirectRepliesResource}
-						countResource={farcasterCastFarcasterCastsViewDirectRepliesResource.count}
+						selection={directRepliesResource}
+						countResource={directRepliesResource.count}
 						title='Direct replies'
 						id='direct-replies'
 					/>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>
-		{@const farcasterCastFarcasterCastEmbedsViewEmbedsResource = selection.$$embeds}
+		{@const embedsResource = selection.$$embeds}
 		<ResourceBoundary
-			resource={farcasterCastFarcasterCastEmbedsViewEmbedsResource}
+			resource={embedsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<FarcasterCastEmbedsView
-						selection={farcasterCastFarcasterCastEmbedsViewEmbedsResource}
-						countResource={farcasterCastFarcasterCastEmbedsViewEmbedsResource.count}
+						selection={embedsResource}
+						countResource={embedsResource.count}
 						title='Embeds'
 						id='embeds'
 					/>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>
-		{@const farcasterCastFarcasterCastTimestampsViewTimestampsResource = selection.$$timestamps}
+		{@const timestampsResource = selection.$$timestamps}
 		<ResourceBoundary
-			resource={farcasterCastFarcasterCastTimestampsViewTimestampsResource}
+			resource={timestampsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<FarcasterCast_TimestampsView
-						selection={farcasterCastFarcasterCastTimestampsViewTimestampsResource}
-						countResource={farcasterCastFarcasterCastTimestampsViewTimestampsResource.count}
+						selection={timestampsResource}
+						countResource={timestampsResource.count}
 						title='Observations'
 						id='timestamps'
 					/>

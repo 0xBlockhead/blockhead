@@ -43,11 +43,11 @@
 			entitySelector={cosmosBlockSelector}
 		>
 			{#snippet Title()}
-				{(String(cosmosBlockSelector.height ?? '') ? 'Block #' + String(cosmosBlockSelector.height ?? '') : '') || (cosmosBlockSelector.hash ?? '') || 'Cosmos block'}
+				{`Block #${cosmosBlockSelector.height}`}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{String(cosmosBlock.transactionCount ?? '')}</span>
+				<span data-text="annotation">{cosmosBlock.transactionCount ?? ''}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

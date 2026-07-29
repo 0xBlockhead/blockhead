@@ -21,7 +21,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.StarknetNetwork_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Juno_JsonRpc,
@@ -36,7 +35,6 @@
 			latestBlockNumber: true,
 		},
 	}))
-	const titleFallback = 'starknet network timestamp'
 
 
 	// Components
@@ -51,7 +49,7 @@
 <EntityView
 	entityType={EntityType.StarknetNetwork_Timestamp}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? 'starknet network timestamp'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -59,24 +57,23 @@
 	{#snippet Title()}
 		<StarknetNetworkView
 			selection={select(EntityType.StarknetNetwork, selection.entitySelector.$network)}
-			href=""
 			layout={EntityLayout.Title}
 			open={false}
 		/>
 	{/snippet}
 
 	{#snippet Value()}
-		<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+		<Timestamp timestamp={selection.entitySelector.timestampMs} />
 	{/snippet}
 
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={starknetNetworkTimestamp}>
 			{#snippet children(entity)}
-				{@const latestBlockNumber0 = entity.latestBlockNumber}
-				{#if latestBlockNumber0 != null}
+				{@const latestBlockNumber = entity.latestBlockNumber}
+				{#if latestBlockNumber != null}
 					<span data-text="muted">
 						<NumberValue
-							value={latestBlockNumber0}
+							value={latestBlockNumber}
 						/>
 					</span>
 				{/if}
@@ -100,14 +97,14 @@
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+					<Timestamp timestamp={selection.entitySelector.timestampMs} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 

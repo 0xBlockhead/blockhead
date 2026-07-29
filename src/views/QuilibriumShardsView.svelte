@@ -49,7 +49,7 @@
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{(quilibriumShard.shardKind ?? '')}</span>
+				<span data-text="annotation">{quilibriumShard.shardKind ?? ''}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

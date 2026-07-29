@@ -25,7 +25,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.Currency> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Constants_Internal,
@@ -37,7 +36,7 @@
 			symbol: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.name ?? '') || (pendingEntity.iso4217 ?? '') || 'currency')
+	const titleFallback = $derived((prefetched.name ?? '') || selection.entitySelector.iso4217 || 'currency')
 	const viewDomId = $derived('currency-' + encodeURIComponent(stringify(selection.entitySelector)))
 
 
@@ -57,12 +56,15 @@
 	id={viewDomId}
 	title={title ?? titleFallback}
 	href={
-		href ?? resolve(
-			'/(assets)/(currencies)/currency/[iso4217=iso4217]',
-			{
-				iso4217: String(selection.entitySelector.iso4217),
-			}
-		)
+		href === undefined ?
+			resolve(
+				'/(assets)/(currencies)/currency/[iso4217=iso4217]',
+				{
+					iso4217: selection.entitySelector.iso4217,
+				}
+			)
+		:
+			href ?? undefined
 	}
 	{layout}
 	bind:open
@@ -77,7 +79,7 @@
 	{/snippet}
 
 	{#snippet Value()}
-		{(pendingEntity.iso4217 ?? '') || (pendingEntity.name ?? '') || titleFallback}
+		{selection.entitySelector.iso4217 || (prefetched.name ?? '') || titleFallback}
 	{/snippet}
 
 	{#snippet TypeAnnotationTooltip()}
@@ -94,19 +96,19 @@
 					<ResourceBoundary
 						resource={
 							selection
-								.$$timestamps({
-									sources: [
-										Source.Constants_Internal,
-									],
-									fields: {
-										marketCap: true,
-										timestampMs: true,
-									},
-									limit: 1,
-									orderBy: [
-										[({ fieldRow }) => fieldRow[EntityMetaKey.Value][EntityMetaKey.Selector].timestampMs ?? Number.NEGATIVE_INFINITY, 'desc'],
-									],
-								})
+							.$$timestamps({
+								sources: [
+									Source.Constants_Internal,
+								],
+								fields: {
+									marketCap: true,
+									timestampMs: true,
+								},
+								limit: 1,
+								orderBy: [
+									[({ fieldRow }) => fieldRow[EntityMetaKey.Value][EntityMetaKey.Selector].timestampMs ?? Number.NEGATIVE_INFINITY, 'desc'],
+								],
+							})
 						}
 					>
 						{#snippet children(currencyTimestamps)}
@@ -168,7 +170,7 @@
 						}
 					>
 						{#snippet children(entity)}
-							{String(entity.minorUnitExponent)}
+							{entity.minorUnitExponent}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -189,7 +191,7 @@
 						<div>
 							<dt>Catalog sort weight</dt>
 							<dd>
-								{String(catalogSortWeight)}
+								{catalogSortWeight}
 							</dd>
 						</div>
 					{/if}

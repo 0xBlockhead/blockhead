@@ -4,8 +4,6 @@
 	// Types/constants
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { UrlString } from '$/schema/UrlString.ts'
-	import { EvmAddress, ZeroExHex } from '$/schema/ZeroExHex.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -23,7 +21,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.Eip8004AgentRegistration_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Eip8004Scan_Rest,
@@ -35,7 +32,6 @@
 			active: true,
 		},
 	}))
-	const titleFallback = $derived(String(pendingEntity.timestampMs ?? '') || 'EIP-8004 agent registration timestamp')
 
 
 	// Components
@@ -50,26 +46,26 @@
 <EntityView
 	entityType={EntityType.Eip8004AgentRegistration_Timestamp}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? String(selection.entitySelector.timestampMs)}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+		<Timestamp timestamp={selection.entitySelector.timestampMs} />
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={eip8004AgentRegistrationTimestamp}>
 			{#snippet children(entity)}
-				{String(entity.active ?? '') || String(pendingEntity.timestampMs) || titleFallback}
+				{String(entity.active ?? '') || String(selection.entitySelector.timestampMs)}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
 		<span data-text="muted">
-			{pendingEntity.source}
+			{selection.entitySelector.source}
 		</span>
 	{/snippet}
 
@@ -89,14 +85,14 @@
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+					<Timestamp timestamp={selection.entitySelector.timestampMs} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 
@@ -134,11 +130,11 @@
 							<dt>Agent URI</dt>
 							<dd>
 								<a
-									href={String(agentUri)}
+									href={agentUri}
 									target="_blank"
 									rel="noreferrer noopener"
 								>
-									<TruncatedValue value={String(agentUri)} />
+									<TruncatedValue value={agentUri} />
 								</a>
 							</dd>
 						</div>
@@ -161,7 +157,7 @@
 						<div>
 							<dt>Owner address</dt>
 							<dd>
-								<TruncatedValue value={String(ownerAddress)} />
+								<TruncatedValue value={ownerAddress} />
 							</dd>
 						</div>
 					{/if}
@@ -183,7 +179,7 @@
 						<div>
 							<dt>Agent wallet address</dt>
 							<dd>
-								<TruncatedValue value={String(agentWalletAddress)} />
+								<TruncatedValue value={agentWalletAddress} />
 							</dd>
 						</div>
 					{/if}
@@ -229,7 +225,7 @@
 						<div>
 							<dt>Transaction hash</dt>
 							<dd>
-								<TruncatedValue value={String(transactionHash)} />
+								<TruncatedValue value={transactionHash} />
 							</dd>
 						</div>
 					{/if}

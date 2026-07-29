@@ -30,7 +30,7 @@
 
 
 <svelte:head>
-	<title>{(data.title ?? ('Reddit'))} • Reddit • Blockhead</title>
+	<title>{data.title ?? 'Reddit'} • Reddit • Blockhead</title>
 </svelte:head>
 
 

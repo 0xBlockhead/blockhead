@@ -49,7 +49,7 @@
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{String(gitRefUpdate.timestampMs ?? '')}</span>
+				<span data-text="annotation">{gitRefUpdate.timestampMs ?? ''}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

@@ -20,7 +20,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.BlockheadCashuWalletState_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const blockheadCashuWalletStateTimestamp = $derived(selection({
 		fields: {
 			balance: true,
@@ -31,7 +30,6 @@
 			},
 		},
 	}))
-	const titleFallback = $derived(String(pendingEntity.timestampMs ?? '') || 'blockhead Cashu wallet state timestamp')
 
 
 	// Components
@@ -45,25 +43,25 @@
 <EntityView
 	entityType={EntityType.BlockheadCashuWalletState_Timestamp}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? String(selection.entitySelector.timestampMs)}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+		<Timestamp timestamp={selection.entitySelector.timestampMs} />
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={blockheadCashuWalletStateTimestamp}>
 			{#snippet children(entity)}
-				{@const balance0 = entity.balance}
-				{#if balance0 != null}
+				{@const balance = entity.balance}
+				{#if balance != null}
 					<NumberValue
-						value={balance0}
+						value={balance}
 					/>
 
-					<span>{pendingEntity.$walletState.unit == null ? '' : ` ${String(pendingEntity.$walletState.unit)}`}</span>
+					<span>{selection.entitySelector.$walletState.unit == null ? '' : ` ${selection.entitySelector.$walletState.unit}`}</span>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>
@@ -71,7 +69,7 @@
 
 	{#snippet HeadingAfter()}
 		<span data-text="muted">
-			{pendingEntity.source}
+			{selection.entitySelector.source}
 		</span>
 	{/snippet}
 
@@ -91,14 +89,14 @@
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+					<Timestamp timestamp={selection.entitySelector.timestampMs} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 
@@ -115,7 +113,7 @@
 									value={balance}
 								/>
 
-								<span>{pendingEntity.$walletState.unit == null ? '' : ` ${String(pendingEntity.$walletState.unit)}`}</span>
+								<span>{selection.entitySelector.$walletState.unit == null ? '' : ` ${selection.entitySelector.$walletState.unit}`}</span>
 							</dd>
 						</div>
 					{/if}
@@ -333,7 +331,7 @@
 						<div>
 							<dt>last synced AT</dt>
 							<dd>
-								<Timestamp timestamp={Number(lastSyncedAt)} />
+								<Timestamp timestamp={lastSyncedAt} />
 							</dd>
 						</div>
 					{/if}

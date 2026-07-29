@@ -48,11 +48,11 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{[(String(evmNetworkActorCoinBalanceTimestamp.balance ?? '') ? String(evmNetworkActorCoinBalanceTimestamp.balance ?? '') + evmNetworkActorCoinBalanceTimestampSelector.$actorCoin.symbol : ''), String(evmNetworkActorCoinBalanceTimestamp.usdValue ?? '')].filter(Boolean).join(' ')}
+				{[(evmNetworkActorCoinBalanceTimestamp.balance != null ? String(evmNetworkActorCoinBalanceTimestamp.balance) + evmNetworkActorCoinBalanceTimestampSelector.$actorCoin.symbol : ''), String(evmNetworkActorCoinBalanceTimestamp.usdValue ?? '')].filter(Boolean).join(' ')}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{String(evmNetworkActorCoinBalanceTimestamp.blockNumber ?? '')}</span>
+				<span data-text="annotation">{evmNetworkActorCoinBalanceTimestamp.blockNumber ?? ''}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

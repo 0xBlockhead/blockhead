@@ -1,10 +1,10 @@
 // Generated from APP.ts. Do not edit by hand.
 
 import { Source } from '$/sources/Source.ts'
-import { ApiFamily, SourceCredentialScope, SourceDelivery, SourceEndpointKind, SourceOperationGroup, SourceTargetKind, WireProtocol, type SourceBindingIndex } from '$/sources/SourceBinding.ts'
+import { ApiFamily, indexSourceBindings, SourceCredentialScope, SourceDelivery, SourceEndpointKind, SourceOperationGroup, SourceTargetKind, WireProtocol, type SourceBinding } from '$/sources/SourceBinding.ts'
 
-export default {
-	[Source.WebTorrent_Client]: {
+const bindings = [
+	{
 		source: Source.WebTorrent_Client,
 		target: {
 			kind: SourceTargetKind.LocalDevice,
@@ -29,7 +29,7 @@ export default {
 			},
 		],
 	},
-	[Source.WebTorrent_Dht]: {
+	{
 		source: Source.WebTorrent_Dht,
 		target: {
 			kind: SourceTargetKind.TorrentSwarm,
@@ -53,7 +53,7 @@ export default {
 			},
 		],
 	},
-	[Source.WebTorrent_Tracker]: {
+	{
 		source: Source.WebTorrent_Tracker,
 		target: {
 			kind: SourceTargetKind.TorrentSwarm,
@@ -78,4 +78,10 @@ export default {
 			},
 		],
 	},
-} as const satisfies SourceBindingIndex
+] as const satisfies readonly SourceBinding[]
+
+export default indexSourceBindings<{
+	readonly [Source.WebTorrent_Client]: typeof bindings[0]
+	readonly [Source.WebTorrent_Dht]: typeof bindings[1]
+	readonly [Source.WebTorrent_Tracker]: typeof bindings[2]
+}>(bindings)

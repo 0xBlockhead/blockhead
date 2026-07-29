@@ -1,4 +1,4 @@
-import { YoutubeLiveBroadcastContent } from '$/schema/YoutubeVideo.ts'
+import { YoutubeLiveBroadcastContent } from '$/schema/YoutubeLiveBroadcastContent.ts'
 
 
 // Constants

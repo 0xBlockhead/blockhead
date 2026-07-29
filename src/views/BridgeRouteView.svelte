@@ -7,8 +7,6 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { bridgeRouteTagByTag } from '$/constants/Bridge.ts'
-	import { BridgeRouteTag } from '$/schema/BridgeRoute.ts'
-	import { EvmAddress } from '$/schema/ZeroExHex.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -27,7 +25,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.BridgeRoute> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Lifi_Rest,
@@ -39,7 +36,6 @@
 			estimatedDurationSeconds: true,
 		},
 	}))
-	const titleFallback = $derived([String(pendingEntity.fromChainId ?? ''), 'to', String(pendingEntity.toChainId ?? '')].filter(Boolean).join(' ') || 'bridge route')
 
 
 	// Components
@@ -54,28 +50,31 @@
 <EntityView
 	entityType={EntityType.BridgeRoute}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? ([String(selection.entitySelector.fromChainId), 'to', String(selection.entitySelector.toChainId)].filter(Boolean).join(' ') || 'bridge route')}
 	href={
-		href ?? resolve(
-			'/bridge/route/[fromChainId=nonNegativeInteger]/[toChainId=nonNegativeInteger]/[fromToken=stringSegment]/[toToken=stringSegment]/[fromAmount=nonNegativeBigInt]/[fromAddress=evmAddress]/[slippage=nonNegativeNumber]/[toAddress=evmAddress]',
-			{
-				fromChainId: String(selection.entitySelector.fromChainId),
-				toChainId: String(selection.entitySelector.toChainId),
-				fromToken: String(selection.entitySelector.fromToken),
-				toToken: String(selection.entitySelector.toToken),
-				fromAmount: String(selection.entitySelector.fromAmount),
-				fromAddress: String(selection.entitySelector.fromAddress),
-				slippage: String(selection.entitySelector.slippage),
-				toAddress: String(selection.entitySelector.toAddress),
-			}
-		)
+		href === undefined ?
+			resolve(
+				'/bridge/route/[fromChainId=nonNegativeInteger]/[toChainId=nonNegativeInteger]/[fromToken=stringSegment]/[toToken=stringSegment]/[fromAmount=nonNegativeBigInt]/[fromAddress=evmAddress]/[slippage=nonNegativeNumber]/[toAddress=evmAddress]',
+				{
+					fromChainId: String(selection.entitySelector.fromChainId),
+					toChainId: String(selection.entitySelector.toChainId),
+					fromToken: selection.entitySelector.fromToken,
+					toToken: selection.entitySelector.toToken,
+					fromAmount: String(selection.entitySelector.fromAmount),
+					fromAddress: selection.entitySelector.fromAddress,
+					slippage: String(selection.entitySelector.slippage),
+					toAddress: selection.entitySelector.toAddress,
+				}
+			)
+		:
+			href ?? undefined
 	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{[String(pendingEntity.fromChainId ?? ''), 'to', String(pendingEntity.toChainId ?? '')].filter(Boolean).join(' ') || 'bridge route'}
+		{[String(selection.entitySelector.fromChainId), 'to', String(selection.entitySelector.toChainId)].filter(Boolean).join(' ') || 'bridge route'}
 	{/snippet}
 
 	{#snippet Value()}
@@ -86,11 +85,11 @@
 		<ResourceBoundary resource={bridgeRoute}>
 			{#snippet children(entity)}
 				<span data-text="muted">
-					{String(entity.estimatedCostUsd)}
+					{entity.estimatedCostUsd}
 				</span>
 
 				<span data-text="muted">
-					{String(entity.estimatedDurationSeconds)}
+					{entity.estimatedDurationSeconds}
 				</span>
 			{/snippet}
 		</ResourceBoundary>
@@ -139,28 +138,28 @@
 			<div>
 				<dt>From token</dt>
 				<dd>
-					<TruncatedValue value={pendingEntity.fromToken} />
+					<TruncatedValue value={selection.entitySelector.fromToken} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>To token</dt>
 				<dd>
-					<TruncatedValue value={pendingEntity.toToken} />
+					<TruncatedValue value={selection.entitySelector.toToken} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>From address</dt>
 				<dd>
-					<TruncatedValue value={String(pendingEntity.fromAddress)} />
+					<TruncatedValue value={selection.entitySelector.fromAddress} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>To address</dt>
 				<dd>
-					<TruncatedValue value={String(pendingEntity.toAddress)} />
+					<TruncatedValue value={selection.entitySelector.toAddress} />
 				</dd>
 			</div>
 
@@ -168,7 +167,7 @@
 				<dt>From amount</dt>
 				<dd>
 					<NumberValue
-						value={pendingEntity.fromAmount}
+						value={selection.entitySelector.fromAmount}
 					/>
 				</dd>
 			</div>
@@ -218,7 +217,7 @@
 			<div>
 				<dt>Slippage</dt>
 				<dd>
-					{String(pendingEntity.slippage)}
+					{selection.entitySelector.slippage}
 				</dd>
 			</div>
 
@@ -229,7 +228,7 @@
 						resource={bridgeRoute}
 					>
 						{#snippet children(entity)}
-							{String(entity.estimatedCostUsd)}
+							{entity.estimatedCostUsd}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -242,7 +241,7 @@
 						resource={bridgeRoute}
 					>
 						{#snippet children(entity)}
-							{String(entity.estimatedDurationSeconds)}
+							{entity.estimatedDurationSeconds}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -270,15 +269,15 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const bridgeRouteBridgeRouteStepsViewStepsResource = selection.$$steps}
+		{@const stepsResource = selection.$$steps}
 		<ResourceBoundary
-			resource={bridgeRouteBridgeRouteStepsViewStepsResource}
+			resource={stepsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<BridgeRouteStepsView
-						selection={bridgeRouteBridgeRouteStepsViewStepsResource}
-						countResource={bridgeRouteBridgeRouteStepsViewStepsResource.count}
+						selection={stepsResource}
+						countResource={stepsResource.count}
 						title='Steps'
 						id='steps'
 					/>

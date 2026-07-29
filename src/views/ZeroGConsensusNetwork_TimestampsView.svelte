@@ -44,7 +44,7 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{String(zeroGConsensusNetworkTimestampSelector.timestampMs)}
+				{zeroGConsensusNetworkTimestampSelector.timestampMs}
 			{/snippet}
 		</EntityView>
 	{/snippet}

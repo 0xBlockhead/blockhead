@@ -6,7 +6,6 @@
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { UrlString } from '$/schema/UrlString.ts'
 
 
 	// State
@@ -42,27 +41,25 @@
 			entityType={EntityType.SwarmResource}
 			entitySelector={swarmResourceSelector}
 			href={
-				(
-					swarmResourceSelector.contentPath === '' ?
-						resolve(
-							'/(swarm)/swarm/(swarmProtocol)/[reference=stringSegment]',
-							{
-								reference: String(swarmResourceSelector.reference),
-							}
-						)
-					:
-						resolve(
-							'/(swarm)/swarm/(swarmProtocol)/[reference=stringSegment]/path/[...contentPath=stringSegment]',
-							{
-								reference: String(swarmResourceSelector.reference),
-								contentPath: String(swarmResourceSelector.contentPath),
-							}
-						)
-				)
+				swarmResourceSelector.contentPath === '' ?
+					resolve(
+						'/(swarm)/swarm/(swarmProtocol)/[reference=stringSegment]',
+						{
+							reference: swarmResourceSelector.reference,
+						}
+					)
+				:
+					resolve(
+						'/(swarm)/swarm/(swarmProtocol)/[reference=stringSegment]/path/[...contentPath=stringSegment]',
+						{
+							reference: swarmResourceSelector.reference,
+							contentPath: swarmResourceSelector.contentPath,
+						}
+					)
 			}
 		>
 			{#snippet Title()}
-				{String(swarmResource.canonicalUri) || 'Swarm resource'}
+				{swarmResource.canonicalUri || 'Swarm resource'}
 			{/snippet}
 
 			{#snippet Value()}

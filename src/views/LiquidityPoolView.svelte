@@ -25,13 +25,12 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.LiquidityPool> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const network = $derived(selection.entitySelector.$network)
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Dexscreener_OpenApi,
 		],
 	}))
-	const titleFallback = $derived((pendingEntity.id ?? '') || 'liquidity pool')
 	const viewDomId = $derived('liquidity-pool-' + encodeURIComponent(stringify(selection.entitySelector)))
 
 
@@ -53,31 +52,34 @@
 	entityType={EntityType.LiquidityPool}
 	entitySelector={selection.entitySelector}
 	id={viewDomId}
-	title={title ?? titleFallback}
+	title={title ?? (selection.entitySelector.id || 'liquidity pool')}
 	href={
-		href ?? (
-			'caip2' in selection.entitySelector.$network ?
-				resolve(
-					'/(assets)/pool/[chainId=eip155ChainId]/[poolId=stringSegment]',
-					{
-						chainId: String(selection.entitySelector.$network.caip2.reference),
-						poolId: String(selection.entitySelector.id),
-					}
-				)
-			:
-				undefined
-		)
+		href === undefined ?
+			(
+				'caip2' in network ?
+					resolve(
+						'/(assets)/pool/[chainId=eip155ChainId]/[poolId=stringSegment]',
+						{
+							chainId: network.caip2.reference,
+							poolId: selection.entitySelector.id,
+						}
+					)
+				:
+					undefined
+			)
+		:
+			href ?? undefined
 	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<TruncatedValue value={pendingEntity.id} />
+		<TruncatedValue value={selection.entitySelector.id} />
 	{/snippet}
 
 	{#snippet Value()}
-		<TruncatedValue value={pendingEntity.id} />
+		<TruncatedValue value={selection.entitySelector.id} />
 	{/snippet}
 
 	{#snippet HeadingAfter()}
@@ -106,7 +108,7 @@
 			<div>
 				<dt>ID</dt>
 				<dd>
-					<TruncatedValue value={pendingEntity.id} />
+					<TruncatedValue value={selection.entitySelector.id} />
 				</dd>
 			</div>
 		</dl>

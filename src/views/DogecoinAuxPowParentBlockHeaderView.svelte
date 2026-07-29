@@ -53,7 +53,6 @@
 	{#snippet Title()}
 		<DogecoinBlockAuxPowView
 			selection={select(EntityType.DogecoinBlockAuxPow, selection.entitySelector.$auxPow)}
-			href=""
 			layout={EntityLayout.Title}
 			open={false}
 		/>

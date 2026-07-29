@@ -53,7 +53,7 @@
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{(blockheadMoneroSubaddressState.label ?? '')}</span>
+				<span data-text="annotation">{blockheadMoneroSubaddressState.label ?? ''}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

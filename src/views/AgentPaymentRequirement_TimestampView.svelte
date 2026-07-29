@@ -21,9 +21,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.AgentPaymentRequirement_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const titleFallback = 'agent payment requirement timestamp'
-
 
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -39,7 +36,7 @@
 <EntityView
 	entityType={EntityType.AgentPaymentRequirement_Timestamp}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? 'agent payment requirement timestamp'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -53,28 +50,28 @@
 			<div>
 				<dt>subject kind</dt>
 				<dd>
-					{pendingEntity.subjectKind}
+					{selection.entitySelector.subjectKind}
 				</dd>
 			</div>
 
 			<div>
 				<dt>payment protocol</dt>
 				<dd>
-					{pendingEntity.paymentProtocol}
+					{selection.entitySelector.paymentProtocol}
 				</dd>
 			</div>
 
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+					<Timestamp timestamp={selection.entitySelector.timestampMs} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 
@@ -195,7 +192,7 @@
 						<div>
 							<dt>HTTP status</dt>
 							<dd>
-								{String(httpStatus)}
+								{httpStatus}
 							</dd>
 						</div>
 					{/if}
@@ -240,11 +237,11 @@
 							<dt>resource URL</dt>
 							<dd>
 								<a
-									href={String(resourceUrl)}
+									href={resourceUrl}
 									target="_blank"
 									rel="noreferrer noopener"
 								>
-									<TruncatedValue value={String(resourceUrl)} />
+									<TruncatedValue value={resourceUrl} />
 								</a>
 							</dd>
 						</div>
@@ -289,7 +286,7 @@
 						<div>
 							<dt>payment signature header</dt>
 							<dd>
-								<TruncatedValue value={paymentSignatureHeader} />
+								{paymentSignatureHeader}
 							</dd>
 						</div>
 					{/if}
@@ -334,11 +331,11 @@
 							<dt>facilitator URL</dt>
 							<dd>
 								<a
-									href={String(facilitatorUrl)}
+									href={facilitatorUrl}
 									target="_blank"
 									rel="noreferrer noopener"
 								>
-									<TruncatedValue value={String(facilitatorUrl)} />
+									<TruncatedValue value={facilitatorUrl} />
 								</a>
 							</dd>
 						</div>
@@ -405,7 +402,7 @@
 						<div>
 							<dt>max timeout seconds</dt>
 							<dd>
-								{String(maxTimeoutSeconds)}
+								{maxTimeoutSeconds}
 							</dd>
 						</div>
 					{/if}
@@ -428,11 +425,11 @@
 							<dt>evidence URI</dt>
 							<dd>
 								<a
-									href={String(evidenceUri)}
+									href={evidenceUri}
 									target="_blank"
 									rel="noreferrer noopener"
 								>
-									<TruncatedValue value={String(evidenceUri)} />
+									<TruncatedValue value={evidenceUri} />
 								</a>
 							</dd>
 						</div>

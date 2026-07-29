@@ -4,7 +4,6 @@
 	// Types/constants
 	import type { PageProps } from './$types.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { EvmAddress, ZeroExHex } from '$/schema/ZeroExHex.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -41,7 +40,7 @@
 
 
 <svelte:head>
-	<title>{(data.title ?? (pageSelection.entity == null ? String(pageSelection.entitySelector.address ?? '') || 'EVM contract' : [(pageSelection.entity.precompileName ?? ''), String(pageSelection.entitySelector.address)].filter(Boolean).join(' ') || 'EVM contract'))} • EVM contract • Blockhead</title>
+	<title>{data.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.address ?? '') || 'EVM contract' : [(pageSelection.entity.precompileName ?? ''), pageSelection.entitySelector.address].filter(Boolean).join(' ') || 'EVM contract')} • EVM contract • Blockhead</title>
 </svelte:head>
 
 

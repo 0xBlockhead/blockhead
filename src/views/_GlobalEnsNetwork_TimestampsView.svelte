@@ -46,7 +46,7 @@
 					'/(explore)/(ens)/ens/(globalEnsNetwork)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
 					{
 						timestampMs: String(globalEnsNetworkTimestampSelector.timestampMs),
-						source: String(globalEnsNetworkTimestampSelector.source),
+						source: globalEnsNetworkTimestampSelector.source,
 					}
 				)
 			}
@@ -56,7 +56,7 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{String(globalEnsNetworkTimestampSelector.timestampMs)}
+				{globalEnsNetworkTimestampSelector.timestampMs}
 			{/snippet}
 		</EntityView>
 	{/snippet}

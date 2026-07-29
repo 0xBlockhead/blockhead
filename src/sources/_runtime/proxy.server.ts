@@ -31,11 +31,7 @@ export const proxySourceHttpRequest = async (
 	const binding = httpProxyBindingByProxyId.get(proxyId)
 	if (binding == null || !Number.isSafeInteger(endpointIndex))
 		throw error(403, 'Request Forbidden.')
-	const credential = binding.serverCredentialId == null ?
-		undefined
-	:
-		Object.entries<SourceServerCredentialDefinition>(sourceServerCredentialsById)
-			.find(([serverCredentialId]) => serverCredentialId === binding.serverCredentialId)?.[1]
+	const credential = sourceServerCredentialsById.get(proxyId)
 
 	const endpoint = binding.endpoints.at(endpointIndex)
 	if (endpoint == null)

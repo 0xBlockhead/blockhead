@@ -5,7 +5,6 @@
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { EvmAddress, ZeroExHex } from '$/schema/ZeroExHex.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -23,7 +22,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.BlockheadSessionSimulationCall> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Local_Internal,
@@ -35,7 +33,7 @@
 			depth: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.callPath ?? '') || 'blockhead session simulation call')
+	const titleFallback = $derived(selection.entitySelector.callPath || 'blockhead session simulation call')
 
 
 	// Components
@@ -55,13 +53,13 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{(pendingEntity.callPath ?? '') || 'blockhead session simulation call'}
+		{selection.entitySelector.callPath || 'blockhead session simulation call'}
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={blockheadSessionSimulationCall}>
 			{#snippet children(entity)}
-				{(entity.callType ?? '') || pendingEntity.callPath || titleFallback}
+				{(entity.callType ?? '') || selection.entitySelector.callPath || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -101,7 +99,7 @@
 			<div>
 				<dt>call path</dt>
 				<dd>
-					{pendingEntity.callPath}
+					{selection.entitySelector.callPath}
 				</dd>
 			</div>
 
@@ -196,7 +194,7 @@
 						<div>
 							<dt>from address</dt>
 							<dd>
-								<TruncatedValue value={String(fromAddress)} />
+								<TruncatedValue value={fromAddress} />
 							</dd>
 						</div>
 					{/if}
@@ -218,7 +216,7 @@
 						<div>
 							<dt>to address</dt>
 							<dd>
-								<TruncatedValue value={String(toAddress)} />
+								<TruncatedValue value={toAddress} />
 							</dd>
 						</div>
 					{/if}
@@ -334,7 +332,7 @@
 						<div>
 							<dt>input selector</dt>
 							<dd>
-								{String(inputSelector)}
+								{inputSelector}
 							</dd>
 						</div>
 					{/if}
@@ -356,7 +354,7 @@
 						<div>
 							<dt>input data hash</dt>
 							<dd>
-								<TruncatedValue value={String(inputDataHash)} />
+								<TruncatedValue value={inputDataHash} />
 							</dd>
 						</div>
 					{/if}
@@ -378,7 +376,7 @@
 						<div>
 							<dt>output data hash</dt>
 							<dd>
-								<TruncatedValue value={String(outputDataHash)} />
+								<TruncatedValue value={outputDataHash} />
 							</dd>
 						</div>
 					{/if}

@@ -45,11 +45,11 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{String(cctpDomainSupportSelector.domainId)}
+				{cctpDomainSupportSelector.domainId}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{String(cctpDomainSupportSelector.cctpVersion)}</span>
+				<span data-text="annotation">{cctpDomainSupportSelector.cctpVersion}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

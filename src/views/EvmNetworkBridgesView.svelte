@@ -7,7 +7,6 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
-	import { UrlString } from '$/schema/UrlString.ts'
 
 
 	// State
@@ -38,40 +37,40 @@
 >
 	{#snippet Item({ item: evmNetworkBridge })}
 		{@const evmNetworkBridgeSelector = evmNetworkBridge[EntityMetaKey.Selector]}
+		{@const fromNetwork = evmNetworkBridgeSelector.$fromNetwork}
+		{@const toNetwork = evmNetworkBridgeSelector.$toNetwork}
 		<EntityView
 			entityType={EntityType.EvmNetworkBridge}
 			entitySelector={evmNetworkBridgeSelector}
 			href={
-				(
-					'caip2' in evmNetworkBridgeSelector.$toNetwork ?
-						resolve(
-							'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/bridges/[toCaip2=networkCaip2]/[url=absoluteUrl]',
-							{
-								network: (
-									'caip2' in evmNetworkBridgeSelector.$fromNetwork ?
-										String(caip2StringFromValue(evmNetworkBridgeSelector.$fromNetwork.caip2))
-									:
-										String(evmNetworkBridgeSelector.$fromNetwork.slug)
-								),
-								toCaip2: String(caip2StringFromValue(evmNetworkBridgeSelector.$toNetwork.caip2)),
-								url: encodeURIComponent(String(evmNetworkBridgeSelector.url)),
-							}
-						)
-					:
-						undefined
-				)
+				'caip2' in toNetwork ?
+					resolve(
+						'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/bridges/[toCaip2=networkCaip2]/[url=absoluteUrl]',
+						{
+							network: (
+								'caip2' in fromNetwork ?
+									caip2StringFromValue(fromNetwork.caip2)
+								:
+									fromNetwork.slug
+							),
+							toCaip2: caip2StringFromValue(toNetwork.caip2),
+							url: encodeURIComponent(evmNetworkBridgeSelector.url),
+						}
+					)
+				:
+					undefined
 			}
 		>
 			{#snippet Title()}
-				{String(evmNetworkBridgeSelector.url) || 'EVM network bridge'}
+				{evmNetworkBridgeSelector.url || 'EVM network bridge'}
 			{/snippet}
 
 			{#snippet Value()}
-				{String(evmNetworkBridgeSelector.url)}
+				{evmNetworkBridgeSelector.url}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{(evmNetworkBridge.relationshipType ?? '')}</span>
+				<span data-text="annotation">{evmNetworkBridge.relationshipType ?? ''}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

@@ -25,18 +25,15 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.BlockheadStateChannel> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const viewSelection = $derived(selection({
+	const blockheadStateChannel = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Local_Internal,
 		],
-	}))
-	const blockheadStateChannel = $derived(viewSelection({
+	})({
 		fields: {
 			createdAt: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.id ?? '') || 'blockhead state channel')
 	const viewDomId = $derived('blockhead-state-channel-' + encodeURIComponent(stringify(selection.entitySelector)))
 
 
@@ -61,27 +58,30 @@
 	entityType={EntityType.BlockheadStateChannel}
 	entitySelector={selection.entitySelector}
 	id={viewDomId}
-	title={title ?? titleFallback}
+	title={title ?? (selection.entitySelector.id || 'blockhead state channel')}
 	href={
-		href ?? resolve(
-			'/channel/[channelId=stringSegment]',
-			{
-				channelId: String(selection.entitySelector.id),
-			}
-		)
+		href === undefined ?
+			resolve(
+				'/channel/[channelId=stringSegment]',
+				{
+					channelId: selection.entitySelector.id,
+				}
+			)
+		:
+			href ?? undefined
 	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<TruncatedValue value={pendingEntity.id} />
+		<TruncatedValue value={selection.entitySelector.id} />
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={blockheadStateChannel}>
 			{#snippet children(entity)}
-				<Timestamp timestamp={Number(entity.createdAt)} />
+				<Timestamp timestamp={entity.createdAt} />
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -197,7 +197,7 @@
 						resource={blockheadStateChannel}
 					>
 						{#snippet children(entity)}
-							<Timestamp timestamp={Number(entity.createdAt)} />
+							<Timestamp timestamp={entity.createdAt} />
 						{/snippet}
 					</ResourceBoundary>
 				</dd>

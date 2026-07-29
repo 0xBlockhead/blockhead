@@ -5,7 +5,6 @@
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { UrlString } from '$/schema/UrlString.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -23,7 +22,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.AcpSession> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.AcpLocal_JsonRpc,
@@ -34,7 +32,6 @@
 			workspaceUri: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.sessionId ?? '') || 'ACP session')
 
 
 	// Components
@@ -49,13 +46,13 @@
 <EntityView
 	entityType={EntityType.AcpSession}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? (selection.entitySelector.sessionId || 'ACP session')}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{(pendingEntity.sessionId ?? '') || 'ACP session'}
+		{selection.entitySelector.sessionId || 'ACP session'}
 	{/snippet}
 
 	{#snippet Value()}
@@ -67,7 +64,6 @@
 					<AcpAgentRuntimeView
 						selection={select(EntityType.AcpAgentRuntime, acpAgentRuntime[EntityMetaKey.Selector])}
 						prefetched={acpAgentRuntime}
-						href=""
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -79,15 +75,15 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={acpSession}>
 			{#snippet children(entity)}
-				{@const workspaceUri0 = entity.workspaceUri}
-				{#if workspaceUri0 != null}
+				{@const workspaceUri = entity.workspaceUri}
+				{#if workspaceUri != null}
 					<span data-text="muted">
 						<a
-							href={String(workspaceUri0)}
+							href={workspaceUri}
 							target="_blank"
 							rel="noreferrer noopener"
 						>
-							<TruncatedValue value={String(workspaceUri0)} />
+							<TruncatedValue value={workspaceUri} />
 						</a>
 					</span>
 				{/if}
@@ -100,7 +96,7 @@
 			<div>
 				<dt>session ID</dt>
 				<dd>
-					{pendingEntity.sessionId}
+					{selection.entitySelector.sessionId}
 				</dd>
 			</div>
 
@@ -134,11 +130,11 @@
 							<dt>workspace URI</dt>
 							<dd>
 								<a
-									href={String(workspaceUri)}
+									href={workspaceUri}
 									target="_blank"
 									rel="noreferrer noopener"
 								>
-									<TruncatedValue value={String(workspaceUri)} />
+									<TruncatedValue value={workspaceUri} />
 								</a>
 							</dd>
 						</div>
@@ -251,7 +247,7 @@
 						<div>
 							<dt>Created</dt>
 							<dd>
-								<Timestamp timestamp={Number(createdAt)} />
+								<Timestamp timestamp={createdAt} />
 							</dd>
 						</div>
 					{/if}
@@ -273,7 +269,7 @@
 						<div>
 							<dt>closed AT</dt>
 							<dd>
-								<Timestamp timestamp={Number(closedAt)} />
+								<Timestamp timestamp={closedAt} />
 							</dd>
 						</div>
 					{/if}
@@ -295,7 +291,7 @@
 						<div>
 							<dt>deleted AT</dt>
 							<dd>
-								<Timestamp timestamp={Number(deletedAt)} />
+								<Timestamp timestamp={deletedAt} />
 							</dd>
 						</div>
 					{/if}
@@ -305,15 +301,15 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const acpSessionAcpPromptTurnsViewPromptTurnsResource = selection.$$promptTurns}
+		{@const promptTurnsResource = selection.$$promptTurns}
 		<ResourceBoundary
-			resource={acpSessionAcpPromptTurnsViewPromptTurnsResource}
+			resource={promptTurnsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<AcpPromptTurnsView
-						selection={acpSessionAcpPromptTurnsViewPromptTurnsResource}
-						countResource={acpSessionAcpPromptTurnsViewPromptTurnsResource.count}
+						selection={promptTurnsResource}
+						countResource={promptTurnsResource.count}
 						title='prompt turns'
 						id='prompt-turns'
 					/>

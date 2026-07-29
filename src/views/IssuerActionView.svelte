@@ -21,13 +21,9 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.IssuerAction> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const titleFallback = 'issuer action'
-
 
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import TruncatedValue from '$/components/TruncatedValue.svelte'
 	import AssetInstanceView from '$/views/AssetInstanceView.svelte'
 	import IssuerPowerView from '$/views/IssuerPowerView.svelte'
 </script>
@@ -36,7 +32,7 @@
 <EntityView
 	entityType={EntityType.IssuerAction}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? 'issuer action'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -50,7 +46,7 @@
 			<div>
 				<dt>issuer action ID</dt>
 				<dd>
-					<TruncatedValue value={pendingEntity.issuerActionId} />
+					{selection.entitySelector.issuerActionId}
 				</dd>
 			</div>
 
@@ -108,7 +104,7 @@
 						<div>
 							<dt>amount</dt>
 							<dd>
-								{String(amount)}
+								{amount}
 							</dd>
 						</div>
 					{/if}

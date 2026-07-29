@@ -48,19 +48,19 @@
 				resolve(
 					'/(social)/(rss)/rss/(rssNetwork)/feed/[feedUrl=absoluteUrl]/(rssFeed)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
 					{
-						feedUrl: encodeURIComponent(String(rssFeedTimestampSelector.$feed.feedUrl)),
+						feedUrl: encodeURIComponent(rssFeedTimestampSelector.$feed.feedUrl),
 						timestampMs: String(rssFeedTimestampSelector.timestampMs),
-						source: String(rssFeedTimestampSelector.source),
+						source: rssFeedTimestampSelector.source,
 					}
 				)
 			}
 		>
 			{#snippet Title()}
-				{[(rssFeedTimestamp.$feed.title ?? ''), String(rssFeedTimestampSelector.$feed.feedUrl)].filter(Boolean).join(' ') || 'RSS feed'}
+				{[(rssFeedTimestamp.$feed.title ?? ''), rssFeedTimestampSelector.$feed.feedUrl].filter(Boolean).join(' ') || 'RSS feed'}
 			{/snippet}
 
 			{#snippet Value()}
-				{String(rssFeedTimestampSelector.timestampMs)}
+				{rssFeedTimestampSelector.timestampMs}
 			{/snippet}
 		</EntityView>
 	{/snippet}

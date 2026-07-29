@@ -4,7 +4,6 @@
 	// Types/constants
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { UrlString } from '$/schema/UrlString.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -22,7 +21,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.McpResource> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.McpDeclared_Protocol,
@@ -36,7 +34,7 @@
 			subscribed: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.title ?? '') || [(pendingEntity.name ?? ''), String(pendingEntity.uri ?? '')].filter(Boolean).join(' ') || 'mcp resource')
+	const titleFallback = $derived((prefetched.title ?? '') || [(prefetched.name ?? ''), selection.entitySelector.uri].filter(Boolean).join(' ') || 'mcp resource')
 
 
 	// Components
@@ -74,10 +72,10 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={mcpResource}>
 			{#snippet children(entity)}
-				{@const subscribed0 = entity.subscribed}
-				{#if subscribed0 != null}
+				{@const subscribed = entity.subscribed}
+				{#if subscribed != null}
 					<span data-text="muted">
-						{subscribed0 ? 'Yes' : 'No'}
+						{subscribed ? 'Yes' : 'No'}
 					</span>
 				{/if}
 			{/snippet}
@@ -101,11 +99,11 @@
 				<dt>URI</dt>
 				<dd>
 					<a
-						href={String(pendingEntity.uri)}
+						href={selection.entitySelector.uri}
 						target="_blank"
 						rel="noreferrer noopener"
 					>
-						<TruncatedValue value={String(pendingEntity.uri)} />
+						<TruncatedValue value={selection.entitySelector.uri} />
 					</a>
 				</dd>
 			</div>
@@ -199,15 +197,15 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const mcpResourceMcpResourceContentTimestampsViewContentTimestampsResource = selection.$$contentTimestamps}
+		{@const contentTimestampsResource = selection.$$contentTimestamps}
 		<ResourceBoundary
-			resource={mcpResourceMcpResourceContentTimestampsViewContentTimestampsResource}
+			resource={contentTimestampsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<McpResourceContent_TimestampsView
-						selection={mcpResourceMcpResourceContentTimestampsViewContentTimestampsResource}
-						countResource={mcpResourceMcpResourceContentTimestampsViewContentTimestampsResource.count}
+						selection={contentTimestampsResource}
+						countResource={contentTimestampsResource.count}
 						title='content timestamps'
 						id='content-timestamps'
 					/>

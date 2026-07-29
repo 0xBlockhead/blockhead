@@ -32,8 +32,8 @@
 			resolve(
 				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/slot/[slot=nonNegativeInteger]',
 				{
-					network: String(params.network),
-					slot: String(params.slot),
+					network: params.network,
+					slot: params.slot,
 				}
 			)
 		}
@@ -45,8 +45,8 @@
 					resolve(
 						'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/slot/[slot=nonNegativeInteger]',
 						{
-							network: String(params.network),
-							slot: String(params.slot),
+							network: params.network,
+							slot: params.slot,
 						}
 					)
 				}

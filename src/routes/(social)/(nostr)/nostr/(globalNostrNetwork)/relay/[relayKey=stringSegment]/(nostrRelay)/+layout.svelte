@@ -32,7 +32,7 @@
 			resolve(
 				'/(social)/(nostr)/nostr/(globalNostrNetwork)/relay/[relayKey=stringSegment]',
 				{
-					relayKey: String(params.relayKey),
+					relayKey: params.relayKey,
 				}
 			)
 		}
@@ -44,7 +44,7 @@
 					resolve(
 						'/(social)/(nostr)/nostr/(globalNostrNetwork)/relay/[relayKey=stringSegment]',
 						{
-							relayKey: String(params.relayKey),
+							relayKey: params.relayKey,
 						}
 					)
 				}

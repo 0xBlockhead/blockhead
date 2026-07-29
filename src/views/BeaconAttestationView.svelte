@@ -23,8 +23,7 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.BeaconAttestation> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const titleFallback = $derived((String(pendingEntity.indexInSlot ?? '') ? 'Attestation #' + String(pendingEntity.indexInSlot ?? '') : '') || 'beacon attestation')
+	const network = $derived(selection.entitySelector.$network)
 
 
 	// Components
@@ -38,22 +37,25 @@
 <EntityView
 	entityType={EntityType.BeaconAttestation}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
-	idDragPlainText={String(pendingEntity.indexInSlot ?? '')}
+	title={title ?? `Attestation #${selection.entitySelector.indexInSlot}`}
+	idDragPlainText={String(selection.entitySelector.indexInSlot)}
 	href={
-		href ?? resolve(
-			'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/slot/[slot=nonNegativeInteger]/(beaconSlot)/attestation/[index=nonNegativeInteger]',
-			{
-				network: (
-					'caip2' in selection.entitySelector.$network ?
-						String(caip2StringFromValue(selection.entitySelector.$network.caip2))
-					:
-						String(selection.entitySelector.$network.slug)
-				),
-				slot: String(selection.entitySelector.slot),
-				index: String(selection.entitySelector.indexInSlot),
-			}
-		)
+		href === undefined ?
+			resolve(
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/slot/[slot=nonNegativeInteger]/(beaconSlot)/attestation/[index=nonNegativeInteger]',
+				{
+					network: (
+						'caip2' in network ?
+							caip2StringFromValue(network.caip2)
+						:
+							network.slug
+					),
+					slot: String(selection.entitySelector.slot),
+					index: String(selection.entitySelector.indexInSlot),
+				}
+			)
+		:
+			href ?? undefined
 	}
 	{layout}
 	bind:open
@@ -63,14 +65,14 @@
 		<span data-row="inline align-center gap-2 wrap">
 			<span>Attestation </span>
 			<span data-badge="small">
-				#{String(pendingEntity.indexInSlot)}
+				#{selection.entitySelector.indexInSlot}
 			</span>
 		</span>
 	{/snippet}
 
 	{#snippet Value()}
 		<span data-badge="small">
-			#{String(pendingEntity.indexInSlot)}
+			#{selection.entitySelector.indexInSlot}
 		</span>
 	{/snippet}
 
@@ -78,7 +80,7 @@
 		<span data-text="muted">
 			<span>Slot </span>
 			<NumberValue
-				value={pendingEntity.slot}
+				value={selection.entitySelector.slot}
 			/>
 		</span>
 	{/snippet}
@@ -89,7 +91,7 @@
 				<dt>Index in slot</dt>
 				<dd>
 					<NumberValue
-						value={pendingEntity.indexInSlot}
+						value={selection.entitySelector.indexInSlot}
 					/>
 				</dd>
 			</div>
@@ -98,7 +100,7 @@
 				<dt>Slot</dt>
 				<dd>
 					<NumberValue
-						value={pendingEntity.slot}
+						value={selection.entitySelector.slot}
 					/>
 				</dd>
 			</div>

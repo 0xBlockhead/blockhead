@@ -48,7 +48,7 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{String(bridgeRouteQuoteTimestampSelector.timestampMs)}
+				{bridgeRouteQuoteTimestampSelector.timestampMs}
 			{/snippet}
 
 			{#snippet HeadingAfter()}

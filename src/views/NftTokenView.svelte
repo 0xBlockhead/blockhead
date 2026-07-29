@@ -21,9 +21,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.NftToken> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const titleFallback = 'NFT token'
-
 
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -37,7 +34,7 @@
 <EntityView
 	entityType={EntityType.NftToken}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? 'NFT token'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -62,7 +59,7 @@
 			<div>
 				<dt>token key</dt>
 				<dd>
-					{pendingEntity.tokenKey}
+					{selection.entitySelector.tokenKey}
 				</dd>
 			</div>
 
@@ -81,7 +78,7 @@
 						<div>
 							<dt>Token ID</dt>
 							<dd>
-								{String(tokenId)}
+								{tokenId}
 							</dd>
 						</div>
 					{/if}
@@ -133,15 +130,15 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const nftTokenUsageRightTimestampsViewUsageRightTimestampsResource = selection.$$usageRightTimestamps}
+		{@const usageRightTimestampsResource = selection.$$usageRightTimestamps}
 		<ResourceBoundary
-			resource={nftTokenUsageRightTimestampsViewUsageRightTimestampsResource}
+			resource={usageRightTimestampsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<UsageRight_TimestampsView
-						selection={nftTokenUsageRightTimestampsViewUsageRightTimestampsResource}
-						countResource={nftTokenUsageRightTimestampsViewUsageRightTimestampsResource.count}
+						selection={usageRightTimestampsResource}
+						countResource={usageRightTimestampsResource.count}
 						title='usage right timestamps'
 						id='usage-right-timestamps'
 					/>

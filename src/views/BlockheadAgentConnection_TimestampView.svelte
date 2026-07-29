@@ -21,7 +21,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.BlockheadAgentConnection_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Anthropic_Rest,
@@ -36,7 +35,6 @@
 			latencyMs: true,
 		},
 	}))
-	const titleFallback = $derived(String(pendingEntity.timestampMs ?? '') || 'blockhead agent connection timestamp')
 
 
 	// Components
@@ -50,19 +48,19 @@
 <EntityView
 	entityType={EntityType.BlockheadAgentConnection_Timestamp}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? String(selection.entitySelector.timestampMs)}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+		<Timestamp timestamp={selection.entitySelector.timestampMs} />
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={blockheadAgentConnectionTimestamp}>
 			{#snippet children(entity)}
-				{(entity.health ?? '') || String(pendingEntity.timestampMs) || titleFallback}
+				{(entity.health ?? '') || String(selection.entitySelector.timestampMs)}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -70,11 +68,11 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={blockheadAgentConnectionTimestamp}>
 			{#snippet children(entity)}
-				{@const latencyMs0 = entity.latencyMs}
-				{#if latencyMs0 != null}
+				{@const latencyMs = entity.latencyMs}
+				{#if latencyMs != null}
 					<span data-text="muted">
 						<NumberValue
-							value={latencyMs0}
+							value={latencyMs}
 						/>
 					</span>
 				{/if}
@@ -98,14 +96,14 @@
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+					<Timestamp timestamp={selection.entitySelector.timestampMs} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 

@@ -35,26 +35,29 @@
 >
 	{#snippet Item({ item: evmCoinInstance })}
 		{@const evmCoinInstanceSelector = evmCoinInstance[EntityMetaKey.Selector]}
-		{@const evmCoinInstanceHref = (
-			'caip2' in evmCoinInstanceSelector.$network
-			&& (evmCoinInstanceSelector.type === 'NativeCurrency'
-			|| (evmCoinInstanceSelector.type === 'Erc20Token'
-			&& '$contract' in evmCoinInstanceSelector)) ?
+		{@const network = evmCoinInstanceSelector.$network}
+		{@const evmCoinInstanceHref = 'caip2' in network
+			&& (
+				evmCoinInstanceSelector.type === 'NativeCurrency'
+				|| (
+					evmCoinInstanceSelector.type === 'Erc20Token'
+					&& '$contract' in evmCoinInstanceSelector
+				)
+			) ?
 				resolve(
 					'/(assets)/coin-instance/[chainId=eip155ChainId]/[coinInstanceSlug=nativeCurrencySlugOrEvmAddress]',
 					{
-						chainId: String(evmCoinInstanceSelector.$network.caip2.reference),
+						chainId: network.caip2.reference,
 						coinInstanceSlug: (
 							evmCoinInstanceSelector.type === 'NativeCurrency' ?
 								'native'
 							:
-								String(evmCoinInstanceSelector.$contract.address)
+								evmCoinInstanceSelector.$contract.address
 						),
 					}
 				)
 			:
-				undefined
-		)}
+				undefined}
 		{@const selection = select(EntityType.EvmCoinInstance, evmCoinInstanceSelector)}
 		<ProjectionBoundary
 			resource={selection.NativeCurrency}
@@ -74,7 +77,7 @@
 									href={evmCoinInstanceHref}
 								>
 									{#snippet Title()}
-										{[String(nativeCurrencySymbol0 ?? ''), String(nativeCurrencyName1 ?? '')].filter(Boolean).join(' ') || 'EVM coin instance'}
+										{[nativeCurrencySymbol0, (nativeCurrencyName1 ?? '')].filter(Boolean).join(' ') || 'EVM coin instance'}
 									{/snippet}
 								</EntityView>
 							{/snippet}
@@ -102,7 +105,7 @@
 									href={evmCoinInstanceHref}
 								>
 									{#snippet Title()}
-										{[String(erc20TokenSymbol0 ?? ''), String(erc20TokenName1 ?? '')].filter(Boolean).join(' ') || 'EVM coin instance'}
+										{[erc20TokenSymbol0, (erc20TokenName1 ?? '')].filter(Boolean).join(' ') || 'EVM coin instance'}
 									{/snippet}
 								</EntityView>
 							{/snippet}

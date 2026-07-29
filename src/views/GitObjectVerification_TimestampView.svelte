@@ -4,7 +4,6 @@
 	// Types/constants
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 
 
 	// State
@@ -17,13 +16,12 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.GitObjectVerification_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const gitObjectVerificationTimestamp = $derived(selection({
 		fields: {
 			status: true,
 		},
 	}))
-	const titleFallback = $derived(String(pendingEntity.objectId ?? '') || 'Git object verification timestamp')
+	const titleFallback = $derived(selection.entitySelector.objectId || 'Git object verification timestamp')
 
 
 	// Components
@@ -42,20 +40,20 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{String(pendingEntity.objectId ?? '') || 'Git object verification timestamp'}
+		{selection.entitySelector.objectId || 'Git object verification timestamp'}
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={gitObjectVerificationTimestamp}>
 			{#snippet children(entity)}
-				{entity.status || String(pendingEntity.objectId) || titleFallback}
+				{entity.status || selection.entitySelector.objectId || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
 		<span data-text="muted">
-			<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+			<Timestamp timestamp={selection.entitySelector.timestampMs} />
 		</span>
 	{/snippet}
 
@@ -64,35 +62,35 @@
 			<div>
 				<dt>object ID</dt>
 				<dd>
-					{String(pendingEntity.objectId)}
+					{selection.entitySelector.objectId}
 				</dd>
 			</div>
 
 			<div>
 				<dt>object format</dt>
 				<dd>
-					{pendingEntity.objectFormat}
+					{selection.entitySelector.objectFormat}
 				</dd>
 			</div>
 
 			<div>
 				<dt>byte source</dt>
 				<dd>
-					{pendingEntity.byteSource}
+					{selection.entitySelector.byteSource}
 				</dd>
 			</div>
 
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+					<Timestamp timestamp={selection.entitySelector.timestampMs} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 
@@ -170,7 +168,7 @@
 						<div>
 							<dt>header bytes hash</dt>
 							<dd>
-								<TruncatedValue value={String(headerBytesHash)} />
+								<TruncatedValue value={headerBytesHash} />
 							</dd>
 						</div>
 					{/if}
@@ -192,7 +190,7 @@
 						<div>
 							<dt>payload bytes hash</dt>
 							<dd>
-								<TruncatedValue value={String(payloadBytesHash)} />
+								<TruncatedValue value={payloadBytesHash} />
 							</dd>
 						</div>
 					{/if}
@@ -214,7 +212,7 @@
 						<div>
 							<dt>computed object ID</dt>
 							<dd>
-								{String(computedObjectId)}
+								{computedObjectId}
 							</dd>
 						</div>
 					{/if}

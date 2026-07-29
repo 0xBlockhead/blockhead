@@ -23,8 +23,7 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.BeaconSyncCommittee> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const titleFallback = $derived((String(pendingEntity.period ?? '') ? 'Sync committee #' + String(pendingEntity.period ?? '') : '') || 'beacon sync committee')
+	const network = $derived(selection.entitySelector.$network)
 
 
 	// Components
@@ -37,21 +36,24 @@
 <EntityView
 	entityType={EntityType.BeaconSyncCommittee}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
-	idDragPlainText={String(pendingEntity.period ?? '')}
+	title={title ?? `Sync committee #${selection.entitySelector.period}`}
+	idDragPlainText={String(selection.entitySelector.period)}
 	href={
-		href ?? resolve(
-			'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/sync-committee/[period=nonNegativeInteger]',
-			{
-				network: (
-					'caip2' in selection.entitySelector.$network ?
-						String(caip2StringFromValue(selection.entitySelector.$network.caip2))
-					:
-						String(selection.entitySelector.$network.slug)
-				),
-				period: String(selection.entitySelector.period),
-			}
-		)
+		href === undefined ?
+			resolve(
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/sync-committee/[period=nonNegativeInteger]',
+				{
+					network: (
+						'caip2' in network ?
+							caip2StringFromValue(network.caip2)
+						:
+							network.slug
+					),
+					period: String(selection.entitySelector.period),
+				}
+			)
+		:
+			href ?? undefined
 	}
 	{layout}
 	bind:open
@@ -61,14 +63,14 @@
 		<span data-row="inline align-center gap-2 wrap">
 			<span>Sync committee </span>
 			<span data-badge="small">
-				#{String(pendingEntity.period)}
+				#{selection.entitySelector.period}
 			</span>
 		</span>
 	{/snippet}
 
 	{#snippet Value()}
 		<span data-badge="small">
-			#{String(pendingEntity.period)}
+			#{selection.entitySelector.period}
 		</span>
 	{/snippet}
 
@@ -88,7 +90,7 @@
 				<dt>Period</dt>
 				<dd>
 					<NumberValue
-						value={pendingEntity.period}
+						value={selection.entitySelector.period}
 					/>
 				</dd>
 			</div>

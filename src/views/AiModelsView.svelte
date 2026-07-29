@@ -57,7 +57,7 @@
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{(aiModel.modelFamily ?? '')}</span>
+				<span data-text="annotation">{aiModel.modelFamily ?? ''}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

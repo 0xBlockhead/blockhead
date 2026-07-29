@@ -21,9 +21,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.CelestiaBlob> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const titleFallback = $derived((pendingEntity.commitment ?? '') || 'celestia blob')
-
 
 	// Components
 	import NumberValue from '$/components/NumberValue.svelte'
@@ -37,18 +34,18 @@
 <EntityView
 	entityType={EntityType.CelestiaBlob}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? (selection.entitySelector.commitment || 'celestia blob')}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<TruncatedValue value={pendingEntity.commitment} />
+		<TruncatedValue value={selection.entitySelector.commitment} />
 	{/snippet}
 
 	{#snippet Value()}
 		<NumberValue
-			value={pendingEntity.height}
+			value={selection.entitySelector.height}
 		/>
 	{/snippet}
 
@@ -79,7 +76,7 @@
 				<dt>Height</dt>
 				<dd>
 					<NumberValue
-						value={pendingEntity.height}
+						value={selection.entitySelector.height}
 					/>
 				</dd>
 			</div>
@@ -87,7 +84,7 @@
 			<div>
 				<dt>commitment</dt>
 				<dd>
-					<TruncatedValue value={pendingEntity.commitment} />
+					<TruncatedValue value={selection.entitySelector.commitment} />
 				</dd>
 			</div>
 		</dl>

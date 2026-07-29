@@ -40,6 +40,7 @@
 >
 	{#snippet Item({ item: beaconSlashing })}
 		{@const beaconSlashingSelector = beaconSlashing[EntityMetaKey.Selector]}
+		{@const network = beaconSlashingSelector.$network}
 		<EntityView
 			entityType={EntityType.BeaconSlashing}
 			entitySelector={beaconSlashingSelector}
@@ -48,20 +49,20 @@
 					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/slot/[slot=nonNegativeInteger]/(beaconSlot)/slashing/[kind=stringSegment]/[index=nonNegativeInteger]',
 					{
 						network: (
-							'caip2' in beaconSlashingSelector.$network ?
-								String(caip2StringFromValue(beaconSlashingSelector.$network.caip2))
+							'caip2' in network ?
+								caip2StringFromValue(network.caip2)
 							:
-								String(beaconSlashingSelector.$network.slug)
+								network.slug
 						),
 						slot: String(beaconSlashingSelector.slot),
-						kind: String(beaconSlashingSelector.kind),
+						kind: beaconSlashingSelector.kind,
 						index: String(beaconSlashingSelector.indexInSlot),
 					}
 				)
 			}
 		>
 			{#snippet Title()}
-				{(String(beaconSlashingSelector.indexInSlot ?? '') ? 'Slashing #' + String(beaconSlashingSelector.indexInSlot ?? '') : '') || ([beaconSlashingSelector.kind, (String(beaconSlashingSelector.indexInSlot) ? ' #' + String(beaconSlashingSelector.indexInSlot) : '')].filter(Boolean).join(' ')) || 'beacon slashing'}
+				{`Slashing #${beaconSlashingSelector.indexInSlot}`}
 			{/snippet}
 
 			{#snippet Value()}
@@ -69,7 +70,7 @@
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{(String(beaconSlashingSelector.slot) ? 'Slot ' + String(beaconSlashingSelector.slot) : '')}</span>
+				<span data-text="annotation">{'Slot ' + beaconSlashingSelector.slot}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

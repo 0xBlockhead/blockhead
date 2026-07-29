@@ -40,7 +40,7 @@
 
 
 <svelte:head>
-	<title>{(data.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.id ?? '') || 'Farcaster channel' : [pageSelection.entity.name, pageSelection.entitySelector.id].filter(Boolean).join(' ') || 'Farcaster channel'))} • Farcaster channel • Blockhead</title>
+	<title>{data.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.id ?? '') || 'Farcaster channel' : [pageSelection.entity.name, pageSelection.entitySelector.id].filter(Boolean).join(' ') || 'Farcaster channel')} • Farcaster channel • Blockhead</title>
 </svelte:head>
 
 

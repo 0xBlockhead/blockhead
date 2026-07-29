@@ -23,14 +23,13 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.EnsRecord_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const record = $derived(selection.entitySelector.$record)
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.TheGraph_Graphql,
 			Source.Voltaire_JsonRpc,
 		],
 	}))
-	const titleFallback = 'ENS record observation'
 
 
 	// Components
@@ -44,17 +43,20 @@
 <EntityView
 	entityType={EntityType.EnsRecord_Timestamp}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? 'ENS record observation'}
 	href={
-		href ?? resolve(
-			'/(explore)/(ens)/ens/(globalEnsNetwork)/name/[ensName=stringSegment]/(ensName)/record/[recordId=stringSegment]/(ensRecord)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
-			{
-				ensName: encodeURIComponent(String(selection.entitySelector.$record.$name.name)),
-				recordId: encodeURIComponent(String(selection.entitySelector.$record.recordKey)),
-				timestampMs: String(selection.entitySelector.timestampMs),
-				source: String(selection.entitySelector.source),
-			}
-		)
+		href === undefined ?
+			resolve(
+				'/(explore)/(ens)/ens/(globalEnsNetwork)/name/[ensName=stringSegment]/(ensName)/record/[recordId=stringSegment]/(ensRecord)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
+				{
+					ensName: encodeURIComponent(record.$name.name),
+					recordId: encodeURIComponent(record.recordKey),
+					timestampMs: String(selection.entitySelector.timestampMs),
+					source: selection.entitySelector.source,
+				}
+			)
+		:
+			href ?? undefined
 	}
 	{layout}
 	bind:open
@@ -63,14 +65,14 @@
 	{#snippet Title()}
 		<EnsRecordView
 			selection={select(EntityType.EnsRecord, selection.entitySelector.$record)}
-			href=""
+			href={null}
 			layout={EntityLayout.Title}
 			open={false}
 		/>
 	{/snippet}
 
 	{#snippet Value()}
-		<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+		<Timestamp timestamp={selection.entitySelector.timestampMs} />
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -91,7 +93,7 @@
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+					<Timestamp timestamp={selection.entitySelector.timestampMs} />
 				</dd>
 			</div>
 		</dl>
@@ -100,7 +102,7 @@
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 		</dl>

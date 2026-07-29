@@ -41,11 +41,11 @@
 			entitySelector={bnbBeaconTokenMigrationTimestampSelector}
 		>
 			{#snippet Title()}
-				{String(bnbBeaconTokenMigrationTimestampSelector.timestampMs) || 'bnb beacon token migration timestamp'}
+				{bnbBeaconTokenMigrationTimestampSelector.timestampMs}
 			{/snippet}
 
 			{#snippet Value()}
-				{(bnbBeaconTokenMigrationTimestamp.status ?? '')}
+				{bnbBeaconTokenMigrationTimestamp.status ?? ''}
 			{/snippet}
 
 			{#snippet HeadingAfter()}

@@ -49,7 +49,7 @@
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{String(hederaToken.decimals ?? '')}</span>
+				<span data-text="annotation">{hederaToken.decimals ?? ''}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

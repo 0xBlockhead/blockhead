@@ -5,7 +5,6 @@
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { EvmAddress } from '$/schema/ZeroExHex.ts'
 
 
 	// State
@@ -42,15 +41,15 @@
 			entitySelector={blockheadSessionSimulationLogSelector}
 		>
 			{#snippet Title()}
-				{String(blockheadSessionSimulationLogSelector.logIndex) || 'blockhead session simulation log'}
+				{blockheadSessionSimulationLogSelector.logIndex}
 			{/snippet}
 
 			{#snippet Value()}
-				{String(blockheadSessionSimulationLog.address ?? '')}
+				{blockheadSessionSimulationLog.address ?? ''}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{(blockheadSessionSimulationLog.callPath ?? '')}</span>
+				<span data-text="annotation">{blockheadSessionSimulationLog.callPath ?? ''}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

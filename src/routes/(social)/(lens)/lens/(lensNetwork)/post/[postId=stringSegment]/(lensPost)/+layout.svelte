@@ -33,7 +33,7 @@
 			resolve(
 				'/(social)/(lens)/lens/(lensNetwork)/post/[postId=stringSegment]',
 				{
-					postId: String(params.postId),
+					postId: params.postId,
 				}
 			)
 		}
@@ -49,7 +49,7 @@
 					resolve(
 						'/(social)/(lens)/lens/(lensNetwork)/post/[postId=stringSegment]',
 						{
-							postId: String(params.postId),
+							postId: params.postId,
 						}
 					)
 				}

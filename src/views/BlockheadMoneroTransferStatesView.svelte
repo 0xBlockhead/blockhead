@@ -51,7 +51,7 @@
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{String(blockheadMoneroTransferState.amountAtomicUnits ?? '')}</span>
+				<span data-text="annotation">{blockheadMoneroTransferState.amountAtomicUnits ?? ''}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

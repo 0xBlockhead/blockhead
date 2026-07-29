@@ -21,14 +21,12 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.Erc4626Vault_Block> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.SqdPortal_RawHttp,
 			Source.Voltaire_JsonRpc,
 		],
 	}))
-	const titleFallback = $derived(String(pendingEntity.blockNumber ?? '') || 'erc4626 vault block')
 
 
 	// Components
@@ -41,19 +39,19 @@
 <EntityView
 	entityType={EntityType.Erc4626Vault_Block}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? String(selection.entitySelector.blockNumber)}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
 		<NumberValue
-			value={pendingEntity.blockNumber}
+			value={selection.entitySelector.blockNumber}
 		/>
 	{/snippet}
 
 	{#snippet Value()}
-		{(pendingEntity.source ?? '') || String(pendingEntity.blockNumber ?? '') || titleFallback}
+		{selection.entitySelector.source || String(selection.entitySelector.blockNumber)}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -73,7 +71,7 @@
 				<dt>Block number</dt>
 				<dd>
 					<NumberValue
-						value={pendingEntity.blockNumber}
+						value={selection.entitySelector.blockNumber}
 					/>
 				</dd>
 			</div>
@@ -81,7 +79,7 @@
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 		</dl>

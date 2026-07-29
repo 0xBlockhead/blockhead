@@ -37,6 +37,7 @@
 >
 	{#snippet Item({ item: mevRelay })}
 		{@const mevRelaySelector = mevRelay[EntityMetaKey.Selector]}
+		{@const network = mevRelaySelector.$network}
 		<EntityView
 			entityType={EntityType.MevRelay}
 			entitySelector={mevRelaySelector}
@@ -45,12 +46,12 @@
 					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/mev/relay/[host=stringSegment]',
 					{
 						network: (
-							'caip2' in mevRelaySelector.$network ?
-								String(caip2StringFromValue(mevRelaySelector.$network.caip2))
+							'caip2' in network ?
+								caip2StringFromValue(network.caip2)
 							:
-								String(mevRelaySelector.$network.slug)
+								network.slug
 						),
-						host: String(mevRelaySelector.host),
+						host: mevRelaySelector.host,
 					}
 				)
 			}

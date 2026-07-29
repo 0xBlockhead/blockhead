@@ -48,7 +48,7 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{String(blockheadEnsNameSearch.resultLimit ?? '')}
+				{blockheadEnsNameSearch.resultLimit ?? ''}
 			{/snippet}
 		</EntityView>
 	{/snippet}

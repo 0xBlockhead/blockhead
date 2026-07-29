@@ -7,7 +7,6 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
-	import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -26,7 +25,7 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.EvmBlob> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const transaction = $derived(selection.entitySelector.$transaction)
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Voltaire_JsonRpc,
@@ -38,7 +37,6 @@
 			versionedHash: true,
 		},
 	}))
-	const titleFallback = $derived((String(pendingEntity.indexInTransaction ?? '') ? 'Blob #' + String(pendingEntity.indexInTransaction ?? '') : '') || 'EVM blob')
 
 
 	// Components
@@ -53,22 +51,25 @@
 <EntityView
 	entityType={EntityType.EvmBlob}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
-	idDragPlainText={String(pendingEntity.indexInTransaction ?? '')}
+	title={title ?? `Blob #${selection.entitySelector.indexInTransaction}`}
+	idDragPlainText={String(selection.entitySelector.indexInTransaction)}
 	href={
-		href ?? resolve(
-			'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(blobs)/blob/[transactionId=evmTxHash]/[indexInTransaction=nonNegativeInteger]',
-			{
-				network: (
-					'caip2' in selection.entitySelector.$transaction.$network ?
-						String(caip2StringFromValue(selection.entitySelector.$transaction.$network.caip2))
-					:
-						String(selection.entitySelector.$transaction.$network.slug)
-				),
-				transactionId: String(selection.entitySelector.$transaction.txHash),
-				indexInTransaction: String(selection.entitySelector.indexInTransaction),
-			}
-		)
+		href === undefined ?
+			resolve(
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(blobs)/blob/[transactionId=evmTxHash]/[indexInTransaction=nonNegativeInteger]',
+				{
+					network: (
+						'caip2' in transaction.$network ?
+							caip2StringFromValue(transaction.$network.caip2)
+						:
+							transaction.$network.slug
+					),
+					transactionId: transaction.txHash,
+					indexInTransaction: String(selection.entitySelector.indexInTransaction),
+				}
+			)
+		:
+			href ?? undefined
 	}
 	{layout}
 	bind:open
@@ -78,14 +79,14 @@
 		<span data-row="inline align-center gap-2 wrap">
 			<span>Blob </span>
 			<span data-badge="small">
-				#{String(pendingEntity.indexInTransaction)}
+				#{selection.entitySelector.indexInTransaction}
 			</span>
 		</span>
 	{/snippet}
 
 	{#snippet Value()}
 		<span data-badge="small">
-			#{String(pendingEntity.indexInTransaction)}
+			#{selection.entitySelector.indexInTransaction}
 		</span>
 	{/snippet}
 
@@ -93,7 +94,7 @@
 		<ResourceBoundary resource={evmBlob}>
 			{#snippet children(entity)}
 				<span data-text="muted">
-					<TruncatedValue value={String(entity.versionedHash)} />
+					<TruncatedValue value={entity.versionedHash} />
 				</span>
 			{/snippet}
 		</ResourceBoundary>
@@ -111,7 +112,7 @@
 				<dt>Index in transaction</dt>
 				<dd>
 					<span>#</span>
-					{String(pendingEntity.indexInTransaction)}
+					{selection.entitySelector.indexInTransaction}
 				</dd>
 			</div>
 
@@ -122,7 +123,7 @@
 						resource={evmBlob}
 					>
 						{#snippet children(entity)}
-							<TruncatedValue value={String(entity.versionedHash)} />
+							<TruncatedValue value={entity.versionedHash} />
 						{/snippet}
 					</ResourceBoundary>
 				</dd>

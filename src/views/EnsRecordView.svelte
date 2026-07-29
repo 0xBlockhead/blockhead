@@ -23,14 +23,12 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.EnsRecord> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.TheGraph_Graphql,
 			Source.Voltaire_JsonRpc,
 		],
 	}))
-	const titleFallback = $derived((pendingEntity.recordKey ?? '') || 'ENS record')
 
 
 	// Components
@@ -44,28 +42,31 @@
 <EntityView
 	entityType={EntityType.EnsRecord}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? (selection.entitySelector.recordKey || 'ENS record')}
 	href={
-		href ?? resolve(
-			'/(explore)/(ens)/ens/(globalEnsNetwork)/name/[ensName=stringSegment]/(ensName)/record/[recordId=stringSegment]',
-			{
-				ensName: encodeURIComponent(String(selection.entitySelector.$name.name)),
-				recordId: encodeURIComponent(String(selection.entitySelector.recordKey)),
-			}
-		)
+		href === undefined ?
+			resolve(
+				'/(explore)/(ens)/ens/(globalEnsNetwork)/name/[ensName=stringSegment]/(ensName)/record/[recordId=stringSegment]',
+				{
+					ensName: encodeURIComponent(selection.entitySelector.$name.name),
+					recordId: encodeURIComponent(selection.entitySelector.recordKey),
+				}
+			)
+		:
+			href ?? undefined
 	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{(pendingEntity.recordKey ?? '') || 'ENS record'}
+		{selection.entitySelector.recordKey || 'ENS record'}
 	{/snippet}
 
 	{#snippet Value()}
 		<EnsNameView
 			selection={select(EntityType.EnsName, selection.entitySelector.$name)}
-			href=""
+			href={null}
 			layout={EntityLayout.Value}
 			open={false}
 		/>
@@ -89,7 +90,7 @@
 			<div>
 				<dt>Record key</dt>
 				<dd>
-					{pendingEntity.recordKey}
+					{selection.entitySelector.recordKey}
 				</dd>
 			</div>
 		</dl>
@@ -143,15 +144,15 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const ensRecordEnsRecordTimestampsViewTimestampsResource = selection.$$timestamps}
+		{@const timestampsResource = selection.$$timestamps}
 		<ResourceBoundary
-			resource={ensRecordEnsRecordTimestampsViewTimestampsResource}
+			resource={timestampsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<EnsRecord_TimestampsView
-						selection={ensRecordEnsRecordTimestampsViewTimestampsResource}
-						countResource={ensRecordEnsRecordTimestampsViewTimestampsResource.count}
+						selection={timestampsResource}
+						countResource={timestampsResource.count}
 						title='Observations'
 						id='timestamps'
 					/>

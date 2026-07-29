@@ -42,7 +42,7 @@
 			entitySelector={filecoinDealSelector}
 		>
 			{#snippet Title()}
-				{String(filecoinDealSelector.dealId) || 'filecoin deal'}
+				{filecoinDealSelector.dealId}
 			{/snippet}
 
 			{#snippet Value()}
@@ -50,7 +50,7 @@
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{String(filecoinDeal.verifiedDeal ?? '')}</span>
+				<span data-text="annotation">{filecoinDeal.verifiedDeal ?? ''}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

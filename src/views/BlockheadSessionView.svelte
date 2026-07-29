@@ -26,7 +26,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.BlockheadSession> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Local_Internal,
@@ -40,7 +39,7 @@
 			updatedAt: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.name ?? '') || (pendingEntity.id ?? '') || 'session')
+	const titleFallback = $derived((prefetched.name ?? '') || selection.entitySelector.id || 'session')
 	const viewDomId = $derived('blockhead-session-' + encodeURIComponent(stringify(selection.entitySelector)))
 
 
@@ -62,12 +61,15 @@
 	id={viewDomId}
 	title={title ?? titleFallback}
 	href={
-		href ?? resolve(
-			'/~/session/[sessionId=stringSegment]',
-			{
-				sessionId: String(selection.entitySelector.id),
-			}
-		)
+		href === undefined ?
+			resolve(
+				'/~/session/[sessionId=stringSegment]',
+				{
+					sessionId: selection.entitySelector.id,
+				}
+			)
+		:
+			href ?? undefined
 	}
 	{layout}
 	bind:open
@@ -93,7 +95,7 @@
 		<ResourceBoundary resource={blockheadSession}>
 			{#snippet children(entity)}
 				<span data-text="muted">
-					<Timestamp timestamp={Number(entity.updatedAt)} />
+					<Timestamp timestamp={entity.updatedAt} />
 				</span>
 			{/snippet}
 		</ResourceBoundary>
@@ -121,7 +123,7 @@
 						resource={blockheadSession}
 					>
 						{#snippet children(entity)}
-							<Timestamp timestamp={Number(entity.createdAt)} />
+							<Timestamp timestamp={entity.createdAt} />
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -134,7 +136,7 @@
 						resource={blockheadSession}
 					>
 						{#snippet children(entity)}
-							<Timestamp timestamp={Number(entity.updatedAt)} />
+							<Timestamp timestamp={entity.updatedAt} />
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -155,7 +157,7 @@
 						<div>
 							<dt>Locked</dt>
 							<dd>
-								<Timestamp timestamp={Number(lockedAt)} />
+								<Timestamp timestamp={lockedAt} />
 							</dd>
 						</div>
 					{/if}
@@ -199,7 +201,7 @@
 						<div>
 							<dt>Simulation count</dt>
 							<dd>
-								{String(simulationCount)}
+								{simulationCount}
 							</dd>
 						</div>
 					{/if}

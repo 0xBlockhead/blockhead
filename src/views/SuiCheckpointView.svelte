@@ -20,8 +20,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.SuiCheckpoint> = $props()
 
-	const titleFallback = 'Sui checkpoint'
-
 
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -34,7 +32,7 @@
 <EntityView
 	entityType={EntityType.SuiCheckpoint}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? 'Sui checkpoint'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -69,7 +67,7 @@
 						}
 					>
 						{#snippet children(entity)}
-							{String(entity.sequence)}
+							{entity.sequence}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -109,7 +107,7 @@
 						<div>
 							<dt>epoch</dt>
 							<dd>
-								{String(epoch)}
+								{epoch}
 							</dd>
 						</div>
 					{/if}
@@ -131,7 +129,7 @@
 						<div>
 							<dt>Timestamp</dt>
 							<dd>
-								<Timestamp timestamp={Number(timestampMs)} />
+								<Timestamp timestamp={timestampMs} />
 							</dd>
 						</div>
 					{/if}

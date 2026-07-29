@@ -20,7 +20,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.ArweaveBlock> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const arweaveBlock = $derived(selection({
 		fields: {
 			height: true,
@@ -28,7 +27,6 @@
 			indepHash: true,
 		},
 	}))
-	const titleFallback = $derived(String(pendingEntity.height ?? '') || (pendingEntity.indepHash ?? '') || 'arweave block')
 
 
 	// Components
@@ -44,7 +42,7 @@
 <EntityView
 	entityType={EntityType.ArweaveBlock}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? (String(prefetched.height ?? '') || (prefetched.indepHash ?? '') || 'arweave block')}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -62,9 +60,9 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={arweaveBlock}>
 			{#snippet children(entity)}
-				{@const timestampMs0 = entity.timestampMs}
-				{#if timestampMs0 != null}
-					<Timestamp timestamp={Number(timestampMs0)} />
+				{@const timestampMs = entity.timestampMs}
+				{#if timestampMs != null}
+					<Timestamp timestamp={timestampMs} />
 				{/if}
 			{/snippet}
 		</ResourceBoundary>
@@ -144,7 +142,7 @@
 						<div>
 							<dt>Timestamp</dt>
 							<dd>
-								<Timestamp timestamp={Number(timestampMs)} />
+								<Timestamp timestamp={timestampMs} />
 							</dd>
 						</div>
 					{/if}
@@ -354,7 +352,7 @@
 						<div>
 							<dt>hash list merkle</dt>
 							<dd>
-								<TruncatedValue value={hashListMerkle} />
+								{hashListMerkle}
 							</dd>
 						</div>
 					{/if}
@@ -364,15 +362,15 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const arweaveBlockArweaveTransactionsViewTransactionsResource = selection.$$transactions}
+		{@const transactionsResource = selection.$$transactions}
 		<ResourceBoundary
-			resource={arweaveBlockArweaveTransactionsViewTransactionsResource}
+			resource={transactionsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<ArweaveTransactionsView
-						selection={arweaveBlockArweaveTransactionsViewTransactionsResource}
-						countResource={arweaveBlockArweaveTransactionsViewTransactionsResource.count}
+						selection={transactionsResource}
+						countResource={transactionsResource.count}
 						title='transactions'
 						id='transactions'
 					/>

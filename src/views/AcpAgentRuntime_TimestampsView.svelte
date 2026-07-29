@@ -41,15 +41,15 @@
 			entitySelector={acpAgentRuntimeTimestampSelector}
 		>
 			{#snippet Title()}
-				{String(acpAgentRuntimeTimestampSelector.timestampMs) || 'ACP agent runtime timestamp'}
+				{acpAgentRuntimeTimestampSelector.timestampMs}
 			{/snippet}
 
 			{#snippet Value()}
-				{(acpAgentRuntimeTimestamp.health ?? '')}
+				{acpAgentRuntimeTimestamp.health ?? ''}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{(acpAgentRuntimeTimestamp.protocolVersion ?? '')}</span>
+				<span data-text="annotation">{acpAgentRuntimeTimestamp.protocolVersion ?? ''}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

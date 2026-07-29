@@ -1,10 +1,10 @@
 // Generated from APP.ts. Do not edit by hand.
 
 import { Source } from '$/sources/Source.ts'
-import { ApiFamily, SourceCredentialScope, SourceDelivery, SourceEndpointKind, SourceOperationGroup, SourceTargetKind, WireProtocol, type SourceBindingIndex } from '$/sources/SourceBinding.ts'
+import { ApiFamily, indexSourceBindings, SourceCredentialScope, SourceDelivery, SourceEndpointKind, SourceOperationGroup, SourceTargetKind, WireProtocol, type SourceBinding } from '$/sources/SourceBinding.ts'
 
-export default {
-	[Source.Pyth_EvmContract]: {
+const bindings = [
+	{
 		source: Source.Pyth_EvmContract,
 		target: {
 			kind: SourceTargetKind.Global,
@@ -28,7 +28,7 @@ export default {
 			},
 		],
 	},
-	[Source.Pyth_SolanaProgram]: {
+	{
 		source: Source.Pyth_SolanaProgram,
 		target: {
 			kind: SourceTargetKind.Caip2Network,
@@ -52,7 +52,7 @@ export default {
 			},
 		],
 	},
-	[Source.PythHermes_Rest]: {
+	{
 		source: Source.PythHermes_Rest,
 		target: {
 			kind: SourceTargetKind.Global,
@@ -77,9 +77,8 @@ export default {
 				scope: SourceCredentialScope.None,
 			},
 		],
-		proxyId: '["PythHermes_Rest","Global","pyth-hermes","HttpProxy","RestJson"]',
 	},
-	[Source.PythBenchmarks_Rest]: {
+	{
 		source: Source.PythBenchmarks_Rest,
 		target: {
 			kind: SourceTargetKind.Global,
@@ -104,9 +103,8 @@ export default {
 				scope: SourceCredentialScope.None,
 			},
 		],
-		proxyId: '["PythBenchmarks_Rest","Global","pyth-benchmarks","HttpProxy","RestJson"]',
 	},
-	[Source.PythPriceFeedsCatalog_Rest]: {
+	{
 		source: Source.PythPriceFeedsCatalog_Rest,
 		target: {
 			kind: SourceTargetKind.Global,
@@ -131,6 +129,13 @@ export default {
 				scope: SourceCredentialScope.None,
 			},
 		],
-		proxyId: '["PythPriceFeedsCatalog_Rest","Global","pyth-price-feeds-catalog","HttpProxy","RestJson"]',
 	},
-} as const satisfies SourceBindingIndex
+] as const satisfies readonly SourceBinding[]
+
+export default indexSourceBindings<{
+	readonly [Source.Pyth_EvmContract]: typeof bindings[0]
+	readonly [Source.Pyth_SolanaProgram]: typeof bindings[1]
+	readonly [Source.PythHermes_Rest]: typeof bindings[2]
+	readonly [Source.PythBenchmarks_Rest]: typeof bindings[3]
+	readonly [Source.PythPriceFeedsCatalog_Rest]: typeof bindings[4]
+}>(bindings)

@@ -15,7 +15,8 @@ export const load: LayoutLoad = ({ params }) => {
 			scope: 'RssNetwork',
 		}
 	)
-	if (rssNetworkScopeSelector instanceof arktype.errors) error(404, 'Invalid RssNetwork selector')
+	if (rssNetworkScopeSelector instanceof arktype.errors)
+		error(404, 'Invalid RssNetwork selector')
 
 	return {
 		selector: rssNetworkScopeSelector,

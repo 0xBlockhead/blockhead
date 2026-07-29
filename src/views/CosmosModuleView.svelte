@@ -21,8 +21,7 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.CosmosModule> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const titleFallback = $derived((pendingEntity.moduleName ?? '') || 'Cosmos module')
+	const titleFallback = $derived(selection.entitySelector.moduleName || 'Cosmos module')
 
 
 	// Components
@@ -41,11 +40,11 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{(pendingEntity.moduleName ?? '') || 'Cosmos module'}
+		{selection.entitySelector.moduleName || 'Cosmos module'}
 	{/snippet}
 
 	{#snippet Value()}
-		{(pendingEntity.moduleName ?? '') || titleFallback}
+		{selection.entitySelector.moduleName || titleFallback}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
@@ -63,7 +62,7 @@
 			<div>
 				<dt>Module name</dt>
 				<dd>
-					{pendingEntity.moduleName}
+					{selection.entitySelector.moduleName}
 				</dd>
 			</div>
 

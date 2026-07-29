@@ -59,7 +59,7 @@
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{((farcasterUser.username ?? '') ? '@' + (farcasterUser.username ?? '') : '')}</span>
+				<span data-text="annotation">{farcasterUser.username ? '@' + farcasterUser.username : ''}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

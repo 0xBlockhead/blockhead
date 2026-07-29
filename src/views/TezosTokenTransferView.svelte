@@ -21,9 +21,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.TezosTokenTransfer> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const titleFallback = 'tezos token transfer'
-
 
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -39,7 +36,7 @@
 <EntityView
 	entityType={EntityType.TezosTokenTransfer}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? 'tezos token transfer'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -64,14 +61,14 @@
 			<div>
 				<dt>transfer ID</dt>
 				<dd>
-					{pendingEntity.transferId}
+					{selection.entitySelector.transferId}
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 
@@ -170,7 +167,7 @@
 						<div>
 							<dt>level</dt>
 							<dd>
-								{String(level)}
+								{level}
 							</dd>
 						</div>
 					{/if}
@@ -192,7 +189,7 @@
 						<div>
 							<dt>Timestamp</dt>
 							<dd>
-								<Timestamp timestamp={Number(timestampMs)} />
+								<Timestamp timestamp={timestampMs} />
 							</dd>
 						</div>
 					{/if}
@@ -236,7 +233,7 @@
 						<div>
 							<dt>Token ID</dt>
 							<dd>
-								{String(tokenId)}
+								{tokenId}
 							</dd>
 						</div>
 					{/if}
@@ -258,7 +255,7 @@
 						<div>
 							<dt>amount</dt>
 							<dd>
-								{String(amount)}
+								{amount}
 							</dd>
 						</div>
 					{/if}

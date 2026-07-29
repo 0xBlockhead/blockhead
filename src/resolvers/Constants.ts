@@ -49,7 +49,7 @@ import {
 	networkStackByNetworkStackId,
 } from '$/constants/NetworkStack.ts'
 import { TransportType } from '$/constants/TransportType.ts'
-import { AssetInstanceKind } from '$/schema/AssetInstance.ts'
+import { AssetInstanceKind } from '$/schema/AssetInstanceKind.ts'
 import {
 	MarketVenueId,
 	marketVenueById,
@@ -103,7 +103,7 @@ import {
 	EntityMetaKey,
 	entityFieldAddressKey,
 } from '$/schema/$schema.ts'
-import { CoinInstanceType } from '$/schema/EvmCoinInstance.ts'
+import { CoinInstanceType } from '$/schema/CoinInstanceType.ts'
 import type { EntitySelector, EntitySelectorForSelectorName } from '$/schema/$schema.ts'
 import { schema } from '$/schema/index.ts'
 import { EntityType } from '$/schema/EntityType.ts'
@@ -115,7 +115,7 @@ import {
 } from '$/constants/precompiles/index.ts'
 import { standardPrecompiles } from '$/constants/precompiles/standard.ts'
 import { hexLowerOfByteSize } from '$/lib/hexLowerOfByteSize.ts'
-import { ZcashShieldedPoolKind } from '$/schema/ZcashShieldedPool.ts'
+import { ZcashShieldedPoolKind } from '$/schema/ZcashShieldedPoolKind.ts'
 
 const nativeAssetCoinIdByNamespace = {
 	[NetworkNamespace.Algorand]: CoinId.ALGO,

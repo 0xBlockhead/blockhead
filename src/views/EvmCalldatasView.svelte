@@ -6,7 +6,6 @@
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 
 
 	// State
@@ -43,13 +42,13 @@
 				resolve(
 					'/(explore)/(protocols)/evm/(evmProtocol)/(calldata)/calldata/[hex=zeroExHex]',
 					{
-						hex: String(evmCalldataSelector.hex),
+						hex: evmCalldataSelector.hex,
 					}
 				)
 			}
 		>
 			{#snippet Title()}
-				{String(evmCalldataSelector.hex) || 'EVM calldata'}
+				{evmCalldataSelector.hex || 'EVM calldata'}
 			{/snippet}
 		</EntityView>
 	{/snippet}

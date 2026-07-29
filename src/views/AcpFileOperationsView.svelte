@@ -49,7 +49,7 @@
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{(acpFileOperation.path ?? '')}</span>
+				<span data-text="annotation">{acpFileOperation.path ?? ''}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

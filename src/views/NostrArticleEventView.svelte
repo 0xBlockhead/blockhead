@@ -42,7 +42,12 @@
 			contentWarning: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.sensitive === true || String(pendingEntity.contentWarning ?? '').trim() !== '' ? [String(pendingEntity.contentWarning ?? '').trim() || 'Sensitive content', (pendingEntity.eventId ?? '')].filter(Boolean).join(' ') : [(pendingEntity.title ?? ''), (pendingEntity.identifier ?? '')].filter(Boolean).join(' ') || (pendingEntity.eventId ?? '') || 'Nostr article event'))
+	const titleFallback = $derived((
+		pendingEntity.sensitive === true || (pendingEntity.contentWarning ?? '').trim() !== '' ?
+			[(pendingEntity.contentWarning ?? '').trim() || 'Sensitive content', (pendingEntity.eventId ?? '')].filter(Boolean).join(' ')
+		:
+			[(prefetched.title ?? ''), (prefetched.identifier ?? '')].filter(Boolean).join(' ') || selection.entitySelector.eventId || 'Nostr article event'
+	))
 
 
 	// Components
@@ -61,12 +66,15 @@
 	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
 	href={
-		href ?? resolve(
-			'/(social)/(nostr)/nostr/(globalNostrNetwork)/article-version/[eventId=stringSegment]',
-			{
-				eventId: String(selection.entitySelector.eventId),
-			}
-		)
+		href === undefined ?
+			resolve(
+				'/(social)/(nostr)/nostr/(globalNostrNetwork)/article-version/[eventId=stringSegment]',
+				{
+					eventId: selection.entitySelector.eventId,
+				}
+			)
+		:
+			href ?? undefined
 	}
 	{layout}
 	bind:open
@@ -75,7 +83,12 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={nostrArticleEvent}>
 			{#snippet children(entity)}
-				{(entity.sensitive === true || String(entity.contentWarning ?? '').trim() !== '' ? [String(entity.contentWarning ?? '').trim() || 'Sensitive content', (pendingEntity.eventId ?? '')].filter(Boolean).join(' ') : [(entity.title ?? ''), entity.identifier].filter(Boolean).join(' ') || title || titleFallback)}
+				{
+					entity.sensitive === true || (entity.contentWarning ?? '').trim() !== '' ?
+							[(entity.contentWarning ?? '').trim() || 'Sensitive content', (pendingEntity.eventId ?? '')].filter(Boolean).join(' ')
+						:
+							[(entity.title ?? ''), entity.identifier].filter(Boolean).join(' ') || title || titleFallback
+				}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -83,7 +96,12 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={nostrArticleEvent}>
 			{#snippet children(entity)}
-				{(entity.sensitive === true || String(entity.contentWarning ?? '').trim() !== '' ? [String(entity.contentWarning ?? '').trim() || 'Sensitive content', (pendingEntity.eventId ?? '')].filter(Boolean).join(' ') : pendingEntity.eventId || [(entity.title ?? ''), entity.identifier].filter(Boolean).join(' ') || titleFallback)}
+				{
+					entity.sensitive === true || (entity.contentWarning ?? '').trim() !== '' ?
+							[(entity.contentWarning ?? '').trim() || 'Sensitive content', (pendingEntity.eventId ?? '')].filter(Boolean).join(' ')
+						:
+							selection.entitySelector.eventId || [(entity.title ?? ''), entity.identifier].filter(Boolean).join(' ') || titleFallback
+				}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -92,7 +110,7 @@
 		<ResourceBoundary resource={nostrArticleEvent}>
 			{#snippet children(entity)}
 				<span data-text="muted">
-					<Timestamp timestamp={Number(entity.createdAt)} />
+					<Timestamp timestamp={entity.createdAt} />
 				</span>
 			{/snippet}
 		</ResourceBoundary>
@@ -106,7 +124,7 @@
 
 	{#snippet ContentWarningContent(content)}
 		{#if content != null && content !== ''}
-			<Markdown content={String(content)} />
+			<Markdown content={content} />
 		{/if}
 	{/snippet}
 
@@ -155,7 +173,7 @@
 						resource={nostrArticleEvent}
 					>
 						{#snippet children(entity)}
-							<Timestamp timestamp={Number(entity.createdAt)} />
+							<Timestamp timestamp={entity.createdAt} />
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -170,7 +188,7 @@
 						<div>
 							<dt>Published</dt>
 							<dd>
-								<Timestamp timestamp={Number(publishedAt)} />
+								<Timestamp timestamp={publishedAt} />
 							</dd>
 						</div>
 					{/if}
@@ -180,7 +198,7 @@
 			<div>
 				<dt>Event ID</dt>
 				<dd>
-					<TruncatedValue value={pendingEntity.eventId} />
+					<TruncatedValue value={selection.entitySelector.eventId} />
 				</dd>
 			</div>
 
@@ -211,7 +229,7 @@
 		>
 			{#snippet children(entity)}
 				{@const content = entity.content}
-				{@const contentWarningText = String(entity.contentWarning ?? '').trim()}
+				{@const contentWarningText = (entity.contentWarning ?? '').trim()}
 				{#if entity.sensitive === true || contentWarningText !== ''}
 					<Collapsible
 						open={revealedContentWarningSelectorKey === contentWarningSelectorKey}

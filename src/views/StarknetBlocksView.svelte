@@ -41,7 +41,7 @@
 			entitySelector={starknetBlockSelector}
 		>
 			{#snippet Title()}
-				{String(starknetBlockSelector.blockNumber) || 'starknet block'}
+				{starknetBlockSelector.blockNumber}
 			{/snippet}
 
 			{#snippet Value()}
@@ -49,7 +49,7 @@
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{(starknetBlock.status ?? '')}</span>
+				<span data-text="annotation">{starknetBlock.status ?? ''}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

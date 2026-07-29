@@ -6,7 +6,6 @@
 	import ProjectionBoundary from '$/components/ProjectionBoundary.svelte'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { NetworkExecutionModel, NetworkLedgerModel } from '$/constants/Network.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
@@ -25,8 +24,7 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.Network_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const titleFallback = $derived(String(pendingEntity.timestampMs ?? '') || 'Network timestamp')
+	const network = $derived(selection.entitySelector.$network)
 
 
 	// Components
@@ -41,32 +39,35 @@
 <EntityView
 	entityType={EntityType.Network_Timestamp}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? String(selection.entitySelector.timestampMs)}
 	href={
-		href ?? resolve(
-			'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/observation/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
-			{
-				network: (
-					'caip2' in selection.entitySelector.$network ?
-						String(caip2StringFromValue(selection.entitySelector.$network.caip2))
-					:
-						String(selection.entitySelector.$network.slug)
-				),
-				timestampMs: String(selection.entitySelector.timestampMs),
-				source: String(selection.entitySelector.source),
-			}
-		)
+		href === undefined ?
+			resolve(
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/observation/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
+				{
+					network: (
+						'caip2' in network ?
+							caip2StringFromValue(network.caip2)
+						:
+							network.slug
+					),
+					timestampMs: String(selection.entitySelector.timestampMs),
+					source: selection.entitySelector.source,
+				}
+			)
+		:
+			href ?? undefined
 	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+		<Timestamp timestamp={selection.entitySelector.timestampMs} />
 	{/snippet}
 
 	{#snippet Value()}
-		{(pendingEntity.source ?? '') || String(pendingEntity.timestampMs ?? '') || titleFallback}
+		{selection.entitySelector.source || String(selection.entitySelector.timestampMs)}
 	{/snippet}
 
 	{#snippet TypeAnnotationTooltip()}
@@ -91,14 +92,14 @@
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+					<Timestamp timestamp={selection.entitySelector.timestampMs} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 
@@ -186,7 +187,7 @@
 								<div>
 									<dt>Latest block time</dt>
 									<dd>
-										<Timestamp timestamp={Number(latestBlockTimeMs)} />
+										<Timestamp timestamp={latestBlockTimeMs} />
 									</dd>
 								</div>
 							{/if}
@@ -316,7 +317,7 @@
 								<div>
 									<dt>Bonded validators</dt>
 									<dd>
-										{String(bondedValidatorCount)}
+										{bondedValidatorCount}
 									</dd>
 								</div>
 							{/if}
@@ -331,7 +332,7 @@
 								<div>
 									<dt>Bonded tokens</dt>
 									<dd>
-										{String(bondedTokens)}
+										{bondedTokens}
 									</dd>
 								</div>
 							{/if}
@@ -346,7 +347,7 @@
 								<div>
 									<dt>Not bonded tokens</dt>
 									<dd>
-										{String(notBondedTokens)}
+										{notBondedTokens}
 									</dd>
 								</div>
 							{/if}
@@ -433,7 +434,7 @@
 								<div>
 									<dt>Runtime spec version</dt>
 									<dd>
-										{String(runtimeSpecVersion)}
+										{runtimeSpecVersion}
 									</dd>
 								</div>
 							{/if}
@@ -448,7 +449,7 @@
 								<div>
 									<dt>Transaction version</dt>
 									<dd>
-										{String(transactionVersion)}
+										{transactionVersion}
 									</dd>
 								</div>
 							{/if}
@@ -463,7 +464,7 @@
 								<div>
 									<dt>State version</dt>
 									<dd>
-										{String(stateVersion)}
+										{stateVersion}
 									</dd>
 								</div>
 							{/if}
@@ -478,7 +479,7 @@
 								<div>
 									<dt>Peers</dt>
 									<dd>
-										{String(peerCount)}
+										{peerCount}
 									</dd>
 								</div>
 							{/if}
@@ -580,7 +581,7 @@
 								<div>
 									<dt>Epoch</dt>
 									<dd>
-										{String(epoch)}
+										{epoch}
 									</dd>
 								</div>
 							{/if}
@@ -595,7 +596,7 @@
 								<div>
 									<dt>Slot index</dt>
 									<dd>
-										{String(slotIndex)}
+										{slotIndex}
 									</dd>
 								</div>
 							{/if}
@@ -610,7 +611,7 @@
 								<div>
 									<dt>Slots in epoch</dt>
 									<dd>
-										{String(slotsInEpoch)}
+										{slotsInEpoch}
 									</dd>
 								</div>
 							{/if}
@@ -642,7 +643,7 @@
 								<div>
 									<dt>Current validator count</dt>
 									<dd>
-										{String(currentValidatorCount)}
+										{currentValidatorCount}
 									</dd>
 								</div>
 							{/if}
@@ -657,7 +658,7 @@
 								<div>
 									<dt>Delinquent validator count</dt>
 									<dd>
-										{String(delinquentValidatorCount)}
+										{delinquentValidatorCount}
 									</dd>
 								</div>
 							{/if}
@@ -672,7 +673,7 @@
 								<div>
 									<dt>Total activated stake</dt>
 									<dd>
-										{String(totalActivatedStakeLamports)}
+										{totalActivatedStakeLamports}
 									</dd>
 								</div>
 							{/if}
@@ -702,7 +703,7 @@
 								<div>
 									<dt>Feature set</dt>
 									<dd>
-										{String(featureSet)}
+										{featureSet}
 									</dd>
 								</div>
 							{/if}
@@ -757,7 +758,7 @@
 								<div>
 									<dt>Best block time</dt>
 									<dd>
-										<Timestamp timestamp={Number(bestBlockTimeMs)} />
+										<Timestamp timestamp={bestBlockTimeMs} />
 									</dd>
 								</div>
 							{/if}
@@ -772,7 +773,7 @@
 								<div>
 									<dt>Block count</dt>
 									<dd>
-										{String(blockCount)}
+										{blockCount}
 									</dd>
 								</div>
 							{/if}
@@ -787,7 +788,7 @@
 								<div>
 									<dt>Transaction count</dt>
 									<dd>
-										{String(transactionCount)}
+										{transactionCount}
 									</dd>
 								</div>
 							{/if}
@@ -802,7 +803,7 @@
 								<div>
 									<dt>Blocks 24h</dt>
 									<dd>
-										{String(blocks24h)}
+										{blocks24h}
 									</dd>
 								</div>
 							{/if}
@@ -817,7 +818,7 @@
 								<div>
 									<dt>Transactions 24h</dt>
 									<dd>
-										{String(transactions24h)}
+										{transactions24h}
 									</dd>
 								</div>
 							{/if}
@@ -832,7 +833,7 @@
 								<div>
 									<dt>Mempool transaction count</dt>
 									<dd>
-										{String(mempoolTransactionCount)}
+										{mempoolTransactionCount}
 									</dd>
 								</div>
 							{/if}
@@ -847,7 +848,7 @@
 								<div>
 									<dt>Mempool size</dt>
 									<dd>
-										{String(mempoolSizeBytes)}
+										{mempoolSizeBytes}
 									</dd>
 								</div>
 							{/if}
@@ -862,7 +863,7 @@
 								<div>
 									<dt>Mempool TPS</dt>
 									<dd>
-										{String(mempoolTps)}
+										{mempoolTps}
 									</dd>
 								</div>
 							{/if}
@@ -877,7 +878,7 @@
 								<div>
 									<dt>Average transaction fee 24h</dt>
 									<dd>
-										{String(averageTransactionFee24hSats)}
+										{averageTransactionFee24hSats}
 									</dd>
 								</div>
 							{/if}
@@ -892,7 +893,7 @@
 								<div>
 									<dt>Median transaction fee 24h</dt>
 									<dd>
-										{String(medianTransactionFee24hSats)}
+										{medianTransactionFee24hSats}
 									</dd>
 								</div>
 							{/if}
@@ -907,7 +908,7 @@
 								<div>
 									<dt>Suggested fee per byte</dt>
 									<dd>
-										{String(suggestedTransactionFeePerByteSats)}
+										{suggestedTransactionFeePerByteSats}
 									</dd>
 								</div>
 							{/if}
@@ -922,7 +923,7 @@
 								<div>
 									<dt>Blockchain size</dt>
 									<dd>
-										{String(blockchainSizeBytes)}
+										{blockchainSizeBytes}
 									</dd>
 								</div>
 							{/if}

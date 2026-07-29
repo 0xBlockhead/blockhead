@@ -41,7 +41,7 @@
 			entitySelector={ibcPacketSelector}
 		>
 			{#snippet Title()}
-				{(String(ibcPacketSelector.sequence ?? '') ? 'Packet #' + String(ibcPacketSelector.sequence ?? '') : '') || 'IBC packet'}
+				{`Packet #${ibcPacketSelector.sequence}`}
 			{/snippet}
 
 			{#snippet HeadingAfter()}

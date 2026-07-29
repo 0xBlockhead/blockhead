@@ -57,7 +57,7 @@
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{String(a2aArtifact.createdAt ?? '')}</span>
+				<span data-text="annotation">{a2aArtifact.createdAt ?? ''}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

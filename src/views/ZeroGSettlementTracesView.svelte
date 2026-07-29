@@ -49,7 +49,7 @@
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{(zeroGSettlementTrace.settlementTransactionHash ?? '')}</span>
+				<span data-text="annotation">{zeroGSettlementTrace.settlementTransactionHash ?? ''}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

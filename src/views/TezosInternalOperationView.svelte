@@ -20,9 +20,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.TezosInternalOperation> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const titleFallback = 'tezos internal operation'
-
 
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -34,7 +31,7 @@
 <EntityView
 	entityType={EntityType.TezosInternalOperation}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? 'tezos internal operation'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -59,7 +56,7 @@
 			<div>
 				<dt>internal index</dt>
 				<dd>
-					{String(pendingEntity.internalIndex)}
+					{selection.entitySelector.internalIndex}
 				</dd>
 			</div>
 
@@ -141,7 +138,7 @@
 						<div>
 							<dt>amount mutez</dt>
 							<dd>
-								{String(amountMutez)}
+								{amountMutez}
 							</dd>
 						</div>
 					{/if}
@@ -163,7 +160,7 @@
 						<div>
 							<dt>nonce</dt>
 							<dd>
-								{String(nonce)}
+								{nonce}
 							</dd>
 						</div>
 					{/if}
@@ -207,7 +204,7 @@
 						<div>
 							<dt>consumed gas</dt>
 							<dd>
-								{String(consumedGas)}
+								{consumedGas}
 							</dd>
 						</div>
 					{/if}

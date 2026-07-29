@@ -2,7 +2,8 @@
 
 import bindings from '$/sources/SolanaSimds/bindings.ts'
 import { Source } from '$/sources/Source.ts'
-import { SourceProvider, type SourceProviderDefinition } from '$/sources/SourceProvider.ts'
+import { SourceProvider } from '$/sources/SourceProvider.ts'
+import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinition.ts'
 
 export default {
 	provider: SourceProvider.SolanaSimds,
@@ -13,5 +14,5 @@ export default {
 			label: 'Solana SIMDs GitHub',
 		},
 	],
-	bindings: [bindings[Source.SolanaSimds_Github]],
+	bindings: Object.values(bindings).flat(),
 } satisfies SourceProviderDefinition

@@ -46,11 +46,11 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{(a2aTask.contextId ?? '')}
+				{a2aTask.contextId ?? ''}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{String(a2aTask.updatedAt ?? '')}</span>
+				<span data-text="annotation">{a2aTask.updatedAt ?? ''}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

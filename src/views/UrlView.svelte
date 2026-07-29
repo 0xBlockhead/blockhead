@@ -5,7 +5,6 @@
 	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { UrlString } from '$/schema/UrlString.ts'
 
 
 	// State
@@ -19,9 +18,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.Url> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const titleFallback = $derived(String(pendingEntity.url ?? '') || 'URL')
-
 
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -32,14 +28,17 @@
 <EntityView
 	entityType={EntityType.Url}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? (selection.entitySelector.url || 'URL')}
 	href={
-		href ?? resolve(
-			'/(explore)/url/[url=absoluteUrl]',
-			{
-				url: encodeURIComponent(String(selection.entitySelector.url)),
-			}
-		)
+		href === undefined ?
+			resolve(
+				'/(explore)/url/[url=absoluteUrl]',
+				{
+					url: encodeURIComponent(selection.entitySelector.url),
+				}
+			)
+		:
+			href ?? undefined
 	}
 	{layout}
 	bind:open
@@ -47,16 +46,16 @@
 >
 	{#snippet Title()}
 		<a
-			href={String(pendingEntity.url)}
+			href={selection.entitySelector.url}
 			target="_blank"
 			rel="noreferrer noopener"
 		>
-			<TruncatedValue value={String(pendingEntity.url)} />
+			<TruncatedValue value={selection.entitySelector.url} />
 		</a>
 	{/snippet}
 
 	{#snippet Value()}
-		<TruncatedValue value={String(pendingEntity.url)} />
+		<TruncatedValue value={selection.entitySelector.url} />
 	{/snippet}
 
 	{#snippet TypeAnnotationTooltip()}
@@ -71,11 +70,11 @@
 				<dt>URL</dt>
 				<dd>
 					<a
-						href={String(pendingEntity.url)}
+						href={selection.entitySelector.url}
 						target="_blank"
 						rel="noreferrer noopener"
 					>
-						<TruncatedValue value={String(pendingEntity.url)} />
+						<TruncatedValue value={selection.entitySelector.url} />
 					</a>
 				</dd>
 			</div>

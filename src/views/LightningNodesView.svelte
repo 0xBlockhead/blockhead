@@ -37,6 +37,7 @@
 >
 	{#snippet Item({ item: lightningNode })}
 		{@const lightningNodeSelector = lightningNode[EntityMetaKey.Selector]}
+		{@const network = lightningNodeSelector.$network}
 		<EntityView
 			entityType={EntityType.LightningNode}
 			entitySelector={lightningNodeSelector}
@@ -45,12 +46,12 @@
 					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/nodes/[pubkey=stringSegment]',
 					{
 						network: (
-							'caip2' in lightningNodeSelector.$network ?
-								String(caip2StringFromValue(lightningNodeSelector.$network.caip2))
+							'caip2' in network ?
+								caip2StringFromValue(network.caip2)
 							:
-								String(lightningNodeSelector.$network.slug)
+								network.slug
 						),
-						pubkey: String(lightningNodeSelector.publicKey),
+						pubkey: lightningNodeSelector.publicKey,
 					}
 				)
 			}

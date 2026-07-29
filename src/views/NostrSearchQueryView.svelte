@@ -20,19 +20,16 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.NostrSearchQuery> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const viewSelection = $derived(selection({
+	const nostrSearchQuery = $derived(selection({
 		sources: selection.sources ?? [
 			Source.NostrBand_Rest,
 		],
-	}))
-	const nostrSearchQuery = $derived(viewSelection({
+	})({
 		fields: {
 			resultCount: true,
 			completed: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.query ?? '') || 'Nostr profile search')
 	const viewDomId = $derived('nostr-search-query-' + encodeURIComponent(stringify(selection.entitySelector)))
 
 
@@ -49,21 +46,24 @@
 	entityType={EntityType.NostrSearchQuery}
 	entitySelector={selection.entitySelector}
 	id={viewDomId}
-	title={title ?? titleFallback}
+	title={title ?? (selection.entitySelector.query || 'Nostr profile search')}
 	href={
-		href ?? resolve(
-			'/(social)/(nostr)/nostr/(globalNostrNetwork)/search/[query=stringSegment]',
-			{
-				query: String(selection.entitySelector.query),
-			}
-		)
+		href === undefined ?
+			resolve(
+				'/(social)/(nostr)/nostr/(globalNostrNetwork)/search/[query=stringSegment]',
+				{
+					query: selection.entitySelector.query,
+				}
+			)
+		:
+			href ?? undefined
 	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{(pendingEntity.query ?? '') || 'Nostr profile search'}
+		{selection.entitySelector.query || 'Nostr profile search'}
 	{/snippet}
 
 	{#snippet Value()}
@@ -87,7 +87,7 @@
 			<div>
 				<dt>Query</dt>
 				<dd>
-					{pendingEntity.query}
+					{selection.entitySelector.query}
 				</dd>
 			</div>
 

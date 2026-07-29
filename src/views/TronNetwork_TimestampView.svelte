@@ -20,9 +20,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.TronNetwork_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const titleFallback = 'tron network timestamp'
-
 
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -35,7 +32,7 @@
 <EntityView
 	entityType={EntityType.TronNetwork_Timestamp}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? 'tron network timestamp'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -60,14 +57,14 @@
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+					<Timestamp timestamp={selection.entitySelector.timestampMs} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 
@@ -86,7 +83,7 @@
 						<div>
 							<dt>Latest block height</dt>
 							<dd>
-								{String(latestBlockHeight)}
+								{latestBlockHeight}
 							</dd>
 						</div>
 					{/if}
@@ -130,7 +127,7 @@
 						<div>
 							<dt>Latest block time</dt>
 							<dd>
-								{String(latestBlockTimeMs)}
+								{latestBlockTimeMs}
 							</dd>
 						</div>
 					{/if}
@@ -152,7 +149,7 @@
 						<div>
 							<dt>Latest block transactions</dt>
 							<dd>
-								{String(latestBlockTransactionCount)}
+								{latestBlockTransactionCount}
 							</dd>
 						</div>
 					{/if}
@@ -174,7 +171,7 @@
 						<div>
 							<dt>Witness count</dt>
 							<dd>
-								{String(witnessCount)}
+								{witnessCount}
 							</dd>
 						</div>
 					{/if}
@@ -196,7 +193,7 @@
 						<div>
 							<dt>Active witnesses</dt>
 							<dd>
-								{String(activeWitnessCount)}
+								{activeWitnessCount}
 							</dd>
 						</div>
 					{/if}
@@ -218,7 +215,7 @@
 						<div>
 							<dt>Node block height</dt>
 							<dd>
-								{String(nodeBlockHeight)}
+								{nodeBlockHeight}
 							</dd>
 						</div>
 					{/if}
@@ -240,7 +237,7 @@
 						<div>
 							<dt>Solidity block height</dt>
 							<dd>
-								{String(solidityBlockHeight)}
+								{solidityBlockHeight}
 							</dd>
 						</div>
 					{/if}
@@ -262,7 +259,7 @@
 						<div>
 							<dt>Current peers</dt>
 							<dd>
-								{String(currentPeerCount)}
+								{currentPeerCount}
 							</dd>
 						</div>
 					{/if}
@@ -284,7 +281,7 @@
 						<div>
 							<dt>Maintenance interval</dt>
 							<dd>
-								{String(maintenanceIntervalMs)}
+								{maintenanceIntervalMs}
 							</dd>
 						</div>
 					{/if}
@@ -306,7 +303,7 @@
 						<div>
 							<dt>Transaction fee sun</dt>
 							<dd>
-								{String(transactionFeeSun)}
+								{transactionFeeSun}
 							</dd>
 						</div>
 					{/if}
@@ -328,7 +325,7 @@
 						<div>
 							<dt>Create account fee sun</dt>
 							<dd>
-								<TruncatedValue value={String(createAccountFeeSun)} />
+								{createAccountFeeSun}
 							</dd>
 						</div>
 					{/if}

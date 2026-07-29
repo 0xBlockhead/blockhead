@@ -43,7 +43,7 @@
 			entitySelector={aiModelVersionSelector}
 		>
 			{#snippet Title()}
-				{(aiModelVersionSelector.versionId ?? '') || ([(aiModelVersionSelector.revision ?? ''), aiModelVersion.$artifact == null ? '' : (aiModelVersion.$artifact.artifactType ?? '') || [(aiModelVersion.$artifact.providerArtifactId ?? ''), (aiModelVersion.$artifact.ociDigest ?? ''), (aiModelVersion.$artifact.ipfsCid ?? ''), (aiModelVersion.$artifact.arweaveId ?? ''), (aiModelVersion.$artifact.gitObject ?? ''), String(aiModelVersion.$artifact.digest ?? '')].filter(Boolean).join(' ') || 'AI artifact'].filter(Boolean).join(' ')) || 'AI model version'}
+				{(aiModelVersionSelector.versionId ?? '') || [(aiModelVersionSelector.revision ?? ''), aiModelVersion.$artifact == null ? '' : (aiModelVersion.$artifact.artifactType ?? '') || [(aiModelVersion.$artifact.providerArtifactId ?? ''), (aiModelVersion.$artifact.ociDigest ?? ''), (aiModelVersion.$artifact.ipfsCid ?? ''), (aiModelVersion.$artifact.arweaveId ?? ''), (aiModelVersion.$artifact.gitObject ?? ''), (aiModelVersion.$artifact.digest ?? '')].filter(Boolean).join(' ') || 'AI artifact'].filter(Boolean).join(' ') || 'AI model version'}
 			{/snippet}
 
 			{#snippet Value()}
@@ -51,7 +51,7 @@
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{(aiModelVersion.quantization ?? '')}</span>
+				<span data-text="annotation">{aiModelVersion.quantization ?? ''}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

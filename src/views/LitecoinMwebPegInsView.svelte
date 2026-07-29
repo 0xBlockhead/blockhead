@@ -41,15 +41,15 @@
 			entitySelector={litecoinMwebPegInSelector}
 		>
 			{#snippet Title()}
-				{((String(litecoinMwebPegInSelector.$transaction.$mwebBlock.$block.height ?? '') ? 'Block #' + String(litecoinMwebPegInSelector.$transaction.$mwebBlock.$block.height ?? '') : '') || (litecoinMwebPegInSelector.$transaction.$mwebBlock.$block.hash ?? '') || 'UTXO block')}
+				{`Block #${litecoinMwebPegInSelector.$transaction.$mwebBlock.$block.height}`}
 			{/snippet}
 
 			{#snippet Value()}
-				{String(litecoinMwebPegInSelector.pegInIndex)}
+				{litecoinMwebPegInSelector.pegInIndex}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{litecoinMwebPegIn.$transparentOutput == null ? '' : (String(litecoinMwebPegIn.$transparentOutput.indexInTransaction ?? '') ? 'Output #' + String(litecoinMwebPegIn.$transparentOutput.indexInTransaction ?? '') : '') || 'UTXO output'}</span>
+				<span data-text="annotation">{litecoinMwebPegIn.$transparentOutput == null ? '' : `Output #${litecoinMwebPegIn.$transparentOutput.indexInTransaction}`}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

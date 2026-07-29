@@ -49,7 +49,7 @@
 	{#snippet Title()}
 		<NetworkView
 			selection={select(EntityType.Network, selection.entitySelector.$network)}
-			href=""
+			href={null}
 			layout={EntityLayout.Title}
 			open={false}
 		/>
@@ -66,10 +66,10 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={cronosNetworkProfile}>
 			{#snippet children(entity)}
-				{@const consensusKind0 = entity.consensusKind}
-				{#if consensusKind0 != null}
+				{@const consensusKind = entity.consensusKind}
+				{#if consensusKind != null}
 					<span data-text="muted">
-						{consensusKind0}
+						{consensusKind}
 					</span>
 				{/if}
 			{/snippet}
@@ -197,7 +197,7 @@
 						<div>
 							<dt>EVM chain ID</dt>
 							<dd>
-								{String(evmChainId)}
+								{evmChainId}
 							</dd>
 						</div>
 					{/if}
@@ -229,30 +229,30 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const cronosNetworkProfileIbcChannelsViewIbcChannelsResource = selection.$$ibcChannels}
+		{@const ibcChannelsResource = selection.$$ibcChannels}
 		<ResourceBoundary
-			resource={cronosNetworkProfileIbcChannelsViewIbcChannelsResource}
+			resource={ibcChannelsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<IbcChannelsView
-						selection={cronosNetworkProfileIbcChannelsViewIbcChannelsResource}
-						countResource={cronosNetworkProfileIbcChannelsViewIbcChannelsResource.count}
+						selection={ibcChannelsResource}
+						countResource={ibcChannelsResource.count}
 						title='ibc channels'
 						id='ibc-channels'
 					/>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>
-		{@const cronosNetworkProfileNetworkTimestampsViewTimestampsResource = selection.$$timestamps}
+		{@const timestampsResource = selection.$$timestamps}
 		<ResourceBoundary
-			resource={cronosNetworkProfileNetworkTimestampsViewTimestampsResource}
+			resource={timestampsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<Network_TimestampsView
-						selection={cronosNetworkProfileNetworkTimestampsViewTimestampsResource}
-						countResource={cronosNetworkProfileNetworkTimestampsViewTimestampsResource.count}
+						selection={timestampsResource}
+						countResource={timestampsResource.count}
 						title='timestamps'
 						id='timestamps'
 					/>

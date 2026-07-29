@@ -7,8 +7,6 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
-	import { ZcashShieldedActionKind } from '$/schema/ZcashShieldedAction.ts'
-	import { ZcashShieldedPoolKind } from '$/schema/ZcashShieldedPool.ts'
 
 
 	// State
@@ -42,6 +40,7 @@
 >
 	{#snippet Item({ item: zcashShieldedAction })}
 		{@const zcashShieldedActionSelector = zcashShieldedAction[EntityMetaKey.Selector]}
+		{@const transaction = zcashShieldedActionSelector.$transaction}
 		<EntityView
 			entityType={EntityType.ZcashShieldedAction}
 			entitySelector={zcashShieldedActionSelector}
@@ -50,14 +49,14 @@
 					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(transactions)/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/(selection)/shielded-action/[pool=stringSegment]/[actionKind=stringSegment]/[actionIndex=nonNegativeInteger]',
 					{
 						network: (
-							'caip2' in zcashShieldedActionSelector.$transaction.$network ?
-								String(caip2StringFromValue(zcashShieldedActionSelector.$transaction.$network.caip2))
+							'caip2' in transaction.$network ?
+								caip2StringFromValue(transaction.$network.caip2)
 							:
-								String(zcashShieldedActionSelector.$transaction.$network.slug)
+								transaction.$network.slug
 						),
-						transactionId: String(zcashShieldedActionSelector.$transaction.txId),
-						pool: String(zcashShieldedActionSelector.pool),
-						actionKind: String(zcashShieldedActionSelector.actionKind),
+						transactionId: transaction.txId,
+						pool: zcashShieldedActionSelector.pool,
+						actionKind: zcashShieldedActionSelector.actionKind,
 						actionIndex: String(zcashShieldedActionSelector.indexInTransaction),
 					}
 				)

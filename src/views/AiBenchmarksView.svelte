@@ -5,7 +5,6 @@
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { UrlString } from '$/schema/UrlString.ts'
 
 
 	// State
@@ -44,15 +43,15 @@
 			entitySelector={aiBenchmarkSelector}
 		>
 			{#snippet Title()}
-				{(aiBenchmark.label ?? '') || [(aiBenchmarkSelector.benchmarkId ?? ''), String(aiBenchmarkSelector.benchmarkUri ?? '')].filter(Boolean).join(' ') || 'AI benchmark'}
+				{(aiBenchmark.label ?? '') || [(aiBenchmarkSelector.benchmarkId ?? ''), (aiBenchmarkSelector.benchmarkUri ?? '')].filter(Boolean).join(' ') || 'AI benchmark'}
 			{/snippet}
 
 			{#snippet Value()}
-				{(aiBenchmark.taskType ?? '')}
+				{aiBenchmark.taskType ?? ''}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{(aiBenchmark.metricName ?? '')}</span>
+				<span data-text="annotation">{aiBenchmark.metricName ?? ''}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

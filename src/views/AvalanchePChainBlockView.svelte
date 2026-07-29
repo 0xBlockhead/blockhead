@@ -20,7 +20,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.AvalanchePChainBlock> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const avalanchePChainBlock = $derived(selection({
 		fields: {
 			height: true,
@@ -28,7 +27,6 @@
 			blockId: true,
 		},
 	}))
-	const titleFallback = $derived(String(pendingEntity.height ?? '') || (pendingEntity.blockId ?? '') || 'avalanche p chain block')
 
 
 	// Components
@@ -44,7 +42,7 @@
 <EntityView
 	entityType={EntityType.AvalanchePChainBlock}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? (String(prefetched.height ?? '') || (prefetched.blockId ?? '') || 'avalanche p chain block')}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -62,9 +60,9 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={avalanchePChainBlock}>
 			{#snippet children(entity)}
-				{@const timestampMs0 = entity.timestampMs}
-				{#if timestampMs0 != null}
-					<Timestamp timestamp={Number(timestampMs0)} />
+				{@const timestampMs = entity.timestampMs}
+				{#if timestampMs != null}
+					<Timestamp timestamp={timestampMs} />
 				{/if}
 			{/snippet}
 		</ResourceBoundary>
@@ -144,7 +142,7 @@
 						<div>
 							<dt>Timestamp</dt>
 							<dd>
-								<Timestamp timestamp={Number(timestampMs)} />
+								<Timestamp timestamp={timestampMs} />
 							</dd>
 						</div>
 					{/if}
@@ -200,15 +198,15 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const avalanchePChainBlockAvalanchePChainTransactionsViewTransactionsResource = selection.$$transactions}
+		{@const transactionsResource = selection.$$transactions}
 		<ResourceBoundary
-			resource={avalanchePChainBlockAvalanchePChainTransactionsViewTransactionsResource}
+			resource={transactionsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<AvalanchePChainTransactionsView
-						selection={avalanchePChainBlockAvalanchePChainTransactionsViewTransactionsResource}
-						countResource={avalanchePChainBlockAvalanchePChainTransactionsViewTransactionsResource.count}
+						selection={transactionsResource}
+						countResource={transactionsResource.count}
 						title='transactions'
 						id='transactions'
 					/>

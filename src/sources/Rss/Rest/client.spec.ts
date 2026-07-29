@@ -76,7 +76,6 @@ test('uses the feed-target HttpProxy binding and parses its response', async () 
 					scope: SourceCredentialScope.None,
 				},
 			],
-			proxyId: expect.any(String),
 		}),
 		'https://hnrss.org/frontpage'
 	)

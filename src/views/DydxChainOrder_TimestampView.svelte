@@ -21,7 +21,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.DydxChainOrder_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.DydxIndexer_Rest,
@@ -33,7 +32,6 @@
 			status: true,
 		},
 	}))
-	const titleFallback = $derived(String(pendingEntity.timestampMs ?? '') || 'dydx chain order timestamp')
 
 
 	// Components
@@ -46,19 +44,19 @@
 <EntityView
 	entityType={EntityType.DydxChainOrder_Timestamp}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? String(selection.entitySelector.timestampMs)}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+		<Timestamp timestamp={selection.entitySelector.timestampMs} />
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={dydxChainOrderTimestamp}>
 			{#snippet children(entity)}
-				{(entity.status ?? '') || String(pendingEntity.timestampMs) || titleFallback}
+				{(entity.status ?? '') || String(selection.entitySelector.timestampMs)}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -79,14 +77,14 @@
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+					<Timestamp timestamp={selection.entitySelector.timestampMs} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 
@@ -105,7 +103,7 @@
 						<div>
 							<dt>block height</dt>
 							<dd>
-								{String(blockHeight)}
+								{blockHeight}
 							</dd>
 						</div>
 					{/if}
@@ -145,7 +143,7 @@
 						<div>
 							<dt>price</dt>
 							<dd>
-								{String(price)}
+								{price}
 							</dd>
 						</div>
 					{/if}
@@ -167,7 +165,7 @@
 						<div>
 							<dt>size</dt>
 							<dd>
-								{String(size)}
+								{size}
 							</dd>
 						</div>
 					{/if}
@@ -189,7 +187,7 @@
 						<div>
 							<dt>remaining size</dt>
 							<dd>
-								{String(remainingSize)}
+								{remainingSize}
 							</dd>
 						</div>
 					{/if}
@@ -211,7 +209,7 @@
 						<div>
 							<dt>filled size</dt>
 							<dd>
-								{String(filledSize)}
+								{filledSize}
 							</dd>
 						</div>
 					{/if}
@@ -233,7 +231,7 @@
 						<div>
 							<dt>total filled</dt>
 							<dd>
-								{String(totalFilled)}
+								{totalFilled}
 							</dd>
 						</div>
 					{/if}

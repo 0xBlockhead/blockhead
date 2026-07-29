@@ -19,20 +19,18 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.BlockheadRoom> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const viewSelection = $derived(selection({
+	const blockheadRoom = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Local_Internal,
 		],
-	}))
-	const blockheadRoom = $derived(viewSelection({
+	})({
 		fields: {
 			name: true,
 			createdAt: true,
 			createdBy: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.name ?? '') || (pendingEntity.id ?? '') || 'room')
+	const titleFallback = $derived((prefetched.name ?? '') || selection.entitySelector.id || 'room')
 
 
 	// Components
@@ -48,12 +46,15 @@
 	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
 	href={
-		href ?? resolve(
-			'/~/multiplayer/room/[roomId=stringSegment]',
-			{
-				roomId: String(selection.entitySelector.id),
-			}
-		)
+		href === undefined ?
+			resolve(
+				'/~/multiplayer/room/[roomId=stringSegment]',
+				{
+					roomId: selection.entitySelector.id,
+				}
+			)
+		:
+			href ?? undefined
 	}
 	{layout}
 	bind:open
@@ -70,7 +71,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={blockheadRoom}>
 			{#snippet children(entity)}
-				<Timestamp timestamp={Number(entity.createdAt)} />
+				<Timestamp timestamp={entity.createdAt} />
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -80,7 +81,7 @@
 			<div>
 				<dt>ID</dt>
 				<dd>
-					{pendingEntity.id}
+					{selection.entitySelector.id}
 				</dd>
 			</div>
 
@@ -104,7 +105,7 @@
 						resource={blockheadRoom}
 					>
 						{#snippet children(entity)}
-							<Timestamp timestamp={Number(entity.createdAt)} />
+							<Timestamp timestamp={entity.createdAt} />
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -113,15 +114,15 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const blockheadRoomBlockheadRoomPeersViewPeersResource = selection.$$peers}
+		{@const peersResource = selection.$$peers}
 		<ResourceBoundary
-			resource={blockheadRoomBlockheadRoomPeersViewPeersResource}
+			resource={peersResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<BlockheadRoomPeersView
-						selection={blockheadRoomBlockheadRoomPeersViewPeersResource}
-						countResource={blockheadRoomBlockheadRoomPeersViewPeersResource.count}
+						selection={peersResource}
+						countResource={peersResource.count}
 						title='Peers'
 						id='peers'
 					/>

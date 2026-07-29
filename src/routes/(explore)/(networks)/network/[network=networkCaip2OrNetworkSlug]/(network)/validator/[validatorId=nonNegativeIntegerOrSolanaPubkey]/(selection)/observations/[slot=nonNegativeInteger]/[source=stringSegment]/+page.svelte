@@ -50,7 +50,7 @@
 
 
 <svelte:head>
-	<title>{(data.title ?? ((String(pageSelection.entitySelector.slot ?? '') ? 'Slot #' + String(pageSelection.entitySelector.slot ?? '') : '') || 'beacon validator timestamp'))} • beacon validator timestamp • Blockhead</title>
+	<title>{data.title ?? ((String(pageSelection.entitySelector.slot ?? '') ? 'Slot #' + String(pageSelection.entitySelector.slot ?? '') : '') || 'beacon validator timestamp')} • beacon validator timestamp • Blockhead</title>
 </svelte:head>
 
 

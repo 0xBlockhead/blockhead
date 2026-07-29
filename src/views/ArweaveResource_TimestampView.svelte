@@ -21,7 +21,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.ArweaveResource_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const arweaveResourceTimestamp = $derived(selection({
 		fields: {
 			contentType: true,
@@ -29,7 +28,6 @@
 			reachable: true,
 		},
 	}))
-	const titleFallback = $derived(String(pendingEntity.timestampMs ?? '') || 'arweave resource timestamp')
 
 
 	// Components
@@ -45,19 +43,19 @@
 <EntityView
 	entityType={EntityType.ArweaveResource_Timestamp}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? String(selection.entitySelector.timestampMs)}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+		<Timestamp timestamp={selection.entitySelector.timestampMs} />
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={arweaveResourceTimestamp}>
 			{#snippet children(entity)}
-				{[(entity.contentType ?? ''), (entity.displayType ?? '')].filter(Boolean).join(' ') || String(pendingEntity.timestampMs) || titleFallback}
+				{[(entity.contentType ?? ''), (entity.displayType ?? '')].filter(Boolean).join(' ') || String(selection.entitySelector.timestampMs)}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -65,10 +63,10 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={arweaveResourceTimestamp}>
 			{#snippet children(entity)}
-				{@const reachable0 = entity.reachable}
-				{#if reachable0 != null}
+				{@const reachable = entity.reachable}
+				{#if reachable != null}
 					<span data-text="muted">
-						{reachable0 ? 'Yes' : 'No'}
+						{reachable ? 'Yes' : 'No'}
 					</span>
 				{/if}
 			{/snippet}
@@ -91,14 +89,14 @@
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+					<Timestamp timestamp={selection.entitySelector.timestampMs} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 
@@ -135,11 +133,11 @@
 					>
 						{#snippet children(entity)}
 							<a
-								href={String(entity.gatewayUrl)}
+								href={entity.gatewayUrl}
 								target="_blank"
 								rel="noreferrer noopener"
 							>
-								<TruncatedValue value={String(entity.gatewayUrl)} />
+								<TruncatedValue value={entity.gatewayUrl} />
 							</a>
 						{/snippet}
 					</ResourceBoundary>

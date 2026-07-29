@@ -42,7 +42,7 @@
 			entitySelector={cosmosMessageSelector}
 		>
 			{#snippet Title()}
-				{(String(cosmosMessageSelector.indexInTransaction ?? '') ? 'Message #' + String(cosmosMessageSelector.indexInTransaction ?? '') : '') || 'Cosmos message'}
+				{`Message #${cosmosMessageSelector.indexInTransaction}`}
 			{/snippet}
 
 			{#snippet HeadingAfter()}

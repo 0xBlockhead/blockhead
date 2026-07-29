@@ -20,13 +20,11 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.LensNetwork> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const viewSelection = $derived(selection({
+	const lensNetwork = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Constants_Internal,
 		],
-	}))
-	const lensNetwork = $derived(viewSelection({
+	})({
 		fields: {
 			protocolName: true,
 			relationshipModel: true,
@@ -35,7 +33,7 @@
 			registryName: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.protocolName ?? '') || 'Lens')
+	const titleFallback = $derived((prefetched.protocolName ?? '') || 'Lens')
 	const viewDomId = $derived('lens-network-' + encodeURIComponent(stringify(selection.entitySelector)))
 
 
@@ -54,7 +52,12 @@
 	entitySelector={selection.entitySelector}
 	id={viewDomId}
 	title={title ?? titleFallback}
-	href={href ?? resolve('/(social)/(lens)/lens')}
+	href={
+		href === undefined ?
+			resolve('/(social)/(lens)/lens')
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -68,7 +71,7 @@
 	{/snippet}
 
 	{#snippet Value()}
-		{(pendingEntity.protocolName ?? '') || titleFallback}
+		{(prefetched.protocolName ?? '') || titleFallback}
 	{/snippet}
 
 	{#snippet TypeAnnotationTooltip()}
@@ -138,11 +141,11 @@
 					>
 						{#snippet children(entity)}
 							<a
-								href={String(entity.homeUrl)}
+								href={entity.homeUrl}
 								target="_blank"
 								rel="noreferrer noopener"
 							>
-								<TruncatedValue value={String(entity.homeUrl)} />
+								<TruncatedValue value={entity.homeUrl} />
 							</a>
 						{/snippet}
 					</ResourceBoundary>
@@ -161,11 +164,11 @@
 							<dt>Docs URL</dt>
 							<dd>
 								<a
-									href={String(docsUrl)}
+									href={docsUrl}
 									target="_blank"
 									rel="noreferrer noopener"
 								>
-									<TruncatedValue value={String(docsUrl)} />
+									<TruncatedValue value={docsUrl} />
 								</a>
 							</dd>
 						</div>

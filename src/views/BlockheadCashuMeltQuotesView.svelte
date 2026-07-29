@@ -44,7 +44,7 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{String(blockheadCashuMeltQuote.amount ?? '')}
+				{blockheadCashuMeltQuote.amount ?? ''}
 			{/snippet}
 		</EntityView>
 	{/snippet}

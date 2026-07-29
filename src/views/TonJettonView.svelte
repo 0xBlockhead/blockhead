@@ -22,8 +22,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.TonJetton> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const titleFallback = 'TON jetton'
 	const viewDomId = $derived('ton-jetton-' + encodeURIComponent(stringify(selection.entitySelector)))
 
 
@@ -44,7 +42,7 @@
 	entityType={EntityType.TonJetton}
 	entitySelector={selection.entitySelector}
 	id={viewDomId}
-	title={title ?? titleFallback}
+	title={title ?? 'TON jetton'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -69,7 +67,7 @@
 			<div>
 				<dt>master address</dt>
 				<dd>
-					<TruncatedValue value={pendingEntity.masterAddress} />
+					<TruncatedValue value={selection.entitySelector.masterAddress} />
 				</dd>
 			</div>
 

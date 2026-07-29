@@ -38,6 +38,7 @@
 >
 	{#snippet Item({ item: cardanoTxInput })}
 		{@const cardanoTxInputSelector = cardanoTxInput[EntityMetaKey.Selector]}
+		{@const transaction = cardanoTxInputSelector.$transaction}
 		<EntityView
 			entityType={EntityType.CardanoTxInput}
 			entitySelector={cardanoTxInputSelector}
@@ -46,27 +47,27 @@
 					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(transactions)/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/(selection)/input/[inputIndex=nonNegativeInteger]',
 					{
 						network: (
-							'caip2' in cardanoTxInputSelector.$transaction.$network ?
-								String(caip2StringFromValue(cardanoTxInputSelector.$transaction.$network.caip2))
+							'caip2' in transaction.$network ?
+								caip2StringFromValue(transaction.$network.caip2)
 							:
-								String(cardanoTxInputSelector.$transaction.$network.slug)
+								transaction.$network.slug
 						),
-						transactionId: String(cardanoTxInputSelector.$transaction.hash),
+						transactionId: transaction.hash,
 						inputIndex: String(cardanoTxInputSelector.inputIndex),
 					}
 				)
 			}
 		>
 			{#snippet Title()}
-				{(String(cardanoTxInputSelector.inputIndex) ? 'Input ' + String(cardanoTxInputSelector.inputIndex) : '') || 'Cardano transaction input'}
+				{'Input ' + cardanoTxInputSelector.inputIndex}
 			{/snippet}
 
 			{#snippet Value()}
-				{(cardanoTxInput.inputKind ?? '')}
+				{cardanoTxInput.inputKind ?? ''}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{(cardanoTxInput.spentTxHash ?? '')}</span>
+				<span data-text="annotation">{cardanoTxInput.spentTxHash ?? ''}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

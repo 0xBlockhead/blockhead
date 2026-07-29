@@ -45,11 +45,11 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{String(starknetTransactionTimestampSelector.timestampMs)}
+				{starknetTransactionTimestampSelector.timestampMs}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{(starknetTransactionTimestamp.executionStatus ?? '')}</span>
+				<span data-text="annotation">{starknetTransactionTimestamp.executionStatus ?? ''}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

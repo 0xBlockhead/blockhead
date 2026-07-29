@@ -35,8 +35,8 @@
 			resolve(
 				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/address/[address=stringSegment]/(utxoAddress)/observations',
 				{
-					network: String(params.network),
-					address: String(params.address),
+					network: params.network,
+					address: params.address,
 				}
 			)
 		}

@@ -4,7 +4,6 @@
 	// Types/constants
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 
 
 	// Context
@@ -21,13 +20,12 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.GitTreePathResolution> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const gitTreePathResolution = $derived(selection({
 		fields: {
 			status: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.path ?? '') || 'Git tree path resolution')
+	const titleFallback = $derived(selection.entitySelector.path || 'Git tree path resolution')
 
 
 	// Components
@@ -46,20 +44,20 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{(pendingEntity.path ?? '') || 'Git tree path resolution'}
+		{selection.entitySelector.path || 'Git tree path resolution'}
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={gitTreePathResolution}>
 			{#snippet children(entity)}
-				{entity.status || pendingEntity.path || titleFallback}
+				{entity.status || selection.entitySelector.path || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
 		<span data-text="muted">
-			<TruncatedValue value={String(pendingEntity.commitObjectId)} />
+			<TruncatedValue value={selection.entitySelector.commitObjectId} />
 		</span>
 	{/snippet}
 
@@ -79,14 +77,14 @@
 			<div>
 				<dt>commit object ID</dt>
 				<dd>
-					<TruncatedValue value={String(pendingEntity.commitObjectId)} />
+					<TruncatedValue value={selection.entitySelector.commitObjectId} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>path</dt>
 				<dd>
-					{pendingEntity.path}
+					{selection.entitySelector.path}
 				</dd>
 			</div>
 
@@ -124,7 +122,7 @@
 						<div>
 							<dt>blob object ID</dt>
 							<dd>
-								<TruncatedValue value={String(blobObjectId)} />
+								<TruncatedValue value={blobObjectId} />
 							</dd>
 						</div>
 					{/if}
@@ -146,7 +144,7 @@
 						<div>
 							<dt>submodule commit ID</dt>
 							<dd>
-								<TruncatedValue value={String(submoduleCommitId)} />
+								<TruncatedValue value={submoduleCommitId} />
 							</dd>
 						</div>
 					{/if}

@@ -20,9 +20,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.TezosToken_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const titleFallback = 'tezos token timestamp'
-
 
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -35,7 +32,7 @@
 <EntityView
 	entityType={EntityType.TezosToken_Timestamp}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? 'tezos token timestamp'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -60,14 +57,14 @@
 			<div>
 				<dt>level</dt>
 				<dd>
-					{String(pendingEntity.level)}
+					{selection.entitySelector.level}
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 
@@ -86,7 +83,7 @@
 						<div>
 							<dt>Timestamp</dt>
 							<dd>
-								<Timestamp timestamp={Number(timestampMs)} />
+								<Timestamp timestamp={timestampMs} />
 							</dd>
 						</div>
 					{/if}
@@ -109,11 +106,11 @@
 							<dt>metadata URI</dt>
 							<dd>
 								<a
-									href={String(metadataUri)}
+									href={metadataUri}
 									target="_blank"
 									rel="noreferrer noopener"
 								>
-									<TruncatedValue value={String(metadataUri)} />
+									<TruncatedValue value={metadataUri} />
 								</a>
 							</dd>
 						</div>
@@ -180,7 +177,7 @@
 						<div>
 							<dt>Decimals</dt>
 							<dd>
-								{String(decimals)}
+								{decimals}
 							</dd>
 						</div>
 					{/if}
@@ -203,11 +200,11 @@
 							<dt>artifact URI</dt>
 							<dd>
 								<a
-									href={String(artifactUri)}
+									href={artifactUri}
 									target="_blank"
 									rel="noreferrer noopener"
 								>
-									<TruncatedValue value={String(artifactUri)} />
+									<TruncatedValue value={artifactUri} />
 								</a>
 							</dd>
 						</div>
@@ -231,11 +228,11 @@
 							<dt>display URI</dt>
 							<dd>
 								<a
-									href={String(displayUri)}
+									href={displayUri}
 									target="_blank"
 									rel="noreferrer noopener"
 								>
-									<TruncatedValue value={String(displayUri)} />
+									<TruncatedValue value={displayUri} />
 								</a>
 							</dd>
 						</div>
@@ -259,11 +256,11 @@
 							<dt>thumbnail URI</dt>
 							<dd>
 								<a
-									href={String(thumbnailUri)}
+									href={thumbnailUri}
 									target="_blank"
 									rel="noreferrer noopener"
 								>
-									<TruncatedValue value={String(thumbnailUri)} />
+									<TruncatedValue value={thumbnailUri} />
 								</a>
 							</dd>
 						</div>
@@ -286,7 +283,7 @@
 						<div>
 							<dt>total supply</dt>
 							<dd>
-								{String(totalSupply)}
+								{totalSupply}
 							</dd>
 						</div>
 					{/if}
@@ -308,7 +305,7 @@
 						<div>
 							<dt>holder count</dt>
 							<dd>
-								{String(holderCount)}
+								{holderCount}
 							</dd>
 						</div>
 					{/if}
@@ -330,7 +327,7 @@
 						<div>
 							<dt>transfer count</dt>
 							<dd>
-								{String(transferCount)}
+								{transferCount}
 							</dd>
 						</div>
 					{/if}

@@ -20,14 +20,12 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType._GlobalRedditNetwork_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const globalRedditNetworkTimestamp = $derived(selection({
 		fields: {
 			reachable: true,
 			observedLinkCount: true,
 		},
 	}))
-	const titleFallback = $derived(String(pendingEntity.timestampMs ?? '') || 'global Reddit network timestamp')
 
 
 	// Components
@@ -40,19 +38,19 @@
 <EntityView
 	entityType={EntityType._GlobalRedditNetwork_Timestamp}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? String(selection.entitySelector.timestampMs)}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+		<Timestamp timestamp={selection.entitySelector.timestampMs} />
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={globalRedditNetworkTimestamp}>
 			{#snippet children(entity)}
-				{[pendingEntity.source, String(entity.reachable ?? '')].filter(Boolean).join(' ') || String(pendingEntity.timestampMs) || titleFallback}
+				{[selection.entitySelector.source, String(entity.reachable ?? '')].filter(Boolean).join(' ') || String(selection.entitySelector.timestampMs)}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -60,10 +58,10 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={globalRedditNetworkTimestamp}>
 			{#snippet children(entity)}
-				{@const observedLinkCount0 = entity.observedLinkCount}
-				{#if observedLinkCount0 != null}
+				{@const observedLinkCount = entity.observedLinkCount}
+				{#if observedLinkCount != null}
 					<span data-text="muted">
-						{String(observedLinkCount0)}
+						{observedLinkCount}
 					</span>
 				{/if}
 			{/snippet}
@@ -75,14 +73,14 @@
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+					<Timestamp timestamp={selection.entitySelector.timestampMs} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 
@@ -141,7 +139,7 @@
 						<div>
 							<dt>Observed subreddit count</dt>
 							<dd>
-								{String(observedSubredditCount)}
+								{observedSubredditCount}
 							</dd>
 						</div>
 					{/if}
@@ -157,7 +155,7 @@
 						<div>
 							<dt>Observed link count</dt>
 							<dd>
-								{String(observedLinkCount)}
+								{observedLinkCount}
 							</dd>
 						</div>
 					{/if}
@@ -179,7 +177,7 @@
 						<div>
 							<dt>Seeded subreddit count</dt>
 							<dd>
-								{String(seededSubredditCount)}
+								{seededSubredditCount}
 							</dd>
 						</div>
 					{/if}
@@ -201,7 +199,7 @@
 						<div>
 							<dt>Seeded link count</dt>
 							<dd>
-								{String(seededLinkCount)}
+								{seededLinkCount}
 							</dd>
 						</div>
 					{/if}
@@ -225,7 +223,7 @@
 						<div>
 							<dt>Rate limit remaining</dt>
 							<dd>
-								{String(rateLimitRemaining)}
+								{rateLimitRemaining}
 							</dd>
 						</div>
 					{/if}

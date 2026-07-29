@@ -43,15 +43,15 @@
 			entitySelector={mcpServerTimestampSelector}
 		>
 			{#snippet Title()}
-				{String(mcpServerTimestampSelector.timestampMs) || 'mcp server timestamp'}
+				{mcpServerTimestampSelector.timestampMs}
 			{/snippet}
 
 			{#snippet Value()}
-				{(mcpServerTimestamp.health ?? '')}
+				{mcpServerTimestamp.health ?? ''}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{(mcpServerTimestamp.error ?? '')}</span>
+				<span data-text="annotation">{mcpServerTimestamp.error ?? ''}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

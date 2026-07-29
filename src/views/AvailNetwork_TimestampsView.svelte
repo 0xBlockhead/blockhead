@@ -42,11 +42,11 @@
 			entitySelector={availNetworkTimestampSelector}
 		>
 			{#snippet Title()}
-				{String(availNetworkTimestampSelector.timestampMs) || 'avail network timestamp'}
+				{availNetworkTimestampSelector.timestampMs}
 			{/snippet}
 
 			{#snippet Value()}
-				{String(availNetworkTimestamp.latestBlockNumber ?? '')}
+				{availNetworkTimestamp.latestBlockNumber ?? ''}
 			{/snippet}
 
 			{#snippet HeadingAfter()}

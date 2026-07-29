@@ -23,14 +23,14 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.PolkadotAccount_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const account = $derived(selection.entitySelector.$account)
 	const polkadotAccountTimestamp = $derived(selection({
 		fields: {
 			freeBalancePlancks: true,
 			nonce: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.source ?? '') || 'Polkadot account timestamp')
+	const titleFallback = $derived(selection.entitySelector.source || 'Polkadot account timestamp')
 
 
 	// Components
@@ -46,33 +46,36 @@
 	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
 	href={
-		href ?? resolve(
-			'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(accounts)/account/[accountId=polkadotAccountIdOrStringSegmentOrEvmAddressOrSolanaPubkey]/(selection)/observation/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
-			{
-				network: (
-					'caip2' in selection.entitySelector.$account.$network ?
-						String(caip2StringFromValue(selection.entitySelector.$account.$network.caip2))
-					:
-						String(selection.entitySelector.$account.$network.slug)
-				),
-				accountId: String(selection.entitySelector.$account.accountId),
-				timestampMs: String(selection.entitySelector.timestampMs),
-				source: String(selection.entitySelector.source),
-			}
-		)
+		href === undefined ?
+			resolve(
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(accounts)/account/[accountId=polkadotAccountIdOrStringSegmentOrEvmAddressOrSolanaPubkey]/(selection)/observation/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
+				{
+					network: (
+						'caip2' in account.$network ?
+							caip2StringFromValue(account.$network.caip2)
+						:
+							account.$network.slug
+					),
+					accountId: account.accountId,
+					timestampMs: String(selection.entitySelector.timestampMs),
+					source: selection.entitySelector.source,
+				}
+			)
+		:
+			href ?? undefined
 	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{(pendingEntity.source ?? '') || 'Polkadot account timestamp'}
+		{selection.entitySelector.source || 'Polkadot account timestamp'}
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={polkadotAccountTimestamp}>
 			{#snippet children(entity)}
-				{String(entity.freeBalancePlancks ?? '') || pendingEntity.source || titleFallback}
+				{String(entity.freeBalancePlancks ?? '') || selection.entitySelector.source || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -80,15 +83,15 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={polkadotAccountTimestamp}>
 			{#snippet children(entity)}
-				{@const nonce0 = entity.nonce}
-				{#if nonce0 != null}
+				{@const nonce = entity.nonce}
+				{#if nonce != null}
 					<span data-text="muted">
-						{String(nonce0)}
+						{nonce}
 					</span>
 				{/if}
 
 				<span data-text="muted">
-					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+					<Timestamp timestamp={selection.entitySelector.timestampMs} />
 				</span>
 			{/snippet}
 		</ResourceBoundary>
@@ -99,14 +102,14 @@
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+					<Timestamp timestamp={selection.entitySelector.timestampMs} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 
@@ -119,7 +122,7 @@
 						<div>
 							<dt>Nonce</dt>
 							<dd>
-								{String(nonce)}
+								{nonce}
 							</dd>
 						</div>
 					{/if}
@@ -135,7 +138,7 @@
 						<div>
 							<dt>Free balance plancks</dt>
 							<dd>
-								{String(freeBalancePlancks)}
+								{freeBalancePlancks}
 							</dd>
 						</div>
 					{/if}

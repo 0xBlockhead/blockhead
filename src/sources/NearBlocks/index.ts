@@ -2,7 +2,8 @@
 
 import bindings from '$/sources/NearBlocks/bindings.ts'
 import { Source } from '$/sources/Source.ts'
-import { SourceProvider, type SourceProviderDefinition } from '$/sources/SourceProvider.ts'
+import { SourceProvider } from '$/sources/SourceProvider.ts'
+import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinition.ts'
 
 export default {
 	provider: SourceProvider.NearBlocks,
@@ -13,5 +14,5 @@ export default {
 			label: 'NearBlocks REST',
 		},
 	],
-	bindings: [bindings[Source.NearBlocks_Rest]],
+	bindings: Object.values(bindings).flat(),
 } satisfies SourceProviderDefinition

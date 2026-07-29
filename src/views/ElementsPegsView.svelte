@@ -45,7 +45,7 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{String(elementsPeg.amountSats ?? '')}
+				{elementsPeg.amountSats ?? ''}
 			{/snippet}
 		</EntityView>
 	{/snippet}

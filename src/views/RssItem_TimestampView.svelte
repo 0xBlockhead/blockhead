@@ -23,14 +23,13 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.RssItem_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const item = $derived(selection.entitySelector.$item)
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Rss_Rest,
 			Source.Rss2Json_Rest,
 		],
 	}))
-	const titleFallback = 'RSS item observation'
 
 
 	// Components
@@ -43,18 +42,21 @@
 <EntityView
 	entityType={EntityType.RssItem_Timestamp}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? 'RSS item observation'}
 	href={
-		href ?? resolve(
-			'/(social)/(rss)/rss/(rssNetwork)/feed/[feedUrl=absoluteUrl]/(rssFeed)/item/[itemIdentityKind=rssItemIdentityKind]/[itemIdentity=stringSegment]/(rssItem)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
-			{
-				feedUrl: encodeURIComponent(String(selection.entitySelector.$item.$feed.feedUrl)),
-				itemIdentityKind: String(selection.entitySelector.$item.itemIdentityKind),
-				itemIdentity: encodeURIComponent(String(selection.entitySelector.$item.itemIdentity)),
-				timestampMs: String(selection.entitySelector.timestampMs),
-				source: String(selection.entitySelector.source),
-			}
-		)
+		href === undefined ?
+			resolve(
+				'/(social)/(rss)/rss/(rssNetwork)/feed/[feedUrl=absoluteUrl]/(rssFeed)/item/[itemIdentityKind=rssItemIdentityKind]/[itemIdentity=stringSegment]/(rssItem)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
+				{
+					feedUrl: encodeURIComponent(item.$feed.feedUrl),
+					itemIdentityKind: item.itemIdentityKind,
+					itemIdentity: encodeURIComponent(item.itemIdentity),
+					timestampMs: String(selection.entitySelector.timestampMs),
+					source: selection.entitySelector.source,
+				}
+			)
+		:
+			href ?? undefined
 	}
 	{layout}
 	bind:open
@@ -63,14 +65,14 @@
 	{#snippet Title()}
 		<RssItemView
 			selection={select(EntityType.RssItem, selection.entitySelector.$item)}
-			href=""
+			href={null}
 			layout={EntityLayout.Title}
 			open={false}
 		/>
 	{/snippet}
 
 	{#snippet Value()}
-		<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+		<Timestamp timestamp={selection.entitySelector.timestampMs} />
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -91,7 +93,7 @@
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+					<Timestamp timestamp={selection.entitySelector.timestampMs} />
 				</dd>
 			</div>
 		</dl>
@@ -100,7 +102,7 @@
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 

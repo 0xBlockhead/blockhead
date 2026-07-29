@@ -21,9 +21,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.HyperliquidMarket_TimeInterval_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const titleFallback = 'hyperliquid market time interval timestamp'
-
 
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -37,7 +34,7 @@
 <EntityView
 	entityType={EntityType.HyperliquidMarket_TimeInterval_Timestamp}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? 'hyperliquid market time interval timestamp'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -62,14 +59,14 @@
 			<div>
 				<dt>market key</dt>
 				<dd>
-					{pendingEntity.marketKey}
+					{selection.entitySelector.marketKey}
 				</dd>
 			</div>
 
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+					<Timestamp timestamp={selection.entitySelector.timestampMs} />
 				</dd>
 			</div>
 
@@ -128,7 +125,7 @@
 						<div>
 							<dt>open</dt>
 							<dd>
-								{String(open)}
+								{open}
 							</dd>
 						</div>
 					{/if}
@@ -150,7 +147,7 @@
 						<div>
 							<dt>high</dt>
 							<dd>
-								{String(high)}
+								{high}
 							</dd>
 						</div>
 					{/if}
@@ -172,7 +169,7 @@
 						<div>
 							<dt>low</dt>
 							<dd>
-								{String(low)}
+								{low}
 							</dd>
 						</div>
 					{/if}
@@ -194,7 +191,7 @@
 						<div>
 							<dt>close</dt>
 							<dd>
-								{String(close)}
+								{close}
 							</dd>
 						</div>
 					{/if}
@@ -216,7 +213,7 @@
 						<div>
 							<dt>volume</dt>
 							<dd>
-								{String(volume)}
+								{volume}
 							</dd>
 						</div>
 					{/if}
@@ -238,7 +235,7 @@
 						<div>
 							<dt>trade count</dt>
 							<dd>
-								{String(tradeCount)}
+								{tradeCount}
 							</dd>
 						</div>
 					{/if}

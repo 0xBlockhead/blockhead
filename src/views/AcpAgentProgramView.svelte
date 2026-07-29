@@ -4,7 +4,6 @@
 	// Types/constants
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { UrlString } from '$/schema/UrlString.ts'
 
 
 	// State
@@ -17,7 +16,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.AcpAgentProgram> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const acpAgentProgram = $derived(selection({
 		fields: {
 			label: true,
@@ -26,7 +24,7 @@
 			repositoryUrl: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.label ?? '') || [(pendingEntity.registryAgentId ?? ''), (pendingEntity.packageName ?? ''), String(pendingEntity.repositoryUrl ?? '')].filter(Boolean).join(' ') || 'ACP agent program')
+	const titleFallback = $derived((prefetched.label ?? '') || [(prefetched.registryAgentId ?? ''), (prefetched.packageName ?? ''), (prefetched.repositoryUrl ?? '')].filter(Boolean).join(' ') || 'ACP agent program')
 
 
 	// Components
@@ -103,11 +101,11 @@
 							<dt>repository URL</dt>
 							<dd>
 								<a
-									href={String(repositoryUrl)}
+									href={repositoryUrl}
 									target="_blank"
 									rel="noreferrer noopener"
 								>
-									<TruncatedValue value={String(repositoryUrl)} />
+									<TruncatedValue value={repositoryUrl} />
 								</a>
 							</dd>
 						</div>

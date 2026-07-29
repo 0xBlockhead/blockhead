@@ -4,7 +4,6 @@
 	// Types/constants
 	import type { PageProps } from './$types.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { UrlString } from '$/schema/UrlString.ts'
 
 
 	// Context
@@ -48,7 +47,7 @@
 
 
 <svelte:head>
-	<title>{(pageSelection.entity == null ? 'URL preview timestamp' : (pageSelection.entity.title ?? '') || 'URL preview timestamp')} • URL preview timestamp • Blockhead</title>
+	<title>{pageSelection.entity == null ? 'URL preview timestamp' : (pageSelection.entity.title ?? '') || 'URL preview timestamp'} • URL preview timestamp • Blockhead</title>
 </svelte:head>
 
 

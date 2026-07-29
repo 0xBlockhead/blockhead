@@ -5,7 +5,6 @@
 	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { UrlString } from '$/schema/UrlString.ts'
 
 
 	// State
@@ -19,9 +18,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.ActivityPubInstance> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const titleFallback = $derived(String(pendingEntity.instanceOrigin ?? '') || 'ActivityPub instance')
-
 
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -33,14 +29,17 @@
 <EntityView
 	entityType={EntityType.ActivityPubInstance}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? (selection.entitySelector.instanceOrigin || 'ActivityPub instance')}
 	href={
-		href ?? resolve(
-			'/(social)/(activitypub)/activitypub/(globalActivityPubNetwork)/instance/[instanceOrigin=absoluteUrl]',
-			{
-				instanceOrigin: encodeURIComponent(String(selection.entitySelector.instanceOrigin)),
-			}
-		)
+		href === undefined ?
+			resolve(
+				'/(social)/(activitypub)/activitypub/(globalActivityPubNetwork)/instance/[instanceOrigin=absoluteUrl]',
+				{
+					instanceOrigin: encodeURIComponent(selection.entitySelector.instanceOrigin),
+				}
+			)
+		:
+			href ?? undefined
 	}
 	{layout}
 	bind:open
@@ -48,11 +47,11 @@
 >
 	{#snippet Title()}
 		<a
-			href={String(pendingEntity.instanceOrigin)}
+			href={selection.entitySelector.instanceOrigin}
 			target="_blank"
 			rel="noreferrer noopener"
 		>
-			<TruncatedValue value={String(pendingEntity.instanceOrigin)} />
+			<TruncatedValue value={selection.entitySelector.instanceOrigin} />
 		</a>
 	{/snippet}
 
@@ -68,11 +67,11 @@
 				<dt>Instance origin</dt>
 				<dd>
 					<a
-						href={String(pendingEntity.instanceOrigin)}
+						href={selection.entitySelector.instanceOrigin}
 						target="_blank"
 						rel="noreferrer noopener"
 					>
-						<TruncatedValue value={String(pendingEntity.instanceOrigin)} />
+						<TruncatedValue value={selection.entitySelector.instanceOrigin} />
 					</a>
 				</dd>
 			</div>
@@ -80,15 +79,15 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const activityPubInstanceActivityPubInstanceTimestampsViewTimestampsResource = selection.$$timestamps}
+		{@const timestampsResource = selection.$$timestamps}
 		<ResourceBoundary
-			resource={activityPubInstanceActivityPubInstanceTimestampsViewTimestampsResource}
+			resource={timestampsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<ActivityPubInstance_TimestampsView
-						selection={activityPubInstanceActivityPubInstanceTimestampsViewTimestampsResource}
-						countResource={activityPubInstanceActivityPubInstanceTimestampsViewTimestampsResource.count}
+						selection={timestampsResource}
+						countResource={timestampsResource.count}
 						title='Observations'
 						id='timestamps'
 					/>

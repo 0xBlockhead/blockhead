@@ -41,7 +41,7 @@
 
 
 <svelte:head>
-	<title>{(data.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.eventId ?? '') || 'Nostr note' : (pageSelection.entity.content ?? '') || pageSelection.entitySelector.eventId || 'Nostr note'))} • Nostr note • Blockhead</title>
+	<title>{data.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.eventId ?? '') || 'Nostr note' : (pageSelection.entity.content ?? '') || pageSelection.entitySelector.eventId || 'Nostr note')} • Nostr note • Blockhead</title>
 </svelte:head>
 
 

@@ -44,7 +44,7 @@
 				resolve(
 					'/(social)/(youtube)/youtube/(globalYoutubeNetwork)/playlist/[playlistId=stringSegment]',
 					{
-						playlistId: encodeURIComponent(String(youtubePlaylistSelector.playlistId)),
+						playlistId: encodeURIComponent(youtubePlaylistSelector.playlistId),
 					}
 				)
 			}

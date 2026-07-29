@@ -45,7 +45,7 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{(starknetTransaction.transactionKind ?? '')}
+				{starknetTransaction.transactionKind ?? ''}
 			{/snippet}
 
 			{#snippet HeadingAfter()}

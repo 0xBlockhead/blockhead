@@ -7,7 +7,6 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { stringify } from 'devalue'
-	import { EvmAddress } from '$/schema/ZeroExHex.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -26,7 +25,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.LensAccount> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Lens_Graphql,
@@ -42,7 +40,7 @@
 			legacyProfileId: true,
 		},
 	}))
-	const titleFallback = $derived([(pendingEntity.displayName ?? ''), (pendingEntity.localName ?? ''), String(pendingEntity.address ?? ''), (pendingEntity.legacyProfileId ?? '')].filter(Boolean).join(' ') || 'Lens account')
+	const titleFallback = $derived([(prefetched.displayName ?? ''), (prefetched.localName ?? ''), (prefetched.address ?? ''), (prefetched.legacyProfileId ?? '')].filter(Boolean).join(' ') || 'Lens account')
 	const viewDomId = $derived('lens-account-' + encodeURIComponent(stringify(selection.entitySelector)))
 
 
@@ -65,17 +63,20 @@
 	id={viewDomId}
 	title={title ?? titleFallback}
 	href={
-		href ?? (
-			'address' in selection.entitySelector ?
-				resolve(
-					'/(social)/(lens)/lens/(lensNetwork)/account/[address=evmAddress]',
-					{
-						address: String(selection.entitySelector.address),
-					}
-				)
-			:
-				undefined
-		)
+		href === undefined ?
+			(
+				'address' in selection.entitySelector ?
+					resolve(
+						'/(social)/(lens)/lens/(lensNetwork)/account/[address=evmAddress]',
+						{
+							address: selection.entitySelector.address,
+						}
+					)
+				:
+					undefined
+			)
+		:
+			href ?? undefined
 	}
 	{layout}
 	bind:open
@@ -86,7 +87,7 @@
 		<ResourceBoundary resource={lensAccount}>
 			{#snippet children(entity)}
 				{@const reference = entity.$icon}
-				{#if reference != null && reference[EntityMetaKey.Selector] !== undefined}
+				{#if reference != null}
 					<MediaView
 						selection={select(EntityType.Media, reference[EntityMetaKey.Selector])}
 						prefetched={reference}
@@ -101,7 +102,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={lensAccount}>
 			{#snippet children(entity)}
-				{[(entity.displayName ?? ''), (entity.localName ?? ''), String(entity.address), (entity.legacyProfileId ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+				{[(entity.displayName ?? ''), (entity.localName ?? ''), entity.address, (entity.legacyProfileId ?? '')].filter(Boolean).join(' ') || title || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -109,7 +110,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={lensAccount}>
 			{#snippet children(entity)}
-				{[(entity.localName ?? ''), String(entity.address), (entity.legacyProfileId ?? '')].filter(Boolean).join(' ') || [(entity.displayName ?? ''), (entity.localName ?? ''), String(entity.address), (entity.legacyProfileId ?? '')].filter(Boolean).join(' ') || titleFallback}
+				{[(entity.localName ?? ''), entity.address, (entity.legacyProfileId ?? '')].filter(Boolean).join(' ') || [(entity.displayName ?? ''), (entity.localName ?? ''), entity.address, (entity.legacyProfileId ?? '')].filter(Boolean).join(' ') || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -117,10 +118,10 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={lensAccount}>
 			{#snippet children(entity)}
-				{@const createdAt0 = entity.createdAt}
-				{#if createdAt0 != null}
+				{@const createdAt = entity.createdAt}
+				{#if createdAt != null}
 					<span data-text="muted">
-						<Timestamp timestamp={Number(createdAt0)} />
+						<Timestamp timestamp={createdAt} />
 					</span>
 				{/if}
 			{/snippet}
@@ -136,7 +137,7 @@
 						resource={lensAccount}
 					>
 						{#snippet children(entity)}
-							<TruncatedValue value={String(entity.address)} />
+							<TruncatedValue value={entity.address} />
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -195,7 +196,7 @@
 						<div>
 							<dt>Owner</dt>
 							<dd>
-								<TruncatedValue value={String(owner)} />
+								<TruncatedValue value={owner} />
 							</dd>
 						</div>
 					{/if}
@@ -213,7 +214,7 @@
 						<div>
 							<dt>Created</dt>
 							<dd>
-								<Timestamp timestamp={Number(createdAt)} />
+								<Timestamp timestamp={createdAt} />
 							</dd>
 						</div>
 					{/if}
@@ -264,11 +265,11 @@
 							<dt>Icon URL</dt>
 							<dd>
 								<a
-									href={String(iconUrl)}
+									href={iconUrl}
 									target="_blank"
 									rel="noreferrer noopener"
 								>
-									<TruncatedValue value={String(iconUrl)} />
+									<TruncatedValue value={iconUrl} />
 								</a>
 							</dd>
 						</div>
@@ -314,12 +315,12 @@
 				<LensPostsView
 					selection={selection.$$posts}
 					href={
-						(selection.entitySelector.address != null ? resolve(
+						selection.entitySelector.address != null ? resolve(
 							'/(social)/(lens)/lens/(lensNetwork)/account/[address=evmAddress]/(lensAccount)/posts',
 							{
-								address: String(selection.entitySelector.address),
+								address: selection.entitySelector.address,
 							}
-						) : undefined)
+						) : undefined
 					}
 					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}

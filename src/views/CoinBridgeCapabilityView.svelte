@@ -22,13 +22,14 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.CoinBridgeCapability> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const fromInstance = $derived(selection.entitySelector.$fromInstance)
+	const toInstance = $derived(selection.entitySelector.$toInstance)
 	const coinBridgeCapability = $derived(selection({
 		fields: {
 			railId: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.toolKey ?? '') || 'Coin bridge capability')
+	const titleFallback = $derived(selection.entitySelector.toolKey || 'Coin bridge capability')
 
 
 	// Components
@@ -42,35 +43,38 @@
 	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
 	href={
-		href ?? (
-			'caip2' in selection.entitySelector.$fromInstance.$network
-			&& (selection.entitySelector.$fromInstance.type === 'NativeCurrency' ? true : '$contract' in selection.entitySelector.$fromInstance)
-			&& 'caip2' in selection.entitySelector.$toInstance.$network
-			&& (selection.entitySelector.$toInstance.type === 'NativeCurrency' ? true : '$contract' in selection.entitySelector.$toInstance) ?
-				resolve(
-					'/(assets)/bridge-capability/[fromChainId=eip155ChainId]/[fromCoinInstanceSlug=nativeCurrencySlugOrEvmAddress]/[toChainId=eip155ChainId]/[toCoinInstanceSlug=nativeCurrencySlugOrEvmAddress]/[toolKey=stringSegment]',
-					{
-						fromChainId: String(selection.entitySelector.$fromInstance.$network.caip2.reference),
-						fromCoinInstanceSlug: String((selection.entitySelector.$fromInstance.type === 'NativeCurrency' ? 'native' : selection.entitySelector.$fromInstance.$contract.address)),
-						toChainId: String(selection.entitySelector.$toInstance.$network.caip2.reference),
-						toCoinInstanceSlug: String((selection.entitySelector.$toInstance.type === 'NativeCurrency' ? 'native' : selection.entitySelector.$toInstance.$contract.address)),
-						toolKey: String(selection.entitySelector.toolKey),
-					}
-				)
-			:
-				undefined
-		)
+		href === undefined ?
+			(
+				'caip2' in fromInstance.$network
+				&& (selection.entitySelector.$fromInstance.type === 'NativeCurrency' || '$contract' in fromInstance)
+				&& 'caip2' in toInstance.$network
+				&& (selection.entitySelector.$toInstance.type === 'NativeCurrency' || '$contract' in toInstance) ?
+					resolve(
+						'/(assets)/bridge-capability/[fromChainId=eip155ChainId]/[fromCoinInstanceSlug=nativeCurrencySlugOrEvmAddress]/[toChainId=eip155ChainId]/[toCoinInstanceSlug=nativeCurrencySlugOrEvmAddress]/[toolKey=stringSegment]',
+						{
+							fromChainId: fromInstance.$network.caip2.reference,
+							fromCoinInstanceSlug: fromInstance.type === 'NativeCurrency' ? 'native' : fromInstance.$contract.address,
+							toChainId: toInstance.$network.caip2.reference,
+							toCoinInstanceSlug: toInstance.type === 'NativeCurrency' ? 'native' : toInstance.$contract.address,
+							toolKey: selection.entitySelector.toolKey,
+						}
+					)
+				:
+					undefined
+			)
+		:
+			href ?? undefined
 	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{(pendingEntity.toolKey ?? '') || 'Coin bridge capability'}
+		{selection.entitySelector.toolKey || 'Coin bridge capability'}
 	{/snippet}
 
 	{#snippet Value()}
-		{(pendingEntity.toolKey ?? '') || titleFallback}
+		{selection.entitySelector.toolKey || titleFallback}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
@@ -94,7 +98,7 @@
 			<div>
 				<dt>Tool key</dt>
 				<dd>
-					{pendingEntity.toolKey}
+					{selection.entitySelector.toolKey}
 				</dd>
 			</div>
 

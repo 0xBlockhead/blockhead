@@ -20,8 +20,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.BlockheadAccount> = $props()
 
-	const titleFallback = 'blockhead account'
-
 
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -33,7 +31,7 @@
 <EntityView
 	entityType={EntityType.BlockheadAccount}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? 'blockhead account'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -41,7 +39,6 @@
 	{#snippet Title()}
 		<AccountView
 			selection={select(EntityType.Account, selection.entitySelector.$account)}
-			href=""
 			layout={EntityLayout.Title}
 			open={false}
 		/>

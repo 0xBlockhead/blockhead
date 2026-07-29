@@ -24,13 +24,12 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.UtxoOutput> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const transaction = $derived(selection.entitySelector.$transaction)
 	const utxoOutput = $derived(selection({
 		fields: {
 			isSpent: true,
 		},
 	}))
-	const titleFallback = $derived((String(pendingEntity.indexInTransaction ?? '') ? 'Output #' + String(pendingEntity.indexInTransaction ?? '') : '') || 'UTXO output')
 
 
 	// Components
@@ -47,22 +46,25 @@
 <EntityView
 	entityType={EntityType.UtxoOutput}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
-	idDragPlainText={String(pendingEntity.indexInTransaction ?? '')}
+	title={title ?? `Output #${selection.entitySelector.indexInTransaction}`}
+	idDragPlainText={String(selection.entitySelector.indexInTransaction)}
 	href={
-		href ?? resolve(
-			'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(transactions)/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/(selection)/output/[outputIndex=nonNegativeInteger]',
-			{
-				network: (
-					'caip2' in selection.entitySelector.$transaction.$network ?
-						String(caip2StringFromValue(selection.entitySelector.$transaction.$network.caip2))
-					:
-						String(selection.entitySelector.$transaction.$network.slug)
-				),
-				transactionId: String(selection.entitySelector.$transaction.txId),
-				outputIndex: String(selection.entitySelector.indexInTransaction),
-			}
-		)
+		href === undefined ?
+			resolve(
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(transactions)/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/(selection)/output/[outputIndex=nonNegativeInteger]',
+				{
+					network: (
+						'caip2' in transaction.$network ?
+							caip2StringFromValue(transaction.$network.caip2)
+						:
+							transaction.$network.slug
+					),
+					transactionId: transaction.txId,
+					outputIndex: String(selection.entitySelector.indexInTransaction),
+				}
+			)
+		:
+			href ?? undefined
 	}
 	{layout}
 	bind:open
@@ -72,14 +74,14 @@
 		<span data-row="inline align-center gap-2 wrap">
 			<span>Output </span>
 			<span data-badge="small">
-				#{String(pendingEntity.indexInTransaction)}
+				#{selection.entitySelector.indexInTransaction}
 			</span>
 		</span>
 	{/snippet}
 
 	{#snippet Value()}
 		<span data-badge="small">
-			#{String(pendingEntity.indexInTransaction)}
+			#{selection.entitySelector.indexInTransaction}
 		</span>
 	{/snippet}
 
@@ -102,10 +104,10 @@
 						{/if}
 					{/snippet}
 				</ResourceBoundary>
-				{@const isSpent1 = entity.isSpent}
-				{#if isSpent1 != null}
+				{@const isSpent = entity.isSpent}
+				{#if isSpent != null}
 					<span data-text="muted">
-						{isSpent1 ? 'Yes' : 'No'}
+						{isSpent ? 'Yes' : 'No'}
 					</span>
 				{/if}
 			{/snippet}
@@ -118,7 +120,7 @@
 				<dt>Index in transaction</dt>
 				<dd>
 					<NumberValue
-						value={pendingEntity.indexInTransaction}
+						value={selection.entitySelector.indexInTransaction}
 					/>
 				</dd>
 			</div>

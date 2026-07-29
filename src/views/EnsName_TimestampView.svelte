@@ -24,14 +24,12 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.EnsName_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.TheGraph_Graphql,
 			Source.Voltaire_JsonRpc,
 		],
 	}))
-	const titleFallback = 'ENS name observation'
 
 
 	// Components
@@ -47,16 +45,19 @@
 <EntityView
 	entityType={EntityType.EnsName_Timestamp}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? 'ENS name observation'}
 	href={
-		href ?? resolve(
-			'/(explore)/(ens)/ens/(globalEnsNetwork)/name/[ensName=stringSegment]/(ensName)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
-			{
-				ensName: encodeURIComponent(String(selection.entitySelector.$name.name)),
-				timestampMs: String(selection.entitySelector.timestampMs),
-				source: String(selection.entitySelector.source),
-			}
-		)
+		href === undefined ?
+			resolve(
+				'/(explore)/(ens)/ens/(globalEnsNetwork)/name/[ensName=stringSegment]/(ensName)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
+				{
+					ensName: encodeURIComponent(selection.entitySelector.$name.name),
+					timestampMs: String(selection.entitySelector.timestampMs),
+					source: selection.entitySelector.source,
+				}
+			)
+		:
+			href ?? undefined
 	}
 	{layout}
 	bind:open
@@ -65,14 +66,14 @@
 	{#snippet Title()}
 		<EnsNameView
 			selection={select(EntityType.EnsName, selection.entitySelector.$name)}
-			href=""
+			href={null}
 			layout={EntityLayout.Title}
 			open={false}
 		/>
 	{/snippet}
 
 	{#snippet Value()}
-		<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+		<Timestamp timestamp={selection.entitySelector.timestampMs} />
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -93,7 +94,7 @@
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+					<Timestamp timestamp={selection.entitySelector.timestampMs} />
 				</dd>
 			</div>
 		</dl>
@@ -102,7 +103,7 @@
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 		</dl>
@@ -215,7 +216,7 @@
 						<div>
 							<dt>TTL</dt>
 							<dd>
-								{String(ttl)}
+								{ttl}
 							</dd>
 						</div>
 					{/if}

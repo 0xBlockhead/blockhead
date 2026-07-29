@@ -47,7 +47,7 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{(blockheadRadicleNodeState.did ?? '')}
+				{blockheadRadicleNodeState.did ?? ''}
 			{/snippet}
 
 			{#snippet HeadingAfter()}

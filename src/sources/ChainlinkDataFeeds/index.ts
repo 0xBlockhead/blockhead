@@ -2,7 +2,8 @@
 
 import bindings from '$/sources/ChainlinkDataFeeds/bindings.ts'
 import { Source } from '$/sources/Source.ts'
-import { SourceProvider, type SourceProviderDefinition } from '$/sources/SourceProvider.ts'
+import { SourceProvider } from '$/sources/SourceProvider.ts'
+import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinition.ts'
 
 export default {
 	provider: SourceProvider.ChainlinkDataFeeds,
@@ -17,8 +18,5 @@ export default {
 			label: 'Chainlink Data Feeds contracts',
 		},
 	],
-	bindings: [
-		bindings[Source.ChainlinkDataFeeds_AddressCatalog],
-		bindings[Source.ChainlinkDataFeeds_Contracts],
-	],
+	bindings: Object.values(bindings).flat(),
 } satisfies SourceProviderDefinition

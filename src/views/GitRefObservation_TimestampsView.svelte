@@ -5,7 +5,6 @@
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 
 
 	// State
@@ -42,7 +41,7 @@
 			entitySelector={gitRefObservationTimestampSelector}
 		>
 			{#snippet Title()}
-				{String(gitRefObservationTimestampSelector.timestampMs) || 'Git ref observation timestamp'}
+				{gitRefObservationTimestampSelector.timestampMs}
 			{/snippet}
 
 			{#snippet Value()}
@@ -50,7 +49,7 @@
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{String(gitRefObservationTimestamp.targetObjectId ?? '')}</span>
+				<span data-text="annotation">{gitRefObservationTimestamp.targetObjectId ?? ''}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

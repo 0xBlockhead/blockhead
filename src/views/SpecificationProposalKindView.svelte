@@ -27,19 +27,18 @@
 	}: EntitySelectionViewProps<EntityType.SpecificationProposalKind> = $props()
 
 	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const viewSelection = $derived(selection({
+	const specificationProposalKind = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Constants_Internal,
 		],
-	}))
-	const specificationProposalKind = $derived(viewSelection({
+	})({
 		fields: {
 			label: true,
 			labelPlural: true,
 			slug: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.labelPlural ?? '') || (proposalCategoryById[String(pendingEntity.category)]?.labelPlural ?? ((pendingEntity.category ?? ''))) || 'Specification proposal kind')
+	const titleFallback = $derived((prefetched.labelPlural ?? '') || (proposalCategoryById[selection.entitySelector.category]?.labelPlural ?? selection.entitySelector.category) || 'Specification proposal kind')
 
 
 	// Components
@@ -54,13 +53,16 @@
 	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
 	href={
-		href ?? resolve(
-			'/(proposals)/proposals/[specificationRealmSlug=specificationRealmSlug]/(specificationRealm)/[proposalKindSlug=proposalKindSlug]',
-			{
-				specificationRealmSlug: String(specificationRealmById[String(selection.entitySelector.realm)].slug),
-				proposalKindSlug: String(proposalCategoryById[String(selection.entitySelector.category)].slug),
-			}
-		)
+		href === undefined ?
+			resolve(
+				'/(proposals)/proposals/[specificationRealmSlug=specificationRealmSlug]/(specificationRealm)/[proposalKindSlug=proposalKindSlug]',
+				{
+					specificationRealmSlug: specificationRealmById[selection.entitySelector.realm].slug,
+					proposalKindSlug: proposalCategoryById[selection.entitySelector.category].slug,
+				}
+			)
+		:
+			href ?? undefined
 	}
 	{layout}
 	bind:open
@@ -87,7 +89,7 @@
 			<div>
 				<dt>Realm</dt>
 				<dd>
-					{pendingEntity.realm}
+					{selection.entitySelector.realm}
 				</dd>
 			</div>
 
@@ -125,15 +127,15 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const specificationProposalKindSpecificationProposalsViewProposalsResource = selection
-		.$$proposals({
-			sources: specificationProposalSources({
-				realm: pendingEntity.realm,
-				category: pendingEntity.category,
-			}),
-		})}
+		{@const proposalsResource = selection
+			.$$proposals({
+				sources: specificationProposalSources({
+					realm: pendingEntity.realm,
+					category: pendingEntity.category,
+				}),
+			})}
 		<ResourceBoundary
-			resource={specificationProposalKindSpecificationProposalsViewProposalsResource}
+			resource={proposalsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
@@ -148,8 +150,8 @@
 					>
 						{#snippet children(entity)}
 							<SpecificationProposalsView
-								selection={specificationProposalKindSpecificationProposalsViewProposalsResource}
-								countResource={specificationProposalKindSpecificationProposalsViewProposalsResource.count}
+								selection={proposalsResource}
+								countResource={proposalsResource.count}
 								title={String(entity.labelPlural ?? 'Proposals')}
 								filterRealm={selection.entitySelector.realm}
 								filterCategory={selection.entitySelector.category}

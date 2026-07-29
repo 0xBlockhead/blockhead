@@ -45,11 +45,11 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{(blockheadSessionSimulationCall.callType ?? '')}
+				{blockheadSessionSimulationCall.callType ?? ''}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{String(blockheadSessionSimulationCall.depth)}</span>
+				<span data-text="annotation">{blockheadSessionSimulationCall.depth}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

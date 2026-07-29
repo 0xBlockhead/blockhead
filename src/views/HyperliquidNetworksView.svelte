@@ -39,7 +39,7 @@
 			entitySelector={hyperliquidNetworkSelector}
 		>
 			{#snippet Title()}
-				{(hyperliquidNetwork.$network.name || (hyperliquidNetworkSelector.$network.caip2 == null ? '' : `${hyperliquidNetworkSelector.$network.caip2.namespace}:${hyperliquidNetworkSelector.$network.caip2.reference}`) || 'Network')}
+				{hyperliquidNetwork.$network.name || (hyperliquidNetworkSelector.$network.caip2 == null ? '' : `${hyperliquidNetworkSelector.$network.caip2.namespace}:${hyperliquidNetworkSelector.$network.caip2.reference}`) || 'Network'}
 			{/snippet}
 		</EntityView>
 	{/snippet}

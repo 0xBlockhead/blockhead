@@ -4,7 +4,6 @@
 	// Types/constants
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { UrlString } from '$/schema/UrlString.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -22,7 +21,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.AiModel_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Anthropic_Rest,
@@ -36,7 +34,7 @@
 			providerLifecycleStatus: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.providerDisplayName ?? '') || 'AI model timestamp')
+	const titleFallback = $derived((prefetched.providerDisplayName ?? '') || 'AI model timestamp')
 
 
 	// Components
@@ -74,10 +72,10 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={aiModelTimestamp}>
 			{#snippet children(entity)}
-				{@const providerLifecycleStatus0 = entity.providerLifecycleStatus}
-				{#if providerLifecycleStatus0 != null}
+				{@const providerLifecycleStatus = entity.providerLifecycleStatus}
+				{#if providerLifecycleStatus != null}
 					<span data-text="muted">
-						{providerLifecycleStatus0}
+						{providerLifecycleStatus}
 					</span>
 				{/if}
 			{/snippet}
@@ -100,14 +98,14 @@
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+					<Timestamp timestamp={selection.entitySelector.timestampMs} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 		</dl>
@@ -266,7 +264,7 @@
 						<div>
 							<dt>release date</dt>
 							<dd>
-								<Timestamp timestamp={Number(releaseDate)} />
+								<Timestamp timestamp={releaseDate} />
 							</dd>
 						</div>
 					{/if}
@@ -288,7 +286,7 @@
 						<div>
 							<dt>deprecation date</dt>
 							<dd>
-								<Timestamp timestamp={Number(deprecationDate)} />
+								<Timestamp timestamp={deprecationDate} />
 							</dd>
 						</div>
 					{/if}
@@ -356,7 +354,7 @@
 						<div>
 							<dt>context window tokens</dt>
 							<dd>
-								{String(contextWindowTokens)}
+								{contextWindowTokens}
 							</dd>
 						</div>
 					{/if}
@@ -378,7 +376,7 @@
 						<div>
 							<dt>max input tokens</dt>
 							<dd>
-								{String(maxInputTokens)}
+								{maxInputTokens}
 							</dd>
 						</div>
 					{/if}
@@ -400,7 +398,7 @@
 						<div>
 							<dt>max output tokens</dt>
 							<dd>
-								{String(maxOutputTokens)}
+								{maxOutputTokens}
 							</dd>
 						</div>
 					{/if}
@@ -535,11 +533,11 @@
 							<dt>tokenizer URL</dt>
 							<dd>
 								<a
-									href={String(tokenizerUrl)}
+									href={tokenizerUrl}
 									target="_blank"
 									rel="noreferrer noopener"
 								>
-									<TruncatedValue value={String(tokenizerUrl)} />
+									<TruncatedValue value={tokenizerUrl} />
 								</a>
 							</dd>
 						</div>
@@ -564,7 +562,7 @@
 						<div>
 							<dt>input price per million tokens</dt>
 							<dd>
-								{String(inputPricePerMillionTokens)}
+								{inputPricePerMillionTokens}
 							</dd>
 						</div>
 					{/if}
@@ -586,7 +584,7 @@
 						<div>
 							<dt>output price per million tokens</dt>
 							<dd>
-								{String(outputPricePerMillionTokens)}
+								{outputPricePerMillionTokens}
 							</dd>
 						</div>
 					{/if}
@@ -608,7 +606,7 @@
 						<div>
 							<dt>cache read price per million tokens</dt>
 							<dd>
-								{String(cacheReadPricePerMillionTokens)}
+								{cacheReadPricePerMillionTokens}
 							</dd>
 						</div>
 					{/if}
@@ -630,7 +628,7 @@
 						<div>
 							<dt>cache write price per million tokens</dt>
 							<dd>
-								{String(cacheWritePricePerMillionTokens)}
+								{cacheWritePricePerMillionTokens}
 							</dd>
 						</div>
 					{/if}

@@ -51,7 +51,7 @@
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{(dydxChainMarket.baseAsset ?? '')}</span>
+				<span data-text="annotation">{dydxChainMarket.baseAsset ?? ''}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

@@ -9,7 +9,7 @@ import { MarketAssetKind, marketOhlcDayLookbackValues } from '$/constants/Market
 import type { EntitySelector } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { schema } from '$/schema/index.ts'
-import type { MarketVenueId } from '$/constants/MarketVenue.ts'
+import { MarketVenueId } from '$/constants/MarketVenue.ts'
 import type { SourcePublicEnv } from '$/sources/$sources.ts'
 import {
 	catalogCoinIdByCoingeckoId,
@@ -283,53 +283,48 @@ export const collectDerivativeMarketEntitySelectors = async ({
 	const catalogCoinIdByCoingeckoIdMap = catalogCoinIdByCoingeckoId(idByCoinId)
 	const seen = new Set<string>()
 
-	return (
-		(
-			await Promise.all(
-				(
-					Object.entries(coingeckoDerivativesExchangeIdByMarketVenueId) as [
-						MarketVenueId,
-						string,
-					][]
-				)
-					.filter(([venueId]) => (
-						marketVenueId == null
-						|| venueId === marketVenueId
-					))
-					.map(
-					async ([venueId, exchangeId]) => {
-							const exchange = await getDerivativesExchangeById({
-								publicEnv,
-								exchangeId,
-							})
-							return (
-								(exchange?.tickers ?? []).flatMap((ticker) => {
-										const marketId = marketEntitySelectorFromCoingeckoDerivativesExchangeTicker(
-											ticker,
-											venueId,
-											catalogCoinIdByCoingeckoIdMap
-										)
-										if (marketId == null)
-											return []
-										if (
-										catalogCoinId != null
-										&& (
-										marketId.$base.kind !== MarketAssetKind.Coin
-										|| marketId.$base.assetKey !== catalogCoinId
-									)
-								) {
-									return []
-								}
-									const key = marketEntitySelectorKey(marketId)
-									if (seen.has(key))
-										return []
-									seen.add(key)
-									return [marketId]
-								})
-							)
-					}
-				)
-			)
-		).flat()
-	)
+	return (await Promise.all(
+		Object.values(MarketVenueId)
+			.flatMap((venueId) => {
+				const exchangeId = coingeckoDerivativesExchangeIdByMarketVenueId[venueId]
+				return exchangeId == null ? [] : [{
+					venueId,
+					exchangeId,
+				}]
+			})
+			.filter(({ venueId }) => (
+				marketVenueId == null
+				|| venueId === marketVenueId
+			))
+			.map(async ({ venueId, exchangeId }) => {
+				const exchange = await getDerivativesExchangeById({
+					publicEnv,
+					exchangeId,
+				})
+				return (exchange?.tickers ?? []).flatMap((ticker) => {
+					const marketId = marketEntitySelectorFromCoingeckoDerivativesExchangeTicker(
+						ticker,
+						venueId,
+						catalogCoinIdByCoingeckoIdMap
+					)
+					if (marketId == null)
+						return []
+					if (
+						catalogCoinId != null
+						&& (
+							marketId.$base.kind !== MarketAssetKind.Coin
+							|| marketId.$base.assetKey !== catalogCoinId
+						)
+					)
+						return []
+
+					const key = marketEntitySelectorKey(marketId)
+					if (seen.has(key))
+						return []
+
+					seen.add(key)
+					return [marketId]
+				})
+			})
+	)).flat()
 }

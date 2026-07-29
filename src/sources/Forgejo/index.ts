@@ -2,7 +2,8 @@
 
 import bindings from '$/sources/Forgejo/bindings.ts'
 import { Source } from '$/sources/Source.ts'
-import { SourceProvider, type SourceProviderDefinition } from '$/sources/SourceProvider.ts'
+import { SourceProvider } from '$/sources/SourceProvider.ts'
+import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinition.ts'
 
 export default {
 	provider: SourceProvider.Forgejo,
@@ -25,10 +26,5 @@ export default {
 			label: 'Forgejo releases REST',
 		},
 	],
-	bindings: [
-		bindings[Source.ForgejoRepos_Rest],
-		bindings[Source.ForgejoIssues_Rest],
-		bindings[Source.ForgejoPulls_Rest],
-		bindings[Source.ForgejoReleases_Rest],
-	],
+	bindings: Object.values(bindings).flat(),
 } satisfies SourceProviderDefinition

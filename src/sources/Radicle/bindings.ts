@@ -1,10 +1,10 @@
 // Generated from APP.ts. Do not edit by hand.
 
 import { Source } from '$/sources/Source.ts'
-import { ApiFamily, SourceCredentialScope, SourceDelivery, SourceEndpointKind, SourceOperationGroup, SourceTargetKind, WireProtocol, type SourceBindingIndex } from '$/sources/SourceBinding.ts'
+import { ApiFamily, indexSourceBindings, SourceCredentialScope, SourceDelivery, SourceEndpointKind, SourceOperationGroup, SourceTargetKind, WireProtocol, type SourceBinding } from '$/sources/SourceBinding.ts'
 
-export default {
-	[Source.Radicle_Local]: {
+const bindings = [
+	{
 		source: Source.Radicle_Local,
 		target: {
 			kind: SourceTargetKind.GitRepository,
@@ -29,7 +29,7 @@ export default {
 			},
 		],
 	},
-	[Source.Radicle_Remote]: {
+	{
 		source: Source.Radicle_Remote,
 		target: {
 			kind: SourceTargetKind.GitRepository,
@@ -54,4 +54,9 @@ export default {
 			},
 		],
 	},
-} as const satisfies SourceBindingIndex
+] as const satisfies readonly SourceBinding[]
+
+export default indexSourceBindings<{
+	readonly [Source.Radicle_Local]: typeof bindings[0]
+	readonly [Source.Radicle_Remote]: typeof bindings[1]
+}>(bindings)

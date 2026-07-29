@@ -21,7 +21,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.BittensorMetagraph_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Bittensor_JsonRpc,
@@ -32,7 +31,6 @@
 			metagraphByteLength: true,
 		},
 	}))
-	const titleFallback = $derived(String(pendingEntity.timestampMs ?? '') || 'Bittensor metagraph observation')
 
 
 	// Components
@@ -46,22 +44,22 @@
 <EntityView
 	entityType={EntityType.BittensorMetagraph_Timestamp}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? String(selection.entitySelector.timestampMs)}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+		<Timestamp timestamp={selection.entitySelector.timestampMs} />
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={bittensorMetagraphTimestamp}>
 			{#snippet children(entity)}
-				{@const metagraphByteLength0 = entity.metagraphByteLength}
-				{#if metagraphByteLength0 != null}
+				{@const metagraphByteLength = entity.metagraphByteLength}
+				{#if metagraphByteLength != null}
 					<NumberValue
-						value={metagraphByteLength0}
+						value={metagraphByteLength}
 					/>
 				{/if}
 			{/snippet}
@@ -84,14 +82,14 @@
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+					<Timestamp timestamp={selection.entitySelector.timestampMs} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 

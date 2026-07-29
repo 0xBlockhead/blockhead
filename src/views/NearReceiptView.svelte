@@ -21,9 +21,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.NearReceipt> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const titleFallback = $derived((pendingEntity.receiptId ?? '') || 'near receipt')
-
 
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -36,13 +33,13 @@
 <EntityView
 	entityType={EntityType.NearReceipt}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? (selection.entitySelector.receiptId || 'near receipt')}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<TruncatedValue value={pendingEntity.receiptId} />
+		<TruncatedValue value={selection.entitySelector.receiptId} />
 	{/snippet}
 
 	{#snippet Value()}
@@ -54,7 +51,6 @@
 					<NearAccountView
 						selection={select(EntityType.NearAccount, nearAccount[EntityMetaKey.Selector])}
 						prefetched={nearAccount}
-						href=""
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -98,7 +94,7 @@
 			<div>
 				<dt>Receipt ID</dt>
 				<dd>
-					<TruncatedValue value={pendingEntity.receiptId} />
+					<TruncatedValue value={selection.entitySelector.receiptId} />
 				</dd>
 			</div>
 

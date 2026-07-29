@@ -52,7 +52,7 @@
 
 
 <svelte:head>
-	<title>{(String(pageSelection.entitySelector.blockNumber) || 'liquidity pool block')} • liquidity pool block • Blockhead</title>
+	<title>{String(pageSelection.entitySelector.blockNumber) || 'liquidity pool block'} • liquidity pool block • Blockhead</title>
 </svelte:head>
 
 

@@ -4,7 +4,6 @@
 	// Types/constants
 	import type { PageProps } from './$types.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { NetworkExecutionModel, NetworkLedgerModel } from '$/constants/Network.ts'
 
 
 	// Context
@@ -106,7 +105,7 @@
 
 
 <svelte:head>
-	<title>{(data.title ?? (String(pageSelection.entitySelector.timestampMs) || 'Network timestamp'))} • Network timestamp • Blockhead</title>
+	<title>{data.title ?? (String(pageSelection.entitySelector.timestampMs) || 'Network timestamp')} • Network timestamp • Blockhead</title>
 </svelte:head>
 
 

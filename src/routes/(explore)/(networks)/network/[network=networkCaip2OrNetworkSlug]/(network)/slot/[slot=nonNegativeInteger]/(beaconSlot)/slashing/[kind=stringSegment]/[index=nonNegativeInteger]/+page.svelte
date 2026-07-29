@@ -31,7 +31,7 @@
 
 
 <svelte:head>
-	<title>{(data.title ?? ((String(pageSelection.entitySelector.indexInSlot ?? '') ? 'Slashing #' + String(pageSelection.entitySelector.indexInSlot ?? '') : '') || 'beacon slashing'))} • beacon slashing • Blockhead</title>
+	<title>{data.title ?? ((String(pageSelection.entitySelector.indexInSlot ?? '') ? 'Slashing #' + String(pageSelection.entitySelector.indexInSlot ?? '') : '') || 'beacon slashing')} • beacon slashing • Blockhead</title>
 </svelte:head>
 
 

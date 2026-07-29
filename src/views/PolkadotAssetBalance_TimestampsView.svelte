@@ -47,11 +47,11 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{String(polkadotAssetBalanceTimestamp.freeBalancePlancks ?? '')}
+				{polkadotAssetBalanceTimestamp.freeBalancePlancks ?? ''}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{(polkadotAssetBalanceTimestamp.status ?? '')}</span>
+				<span data-text="annotation">{polkadotAssetBalanceTimestamp.status ?? ''}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

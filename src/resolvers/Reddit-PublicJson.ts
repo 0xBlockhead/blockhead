@@ -11,7 +11,7 @@ import {
 	EntityMetaKey,
 	entityFieldAddressKey,
 } from '$/schema/$schema.ts'
-import { MediaType } from '$/schema/Media.ts'
+import { MediaType } from '$/schema/MediaType.ts'
 import type {
 	RedditPublicApiListing,
 	RedditPublicApiSubredditAbout,

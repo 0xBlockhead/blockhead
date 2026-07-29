@@ -44,9 +44,9 @@
 				resolve(
 					'/(social)/(youtube)/youtube/(globalYoutubeNetwork)/video/[videoId=stringSegment]/(youtubeVideo)/observations/[timestampMs=nonNegativeInteger]-[source=stringSegment]',
 					{
-						videoId: encodeURIComponent(String(youtubeVideoTimestampSelector.$video.videoId)),
+						videoId: encodeURIComponent(youtubeVideoTimestampSelector.$video.videoId),
 						timestampMs: String(youtubeVideoTimestampSelector.timestampMs),
-						source: String(youtubeVideoTimestampSelector.source),
+						source: youtubeVideoTimestampSelector.source,
 					}
 				)
 			}

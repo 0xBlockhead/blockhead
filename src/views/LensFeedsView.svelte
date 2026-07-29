@@ -5,7 +5,6 @@
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { EvmAddress } from '$/schema/ZeroExHex.ts'
 
 
 	// State
@@ -44,15 +43,15 @@
 			entitySelector={lensFeedSelector}
 		>
 			{#snippet Title()}
-				{[(lensFeed.name ?? ''), String(lensFeedSelector.address)].filter(Boolean).join(' ') || 'Lens feed'}
+				{[(lensFeed.name ?? ''), lensFeedSelector.address].filter(Boolean).join(' ') || 'Lens feed'}
 			{/snippet}
 
 			{#snippet Value()}
-				{String(lensFeedSelector.address)}
+				{lensFeedSelector.address}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{String(lensFeed.createdAt ?? '')}</span>
+				<span data-text="annotation">{lensFeed.createdAt ?? ''}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

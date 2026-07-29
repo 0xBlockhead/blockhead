@@ -41,11 +41,11 @@
 			entitySelector={cctpFastBurnAllowanceTimestampSelector}
 		>
 			{#snippet Title()}
-				{String(cctpFastBurnAllowanceTimestampSelector.timestampMs) || 'CCTP fast burn allowance timestamp'}
+				{cctpFastBurnAllowanceTimestampSelector.timestampMs}
 			{/snippet}
 
 			{#snippet Value()}
-				{String(cctpFastBurnAllowanceTimestamp.allowanceUsdc ?? '')}
+				{cctpFastBurnAllowanceTimestamp.allowanceUsdc ?? ''}
 			{/snippet}
 
 			{#snippet HeadingAfter()}

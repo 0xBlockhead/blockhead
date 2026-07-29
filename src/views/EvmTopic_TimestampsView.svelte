@@ -48,9 +48,9 @@
 				resolve(
 					'/(explore)/(protocols)/evm/(evmProtocol)/(topics)/topic/[hex=evmTopicHash]/(evmTopic)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
 					{
-						hex: String(evmTopicTimestampSelector.$topic.hex),
+						hex: evmTopicTimestampSelector.$topic.hex,
 						timestampMs: String(evmTopicTimestampSelector.timestampMs),
-						source: String(evmTopicTimestampSelector.source),
+						source: evmTopicTimestampSelector.source,
 					}
 				)
 			}
@@ -60,7 +60,7 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{String(evmTopicTimestampSelector.timestampMs)}
+				{evmTopicTimestampSelector.timestampMs}
 			{/snippet}
 
 			{#snippet HeadingAfter()}

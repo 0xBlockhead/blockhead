@@ -45,11 +45,11 @@
 			entitySelector={globalAgentNetworkTimestampSelector}
 		>
 			{#snippet Title()}
-				{String(globalAgentNetworkTimestampSelector.timestampMs) || 'global agent network timestamp'}
+				{globalAgentNetworkTimestampSelector.timestampMs}
 			{/snippet}
 
 			{#snippet Value()}
-				{(globalAgentNetworkTimestamp.status ?? '')}
+				{globalAgentNetworkTimestamp.status ?? ''}
 			{/snippet}
 
 			{#snippet HeadingAfter()}

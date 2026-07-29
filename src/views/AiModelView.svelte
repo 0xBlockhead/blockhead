@@ -22,7 +22,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.AiModel> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Anthropic_Rest,
@@ -37,7 +36,7 @@
 			modelFamily: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.label ?? '') || (pendingEntity.providerModelId ?? '') || 'AI model')
+	const titleFallback = $derived((prefetched.label ?? '') || selection.entitySelector.providerModelId || 'AI model')
 	const viewDomId = $derived('ai-model-' + encodeURIComponent(stringify(selection.entitySelector)))
 
 
@@ -73,7 +72,6 @@
 	{#snippet Value()}
 		<AiModelProviderView
 			selection={select(EntityType.AiModelProvider, selection.entitySelector.$provider)}
-			href=""
 			layout={EntityLayout.Value}
 			open={false}
 		/>
@@ -82,10 +80,10 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={aiModel}>
 			{#snippet children(entity)}
-				{@const modelFamily0 = entity.modelFamily}
-				{#if modelFamily0 != null}
+				{@const modelFamily = entity.modelFamily}
+				{#if modelFamily != null}
 					<span data-text="muted">
-						{modelFamily0}
+						{modelFamily}
 					</span>
 				{/if}
 			{/snippet}
@@ -108,7 +106,7 @@
 			<div>
 				<dt>provider model ID</dt>
 				<dd>
-					{pendingEntity.providerModelId}
+					{selection.entitySelector.providerModelId}
 				</dd>
 			</div>
 
@@ -227,7 +225,7 @@
 						<div>
 							<dt>provider created AT</dt>
 							<dd>
-								<Timestamp timestamp={Number(providerCreatedAt)} />
+								<Timestamp timestamp={providerCreatedAt} />
 							</dd>
 						</div>
 					{/if}

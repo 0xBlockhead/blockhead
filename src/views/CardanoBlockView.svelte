@@ -20,8 +20,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.CardanoBlock> = $props()
 
-	const titleFallback = 'Cardano block'
-
 
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -33,7 +31,7 @@
 <EntityView
 	entityType={EntityType.CardanoBlock}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? 'Cardano block'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -87,7 +85,7 @@
 						}
 					>
 						{#snippet children(entity)}
-							{String(entity.slot)}
+							{entity.slot}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -106,7 +104,7 @@
 						}
 					>
 						{#snippet children(entity)}
-							{String(entity.blockNo)}
+							{entity.blockNo}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -127,7 +125,7 @@
 						<div>
 							<dt>epoch</dt>
 							<dd>
-								{String(epoch)}
+								{epoch}
 							</dd>
 						</div>
 					{/if}
@@ -171,7 +169,7 @@
 						<div>
 							<dt>issuer vkey</dt>
 							<dd>
-								<TruncatedValue value={issuerVkey} />
+								{issuerVkey}
 							</dd>
 						</div>
 					{/if}

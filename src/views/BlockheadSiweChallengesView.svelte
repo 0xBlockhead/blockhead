@@ -46,11 +46,11 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{String(blockheadSiweChallenge.verified)}
+				{blockheadSiweChallenge.verified}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{String(blockheadSiweChallenge.issuedAt)}</span>
+				<span data-text="annotation">{blockheadSiweChallenge.issuedAt}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

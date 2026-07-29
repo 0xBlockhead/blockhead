@@ -21,7 +21,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.McpPrompt> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.McpDeclared_Protocol,
@@ -32,7 +31,7 @@
 			title: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.title ?? '') || (pendingEntity.name ?? '') || 'mcp prompt')
+	const titleFallback = $derived((prefetched.title ?? '') || selection.entitySelector.name || 'mcp prompt')
 
 
 	// Components
@@ -61,7 +60,6 @@
 	{#snippet Value()}
 		<McpServerView
 			selection={select(EntityType.McpServer, selection.entitySelector.$server)}
-			href=""
 			layout={EntityLayout.Value}
 			open={false}
 		/>
@@ -83,7 +81,7 @@
 			<div>
 				<dt>Name</dt>
 				<dd>
-					{pendingEntity.name}
+					{selection.entitySelector.name}
 				</dd>
 			</div>
 
@@ -128,15 +126,15 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const mcpPromptMcpPromptResultsViewResultsResource = selection.$$results}
+		{@const resultsResource = selection.$$results}
 		<ResourceBoundary
-			resource={mcpPromptMcpPromptResultsViewResultsResource}
+			resource={resultsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<McpPromptResultsView
-						selection={mcpPromptMcpPromptResultsViewResultsResource}
-						countResource={mcpPromptMcpPromptResultsViewResultsResource.count}
+						selection={resultsResource}
+						countResource={resultsResource.count}
 						title='results'
 						id='results'
 					/>

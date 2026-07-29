@@ -4,7 +4,6 @@
 	// Types/constants
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 
 
 	// Context
@@ -21,9 +20,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.AlgorandBox_Round> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const titleFallback = 'algorand box round'
-
 
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -35,7 +31,7 @@
 <EntityView
 	entityType={EntityType.AlgorandBox_Round}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? 'algorand box round'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -60,14 +56,14 @@
 			<div>
 				<dt>round</dt>
 				<dd>
-					{String(pendingEntity.round)}
+					{selection.entitySelector.round}
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 		</dl>
@@ -88,7 +84,7 @@
 						<div>
 							<dt>Value</dt>
 							<dd>
-								{String(value)}
+								{value}
 							</dd>
 						</div>
 					{/if}
@@ -110,7 +106,7 @@
 						<div>
 							<dt>value hash</dt>
 							<dd>
-								<TruncatedValue value={String(valueHash)} />
+								<TruncatedValue value={valueHash} />
 							</dd>
 						</div>
 					{/if}

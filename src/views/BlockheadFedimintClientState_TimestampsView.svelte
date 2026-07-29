@@ -41,11 +41,11 @@
 			entitySelector={blockheadFedimintClientStateTimestampSelector}
 		>
 			{#snippet Title()}
-				{String(blockheadFedimintClientStateTimestampSelector.timestampMs) || 'blockhead Fedimint client state timestamp'}
+				{blockheadFedimintClientStateTimestampSelector.timestampMs}
 			{/snippet}
 
 			{#snippet Value()}
-				{String(blockheadFedimintClientStateTimestamp.balanceMsat ?? '')}
+				{blockheadFedimintClientStateTimestamp.balanceMsat ?? ''}
 			{/snippet}
 
 			{#snippet HeadingAfter()}

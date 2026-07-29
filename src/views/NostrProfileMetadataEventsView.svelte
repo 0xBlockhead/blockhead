@@ -49,7 +49,7 @@
 				resolve(
 					'/(social)/(nostr)/nostr/(globalNostrNetwork)/profile-metadata-version/[eventId=stringSegment]',
 					{
-						eventId: String(nostrProfileMetadataEventSelector.eventId),
+						eventId: nostrProfileMetadataEventSelector.eventId,
 					}
 				)
 			}
@@ -63,7 +63,7 @@
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{String(nostrProfileMetadataEvent.createdAt)}</span>
+				<span data-text="annotation">{nostrProfileMetadataEvent.createdAt}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

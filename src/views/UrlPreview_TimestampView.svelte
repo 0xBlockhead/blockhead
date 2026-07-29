@@ -6,7 +6,6 @@
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { UrlString } from '$/schema/UrlString.ts'
 
 
 	// Context
@@ -24,7 +23,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.UrlPreview_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const urlPreviewTimestamp = $derived(selection({
 		fields: {
 			title: true,
@@ -32,7 +30,7 @@
 			previewStatus: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.title ?? '') || 'URL preview timestamp')
+	const titleFallback = $derived((prefetched.title ?? '') || 'URL preview timestamp')
 
 
 	// Components
@@ -49,14 +47,17 @@
 	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
 	href={
-		href ?? resolve(
-			'/(explore)/url/[url=absoluteUrl]/(url)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
-			{
-				url: encodeURIComponent(String(selection.entitySelector.$url.url)),
-				timestampMs: String(selection.entitySelector.timestampMs),
-				source: String(selection.entitySelector.source),
-			}
-		)
+		href === undefined ?
+			resolve(
+				'/(explore)/url/[url=absoluteUrl]/(url)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
+				{
+					url: encodeURIComponent(selection.entitySelector.$url.url),
+					timestampMs: String(selection.entitySelector.timestampMs),
+					source: selection.entitySelector.source,
+				}
+			)
+		:
+			href ?? undefined
 	}
 	{layout}
 	bind:open
@@ -67,7 +68,7 @@
 		<ResourceBoundary resource={urlPreviewTimestamp}>
 			{#snippet children(entity)}
 				{@const reference = entity.$image}
-				{#if reference != null && reference[EntityMetaKey.Selector] !== undefined}
+				{#if reference != null}
 					<MediaView
 						selection={select(EntityType.Media, reference[EntityMetaKey.Selector])}
 						prefetched={reference}
@@ -82,14 +83,14 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={urlPreviewTimestamp}>
 			{#snippet children(entity)}
-				{@const title0 = entity.title}
-				{#if title0 != null}
-					{title0}
+				{@const title = entity.title}
+				{#if title != null}
+					{title}
 				{/if}
 
 				<UrlView
 					selection={select(EntityType.Url, selection.entitySelector.$url)}
-					href=""
+					href={null}
 					layout={EntityLayout.Title}
 					open={false}
 				/>
@@ -108,10 +109,10 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={urlPreviewTimestamp}>
 			{#snippet children(entity)}
-				{@const previewStatus0 = entity.previewStatus}
-				{#if previewStatus0 != null}
+				{@const previewStatus = entity.previewStatus}
+				{#if previewStatus != null}
 					<span data-text="muted">
-						{previewStatus0}
+						{previewStatus}
 					</span>
 				{/if}
 			{/snippet}
@@ -123,14 +124,14 @@
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+					<Timestamp timestamp={selection.entitySelector.timestampMs} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 
@@ -222,11 +223,11 @@
 							<dt>Image URL</dt>
 							<dd>
 								<a
-									href={String(imageUrl)}
+									href={imageUrl}
 									target="_blank"
 									rel="noreferrer noopener"
 								>
-									<TruncatedValue value={String(imageUrl)} />
+									<TruncatedValue value={imageUrl} />
 								</a>
 							</dd>
 						</div>

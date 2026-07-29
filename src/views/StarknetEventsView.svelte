@@ -41,7 +41,7 @@
 			entitySelector={starknetEventSelector}
 		>
 			{#snippet Title()}
-				{String(starknetEventSelector.eventIndex) || 'starknet event'}
+				{starknetEventSelector.eventIndex}
 			{/snippet}
 
 			{#snippet Value()}

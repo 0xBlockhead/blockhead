@@ -21,14 +21,12 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.AptosBlock> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const aptosBlock = $derived(selection({
 		fields: {
 			height: true,
 			timestampMs: true,
 		},
 	}))
-	const titleFallback = $derived(String(pendingEntity.height ?? '') || 'aptos block')
 
 
 	// Components
@@ -43,7 +41,7 @@
 <EntityView
 	entityType={EntityType.AptosBlock}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? (String(prefetched.height ?? '') || 'aptos block')}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -61,7 +59,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={aptosBlock}>
 			{#snippet children(entity)}
-				<Timestamp timestamp={Number(entity.timestampMs)} />
+				<Timestamp timestamp={entity.timestampMs} />
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -145,7 +143,7 @@
 						resource={aptosBlock}
 					>
 						{#snippet children(entity)}
-							<Timestamp timestamp={Number(entity.timestampMs)} />
+							<Timestamp timestamp={entity.timestampMs} />
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -154,15 +152,15 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const aptosBlockAptosTransactionsViewTransactionsResource = selection.$$transactions}
+		{@const transactionsResource = selection.$$transactions}
 		<ResourceBoundary
-			resource={aptosBlockAptosTransactionsViewTransactionsResource}
+			resource={transactionsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<AptosTransactionsView
-						selection={aptosBlockAptosTransactionsViewTransactionsResource}
-						countResource={aptosBlockAptosTransactionsViewTransactionsResource.count}
+						selection={transactionsResource}
+						countResource={transactionsResource.count}
 						title='transactions'
 						id='transactions'
 					/>

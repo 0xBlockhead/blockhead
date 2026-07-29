@@ -5,7 +5,6 @@
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 
 
 	// Context
@@ -22,14 +21,13 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.GitTreeEntry> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const gitTreeEntry = $derived(selection({
 		fields: {
 			objectKind: true,
 			mode: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.path ?? '') || 'Git tree entry')
+	const titleFallback = $derived(selection.entitySelector.path || 'Git tree entry')
 
 
 	// Components
@@ -49,13 +47,13 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{(pendingEntity.path ?? '') || 'Git tree entry'}
+		{selection.entitySelector.path || 'Git tree entry'}
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={gitTreeEntry}>
 			{#snippet children(entity)}
-				{entity.objectKind || pendingEntity.path || titleFallback}
+				{entity.objectKind || selection.entitySelector.path || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -86,7 +84,7 @@
 			<div>
 				<dt>path</dt>
 				<dd>
-					{pendingEntity.path}
+					{selection.entitySelector.path}
 				</dd>
 			</div>
 
@@ -116,7 +114,7 @@
 						}
 					>
 						{#snippet children(entity)}
-							<TruncatedValue value={String(entity.objectId)} />
+							<TruncatedValue value={entity.objectId} />
 						{/snippet}
 					</ResourceBoundary>
 				</dd>

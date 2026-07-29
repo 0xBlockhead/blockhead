@@ -47,13 +47,13 @@
 				resolve(
 					'/(social)/(reddit)/reddit/(globalRedditNetwork)/r/[name=stringSegment]',
 					{
-						name: encodeURIComponent(String(redditSubredditSelector.name)),
+						name: encodeURIComponent(redditSubredditSelector.name),
 					}
 				)
 			}
 		>
 			{#snippet Title()}
-				{([(redditSubreddit.title ?? ''), (redditSubredditSelector.name ? 'r/' + redditSubredditSelector.name : '')].filter(Boolean).join(' ')) || (redditSubredditSelector.name ? 'r/' + redditSubredditSelector.name : '') || 'Reddit subreddit'}
+				{[(redditSubreddit.title ?? ''), 'r/' + redditSubredditSelector.name].filter(Boolean).join(' ') || 'r/' + redditSubredditSelector.name}
 			{/snippet}
 		</EntityView>
 	{/snippet}

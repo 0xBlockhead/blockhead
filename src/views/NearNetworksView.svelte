@@ -56,7 +56,7 @@
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{(nearNetwork.namespace ?? '')}</span>
+				<span data-text="annotation">{nearNetwork.namespace ?? ''}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

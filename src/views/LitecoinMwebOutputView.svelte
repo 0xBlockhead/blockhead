@@ -21,7 +21,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.LitecoinMwebOutput> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.LitecoinCore_JsonRpc,
@@ -32,7 +31,7 @@
 			commitment: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.commitment ?? '') || 'litecoin MWEB output')
+	const titleFallback = $derived((prefetched.commitment ?? '') || 'litecoin MWEB output')
 
 
 	// Components
@@ -60,7 +59,7 @@
 
 	{#snippet Value()}
 		<NumberValue
-			value={pendingEntity.outputIndex}
+			value={selection.entitySelector.outputIndex}
 		/>
 	{/snippet}
 
@@ -81,7 +80,7 @@
 				<dt>output index</dt>
 				<dd>
 					<NumberValue
-						value={pendingEntity.outputIndex}
+						value={selection.entitySelector.outputIndex}
 					/>
 				</dd>
 			</div>

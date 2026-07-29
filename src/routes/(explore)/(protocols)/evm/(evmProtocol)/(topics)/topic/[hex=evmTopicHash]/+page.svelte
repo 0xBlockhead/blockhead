@@ -4,7 +4,6 @@
 	// Types/constants
 	import type { PageProps } from './$types.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { EvmTopicHash } from '$/schema/ZeroExHex.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -34,7 +33,7 @@
 
 
 <svelte:head>
-	<title>{(data.title ?? ('EVM topic'))} • EVM topic • Blockhead</title>
+	<title>{data.title ?? 'EVM topic'} • EVM topic • Blockhead</title>
 </svelte:head>
 
 

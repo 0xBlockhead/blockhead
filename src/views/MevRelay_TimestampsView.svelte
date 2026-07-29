@@ -39,6 +39,7 @@
 >
 	{#snippet Item({ item: mevRelayTimestamp })}
 		{@const mevRelayTimestampSelector = mevRelayTimestamp[EntityMetaKey.Selector]}
+		{@const relay = mevRelayTimestampSelector.$relay}
 		<EntityView
 			entityType={EntityType.MevRelay_Timestamp}
 			entitySelector={mevRelayTimestampSelector}
@@ -47,14 +48,14 @@
 					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/mev/relay/[host=stringSegment]/(mevRelay)/timestamp/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
 					{
 						network: (
-							'caip2' in mevRelayTimestampSelector.$relay.$network ?
-								String(caip2StringFromValue(mevRelayTimestampSelector.$relay.$network.caip2))
+							'caip2' in relay.$network ?
+								caip2StringFromValue(relay.$network.caip2)
 							:
-								String(mevRelayTimestampSelector.$relay.$network.slug)
+								relay.$network.slug
 						),
-						host: String(mevRelayTimestampSelector.$relay.host),
+						host: relay.host,
 						timestampMs: String(mevRelayTimestampSelector.timestampMs),
-						source: String(mevRelayTimestampSelector.source),
+						source: mevRelayTimestampSelector.source,
 					}
 				)
 			}

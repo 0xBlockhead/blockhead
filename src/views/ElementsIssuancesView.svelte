@@ -42,7 +42,7 @@
 			entitySelector={elementsIssuanceSelector}
 		>
 			{#snippet Title()}
-				{String(elementsIssuanceSelector.inputIndex) || 'Elements issuance'}
+				{elementsIssuanceSelector.inputIndex}
 			{/snippet}
 
 			{#snippet Value()}
@@ -50,7 +50,7 @@
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{String(elementsIssuance.isReissuance ?? '')}</span>
+				<span data-text="annotation">{elementsIssuance.isReissuance ?? ''}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

@@ -42,7 +42,7 @@
 			entitySelector={fedimintFederationTimestampSelector}
 		>
 			{#snippet Title()}
-				{String(fedimintFederationTimestampSelector.timestampMs) || 'Fedimint federation timestamp'}
+				{fedimintFederationTimestampSelector.timestampMs}
 			{/snippet}
 
 			{#snippet Value()}

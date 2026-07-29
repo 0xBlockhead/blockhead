@@ -21,7 +21,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.NearAccount_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.NearRpc_JsonRpc,
@@ -33,7 +32,6 @@
 			blockHeight: true,
 		},
 	}))
-	const titleFallback = $derived(String(pendingEntity.timestampMs ?? '') || 'near account timestamp')
 
 
 	// Components
@@ -48,22 +46,22 @@
 <EntityView
 	entityType={EntityType.NearAccount_Timestamp}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? String(selection.entitySelector.timestampMs)}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+		<Timestamp timestamp={selection.entitySelector.timestampMs} />
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={nearAccountTimestamp}>
 			{#snippet children(entity)}
-				{@const amountYoctoNear0 = entity.amountYoctoNear}
-				{#if amountYoctoNear0 != null}
+				{@const amountYoctoNear = entity.amountYoctoNear}
+				{#if amountYoctoNear != null}
 					<NumberValue
-						value={amountYoctoNear0}
+						value={amountYoctoNear}
 					/>
 				{/if}
 			{/snippet}
@@ -73,11 +71,11 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={nearAccountTimestamp}>
 			{#snippet children(entity)}
-				{@const blockHeight0 = entity.blockHeight}
-				{#if blockHeight0 != null}
+				{@const blockHeight = entity.blockHeight}
+				{#if blockHeight != null}
 					<span data-text="muted">
 						<NumberValue
-							value={blockHeight0}
+							value={blockHeight}
 						/>
 					</span>
 				{/if}
@@ -101,14 +99,14 @@
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+					<Timestamp timestamp={selection.entitySelector.timestampMs} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 

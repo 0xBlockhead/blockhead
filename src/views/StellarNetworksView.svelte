@@ -40,11 +40,11 @@
 			entitySelector={stellarNetworkSelector}
 		>
 			{#snippet Title()}
-				{(stellarNetwork.$network.name || (stellarNetworkSelector.$network.caip2 == null ? '' : `${stellarNetworkSelector.$network.caip2.namespace}:${stellarNetworkSelector.$network.caip2.reference}`) || 'Network')}
+				{stellarNetwork.$network.name || (stellarNetworkSelector.$network.caip2 == null ? '' : `${stellarNetworkSelector.$network.caip2.namespace}:${stellarNetworkSelector.$network.caip2.reference}`) || 'Network'}
 			{/snippet}
 
 			{#snippet Value()}
-				{(stellarNetwork.passphrase ?? '')}
+				{stellarNetwork.passphrase ?? ''}
 			{/snippet}
 		</EntityView>
 	{/snippet}

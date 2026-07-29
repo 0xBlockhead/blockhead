@@ -46,15 +46,15 @@
 				resolve(
 					'/(explore)/url/[url=absoluteUrl]/(url)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
 					{
-						url: encodeURIComponent(String(urlPreviewTimestampSelector.$url.url)),
+						url: encodeURIComponent(urlPreviewTimestampSelector.$url.url),
 						timestampMs: String(urlPreviewTimestampSelector.timestampMs),
-						source: String(urlPreviewTimestampSelector.source),
+						source: urlPreviewTimestampSelector.source,
 					}
 				)
 			}
 		>
 			{#snippet Title()}
-				{[(urlPreviewTimestamp.title ?? ''), String(urlPreviewTimestampSelector.$url.url) || 'URL'].filter(Boolean).join(' ') || 'URL preview timestamp'}
+				{[(urlPreviewTimestamp.title ?? ''), urlPreviewTimestampSelector.$url.url || 'URL'].filter(Boolean).join(' ') || 'URL preview timestamp'}
 			{/snippet}
 
 			{#snippet Value()}
@@ -62,7 +62,7 @@
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{(urlPreviewTimestamp.previewStatus ?? '')}</span>
+				<span data-text="annotation">{urlPreviewTimestamp.previewStatus ?? ''}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

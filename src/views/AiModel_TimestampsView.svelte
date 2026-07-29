@@ -59,11 +59,11 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{(aiModelTimestamp.availabilityStatus ?? '')}
+				{aiModelTimestamp.availabilityStatus ?? ''}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{(aiModelTimestamp.providerLifecycleStatus ?? '')}</span>
+				<span data-text="annotation">{aiModelTimestamp.providerLifecycleStatus ?? ''}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

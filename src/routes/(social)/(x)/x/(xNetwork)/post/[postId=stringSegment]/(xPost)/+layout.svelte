@@ -33,7 +33,7 @@
 			resolve(
 				'/(social)/(x)/x/(xNetwork)/post/[postId=stringSegment]',
 				{
-					postId: String(params.postId),
+					postId: params.postId,
 				}
 			)
 		}
@@ -50,7 +50,7 @@
 					resolve(
 						'/(social)/(x)/x/(xNetwork)/post/[postId=stringSegment]',
 						{
-							postId: String(params.postId),
+							postId: params.postId,
 						}
 					)
 				}

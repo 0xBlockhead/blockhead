@@ -22,7 +22,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.BlockheadRadicleSyncSession> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Local_Internal,
@@ -35,7 +34,7 @@
 			status: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.sessionId ?? '') || 'blockhead radicle sync session')
+	const titleFallback = $derived(selection.entitySelector.sessionId || 'blockhead radicle sync session')
 
 
 	// Components
@@ -56,13 +55,13 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{(pendingEntity.sessionId ?? '') || 'blockhead radicle sync session'}
+		{selection.entitySelector.sessionId || 'blockhead radicle sync session'}
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={blockheadRadicleSyncSession}>
 			{#snippet children(entity)}
-				{entity.status || pendingEntity.sessionId || titleFallback}
+				{entity.status || selection.entitySelector.sessionId || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -71,7 +70,7 @@
 		<ResourceBoundary resource={blockheadRadicleSyncSession}>
 			{#snippet children(entity)}
 				<span data-text="muted">
-					<Timestamp timestamp={Number(entity.startedAt)} />
+					<Timestamp timestamp={entity.startedAt} />
 				</span>
 			{/snippet}
 		</ResourceBoundary>
@@ -82,7 +81,7 @@
 			<div>
 				<dt>session ID</dt>
 				<dd>
-					{pendingEntity.sessionId}
+					{selection.entitySelector.sessionId}
 				</dd>
 			</div>
 
@@ -168,7 +167,7 @@
 						resource={blockheadRadicleSyncSession}
 					>
 						{#snippet children(entity)}
-							<Timestamp timestamp={Number(entity.startedAt)} />
+							<Timestamp timestamp={entity.startedAt} />
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -189,7 +188,7 @@
 						<div>
 							<dt>completed AT</dt>
 							<dd>
-								<Timestamp timestamp={Number(completedAt)} />
+								<Timestamp timestamp={completedAt} />
 							</dd>
 						</div>
 					{/if}

@@ -4,8 +4,6 @@
 	// Types/constants
 	import type { PageProps } from './$types.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { CoinId } from '$/constants/Coin.ts'
-	import { AssetInstanceKind } from '$/schema/AssetInstance.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -39,7 +37,7 @@
 
 
 <svelte:head>
-	<title>{(data.title ?? (pageSelection.entity == null ? 'Asset instance' : [pageSelection.entity.symbol, pageSelection.entity.name].filter(Boolean).join(' ') || 'Asset instance'))} • Asset instance • Blockhead</title>
+	<title>{data.title ?? (pageSelection.entity == null ? 'Asset instance' : [pageSelection.entity.symbol, pageSelection.entity.name].filter(Boolean).join(' ') || 'Asset instance')} • Asset instance • Blockhead</title>
 </svelte:head>
 
 

@@ -30,6 +30,7 @@
 >
 	{#snippet Item({ item: xrplTrustline })}
 		{@const xrplTrustlineSelector = xrplTrustline[EntityMetaKey.Selector]}
+		{@const network = xrplTrustlineSelector.$network}
 		<EntityView
 			entityType={EntityType.XrplTrustline}
 			entitySelector={xrplTrustlineSelector}
@@ -38,14 +39,14 @@
 					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/trustline/[account=stringSegment]/[currency=stringSegment]/[issuer=stringSegment]',
 					{
 						network: (
-							'caip2' in xrplTrustlineSelector.$network ?
-								String(caip2StringFromValue(xrplTrustlineSelector.$network.caip2))
+							'caip2' in network ?
+								caip2StringFromValue(network.caip2)
 							:
-								String(xrplTrustlineSelector.$network.slug)
+								network.slug
 						),
-						account: String(xrplTrustlineSelector.account),
-						currency: String(xrplTrustlineSelector.currency),
-						issuer: String(xrplTrustlineSelector.issuer),
+						account: xrplTrustlineSelector.account,
+						currency: xrplTrustlineSelector.currency,
+						issuer: xrplTrustlineSelector.issuer,
 					}
 				)
 			}

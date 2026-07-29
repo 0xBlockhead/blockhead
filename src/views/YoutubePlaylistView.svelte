@@ -24,7 +24,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.YoutubePlaylist> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Youtube_Rest,
@@ -38,7 +37,7 @@
 			publishedAtMs: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.title ?? '') || (pendingEntity.playlistId ?? '') || 'YouTube playlist')
+	const titleFallback = $derived((prefetched.title ?? '') || selection.entitySelector.playlistId || 'YouTube playlist')
 
 
 	// Components
@@ -56,12 +55,15 @@
 	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
 	href={
-		href ?? resolve(
-			'/(social)/(youtube)/youtube/(globalYoutubeNetwork)/playlist/[playlistId=stringSegment]',
-			{
-				playlistId: encodeURIComponent(String(selection.entitySelector.playlistId)),
-			}
-		)
+		href === undefined ?
+			resolve(
+				'/(social)/(youtube)/youtube/(globalYoutubeNetwork)/playlist/[playlistId=stringSegment]',
+				{
+					playlistId: encodeURIComponent(selection.entitySelector.playlistId),
+				}
+			)
+		:
+			href ?? undefined
 	}
 	{layout}
 	bind:open
@@ -72,7 +74,7 @@
 		<ResourceBoundary resource={youtubePlaylist}>
 			{#snippet children(entity)}
 				{@const reference = entity.$thumbnail}
-				{#if reference != null && reference[EntityMetaKey.Selector] !== undefined}
+				{#if reference != null}
 					<MediaView
 						selection={select(EntityType.Media, reference[EntityMetaKey.Selector])}
 						prefetched={reference}
@@ -101,7 +103,7 @@
 					<YoutubeChannelView
 						selection={select(EntityType.YoutubeChannel, youtubeChannel[EntityMetaKey.Selector])}
 						prefetched={youtubeChannel}
-						href=""
+						href={null}
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -113,10 +115,10 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={youtubePlaylist}>
 			{#snippet children(entity)}
-				{@const publishedAtMs0 = entity.publishedAtMs}
-				{#if publishedAtMs0 != null}
+				{@const publishedAtMs = entity.publishedAtMs}
+				{#if publishedAtMs != null}
 					<span data-text="muted">
-						<Timestamp timestamp={Number(publishedAtMs0)} />
+						<Timestamp timestamp={publishedAtMs} />
 					</span>
 				{/if}
 			{/snippet}
@@ -152,7 +154,7 @@
 			<div>
 				<dt>Playlist ID</dt>
 				<dd>
-					<TruncatedValue value={pendingEntity.playlistId} />
+					<TruncatedValue value={selection.entitySelector.playlistId} />
 				</dd>
 			</div>
 
@@ -166,7 +168,7 @@
 							<div>
 								<dt>Published</dt>
 								<dd>
-									<Timestamp timestamp={Number(publishedAtMs)} />
+									<Timestamp timestamp={publishedAtMs} />
 								</dd>
 							</div>
 						{/if}
@@ -199,21 +201,21 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const youtubePlaylistYoutubeVideosViewVideosResource = selection.$$videos}
+		{@const videosResource = selection.$$videos}
 		<ResourceBoundary
-			resource={youtubePlaylistYoutubeVideosViewVideosResource}
+			resource={videosResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<YoutubeVideosView
-						selection={youtubePlaylistYoutubeVideosViewVideosResource}
-						countResource={youtubePlaylistYoutubeVideosViewVideosResource.count}
+						selection={videosResource}
+						countResource={videosResource.count}
 						title='Videos'
 						href={
 							resolve(
 								'/(social)/(youtube)/youtube/(globalYoutubeNetwork)/playlist/[playlistId=stringSegment]/(youtubePlaylist)/videos',
 								{
-									playlistId: encodeURIComponent(String(selection.entitySelector.playlistId)),
+									playlistId: encodeURIComponent(selection.entitySelector.playlistId),
 								}
 							)
 						}

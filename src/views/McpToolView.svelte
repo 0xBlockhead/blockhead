@@ -21,7 +21,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.McpTool> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.McpDeclared_Protocol,
@@ -32,7 +31,7 @@
 			title: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.title ?? '') || (pendingEntity.name ?? '') || 'mcp tool')
+	const titleFallback = $derived((prefetched.title ?? '') || selection.entitySelector.name || 'mcp tool')
 
 
 	// Components
@@ -60,7 +59,6 @@
 	{#snippet Value()}
 		<McpServerView
 			selection={select(EntityType.McpServer, selection.entitySelector.$server)}
-			href=""
 			layout={EntityLayout.Value}
 			open={false}
 		/>
@@ -82,7 +80,7 @@
 			<div>
 				<dt>Name</dt>
 				<dd>
-					{pendingEntity.name}
+					{selection.entitySelector.name}
 				</dd>
 			</div>
 

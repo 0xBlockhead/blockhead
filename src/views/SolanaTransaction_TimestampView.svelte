@@ -20,14 +20,12 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.SolanaTransaction_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const solanaTransactionTimestamp = $derived(selection({
 		fields: {
 			status: true,
 			timestampMs: true,
 		},
 	}))
-	const titleFallback = $derived(String(pendingEntity.slot ?? '') || 'solana transaction timestamp')
 
 
 	// Components
@@ -41,21 +39,21 @@
 <EntityView
 	entityType={EntityType.SolanaTransaction_Timestamp}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? String(selection.entitySelector.slot)}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
 		<NumberValue
-			value={pendingEntity.slot}
+			value={selection.entitySelector.slot}
 		/>
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={solanaTransactionTimestamp}>
 			{#snippet children(entity)}
-				{(entity.status ?? '') || String(pendingEntity.slot) || titleFallback}
+				{(entity.status ?? '') || String(selection.entitySelector.slot)}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -63,10 +61,10 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={solanaTransactionTimestamp}>
 			{#snippet children(entity)}
-				{@const timestampMs0 = entity.timestampMs}
-				{#if timestampMs0 != null}
+				{@const timestampMs = entity.timestampMs}
+				{#if timestampMs != null}
 					<span data-text="muted">
-						<Timestamp timestamp={Number(timestampMs0)} />
+						<Timestamp timestamp={timestampMs} />
 					</span>
 				{/if}
 			{/snippet}
@@ -89,7 +87,7 @@
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 
@@ -108,7 +106,7 @@
 						<div>
 							<dt>Fee</dt>
 							<dd>
-								{String(feeLamports)}
+								{feeLamports}
 							</dd>
 						</div>
 					{/if}
@@ -130,7 +128,7 @@
 						<div>
 							<dt>Compute units consumed</dt>
 							<dd>
-								{String(computeUnitsConsumed)}
+								{computeUnitsConsumed}
 							</dd>
 						</div>
 					{/if}

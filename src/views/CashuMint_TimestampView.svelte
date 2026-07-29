@@ -20,7 +20,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.CashuMint_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const cashuMintTimestamp = $derived(selection({
 		fields: {
 			name: true,
@@ -28,7 +27,6 @@
 			reachable: true,
 		},
 	}))
-	const titleFallback = $derived(String(pendingEntity.timestampMs ?? '') || 'Cashu mint timestamp')
 
 
 	// Components
@@ -42,19 +40,19 @@
 <EntityView
 	entityType={EntityType.CashuMint_Timestamp}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? String(selection.entitySelector.timestampMs)}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+		<Timestamp timestamp={selection.entitySelector.timestampMs} />
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={cashuMintTimestamp}>
 			{#snippet children(entity)}
-				{[(entity.name ?? ''), (entity.version ?? '')].filter(Boolean).join(' ') || String(pendingEntity.timestampMs) || titleFallback}
+				{[(entity.name ?? ''), (entity.version ?? '')].filter(Boolean).join(' ') || String(selection.entitySelector.timestampMs)}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -62,10 +60,10 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={cashuMintTimestamp}>
 			{#snippet children(entity)}
-				{@const reachable0 = entity.reachable}
-				{#if reachable0 != null}
+				{@const reachable = entity.reachable}
+				{#if reachable != null}
 					<span data-text="muted">
-						{reachable0 ? 'Yes' : 'No'}
+						{reachable ? 'Yes' : 'No'}
 					</span>
 				{/if}
 			{/snippet}
@@ -88,14 +86,14 @@
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+					<Timestamp timestamp={selection.entitySelector.timestampMs} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 
@@ -164,7 +162,7 @@
 						<div>
 							<dt>server time ms</dt>
 							<dd>
-								<Timestamp timestamp={Number(serverTimeMs)} />
+								<Timestamp timestamp={serverTimeMs} />
 							</dd>
 						</div>
 					{/if}
@@ -279,11 +277,11 @@
 							<dt>icon URL</dt>
 							<dd>
 								<a
-									href={String(iconUrl)}
+									href={iconUrl}
 									target="_blank"
 									rel="noreferrer noopener"
 								>
-									<TruncatedValue value={String(iconUrl)} />
+									<TruncatedValue value={iconUrl} />
 								</a>
 							</dd>
 						</div>
@@ -307,11 +305,11 @@
 							<dt>tos URL</dt>
 							<dd>
 								<a
-									href={String(tosUrl)}
+									href={tosUrl}
 									target="_blank"
 									rel="noreferrer noopener"
 								>
-									<TruncatedValue value={String(tosUrl)} />
+									<TruncatedValue value={tosUrl} />
 								</a>
 							</dd>
 						</div>

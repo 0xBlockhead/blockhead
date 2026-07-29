@@ -4,8 +4,6 @@
 	// Types/constants
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { UrlString } from '$/schema/UrlString.ts'
-	import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 
 
 	// State
@@ -18,14 +16,13 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.GitSignature> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const gitSignature = $derived(selection({
 		fields: {
 			verificationStatus: true,
 			signatureKind: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.signatureId ?? '') || 'Git signature')
+	const titleFallback = $derived(selection.entitySelector.signatureId || 'Git signature')
 
 
 	// Components
@@ -44,13 +41,13 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{(pendingEntity.signatureId ?? '') || 'Git signature'}
+		{selection.entitySelector.signatureId || 'Git signature'}
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={gitSignature}>
 			{#snippet children(entity)}
-				{[entity.verificationStatus, entity.signatureKind].filter(Boolean).join(' ') || pendingEntity.signatureId || titleFallback}
+				{[entity.verificationStatus, entity.signatureKind].filter(Boolean).join(' ') || selection.entitySelector.signatureId || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -60,7 +57,7 @@
 			<div>
 				<dt>signature ID</dt>
 				<dd>
-					<TruncatedValue value={pendingEntity.signatureId} />
+					<TruncatedValue value={selection.entitySelector.signatureId} />
 				</dd>
 			</div>
 
@@ -77,7 +74,7 @@
 						}
 					>
 						{#snippet children(entity)}
-							{String(entity.subjectObjectId)}
+							{entity.subjectObjectId}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -90,7 +87,7 @@
 						resource={gitSignature}
 					>
 						{#snippet children(entity)}
-							<TruncatedValue value={entity.signatureKind} />
+							{entity.signatureKind}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -148,7 +145,7 @@
 						<div>
 							<dt>payload hash</dt>
 							<dd>
-								<TruncatedValue value={String(payloadHash)} />
+								<TruncatedValue value={payloadHash} />
 							</dd>
 						</div>
 					{/if}
@@ -192,7 +189,7 @@
 						<div>
 							<dt>verified AT ms</dt>
 							<dd>
-								<Timestamp timestamp={Number(verifiedAtMs)} />
+								<Timestamp timestamp={verifiedAtMs} />
 							</dd>
 						</div>
 					{/if}
@@ -215,11 +212,11 @@
 							<dt>evidence URL</dt>
 							<dd>
 								<a
-									href={String(evidenceUrl)}
+									href={evidenceUrl}
 									target="_blank"
 									rel="noreferrer noopener"
 								>
-									<TruncatedValue value={String(evidenceUrl)} />
+									<TruncatedValue value={evidenceUrl} />
 								</a>
 							</dd>
 						</div>

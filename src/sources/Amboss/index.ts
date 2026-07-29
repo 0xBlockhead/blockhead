@@ -2,7 +2,8 @@
 
 import bindings from '$/sources/Amboss/bindings.ts'
 import { Source } from '$/sources/Source.ts'
-import { SourceProvider, type SourceProviderDefinition } from '$/sources/SourceProvider.ts'
+import { SourceProvider } from '$/sources/SourceProvider.ts'
+import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinition.ts'
 
 export default {
 	provider: SourceProvider.Amboss,
@@ -13,5 +14,5 @@ export default {
 			label: 'Amboss Space GraphQL',
 		},
 	],
-	bindings: [bindings[Source.Amboss_Graphql]],
+	bindings: Object.values(bindings).flat(),
 } satisfies SourceProviderDefinition

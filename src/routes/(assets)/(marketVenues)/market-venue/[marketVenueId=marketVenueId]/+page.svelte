@@ -4,7 +4,6 @@
 	// Types/constants
 	import type { PageProps } from './$types.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { MarketVenueId } from '$/constants/MarketVenue.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -36,7 +35,7 @@
 
 
 <svelte:head>
-	<title>{(pageSelection.entity == null ? (pageSelection.entitySelector.marketVenueId ?? '') || 'Market venue' : pageSelection.entity.label || pageSelection.entitySelector.marketVenueId || 'Market venue')} • Market venue • Blockhead</title>
+	<title>{pageSelection.entity == null ? (pageSelection.entitySelector.marketVenueId ?? '') || 'Market venue' : pageSelection.entity.label || pageSelection.entitySelector.marketVenueId || 'Market venue'} • Market venue • Blockhead</title>
 </svelte:head>
 
 

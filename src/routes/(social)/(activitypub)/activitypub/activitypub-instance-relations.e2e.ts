@@ -11,7 +11,10 @@ import {
 } from '../../../../../tests/e2e/_routeViewDiagnostics.ts'
 import bindings from '$/sources/Mastodon/bindings.ts'
 import { Source } from '$/sources/Source.ts'
-import { SourceTargetKind } from '$/sources/SourceBinding.ts'
+import {
+	SourceTargetKind,
+	sourceBindingId,
+} from '$/sources/SourceBinding.ts'
 
 
 const mastodonPublicTimelineBinding = bindings[Source.Mastodon_Rest].find(({ target }) => (
@@ -28,10 +31,10 @@ if (mastodonSocialBinding == null)
 	throw new Error('ActivityPub hub fixture requires the mastodon.social instance binding')
 
 const mastodonPublicTimelineProxyRoute = new RegExp(
-	`/api-proxy/${encodeURIComponent(mastodonPublicTimelineBinding.proxyId)}/0/`
+	`/api-proxy/${encodeURIComponent(sourceBindingId(mastodonPublicTimelineBinding))}/0/`
 )
 const mastodonSocialProxyRoute = new RegExp(
-	`/api-proxy/${encodeURIComponent(mastodonSocialBinding.proxyId)}/0/`
+	`/api-proxy/${encodeURIComponent(sourceBindingId(mastodonSocialBinding))}/0/`
 )
 
 

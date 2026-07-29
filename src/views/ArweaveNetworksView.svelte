@@ -39,7 +39,7 @@
 			entitySelector={arweaveNetworkSelector}
 		>
 			{#snippet Title()}
-				{(arweaveNetwork.$network.name || (arweaveNetworkSelector.$network.caip2 == null ? '' : `${arweaveNetworkSelector.$network.caip2.namespace}:${arweaveNetworkSelector.$network.caip2.reference}`) || 'Network')}
+				{arweaveNetwork.$network.name || (arweaveNetworkSelector.$network.caip2 == null ? '' : `${arweaveNetworkSelector.$network.caip2.namespace}:${arweaveNetworkSelector.$network.caip2.reference}`) || 'Network'}
 			{/snippet}
 		</EntityView>
 	{/snippet}

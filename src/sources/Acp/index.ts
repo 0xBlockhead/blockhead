@@ -2,7 +2,8 @@
 
 import bindings from '$/sources/Acp/bindings.ts'
 import { Source } from '$/sources/Source.ts'
-import { SourceProvider, type SourceProviderDefinition } from '$/sources/SourceProvider.ts'
+import { SourceProvider } from '$/sources/SourceProvider.ts'
+import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinition.ts'
 
 export default {
 	provider: SourceProvider.Acp,
@@ -17,8 +18,5 @@ export default {
 			label: 'ACP registry REST',
 		},
 	],
-	bindings: [
-		bindings[Source.AcpLocal_JsonRpc],
-		bindings[Source.AcpRegistry_Rest],
-	],
+	bindings: Object.values(bindings).flat(),
 } satisfies SourceProviderDefinition

@@ -45,7 +45,7 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{(fedimintFederation.consensusVersion ?? '')}
+				{fedimintFederation.consensusVersion ?? ''}
 			{/snippet}
 		</EntityView>
 	{/snippet}

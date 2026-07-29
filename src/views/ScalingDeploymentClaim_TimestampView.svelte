@@ -5,8 +5,6 @@
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { UrlString } from '$/schema/UrlString.ts'
-	import { EvmAddress } from '$/schema/ZeroExHex.ts'
 
 
 	// Context
@@ -23,7 +21,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.ScalingDeploymentClaim_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const scalingDeploymentClaimTimestamp = $derived(selection({
 		fields: {
 			architectureKind: true,
@@ -32,7 +29,7 @@
 			proofSystemKind: true,
 		},
 	}))
-	const titleFallback = $derived([(pendingEntity.architectureKind ?? ''), (pendingEntity.protocolLabel ?? ''), String(pendingEntity.timestampMs ?? '')].filter(Boolean).join(' ') || 'scaling deployment claim timestamp')
+	const titleFallback = $derived([(prefetched.architectureKind ?? ''), (prefetched.protocolLabel ?? ''), String(selection.entitySelector.timestampMs)].filter(Boolean).join(' ') || 'scaling deployment claim timestamp')
 
 
 	// Components
@@ -55,7 +52,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={scalingDeploymentClaimTimestamp}>
 			{#snippet children(entity)}
-				{[(entity.architectureKind ?? ''), (entity.protocolLabel ?? ''), String(pendingEntity.timestampMs)].filter(Boolean).join(' ') || title || titleFallback}
+				{[(entity.architectureKind ?? ''), (entity.protocolLabel ?? ''), String(selection.entitySelector.timestampMs)].filter(Boolean).join(' ') || title || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -63,7 +60,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={scalingDeploymentClaimTimestamp}>
 			{#snippet children(entity)}
-				{[(entity.architectureKind ?? ''), (entity.stack ?? ''), (entity.proofSystemKind ?? '')].filter(Boolean).join(' ') || [(entity.architectureKind ?? ''), (entity.protocolLabel ?? ''), String(pendingEntity.timestampMs)].filter(Boolean).join(' ') || titleFallback}
+				{[(entity.architectureKind ?? ''), (entity.stack ?? ''), (entity.proofSystemKind ?? '')].filter(Boolean).join(' ') || [(entity.architectureKind ?? ''), (entity.protocolLabel ?? ''), String(selection.entitySelector.timestampMs)].filter(Boolean).join(' ') || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -94,14 +91,14 @@
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+					<Timestamp timestamp={selection.entitySelector.timestampMs} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 
@@ -120,7 +117,7 @@
 						<div>
 							<dt>Source updated at</dt>
 							<dd>
-								<Timestamp timestamp={Number(sourceUpdatedAt)} />
+								<Timestamp timestamp={sourceUpdatedAt} />
 							</dd>
 						</div>
 					{/if}
@@ -274,7 +271,7 @@
 						<div>
 							<dt>Batch inbox address</dt>
 							<dd>
-								<TruncatedValue value={String(batchInboxAddress)} />
+								<TruncatedValue value={batchInboxAddress} />
 							</dd>
 						</div>
 					{/if}
@@ -343,11 +340,11 @@
 							<dt>Chain config URL</dt>
 							<dd>
 								<a
-									href={String(chainConfigUrl)}
+									href={chainConfigUrl}
 									target="_blank"
 									rel="noreferrer noopener"
 								>
-									<TruncatedValue value={String(chainConfigUrl)} />
+									<TruncatedValue value={chainConfigUrl} />
 								</a>
 							</dd>
 						</div>
@@ -371,11 +368,11 @@
 							<dt>Derivation spec URL</dt>
 							<dd>
 								<a
-									href={String(derivationSpecUrl)}
+									href={derivationSpecUrl}
 									target="_blank"
 									rel="noreferrer noopener"
 								>
-									<TruncatedValue value={String(derivationSpecUrl)} />
+									<TruncatedValue value={derivationSpecUrl} />
 								</a>
 							</dd>
 						</div>
@@ -399,11 +396,11 @@
 							<dt>Public RPC URL</dt>
 							<dd>
 								<a
-									href={String(publicRpcUrl)}
+									href={publicRpcUrl}
 									target="_blank"
 									rel="noreferrer noopener"
 								>
-									<TruncatedValue value={String(publicRpcUrl)} />
+									<TruncatedValue value={publicRpcUrl} />
 								</a>
 							</dd>
 						</div>
@@ -427,11 +424,11 @@
 							<dt>Sequencer RPC URL</dt>
 							<dd>
 								<a
-									href={String(sequencerRpcUrl)}
+									href={sequencerRpcUrl}
 									target="_blank"
 									rel="noreferrer noopener"
 								>
-									<TruncatedValue value={String(sequencerRpcUrl)} />
+									<TruncatedValue value={sequencerRpcUrl} />
 								</a>
 							</dd>
 						</div>

@@ -42,7 +42,7 @@
 			entitySelector={moveModuleTimestampSelector}
 		>
 			{#snippet Title()}
-				{String(moveModuleTimestampSelector.timestampMs) || 'move module timestamp'}
+				{moveModuleTimestampSelector.timestampMs}
 			{/snippet}
 
 			{#snippet Value()}

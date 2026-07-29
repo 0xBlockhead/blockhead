@@ -4,7 +4,6 @@
 	// Types/constants
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -22,7 +21,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.AcpFileOperation> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.AcpLocal_JsonRpc,
@@ -34,7 +32,7 @@
 			path: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.operationId ?? '') || 'ACP file operation')
+	const titleFallback = $derived(selection.entitySelector.operationId || 'ACP file operation')
 
 
 	// Components
@@ -55,13 +53,13 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{(pendingEntity.operationId ?? '') || 'ACP file operation'}
+		{selection.entitySelector.operationId || 'ACP file operation'}
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={acpFileOperation}>
 			{#snippet children(entity)}
-				{entity.operationKind || pendingEntity.operationId || titleFallback}
+				{entity.operationKind || selection.entitySelector.operationId || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -69,10 +67,10 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={acpFileOperation}>
 			{#snippet children(entity)}
-				{@const path0 = entity.path}
-				{#if path0 != null}
+				{@const path = entity.path}
+				{#if path != null}
 					<span data-text="muted">
-						{path0}
+						{path}
 					</span>
 				{/if}
 			{/snippet}
@@ -95,7 +93,7 @@
 			<div>
 				<dt>operation ID</dt>
 				<dd>
-					{pendingEntity.operationId}
+					{selection.entitySelector.operationId}
 				</dd>
 			</div>
 
@@ -193,7 +191,7 @@
 						<div>
 							<dt>content hash algorithm</dt>
 							<dd>
-								<TruncatedValue value={contentHashAlgorithm} />
+								{contentHashAlgorithm}
 							</dd>
 						</div>
 					{/if}
@@ -215,7 +213,7 @@
 						<div>
 							<dt>content hash</dt>
 							<dd>
-								<TruncatedValue value={String(contentHash)} />
+								<TruncatedValue value={contentHash} />
 							</dd>
 						</div>
 					{/if}
@@ -239,7 +237,7 @@
 						<div>
 							<dt>Timestamp</dt>
 							<dd>
-								<Timestamp timestamp={Number(timestampMs)} />
+								<Timestamp timestamp={timestampMs} />
 							</dd>
 						</div>
 					{/if}

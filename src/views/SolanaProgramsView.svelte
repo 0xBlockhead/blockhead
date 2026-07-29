@@ -40,6 +40,7 @@
 >
 	{#snippet Item({ item: solanaProgram })}
 		{@const solanaProgramSelector = solanaProgram[EntityMetaKey.Selector]}
+		{@const network = solanaProgramSelector.$network}
 		<EntityView
 			entityType={EntityType.SolanaProgram}
 			entitySelector={solanaProgramSelector}
@@ -48,12 +49,12 @@
 					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/program/[programId=stringSegment]',
 					{
 						network: (
-							'caip2' in solanaProgramSelector.$network ?
-								String(caip2StringFromValue(solanaProgramSelector.$network.caip2))
+							'caip2' in network ?
+								caip2StringFromValue(network.caip2)
 							:
-								String(solanaProgramSelector.$network.slug)
+								network.slug
 						),
-						programId: String(solanaProgramSelector.programId),
+						programId: solanaProgramSelector.programId,
 					}
 				)
 			}
@@ -63,7 +64,7 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{(solanaProgram.name ?? '')}
+				{solanaProgram.name ?? ''}
 			{/snippet}
 
 			{#snippet HeadingAfter()}

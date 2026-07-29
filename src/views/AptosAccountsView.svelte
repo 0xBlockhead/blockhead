@@ -44,7 +44,7 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{(aptosAccount.$network.$network.name || (aptosAccountSelector.$network.$network.caip2 == null ? '' : `${aptosAccountSelector.$network.$network.caip2.namespace}:${aptosAccountSelector.$network.$network.caip2.reference}`) || 'Network')}
+				{aptosAccount.$network.$network.name || (aptosAccountSelector.$network.$network.caip2 == null ? '' : `${aptosAccountSelector.$network.$network.caip2.namespace}:${aptosAccountSelector.$network.$network.caip2.reference}`) || 'Network'}
 			{/snippet}
 		</EntityView>
 	{/snippet}

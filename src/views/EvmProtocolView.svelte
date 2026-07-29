@@ -20,7 +20,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.EvmProtocol> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Constants_Internal,
@@ -33,7 +32,7 @@
 			relationshipModel: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.protocolName ?? '') || 'EVM protocol')
+	const titleFallback = $derived((prefetched.protocolName ?? '') || 'EVM protocol')
 	const viewDomId = $derived('evm-protocol-' + encodeURIComponent(stringify(selection.entitySelector)))
 
 
@@ -54,12 +53,15 @@
 	id={viewDomId}
 	title={title ?? titleFallback}
 	href={
-		href ?? (
-			selection.entitySelector.scope === 'EvmProtocol' ?
-				resolve('/(explore)/(protocols)/evm')
-			:
-				undefined
-		)
+		href === undefined ?
+			(
+				selection.entitySelector.scope === 'EvmProtocol' ?
+					resolve('/(explore)/(protocols)/evm')
+				:
+					undefined
+			)
+		:
+			href ?? undefined
 	}
 	{layout}
 	bind:open
@@ -142,11 +144,11 @@
 					>
 						{#snippet children(entity)}
 							<a
-								href={String(entity.homeUrl)}
+								href={entity.homeUrl}
 								target="_blank"
 								rel="noreferrer noopener"
 							>
-								<TruncatedValue value={String(entity.homeUrl)} />
+								<TruncatedValue value={entity.homeUrl} />
 							</a>
 						{/snippet}
 					</ResourceBoundary>
@@ -169,11 +171,11 @@
 							<dt>Docs URL</dt>
 							<dd>
 								<a
-									href={String(docsUrl)}
+									href={docsUrl}
 									target="_blank"
 									rel="noreferrer noopener"
 								>
-									<TruncatedValue value={String(docsUrl)} />
+									<TruncatedValue value={docsUrl} />
 								</a>
 							</dd>
 						</div>

@@ -20,14 +20,12 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.MoveModule_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const moveModuleTimestamp = $derived(selection({
 		fields: {
 			ledgerVersion: true,
 			packageVersion: true,
 		},
 	}))
-	const titleFallback = $derived(String(pendingEntity.timestampMs ?? '') || 'move module timestamp')
 
 
 	// Components
@@ -44,26 +42,26 @@
 <EntityView
 	entityType={EntityType.MoveModule_Timestamp}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? String(selection.entitySelector.timestampMs)}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+		<Timestamp timestamp={selection.entitySelector.timestampMs} />
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={moveModuleTimestamp}>
 			{#snippet children(entity)}
-				{[String(entity.ledgerVersion ?? ''), String(entity.packageVersion ?? '')].filter(Boolean).join(' ') || String(pendingEntity.timestampMs) || titleFallback}
+				{[String(entity.ledgerVersion ?? ''), String(entity.packageVersion ?? '')].filter(Boolean).join(' ') || String(selection.entitySelector.timestampMs)}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
 		<span data-text="muted">
-			{pendingEntity.source}
+			{selection.entitySelector.source}
 		</span>
 	{/snippet}
 
@@ -83,14 +81,14 @@
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+					<Timestamp timestamp={selection.entitySelector.timestampMs} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 		</dl>
@@ -220,30 +218,30 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const moveModuleTimestampMoveFunctionsViewFunctionsResource = selection.$$functions}
+		{@const functionsResource = selection.$$functions}
 		<ResourceBoundary
-			resource={moveModuleTimestampMoveFunctionsViewFunctionsResource}
+			resource={functionsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<MoveFunctionsView
-						selection={moveModuleTimestampMoveFunctionsViewFunctionsResource}
-						countResource={moveModuleTimestampMoveFunctionsViewFunctionsResource.count}
+						selection={functionsResource}
+						countResource={functionsResource.count}
 						title='functions'
 						id='functions'
 					/>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>
-		{@const moveModuleTimestampMoveStructsViewStructsResource = selection.$$structs}
+		{@const structsResource = selection.$$structs}
 		<ResourceBoundary
-			resource={moveModuleTimestampMoveStructsViewStructsResource}
+			resource={structsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<MoveStructsView
-						selection={moveModuleTimestampMoveStructsViewStructsResource}
-						countResource={moveModuleTimestampMoveStructsViewStructsResource.count}
+						selection={structsResource}
+						countResource={structsResource.count}
 						title='structs'
 						id='structs'
 					/>

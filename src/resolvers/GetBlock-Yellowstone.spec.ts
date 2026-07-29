@@ -37,7 +37,6 @@ const resolverBinding = vi.hoisted(() => ({
 	credentials: [{
 		scope: 'RuntimeSecret',
 	}],
-	serverCredentialId: 'GetBlockYellowstone_Grpc-144',
 	artifacts: [{
 		kind: 'HandwrittenTypes',
 		path: 'src/sources/GetBlock/Yellowstone/types.ts',
@@ -55,8 +54,15 @@ vi.mock('$/sources/GetBlock/bindings.ts', () => ({
 	},
 }))
 vi.mock('$/sources/$sourceServerCredentials.server.ts', () => ({
-	default: {
-		'GetBlockYellowstone_Grpc-144': {
+	default: new Map([[
+		JSON.stringify([
+			resolverBinding.source,
+			resolverBinding.target.kind,
+			resolverBinding.target.key,
+			resolverBinding.delivery,
+			resolverBinding.apiFamily,
+		]),
+		{
 			envKey: 'GETBLOCK_API_KEY',
 			injection: {
 				endpointTemplate: {
@@ -64,7 +70,7 @@ vi.mock('$/sources/$sourceServerCredentials.server.ts', () => ({
 				},
 			},
 		},
-	},
+	]]),
 }))
 vi.mock('$/sources/_runtime/live.remote.ts', async () => {
 	const { iterateSourceLive } = await import('$/sources/_runtime/live.server.ts')

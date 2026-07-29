@@ -50,7 +50,7 @@
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{String(aiRelationshipClaimSelector.timestampMs)}</span>
+				<span data-text="annotation">{aiRelationshipClaimSelector.timestampMs}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

@@ -5,7 +5,6 @@
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 
 
 	// Context
@@ -22,13 +21,12 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.GitPackedObject> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const gitPackedObject = $derived(selection({
 		fields: {
 			storedKind: true,
 		},
 	}))
-	const titleFallback = $derived(String(pendingEntity.objectId ?? '') || 'Git packed object')
+	const titleFallback = $derived(selection.entitySelector.objectId || 'Git packed object')
 
 
 	// Components
@@ -49,13 +47,13 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<TruncatedValue value={String(pendingEntity.objectId)} />
+		<TruncatedValue value={selection.entitySelector.objectId} />
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={gitPackedObject}>
 			{#snippet children(entity)}
-				{(entity.storedKind ?? '') || String(pendingEntity.objectId) || titleFallback}
+				{(entity.storedKind ?? '') || selection.entitySelector.objectId || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -82,21 +80,21 @@
 			<div>
 				<dt>pack hash</dt>
 				<dd>
-					<TruncatedValue value={String(pendingEntity.packHash)} />
+					<TruncatedValue value={selection.entitySelector.packHash} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>object ID</dt>
 				<dd>
-					<TruncatedValue value={String(pendingEntity.objectId)} />
+					<TruncatedValue value={selection.entitySelector.objectId} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>object format</dt>
 				<dd>
-					{pendingEntity.objectFormat}
+					{selection.entitySelector.objectFormat}
 				</dd>
 			</div>
 
@@ -139,7 +137,7 @@
 						<div>
 							<dt>delta base object ID</dt>
 							<dd>
-								{String(deltaBaseObjectId)}
+								{deltaBaseObjectId}
 							</dd>
 						</div>
 					{/if}

@@ -2,7 +2,8 @@
 
 import bindings from '$/sources/Mcp/bindings.ts'
 import { Source } from '$/sources/Source.ts'
-import { SourceProvider, type SourceProviderDefinition } from '$/sources/SourceProvider.ts'
+import { SourceProvider } from '$/sources/SourceProvider.ts'
+import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinition.ts'
 
 export default {
 	provider: SourceProvider.Mcp,
@@ -17,8 +18,5 @@ export default {
 			label: 'MCP package registry REST',
 		},
 	],
-	bindings: [
-		bindings[Source.McpDeclared_Protocol],
-		bindings[Source.McpPackageRegistry_Rest],
-	],
+	bindings: Object.values(bindings).flat(),
 } satisfies SourceProviderDefinition

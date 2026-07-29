@@ -38,6 +38,7 @@
 >
 	{#snippet Item({ item: cardanoDRep })}
 		{@const cardanoDRepSelector = cardanoDRep[EntityMetaKey.Selector]}
+		{@const network = cardanoDRepSelector.$network}
 		<EntityView
 			entityType={EntityType.CardanoDRep}
 			entitySelector={cardanoDRepSelector}
@@ -46,12 +47,12 @@
 					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/drep/[drepCredential=stringSegment]',
 					{
 						network: (
-							'caip2' in cardanoDRepSelector.$network ?
-								String(caip2StringFromValue(cardanoDRepSelector.$network.caip2))
+							'caip2' in network ?
+								caip2StringFromValue(network.caip2)
 							:
-								String(cardanoDRepSelector.$network.slug)
+								network.slug
 						),
-						drepCredential: String(cardanoDRepSelector.drepCredential),
+						drepCredential: cardanoDRepSelector.drepCredential,
 					}
 				)
 			}
@@ -61,7 +62,7 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{(cardanoDRep.credentialKind ?? '')}
+				{cardanoDRep.credentialKind ?? ''}
 			{/snippet}
 		</EntityView>
 	{/snippet}

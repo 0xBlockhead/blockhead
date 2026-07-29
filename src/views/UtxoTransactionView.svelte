@@ -25,14 +25,13 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.UtxoTransaction> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const network = $derived(selection.entitySelector.$network)
 	const utxoTransaction = $derived(selection({
 		fields: {
 			feeSats: true,
 			isCoinbase: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.txId ?? '') || 'UTXO transaction')
 	const viewDomId = $derived('utxo-transaction-' + encodeURIComponent(stringify(selection.entitySelector)))
 
 
@@ -53,46 +52,49 @@
 	entityType={EntityType.UtxoTransaction}
 	entitySelector={selection.entitySelector}
 	id={viewDomId}
-	title={title ?? titleFallback}
+	title={title ?? (selection.entitySelector.txId || 'UTXO transaction')}
 	href={
-		href ?? resolve(
-			'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(transactions)/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]',
-			{
-				network: (
-					'caip2' in selection.entitySelector.$network ?
-						String(caip2StringFromValue(selection.entitySelector.$network.caip2))
-					:
-						String(selection.entitySelector.$network.slug)
-				),
-				transactionId: String(selection.entitySelector.txId),
-			}
-		)
+		href === undefined ?
+			resolve(
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(transactions)/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]',
+				{
+					network: (
+						'caip2' in network ?
+							caip2StringFromValue(network.caip2)
+						:
+							network.slug
+					),
+					transactionId: selection.entitySelector.txId,
+				}
+			)
+		:
+			href ?? undefined
 	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<TruncatedValue value={pendingEntity.txId} />
+		<TruncatedValue value={selection.entitySelector.txId} />
 	{/snippet}
 
 	{#snippet Value()}
-		<TruncatedValue value={pendingEntity.txId} />
+		<TruncatedValue value={selection.entitySelector.txId} />
 	{/snippet}
 
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={utxoTransaction}>
 			{#snippet children(entity)}
-				{@const feeSats0 = entity.feeSats}
-				{#if feeSats0 != null}
+				{@const feeSats = entity.feeSats}
+				{#if feeSats != null}
 					<span data-text="muted">
-						{String(feeSats0)}
+						{feeSats}
 					</span>
 				{/if}
-				{@const isCoinbase1 = entity.isCoinbase}
-				{#if isCoinbase1 != null}
+				{@const isCoinbase = entity.isCoinbase}
+				{#if isCoinbase != null}
 					<span data-text="muted">
-						{isCoinbase1 ? 'Yes' : 'No'}
+						{isCoinbase ? 'Yes' : 'No'}
 					</span>
 				{/if}
 			{/snippet}
@@ -104,7 +106,7 @@
 			<div>
 				<dt>Transaction ID</dt>
 				<dd>
-					<TruncatedValue value={pendingEntity.txId} />
+					<TruncatedValue value={selection.entitySelector.txId} />
 				</dd>
 			</div>
 
@@ -123,7 +125,7 @@
 						<div>
 							<dt>Version</dt>
 							<dd>
-								{String(version)}
+								{version}
 							</dd>
 						</div>
 					{/if}
@@ -145,7 +147,7 @@
 						<div>
 							<dt>Lock time</dt>
 							<dd>
-								{String(lockTime)}
+								{lockTime}
 							</dd>
 						</div>
 					{/if}
@@ -185,7 +187,7 @@
 						<div>
 							<dt>Size</dt>
 							<dd>
-								{String(sizeBytes)}
+								{sizeBytes}
 							</dd>
 						</div>
 					{/if}
@@ -207,7 +209,7 @@
 						<div>
 							<dt>Virtual size</dt>
 							<dd>
-								{String(virtualSizeBytes)}
+								{virtualSizeBytes}
 							</dd>
 						</div>
 					{/if}
@@ -229,7 +231,7 @@
 						<div>
 							<dt>Weight</dt>
 							<dd>
-								{String(weightUnits)}
+								{weightUnits}
 							</dd>
 						</div>
 					{/if}

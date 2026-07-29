@@ -281,8 +281,8 @@ export const getForkScheduleFromWire = (
 			return [
 				{
 					epoch,
-					previousVersion: previousVersion as `0x${string}`,
-					currentVersion: currentVersion as `0x${string}`,
+					previousVersion: with0xHex(previousVersion),
+					currentVersion: with0xHex(currentVersion),
 				},
 			]
 		})

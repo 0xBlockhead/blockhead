@@ -17,7 +17,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.PayjoinDirectory> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.PayjoinDirectory_Rest,
@@ -29,7 +28,7 @@
 			ohttpKeyConfig: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.directoryUrl ?? '') || 'payjoin directory')
+	const titleFallback = $derived(selection.entitySelector.directoryUrl || 'payjoin directory')
 
 
 	// Components
@@ -49,13 +48,13 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{(pendingEntity.directoryUrl ?? '') || 'payjoin directory'}
+		{selection.entitySelector.directoryUrl || 'payjoin directory'}
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={payjoinDirectory}>
 			{#snippet children(entity)}
-				{(entity.ohttpGatewayUrl ?? '') || pendingEntity.directoryUrl || titleFallback}
+				{(entity.ohttpGatewayUrl ?? '') || selection.entitySelector.directoryUrl || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -66,11 +65,11 @@
 				<dt>directory URL</dt>
 				<dd>
 					<a
-						href={String(pendingEntity.directoryUrl)}
+						href={selection.entitySelector.directoryUrl}
 						target="_blank"
 						rel="noreferrer noopener"
 					>
-						<TruncatedValue value={String(pendingEntity.directoryUrl)} />
+						<TruncatedValue value={selection.entitySelector.directoryUrl} />
 					</a>
 				</dd>
 			</div>
@@ -85,11 +84,11 @@
 							<dt>ohttp gateway URL</dt>
 							<dd>
 								<a
-									href={String(ohttpGatewayUrl)}
+									href={ohttpGatewayUrl}
 									target="_blank"
 									rel="noreferrer noopener"
 								>
-									<TruncatedValue value={String(ohttpGatewayUrl)} />
+									<TruncatedValue value={ohttpGatewayUrl} />
 								</a>
 							</dd>
 						</div>
@@ -142,15 +141,15 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const payjoinDirectoryBlockheadPayjoinSessionsViewBlockheadSessionsResource = selection.$$blockheadSessions}
+		{@const blockheadSessionsResource = selection.$$blockheadSessions}
 		<ResourceBoundary
-			resource={payjoinDirectoryBlockheadPayjoinSessionsViewBlockheadSessionsResource}
+			resource={blockheadSessionsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<BlockheadPayjoinSessionsView
-						selection={payjoinDirectoryBlockheadPayjoinSessionsViewBlockheadSessionsResource}
-						countResource={payjoinDirectoryBlockheadPayjoinSessionsViewBlockheadSessionsResource.count}
+						selection={blockheadSessionsResource}
+						countResource={blockheadSessionsResource.count}
 						title='blockhead sessions'
 						id='blockhead-sessions'
 					/>

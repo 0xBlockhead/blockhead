@@ -25,7 +25,6 @@
 			quantity: true,
 		},
 	}))
-	const titleFallback = 'Cardano transaction output asset'
 
 
 	// Components
@@ -39,7 +38,7 @@
 <EntityView
 	entityType={EntityType.CardanoTxOutputAsset}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? 'Cardano transaction output asset'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -47,7 +46,6 @@
 	{#snippet Title()}
 		<CardanoNativeAssetView
 			selection={select(EntityType.CardanoNativeAsset, selection.entitySelector.$asset)}
-			href=""
 			layout={EntityLayout.Title}
 			open={false}
 		/>

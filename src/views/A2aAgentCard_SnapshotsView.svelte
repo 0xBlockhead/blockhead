@@ -5,7 +5,6 @@
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 
 
 	// State
@@ -43,15 +42,15 @@
 			entitySelector={a2aAgentCardSnapshotSelector}
 		>
 			{#snippet Title()}
-				{(a2aAgentCardSnapshot.name ?? '') || String(a2aAgentCardSnapshotSelector.contentHash) || 'A2A agent card snapshot'}
+				{(a2aAgentCardSnapshot.name ?? '') || a2aAgentCardSnapshotSelector.contentHash || 'A2A agent card snapshot'}
 			{/snippet}
 
 			{#snippet Value()}
-				{(a2aAgentCardSnapshot.version ?? '')}
+				{a2aAgentCardSnapshot.version ?? ''}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{(a2aAgentCardSnapshot.protocolVersion ?? '')}</span>
+				<span data-text="annotation">{a2aAgentCardSnapshot.protocolVersion ?? ''}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

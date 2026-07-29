@@ -21,7 +21,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.BitcoinCashBcmrMetadata> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.BitcoinCashBcmr_Github,
@@ -34,7 +33,7 @@
 			decimals: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.name ?? '') || (pendingEntity.categoryId ?? '') || 'Bitcoin cash bcmr metadata')
+	const titleFallback = $derived((prefetched.name ?? '') || selection.entitySelector.categoryId || 'Bitcoin cash bcmr metadata')
 
 
 	// Components
@@ -72,11 +71,11 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={bitcoinCashBcmrMetadata}>
 			{#snippet children(entity)}
-				{@const decimals0 = entity.decimals}
-				{#if decimals0 != null}
+				{@const decimals = entity.decimals}
+				{#if decimals != null}
 					<span data-text="muted">
 						<NumberValue
-							value={decimals0}
+							value={decimals}
 						/>
 					</span>
 				{/if}
@@ -100,7 +99,7 @@
 			<div>
 				<dt>category ID</dt>
 				<dd>
-					<TruncatedValue value={pendingEntity.categoryId} />
+					<TruncatedValue value={selection.entitySelector.categoryId} />
 				</dd>
 			</div>
 
@@ -108,11 +107,11 @@
 				<dt>registry URL</dt>
 				<dd>
 					<a
-						href={String(pendingEntity.registryUrl)}
+						href={selection.entitySelector.registryUrl}
 						target="_blank"
 						rel="noreferrer noopener"
 					>
-						<TruncatedValue value={String(pendingEntity.registryUrl)} />
+						<TruncatedValue value={selection.entitySelector.registryUrl} />
 					</a>
 				</dd>
 			</div>

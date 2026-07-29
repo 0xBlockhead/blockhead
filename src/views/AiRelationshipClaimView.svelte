@@ -5,7 +5,6 @@
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { UrlString } from '$/schema/UrlString.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -23,14 +22,13 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.AiRelationshipClaim> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Eip8004Scan_Rest,
 			Source.Ipfs_Rest,
 		],
 	}))
-	const titleFallback = $derived((pendingEntity.relationshipKind ?? '') || 'AI relationship claim')
+	const titleFallback = $derived(selection.entitySelector.relationshipKind || 'AI relationship claim')
 
 
 	// Components
@@ -52,16 +50,16 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{(pendingEntity.relationshipKind ?? '') || 'AI relationship claim'}
+		{selection.entitySelector.relationshipKind || 'AI relationship claim'}
 	{/snippet}
 
 	{#snippet Value()}
-		{[(pendingEntity.subjectKind ?? ''), (pendingEntity.objectKind ?? '')].filter(Boolean).join(' ') || (pendingEntity.relationshipKind ?? '') || titleFallback}
+		{[selection.entitySelector.subjectKind, selection.entitySelector.objectKind].filter(Boolean).join(' ') || selection.entitySelector.relationshipKind || titleFallback}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
 		<span data-text="muted">
-			<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+			<Timestamp timestamp={selection.entitySelector.timestampMs} />
 		</span>
 	{/snippet}
 
@@ -70,21 +68,21 @@
 			<div>
 				<dt>subject kind</dt>
 				<dd>
-					{pendingEntity.subjectKind}
+					{selection.entitySelector.subjectKind}
 				</dd>
 			</div>
 
 			<div>
 				<dt>relationship kind</dt>
 				<dd>
-					{pendingEntity.relationshipKind}
+					{selection.entitySelector.relationshipKind}
 				</dd>
 			</div>
 
 			<div>
 				<dt>object kind</dt>
 				<dd>
-					{pendingEntity.objectKind}
+					{selection.entitySelector.objectKind}
 				</dd>
 			</div>
 		</dl>
@@ -93,14 +91,14 @@
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+					<Timestamp timestamp={selection.entitySelector.timestampMs} />
 				</dd>
 			</div>
 
@@ -186,11 +184,11 @@
 							<dt>evidence URI</dt>
 							<dd>
 								<a
-									href={String(evidenceUri)}
+									href={evidenceUri}
 									target="_blank"
 									rel="noreferrer noopener"
 								>
-									<TruncatedValue value={String(evidenceUri)} />
+									<TruncatedValue value={evidenceUri} />
 								</a>
 							</dd>
 						</div>
@@ -213,7 +211,7 @@
 						<div>
 							<dt>evidence hash algorithm</dt>
 							<dd>
-								<TruncatedValue value={evidenceHashAlgorithm} />
+								{evidenceHashAlgorithm}
 							</dd>
 						</div>
 					{/if}

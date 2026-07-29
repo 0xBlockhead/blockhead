@@ -44,7 +44,7 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{String(zeroGStorageNodeTimestampSelector.timestampMs)}
+				{zeroGStorageNodeTimestampSelector.timestampMs}
 			{/snippet}
 		</EntityView>
 	{/snippet}

@@ -20,14 +20,12 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.AptosNetwork_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const aptosNetworkTimestamp = $derived(selection({
 		fields: {
 			blockHeight: true,
 			timestampMs: true,
 		},
 	}))
-	const titleFallback = $derived(String(pendingEntity.ledgerVersion ?? '') || 'aptos network timestamp')
 
 
 	// Components
@@ -41,28 +39,28 @@
 <EntityView
 	entityType={EntityType.AptosNetwork_Timestamp}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? String(selection.entitySelector.ledgerVersion)}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
 		<NumberValue
-			value={pendingEntity.ledgerVersion}
+			value={selection.entitySelector.ledgerVersion}
 		/>
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={aptosNetworkTimestamp}>
 			{#snippet children(entity)}
-				{[String(entity.blockHeight ?? ''), String(entity.timestampMs ?? '')].filter(Boolean).join(' ') || String(pendingEntity.ledgerVersion) || titleFallback}
+				{[String(entity.blockHeight ?? ''), String(entity.timestampMs ?? '')].filter(Boolean).join(' ') || String(selection.entitySelector.ledgerVersion)}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
 		<span data-text="muted">
-			{pendingEntity.source}
+			{selection.entitySelector.source}
 		</span>
 	{/snippet}
 
@@ -88,7 +86,7 @@
 						<div>
 							<dt>Timestamp</dt>
 							<dd>
-								<Timestamp timestamp={Number(timestampMs)} />
+								<Timestamp timestamp={timestampMs} />
 							</dd>
 						</div>
 					{/if}
@@ -98,7 +96,7 @@
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 
@@ -132,7 +130,7 @@
 				<dt>ledger version</dt>
 				<dd>
 					<NumberValue
-						value={pendingEntity.ledgerVersion}
+						value={selection.entitySelector.ledgerVersion}
 					/>
 				</dd>
 			</div>

@@ -20,9 +20,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.IcpLedgerCanister_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const titleFallback = 'ICP ledger canister timestamp'
-
 
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -34,7 +31,7 @@
 <EntityView
 	entityType={EntityType.IcpLedgerCanister_Timestamp}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? 'ICP ledger canister timestamp'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -59,14 +56,14 @@
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+					<Timestamp timestamp={selection.entitySelector.timestampMs} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 
@@ -129,7 +126,7 @@
 						<div>
 							<dt>Decimals</dt>
 							<dd>
-								{String(decimals)}
+								{decimals}
 							</dd>
 						</div>
 					{/if}
@@ -151,7 +148,7 @@
 						<div>
 							<dt>fee</dt>
 							<dd>
-								{String(fee)}
+								{fee}
 							</dd>
 						</div>
 					{/if}
@@ -211,7 +208,7 @@
 						<div>
 							<dt>latest block index</dt>
 							<dd>
-								{String(latestBlockIndex)}
+								{latestBlockIndex}
 							</dd>
 						</div>
 					{/if}

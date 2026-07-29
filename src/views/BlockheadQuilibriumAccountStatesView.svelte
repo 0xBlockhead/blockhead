@@ -51,7 +51,7 @@
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{(blockheadQuilibriumAccountState.accountKind ?? '')}</span>
+				<span data-text="annotation">{blockheadQuilibriumAccountState.accountKind ?? ''}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

@@ -42,7 +42,7 @@
 			entitySelector={globalAtprotoNetworkTimestampSelector}
 		>
 			{#snippet Title()}
-				{String(globalAtprotoNetworkTimestampSelector.timestampMs) || 'AT Protocol hub observation'}
+				{globalAtprotoNetworkTimestampSelector.timestampMs}
 			{/snippet}
 
 			{#snippet HeadingAfter()}

@@ -4,7 +4,6 @@
 	// Types/constants
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { EvmAddress } from '$/schema/ZeroExHex.ts'
 
 
 	// Context
@@ -21,13 +20,12 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.HederaAccount_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const hederaAccountTimestamp = $derived(selection({
 		fields: {
 			balanceTinybar: true,
 		},
 	}))
-	const titleFallback = $derived(String(pendingEntity.balanceTinybar ?? '') || 'hedera account timestamp')
+	const titleFallback = $derived(String(prefetched.balanceTinybar ?? '') || 'hedera account timestamp')
 
 
 	// Components
@@ -50,10 +48,10 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={hederaAccountTimestamp}>
 			{#snippet children(entity)}
-				{@const balanceTinybar0 = entity.balanceTinybar}
-				{#if balanceTinybar0 != null}
+				{@const balanceTinybar = entity.balanceTinybar}
+				{#if balanceTinybar != null}
 					<NumberValue
-						value={balanceTinybar0}
+						value={balanceTinybar}
 					/>
 				{/if}
 			{/snippet}
@@ -61,12 +59,12 @@
 	{/snippet}
 
 	{#snippet Value()}
-		{(pendingEntity.source ?? '') || String(pendingEntity.balanceTinybar ?? '') || titleFallback}
+		{selection.entitySelector.source || String(prefetched.balanceTinybar ?? '') || titleFallback}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
 		<span data-text="muted">
-			<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+			<Timestamp timestamp={selection.entitySelector.timestampMs} />
 		</span>
 	{/snippet}
 
@@ -86,14 +84,14 @@
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+					<Timestamp timestamp={selection.entitySelector.timestampMs} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 		</dl>
@@ -108,7 +106,7 @@
 						<div>
 							<dt>balance tinybar</dt>
 							<dd>
-								{String(balanceTinybar)}
+								{balanceTinybar}
 							</dd>
 						</div>
 					{/if}
@@ -130,7 +128,7 @@
 						<div>
 							<dt>pending reward tinybar</dt>
 							<dd>
-								{String(pendingRewardTinybar)}
+								{pendingRewardTinybar}
 							</dd>
 						</div>
 					{/if}
@@ -174,7 +172,7 @@
 						<div>
 							<dt>staked node ID</dt>
 							<dd>
-								{String(stakedNodeId)}
+								{stakedNodeId}
 							</dd>
 						</div>
 					{/if}
@@ -220,7 +218,7 @@
 						<div>
 							<dt>EVM address</dt>
 							<dd>
-								<TruncatedValue value={String(evmAddress)} />
+								<TruncatedValue value={evmAddress} />
 							</dd>
 						</div>
 					{/if}

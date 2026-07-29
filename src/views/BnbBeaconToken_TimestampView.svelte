@@ -4,7 +4,6 @@
 	// Types/constants
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { EvmAddress } from '$/schema/ZeroExHex.ts'
 
 
 	// Context
@@ -21,13 +20,11 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.BnbBeaconToken_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const bnbBeaconTokenTimestamp = $derived(selection({
 		fields: {
 			totalSupply: true,
 		},
 	}))
-	const titleFallback = $derived(String(pendingEntity.timestampMs ?? '') || 'bnb beacon token timestamp')
 
 
 	// Components
@@ -42,22 +39,22 @@
 <EntityView
 	entityType={EntityType.BnbBeaconToken_Timestamp}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? String(selection.entitySelector.timestampMs)}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+		<Timestamp timestamp={selection.entitySelector.timestampMs} />
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={bnbBeaconTokenTimestamp}>
 			{#snippet children(entity)}
-				{@const totalSupply0 = entity.totalSupply}
-				{#if totalSupply0 != null}
+				{@const totalSupply = entity.totalSupply}
+				{#if totalSupply != null}
 					<NumberValue
-						value={totalSupply0}
+						value={totalSupply}
 					/>
 				{/if}
 			{/snippet}
@@ -66,7 +63,7 @@
 
 	{#snippet HeadingAfter()}
 		<span data-text="muted">
-			{pendingEntity.source}
+			{selection.entitySelector.source}
 		</span>
 	{/snippet}
 
@@ -86,14 +83,14 @@
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+					<Timestamp timestamp={selection.entitySelector.timestampMs} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 
@@ -154,7 +151,7 @@
 						<div>
 							<dt>contract address</dt>
 							<dd>
-								<TruncatedValue value={String(contractAddress)} />
+								<TruncatedValue value={contractAddress} />
 							</dd>
 						</div>
 					{/if}

@@ -7,7 +7,6 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
-	import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -49,6 +48,7 @@
 >
 	{#snippet Item({ item: evmBlob })}
 		{@const evmBlobSelector = evmBlob[EntityMetaKey.Selector]}
+		{@const transaction = evmBlobSelector.$transaction}
 		<EntityView
 			entityType={EntityType.EvmBlob}
 			entitySelector={evmBlobSelector}
@@ -57,23 +57,23 @@
 					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(blobs)/blob/[transactionId=evmTxHash]/[indexInTransaction=nonNegativeInteger]',
 					{
 						network: (
-							'caip2' in evmBlobSelector.$transaction.$network ?
-								String(caip2StringFromValue(evmBlobSelector.$transaction.$network.caip2))
+							'caip2' in transaction.$network ?
+								caip2StringFromValue(transaction.$network.caip2)
 							:
-								String(evmBlobSelector.$transaction.$network.slug)
+								transaction.$network.slug
 						),
-						transactionId: String(evmBlobSelector.$transaction.txHash),
+						transactionId: transaction.txHash,
 						indexInTransaction: String(evmBlobSelector.indexInTransaction),
 					}
 				)
 			}
 		>
 			{#snippet Title()}
-				{(String(evmBlobSelector.indexInTransaction ?? '') ? 'Blob #' + String(evmBlobSelector.indexInTransaction ?? '') : '') || 'EVM blob'}
+				{`Blob #${evmBlobSelector.indexInTransaction}`}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{String(evmBlob.versionedHash)}</span>
+				<span data-text="annotation">{evmBlob.versionedHash}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

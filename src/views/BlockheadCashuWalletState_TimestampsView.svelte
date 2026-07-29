@@ -41,11 +41,11 @@
 			entitySelector={blockheadCashuWalletStateTimestampSelector}
 		>
 			{#snippet Title()}
-				{String(blockheadCashuWalletStateTimestampSelector.timestampMs) || 'blockhead Cashu wallet state timestamp'}
+				{blockheadCashuWalletStateTimestampSelector.timestampMs}
 			{/snippet}
 
 			{#snippet Value()}
-				{(String(blockheadCashuWalletStateTimestamp.balance ?? '') ? String(blockheadCashuWalletStateTimestamp.balance ?? '') + blockheadCashuWalletStateTimestampSelector.$walletState.unit : '')}
+				{blockheadCashuWalletStateTimestamp.balance != null ? blockheadCashuWalletStateTimestamp.balance + blockheadCashuWalletStateTimestampSelector.$walletState.unit : ''}
 			{/snippet}
 
 			{#snippet HeadingAfter()}

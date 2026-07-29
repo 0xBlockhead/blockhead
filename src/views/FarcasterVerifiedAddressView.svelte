@@ -23,8 +23,7 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.FarcasterVerifiedAddress> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const titleFallback = $derived((pendingEntity.address ?? '') || 'Farcaster verified address')
+	const titleFallback = $derived(selection.entitySelector.address || 'Farcaster verified address')
 
 
 	// Components
@@ -41,25 +40,28 @@
 	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
 	href={
-		href ?? resolve(
-			'/(social)/(farcaster)/farcaster/(farcasterNetwork)/user/[userId=farcasterFid]/(farcasterUser)/verified-address/[protocol=stringSegment]/[address=stringSegment]',
-			{
-				userId: String(selection.entitySelector.fid),
-				protocol: String(selection.entitySelector.protocol),
-				address: String(selection.entitySelector.address),
-			}
-		)
+		href === undefined ?
+			resolve(
+				'/(social)/(farcaster)/farcaster/(farcasterNetwork)/user/[userId=farcasterFid]/(farcasterUser)/verified-address/[protocol=stringSegment]/[address=stringSegment]',
+				{
+					userId: String(selection.entitySelector.fid),
+					protocol: selection.entitySelector.protocol,
+					address: selection.entitySelector.address,
+				}
+			)
+		:
+			href ?? undefined
 	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<TruncatedValue value={pendingEntity.address} />
+		<TruncatedValue value={selection.entitySelector.address} />
 	{/snippet}
 
 	{#snippet Value()}
-		{[String(pendingEntity.protocol ?? ''), String(pendingEntity.fid ?? '')].filter(Boolean).join(' ') || (pendingEntity.address ?? '') || titleFallback}
+		{[selection.entitySelector.protocol, String(selection.entitySelector.fid)].filter(Boolean).join(' ') || selection.entitySelector.address || titleFallback}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -87,7 +89,7 @@
 			<div>
 				<dt>Protocol</dt>
 				<dd>
-					{String(pendingEntity.protocol)}
+					{selection.entitySelector.protocol}
 				</dd>
 			</div>
 		</dl>
@@ -96,7 +98,7 @@
 			<div>
 				<dt>Address</dt>
 				<dd>
-					<TruncatedValue value={pendingEntity.address} />
+					<TruncatedValue value={selection.entitySelector.address} />
 				</dd>
 			</div>
 		</dl>

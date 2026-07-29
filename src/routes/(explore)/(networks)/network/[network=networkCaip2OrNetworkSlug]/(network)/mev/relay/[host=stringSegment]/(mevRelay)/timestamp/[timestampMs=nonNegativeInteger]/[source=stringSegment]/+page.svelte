@@ -46,7 +46,7 @@
 
 
 <svelte:head>
-	<title>{(data.title ?? (pageSelection.entity == null ? String(pageSelection.entitySelector.timestampMs ?? '') || 'MEV relay timestamp' : [String(pageSelection.entity.reachable ?? ''), String(pageSelection.entity.statusCode ?? ''), String(pageSelection.entitySelector.timestampMs)].filter(Boolean).join(' ') || 'MEV relay timestamp'))} • MEV relay timestamp • Blockhead</title>
+	<title>{data.title ?? (pageSelection.entity == null ? String(pageSelection.entitySelector.timestampMs ?? '') || 'MEV relay timestamp' : [String(pageSelection.entity.reachable ?? ''), String(pageSelection.entity.statusCode ?? ''), String(pageSelection.entitySelector.timestampMs)].filter(Boolean).join(' ') || 'MEV relay timestamp')} • MEV relay timestamp • Blockhead</title>
 </svelte:head>
 
 

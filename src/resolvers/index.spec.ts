@@ -25,10 +25,8 @@ import {
 	type EntitySelector,
 	type Schema,
 } from '$/schema/$schema.ts'
-import {
-	EntityFieldCardinality,
-	EntityFieldType,
-} from '$/schema/EntityField.ts'
+import { EntityFieldCardinality } from '$/schema/EntityFieldCardinality.ts'
+import { EntityFieldType } from '$/schema/EntityFieldType.ts'
 import { type as arktype } from 'arktype'
 import { EntityType } from '$/schema/EntityType.ts'
 import { schema } from '$/schema/index.ts'
@@ -43,12 +41,12 @@ import {
 	enabledSources as browserEnabledSources,
 	sourceProviders,
 } from '$/sources/index.ts'
-import { loadAllResolvers } from '$/resolvers/index.ts'
+import { loadResolvers } from '$/resolvers/index.ts'
 import { bitcoinNetworkBySlug } from '$/constants/BitcoinNetwork.ts'
 import { CoinId } from '$/constants/Coin.ts'
 import voltaireJsonRpc from '$/resolvers/Voltaire-JsonRpc.ts'
 
-const resolvers = await loadAllResolvers()
+const resolvers = await loadResolvers()
 const voltaireMainnetBinding = sourceProviders
 	.find((sourceProvider) => sourceProvider.provider === SourceProvider.Voltaire)
 	?.bindings

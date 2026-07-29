@@ -45,7 +45,7 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{(moveFunction.visibility ?? '')}
+				{moveFunction.visibility ?? ''}
 			{/snippet}
 
 			{#snippet HeadingAfter()}

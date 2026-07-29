@@ -48,11 +48,11 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{(bitcoinCashBcmrMetadata.symbol ?? '')}
+				{bitcoinCashBcmrMetadata.symbol ?? ''}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{String(bitcoinCashBcmrMetadata.decimals ?? '')}</span>
+				<span data-text="annotation">{bitcoinCashBcmrMetadata.decimals ?? ''}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

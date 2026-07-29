@@ -22,7 +22,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.MoneroTransaction> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.MoneroDaemonRpc_JsonRpc,
@@ -33,7 +32,6 @@
 			feeAtomicUnits: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.txHash ?? '') || 'monero transaction')
 
 
 	// Components
@@ -50,13 +48,13 @@
 <EntityView
 	entityType={EntityType.MoneroTransaction}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? (selection.entitySelector.txHash || 'monero transaction')}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<TruncatedValue value={pendingEntity.txHash} />
+		<TruncatedValue value={selection.entitySelector.txHash} />
 	{/snippet}
 
 	{#snippet Value()}
@@ -68,7 +66,6 @@
 					<MoneroBlockView
 						selection={select(EntityType.MoneroBlock, moneroBlock[EntityMetaKey.Selector])}
 						prefetched={moneroBlock}
-						href=""
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -80,11 +77,11 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={moneroTransaction}>
 			{#snippet children(entity)}
-				{@const feeAtomicUnits0 = entity.feeAtomicUnits}
-				{#if feeAtomicUnits0 != null}
+				{@const feeAtomicUnits = entity.feeAtomicUnits}
+				{#if feeAtomicUnits != null}
 					<span data-text="muted">
 						<NumberValue
-							value={feeAtomicUnits0}
+							value={feeAtomicUnits}
 						/>
 					</span>
 				{/if}
@@ -108,7 +105,7 @@
 			<div>
 				<dt>Transaction hash</dt>
 				<dd>
-					<TruncatedValue value={pendingEntity.txHash} />
+					<TruncatedValue value={selection.entitySelector.txHash} />
 				</dd>
 			</div>
 
@@ -201,30 +198,30 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const moneroTransactionMoneroKeyImagesViewKeyImagesResource = selection.$$keyImages}
+		{@const keyImagesResource = selection.$$keyImages}
 		<ResourceBoundary
-			resource={moneroTransactionMoneroKeyImagesViewKeyImagesResource}
+			resource={keyImagesResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<MoneroKeyImagesView
-						selection={moneroTransactionMoneroKeyImagesViewKeyImagesResource}
-						countResource={moneroTransactionMoneroKeyImagesViewKeyImagesResource.count}
+						selection={keyImagesResource}
+						countResource={keyImagesResource.count}
 						title='Key images'
 						id='key-images'
 					/>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>
-		{@const moneroTransactionMoneroStealthOutputsViewStealthOutputsResource = selection.$$stealthOutputs}
+		{@const stealthOutputsResource = selection.$$stealthOutputs}
 		<ResourceBoundary
-			resource={moneroTransactionMoneroStealthOutputsViewStealthOutputsResource}
+			resource={stealthOutputsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<MoneroStealthOutputsView
-						selection={moneroTransactionMoneroStealthOutputsViewStealthOutputsResource}
-						countResource={moneroTransactionMoneroStealthOutputsViewStealthOutputsResource.count}
+						selection={stealthOutputsResource}
+						countResource={stealthOutputsResource.count}
 						title='Stealth outputs'
 						id='stealth-outputs'
 					/>

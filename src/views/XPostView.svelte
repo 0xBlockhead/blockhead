@@ -24,21 +24,19 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.XPost> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const viewSelection = $derived(selection({
+	const xPost = $derived(selection({
 		sources: selection.sources ?? [
 			Source.X_Rest,
 			Source.X_FxEmbed_Rest,
 		],
-	}))
-	const xPost = $derived(viewSelection({
+	})({
 		fields: {
 			text: true,
 			createdAt: true,
 			postUrl: true,
 		},
 	}))
-	const titleFallback = $derived([(pendingEntity.text ?? ''), (pendingEntity.id ?? '')].filter(Boolean).join(' ') || 'X post')
+	const titleFallback = $derived([(prefetched.text ?? ''), selection.entitySelector.id].filter(Boolean).join(' ') || 'X post')
 
 
 	// Components
@@ -57,12 +55,15 @@
 	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
 	href={
-		href ?? resolve(
-			'/(social)/(x)/x/(xNetwork)/post/[postId=stringSegment]',
-			{
-				postId: String(selection.entitySelector.id),
-			}
-		)
+		href === undefined ?
+			resolve(
+				'/(social)/(x)/x/(xNetwork)/post/[postId=stringSegment]',
+				{
+					postId: selection.entitySelector.id,
+				}
+			)
+		:
+			href ?? undefined
 	}
 	{layout}
 	bind:open
@@ -71,22 +72,22 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={xPost}>
 			{#snippet children(entity)}
-				{[(entity.text ?? ''), pendingEntity.id].filter(Boolean).join(' ') || title || titleFallback}
+				{[(entity.text ?? ''), selection.entitySelector.id].filter(Boolean).join(' ') || title || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Value()}
-		<TruncatedValue value={pendingEntity.id} />
+		<TruncatedValue value={selection.entitySelector.id} />
 	{/snippet}
 
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={xPost}>
 			{#snippet children(entity)}
-				{@const createdAt0 = entity.createdAt}
-				{#if createdAt0 != null}
+				{@const createdAt = entity.createdAt}
+				{#if createdAt != null}
 					<span data-text="muted">
-						<Timestamp timestamp={Number(createdAt0)} />
+						<Timestamp timestamp={createdAt} />
 					</span>
 				{/if}
 			{/snippet}
@@ -126,7 +127,7 @@
 						<div>
 							<dt>Created</dt>
 							<dd>
-								<Timestamp timestamp={Number(createdAt)} />
+								<Timestamp timestamp={createdAt} />
 							</dd>
 						</div>
 					{/if}
@@ -145,11 +146,11 @@
 							<dt>Post URL</dt>
 							<dd>
 								<a
-									href={String(postUrl)}
+									href={postUrl}
 									target="_blank"
 									rel="noreferrer noopener"
 								>
-									<TruncatedValue value={String(postUrl)} />
+									<TruncatedValue value={postUrl} />
 								</a>
 							</dd>
 						</div>
@@ -215,30 +216,30 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const xPostMediaListViewMediaResource = selection.$$media}
+		{@const mediaResource = selection.$$media}
 		<ResourceBoundary
-			resource={xPostMediaListViewMediaResource}
+			resource={mediaResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<MediaListView
-						selection={xPostMediaListViewMediaResource}
-						countResource={xPostMediaListViewMediaResource.count}
+						selection={mediaResource}
+						countResource={mediaResource.count}
 						title='Media'
 						id='media'
 					/>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>
-		{@const xPostXPostTimestampsViewTimestampsResource = selection.$$timestamps}
+		{@const timestampsResource = selection.$$timestamps}
 		<ResourceBoundary
-			resource={xPostXPostTimestampsViewTimestampsResource}
+			resource={timestampsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<XPost_TimestampsView
-						selection={xPostXPostTimestampsViewTimestampsResource}
-						countResource={xPostXPostTimestampsViewTimestampsResource.count}
+						selection={timestampsResource}
+						countResource={timestampsResource.count}
 						title='Observations'
 						id='timestamps'
 					/>

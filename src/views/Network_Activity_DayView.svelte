@@ -24,7 +24,7 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.Network_Activity_Day> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const network = $derived(selection.entitySelector.$network)
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.SpaceAndTime_MakeInfinite,
@@ -36,7 +36,6 @@
 			trustModel: true,
 		},
 	}))
-	const titleFallback = $derived(String(pendingEntity.dayStartTimestampMs ?? '') || 'network activity day')
 
 
 	// Components
@@ -50,32 +49,35 @@
 <EntityView
 	entityType={EntityType.Network_Activity_Day}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? String(selection.entitySelector.dayStartTimestampMs)}
 	href={
-		href ?? (
-			selection.entitySelector.source === 'SpaceAndTime_MakeInfinite' ?
-				resolve(
-					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/activity/day/[dayStartTimestampMs=nonNegativeInteger]',
-					{
-						network: (
-							'caip2' in selection.entitySelector.$network ?
-								String(caip2StringFromValue(selection.entitySelector.$network.caip2))
-							:
-								String(selection.entitySelector.$network.slug)
-						),
-						dayStartTimestampMs: String(selection.entitySelector.dayStartTimestampMs),
-					}
-				)
-			:
-				undefined
-		)
+		href === undefined ?
+			(
+				selection.entitySelector.source === 'SpaceAndTime_MakeInfinite' ?
+					resolve(
+						'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/activity/day/[dayStartTimestampMs=nonNegativeInteger]',
+						{
+							network: (
+								'caip2' in network ?
+									caip2StringFromValue(network.caip2)
+								:
+									network.slug
+							),
+							dayStartTimestampMs: String(selection.entitySelector.dayStartTimestampMs),
+						}
+					)
+				:
+					undefined
+			)
+		:
+			href ?? undefined
 	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<Timestamp timestamp={Number(pendingEntity.dayStartTimestampMs)} />
+		<Timestamp timestamp={selection.entitySelector.dayStartTimestampMs} />
 	{/snippet}
 
 	{#snippet Value()}
@@ -120,14 +122,14 @@
 			<div>
 				<dt>Day start</dt>
 				<dd>
-					<Timestamp timestamp={Number(pendingEntity.dayStartTimestampMs)} />
+					<Timestamp timestamp={selection.entitySelector.dayStartTimestampMs} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 
@@ -201,7 +203,7 @@
 						}
 					>
 						{#snippet children(entity)}
-							<Timestamp timestamp={Number(entity.indexedThroughTimestampMs)} />
+							<Timestamp timestamp={entity.indexedThroughTimestampMs} />
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -220,7 +222,7 @@
 						}
 					>
 						{#snippet children(entity)}
-							<Timestamp timestamp={Number(entity.resolvedAtMs)} />
+							<Timestamp timestamp={entity.resolvedAtMs} />
 						{/snippet}
 					</ResourceBoundary>
 				</dd>

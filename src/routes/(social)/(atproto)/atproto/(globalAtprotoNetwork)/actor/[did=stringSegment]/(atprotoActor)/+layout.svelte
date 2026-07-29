@@ -33,7 +33,7 @@
 			resolve(
 				'/(social)/(atproto)/atproto/(globalAtprotoNetwork)/actor/[did=stringSegment]',
 				{
-					did: String(params.did),
+					did: params.did,
 				}
 			)
 		}
@@ -49,7 +49,7 @@
 					resolve(
 						'/(social)/(atproto)/atproto/(globalAtprotoNetwork)/actor/[did=stringSegment]',
 						{
-							did: String(params.did),
+							did: params.did,
 						}
 					)
 				}

@@ -23,7 +23,7 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.XrplLedger> = $props()
 
-	const titleFallback = 'XRPL ledger'
+	const network = $derived(selection.entitySelector.$network)
 
 
 	// Components
@@ -36,25 +36,28 @@
 <EntityView
 	entityType={EntityType.XrplLedger}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? 'XRPL ledger'}
 	href={
-		href ?? (
-			'ledgerIndex' in selection.entitySelector ?
-				resolve(
-					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/ledger/[ledgerIndex=nonNegativeBigInt]',
-					{
-						network: (
-							'caip2' in selection.entitySelector.$network ?
-								String(caip2StringFromValue(selection.entitySelector.$network.caip2))
-							:
-								String(selection.entitySelector.$network.slug)
-						),
-						ledgerIndex: String(selection.entitySelector.ledgerIndex),
-					}
-				)
-			:
-				undefined
-		)
+		href === undefined ?
+			(
+				'ledgerIndex' in selection.entitySelector ?
+					resolve(
+						'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/ledger/[ledgerIndex=nonNegativeBigInt]',
+						{
+							network: (
+								'caip2' in network ?
+									caip2StringFromValue(network.caip2)
+								:
+									network.slug
+							),
+							ledgerIndex: String(selection.entitySelector.ledgerIndex),
+						}
+					)
+				:
+					undefined
+			)
+		:
+			href ?? undefined
 	}
 	{layout}
 	bind:open
@@ -90,7 +93,7 @@
 						}
 					>
 						{#snippet children(entity)}
-							{String(entity.ledgerIndex)}
+							{entity.ledgerIndex}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -130,7 +133,7 @@
 						<div>
 							<dt>close time ms</dt>
 							<dd>
-								{String(closeTimeMs)}
+								{closeTimeMs}
 							</dd>
 						</div>
 					{/if}
@@ -174,7 +177,7 @@
 						<div>
 							<dt>total coins drops</dt>
 							<dd>
-								{String(totalCoinsDrops)}
+								{totalCoinsDrops}
 							</dd>
 						</div>
 					{/if}

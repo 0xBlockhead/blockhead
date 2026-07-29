@@ -22,7 +22,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.QuilibriumFrame> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.QuilibriumNode_Grpc,
@@ -33,7 +32,6 @@
 			frameHash: true,
 		},
 	}))
-	const titleFallback = $derived(String(pendingEntity.frameNumber ?? '') || 'quilibrium frame')
 
 
 	// Components
@@ -50,28 +48,28 @@
 <EntityView
 	entityType={EntityType.QuilibriumFrame}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? String(selection.entitySelector.frameNumber)}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
 		<NumberValue
-			value={pendingEntity.frameNumber}
+			value={selection.entitySelector.frameNumber}
 		/>
 	{/snippet}
 
 	{#snippet Value()}
-		{(pendingEntity.shardKey ?? '') || String(pendingEntity.frameNumber ?? '') || titleFallback}
+		{selection.entitySelector.shardKey || String(selection.entitySelector.frameNumber)}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={quilibriumFrame}>
 			{#snippet children(entity)}
-				{@const frameHash0 = entity.frameHash}
-				{#if frameHash0 != null}
+				{@const frameHash = entity.frameHash}
+				{#if frameHash != null}
 					<span data-text="muted">
-						<TruncatedValue value={frameHash0} />
+						<TruncatedValue value={frameHash} />
 					</span>
 				{/if}
 			{/snippet}
@@ -95,7 +93,7 @@
 				<dt>frame number</dt>
 				<dd>
 					<NumberValue
-						value={pendingEntity.frameNumber}
+						value={selection.entitySelector.frameNumber}
 					/>
 				</dd>
 			</div>
@@ -103,7 +101,7 @@
 			<div>
 				<dt>shard key</dt>
 				<dd>
-					{pendingEntity.shardKey}
+					{selection.entitySelector.shardKey}
 				</dd>
 			</div>
 
@@ -138,7 +136,7 @@
 						<div>
 							<dt>Timestamp</dt>
 							<dd>
-								<Timestamp timestamp={Number(timestampMs)} />
+								<Timestamp timestamp={timestampMs} />
 							</dd>
 						</div>
 					{/if}

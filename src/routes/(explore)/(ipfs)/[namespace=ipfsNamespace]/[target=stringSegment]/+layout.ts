@@ -10,7 +10,8 @@ import IpfsResourceSchema from '$/schema/IpfsResource.ts'
 import { type as arktype } from 'arktype'
 
 export const load: LayoutLoad = ({ params }) => {
-	if (!(matchIpfsNamespace(params.namespace) && matchStringSegment(params.target))) error(404, 'Route mapping not applicable')
+	if (!(matchIpfsNamespace(params.namespace) && matchStringSegment(params.target)))
+		error(404, 'Route mapping not applicable')
 
 	const ipfsResourceResourceAddressSelector = parseEntitySelector(
 		schema,
@@ -21,7 +22,8 @@ export const load: LayoutLoad = ({ params }) => {
 			contentPath: '',
 		}
 	)
-	if (ipfsResourceResourceAddressSelector instanceof arktype.errors) error(404, 'Invalid IpfsResource selector')
+	if (ipfsResourceResourceAddressSelector instanceof arktype.errors)
+		error(404, 'Invalid IpfsResource selector')
 
 	return {
 		selector: ipfsResourceResourceAddressSelector,

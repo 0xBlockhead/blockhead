@@ -1,10 +1,10 @@
 // Generated from APP.ts. Do not edit by hand.
 
 import { Source } from '$/sources/Source.ts'
-import { ApiFamily, SourceArtifactKind, SourceCredentialScope, SourceDelivery, SourceEndpointKind, SourceOperationGroup, SourceTargetKind, WireProtocol, type SourceBindingIndex } from '$/sources/SourceBinding.ts'
+import { ApiFamily, indexSourceBindings, SourceArtifactKind, SourceCredentialScope, SourceDelivery, SourceEndpointKind, SourceOperationGroup, SourceTargetKind, WireProtocol, type SourceBinding } from '$/sources/SourceBinding.ts'
 
-export default {
-	[Source.Blockfrost_Rest]: {
+const bindings = [
+	{
 		source: Source.Blockfrost_Rest,
 		target: {
 			kind: SourceTargetKind.Caip2Network,
@@ -29,8 +29,6 @@ export default {
 				scope: SourceCredentialScope.RuntimeSecret,
 			},
 		],
-		proxyId: '["Blockfrost_Rest","Caip2Network","cip34:1-764824073","HttpProxy","OpenApiHttp"]',
-		serverCredentialId: '["Blockfrost_Rest","Caip2Network","cip34:1-764824073","HttpProxy","OpenApiHttp"]',
 		artifacts: [
 			{
 				kind: SourceArtifactKind.OpenApiSpec,
@@ -49,4 +47,6 @@ export default {
 			},
 		],
 	},
-} as const satisfies SourceBindingIndex
+] as const satisfies readonly SourceBinding[]
+
+export default indexSourceBindings<{ readonly [Source.Blockfrost_Rest]: typeof bindings[0] }>(bindings)

@@ -45,7 +45,7 @@
 				resolve(
 					'/(social)/(youtube)/youtube/(globalYoutubeNetwork)/video/[videoId=stringSegment]',
 					{
-						videoId: encodeURIComponent(String(youtubeVideoSelector.videoId)),
+						videoId: encodeURIComponent(youtubeVideoSelector.videoId),
 					}
 				)
 			}
@@ -59,7 +59,7 @@
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{String(youtubeVideo.publishedAtMs ?? '')}</span>
+				<span data-text="annotation">{youtubeVideo.publishedAtMs ?? ''}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

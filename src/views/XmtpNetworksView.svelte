@@ -41,12 +41,10 @@
 			entityType={EntityType.XmtpNetwork}
 			entitySelector={xmtpNetworkSelector}
 			href={
-				(
-					xmtpNetworkSelector.scope === 'XmtpNetwork' ?
-						resolve('/(social)/(xmtp)/xmtp')
-					:
-						undefined
-				)
+				xmtpNetworkSelector.scope === 'XmtpNetwork' ?
+					resolve('/(social)/(xmtp)/xmtp')
+				:
+					undefined
 			}
 		>
 			{#snippet Title()}

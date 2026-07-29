@@ -16,8 +16,8 @@ vi.mock('$env/dynamic/private', () => ({
 }))
 
 vi.mock('$/sources/$sourceServerCredentials.server.ts', () => ({
-	default: {
-		header: {
+	default: new Map([
+		['header', {
 			envKey: 'HEADER_SECRET',
 			injection: {
 				header: {
@@ -25,30 +25,29 @@ vi.mock('$/sources/$sourceServerCredentials.server.ts', () => ({
 					prefix: 'Bearer ',
 				},
 			},
-		},
-		query: {
+		}],
+		['query', {
 			envKey: 'QUERY_SECRET',
 			injection: {
 				query: {
 					name: 'api_key',
 				},
 			},
-		},
-		template: {
+		}],
+		['template', {
 			envKey: 'TEMPLATE_SECRET',
 			injection: {
 				endpointTemplate: {
 					slot: 'token',
 				},
 			},
-		},
-	},
+		}],
+	]),
 }))
 
 vi.mock('$/sources/index.server.ts', () => ({
 	httpProxyBindingByProxyId: new Map([
 		['header', {
-			serverCredentialId: 'header',
 			endpoints: [{
 				endpointKind: 'HttpUrl',
 				locator: 'https://api.example.test/v1',
@@ -56,7 +55,6 @@ vi.mock('$/sources/index.server.ts', () => ({
 			}],
 		}],
 		['query', {
-			serverCredentialId: 'query',
 			endpoints: [{
 				endpointKind: 'HttpUrl',
 				locator: 'https://api.example.test/v1',
@@ -64,7 +62,6 @@ vi.mock('$/sources/index.server.ts', () => ({
 			}],
 		}],
 		['template', {
-			serverCredentialId: 'template',
 			endpoints: [{
 				endpointKind: 'HttpUrl',
 				locator: 'https://api.example.test/tenant/{token}/v1',

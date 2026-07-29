@@ -22,18 +22,15 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.QuilibriumShard> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const viewSelection = $derived(selection({
+	const quilibriumShard = $derived(selection({
 		sources: selection.sources ?? [
 			Source.QuilibriumNode_Grpc,
 		],
-	}))
-	const quilibriumShard = $derived(viewSelection({
+	})({
 		fields: {
 			shardKind: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.shardKey ?? '') || 'quilibrium shard')
 
 
 	// Components
@@ -48,19 +45,19 @@
 <EntityView
 	entityType={EntityType.QuilibriumShard}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? (selection.entitySelector.shardKey || 'quilibrium shard')}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{(pendingEntity.shardKey ?? '') || 'quilibrium shard'}
+		{selection.entitySelector.shardKey || 'quilibrium shard'}
 	{/snippet}
 
 	{#snippet Value()}
 		<NetworkView
 			selection={select(EntityType.Network, selection.entitySelector.$network)}
-			href=""
+			href={null}
 			layout={EntityLayout.Value}
 			open={false}
 		/>
@@ -69,10 +66,10 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={quilibriumShard}>
 			{#snippet children(entity)}
-				{@const shardKind0 = entity.shardKind}
-				{#if shardKind0 != null}
+				{@const shardKind = entity.shardKind}
+				{#if shardKind != null}
 					<span data-text="muted">
-						{shardKind0}
+						{shardKind}
 					</span>
 				{/if}
 			{/snippet}
@@ -95,7 +92,7 @@
 			<div>
 				<dt>shard key</dt>
 				<dd>
-					{pendingEntity.shardKey}
+					{selection.entitySelector.shardKey}
 				</dd>
 			</div>
 
@@ -138,15 +135,15 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const quilibriumShardQuilibriumFramesViewFramesResource = selection.$$frames}
+		{@const framesResource = selection.$$frames}
 		<ResourceBoundary
-			resource={quilibriumShardQuilibriumFramesViewFramesResource}
+			resource={framesResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<QuilibriumFramesView
-						selection={quilibriumShardQuilibriumFramesViewFramesResource}
-						countResource={quilibriumShardQuilibriumFramesViewFramesResource.count}
+						selection={framesResource}
+						countResource={framesResource.count}
 						title='frames'
 						id='frames'
 					/>

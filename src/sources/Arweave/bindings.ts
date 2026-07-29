@@ -1,10 +1,10 @@
 // Generated from APP.ts. Do not edit by hand.
 
 import { Source } from '$/sources/Source.ts'
-import { ApiFamily, SourceArtifactKind, SourceCredentialScope, SourceDelivery, SourceEndpointKind, SourceOperationGroup, SourceTargetKind, WireProtocol, type SourceBindingIndex } from '$/sources/SourceBinding.ts'
+import { ApiFamily, indexSourceBindings, SourceArtifactKind, SourceCredentialScope, SourceDelivery, SourceEndpointKind, SourceOperationGroup, SourceTargetKind, WireProtocol, type SourceBinding } from '$/sources/SourceBinding.ts'
 
-export default {
-	[Source.Arweave_Rest]: {
+const bindings = [
+	{
 		source: Source.Arweave_Rest,
 		target: {
 			kind: SourceTargetKind.ContentAddressScheme,
@@ -43,7 +43,7 @@ export default {
 			},
 		],
 	},
-	[Source.Arweave_Graphql]: {
+	{
 		source: Source.Arweave_Graphql,
 		target: {
 			kind: SourceTargetKind.ContentAddressScheme,
@@ -69,4 +69,9 @@ export default {
 			},
 		],
 	},
-} as const satisfies SourceBindingIndex
+] as const satisfies readonly SourceBinding[]
+
+export default indexSourceBindings<{
+	readonly [Source.Arweave_Rest]: typeof bindings[0]
+	readonly [Source.Arweave_Graphql]: typeof bindings[1]
+}>(bindings)

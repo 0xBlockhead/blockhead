@@ -36,7 +36,7 @@
 			resolve(
 				'/(social)/(atproto)/atproto/(globalAtprotoNetwork)/actor/[did=stringSegment]/(atprotoActor)/observations',
 				{
-					did: String(params.did),
+					did: params.did,
 				}
 			)
 		}

@@ -33,7 +33,7 @@
 			resolve(
 				'/(social)/(x)/x/(xNetwork)/user/[userId=stringSegment]',
 				{
-					userId: String(params.userId),
+					userId: params.userId,
 				}
 			)
 		}
@@ -50,7 +50,7 @@
 					resolve(
 						'/(social)/(x)/x/(xNetwork)/user/[userId=stringSegment]',
 						{
-							userId: String(params.userId),
+							userId: params.userId,
 						}
 					)
 				}

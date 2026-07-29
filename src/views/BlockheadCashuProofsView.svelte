@@ -45,7 +45,7 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{(String(blockheadCashuProof.amount) ? String(blockheadCashuProof.amount) + blockheadCashuProof.unit : '')}
+				{blockheadCashuProof.amount + blockheadCashuProof.unit}
 			{/snippet}
 		</EntityView>
 	{/snippet}

@@ -5,7 +5,6 @@
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { UrlString } from '$/schema/UrlString.ts'
 
 
 	// State
@@ -41,7 +40,7 @@
 			entitySelector={eip8004AgentRegistrationFileSelector}
 		>
 			{#snippet Title()}
-				{String(eip8004AgentRegistrationFileSelector.fileUrl) || 'EIP-8004 agent registration file'}
+				{eip8004AgentRegistrationFileSelector.fileUrl || 'EIP-8004 agent registration file'}
 			{/snippet}
 
 			{#snippet Value()}

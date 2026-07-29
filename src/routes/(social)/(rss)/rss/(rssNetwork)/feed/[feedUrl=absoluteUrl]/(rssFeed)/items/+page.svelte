@@ -35,7 +35,7 @@
 			resolve(
 				'/(social)/(rss)/rss/(rssNetwork)/feed/[feedUrl=absoluteUrl]/(rssFeed)/items',
 				{
-					feedUrl: String(params.feedUrl),
+					feedUrl: params.feedUrl,
 				}
 			)
 		}

@@ -43,15 +43,15 @@
 			entitySelector={blockheadWakuNodeStateTimestampSelector}
 		>
 			{#snippet Title()}
-				{String(blockheadWakuNodeStateTimestampSelector.timestampMs) || 'blockhead waku node state timestamp'}
+				{blockheadWakuNodeStateTimestampSelector.timestampMs}
 			{/snippet}
 
 			{#snippet Value()}
-				{(blockheadWakuNodeStateTimestamp.health ?? '')}
+				{blockheadWakuNodeStateTimestamp.health ?? ''}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{String(blockheadWakuNodeStateTimestamp.peerCount ?? '')}</span>
+				<span data-text="annotation">{blockheadWakuNodeStateTimestamp.peerCount ?? ''}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

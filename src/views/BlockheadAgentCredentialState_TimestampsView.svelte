@@ -41,11 +41,11 @@
 			entitySelector={blockheadAgentCredentialStateTimestampSelector}
 		>
 			{#snippet Title()}
-				{String(blockheadAgentCredentialStateTimestampSelector.timestampMs) || 'blockhead agent credential state timestamp'}
+				{blockheadAgentCredentialStateTimestampSelector.timestampMs}
 			{/snippet}
 
 			{#snippet Value()}
-				{(blockheadAgentCredentialStateTimestamp.status ?? '')}
+				{blockheadAgentCredentialStateTimestamp.status ?? ''}
 			{/snippet}
 
 			{#snippet HeadingAfter()}

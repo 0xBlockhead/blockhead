@@ -42,11 +42,11 @@
 			entitySelector={moneroNetworkTimestampSelector}
 		>
 			{#snippet Title()}
-				{String(moneroNetworkTimestampSelector.timestampMs) || 'monero network timestamp'}
+				{moneroNetworkTimestampSelector.timestampMs}
 			{/snippet}
 
 			{#snippet Value()}
-				{String(moneroNetworkTimestamp.height ?? '')}
+				{moneroNetworkTimestamp.height ?? ''}
 			{/snippet}
 
 			{#snippet HeadingAfter()}

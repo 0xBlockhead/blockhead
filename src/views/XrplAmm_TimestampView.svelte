@@ -21,9 +21,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.XrplAmm_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const titleFallback = 'XRPL AMM timestamp'
-
 
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -36,7 +33,7 @@
 <EntityView
 	entityType={EntityType.XrplAmm_Timestamp}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? 'XRPL AMM timestamp'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -61,14 +58,14 @@
 			<div>
 				<dt>ledger index</dt>
 				<dd>
-					{String(pendingEntity.ledgerIndex)}
+					{selection.entitySelector.ledgerIndex}
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 
@@ -87,7 +84,7 @@
 						<div>
 							<dt>Timestamp</dt>
 							<dd>
-								<Timestamp timestamp={Number(timestampMs)} />
+								<Timestamp timestamp={timestampMs} />
 							</dd>
 						</div>
 					{/if}
@@ -175,7 +172,7 @@
 						<div>
 							<dt>trading fee</dt>
 							<dd>
-								{String(tradingFee)}
+								{tradingFee}
 							</dd>
 						</div>
 					{/if}

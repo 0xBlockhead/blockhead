@@ -24,7 +24,7 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.BridgeRouteStep> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const route = $derived(selection.entitySelector.$route)
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Lifi_Rest,
@@ -36,7 +36,6 @@
 			stepType: true,
 		},
 	}))
-	const titleFallback = $derived((String(pendingEntity.indexInRoute ?? '') ? 'Step #' + String(pendingEntity.indexInRoute ?? '') : '') || 'bridge route step')
 
 
 	// Components
@@ -51,23 +50,26 @@
 <EntityView
 	entityType={EntityType.BridgeRouteStep}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
-	idDragPlainText={String(pendingEntity.indexInRoute ?? '')}
+	title={title ?? `Step #${selection.entitySelector.indexInRoute}`}
+	idDragPlainText={String(selection.entitySelector.indexInRoute)}
 	href={
-		href ?? resolve(
-			'/bridge/route/[fromChainId=nonNegativeInteger]/[toChainId=nonNegativeInteger]/[fromToken=stringSegment]/[toToken=stringSegment]/[fromAmount=nonNegativeBigInt]/[fromAddress=evmAddress]/[slippage=nonNegativeNumber]/[toAddress=evmAddress]/(bridgeRoute)/step/[stepIndex=bridgeRouteStepIndex]',
-			{
-				fromChainId: String(selection.entitySelector.$route.fromChainId),
-				toChainId: String(selection.entitySelector.$route.toChainId),
-				fromToken: String(selection.entitySelector.$route.fromToken),
-				toToken: String(selection.entitySelector.$route.toToken),
-				fromAmount: String(selection.entitySelector.$route.fromAmount),
-				fromAddress: String(selection.entitySelector.$route.fromAddress),
-				slippage: String(selection.entitySelector.$route.slippage),
-				toAddress: String(selection.entitySelector.$route.toAddress),
-				stepIndex: String(selection.entitySelector.indexInRoute),
-			}
-		)
+		href === undefined ?
+			resolve(
+				'/bridge/route/[fromChainId=nonNegativeInteger]/[toChainId=nonNegativeInteger]/[fromToken=stringSegment]/[toToken=stringSegment]/[fromAmount=nonNegativeBigInt]/[fromAddress=evmAddress]/[slippage=nonNegativeNumber]/[toAddress=evmAddress]/(bridgeRoute)/step/[stepIndex=bridgeRouteStepIndex]',
+				{
+					fromChainId: String(route.fromChainId),
+					toChainId: String(route.toChainId),
+					fromToken: route.fromToken,
+					toToken: route.toToken,
+					fromAmount: String(route.fromAmount),
+					fromAddress: route.fromAddress,
+					slippage: String(route.slippage),
+					toAddress: route.toAddress,
+					stepIndex: String(selection.entitySelector.indexInRoute),
+				}
+			)
+		:
+			href ?? undefined
 	}
 	{layout}
 	bind:open
@@ -77,30 +79,30 @@
 		<span data-row="inline align-center gap-2 wrap">
 			<span>Step </span>
 			<span data-badge="small">
-				#{String(pendingEntity.indexInRoute)}
+				#{selection.entitySelector.indexInRoute}
 			</span>
 		</span>
 	{/snippet}
 
 	{#snippet Value()}
 		<span data-badge="small">
-			#{String(pendingEntity.indexInRoute)}
+			#{selection.entitySelector.indexInRoute}
 		</span>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={bridgeRouteStep}>
 			{#snippet children(entity)}
-				{@const tool0 = entity.tool}
-				{#if tool0 != null}
+				{@const tool = entity.tool}
+				{#if tool != null}
 					<span data-text="muted">
-						{tool0}
+						{tool}
 					</span>
 				{/if}
-				{@const stepType1 = entity.stepType}
-				{#if stepType1 != null}
+				{@const stepType = entity.stepType}
+				{#if stepType != null}
 					<span data-text="muted">
-						{stepType1}
+						{stepType}
 					</span>
 				{/if}
 			{/snippet}
@@ -112,7 +114,7 @@
 			<div>
 				<dt>Index in route</dt>
 				<dd>
-					{String(pendingEntity.indexInRoute)}
+					{selection.entitySelector.indexInRoute}
 				</dd>
 			</div>
 

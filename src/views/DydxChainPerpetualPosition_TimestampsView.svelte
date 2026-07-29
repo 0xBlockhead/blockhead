@@ -42,11 +42,11 @@
 			entitySelector={dydxChainPerpetualPositionTimestampSelector}
 		>
 			{#snippet Title()}
-				{String(dydxChainPerpetualPositionTimestampSelector.timestampMs) || 'dydx chain perpetual position timestamp'}
+				{dydxChainPerpetualPositionTimestampSelector.timestampMs}
 			{/snippet}
 
 			{#snippet Value()}
-				{(dydxChainPerpetualPositionTimestamp.side ?? '')}
+				{dydxChainPerpetualPositionTimestamp.side ?? ''}
 			{/snippet}
 		</EntityView>
 	{/snippet}

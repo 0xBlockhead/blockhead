@@ -44,7 +44,7 @@
 			entitySelector={blockheadRadicleNodeStateTimestampSelector}
 		>
 			{#snippet Title()}
-				{String(blockheadRadicleNodeStateTimestampSelector.timestampMs) || 'blockhead radicle node state timestamp'}
+				{blockheadRadicleNodeStateTimestampSelector.timestampMs}
 			{/snippet}
 
 			{#snippet Value()}

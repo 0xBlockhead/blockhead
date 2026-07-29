@@ -42,7 +42,7 @@
 			entitySelector={globalYoutubeNetworkTimestampSelector}
 		>
 			{#snippet Title()}
-				{String(globalYoutubeNetworkTimestampSelector.timestampMs) || 'YouTube hub observation'}
+				{globalYoutubeNetworkTimestampSelector.timestampMs}
 			{/snippet}
 
 			{#snippet HeadingAfter()}

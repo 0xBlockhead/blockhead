@@ -20,8 +20,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.TonBlock> = $props()
 
-	const titleFallback = 'TON block'
-
 
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -33,7 +31,7 @@
 <EntityView
 	entityType={EntityType.TonBlock}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? 'TON block'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -68,7 +66,7 @@
 						}
 					>
 						{#snippet children(entity)}
-							{String(entity.workchain)}
+							{entity.workchain}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -106,7 +104,7 @@
 						}
 					>
 						{#snippet children(entity)}
-							{String(entity.seqno)}
+							{entity.seqno}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -165,7 +163,7 @@
 						<div>
 							<dt>gen utime ms</dt>
 							<dd>
-								{String(genUtimeMs)}
+								{genUtimeMs}
 							</dd>
 						</div>
 					{/if}
@@ -187,7 +185,7 @@
 						<div>
 							<dt>start lt</dt>
 							<dd>
-								{String(startLt)}
+								{startLt}
 							</dd>
 						</div>
 					{/if}
@@ -209,7 +207,7 @@
 						<div>
 							<dt>end lt</dt>
 							<dd>
-								{String(endLt)}
+								{endLt}
 							</dd>
 						</div>
 					{/if}
@@ -231,7 +229,7 @@
 						<div>
 							<dt>min ref mc seqno</dt>
 							<dd>
-								{String(minRefMcSeqno)}
+								{minRefMcSeqno}
 							</dd>
 						</div>
 					{/if}

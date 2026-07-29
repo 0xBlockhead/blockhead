@@ -24,14 +24,14 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.CardanoGovernanceProposal> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const network = $derived(selection.entitySelector.$network)
 	const cardanoGovernanceProposal = $derived(selection({
 		fields: {
 			proposalKind: true,
 			governanceActionId: true,
 		},
 	}))
-	const titleFallback = $derived([(pendingEntity.proposalKind ?? ''), (pendingEntity.governanceActionId ?? '')].filter(Boolean).join(' ') || 'Cardano governance proposal')
+	const titleFallback = $derived([(prefetched.proposalKind ?? ''), (prefetched.governanceActionId ?? '')].filter(Boolean).join(' ') || 'Cardano governance proposal')
 
 
 	// Components
@@ -51,19 +51,22 @@
 	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
 	href={
-		href ?? resolve(
-			'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/governance/proposal/[proposalTxHash=stringSegment]/[proposalIndex=nonNegativeInteger]',
-			{
-				network: (
-					'caip2' in selection.entitySelector.$network ?
-						String(caip2StringFromValue(selection.entitySelector.$network.caip2))
-					:
-						String(selection.entitySelector.$network.slug)
-				),
-				proposalTxHash: String(selection.entitySelector.proposalTxHash),
-				proposalIndex: String(selection.entitySelector.proposalIndex),
-			}
-		)
+		href === undefined ?
+			resolve(
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/governance/proposal/[proposalTxHash=stringSegment]/[proposalIndex=nonNegativeInteger]',
+				{
+					network: (
+						'caip2' in network ?
+							caip2StringFromValue(network.caip2)
+						:
+							network.slug
+					),
+					proposalTxHash: selection.entitySelector.proposalTxHash,
+					proposalIndex: String(selection.entitySelector.proposalIndex),
+				}
+			)
+		:
+			href ?? undefined
 	}
 	{layout}
 	bind:open
@@ -78,7 +81,7 @@
 	{/snippet}
 
 	{#snippet Value()}
-		{([((pendingEntity.proposalTxHash ?? '') ? 'Proposal ' + (pendingEntity.proposalTxHash ?? '') : ''), (String(pendingEntity.proposalIndex ?? '') ? '#' + String(pendingEntity.proposalIndex ?? '') : '')].filter(Boolean).join(' ')) || [(pendingEntity.proposalKind ?? ''), (pendingEntity.governanceActionId ?? '')].filter(Boolean).join(' ') || titleFallback}
+		{['Proposal ' + selection.entitySelector.proposalTxHash, '#' + String(selection.entitySelector.proposalIndex)].filter(Boolean).join(' ') || [(prefetched.proposalKind ?? ''), (prefetched.governanceActionId ?? '')].filter(Boolean).join(' ') || titleFallback}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -227,11 +230,11 @@
 							<dt>anchor URL</dt>
 							<dd>
 								<a
-									href={String(anchorUrl)}
+									href={anchorUrl}
 									target="_blank"
 									rel="noreferrer noopener"
 								>
-									<TruncatedValue value={String(anchorUrl)} />
+									<TruncatedValue value={anchorUrl} />
 								</a>
 							</dd>
 						</div>
@@ -300,7 +303,7 @@
 						<div>
 							<dt>hard fork major version</dt>
 							<dd>
-								{String(hardForkMajor)}
+								{hardForkMajor}
 							</dd>
 						</div>
 					{/if}
@@ -322,7 +325,7 @@
 						<div>
 							<dt>hard fork minor version</dt>
 							<dd>
-								{String(hardForkMinor)}
+								{hardForkMinor}
 							</dd>
 						</div>
 					{/if}
@@ -363,7 +366,7 @@
 						}
 					>
 						{#snippet children(entity)}
-							<TruncatedValue value={entity.committeeRemovedCredentials.values.join(', ')} />
+							{entity.committeeRemovedCredentials.values.join(', ')}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -403,7 +406,7 @@
 						<div>
 							<dt>committee quorum numerator</dt>
 							<dd>
-								{String(committeeQuorumNumerator)}
+								{committeeQuorumNumerator}
 							</dd>
 						</div>
 					{/if}
@@ -425,7 +428,7 @@
 						<div>
 							<dt>committee quorum denominator</dt>
 							<dd>
-								{String(committeeQuorumDenominator)}
+								{committeeQuorumDenominator}
 							</dd>
 						</div>
 					{/if}
@@ -450,11 +453,11 @@
 							<dt>constitution anchor URL</dt>
 							<dd>
 								<a
-									href={String(constitutionAnchorUrl)}
+									href={constitutionAnchorUrl}
 									target="_blank"
 									rel="noreferrer noopener"
 								>
-									<TruncatedValue value={String(constitutionAnchorUrl)} />
+									<TruncatedValue value={constitutionAnchorUrl} />
 								</a>
 							</dd>
 						</div>
@@ -509,30 +512,30 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const cardanoGovernanceProposalCardanoGovernanceProposalTimestampsViewTimestampsResource = selection.$$timestamps}
+		{@const timestampsResource = selection.$$timestamps}
 		<ResourceBoundary
-			resource={cardanoGovernanceProposalCardanoGovernanceProposalTimestampsViewTimestampsResource}
+			resource={timestampsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<CardanoGovernanceProposal_TimestampsView
-						selection={cardanoGovernanceProposalCardanoGovernanceProposalTimestampsViewTimestampsResource}
-						countResource={cardanoGovernanceProposalCardanoGovernanceProposalTimestampsViewTimestampsResource.count}
+						selection={timestampsResource}
+						countResource={timestampsResource.count}
 						title='timestamps'
 						id='timestamps'
 					/>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>
-		{@const cardanoGovernanceProposalCardanoGovernanceVotesViewVotesResource = selection.$$votes}
+		{@const votesResource = selection.$$votes}
 		<ResourceBoundary
-			resource={cardanoGovernanceProposalCardanoGovernanceVotesViewVotesResource}
+			resource={votesResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<CardanoGovernanceVotesView
-						selection={cardanoGovernanceProposalCardanoGovernanceVotesViewVotesResource}
-						countResource={cardanoGovernanceProposalCardanoGovernanceVotesViewVotesResource.count}
+						selection={votesResource}
+						countResource={votesResource.count}
 						title='votes'
 						id='votes'
 					/>

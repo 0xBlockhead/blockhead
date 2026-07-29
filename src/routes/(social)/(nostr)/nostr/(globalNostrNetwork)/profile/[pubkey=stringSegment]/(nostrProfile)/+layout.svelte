@@ -33,7 +33,7 @@
 			resolve(
 				'/(social)/(nostr)/nostr/(globalNostrNetwork)/profile/[pubkey=stringSegment]',
 				{
-					pubkey: String(params.pubkey),
+					pubkey: params.pubkey,
 				}
 			)
 		}
@@ -51,7 +51,7 @@
 					resolve(
 						'/(social)/(nostr)/nostr/(globalNostrNetwork)/profile/[pubkey=stringSegment]',
 						{
-							pubkey: String(params.pubkey),
+							pubkey: params.pubkey,
 						}
 					)
 				}

@@ -44,15 +44,15 @@
 			entitySelector={mcpServerPackageVersionSelector}
 		>
 			{#snippet Title()}
-				{(mcpServerPackageVersionSelector.version ?? '') || (mcpServerPackageVersion.$artifact == null ? '' : (mcpServerPackageVersion.$artifact.artifactType ?? '') || [(mcpServerPackageVersion.$artifact.providerArtifactId ?? ''), (mcpServerPackageVersion.$artifact.ociDigest ?? ''), (mcpServerPackageVersion.$artifact.ipfsCid ?? ''), (mcpServerPackageVersion.$artifact.arweaveId ?? ''), (mcpServerPackageVersion.$artifact.gitObject ?? ''), String(mcpServerPackageVersion.$artifact.digest ?? '')].filter(Boolean).join(' ') || 'AI artifact')}
+				{(mcpServerPackageVersionSelector.version ?? '') || (mcpServerPackageVersion.$artifact == null ? '' : (mcpServerPackageVersion.$artifact.artifactType ?? '') || [(mcpServerPackageVersion.$artifact.providerArtifactId ?? ''), (mcpServerPackageVersion.$artifact.ociDigest ?? ''), (mcpServerPackageVersion.$artifact.ipfsCid ?? ''), (mcpServerPackageVersion.$artifact.arweaveId ?? ''), (mcpServerPackageVersion.$artifact.gitObject ?? ''), (mcpServerPackageVersion.$artifact.digest ?? '')].filter(Boolean).join(' ') || 'AI artifact') || 'mcp server package version'}
 			{/snippet}
 
 			{#snippet Value()}
-				{mcpServerPackageVersion.$package == null ? '' : (mcpServerPackageVersion.$package.label ?? '') || [(mcpServerPackageVersion.$package.registryServerName ?? ''), String(mcpServerPackageVersion.$package.repositoryUrl ?? '')].filter(Boolean).join(' ') || 'MCP server package'}
+				{mcpServerPackageVersion.$package == null ? '' : (mcpServerPackageVersion.$package.label ?? '') || [(mcpServerPackageVersion.$package.registryServerName ?? ''), (mcpServerPackageVersion.$package.repositoryUrl ?? '')].filter(Boolean).join(' ') || 'MCP server package'}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{(mcpServerPackageVersion.registryStatus ?? '')}</span>
+				<span data-text="annotation">{mcpServerPackageVersion.registryStatus ?? ''}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

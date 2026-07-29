@@ -33,7 +33,7 @@
 			resolve(
 				'/(assets)/coin/[coinId=stringSegment]',
 				{
-					coinId: String(params.coinId),
+					coinId: params.coinId,
 				}
 			)
 		}
@@ -49,7 +49,7 @@
 					resolve(
 						'/(assets)/coin/[coinId=stringSegment]',
 						{
-							coinId: String(params.coinId),
+							coinId: params.coinId,
 						}
 					)
 				}

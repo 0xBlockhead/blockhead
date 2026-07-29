@@ -4,7 +4,6 @@
 	// Types/constants
 	import type { PageProps } from './$types.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { UrlString } from '$/schema/UrlString.ts'
 
 
 	// Context
@@ -41,7 +40,7 @@
 
 
 <svelte:head>
-	<title>{(pageSelection.entity == null ? 'Nostr profile metadata event' : [(pageSelection.entity.displayName ?? ''), (pageSelection.entity.nip05 ?? '')].filter(Boolean).join(' ') || pageSelection.entity.pubkey || 'Nostr profile metadata event')} • Nostr profile metadata event • Blockhead</title>
+	<title>{pageSelection.entity == null ? 'Nostr profile metadata event' : [(pageSelection.entity.displayName ?? ''), (pageSelection.entity.nip05 ?? '')].filter(Boolean).join(' ') || pageSelection.entity.pubkey || 'Nostr profile metadata event'} • Nostr profile metadata event • Blockhead</title>
 </svelte:head>
 
 

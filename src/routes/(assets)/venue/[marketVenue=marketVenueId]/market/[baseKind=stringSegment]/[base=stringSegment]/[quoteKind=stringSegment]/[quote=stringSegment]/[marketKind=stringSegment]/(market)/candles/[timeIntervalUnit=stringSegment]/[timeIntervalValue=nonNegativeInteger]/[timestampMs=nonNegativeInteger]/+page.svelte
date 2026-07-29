@@ -42,7 +42,7 @@
 
 
 <svelte:head>
-	<title>{(data.title ?? (`${pageSelection.entitySelector.timeInterval.value}${pageSelection.entitySelector.timeInterval.unit}` || 'OHLC candle'))} • OHLC candle • Blockhead</title>
+	<title>{data.title ?? (`${pageSelection.entitySelector.timeInterval.value}${pageSelection.entitySelector.timeInterval.unit}` || 'OHLC candle')} • OHLC candle • Blockhead</title>
 </svelte:head>
 
 

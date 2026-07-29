@@ -30,8 +30,8 @@ import {
 	writeLocalBlockheadWalletConnection,
 	writeLocalBlockheadWalletRequest,
 } from '$/collections/localMutations.ts'
-import { SocialProtocol } from '$/schema/BlockheadSocialPostSession.ts'
-import { BlockheadConnectionStatus } from '$/schema/BlockheadWalletConnection.ts'
+import { SocialProtocol } from '$/schema/SocialProtocol.ts'
+import { BlockheadConnectionStatus } from '$/schema/BlockheadConnectionStatus.ts'
 import {
 	EntityMetaKey,
 	entityFieldAddressKey,

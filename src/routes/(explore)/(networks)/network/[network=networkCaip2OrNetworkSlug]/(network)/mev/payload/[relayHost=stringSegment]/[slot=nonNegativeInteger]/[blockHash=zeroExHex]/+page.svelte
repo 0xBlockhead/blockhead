@@ -4,7 +4,6 @@
 	// Types/constants
 	import type { PageProps } from './$types.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 
 
 	// Context
@@ -34,7 +33,7 @@
 
 
 <svelte:head>
-	<title>{(data.title ?? (pageSelection.entity == null ? (String(pageSelection.entitySelector.slot ?? '') ? 'Slot ' + String(pageSelection.entitySelector.slot ?? '') : '') || 'MEV relay proposer payload delivered' : ([(String(pageSelection.entitySelector.slot) ? 'Slot ' + String(pageSelection.entitySelector.slot) : ''), (String(pageSelection.entity.value ?? '') ? String(pageSelection.entity.value ?? '') + ' wei' : '')].filter(Boolean).join(' ')) || 'MEV relay proposer payload delivered'))} • MEV relay proposer payload delivered • Blockhead</title>
+	<title>{data.title ?? (pageSelection.entity == null ? 'Slot ' + String(pageSelection.entitySelector.slot ?? '') : ['Slot ' + String(pageSelection.entitySelector.slot), (pageSelection.entity.value != null ? String(pageSelection.entity.value) + ' wei' : '')].filter(Boolean).join(' ') || 'MEV relay proposer payload delivered')} • MEV relay proposer payload delivered • Blockhead</title>
 </svelte:head>
 
 

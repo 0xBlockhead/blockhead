@@ -20,14 +20,10 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.SuiRegulatedCoinState_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const titleFallback = 'Sui regulated coin state timestamp'
-
 
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
-	import TruncatedValue from '$/components/TruncatedValue.svelte'
 	import SuiCoinTypeView from '$/views/SuiCoinTypeView.svelte'
 </script>
 
@@ -35,7 +31,7 @@
 <EntityView
 	entityType={EntityType.SuiRegulatedCoinState_Timestamp}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? 'Sui regulated coin state timestamp'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -60,14 +56,14 @@
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+					<Timestamp timestamp={selection.entitySelector.timestampMs} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 
@@ -152,7 +148,7 @@
 						<div>
 							<dt>deny list epoch</dt>
 							<dd>
-								{String(denyListEpoch)}
+								{denyListEpoch}
 							</dd>
 						</div>
 					{/if}
@@ -174,7 +170,7 @@
 						<div>
 							<dt>denied address count</dt>
 							<dd>
-								<TruncatedValue value={String(deniedAddressCount)} />
+								{deniedAddressCount}
 							</dd>
 						</div>
 					{/if}

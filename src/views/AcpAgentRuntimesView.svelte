@@ -45,11 +45,11 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{acpAgentRuntime.$programVersion == null ? '' : (acpAgentRuntime.$programVersion.version ?? '') || (acpAgentRuntime.$programVersion.$artifact == null ? '' : (acpAgentRuntime.$programVersion.$artifact.artifactType ?? '') || [(acpAgentRuntime.$programVersion.$artifact.providerArtifactId ?? ''), (acpAgentRuntime.$programVersion.$artifact.ociDigest ?? ''), (acpAgentRuntime.$programVersion.$artifact.ipfsCid ?? ''), (acpAgentRuntime.$programVersion.$artifact.arweaveId ?? ''), (acpAgentRuntime.$programVersion.$artifact.gitObject ?? ''), String(acpAgentRuntime.$programVersion.$artifact.digest ?? '')].filter(Boolean).join(' ') || 'AI artifact')}
+				{acpAgentRuntime.$programVersion == null ? '' : (acpAgentRuntime.$programVersion.version ?? '') || (acpAgentRuntime.$programVersion.$artifact == null ? '' : (acpAgentRuntime.$programVersion.$artifact.artifactType ?? '') || [(acpAgentRuntime.$programVersion.$artifact.providerArtifactId ?? ''), (acpAgentRuntime.$programVersion.$artifact.ociDigest ?? ''), (acpAgentRuntime.$programVersion.$artifact.ipfsCid ?? ''), (acpAgentRuntime.$programVersion.$artifact.arweaveId ?? ''), (acpAgentRuntime.$programVersion.$artifact.gitObject ?? ''), (acpAgentRuntime.$programVersion.$artifact.digest ?? '')].filter(Boolean).join(' ') || 'AI artifact') || 'ACP agent program version'}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{(acpAgentRuntime.transportKind ?? '')}</span>
+				<span data-text="annotation">{acpAgentRuntime.transportKind ?? ''}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

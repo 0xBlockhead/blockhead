@@ -2,7 +2,6 @@
 
 import type { PageLoad } from './$types'
 import { error } from '@sveltejs/kit'
-import { networkByCaip2, networkBySlug } from '$/constants/Network.ts'
 import { match as matchNonNegativeInteger } from '$/params/nonNegativeInteger.ts'
 import { match as matchStringSegment } from '$/params/stringSegment.ts'
 import { match as matchZeroExHex } from '$/params/zeroExHex.ts'
@@ -15,10 +14,16 @@ import { type as arktype } from 'arktype'
 export const load: PageLoad = async ({ params, parent }) => {
 	const parentData = await parent()
 
-	const projectionNetwork = (Object.getOwnPropertyDescriptor(networkByCaip2, decodeURIComponent(params.network))?.value ?? Object.getOwnPropertyDescriptor(networkBySlug, params.network)?.value)
-	if (projectionNetwork == null) error(404, 'Network projection context not found')
-
-	if (!((projectionNetwork.executionModels !== undefined && projectionNetwork.executionModels.some((value: string | number | boolean | null) => value === 'Evm')) && matchStringSegment(params.relayHost) && matchNonNegativeInteger(params.slot) && matchZeroExHex(params.blockHash))) error(404, 'Route mapping not applicable')
+	if (!(
+		(
+			parentData.projectionNetwork.executionModels !== undefined
+			&& parentData.projectionNetwork.executionModels.some((value: string | number | boolean | null) => value === 'Evm')
+		)
+		&& matchStringSegment(params.relayHost)
+		&& matchNonNegativeInteger(params.slot)
+		&& matchZeroExHex(params.blockHash)
+	))
+		error(404, 'Route mapping not applicable')
 
 	const mevRelayProposerPayloadDeliveredEvmNetworkRelayHostSlotBlockHashSelector = parseEntitySelector(
 		schema,
@@ -30,7 +35,8 @@ export const load: PageLoad = async ({ params, parent }) => {
 			blockHash: params.blockHash,
 		}
 	)
-	if (mevRelayProposerPayloadDeliveredEvmNetworkRelayHostSlotBlockHashSelector instanceof arktype.errors) error(404, 'Invalid MevRelay_ProposerPayloadDelivered selector')
+	if (mevRelayProposerPayloadDeliveredEvmNetworkRelayHostSlotBlockHashSelector instanceof arktype.errors)
+		error(404, 'Invalid MevRelay_ProposerPayloadDelivered selector')
 
 	return {
 		selector: mevRelayProposerPayloadDeliveredEvmNetworkRelayHostSlotBlockHashSelector,

@@ -16,13 +16,11 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.CctpFastBurnAllowance_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const cctpFastBurnAllowanceTimestamp = $derived(selection({
 		fields: {
 			allowanceUsdc: true,
 		},
 	}))
-	const titleFallback = $derived(String(pendingEntity.timestampMs ?? '') || 'CCTP fast burn allowance timestamp')
 
 
 	// Components
@@ -34,26 +32,26 @@
 <EntityView
 	entityType={EntityType.CctpFastBurnAllowance_Timestamp}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? String(selection.entitySelector.timestampMs)}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+		<Timestamp timestamp={selection.entitySelector.timestampMs} />
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={cctpFastBurnAllowanceTimestamp}>
 			{#snippet children(entity)}
-				{String(entity.allowanceUsdc ?? '') || String(pendingEntity.timestampMs) || titleFallback}
+				{String(entity.allowanceUsdc ?? '') || String(selection.entitySelector.timestampMs)}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
 		<span data-text="muted">
-			{pendingEntity.source}
+			{selection.entitySelector.source}
 		</span>
 	{/snippet}
 
@@ -62,14 +60,14 @@
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+					<Timestamp timestamp={selection.entitySelector.timestampMs} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 
@@ -82,7 +80,7 @@
 						<div>
 							<dt>Allowance USDC</dt>
 							<dd>
-								{String(allowanceUsdc)}
+								{allowanceUsdc}
 							</dd>
 						</div>
 					{/if}
@@ -104,7 +102,7 @@
 						<div>
 							<dt>Last updated ms</dt>
 							<dd>
-								<Timestamp timestamp={Number(lastUpdatedMs)} />
+								<Timestamp timestamp={lastUpdatedMs} />
 							</dd>
 						</div>
 					{/if}

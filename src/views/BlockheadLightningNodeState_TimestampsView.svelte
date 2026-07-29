@@ -42,7 +42,7 @@
 			entitySelector={blockheadLightningNodeStateTimestampSelector}
 		>
 			{#snippet Title()}
-				{String(blockheadLightningNodeStateTimestampSelector.timestampMs) || 'blockhead Lightning node state timestamp'}
+				{blockheadLightningNodeStateTimestampSelector.timestampMs}
 			{/snippet}
 
 			{#snippet Value()}
@@ -50,7 +50,7 @@
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{String(blockheadLightningNodeStateTimestamp.blockHeight ?? '')}</span>
+				<span data-text="annotation">{blockheadLightningNodeStateTimestamp.blockHeight ?? ''}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

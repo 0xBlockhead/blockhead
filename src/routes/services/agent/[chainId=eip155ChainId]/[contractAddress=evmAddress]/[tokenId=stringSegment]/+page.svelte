@@ -4,8 +4,6 @@
 	// Types/constants
 	import type { PageProps } from './$types.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { EvmNftFormat, EvmNftStandard } from '$/constants/Evm.ts'
-	import { UrlString } from '$/schema/UrlString.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -63,7 +61,7 @@
 
 
 <svelte:head>
-	<title>{(pageSelection.entity == null ? (pageSelection.entitySelector.tokenId ?? '') || 'EVM NFT' : (pageSelection.entity.name ?? '') || pageSelection.entitySelector.tokenId || 'EVM NFT')} • EVM NFT • Blockhead</title>
+	<title>{pageSelection.entity == null ? (pageSelection.entitySelector.tokenId ?? '') || 'EVM NFT' : (pageSelection.entity.name ?? '') || pageSelection.entitySelector.tokenId || 'EVM NFT'} • EVM NFT • Blockhead</title>
 </svelte:head>
 
 

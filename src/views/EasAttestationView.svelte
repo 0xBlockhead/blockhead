@@ -5,7 +5,6 @@
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { EvmAddress, ZeroExHex } from '$/schema/ZeroExHex.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -23,7 +22,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.EasAttestation> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Blockscout_Rest,
@@ -40,7 +38,6 @@
 			attester: true,
 		},
 	}))
-	const titleFallback = $derived(String(pendingEntity.uid ?? '') || 'EAS attestation')
 
 
 	// Components
@@ -58,13 +55,13 @@
 <EntityView
 	entityType={EntityType.EasAttestation}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? (selection.entitySelector.uid || 'EAS attestation')}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{String(pendingEntity.uid ?? '') || 'EAS attestation'}
+		{selection.entitySelector.uid || 'EAS attestation'}
 	{/snippet}
 
 	{#snippet Value()}
@@ -76,7 +73,6 @@
 					<EasSchemaView
 						selection={select(EntityType.EasSchema, easSchema[EntityMetaKey.Selector])}
 						prefetched={easSchema}
-						href=""
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -89,11 +85,11 @@
 		<ResourceBoundary resource={easAttestation}>
 			{#snippet children(entity)}
 				<span data-text="muted">
-					{String(entity.recipient)}
+					{entity.recipient}
 				</span>
 
 				<span data-text="muted">
-					{String(entity.attester)}
+					{entity.attester}
 				</span>
 			{/snippet}
 		</ResourceBoundary>
@@ -104,7 +100,7 @@
 			<div>
 				<dt>UID</dt>
 				<dd>
-					{String(pendingEntity.uid)}
+					{selection.entitySelector.uid}
 				</dd>
 			</div>
 
@@ -126,7 +122,7 @@
 						resource={easAttestation}
 					>
 						{#snippet children(entity)}
-							{String(entity.schemaUid)}
+							{entity.schemaUid}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -139,7 +135,7 @@
 						resource={easAttestation}
 					>
 						{#snippet children(entity)}
-							{String(entity.recipient)}
+							{entity.recipient}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -152,7 +148,7 @@
 						resource={easAttestation}
 					>
 						{#snippet children(entity)}
-							{String(entity.attester)}
+							{entity.attester}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -175,7 +171,7 @@
 						<div>
 							<dt>Ref UID</dt>
 							<dd>
-								{String(refUid)}
+								{refUid}
 							</dd>
 						</div>
 					{/if}
@@ -197,7 +193,7 @@
 						<div>
 							<dt>Attested at</dt>
 							<dd>
-								<Timestamp timestamp={Number(attestedAt)} />
+								<Timestamp timestamp={attestedAt} />
 							</dd>
 						</div>
 					{/if}
@@ -219,7 +215,7 @@
 						<div>
 							<dt>Expiration time</dt>
 							<dd>
-								<Timestamp timestamp={Number(expirationTime)} />
+								<Timestamp timestamp={expirationTime} />
 							</dd>
 						</div>
 					{/if}
@@ -265,7 +261,7 @@
 						<div>
 							<dt>Data</dt>
 							<dd>
-								{String(data)}
+								{data}
 							</dd>
 						</div>
 					{/if}
@@ -355,15 +351,15 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const easAttestationEasAttestationTimestampsViewTimestampsResource = selection.$$timestamps}
+		{@const timestampsResource = selection.$$timestamps}
 		<ResourceBoundary
-			resource={easAttestationEasAttestationTimestampsViewTimestampsResource}
+			resource={timestampsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<EasAttestation_TimestampsView
-						selection={easAttestationEasAttestationTimestampsViewTimestampsResource}
-						countResource={easAttestationEasAttestationTimestampsViewTimestampsResource.count}
+						selection={timestampsResource}
+						countResource={timestampsResource.count}
 						title='Timestamps'
 						id='timestamps'
 					/>

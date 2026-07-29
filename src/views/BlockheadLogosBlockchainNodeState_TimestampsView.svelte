@@ -41,11 +41,11 @@
 			entitySelector={blockheadLogosBlockchainNodeStateTimestampSelector}
 		>
 			{#snippet Title()}
-				{String(blockheadLogosBlockchainNodeStateTimestampSelector.timestampMs) || 'blockhead Logos blockchain node state timestamp'}
+				{blockheadLogosBlockchainNodeStateTimestampSelector.timestampMs}
 			{/snippet}
 
 			{#snippet Value()}
-				{String(blockheadLogosBlockchainNodeStateTimestamp.peerCount ?? '')}
+				{blockheadLogosBlockchainNodeStateTimestamp.peerCount ?? ''}
 			{/snippet}
 
 			{#snippet HeadingAfter()}

@@ -2,7 +2,8 @@
 
 import bindings from '$/sources/Nodely/bindings.ts'
 import { Source } from '$/sources/Source.ts'
-import { SourceProvider, type SourceProviderDefinition } from '$/sources/SourceProvider.ts'
+import { SourceProvider } from '$/sources/SourceProvider.ts'
+import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinition.ts'
 
 export default {
 	provider: SourceProvider.Nodely,
@@ -17,8 +18,5 @@ export default {
 			label: 'Nodely Algorand Indexer REST',
 		},
 	],
-	bindings: [
-		bindings[Source.Nodely_Algod_Rest],
-		bindings[Source.Nodely_AlgorandIndexer_Rest],
-	],
+	bindings: Object.values(bindings).flat(),
 } satisfies SourceProviderDefinition

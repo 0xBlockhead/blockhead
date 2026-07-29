@@ -4,7 +4,6 @@
 	// Types/constants
 	import type { PageProps } from './$types.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { UrlString } from '$/schema/UrlString.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -64,7 +63,7 @@
 
 
 <svelte:head>
-	<title>{(pageSelection.entity == null ? 'liquidity pool timestamp' : [(pageSelection.entity.baseTokenSymbol ?? ''), (pageSelection.entity.quoteTokenSymbol ?? '')].filter(Boolean).join(' ') || 'liquidity pool timestamp')} • liquidity pool timestamp • Blockhead</title>
+	<title>{pageSelection.entity == null ? 'liquidity pool timestamp' : [(pageSelection.entity.baseTokenSymbol ?? ''), (pageSelection.entity.quoteTokenSymbol ?? '')].filter(Boolean).join(' ') || 'liquidity pool timestamp'} • liquidity pool timestamp • Blockhead</title>
 </svelte:head>
 
 

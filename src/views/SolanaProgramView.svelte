@@ -24,13 +24,13 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.SolanaProgram> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const network = $derived(selection.entitySelector.$network)
 	const solanaProgram = $derived(selection({
 		fields: {
 			name: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.programId ?? '') || 'solana program')
+	const titleFallback = $derived(selection.entitySelector.programId || 'solana program')
 
 
 	// Components
@@ -46,31 +46,34 @@
 	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
 	href={
-		href ?? resolve(
-			'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/program/[programId=stringSegment]',
-			{
-				network: (
-					'caip2' in selection.entitySelector.$network ?
-						String(caip2StringFromValue(selection.entitySelector.$network.caip2))
-					:
-						String(selection.entitySelector.$network.slug)
-				),
-				programId: String(selection.entitySelector.programId),
-			}
-		)
+		href === undefined ?
+			resolve(
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/program/[programId=stringSegment]',
+				{
+					network: (
+						'caip2' in network ?
+							caip2StringFromValue(network.caip2)
+						:
+							network.slug
+					),
+					programId: selection.entitySelector.programId,
+				}
+			)
+		:
+			href ?? undefined
 	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<TruncatedValue value={pendingEntity.programId} />
+		<TruncatedValue value={selection.entitySelector.programId} />
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={solanaProgram}>
 			{#snippet children(entity)}
-				{(entity.name ?? '') || pendingEntity.programId || titleFallback}
+				{(entity.name ?? '') || selection.entitySelector.programId || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -90,7 +93,7 @@
 			<div>
 				<dt>Program ID</dt>
 				<dd>
-					<TruncatedValue value={pendingEntity.programId} />
+					<TruncatedValue value={selection.entitySelector.programId} />
 				</dd>
 			</div>
 

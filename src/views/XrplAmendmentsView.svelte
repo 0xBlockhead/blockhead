@@ -30,6 +30,7 @@
 >
 	{#snippet Item({ item: xrplAmendment })}
 		{@const xrplAmendmentSelector = xrplAmendment[EntityMetaKey.Selector]}
+		{@const network = xrplAmendmentSelector.$network}
 		<EntityView
 			entityType={EntityType.XrplAmendment}
 			entitySelector={xrplAmendmentSelector}
@@ -38,12 +39,12 @@
 					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/amendment/[amendmentId=stringSegment]',
 					{
 						network: (
-							'caip2' in xrplAmendmentSelector.$network ?
-								String(caip2StringFromValue(xrplAmendmentSelector.$network.caip2))
+							'caip2' in network ?
+								caip2StringFromValue(network.caip2)
 							:
-								String(xrplAmendmentSelector.$network.slug)
+								network.slug
 						),
-						amendmentId: String(xrplAmendmentSelector.amendmentId),
+						amendmentId: xrplAmendmentSelector.amendmentId,
 					}
 				)
 			}

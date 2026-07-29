@@ -12,7 +12,7 @@ import {
 } from 'vitest'
 
 import { Source } from '$/sources/Source.ts'
-import type { SourceProviderDefinition } from '$/sources/SourceProvider.ts'
+import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinition.ts'
 import {
 	ApiFamily,
 	SourceArtifactKind,
@@ -20,11 +20,15 @@ import {
 	SourceDelivery,
 	SourceEndpointKind,
 	SourceTargetKind,
+	sourceBindingId,
 	type SourceBinding,
 } from '$/sources/SourceBinding.ts'
 import generatedSourceProviders from '$/sources/$sourceProviders.ts'
 import { auditSourceProviders } from '$/sources/auditSourceProviders.ts'
-import { sourceBindings as browserSourceBindings } from '$/sources/index.ts'
+import {
+	networkApplicableSources,
+	sourceBindings as browserSourceBindings,
+} from '$/sources/index.ts'
 import {
 	enabledSourceBindings,
 	httpProxyOrigins,
@@ -174,6 +178,31 @@ describe('source binding indexes', () => {
 		)).some((locator) => httpProxyOrigins.has(locator))).toBe(false)
 	})
 
+	it('derives network source applicability directly from binding targets', () => {
+		const sources = [
+			Source.AvailExplorer_Rest,
+			Source.EnvioHyperRpc_JsonRpc,
+			Source.Constants_Internal,
+		]
+
+		expect(networkApplicableSources(sources, {
+			slug: 'avail',
+			caip2: {
+				namespace: 'eip155',
+				reference: '1',
+			},
+		})).toEqual(sources)
+		expect(networkApplicableSources(sources, {
+			slug: 'algorand',
+			caip2: {
+				namespace: 'eip155',
+				reference: '10',
+			},
+		})).toEqual([
+			Source.Constants_Internal,
+		])
+	})
+
 	it('serves RemoteLive through sourceLive instead of the HTTP proxy', () => {
 		expect(readFileSync('src/sources/_runtime/live.remote.ts', 'utf8'))
 			.toMatch(/export const sourceLive = query\.live/)
@@ -209,14 +238,13 @@ describe('source binding indexes', () => {
 		try {
 			await sourceFetch({
 				...binding,
-				proxyId: 'blockscout-rest-fixture',
 				endpoints: [{
 					...binding.endpoints[0],
 					corsEnabled: true,
 				}],
 			}, 'https://eth.blockscout.com/api')
 			expect(fetchMock).toHaveBeenCalledWith(
-				'/api-proxy/blockscout-rest-fixture/0/https%3A%2F%2Feth.blockscout.com%2Fapi',
+				`/api-proxy/${encodeURIComponent(sourceBindingId(binding))}/0/https%3A%2F%2Feth.blockscout.com%2Fapi`,
 				expect.objectContaining({
 					signal: expect.any(AbortSignal),
 				})
@@ -239,9 +267,9 @@ describe('source binding indexes', () => {
 			await snapchainGet('/v1/fids', { pageSize: 100 })
 
 			expect(fetchMock.mock.calls.map(([url]) => url)).toEqual([
-				`/api-proxy/${encodeURIComponent(redditPublicBindings[Source.Reddit_PublicJson].proxyId)}/0/https%3A%2F%2Fwww.reddit.com%2Fr%2Fpopular%2F.rss`,
-				`/api-proxy/${encodeURIComponent(neynarBindings[Source.Neynar_Rest].proxyId)}/0/https%3A%2F%2Fapi.neynar.com%2Fv2%2Ffarcaster%2Ffeed%2F%3Ffeed_type%3Dfilter%26filter_type%3Dglobal_trending`,
-				`/api-proxy/${encodeURIComponent(snapchainBindings[Source.Snapchain_Rest].proxyId)}/0/https%3A%2F%2Fhub.pinata.cloud%2Fv1%2Ffids%3FpageSize%3D100`,
+				`/api-proxy/${encodeURIComponent(sourceBindingId(redditPublicBindings[Source.Reddit_PublicJson]))}/0/https%3A%2F%2Fwww.reddit.com%2Fr%2Fpopular%2F.rss`,
+				`/api-proxy/${encodeURIComponent(sourceBindingId(neynarBindings[Source.Neynar_Rest]))}/0/https%3A%2F%2Fapi.neynar.com%2Fv2%2Ffarcaster%2Ffeed%2F%3Ffeed_type%3Dfilter%26filter_type%3Dglobal_trending`,
+				`/api-proxy/${encodeURIComponent(sourceBindingId(snapchainBindings[Source.Snapchain_Rest]))}/0/https%3A%2F%2Fhub.pinata.cloud%2Fv1%2Ffids%3FpageSize%3D100`,
 			])
 		} finally {
 			vi.unstubAllGlobals()

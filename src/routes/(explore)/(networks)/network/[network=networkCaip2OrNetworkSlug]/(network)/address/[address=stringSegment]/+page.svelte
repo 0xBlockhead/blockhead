@@ -25,7 +25,7 @@
 
 
 <svelte:head>
-	<title>{(data.title ?? (pageSelection.entitySelector.address || 'UTXO address'))} • UTXO address • Blockhead</title>
+	<title>{data.title ?? (pageSelection.entitySelector.address || 'UTXO address')} • UTXO address • Blockhead</title>
 </svelte:head>
 
 

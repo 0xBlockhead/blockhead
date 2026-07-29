@@ -224,25 +224,25 @@ export const emitTypeScript = (emission: TypeScriptEmission) => {
 	})
 }
 
-const generatedHeader = '// Generated from APP.ts. Do not edit by hand.'
-const generatedSvelteHeader = '<!-- Generated from APP.ts. Do not edit by hand. -->'
-const indent = (source: string, level = 1) => source
+export const generatedHeader = '// Generated from APP.ts. Do not edit by hand.'
+export const generatedSvelteHeader = '<!-- Generated from APP.ts. Do not edit by hand. -->'
+export const indent = (source: string, level = 1) => source
 	.split('\n')
 	.map((line) => line === '' ? line : `${'\t'.repeat(level)}${line}`)
 	.join('\n')
-const importNameKey = (importName: ImportName) => (
+export const importNameKey = (importName: ImportName) => (
 	typeof importName === 'string' ?
 		importName
 	:
 		`${importName.name} as ${importName.alias}`
 )
-const uniqueImportNames = (importNames: readonly ImportName[]) => [
+export const uniqueImportNames = (importNames: readonly ImportName[]) => [
 	...new Map(importNames.map((importName) => [
 		importNameKey(importName),
 		importName,
 	])).values(),
 ].sort((left, right) => importNameKey(left).localeCompare(importNameKey(right)))
-const generatedImportSpecFrom = (spec: ImportPlan) => {
+export const generatedImportSpecFrom = (spec: ImportPlan) => {
 	const schemaMatch = spec.from.match(/^\$\/schema\/([^/]+)\.ts$/)
 	if (schemaMatch?.[1] != null && [
 		spec.defaultName,
@@ -257,7 +257,7 @@ const quote = (value: string) => `'${JSON.stringify(value)
 	.slice(1, -1)
 	.replaceAll("'", "\\'")
 	.replaceAll('\\"', '"')}'`
-const renderImport = (spec: ImportPlan) => {
+export const renderImport = (spec: ImportPlan) => {
 	const typeOnlyImport = spec.defaultName == null && (spec.names ?? []).length === 0
 	const namedImports = [
 		...(spec.names ?? []).map((importName) => ({
@@ -281,7 +281,7 @@ const renderImport = (spec: ImportPlan) => {
 
 	return `import ${typeOnlyImport ? 'type ' : ''}${importClause} from ${quote(generatedImportSpecFrom(spec))}`
 }
-const mergeImports = (imports: readonly ImportPlan[]) => {
+export const mergeImports = (imports: readonly ImportPlan[]) => {
 	const merged = new Map<string, {
 		from: string
 		defaultName?: string
@@ -340,6 +340,11 @@ const separateSvelteSiblingLines = (source: readonly string[]) => source.flatMap
 	line,
 	...(shouldSeparateSvelteSiblings(line, source[index + 1] ?? '') ? [''] : []),
 ])
+const collapseExcessBlankLines = (source: readonly string[]) => source.filter((line, index) => (
+	line !== ''
+	|| source[index - 1] !== ''
+	|| source[index - 2] !== ''
+))
 
 export const renderGeneratedFile = (generatedFile: GeneratedFile) => {
 	const content = (
@@ -359,14 +364,14 @@ export const renderGeneratedFile = (generatedFile: GeneratedFile) => {
 				'',
 				...(generatedFile.ast.moduleScript == null ? [] : [
 					'<script module lang="ts">',
-					indent(generatedFile.ast.moduleScript.join('\n')),
+					indent(collapseExcessBlankLines(generatedFile.ast.moduleScript).join('\n')),
 					'</script>',
 					'',
 					'',
 				]),
 				...(generatedFile.ast.script == null ? [] : [
 					'<script lang="ts">',
-					indent(generatedFile.ast.script.join('\n')),
+					indent(collapseExcessBlankLines(generatedFile.ast.script).join('\n')),
 					'</script>',
 					'',
 					'',

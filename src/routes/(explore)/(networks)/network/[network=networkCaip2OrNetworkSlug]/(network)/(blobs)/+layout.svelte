@@ -27,7 +27,7 @@
 		resolve(
 			'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/blobs',
 			{
-				network: String(params.network),
+				network: params.network,
 			}
 		)
 	}

@@ -33,7 +33,7 @@
 			resolve(
 				'/(social)/(youtube)/youtube/(globalYoutubeNetwork)/channel/[channelId=stringSegment]',
 				{
-					channelId: String(params.channelId),
+					channelId: params.channelId,
 				}
 			)
 		}
@@ -51,7 +51,7 @@
 					resolve(
 						'/(social)/(youtube)/youtube/(globalYoutubeNetwork)/channel/[channelId=stringSegment]',
 						{
-							channelId: String(params.channelId),
+							channelId: params.channelId,
 						}
 					)
 				}

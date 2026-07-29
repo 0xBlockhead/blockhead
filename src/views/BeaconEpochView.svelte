@@ -20,14 +20,13 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.BeaconEpoch> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const network = $derived(selection.entitySelector.$network)
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Beacon_Rest,
 			Source.BeaconchaIn_Rest,
 		],
 	}))
-	const titleFallback = $derived((String(pendingEntity.epoch ?? '') ? 'Epoch #' + String(pendingEntity.epoch ?? '') : '') || 'beacon epoch')
 
 
 	// Components
@@ -40,21 +39,24 @@
 <EntityView
 	entityType={EntityType.BeaconEpoch}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
-	idDragPlainText={String(pendingEntity.epoch ?? '')}
+	title={title ?? `Epoch #${selection.entitySelector.epoch}`}
+	idDragPlainText={String(selection.entitySelector.epoch)}
 	href={
-		href ?? resolve(
-			'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/epoch/[epoch=nonNegativeInteger]',
-			{
-				network: (
-					'caip2' in selection.entitySelector.$network ?
-						String(caip2StringFromValue(selection.entitySelector.$network.caip2))
-					:
-						String(selection.entitySelector.$network.slug)
-				),
-				epoch: String(selection.entitySelector.epoch),
-			}
-		)
+		href === undefined ?
+			resolve(
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/epoch/[epoch=nonNegativeInteger]',
+				{
+					network: (
+						'caip2' in network ?
+							caip2StringFromValue(network.caip2)
+						:
+							network.slug
+					),
+					epoch: String(selection.entitySelector.epoch),
+				}
+			)
+		:
+			href ?? undefined
 	}
 	{layout}
 	bind:open
@@ -64,14 +66,14 @@
 		<span data-row="inline align-center gap-2 wrap">
 			<span>Epoch </span>
 			<span data-badge="small">
-				#{String(pendingEntity.epoch)}
+				#{selection.entitySelector.epoch}
 			</span>
 		</span>
 	{/snippet}
 
 	{#snippet Value()}
 		<span data-badge="small">
-			#{String(pendingEntity.epoch)}
+			#{selection.entitySelector.epoch}
 		</span>
 	{/snippet}
 
@@ -328,21 +330,21 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const beaconEpochBeaconSlotsViewBeaconSlotsResource = selection
-		.$$beaconSlots({
-			sources: [
-				Source.Beacon_Rest,
-			],
-			limit: 32,
-		})}
+		{@const beaconSlotsResource = selection
+			.$$beaconSlots({
+				sources: [
+					Source.Beacon_Rest,
+				],
+				limit: 32,
+			})}
 		<ResourceBoundary
-			resource={beaconEpochBeaconSlotsViewBeaconSlotsResource}
+			resource={beaconSlotsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<BeaconSlotsView
-						selection={beaconEpochBeaconSlotsViewBeaconSlotsResource}
-						countResource={beaconEpochBeaconSlotsViewBeaconSlotsResource.count}
+						selection={beaconSlotsResource}
+						countResource={beaconSlotsResource.count}
 						title='Slots'
 						id='beacon-slots'
 					/>

@@ -21,7 +21,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.AlgorandNetwork> = $props()
 
-	const titleFallback = 'algorand network'
 	const viewDomId = $derived('algorand-network-' + encodeURIComponent(stringify(selection.entitySelector)))
 
 
@@ -44,7 +43,7 @@
 	entityType={EntityType.AlgorandNetwork}
 	entitySelector={selection.entitySelector}
 	id={viewDomId}
-	title={title ?? titleFallback}
+	title={title ?? 'algorand network'}
 	{layout}
 	bind:open
 	{...EntityViewProps}

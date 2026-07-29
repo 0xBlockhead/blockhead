@@ -20,8 +20,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.TezosBlock> = $props()
 
-	const titleFallback = 'tezos block'
-
 
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -34,7 +32,7 @@
 <EntityView
 	entityType={EntityType.TezosBlock}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? 'tezos block'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -69,7 +67,7 @@
 						}
 					>
 						{#snippet children(entity)}
-							{String(entity.level)}
+							{entity.level}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -109,7 +107,7 @@
 						<div>
 							<dt>Timestamp</dt>
 							<dd>
-								<Timestamp timestamp={Number(timestampMs)} />
+								<Timestamp timestamp={timestampMs} />
 							</dd>
 						</div>
 					{/if}
@@ -197,7 +195,7 @@
 						<div>
 							<dt>round</dt>
 							<dd>
-								{String(round)}
+								{round}
 							</dd>
 						</div>
 					{/if}
@@ -219,7 +217,7 @@
 						<div>
 							<dt>cycle</dt>
 							<dd>
-								{String(cycle)}
+								{cycle}
 							</dd>
 						</div>
 					{/if}

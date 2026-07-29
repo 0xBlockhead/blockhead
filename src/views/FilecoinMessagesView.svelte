@@ -54,7 +54,7 @@
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{String(filecoinMessage.valueAttoFil ?? '')}</span>
+				<span data-text="annotation">{filecoinMessage.valueAttoFil ?? ''}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

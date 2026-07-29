@@ -2,7 +2,8 @@
 
 import bindings from '$/sources/Payjoin/bindings.ts'
 import { Source } from '$/sources/Source.ts'
-import { SourceProvider, type SourceProviderDefinition } from '$/sources/SourceProvider.ts'
+import { SourceProvider } from '$/sources/SourceProvider.ts'
+import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinition.ts'
 
 export default {
 	provider: SourceProvider.Payjoin,
@@ -21,9 +22,5 @@ export default {
 			label: 'Payjoin directory REST',
 		},
 	],
-	bindings: [
-		bindings[Source.PayjoinOhttpRelay_Http],
-		bindings[Source.PayjoinReceiver_Http],
-		bindings[Source.PayjoinDirectory_Rest],
-	],
+	bindings: Object.values(bindings).flat(),
 } satisfies SourceProviderDefinition

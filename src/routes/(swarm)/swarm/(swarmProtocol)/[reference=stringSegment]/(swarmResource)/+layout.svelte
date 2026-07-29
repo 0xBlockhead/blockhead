@@ -33,7 +33,7 @@
 			resolve(
 				'/(swarm)/swarm/(swarmProtocol)/[reference=stringSegment]',
 				{
-					reference: String(params.reference),
+					reference: params.reference,
 				}
 			)
 		}
@@ -49,7 +49,7 @@
 					resolve(
 						'/(swarm)/swarm/(swarmProtocol)/[reference=stringSegment]',
 						{
-							reference: String(params.reference),
+							reference: params.reference,
 						}
 					)
 				}

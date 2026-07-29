@@ -21,13 +21,12 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.CardanoCertificate> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const cardanoCertificate = $derived(selection({
 		fields: {
 			certificateKind: true,
 		},
 	}))
-	const titleFallback = $derived(([(pendingEntity.certificateKind ?? ''), (String(pendingEntity.certificateIndex ?? '') ? 'Certificate #' + String(pendingEntity.certificateIndex ?? '') : '')].filter(Boolean).join(' ')) || 'Cardano certificate')
+	const titleFallback = $derived([(prefetched.certificateKind ?? ''), 'Certificate #' + String(selection.entitySelector.certificateIndex)].filter(Boolean).join(' ') || 'Cardano certificate')
 
 
 	// Components
@@ -51,7 +50,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={cardanoCertificate}>
 			{#snippet children(entity)}
-				{([entity.certificateKind, (String(pendingEntity.certificateIndex) ? 'Certificate #' + String(pendingEntity.certificateIndex) : '')].filter(Boolean).join(' ')) || title || titleFallback}
+				{[entity.certificateKind, 'Certificate #' + String(selection.entitySelector.certificateIndex)].filter(Boolean).join(' ') || title || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -72,7 +71,7 @@
 			<div>
 				<dt>certificate index</dt>
 				<dd>
-					{String(pendingEntity.certificateIndex)}
+					{selection.entitySelector.certificateIndex}
 				</dd>
 			</div>
 
@@ -210,7 +209,7 @@
 						<div>
 							<dt>deposit lovelace</dt>
 							<dd>
-								{String(depositLovelace)}
+								{depositLovelace}
 							</dd>
 						</div>
 					{/if}
@@ -232,7 +231,7 @@
 						<div>
 							<dt>epoch</dt>
 							<dd>
-								{String(epoch)}
+								{epoch}
 							</dd>
 						</div>
 					{/if}
@@ -257,11 +256,11 @@
 							<dt>metadata URL</dt>
 							<dd>
 								<a
-									href={String(metadataUrl)}
+									href={metadataUrl}
 									target="_blank"
 									rel="noreferrer noopener"
 								>
-									<TruncatedValue value={String(metadataUrl)} />
+									<TruncatedValue value={metadataUrl} />
 								</a>
 							</dd>
 						</div>

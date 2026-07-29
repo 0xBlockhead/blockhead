@@ -49,7 +49,7 @@
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{String(nearChunk.shardId ?? '')}</span>
+				<span data-text="annotation">{nearChunk.shardId ?? ''}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

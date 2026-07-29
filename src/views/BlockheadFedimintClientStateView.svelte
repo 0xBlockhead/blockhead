@@ -21,13 +21,12 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.BlockheadFedimintClientState> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const blockheadFedimintClientState = $derived(selection({
 		fields: {
 			clientName: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.clientName ?? '') || (pendingEntity.clientId ?? '') || 'blockhead Fedimint client state')
+	const titleFallback = $derived((prefetched.clientName ?? '') || selection.entitySelector.clientId || 'blockhead Fedimint client state')
 
 
 	// Components
@@ -56,7 +55,7 @@
 	{/snippet}
 
 	{#snippet Value()}
-		{(pendingEntity.federationId ?? '') || (pendingEntity.clientName ?? '') || titleFallback}
+		{selection.entitySelector.federationId || (prefetched.clientName ?? '') || titleFallback}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -64,7 +63,7 @@
 			<div>
 				<dt>client ID</dt>
 				<dd>
-					{pendingEntity.clientId}
+					{selection.entitySelector.clientId}
 				</dd>
 			</div>
 
@@ -87,7 +86,7 @@
 			<div>
 				<dt>federation ID</dt>
 				<dd>
-					{pendingEntity.federationId}
+					{selection.entitySelector.federationId}
 				</dd>
 			</div>
 
@@ -216,7 +215,7 @@
 						<div>
 							<dt>joined AT</dt>
 							<dd>
-								<Timestamp timestamp={Number(joinedAt)} />
+								<Timestamp timestamp={joinedAt} />
 							</dd>
 						</div>
 					{/if}
@@ -248,15 +247,15 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const blockheadFedimintClientStateBlockheadFedimintClientStateTimestampsViewTimestampsResource = selection.$$timestamps}
+		{@const timestampsResource = selection.$$timestamps}
 		<ResourceBoundary
-			resource={blockheadFedimintClientStateBlockheadFedimintClientStateTimestampsViewTimestampsResource}
+			resource={timestampsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<BlockheadFedimintClientState_TimestampsView
-						selection={blockheadFedimintClientStateBlockheadFedimintClientStateTimestampsViewTimestampsResource}
-						countResource={blockheadFedimintClientStateBlockheadFedimintClientStateTimestampsViewTimestampsResource.count}
+						selection={timestampsResource}
+						countResource={timestampsResource.count}
 						title='timestamps'
 						id='timestamps'
 					/>

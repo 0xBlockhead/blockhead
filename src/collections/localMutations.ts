@@ -7,14 +7,12 @@ import {
 	localMutationAuthorityKey,
 	type MutationCollection,
 } from '$/client/$client.svelte.ts'
-import { BlockheadSessionStatus } from '$/schema/BlockheadSession.ts'
-import type { BlockheadConnectionStatus } from '$/schema/BlockheadWalletConnection.ts'
-import type { BlockheadFarcasterConnectionAuthMethod } from '$/schema/BlockheadFarcasterAccountConnection.ts'
-import {
-	BlockheadSocialPostSessionStatus,
-	SocialProtocol,
-} from '$/schema/BlockheadSocialPostSession.ts'
-import { EntityFieldType } from '$/schema/EntityField.ts'
+import { BlockheadSessionStatus } from '$/schema/BlockheadSessionStatus.ts'
+import { BlockheadConnectionStatus } from '$/schema/BlockheadConnectionStatus.ts'
+import { BlockheadFarcasterConnectionAuthMethod } from '$/schema/BlockheadFarcasterConnectionAuthMethod.ts'
+import { SocialProtocol } from '$/schema/SocialProtocol.ts'
+import { BlockheadSocialPostSessionStatus } from '$/schema/BlockheadSocialPostSessionStatus.ts'
+import { EntityFieldType } from '$/schema/EntityFieldType.ts'
 import {
 	EntityMetaKey,
 	entityFieldAddressKey,

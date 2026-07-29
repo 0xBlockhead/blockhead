@@ -44,7 +44,7 @@
 			entitySelector={mcpToolCallTimestampSelector}
 		>
 			{#snippet Title()}
-				{String(mcpToolCallTimestampSelector.timestampMs) || 'mcp tool call timestamp'}
+				{mcpToolCallTimestampSelector.timestampMs}
 			{/snippet}
 
 			{#snippet Value()}
@@ -52,7 +52,7 @@
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{(mcpToolCallTimestamp.error ?? '')}</span>
+				<span data-text="annotation">{mcpToolCallTimestamp.error ?? ''}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

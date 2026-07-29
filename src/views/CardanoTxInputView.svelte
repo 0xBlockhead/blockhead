@@ -25,7 +25,7 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.CardanoTxInput> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const transaction = $derived(selection.entitySelector.$transaction)
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Blockfrost_Rest,
@@ -37,7 +37,6 @@
 			spentTxHash: true,
 		},
 	}))
-	const titleFallback = $derived((String(pendingEntity.inputIndex ?? '') ? 'Input ' + String(pendingEntity.inputIndex ?? '') : '') || 'Cardano transaction input')
 
 
 	// Components
@@ -52,21 +51,24 @@
 <EntityView
 	entityType={EntityType.CardanoTxInput}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? 'Input ' + String(selection.entitySelector.inputIndex)}
 	href={
-		href ?? resolve(
-			'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(transactions)/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/(selection)/input/[inputIndex=nonNegativeInteger]',
-			{
-				network: (
-					'caip2' in selection.entitySelector.$transaction.$network ?
-						String(caip2StringFromValue(selection.entitySelector.$transaction.$network.caip2))
-					:
-						String(selection.entitySelector.$transaction.$network.slug)
-				),
-				transactionId: String(selection.entitySelector.$transaction.hash),
-				inputIndex: String(selection.entitySelector.inputIndex),
-			}
-		)
+		href === undefined ?
+			resolve(
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(transactions)/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/(selection)/input/[inputIndex=nonNegativeInteger]',
+				{
+					network: (
+						'caip2' in transaction.$network ?
+							caip2StringFromValue(transaction.$network.caip2)
+						:
+							transaction.$network.slug
+					),
+					transactionId: transaction.hash,
+					inputIndex: String(selection.entitySelector.inputIndex),
+				}
+			)
+		:
+			href ?? undefined
 	}
 	{layout}
 	bind:open
@@ -75,14 +77,14 @@
 	{#snippet Title()}
 		<span>Input </span>
 		<NumberValue
-			value={pendingEntity.inputIndex}
+			value={selection.entitySelector.inputIndex}
 		/>
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={cardanoTxInput}>
 			{#snippet children(entity)}
-				{(entity.inputKind ?? '') || (String(pendingEntity.inputIndex) ? 'Input ' + String(pendingEntity.inputIndex) : '') || titleFallback}
+				{(entity.inputKind ?? '') || 'Input ' + String(selection.entitySelector.inputIndex)}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -90,10 +92,10 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={cardanoTxInput}>
 			{#snippet children(entity)}
-				{@const spentTxHash0 = entity.spentTxHash}
-				{#if spentTxHash0 != null}
+				{@const spentTxHash = entity.spentTxHash}
+				{#if spentTxHash != null}
 					<span data-text="muted">
-						<TruncatedValue value={spentTxHash0} />
+						<TruncatedValue value={spentTxHash} />
 					</span>
 				{/if}
 			{/snippet}
@@ -117,7 +119,7 @@
 				<dt>input index</dt>
 				<dd>
 					<NumberValue
-						value={pendingEntity.inputIndex}
+						value={selection.entitySelector.inputIndex}
 					/>
 				</dd>
 			</div>

@@ -41,11 +41,11 @@
 			entitySelector={blockheadBitTorrentClientStateTimestampSelector}
 		>
 			{#snippet Title()}
-				{String(blockheadBitTorrentClientStateTimestampSelector.timestampMs) || 'blockhead bit torrent client state timestamp'}
+				{blockheadBitTorrentClientStateTimestampSelector.timestampMs}
 			{/snippet}
 
 			{#snippet Value()}
-				{(blockheadBitTorrentClientStateTimestamp.clientVersion ?? '')}
+				{blockheadBitTorrentClientStateTimestamp.clientVersion ?? ''}
 			{/snippet}
 
 			{#snippet HeadingAfter()}

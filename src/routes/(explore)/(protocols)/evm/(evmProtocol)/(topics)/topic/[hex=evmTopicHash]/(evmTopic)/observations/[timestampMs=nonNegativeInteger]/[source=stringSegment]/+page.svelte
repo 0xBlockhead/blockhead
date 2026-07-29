@@ -45,7 +45,7 @@
 
 
 <svelte:head>
-	<title>{(pageSelection.entity == null ? 'EVM topic observation' : pageSelection.entity.signatures.values.join(', ') || 'EVM topic observation')} • EVM topic observation • Blockhead</title>
+	<title>{pageSelection.entity == null ? 'EVM topic observation' : pageSelection.entity.signatures.values.join(', ') || 'EVM topic observation'} • EVM topic observation • Blockhead</title>
 </svelte:head>
 
 

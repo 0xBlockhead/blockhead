@@ -5,7 +5,6 @@
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { EvmAddress, ZeroExHex } from '$/schema/ZeroExHex.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -23,7 +22,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.EigenLayerReward_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.EigenExplorer_Rest,
@@ -63,23 +61,23 @@
 	{#snippet Title()}
 		<EvmNetworkAccountView
 			selection={select(EntityType.EvmNetworkAccount, selection.entitySelector.$earner)}
-			href=""
+			href={null}
 			layout={EntityLayout.Title}
 			open={false}
 		/>
 	{/snippet}
 
 	{#snippet Value()}
-		{(pendingEntity.rewardContextKey ?? '') || titleFallback}
+		{selection.entitySelector.rewardContextKey || titleFallback}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={eigenLayerRewardTimestamp}>
 			{#snippet children(entity)}
-				{@const rewardToken0 = entity.rewardToken}
-				{#if rewardToken0 != null}
+				{@const rewardToken = entity.rewardToken}
+				{#if rewardToken != null}
 					<span data-text="muted">
-						{String(rewardToken0)}
+						{rewardToken}
 					</span>
 				{/if}
 			{/snippet}
@@ -102,7 +100,7 @@
 			<div>
 				<dt>reward context key</dt>
 				<dd>
-					{pendingEntity.rewardContextKey}
+					{selection.entitySelector.rewardContextKey}
 				</dd>
 			</div>
 
@@ -171,14 +169,14 @@
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+					<Timestamp timestamp={selection.entitySelector.timestampMs} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 
@@ -191,7 +189,7 @@
 						<div>
 							<dt>reward token</dt>
 							<dd>
-								{String(rewardToken)}
+								{rewardToken}
 							</dd>
 						</div>
 					{/if}
@@ -263,7 +261,7 @@
 						<div>
 							<dt>merkle root</dt>
 							<dd>
-								{String(merkleRoot)}
+								{merkleRoot}
 							</dd>
 						</div>
 					{/if}

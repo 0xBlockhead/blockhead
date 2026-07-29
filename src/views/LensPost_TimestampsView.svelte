@@ -48,7 +48,7 @@
 				resolve(
 					'/(social)/(lens)/lens/(lensNetwork)/post/[postId=stringSegment]/(lensPost)/observations/[timestampMs=nonNegativeInteger]',
 					{
-						postId: String(lensPostTimestampSelector.$post.id),
+						postId: lensPostTimestampSelector.$post.id,
 						timestampMs: String(lensPostTimestampSelector.timestampMs),
 					}
 				)
@@ -59,7 +59,7 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{String(lensPostTimestampSelector.timestampMs)}
+				{lensPostTimestampSelector.timestampMs}
 			{/snippet}
 		</EntityView>
 	{/snippet}

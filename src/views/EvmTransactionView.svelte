@@ -8,9 +8,7 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { stringify } from 'devalue'
-	import { EvmTransactionEnvelopeType, EvmTransactionExecutionStatus, EvmTransactionKind } from '$/constants/Evm.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
-	import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -29,7 +27,7 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.EvmTransaction> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const network = $derived(selection.entitySelector.$network)
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Blockscout_Rest,
@@ -44,7 +42,6 @@
 			gasUsed: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.txHash ?? '') || 'EVM transaction')
 	const viewDomId = $derived('evm-transaction-' + encodeURIComponent(stringify(selection.entitySelector)))
 
 
@@ -72,20 +69,23 @@
 	entityType={EntityType.EvmTransaction}
 	entitySelector={selection.entitySelector}
 	id={viewDomId}
-	title={title ?? titleFallback}
+	title={title ?? (selection.entitySelector.txHash || 'EVM transaction')}
 	href={
-		href ?? resolve(
-			'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(transactions)/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]',
-			{
-				network: (
-					'caip2' in selection.entitySelector.$network ?
-						String(caip2StringFromValue(selection.entitySelector.$network.caip2))
-					:
-						String(selection.entitySelector.$network.slug)
-				),
-				transactionId: String(selection.entitySelector.txHash),
-			}
-		)
+		href === undefined ?
+			resolve(
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(transactions)/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]',
+				{
+					network: (
+						'caip2' in network ?
+							caip2StringFromValue(network.caip2)
+						:
+							network.slug
+					),
+					transactionId: selection.entitySelector.txHash,
+				}
+			)
+		:
+			href ?? undefined
 	}
 	{layout}
 	bind:open
@@ -97,11 +97,11 @@
 	{/snippet}
 
 	{#snippet Title()}
-		<TruncatedValue value={pendingEntity.txHash} />
+		<TruncatedValue value={selection.entitySelector.txHash} />
 	{/snippet}
 
 	{#snippet Value()}
-		<TruncatedValue value={pendingEntity.txHash} />
+		<TruncatedValue value={selection.entitySelector.txHash} />
 	{/snippet}
 
 	{#snippet TypeAnnotationTooltip()}
@@ -445,7 +445,7 @@
 							<div>
 								<dt>Nonce</dt>
 								<dd>
-									{String(nonce)}
+									{nonce}
 								</dd>
 							</div>
 						{/if}
@@ -469,7 +469,7 @@
 							<div>
 								<dt>Index in block</dt>
 								<dd>
-									{String(indexInBlock)}
+									{indexInBlock}
 								</dd>
 							</div>
 						{/if}
@@ -495,7 +495,7 @@
 							<div>
 								<dt>Input data</dt>
 								<dd>
-									<TruncatedValue value={String(input)} />
+									<TruncatedValue value={input} />
 								</dd>
 							</div>
 						{/if}
@@ -519,7 +519,7 @@
 							<div>
 								<dt>Signature r</dt>
 								<dd>
-									<TruncatedValue value={String(r)} />
+									<TruncatedValue value={r} />
 								</dd>
 							</div>
 						{/if}
@@ -543,7 +543,7 @@
 							<div>
 								<dt>Signature s</dt>
 								<dd>
-									<TruncatedValue value={String(s)} />
+									<TruncatedValue value={s} />
 								</dd>
 							</div>
 						{/if}

@@ -26,18 +26,17 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.CardanoAddress> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const viewSelection = $derived(selection({
+	const network = $derived(selection.entitySelector.$network)
+	const cardanoAddress = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Blockfrost_Rest,
 		],
-	}))
-	const cardanoAddress = $derived(viewSelection({
+	})({
 		fields: {
 			addressKind: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.address ?? '') || 'Cardano address')
+	const titleFallback = $derived(selection.entitySelector.address || 'Cardano address')
 	const viewDomId = $derived('cardano-address-' + encodeURIComponent(stringify(selection.entitySelector)))
 
 
@@ -61,31 +60,34 @@
 	id={viewDomId}
 	title={title ?? titleFallback}
 	href={
-		href ?? resolve(
-			'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(accounts)/account/[accountId=polkadotAccountIdOrStringSegmentOrEvmAddressOrSolanaPubkey]',
-			{
-				network: (
-					'caip2' in selection.entitySelector.$network ?
-						String(caip2StringFromValue(selection.entitySelector.$network.caip2))
-					:
-						String(selection.entitySelector.$network.slug)
-				),
-				accountId: String(selection.entitySelector.address),
-			}
-		)
+		href === undefined ?
+			resolve(
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(accounts)/account/[accountId=polkadotAccountIdOrStringSegmentOrEvmAddressOrSolanaPubkey]',
+				{
+					network: (
+						'caip2' in network ?
+							caip2StringFromValue(network.caip2)
+						:
+							network.slug
+					),
+					accountId: selection.entitySelector.address,
+				}
+			)
+		:
+			href ?? undefined
 	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{(pendingEntity.address ?? '') || 'Cardano address'}
+		{selection.entitySelector.address || 'Cardano address'}
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={cardanoAddress}>
 			{#snippet children(entity)}
-				{(entity.addressKind ?? '') || pendingEntity.address || titleFallback}
+				{(entity.addressKind ?? '') || selection.entitySelector.address || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -106,7 +108,7 @@
 			<div>
 				<dt>Address</dt>
 				<dd>
-					<TruncatedValue value={pendingEntity.address} />
+					<TruncatedValue value={selection.entitySelector.address} />
 				</dd>
 			</div>
 
@@ -119,7 +121,7 @@
 						<div>
 							<dt>address kind</dt>
 							<dd>
-								<TruncatedValue value={addressKind} />
+								{addressKind}
 							</dd>
 						</div>
 					{/if}

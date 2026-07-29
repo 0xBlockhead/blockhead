@@ -22,7 +22,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.BlockheadZeroGStorageProof> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Local_Internal,
@@ -35,7 +34,7 @@
 			proofKind: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.proofId ?? '') || 'blockhead zero g storage proof')
+	const titleFallback = $derived(selection.entitySelector.proofId || 'blockhead zero g storage proof')
 
 
 	// Components
@@ -57,13 +56,13 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{(pendingEntity.proofId ?? '') || 'blockhead zero g storage proof'}
+		{selection.entitySelector.proofId || 'blockhead zero g storage proof'}
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={blockheadZeroGStorageProof}>
 			{#snippet children(entity)}
-				{String(entity.verified) || pendingEntity.proofId || titleFallback}
+				{String(entity.verified) || selection.entitySelector.proofId || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -71,10 +70,10 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={blockheadZeroGStorageProof}>
 			{#snippet children(entity)}
-				{@const proofKind0 = entity.proofKind}
-				{#if proofKind0 != null}
+				{@const proofKind = entity.proofKind}
+				{#if proofKind != null}
 					<span data-text="muted">
-						{proofKind0}
+						{proofKind}
 					</span>
 				{/if}
 			{/snippet}
@@ -97,7 +96,7 @@
 			<div>
 				<dt>proof ID</dt>
 				<dd>
-					{pendingEntity.proofId}
+					{selection.entitySelector.proofId}
 				</dd>
 			</div>
 
@@ -187,7 +186,7 @@
 						<div>
 							<dt>verified AT</dt>
 							<dd>
-								<Timestamp timestamp={Number(verifiedAt)} />
+								<Timestamp timestamp={verifiedAt} />
 							</dd>
 						</div>
 					{/if}

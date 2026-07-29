@@ -24,14 +24,12 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.XUser> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const viewSelection = $derived(selection({
+	const xUser = $derived(selection({
 		sources: selection.sources ?? [
 			Source.X_Rest,
 			Source.X_FxEmbed_Rest,
 		],
-	}))
-	const xUser = $derived(viewSelection({
+	})({
 		fields: {
 			id: true,
 			username: true,
@@ -43,7 +41,7 @@
 			createdAt: true,
 		},
 	}))
-	const titleFallback = $derived([(pendingEntity.name ?? ''), (pendingEntity.username ?? ''), (pendingEntity.id ?? '')].filter(Boolean).join(' ') || 'X user')
+	const titleFallback = $derived([(prefetched.name ?? ''), (prefetched.username ?? ''), (prefetched.id ?? '')].filter(Boolean).join(' ') || 'X user')
 
 
 	// Components
@@ -61,17 +59,20 @@
 	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
 	href={
-		href ?? (
-			'id' in selection.entitySelector ?
-				resolve(
-					'/(social)/(x)/x/(xNetwork)/user/[userId=stringSegment]',
-					{
-						userId: String(selection.entitySelector.id),
-					}
-				)
-			:
-				undefined
-		)
+		href === undefined ?
+			(
+				'id' in selection.entitySelector ?
+					resolve(
+						'/(social)/(x)/x/(xNetwork)/user/[userId=stringSegment]',
+						{
+							userId: selection.entitySelector.id,
+						}
+					)
+				:
+					undefined
+			)
+		:
+			href ?? undefined
 	}
 	{layout}
 	bind:open
@@ -82,7 +83,7 @@
 		<ResourceBoundary resource={xUser}>
 			{#snippet children(entity)}
 				{@const reference = entity.$icon}
-				{#if reference != null && reference[EntityMetaKey.Selector] !== undefined}
+				{#if reference != null}
 					<MediaView
 						selection={select(EntityType.Media, reference[EntityMetaKey.Selector])}
 						prefetched={reference}
@@ -105,7 +106,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={xUser}>
 			{#snippet children(entity)}
-				{([(entity.username ? '@' + entity.username : ''), entity.id].filter(Boolean).join(' ')) || [(entity.name ?? ''), entity.username, entity.id].filter(Boolean).join(' ') || titleFallback}
+				{['@' + entity.username, entity.id].filter(Boolean).join(' ') || [(entity.name ?? ''), entity.username, entity.id].filter(Boolean).join(' ') || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -113,10 +114,10 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={xUser}>
 			{#snippet children(entity)}
-				{@const createdAt0 = entity.createdAt}
-				{#if createdAt0 != null}
+				{@const createdAt = entity.createdAt}
+				{#if createdAt != null}
 					<span data-text="muted">
-						<Timestamp timestamp={Number(createdAt0)} />
+						<Timestamp timestamp={createdAt} />
 					</span>
 				{/if}
 			{/snippet}
@@ -187,11 +188,11 @@
 							<dt>Website URL</dt>
 							<dd>
 								<a
-									href={String(websiteUrl)}
+									href={websiteUrl}
 									target="_blank"
 									rel="noreferrer noopener"
 								>
-									<TruncatedValue value={String(websiteUrl)} />
+									<TruncatedValue value={websiteUrl} />
 								</a>
 							</dd>
 						</div>
@@ -210,7 +211,7 @@
 						<div>
 							<dt>Created</dt>
 							<dd>
-								<Timestamp timestamp={Number(createdAt)} />
+								<Timestamp timestamp={createdAt} />
 							</dd>
 						</div>
 					{/if}
@@ -231,30 +232,30 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const xUserXPostsViewPostsResource = selection.$$posts}
+		{@const postsResource = selection.$$posts}
 		<ResourceBoundary
-			resource={xUserXPostsViewPostsResource}
+			resource={postsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<XPostsView
-						selection={xUserXPostsViewPostsResource}
-						countResource={xUserXPostsViewPostsResource.count}
+						selection={postsResource}
+						countResource={postsResource.count}
 						title='Posts'
 						id='posts'
 					/>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>
-		{@const xUserXUserTimestampsViewTimestampsResource = selection.$$timestamps}
+		{@const timestampsResource = selection.$$timestamps}
 		<ResourceBoundary
-			resource={xUserXUserTimestampsViewTimestampsResource}
+			resource={timestampsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<XUser_TimestampsView
-						selection={xUserXUserTimestampsViewTimestampsResource}
-						countResource={xUserXUserTimestampsViewTimestampsResource.count}
+						selection={timestampsResource}
+						countResource={timestampsResource.count}
 						title='Observations'
 						id='timestamps'
 					/>

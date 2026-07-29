@@ -20,14 +20,10 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.StellarTransaction_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const titleFallback = 'stellar transaction timestamp'
-
 
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
-	import TruncatedValue from '$/components/TruncatedValue.svelte'
 	import StellarTransactionView from '$/views/StellarTransactionView.svelte'
 </script>
 
@@ -35,7 +31,7 @@
 <EntityView
 	entityType={EntityType.StellarTransaction_Timestamp}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? 'stellar transaction timestamp'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -60,14 +56,14 @@
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+					<Timestamp timestamp={selection.entitySelector.timestampMs} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 
@@ -86,7 +82,7 @@
 						<div>
 							<dt>ledger sequence</dt>
 							<dd>
-								{String(ledgerSequence)}
+								{ledgerSequence}
 							</dd>
 						</div>
 					{/if}
@@ -152,7 +148,7 @@
 						<div>
 							<dt>fee charged</dt>
 							<dd>
-								{String(feeCharged)}
+								{feeCharged}
 							</dd>
 						</div>
 					{/if}
@@ -174,7 +170,7 @@
 						<div>
 							<dt>max fee</dt>
 							<dd>
-								{String(maxFee)}
+								{maxFee}
 							</dd>
 						</div>
 					{/if}
@@ -282,7 +278,7 @@
 						}
 					>
 						{#snippet children(entity)}
-							<TruncatedValue value={entity.signatures.values.join(', ')} />
+							{entity.signatures.values.join(', ')}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>

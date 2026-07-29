@@ -45,11 +45,11 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{String(filecoinMessageReceipt.exitCode ?? '')}
+				{filecoinMessageReceipt.exitCode ?? ''}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{String(filecoinMessageReceipt.gasUsed ?? '')}</span>
+				<span data-text="annotation">{filecoinMessageReceipt.gasUsed ?? ''}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

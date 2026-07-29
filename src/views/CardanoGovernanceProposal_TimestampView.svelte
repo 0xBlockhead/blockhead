@@ -21,7 +21,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.CardanoGovernanceProposal_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Blockfrost_Rest,
@@ -32,7 +31,6 @@
 			status: true,
 		},
 	}))
-	const titleFallback = $derived((String(pendingEntity.epoch ?? '') ? 'Epoch ' + String(pendingEntity.epoch ?? '') : '') || 'Cardano governance proposal timestamp')
 
 
 	// Components
@@ -44,26 +42,26 @@
 <EntityView
 	entityType={EntityType.CardanoGovernanceProposal_Timestamp}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? 'Epoch ' + String(selection.entitySelector.epoch)}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{(String(pendingEntity.epoch ?? '') ? 'Epoch ' + String(pendingEntity.epoch ?? '') : '') || 'Cardano governance proposal timestamp'}
+		{'Epoch ' + String(selection.entitySelector.epoch)}
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={cardanoGovernanceProposalTimestamp}>
 			{#snippet children(entity)}
-				{(entity.status ?? '') || (String(pendingEntity.epoch) ? 'Epoch ' + String(pendingEntity.epoch) : '') || titleFallback}
+				{(entity.status ?? '') || 'Epoch ' + String(selection.entitySelector.epoch)}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
 		<span data-text="muted">
-			{pendingEntity.source}
+			{selection.entitySelector.source}
 		</span>
 	{/snippet}
 
@@ -111,7 +109,7 @@
 						<div>
 							<dt>ratified epoch</dt>
 							<dd>
-								{String(ratifiedEpoch)}
+								{ratifiedEpoch}
 							</dd>
 						</div>
 					{/if}
@@ -133,7 +131,7 @@
 						<div>
 							<dt>enacted epoch</dt>
 							<dd>
-								{String(enactedEpoch)}
+								{enactedEpoch}
 							</dd>
 						</div>
 					{/if}
@@ -155,7 +153,7 @@
 						<div>
 							<dt>dropped epoch</dt>
 							<dd>
-								{String(droppedEpoch)}
+								{droppedEpoch}
 							</dd>
 						</div>
 					{/if}
@@ -177,7 +175,7 @@
 						<div>
 							<dt>expired epoch</dt>
 							<dd>
-								{String(expiredEpoch)}
+								{expiredEpoch}
 							</dd>
 						</div>
 					{/if}
@@ -199,7 +197,7 @@
 						<div>
 							<dt>expiration epoch</dt>
 							<dd>
-								{String(expirationEpoch)}
+								{expirationEpoch}
 							</dd>
 						</div>
 					{/if}

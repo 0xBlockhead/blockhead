@@ -23,13 +23,12 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.UtxoAddress_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const address = $derived(selection.entitySelector.$address)
 	const utxoAddressTimestamp = $derived(selection({
 		fields: {
 			balanceSats: true,
 		},
 	}))
-	const titleFallback = $derived(String(pendingEntity.timestampMs ?? '') || 'UTXO address timestamp')
 
 
 	// Components
@@ -44,38 +43,41 @@
 <EntityView
 	entityType={EntityType.UtxoAddress_Timestamp}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? String(selection.entitySelector.timestampMs)}
 	href={
-		href ?? resolve(
-			'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/address/[address=stringSegment]/(utxoAddress)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
-			{
-				network: (
-					'caip2' in selection.entitySelector.$address.$network ?
-						String(caip2StringFromValue(selection.entitySelector.$address.$network.caip2))
-					:
-						String(selection.entitySelector.$address.$network.slug)
-				),
-				address: String(selection.entitySelector.$address.address),
-				timestampMs: String(selection.entitySelector.timestampMs),
-				source: String(selection.entitySelector.source),
-			}
-		)
+		href === undefined ?
+			resolve(
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/address/[address=stringSegment]/(utxoAddress)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
+				{
+					network: (
+						'caip2' in address.$network ?
+							caip2StringFromValue(address.$network.caip2)
+						:
+							address.$network.slug
+					),
+					address: address.address,
+					timestampMs: String(selection.entitySelector.timestampMs),
+					source: selection.entitySelector.source,
+				}
+			)
+		:
+			href ?? undefined
 	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+		<Timestamp timestamp={selection.entitySelector.timestampMs} />
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={utxoAddressTimestamp}>
 			{#snippet children(entity)}
-				{@const balanceSats0 = entity.balanceSats}
-				{#if balanceSats0 != null}
+				{@const balanceSats = entity.balanceSats}
+				{#if balanceSats != null}
 					<NumberValue
-						value={balanceSats0}
+						value={balanceSats}
 					/>
 				{/if}
 			{/snippet}
@@ -84,7 +86,7 @@
 
 	{#snippet HeadingAfter()}
 		<span data-text="muted">
-			{pendingEntity.source}
+			{selection.entitySelector.source}
 		</span>
 	{/snippet}
 
@@ -123,7 +125,7 @@
 						<div>
 							<dt>Transaction count</dt>
 							<dd>
-								{String(transactionCount)}
+								{transactionCount}
 							</dd>
 						</div>
 					{/if}
@@ -145,7 +147,7 @@
 						<div>
 							<dt>Funded output count</dt>
 							<dd>
-								{String(fundedOutputCount)}
+								{fundedOutputCount}
 							</dd>
 						</div>
 					{/if}
@@ -193,7 +195,7 @@
 						<div>
 							<dt>Spent output count</dt>
 							<dd>
-								{String(spentOutputCount)}
+								{spentOutputCount}
 							</dd>
 						</div>
 					{/if}
@@ -239,7 +241,7 @@
 						<div>
 							<dt>Unspent output count</dt>
 							<dd>
-								{String(unspentOutputCount)}
+								{unspentOutputCount}
 							</dd>
 						</div>
 					{/if}
@@ -261,7 +263,7 @@
 						<div>
 							<dt>Mempool transaction count</dt>
 							<dd>
-								{String(mempoolTransactionCount)}
+								{mempoolTransactionCount}
 							</dd>
 						</div>
 					{/if}
@@ -273,14 +275,14 @@
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+					<Timestamp timestamp={selection.entitySelector.timestampMs} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 

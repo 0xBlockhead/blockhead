@@ -51,7 +51,7 @@
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{String(blockheadRadicleSyncSession.startedAt)}</span>
+				<span data-text="annotation">{blockheadRadicleSyncSession.startedAt}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

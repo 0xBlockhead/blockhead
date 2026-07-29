@@ -24,7 +24,7 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.CardanoDRep> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const network = $derived(selection.entitySelector.$network)
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Blockfrost_Rest,
@@ -36,7 +36,7 @@
 			credentialKind: true,
 		},
 	}))
-	const titleFallback = $derived([(pendingEntity.displayName ?? ''), (pendingEntity.drepCredential ?? '')].filter(Boolean).join(' ') || 'Cardano DRep')
+	const titleFallback = $derived([(prefetched.displayName ?? ''), selection.entitySelector.drepCredential].filter(Boolean).join(' ') || 'Cardano DRep')
 
 
 	// Components
@@ -52,18 +52,21 @@
 	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
 	href={
-		href ?? resolve(
-			'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/drep/[drepCredential=stringSegment]',
-			{
-				network: (
-					'caip2' in selection.entitySelector.$network ?
-						String(caip2StringFromValue(selection.entitySelector.$network.caip2))
-					:
-						String(selection.entitySelector.$network.slug)
-				),
-				drepCredential: String(selection.entitySelector.drepCredential),
-			}
-		)
+		href === undefined ?
+			resolve(
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/drep/[drepCredential=stringSegment]',
+				{
+					network: (
+						'caip2' in network ?
+							caip2StringFromValue(network.caip2)
+						:
+							network.slug
+					),
+					drepCredential: selection.entitySelector.drepCredential,
+				}
+			)
+		:
+			href ?? undefined
 	}
 	{layout}
 	bind:open
@@ -72,7 +75,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={cardanoDRep}>
 			{#snippet children(entity)}
-				{[(entity.displayName ?? ''), pendingEntity.drepCredential].filter(Boolean).join(' ') || title || titleFallback}
+				{[(entity.displayName ?? ''), selection.entitySelector.drepCredential].filter(Boolean).join(' ') || title || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -80,7 +83,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={cardanoDRep}>
 			{#snippet children(entity)}
-				{(entity.credentialKind ?? '') || [(entity.displayName ?? ''), pendingEntity.drepCredential].filter(Boolean).join(' ') || titleFallback}
+				{(entity.credentialKind ?? '') || [(entity.displayName ?? ''), selection.entitySelector.drepCredential].filter(Boolean).join(' ') || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -117,7 +120,7 @@
 			<div>
 				<dt>drep credential</dt>
 				<dd>
-					<TruncatedValue value={pendingEntity.drepCredential} />
+					<TruncatedValue value={selection.entitySelector.drepCredential} />
 				</dd>
 			</div>
 
@@ -130,7 +133,7 @@
 						<div>
 							<dt>credential kind</dt>
 							<dd>
-								<TruncatedValue value={credentialKind} />
+								{credentialKind}
 							</dd>
 						</div>
 					{/if}
@@ -155,11 +158,11 @@
 							<dt>anchor URL</dt>
 							<dd>
 								<a
-									href={String(anchorUrl)}
+									href={anchorUrl}
 									target="_blank"
 									rel="noreferrer noopener"
 								>
-									<TruncatedValue value={String(anchorUrl)} />
+									<TruncatedValue value={anchorUrl} />
 								</a>
 							</dd>
 						</div>
@@ -192,15 +195,15 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const cardanoDRepCardanoGovernanceVotesViewVotesResource = selection.$$votes}
+		{@const votesResource = selection.$$votes}
 		<ResourceBoundary
-			resource={cardanoDRepCardanoGovernanceVotesViewVotesResource}
+			resource={votesResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<CardanoGovernanceVotesView
-						selection={cardanoDRepCardanoGovernanceVotesViewVotesResource}
-						countResource={cardanoDRepCardanoGovernanceVotesViewVotesResource.count}
+						selection={votesResource}
+						countResource={votesResource.count}
 						title='votes'
 						id='votes'
 					/>

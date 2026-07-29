@@ -22,7 +22,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.NearTransaction> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.NearRpc_JsonRpc,
@@ -34,7 +33,6 @@
 			signerAccountId: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.hash ?? '') || 'near transaction')
 
 
 	// Components
@@ -51,13 +49,13 @@
 <EntityView
 	entityType={EntityType.NearTransaction}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? (selection.entitySelector.hash || 'near transaction')}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<TruncatedValue value={pendingEntity.hash} />
+		<TruncatedValue value={selection.entitySelector.hash} />
 	{/snippet}
 
 	{#snippet Value()}
@@ -71,7 +69,6 @@
 							<NearAccountView
 								selection={select(EntityType.NearAccount, nearAccount[EntityMetaKey.Selector])}
 								prefetched={nearAccount}
-								href=""
 								layout={EntityLayout.Value}
 								open={false}
 							/>
@@ -119,7 +116,7 @@
 			<div>
 				<dt>Hash</dt>
 				<dd>
-					<TruncatedValue value={pendingEntity.hash} />
+					<TruncatedValue value={selection.entitySelector.hash} />
 				</dd>
 			</div>
 
@@ -203,30 +200,30 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const nearTransactionNearActionsViewActionsResource = selection.$$actions}
+		{@const actionsResource = selection.$$actions}
 		<ResourceBoundary
-			resource={nearTransactionNearActionsViewActionsResource}
+			resource={actionsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<NearActionsView
-						selection={nearTransactionNearActionsViewActionsResource}
-						countResource={nearTransactionNearActionsViewActionsResource.count}
+						selection={actionsResource}
+						countResource={actionsResource.count}
 						title='Actions'
 						id='actions'
 					/>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>
-		{@const nearTransactionNearExecutionOutcomesViewExecutionOutcomesResource = selection.$$executionOutcomes}
+		{@const executionOutcomesResource = selection.$$executionOutcomes}
 		<ResourceBoundary
-			resource={nearTransactionNearExecutionOutcomesViewExecutionOutcomesResource}
+			resource={executionOutcomesResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<NearExecutionOutcomesView
-						selection={nearTransactionNearExecutionOutcomesViewExecutionOutcomesResource}
-						countResource={nearTransactionNearExecutionOutcomesViewExecutionOutcomesResource.count}
+						selection={executionOutcomesResource}
+						countResource={executionOutcomesResource.count}
 						title='Execution outcomes'
 						id='execution-outcomes'
 					/>

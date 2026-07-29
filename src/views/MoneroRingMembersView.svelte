@@ -40,11 +40,11 @@
 			entitySelector={moneroRingMemberSelector}
 		>
 			{#snippet Title()}
-				{String(moneroRingMemberSelector.memberIndex) || 'monero ring member'}
+				{moneroRingMemberSelector.memberIndex}
 			{/snippet}
 
 			{#snippet Value()}
-				{String(moneroRingMember.globalOutputIndex ?? '')}
+				{moneroRingMember.globalOutputIndex ?? ''}
 			{/snippet}
 		</EntityView>
 	{/snippet}

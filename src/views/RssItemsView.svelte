@@ -44,9 +44,9 @@
 				resolve(
 					'/(social)/(rss)/rss/(rssNetwork)/feed/[feedUrl=absoluteUrl]/(rssFeed)/item/[itemIdentityKind=rssItemIdentityKind]/[itemIdentity=stringSegment]',
 					{
-						feedUrl: encodeURIComponent(String(rssItemSelector.$feed.feedUrl)),
-						itemIdentityKind: String(rssItemSelector.itemIdentityKind),
-						itemIdentity: encodeURIComponent(String(rssItemSelector.itemIdentity)),
+						feedUrl: encodeURIComponent(rssItemSelector.$feed.feedUrl),
+						itemIdentityKind: rssItemSelector.itemIdentityKind,
+						itemIdentity: encodeURIComponent(rssItemSelector.itemIdentity),
 					}
 				)
 			}
@@ -60,7 +60,7 @@
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{String(rssItem.publishedAt ?? '')}</span>
+				<span data-text="annotation">{rssItem.publishedAt ?? ''}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

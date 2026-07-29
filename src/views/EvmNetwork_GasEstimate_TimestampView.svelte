@@ -23,13 +23,13 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.EvmNetwork_GasEstimate_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const network = $derived(selection.entitySelector.$network)
 	const evmNetworkGasEstimateTimestamp = $derived(selection({
 		fields: {
 			fastGwei: true,
 		},
 	}))
-	const titleFallback = $derived(([(String(pendingEntity.fastGwei ?? '') ? String(pendingEntity.fastGwei ?? '') + ' gwei' : ''), String(pendingEntity.timestampMs ?? '')].filter(Boolean).join(' ')) || 'EVM network gas estimate timestamp')
+	const titleFallback = $derived([(prefetched.fastGwei != null ? String(prefetched.fastGwei) + ' gwei' : ''), String(selection.entitySelector.timestampMs)].filter(Boolean).join(' ') || 'EVM network gas estimate timestamp')
 
 
 	// Components
@@ -45,19 +45,22 @@
 	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
 	href={
-		href ?? resolve(
-			'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/gas-estimates/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
-			{
-				network: (
-					'caip2' in selection.entitySelector.$network ?
-						String(caip2StringFromValue(selection.entitySelector.$network.caip2))
-					:
-						String(selection.entitySelector.$network.slug)
-				),
-				timestampMs: String(selection.entitySelector.timestampMs),
-				source: String(selection.entitySelector.source),
-			}
-		)
+		href === undefined ?
+			resolve(
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/gas-estimates/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
+				{
+					network: (
+						'caip2' in network ?
+							caip2StringFromValue(network.caip2)
+						:
+							network.slug
+					),
+					timestampMs: String(selection.entitySelector.timestampMs),
+					source: selection.entitySelector.source,
+				}
+			)
+		:
+			href ?? undefined
 	}
 	{layout}
 	bind:open
@@ -66,7 +69,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={evmNetworkGasEstimateTimestamp}>
 			{#snippet children(entity)}
-				{([(String(entity.fastGwei ?? '') ? String(entity.fastGwei ?? '') + ' gwei' : ''), String(pendingEntity.timestampMs)].filter(Boolean).join(' ')) || title || titleFallback}
+				{[(entity.fastGwei != null ? String(entity.fastGwei) + ' gwei' : ''), String(selection.entitySelector.timestampMs)].filter(Boolean).join(' ') || title || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -74,10 +77,10 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={evmNetworkGasEstimateTimestamp}>
 			{#snippet children(entity)}
-				{@const fastGwei0 = entity.fastGwei}
-				{#if fastGwei0 != null}
+				{@const fastGwei = entity.fastGwei}
+				{#if fastGwei != null}
 					<NumberValue
-						value={fastGwei0}
+						value={fastGwei}
 					/>
 
 					<span> gwei</span>
@@ -175,14 +178,14 @@
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+					<Timestamp timestamp={selection.entitySelector.timestampMs} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 

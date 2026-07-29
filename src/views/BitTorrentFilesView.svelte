@@ -43,7 +43,7 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{String(bitTorrentFile.length)}
+				{bitTorrentFile.length}
 			{/snippet}
 		</EntityView>
 	{/snippet}

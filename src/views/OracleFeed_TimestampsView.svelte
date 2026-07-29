@@ -42,7 +42,7 @@
 			entitySelector={oracleFeedTimestampSelector}
 		>
 			{#snippet Title()}
-				{String(oracleFeedTimestampSelector.timestampMs) || 'oracle feed timestamp'}
+				{oracleFeedTimestampSelector.timestampMs}
 			{/snippet}
 
 			{#snippet Value()}

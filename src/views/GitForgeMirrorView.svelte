@@ -5,7 +5,6 @@
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { UrlString } from '$/schema/UrlString.ts'
 
 
 	// Context
@@ -22,8 +21,7 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.GitForgeMirror> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const titleFallback = $derived([(pendingEntity.owner ?? ''), (pendingEntity.repositoryName ?? '')].filter(Boolean).join(' ') || 'Git forge mirror')
+	const titleFallback = $derived([selection.entitySelector.owner, selection.entitySelector.repositoryName].filter(Boolean).join(' ') || 'Git forge mirror')
 
 
 	// Components
@@ -42,11 +40,11 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{[(pendingEntity.owner ?? ''), (pendingEntity.repositoryName ?? '')].filter(Boolean).join(' ') || 'Git forge mirror'}
+		{[selection.entitySelector.owner, selection.entitySelector.repositoryName].filter(Boolean).join(' ') || 'Git forge mirror'}
 	{/snippet}
 
 	{#snippet Value()}
-		{(pendingEntity.forgeHost ?? '') || [(pendingEntity.owner ?? ''), (pendingEntity.repositoryName ?? '')].filter(Boolean).join(' ') || titleFallback}
+		{selection.entitySelector.forgeHost || [selection.entitySelector.owner, selection.entitySelector.repositoryName].filter(Boolean).join(' ') || titleFallback}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -54,21 +52,21 @@
 			<div>
 				<dt>forge host</dt>
 				<dd>
-					{pendingEntity.forgeHost}
+					{selection.entitySelector.forgeHost}
 				</dd>
 			</div>
 
 			<div>
 				<dt>owner</dt>
 				<dd>
-					{pendingEntity.owner}
+					{selection.entitySelector.owner}
 				</dd>
 			</div>
 
 			<div>
 				<dt>repository name</dt>
 				<dd>
-					{pendingEntity.repositoryName}
+					{selection.entitySelector.repositoryName}
 				</dd>
 			</div>
 
@@ -152,11 +150,11 @@
 							<dt>HTML URL</dt>
 							<dd>
 								<a
-									href={String(htmlUrl)}
+									href={htmlUrl}
 									target="_blank"
 									rel="noreferrer noopener"
 								>
-									<TruncatedValue value={String(htmlUrl)} />
+									<TruncatedValue value={htmlUrl} />
 								</a>
 							</dd>
 						</div>
@@ -223,13 +221,7 @@
 						}
 					>
 						{#snippet children(entity)}
-							<a
-								href={String(entity.cloneUrls)}
-								target="_blank"
-								rel="noreferrer noopener"
-							>
-								<TruncatedValue value={String(entity.cloneUrls)} />
-							</a>
+							{entity.cloneUrls.values.join(', ')}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>

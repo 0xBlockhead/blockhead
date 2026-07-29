@@ -1,11 +1,11 @@
 // Generated from APP.ts. Do not edit by hand.
 
 import { Source } from '$/sources/Source.ts'
-import { ApiFamily, SourceArtifactKind, SourceCredentialScope, SourceDelivery, SourceEndpointKind, SourceOperationGroup, SourceTargetKind, WireProtocol, type SourceBindingIndex } from '$/sources/SourceBinding.ts'
+import { ApiFamily, indexSourceBindings, SourceArtifactKind, SourceCredentialScope, SourceDelivery, SourceEndpointKind, SourceOperationGroup, SourceTargetKind, WireProtocol, type SourceBinding } from '$/sources/SourceBinding.ts'
 import { type as arktype } from 'arktype'
 
-export default {
-	[Source.Subscan_Rest]: {
+const bindings = [
+	{
 		source: Source.Subscan_Rest,
 		target: {
 			kind: SourceTargetKind.Caip2Network,
@@ -36,7 +36,6 @@ export default {
 				],
 			},
 		],
-		proxyId: '["Subscan_Rest","Caip2Network","polkadot:91b171bb158e2d3848fa23a9f1c25182","HttpProxy","RestJson"]',
 		artifacts: [
 			{
 				kind: SourceArtifactKind.HandwrittenTypes,
@@ -45,4 +44,6 @@ export default {
 			},
 		],
 	},
-} as const satisfies SourceBindingIndex
+] as const satisfies readonly SourceBinding[]
+
+export default indexSourceBindings<{ readonly [Source.Subscan_Rest]: typeof bindings[0] }>(bindings)

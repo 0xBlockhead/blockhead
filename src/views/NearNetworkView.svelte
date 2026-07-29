@@ -18,7 +18,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.NearNetwork> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Constants_Internal,
@@ -32,7 +31,7 @@
 			namespace: true,
 		},
 	}))
-	const titleFallback = $derived([(pendingEntity.name ?? ''), (pendingEntity.slug ?? '')].filter(Boolean).join(' ') || 'near network')
+	const titleFallback = $derived([(prefetched.name ?? ''), selection.entitySelector.slug].filter(Boolean).join(' ') || 'near network')
 	const viewDomId = $derived('near-network-' + encodeURIComponent(stringify(selection.entitySelector)))
 
 
@@ -58,7 +57,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={nearNetwork}>
 			{#snippet children(entity)}
-				{[(entity.name ?? ''), pendingEntity.slug].filter(Boolean).join(' ') || title || titleFallback}
+				{[(entity.name ?? ''), selection.entitySelector.slug].filter(Boolean).join(' ') || title || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -66,7 +65,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={nearNetwork}>
 			{#snippet children(entity)}
-				{entity.environment || [(entity.name ?? ''), pendingEntity.slug].filter(Boolean).join(' ') || titleFallback}
+				{entity.environment || [(entity.name ?? ''), selection.entitySelector.slug].filter(Boolean).join(' ') || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -74,10 +73,10 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={nearNetwork}>
 			{#snippet children(entity)}
-				{@const namespace0 = entity.namespace}
-				{#if namespace0 != null}
+				{@const namespace = entity.namespace}
+				{#if namespace != null}
 					<span data-text="muted">
-						{namespace0}
+						{namespace}
 					</span>
 				{/if}
 			{/snippet}

@@ -22,8 +22,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.StellarAsset> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const titleFallback = 'stellar asset'
 	const viewDomId = $derived('stellar-asset-' + encodeURIComponent(stringify(selection.entitySelector)))
 
 
@@ -46,7 +44,7 @@
 	entityType={EntityType.StellarAsset}
 	entitySelector={selection.entitySelector}
 	id={viewDomId}
-	title={title ?? titleFallback}
+	title={title ?? 'stellar asset'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -71,7 +69,7 @@
 			<div>
 				<dt>asset key</dt>
 				<dd>
-					{pendingEntity.assetKey}
+					{selection.entitySelector.assetKey}
 				</dd>
 			</div>
 

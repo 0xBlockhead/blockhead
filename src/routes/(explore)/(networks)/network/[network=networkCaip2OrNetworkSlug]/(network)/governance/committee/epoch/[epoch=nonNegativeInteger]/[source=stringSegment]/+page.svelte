@@ -35,7 +35,7 @@
 
 
 <svelte:head>
-	<title>{(data.title ?? ((String(pageSelection.entitySelector.epoch) ? 'Epoch ' + String(pageSelection.entitySelector.epoch) : '') || 'Cardano committee epoch'))} • Cardano committee epoch • Blockhead</title>
+	<title>{data.title ?? 'Epoch ' + String(pageSelection.entitySelector.epoch)} • Cardano committee epoch • Blockhead</title>
 </svelte:head>
 
 

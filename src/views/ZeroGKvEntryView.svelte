@@ -22,14 +22,13 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.ZeroGKvEntry> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.ZeroGStorageNode_JsonRpc,
 			Source.ZeroGStorageScan_Rest,
 		],
 	}))
-	const titleFallback = $derived((pendingEntity.key ?? '') || 'zero g kv entry')
+	const titleFallback = $derived(selection.entitySelector.key || 'zero g kv entry')
 
 
 	// Components
@@ -50,11 +49,11 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{(pendingEntity.key ?? '') || 'zero g kv entry'}
+		{selection.entitySelector.key || 'zero g kv entry'}
 	{/snippet}
 
 	{#snippet Value()}
-		{(pendingEntity.namespace ?? '') || (pendingEntity.key ?? '') || titleFallback}
+		{selection.entitySelector.namespace || selection.entitySelector.key || titleFallback}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
@@ -83,14 +82,14 @@
 			<div>
 				<dt>Namespace</dt>
 				<dd>
-					{pendingEntity.namespace}
+					{selection.entitySelector.namespace}
 				</dd>
 			</div>
 
 			<div>
 				<dt>key</dt>
 				<dd>
-					{pendingEntity.key}
+					{selection.entitySelector.key}
 				</dd>
 			</div>
 

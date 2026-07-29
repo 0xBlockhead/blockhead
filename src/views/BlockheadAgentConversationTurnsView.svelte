@@ -49,8 +49,8 @@
 				resolve(
 					'/~/agents/conversation/[conversationId=stringSegment]/(blockheadAgentConversation)/turn/[turnId=stringSegment]',
 					{
-						conversationId: String(blockheadAgentConversationTurn.$conversation.id),
-						turnId: String(blockheadAgentConversationTurn.id),
+						conversationId: blockheadAgentConversationTurn.$conversation.id,
+						turnId: blockheadAgentConversationTurn.id,
 					}
 				)
 			}
@@ -60,7 +60,7 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{String(blockheadAgentConversationTurn.createdAt)}
+				{blockheadAgentConversationTurn.createdAt}
 			{/snippet}
 		</EntityView>
 	{/snippet}

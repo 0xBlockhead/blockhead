@@ -6,7 +6,6 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { stringify } from 'devalue'
-	import { UrlString } from '$/schema/UrlString.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -24,20 +23,18 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.McpServer> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const viewSelection = $derived(selection({
+	const mcpServer = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Eip8004Scan_Rest,
 			Source.McpDeclared_Protocol,
 		],
-	}))
-	const mcpServer = $derived(viewSelection({
+	})({
 		fields: {
 			transportKind: true,
 			endpointUrl: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.serverKey ?? '') || 'mcp server')
+	const titleFallback = $derived(selection.entitySelector.serverKey || 'mcp server')
 	const viewDomId = $derived('mcp-server-' + encodeURIComponent(stringify(selection.entitySelector)))
 
 
@@ -66,13 +63,13 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{(pendingEntity.serverKey ?? '') || 'mcp server'}
+		{selection.entitySelector.serverKey || 'mcp server'}
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={mcpServer}>
 			{#snippet children(entity)}
-				{(entity.transportKind ?? '') || pendingEntity.serverKey || titleFallback}
+				{(entity.transportKind ?? '') || selection.entitySelector.serverKey || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -80,15 +77,15 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={mcpServer}>
 			{#snippet children(entity)}
-				{@const endpointUrl0 = entity.endpointUrl}
-				{#if endpointUrl0 != null}
+				{@const endpointUrl = entity.endpointUrl}
+				{#if endpointUrl != null}
 					<span data-text="muted">
 						<a
-							href={String(endpointUrl0)}
+							href={endpointUrl}
 							target="_blank"
 							rel="noreferrer noopener"
 						>
-							<TruncatedValue value={String(endpointUrl0)} />
+							<TruncatedValue value={endpointUrl} />
 						</a>
 					</span>
 				{/if}
@@ -101,7 +98,7 @@
 			<div>
 				<dt>server key</dt>
 				<dd>
-					{pendingEntity.serverKey}
+					{selection.entitySelector.serverKey}
 				</dd>
 			</div>
 
@@ -171,11 +168,11 @@
 							<dt>endpoint URL</dt>
 							<dd>
 								<a
-									href={String(endpointUrl)}
+									href={endpointUrl}
 									target="_blank"
 									rel="noreferrer noopener"
 								>
-									<TruncatedValue value={String(endpointUrl)} />
+									<TruncatedValue value={endpointUrl} />
 								</a>
 							</dd>
 						</div>

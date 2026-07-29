@@ -50,7 +50,7 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{String(celestiaBlobSelector.height)}
+				{celestiaBlobSelector.height}
 			{/snippet}
 
 			{#snippet HeadingAfter()}

@@ -33,8 +33,8 @@
 			resolve(
 				'/(social)/(farcaster)/farcaster/(farcasterNetwork)/cast/[fid=farcasterFid]/[hash=zeroExHex]',
 				{
-					fid: String(params.fid),
-					hash: String(params.hash),
+					fid: params.fid,
+					hash: params.hash,
 				}
 			)
 		}
@@ -52,8 +52,8 @@
 					resolve(
 						'/(social)/(farcaster)/farcaster/(farcasterNetwork)/cast/[fid=farcasterFid]/[hash=zeroExHex]',
 						{
-							fid: String(params.fid),
-							hash: String(params.hash),
+							fid: params.fid,
+							hash: params.hash,
 						}
 					)
 				}

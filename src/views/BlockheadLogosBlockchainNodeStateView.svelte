@@ -4,7 +4,6 @@
 	// Types/constants
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { UrlString } from '$/schema/UrlString.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -18,19 +17,17 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.BlockheadLogosBlockchainNodeState> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const viewSelection = $derived(selection({
+	const blockheadLogosBlockchainNodeState = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Local_Internal,
 			Source.LogosBlockchainNode_Rest,
 		],
-	}))
-	const blockheadLogosBlockchainNodeState = $derived(viewSelection({
+	})({
 		fields: {
 			endpoint: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.peerId ?? '') || 'blockhead Logos blockchain node state')
+	const titleFallback = $derived(selection.entitySelector.peerId || 'blockhead Logos blockchain node state')
 
 
 	// Components
@@ -49,25 +46,25 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{(pendingEntity.peerId ?? '') || 'blockhead Logos blockchain node state'}
+		{selection.entitySelector.peerId || 'blockhead Logos blockchain node state'}
 	{/snippet}
 
 	{#snippet Value()}
-		{(pendingEntity.connectionId ?? '') || (pendingEntity.peerId ?? '') || titleFallback}
+		{selection.entitySelector.connectionId || selection.entitySelector.peerId || titleFallback}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={blockheadLogosBlockchainNodeState}>
 			{#snippet children(entity)}
-				{@const endpoint0 = entity.endpoint}
-				{#if endpoint0 != null}
+				{@const endpoint = entity.endpoint}
+				{#if endpoint != null}
 					<span data-text="muted">
 						<a
-							href={String(endpoint0)}
+							href={endpoint}
 							target="_blank"
 							rel="noreferrer noopener"
 						>
-							<TruncatedValue value={String(endpoint0)} />
+							<TruncatedValue value={endpoint} />
 						</a>
 					</span>
 				{/if}
@@ -80,14 +77,14 @@
 			<div>
 				<dt>connection ID</dt>
 				<dd>
-					{pendingEntity.connectionId}
+					{selection.entitySelector.connectionId}
 				</dd>
 			</div>
 
 			<div>
 				<dt>peer ID</dt>
 				<dd>
-					{pendingEntity.peerId}
+					{selection.entitySelector.peerId}
 				</dd>
 			</div>
 
@@ -101,11 +98,11 @@
 							<dt>endpoint</dt>
 							<dd>
 								<a
-									href={String(endpoint)}
+									href={endpoint}
 									target="_blank"
 									rel="noreferrer noopener"
 								>
-									<TruncatedValue value={String(endpoint)} />
+									<TruncatedValue value={endpoint} />
 								</a>
 							</dd>
 						</div>
@@ -116,15 +113,15 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const blockheadLogosBlockchainNodeStateBlockheadLogosBlockchainNodeStateTimestampsViewTimestampsResource = selection.$$timestamps}
+		{@const timestampsResource = selection.$$timestamps}
 		<ResourceBoundary
-			resource={blockheadLogosBlockchainNodeStateBlockheadLogosBlockchainNodeStateTimestampsViewTimestampsResource}
+			resource={timestampsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<BlockheadLogosBlockchainNodeState_TimestampsView
-						selection={blockheadLogosBlockchainNodeStateBlockheadLogosBlockchainNodeStateTimestampsViewTimestampsResource}
-						countResource={blockheadLogosBlockchainNodeStateBlockheadLogosBlockchainNodeStateTimestampsViewTimestampsResource.count}
+						selection={timestampsResource}
+						countResource={timestampsResource.count}
 						title='timestamps'
 						id='timestamps'
 					/>

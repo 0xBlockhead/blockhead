@@ -33,7 +33,6 @@
 			private: true,
 		},
 	}))
-	const titleFallback = 'blockhead Lightning channel state'
 
 
 	// Components
@@ -48,7 +47,7 @@
 <EntityView
 	entityType={EntityType.BlockheadLightningChannelState}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? 'blockhead Lightning channel state'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -56,7 +55,7 @@
 	{#snippet Title()}
 		<LightningChannelView
 			selection={select(EntityType.LightningChannel, selection.entitySelector.$channel)}
-			href=""
+			href={null}
 			layout={EntityLayout.Title}
 			open={false}
 		/>
@@ -65,7 +64,6 @@
 	{#snippet Value()}
 		<BlockheadLightningNodeStateView
 			selection={select(EntityType.BlockheadLightningNodeState, selection.entitySelector.$localNodeState)}
-			href=""
 			layout={EntityLayout.Value}
 			open={false}
 		/>
@@ -74,10 +72,10 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={blockheadLightningChannelState}>
 			{#snippet children(entity)}
-				{@const privateValue0 = entity.private}
-				{#if privateValue0 != null}
+				{@const privateValue = entity.private}
+				{#if privateValue != null}
 					<span data-text="muted">
-						{privateValue0 ? 'Yes' : 'No'}
+						{privateValue ? 'Yes' : 'No'}
 					</span>
 				{/if}
 			{/snippet}
@@ -149,30 +147,30 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const blockheadLightningChannelStateBlockheadLightningChannelStateTimestampsViewTimestampsResource = selection.$$timestamps}
+		{@const timestampsResource = selection.$$timestamps}
 		<ResourceBoundary
-			resource={blockheadLightningChannelStateBlockheadLightningChannelStateTimestampsViewTimestampsResource}
+			resource={timestampsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<BlockheadLightningChannelState_TimestampsView
-						selection={blockheadLightningChannelStateBlockheadLightningChannelStateTimestampsViewTimestampsResource}
-						countResource={blockheadLightningChannelStateBlockheadLightningChannelStateTimestampsViewTimestampsResource.count}
+						selection={timestampsResource}
+						countResource={timestampsResource.count}
 						title='timestamps'
 						id='timestamps'
 					/>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>
-		{@const blockheadLightningChannelStateBlockheadLightningHtlcsViewHtlcsResource = selection.$$htlcs}
+		{@const htlcsResource = selection.$$htlcs}
 		<ResourceBoundary
-			resource={blockheadLightningChannelStateBlockheadLightningHtlcsViewHtlcsResource}
+			resource={htlcsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<BlockheadLightningHtlcsView
-						selection={blockheadLightningChannelStateBlockheadLightningHtlcsViewHtlcsResource}
-						countResource={blockheadLightningChannelStateBlockheadLightningHtlcsViewHtlcsResource.count}
+						selection={htlcsResource}
+						countResource={htlcsResource.count}
 						title='htlcs'
 						id='htlcs'
 					/>

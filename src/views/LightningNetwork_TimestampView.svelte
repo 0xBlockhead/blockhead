@@ -20,14 +20,12 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.LightningNetwork_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const lightningNetworkTimestamp = $derived(selection({
 		fields: {
 			nodeCount: true,
 			channelCount: true,
 		},
 	}))
-	const titleFallback = $derived(String(pendingEntity.timestampMs ?? '') || 'Lightning network timestamp')
 
 
 	// Components
@@ -41,19 +39,19 @@
 <EntityView
 	entityType={EntityType.LightningNetwork_Timestamp}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? String(selection.entitySelector.timestampMs)}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+		<Timestamp timestamp={selection.entitySelector.timestampMs} />
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={lightningNetworkTimestamp}>
 			{#snippet children(entity)}
-				{[String(entity.nodeCount ?? ''), String(entity.channelCount ?? '')].filter(Boolean).join(' ') || String(pendingEntity.timestampMs) || titleFallback}
+				{[String(entity.nodeCount ?? ''), String(entity.channelCount ?? '')].filter(Boolean).join(' ') || String(selection.entitySelector.timestampMs)}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -74,7 +72,7 @@
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 
@@ -93,7 +91,7 @@
 						<div>
 							<dt>Total capacity sats</dt>
 							<dd>
-								{String(totalCapacitySats)}
+								{totalCapacitySats}
 							</dd>
 						</div>
 					{/if}
@@ -115,7 +113,7 @@
 						<div>
 							<dt>Tor nodes</dt>
 							<dd>
-								{String(torNodeCount)}
+								{torNodeCount}
 							</dd>
 						</div>
 					{/if}
@@ -137,7 +135,7 @@
 						<div>
 							<dt>Clearnet nodes</dt>
 							<dd>
-								{String(clearnetNodeCount)}
+								{clearnetNodeCount}
 							</dd>
 						</div>
 					{/if}
@@ -159,7 +157,7 @@
 						<div>
 							<dt>Unannounced nodes</dt>
 							<dd>
-								{String(unannouncedNodeCount)}
+								{unannouncedNodeCount}
 							</dd>
 						</div>
 					{/if}
@@ -181,7 +179,7 @@
 						<div>
 							<dt>Average capacity sats</dt>
 							<dd>
-								{String(averageCapacitySats)}
+								{averageCapacitySats}
 							</dd>
 						</div>
 					{/if}
@@ -203,7 +201,7 @@
 						<div>
 							<dt>Median capacity sats</dt>
 							<dd>
-								{String(medianCapacitySats)}
+								{medianCapacitySats}
 							</dd>
 						</div>
 					{/if}
@@ -225,7 +223,7 @@
 						<div>
 							<dt>Average fee rate ppm</dt>
 							<dd>
-								{String(averageFeeRatePpm)}
+								{averageFeeRatePpm}
 							</dd>
 						</div>
 					{/if}
@@ -247,7 +245,7 @@
 						<div>
 							<dt>Median fee rate ppm</dt>
 							<dd>
-								{String(medianFeeRatePpm)}
+								{medianFeeRatePpm}
 							</dd>
 						</div>
 					{/if}

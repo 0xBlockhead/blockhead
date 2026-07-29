@@ -90,7 +90,6 @@ describe('TonAPI masterchain-head transport', () => {
 			credentials: [{
 				scope: SourceCredentialScope.None,
 			}],
-			proxyId: '["TonApi_Rest","Caip2Network","ton:-239","HttpProxy","RestJson"]',
 			artifacts: [{
 				kind: SourceArtifactKind.HandwrittenTypes,
 				path: 'src/sources/TonApi/Rest/types.ts',

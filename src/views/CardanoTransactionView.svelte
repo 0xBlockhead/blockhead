@@ -25,7 +25,7 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.CardanoTransaction> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const network = $derived(selection.entitySelector.$network)
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Blockfrost_Rest,
@@ -37,7 +37,7 @@
 			fee: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.hash ?? '') || 'Cardano transaction')
+	const titleFallback = $derived(selection.entitySelector.hash || 'Cardano transaction')
 	const viewDomId = $derived('cardano-transaction-' + encodeURIComponent(stringify(selection.entitySelector)))
 
 
@@ -63,31 +63,34 @@
 	id={viewDomId}
 	title={title ?? titleFallback}
 	href={
-		href ?? resolve(
-			'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(transactions)/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]',
-			{
-				network: (
-					'caip2' in selection.entitySelector.$network ?
-						String(caip2StringFromValue(selection.entitySelector.$network.caip2))
-					:
-						String(selection.entitySelector.$network.slug)
-				),
-				transactionId: String(selection.entitySelector.hash),
-			}
-		)
+		href === undefined ?
+			resolve(
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(transactions)/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]',
+				{
+					network: (
+						'caip2' in network ?
+							caip2StringFromValue(network.caip2)
+						:
+							network.slug
+					),
+					transactionId: selection.entitySelector.hash,
+				}
+			)
+		:
+			href ?? undefined
 	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{(pendingEntity.hash ?? '') || 'Cardano transaction'}
+		{selection.entitySelector.hash || 'Cardano transaction'}
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={cardanoTransaction}>
 			{#snippet children(entity)}
-				{String(entity.blockSlot ?? '') || pendingEntity.hash || titleFallback}
+				{String(entity.blockSlot ?? '') || selection.entitySelector.hash || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -95,10 +98,10 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={cardanoTransaction}>
 			{#snippet children(entity)}
-				{@const fee0 = entity.fee}
-				{#if fee0 != null}
+				{@const fee = entity.fee}
+				{#if fee != null}
 					<span data-text="muted">
-						{String(fee0)}
+						{fee}
 					</span>
 				{/if}
 			{/snippet}
@@ -121,7 +124,7 @@
 			<div>
 				<dt>Hash</dt>
 				<dd>
-					<TruncatedValue value={pendingEntity.hash} />
+					<TruncatedValue value={selection.entitySelector.hash} />
 				</dd>
 			</div>
 
@@ -134,7 +137,7 @@
 						<div>
 							<dt>block slot</dt>
 							<dd>
-								{String(blockSlot)}
+								{blockSlot}
 							</dd>
 						</div>
 					{/if}
@@ -152,7 +155,7 @@
 						<div>
 							<dt>fee</dt>
 							<dd>
-								{String(fee)}
+								{fee}
 							</dd>
 						</div>
 					{/if}
@@ -174,7 +177,7 @@
 						<div>
 							<dt>deposit</dt>
 							<dd>
-								{String(deposit)}
+								{deposit}
 							</dd>
 						</div>
 					{/if}
@@ -196,7 +199,7 @@
 						<div>
 							<dt>size bytes</dt>
 							<dd>
-								{String(sizeBytes)}
+								{sizeBytes}
 							</dd>
 						</div>
 					{/if}
@@ -218,7 +221,7 @@
 						<div>
 							<dt>validity start slot</dt>
 							<dd>
-								{String(validityStartSlot)}
+								{validityStartSlot}
 							</dd>
 						</div>
 					{/if}
@@ -240,7 +243,7 @@
 						<div>
 							<dt>ttl slot</dt>
 							<dd>
-								{String(ttlSlot)}
+								{ttlSlot}
 							</dd>
 						</div>
 					{/if}

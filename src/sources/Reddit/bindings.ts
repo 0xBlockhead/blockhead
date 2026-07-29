@@ -1,11 +1,11 @@
 // Generated from APP.ts. Do not edit by hand.
 
 import { Source } from '$/sources/Source.ts'
-import { ApiFamily, SourceArtifactKind, SourceCredentialScope, SourceDelivery, SourceEndpointKind, SourceOperationGroup, SourceTargetKind, WireProtocol, type SourceBindingIndex } from '$/sources/SourceBinding.ts'
+import { ApiFamily, indexSourceBindings, SourceArtifactKind, SourceCredentialScope, SourceDelivery, SourceEndpointKind, SourceOperationGroup, SourceTargetKind, WireProtocol, type SourceBinding } from '$/sources/SourceBinding.ts'
 import { type as arktype } from 'arktype'
 
-export default {
-	[Source.Reddit_Rest]: {
+const bindings = [
+	{
 		source: Source.Reddit_Rest,
 		target: {
 			kind: SourceTargetKind.Global,
@@ -44,7 +44,6 @@ export default {
 				],
 			},
 		],
-		proxyId: '["Reddit_Rest","Global","oauth-api","HttpProxy","RestJson"]',
 		artifacts: [
 			{
 				kind: SourceArtifactKind.HandwrittenTypes,
@@ -53,4 +52,6 @@ export default {
 			},
 		],
 	},
-} as const satisfies SourceBindingIndex
+] as const satisfies readonly SourceBinding[]
+
+export default indexSourceBindings<{ readonly [Source.Reddit_Rest]: typeof bindings[0] }>(bindings)

@@ -21,18 +21,15 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.QuilibriumAccount> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const viewSelection = $derived(selection({
+	const quilibriumAccount = $derived(selection({
 		sources: selection.sources ?? [
 			Source.QuilibriumNode_Grpc,
 		],
-	}))
-	const quilibriumAccount = $derived(viewSelection({
+	})({
 		fields: {
 			accountKind: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.accountAddress ?? '') || 'quilibrium account')
 
 
 	// Components
@@ -46,19 +43,19 @@
 <EntityView
 	entityType={EntityType.QuilibriumAccount}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? (selection.entitySelector.accountAddress || 'quilibrium account')}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{(pendingEntity.accountAddress ?? '') || 'quilibrium account'}
+		{selection.entitySelector.accountAddress || 'quilibrium account'}
 	{/snippet}
 
 	{#snippet Value()}
 		<NetworkView
 			selection={select(EntityType.Network, selection.entitySelector.$network)}
-			href=""
+			href={null}
 			layout={EntityLayout.Value}
 			open={false}
 		/>
@@ -67,10 +64,10 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={quilibriumAccount}>
 			{#snippet children(entity)}
-				{@const accountKind0 = entity.accountKind}
-				{#if accountKind0 != null}
+				{@const accountKind = entity.accountKind}
+				{#if accountKind != null}
 					<span data-text="muted">
-						<TruncatedValue value={accountKind0} />
+						{accountKind}
 					</span>
 				{/if}
 			{/snippet}
@@ -93,7 +90,7 @@
 			<div>
 				<dt>account address</dt>
 				<dd>
-					<TruncatedValue value={pendingEntity.accountAddress} />
+					<TruncatedValue value={selection.entitySelector.accountAddress} />
 				</dd>
 			</div>
 
@@ -106,7 +103,7 @@
 						<div>
 							<dt>account kind</dt>
 							<dd>
-								<TruncatedValue value={accountKind} />
+								{accountKind}
 							</dd>
 						</div>
 					{/if}
@@ -116,15 +113,15 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const quilibriumAccountBlockheadQuilibriumAccountStatesViewBlockheadAccountStatesResource = selection.$$blockheadAccountStates}
+		{@const blockheadAccountStatesResource = selection.$$blockheadAccountStates}
 		<ResourceBoundary
-			resource={quilibriumAccountBlockheadQuilibriumAccountStatesViewBlockheadAccountStatesResource}
+			resource={blockheadAccountStatesResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<BlockheadQuilibriumAccountStatesView
-						selection={quilibriumAccountBlockheadQuilibriumAccountStatesViewBlockheadAccountStatesResource}
-						countResource={quilibriumAccountBlockheadQuilibriumAccountStatesViewBlockheadAccountStatesResource.count}
+						selection={blockheadAccountStatesResource}
+						countResource={blockheadAccountStatesResource.count}
 						title='blockhead account states'
 						id='blockhead-account-states'
 					/>

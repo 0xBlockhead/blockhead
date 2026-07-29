@@ -39,6 +39,7 @@
 >
 	{#snippet Item({ item: assetInstance })}
 		{@const assetInstanceSelector = assetInstance[EntityMetaKey.Selector]}
+		{@const network = assetInstanceSelector.$network}
 		<EntityView
 			entityType={EntityType.AssetInstance}
 			entitySelector={assetInstanceSelector}
@@ -47,13 +48,13 @@
 					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/asset/[kind=stringSegment]/[assetKey=stringSegment]',
 					{
 						network: (
-							'caip2' in assetInstanceSelector.$network ?
-								String(caip2StringFromValue(assetInstanceSelector.$network.caip2))
+							'caip2' in network ?
+								caip2StringFromValue(network.caip2)
 							:
-								String(assetInstanceSelector.$network.slug)
+								network.slug
 						),
-						kind: String(assetInstanceSelector.kind),
-						assetKey: String(assetInstanceSelector.assetKey),
+						kind: assetInstanceSelector.kind,
+						assetKey: assetInstanceSelector.assetKey,
 					}
 				)
 			}

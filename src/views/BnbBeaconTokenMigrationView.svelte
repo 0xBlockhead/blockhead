@@ -4,7 +4,6 @@
 	// Types/constants
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { EvmAddress } from '$/schema/ZeroExHex.ts'
 
 
 	// Context
@@ -21,13 +20,12 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.BnbBeaconTokenMigration> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const bnbBeaconTokenMigration = $derived(selection({
 		fields: {
 			migrationKind: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.migrationKind ?? '') || 'bnb beacon token migration')
+	const titleFallback = $derived((prefetched.migrationKind ?? '') || 'bnb beacon token migration')
 
 
 	// Components
@@ -59,14 +57,13 @@
 	{#snippet Value()}
 		<BnbBeaconTokenView
 			selection={select(EntityType.BnbBeaconToken, selection.entitySelector.$token)}
-			href=""
 			layout={EntityLayout.Value}
 			open={false}
 		/>
 
 		<NetworkView
 			selection={select(EntityType.Network, selection.entitySelector.$targetNetwork)}
-			href=""
+			href={null}
 			layout={EntityLayout.Value}
 			open={false}
 		/>
@@ -99,7 +96,7 @@
 			<div>
 				<dt>target address</dt>
 				<dd>
-					<TruncatedValue value={pendingEntity.targetAddress} />
+					<TruncatedValue value={selection.entitySelector.targetAddress} />
 				</dd>
 			</div>
 
@@ -155,7 +152,7 @@
 						<div>
 							<dt>target contract address</dt>
 							<dd>
-								<TruncatedValue value={String(targetContractAddress)} />
+								<TruncatedValue value={targetContractAddress} />
 							</dd>
 						</div>
 					{/if}
@@ -211,15 +208,15 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const bnbBeaconTokenMigrationBnbBeaconTokenMigrationTimestampsViewTimestampsResource = selection.$$timestamps}
+		{@const timestampsResource = selection.$$timestamps}
 		<ResourceBoundary
-			resource={bnbBeaconTokenMigrationBnbBeaconTokenMigrationTimestampsViewTimestampsResource}
+			resource={timestampsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<BnbBeaconTokenMigration_TimestampsView
-						selection={bnbBeaconTokenMigrationBnbBeaconTokenMigrationTimestampsViewTimestampsResource}
-						countResource={bnbBeaconTokenMigrationBnbBeaconTokenMigrationTimestampsViewTimestampsResource.count}
+						selection={timestampsResource}
+						countResource={timestampsResource.count}
 						title='timestamps'
 						id='timestamps'
 					/>

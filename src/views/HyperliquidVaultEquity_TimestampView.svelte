@@ -20,9 +20,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.HyperliquidVaultEquity_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const titleFallback = 'hyperliquid vault equity timestamp'
-
 
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -36,7 +33,7 @@
 <EntityView
 	entityType={EntityType.HyperliquidVaultEquity_Timestamp}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? 'hyperliquid vault equity timestamp'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -72,14 +69,14 @@
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+					<Timestamp timestamp={selection.entitySelector.timestampMs} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 
@@ -164,7 +161,7 @@
 						<div>
 							<dt>days following</dt>
 							<dd>
-								{String(daysFollowing)}
+								{daysFollowing}
 							</dd>
 						</div>
 					{/if}
@@ -186,7 +183,7 @@
 						<div>
 							<dt>vault entry time ms</dt>
 							<dd>
-								{String(vaultEntryTimeMs)}
+								{vaultEntryTimeMs}
 							</dd>
 						</div>
 					{/if}
@@ -208,7 +205,7 @@
 						<div>
 							<dt>lockup until ms</dt>
 							<dd>
-								{String(lockupUntilMs)}
+								{lockupUntilMs}
 							</dd>
 						</div>
 					{/if}

@@ -46,7 +46,7 @@
 			entitySelector={hederaNftSelector}
 		>
 			{#snippet Title()}
-				{String(hederaNftSelector.serialNumber) || 'hedera NFT'}
+				{hederaNftSelector.serialNumber}
 			{/snippet}
 
 			{#snippet Value()}
@@ -54,7 +54,7 @@
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{(hederaNft.createdTimestamp ?? '')}</span>
+				<span data-text="annotation">{hederaNft.createdTimestamp ?? ''}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

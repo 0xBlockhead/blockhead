@@ -21,9 +21,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.HyperliquidVault> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const titleFallback = 'hyperliquid vault'
-
 
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -36,7 +33,7 @@
 <EntityView
 	entityType={EntityType.HyperliquidVault}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? 'hyperliquid vault'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -61,7 +58,7 @@
 			<div>
 				<dt>vault address</dt>
 				<dd>
-					<TruncatedValue value={pendingEntity.vaultAddress} />
+					<TruncatedValue value={selection.entitySelector.vaultAddress} />
 				</dd>
 			</div>
 

@@ -21,7 +21,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.AvailBlock> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const availBlock = $derived(selection({
 		fields: {
 			blockNumber: true,
@@ -29,7 +28,6 @@
 			blockHash: true,
 		},
 	}))
-	const titleFallback = $derived(String(pendingEntity.blockNumber ?? '') || (pendingEntity.blockHash ?? '') || 'avail block')
 
 
 	// Components
@@ -46,7 +44,7 @@
 <EntityView
 	entityType={EntityType.AvailBlock}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? (String(prefetched.blockNumber ?? '') || (prefetched.blockHash ?? '') || 'avail block')}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -64,9 +62,9 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={availBlock}>
 			{#snippet children(entity)}
-				{@const timestampMs0 = entity.timestampMs}
-				{#if timestampMs0 != null}
-					<Timestamp timestamp={Number(timestampMs0)} />
+				{@const timestampMs = entity.timestampMs}
+				{#if timestampMs != null}
+					<Timestamp timestamp={timestampMs} />
 				{/if}
 			{/snippet}
 		</ResourceBoundary>
@@ -166,7 +164,7 @@
 						<div>
 							<dt>Timestamp</dt>
 							<dd>
-								<Timestamp timestamp={Number(timestampMs)} />
+								<Timestamp timestamp={timestampMs} />
 							</dd>
 						</div>
 					{/if}
@@ -294,15 +292,15 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const availBlockAvailDataSubmissionsViewDataSubmissionsResource = selection.$$dataSubmissions}
+		{@const dataSubmissionsResource = selection.$$dataSubmissions}
 		<ResourceBoundary
-			resource={availBlockAvailDataSubmissionsViewDataSubmissionsResource}
+			resource={dataSubmissionsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<AvailDataSubmissionsView
-						selection={availBlockAvailDataSubmissionsViewDataSubmissionsResource}
-						countResource={availBlockAvailDataSubmissionsViewDataSubmissionsResource.count}
+						selection={dataSubmissionsResource}
+						countResource={dataSubmissionsResource.count}
 						title='data submissions'
 						id='data-submissions'
 					/>

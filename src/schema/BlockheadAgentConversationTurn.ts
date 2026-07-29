@@ -1,17 +1,11 @@
 // Generated from APP.ts. Do not edit by hand.
 
 import { entity } from '$/schema/$schema.ts'
-import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
+import { BlockheadAgentConversationTurnStatus } from '$/schema/BlockheadAgentConversationTurnStatus.ts'
+import { EntityFieldCardinality } from '$/schema/EntityFieldCardinality.ts'
+import { EntityFieldType } from '$/schema/EntityFieldType.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { type } from 'arktype'
-
-export enum BlockheadAgentConversationTurnStatus {
-	Pending = 'Pending',
-	Generating = 'Generating',
-	Complete = 'Complete',
-	Error = 'Error',
-	Cancelled = 'Cancelled',
-}
 
 export default entity({
 	entityType: EntityType.BlockheadAgentConversationTurn,

@@ -16,14 +16,13 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.CctpAllowance> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const cctpAllowance = $derived(selection({
 		fields: {
 			allowance: true,
 			fetchedAt: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.apiHost ?? '') || 'CCTP allowance')
+	const titleFallback = $derived(selection.entitySelector.apiHost || 'CCTP allowance')
 
 
 	// Components
@@ -41,13 +40,13 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{(pendingEntity.apiHost ?? '') || 'CCTP allowance'}
+		{selection.entitySelector.apiHost || 'CCTP allowance'}
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={cctpAllowance}>
 			{#snippet children(entity)}
-				{String(entity.allowance ?? '') || pendingEntity.apiHost || titleFallback}
+				{String(entity.allowance ?? '') || selection.entitySelector.apiHost || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -56,7 +55,7 @@
 		<ResourceBoundary resource={cctpAllowance}>
 			{#snippet children(entity)}
 				<span data-text="muted">
-					<Timestamp timestamp={Number(entity.fetchedAt)} />
+					<Timestamp timestamp={entity.fetchedAt} />
 				</span>
 			{/snippet}
 		</ResourceBoundary>
@@ -67,7 +66,7 @@
 			<div>
 				<dt>API host</dt>
 				<dd>
-					{pendingEntity.apiHost}
+					{selection.entitySelector.apiHost}
 				</dd>
 			</div>
 
@@ -80,7 +79,7 @@
 						<div>
 							<dt>Allowance</dt>
 							<dd>
-								{String(allowance)}
+								{allowance}
 							</dd>
 						</div>
 					{/if}
@@ -94,7 +93,7 @@
 						resource={cctpAllowance}
 					>
 						{#snippet children(entity)}
-							<Timestamp timestamp={Number(entity.fetchedAt)} />
+							<Timestamp timestamp={entity.fetchedAt} />
 						{/snippet}
 					</ResourceBoundary>
 				</dd>

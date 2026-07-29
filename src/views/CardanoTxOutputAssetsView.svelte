@@ -48,7 +48,7 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{String(cardanoTxOutputAsset.quantity)}
+				{cardanoTxOutputAsset.quantity}
 			{/snippet}
 		</EntityView>
 	{/snippet}

@@ -43,11 +43,11 @@
 			entitySelector={blockheadSharedAddress[EntityMetaKey.Selector]}
 		>
 			{#snippet Title()}
-				{String(blockheadSharedAddress.$account.address) || 'EVM account'}
+				{blockheadSharedAddress.$account.address || 'EVM account'}
 			{/snippet}
 
 			{#snippet Value()}
-				{String(blockheadSharedAddress.sharedAt)}
+				{blockheadSharedAddress.sharedAt}
 			{/snippet}
 		</EntityView>
 	{/snippet}

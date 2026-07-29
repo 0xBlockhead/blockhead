@@ -21,7 +21,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.NearAccessKey_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.NearRpc_JsonRpc,
@@ -33,7 +32,6 @@
 			blockHeight: true,
 		},
 	}))
-	const titleFallback = $derived(String(pendingEntity.timestampMs ?? '') || 'near access key timestamp')
 
 
 	// Components
@@ -48,19 +46,19 @@
 <EntityView
 	entityType={EntityType.NearAccessKey_Timestamp}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? String(selection.entitySelector.timestampMs)}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+		<Timestamp timestamp={selection.entitySelector.timestampMs} />
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={nearAccessKeyTimestamp}>
 			{#snippet children(entity)}
-				{(entity.permission ?? '') || String(pendingEntity.timestampMs) || titleFallback}
+				{(entity.permission ?? '') || String(selection.entitySelector.timestampMs)}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -68,11 +66,11 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={nearAccessKeyTimestamp}>
 			{#snippet children(entity)}
-				{@const blockHeight0 = entity.blockHeight}
-				{#if blockHeight0 != null}
+				{@const blockHeight = entity.blockHeight}
+				{#if blockHeight != null}
 					<span data-text="muted">
 						<NumberValue
-							value={blockHeight0}
+							value={blockHeight}
 						/>
 					</span>
 				{/if}
@@ -96,14 +94,14 @@
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+					<Timestamp timestamp={selection.entitySelector.timestampMs} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 

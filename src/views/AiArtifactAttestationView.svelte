@@ -21,7 +21,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.AiArtifactAttestation> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Eip8004Scan_Rest,
@@ -33,7 +32,6 @@
 			logEntryId: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.attestationKind ?? '') || 'AI artifact attestation')
 
 
 	// Components
@@ -48,19 +46,18 @@
 <EntityView
 	entityType={EntityType.AiArtifactAttestation}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? (selection.entitySelector.attestationKind || 'AI artifact attestation')}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{(pendingEntity.attestationKind ?? '') || 'AI artifact attestation'}
+		{selection.entitySelector.attestationKind || 'AI artifact attestation'}
 	{/snippet}
 
 	{#snippet Value()}
 		<AiArtifactView
 			selection={select(EntityType.AiArtifact, selection.entitySelector.$artifact)}
-			href=""
 			layout={EntityLayout.Value}
 			open={false}
 		/>
@@ -69,10 +66,10 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={aiArtifactAttestation}>
 			{#snippet children(entity)}
-				{@const logEntryId0 = entity.logEntryId}
-				{#if logEntryId0 != null}
+				{@const logEntryId = entity.logEntryId}
+				{#if logEntryId != null}
 					<span data-text="muted">
-						{logEntryId0}
+						{logEntryId}
 					</span>
 				{/if}
 			{/snippet}
@@ -95,7 +92,7 @@
 			<div>
 				<dt>attestation kind</dt>
 				<dd>
-					{pendingEntity.attestationKind}
+					{selection.entitySelector.attestationKind}
 				</dd>
 			</div>
 
@@ -130,7 +127,7 @@
 						<div>
 							<dt>signature hash algorithm</dt>
 							<dd>
-								<TruncatedValue value={signatureHashAlgorithm} />
+								{signatureHashAlgorithm}
 							</dd>
 						</div>
 					{/if}
@@ -244,7 +241,7 @@
 						<div>
 							<dt>integrated time</dt>
 							<dd>
-								<Timestamp timestamp={Number(integratedTime)} />
+								<Timestamp timestamp={integratedTime} />
 							</dd>
 						</div>
 					{/if}

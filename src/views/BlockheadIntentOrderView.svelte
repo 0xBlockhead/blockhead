@@ -5,7 +5,6 @@
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -23,7 +22,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.BlockheadIntentOrder> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Local_Internal,
@@ -37,7 +35,7 @@
 			submittedAt: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.orderId ?? '') || 'blockhead intent order')
+	const titleFallback = $derived((prefetched.orderId ?? '') || 'blockhead intent order')
 
 
 	// Components
@@ -78,7 +76,7 @@
 		<ResourceBoundary resource={blockheadIntentOrder}>
 			{#snippet children(entity)}
 				<span data-text="muted">
-					<Timestamp timestamp={Number(entity.submittedAt)} />
+					<Timestamp timestamp={entity.submittedAt} />
 				</span>
 			{/snippet}
 		</ResourceBoundary>
@@ -89,7 +87,7 @@
 			<div>
 				<dt>ID</dt>
 				<dd>
-					{pendingEntity.id}
+					{selection.entitySelector.id}
 				</dd>
 			</div>
 
@@ -181,7 +179,7 @@
 						resource={blockheadIntentOrder}
 					>
 						{#snippet children(entity)}
-							<Timestamp timestamp={Number(entity.submittedAt)} />
+							<Timestamp timestamp={entity.submittedAt} />
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -202,7 +200,7 @@
 						<div>
 							<dt>signature hash</dt>
 							<dd>
-								<TruncatedValue value={String(signatureHash)} />
+								<TruncatedValue value={signatureHash} />
 							</dd>
 						</div>
 					{/if}
@@ -224,7 +222,7 @@
 						<div>
 							<dt>order payload hash</dt>
 							<dd>
-								<TruncatedValue value={String(orderPayloadHash)} />
+								<TruncatedValue value={orderPayloadHash} />
 							</dd>
 						</div>
 					{/if}
@@ -234,15 +232,15 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const blockheadIntentOrderBlockheadIntentOrderTimestampsViewTimestampsResource = selection.$$timestamps}
+		{@const timestampsResource = selection.$$timestamps}
 		<ResourceBoundary
-			resource={blockheadIntentOrderBlockheadIntentOrderTimestampsViewTimestampsResource}
+			resource={timestampsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<BlockheadIntentOrder_TimestampsView
-						selection={blockheadIntentOrderBlockheadIntentOrderTimestampsViewTimestampsResource}
-						countResource={blockheadIntentOrderBlockheadIntentOrderTimestampsViewTimestampsResource.count}
+						selection={timestampsResource}
+						countResource={timestampsResource.count}
 						title='timestamps'
 						id='timestamps'
 					/>

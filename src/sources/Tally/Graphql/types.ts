@@ -216,10 +216,3 @@ export type TallyObservation<_Value> = {
 	endpoint: 'https://api.tally.xyz/query'
 	resolvedAtMs: number
 }
-
-export type TallyGraphqlResponse<_Data> = {
-	data?: _Data
-	errors?: {
-		message?: string
-	}[]
-}

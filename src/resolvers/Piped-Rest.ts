@@ -9,7 +9,7 @@ import {
 	entityFieldAddressKey,
 } from '$/schema/$schema.ts'
 import { optionalTimestampMs } from '$/lib/time.ts'
-import { MediaType } from '$/schema/Media.ts'
+import { MediaType } from '$/schema/MediaType.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { UrlString } from '$/schema/UrlString.ts'
 import { type } from 'arktype'

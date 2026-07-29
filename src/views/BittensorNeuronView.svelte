@@ -20,9 +20,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.BittensorNeuron> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const titleFallback = $derived(String(pendingEntity.uid ?? '') || 'Bittensor neuron')
-
 
 	// Components
 	import NumberValue from '$/components/NumberValue.svelte'
@@ -34,21 +31,20 @@
 <EntityView
 	entityType={EntityType.BittensorNeuron}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? String(selection.entitySelector.uid)}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
 		<NumberValue
-			value={pendingEntity.uid}
+			value={selection.entitySelector.uid}
 		/>
 	{/snippet}
 
 	{#snippet Value()}
 		<BittensorSubnetView
 			selection={select(EntityType.BittensorSubnet, selection.entitySelector.$subnet)}
-			href=""
 			layout={EntityLayout.Value}
 			open={false}
 		/>
@@ -71,7 +67,7 @@
 				<dt>UID</dt>
 				<dd>
 					<NumberValue
-						value={pendingEntity.uid}
+						value={selection.entitySelector.uid}
 					/>
 				</dd>
 			</div>

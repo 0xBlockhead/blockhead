@@ -1,10 +1,10 @@
 // Generated from APP.ts. Do not edit by hand.
 
 import { Source } from '$/sources/Source.ts'
-import { ApiFamily, SourceArtifactKind, SourceCredentialScope, SourceDelivery, SourceEndpointKind, SourceOperationGroup, SourceTargetKind, WireProtocol, type SourceBindingIndex } from '$/sources/SourceBinding.ts'
+import { ApiFamily, indexSourceBindings, SourceArtifactKind, SourceCredentialScope, SourceDelivery, SourceEndpointKind, SourceOperationGroup, SourceTargetKind, WireProtocol, type SourceBinding } from '$/sources/SourceBinding.ts'
 
-export default {
-	[Source.TonCenter_V2_Rest]: {
+const bindings = [
+	{
 		source: Source.TonCenter_V2_Rest,
 		target: {
 			kind: SourceTargetKind.Global,
@@ -30,7 +30,7 @@ export default {
 			},
 		],
 	},
-	[Source.TonCenter_V3_Rest]: {
+	{
 		source: Source.TonCenter_V3_Rest,
 		target: {
 			kind: SourceTargetKind.Caip2Network,
@@ -55,7 +55,6 @@ export default {
 				scope: SourceCredentialScope.None,
 			},
 		],
-		proxyId: '["TonCenter_V3_Rest","Caip2Network","ton:-239","HttpProxy","TonCenterV3Api"]',
 		artifacts: [
 			{
 				kind: SourceArtifactKind.HandwrittenTypes,
@@ -64,4 +63,9 @@ export default {
 			},
 		],
 	},
-} as const satisfies SourceBindingIndex
+] as const satisfies readonly SourceBinding[]
+
+export default indexSourceBindings<{
+	readonly [Source.TonCenter_V2_Rest]: typeof bindings[0]
+	readonly [Source.TonCenter_V3_Rest]: typeof bindings[1]
+}>(bindings)

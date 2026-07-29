@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import { WalletCapability, WalletProtocol } from '$/constants/Wallet.ts'
-import { BlockheadConnectionStatus } from '$/schema/BlockheadWalletConnection.ts'
+import { BlockheadConnectionStatus } from '$/schema/BlockheadConnectionStatus.ts'
 import { bech32, bech32m } from '@scure/base'
 import { createBitcoinInjectedAdapter } from './bitcoinInjected.ts'
 import type { JsonValue } from '$/typescript/JsonValue.ts'

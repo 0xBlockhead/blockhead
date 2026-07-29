@@ -33,7 +33,7 @@
 			resolve(
 				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/upgrades',
 				{
-					network: String(params.network),
+					network: params.network,
 				}
 			)
 		}

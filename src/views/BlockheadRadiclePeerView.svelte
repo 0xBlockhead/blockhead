@@ -21,7 +21,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.BlockheadRadiclePeer> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Local_Internal,
@@ -33,13 +32,12 @@
 			remoteAlias: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.peerNodeId ?? '') || 'blockhead radicle peer')
+	const titleFallback = $derived(selection.entitySelector.peerNodeId || 'blockhead radicle peer')
 
 
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
-	import TruncatedValue from '$/components/TruncatedValue.svelte'
 	import BlockheadRadicleNodeStateView from '$/views/BlockheadRadicleNodeStateView.svelte'
 </script>
 
@@ -53,13 +51,13 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{(pendingEntity.peerNodeId ?? '') || 'blockhead radicle peer'}
+		{selection.entitySelector.peerNodeId || 'blockhead radicle peer'}
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={blockheadRadiclePeer}>
 			{#snippet children(entity)}
-				{(entity.connectionKind ?? '') || pendingEntity.peerNodeId || titleFallback}
+				{(entity.connectionKind ?? '') || selection.entitySelector.peerNodeId || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -67,10 +65,10 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={blockheadRadiclePeer}>
 			{#snippet children(entity)}
-				{@const remoteAlias0 = entity.remoteAlias}
-				{#if remoteAlias0 != null}
+				{@const remoteAlias = entity.remoteAlias}
+				{#if remoteAlias != null}
 					<span data-text="muted">
-						{remoteAlias0}
+						{remoteAlias}
 					</span>
 				{/if}
 			{/snippet}
@@ -93,7 +91,7 @@
 			<div>
 				<dt>peer node ID</dt>
 				<dd>
-					{pendingEntity.peerNodeId}
+					{selection.entitySelector.peerNodeId}
 				</dd>
 			</div>
 
@@ -126,7 +124,7 @@
 						}
 					>
 						{#snippet children(entity)}
-							<TruncatedValue value={entity.addresses.values.join(', ')} />
+							{entity.addresses.values.join(', ')}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -147,7 +145,7 @@
 						<div>
 							<dt>last seen ms</dt>
 							<dd>
-								<Timestamp timestamp={Number(lastSeenMs)} />
+								<Timestamp timestamp={lastSeenMs} />
 							</dd>
 						</div>
 					{/if}

@@ -5,7 +5,6 @@
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { EvmAddress } from '$/schema/ZeroExHex.ts'
 
 
 	// State
@@ -43,15 +42,15 @@
 			entitySelector={lensAccountManagerSelector}
 		>
 			{#snippet Title()}
-				{String(lensAccountManagerSelector.manager) || 'Lens account manager'}
+				{lensAccountManagerSelector.manager || 'Lens account manager'}
 			{/snippet}
 
 			{#snippet Value()}
-				{String(lensAccountManagerSelector.manager)}
+				{lensAccountManagerSelector.manager}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{String(lensAccountManager.isLensManager ?? '')}</span>
+				<span data-text="annotation">{lensAccountManager.isLensManager ?? ''}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

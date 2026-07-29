@@ -23,13 +23,11 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.LensPost_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Lens_Graphql,
 		],
 	}))
-	const titleFallback = 'Lens post observation'
 
 
 	// Components
@@ -43,15 +41,18 @@
 <EntityView
 	entityType={EntityType.LensPost_Timestamp}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? 'Lens post observation'}
 	href={
-		href ?? resolve(
-			'/(social)/(lens)/lens/(lensNetwork)/post/[postId=stringSegment]/(lensPost)/observations/[timestampMs=nonNegativeInteger]',
-			{
-				postId: String(selection.entitySelector.$post.id),
-				timestampMs: String(selection.entitySelector.timestampMs),
-			}
-		)
+		href === undefined ?
+			resolve(
+				'/(social)/(lens)/lens/(lensNetwork)/post/[postId=stringSegment]/(lensPost)/observations/[timestampMs=nonNegativeInteger]',
+				{
+					postId: selection.entitySelector.$post.id,
+					timestampMs: String(selection.entitySelector.timestampMs),
+				}
+			)
+		:
+			href ?? undefined
 	}
 	{layout}
 	bind:open
@@ -60,14 +61,14 @@
 	{#snippet Title()}
 		<LensPostView
 			selection={select(EntityType.LensPost, selection.entitySelector.$post)}
-			href=""
+			href={null}
 			layout={EntityLayout.Title}
 			open={false}
 		/>
 	{/snippet}
 
 	{#snippet Value()}
-		<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+		<Timestamp timestamp={selection.entitySelector.timestampMs} />
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -88,7 +89,7 @@
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+					<Timestamp timestamp={selection.entitySelector.timestampMs} />
 				</dd>
 			</div>
 		</dl>

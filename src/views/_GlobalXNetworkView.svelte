@@ -18,7 +18,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType._GlobalXNetwork> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const titleFallback = 'global X network'
 	const viewDomId = $derived('-global-xnetwork-' + encodeURIComponent(stringify(selection.entitySelector)))
 
@@ -46,7 +45,7 @@
 	{/snippet}
 
 	{#snippet Value()}
-		{(pendingEntity.scope ?? '') || titleFallback}
+		{selection.entitySelector.scope || titleFallback}
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}

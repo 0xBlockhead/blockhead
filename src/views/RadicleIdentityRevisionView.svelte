@@ -16,9 +16,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.RadicleIdentityRevision> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const titleFallback = 'radicle identity revision'
-
 
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -29,7 +26,7 @@
 <EntityView
 	entityType={EntityType.RadicleIdentityRevision}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? 'radicle identity revision'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -43,14 +40,14 @@
 			<div>
 				<dt>rid</dt>
 				<dd>
-					{pendingEntity.rid}
+					{selection.entitySelector.rid}
 				</dd>
 			</div>
 
 			<div>
 				<dt>revision</dt>
 				<dd>
-					{pendingEntity.revision}
+					{selection.entitySelector.revision}
 				</dd>
 			</div>
 
@@ -129,7 +126,7 @@
 						<div>
 							<dt>threshold</dt>
 							<dd>
-								{String(threshold)}
+								{threshold}
 							</dd>
 						</div>
 					{/if}

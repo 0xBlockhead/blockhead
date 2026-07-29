@@ -38,6 +38,7 @@
 >
 	{#snippet Item({ item: utxoTransaction })}
 		{@const utxoTransactionSelector = utxoTransaction[EntityMetaKey.Selector]}
+		{@const network = utxoTransactionSelector.$network}
 		<EntityView
 			entityType={EntityType.UtxoTransaction}
 			entitySelector={utxoTransactionSelector}
@@ -46,12 +47,12 @@
 					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(transactions)/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]',
 					{
 						network: (
-							'caip2' in utxoTransactionSelector.$network ?
-								String(caip2StringFromValue(utxoTransactionSelector.$network.caip2))
+							'caip2' in network ?
+								caip2StringFromValue(network.caip2)
 							:
-								String(utxoTransactionSelector.$network.slug)
+								network.slug
 						),
-						transactionId: String(utxoTransactionSelector.txId),
+						transactionId: utxoTransactionSelector.txId,
 					}
 				)
 			}

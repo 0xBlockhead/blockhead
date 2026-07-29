@@ -42,7 +42,7 @@
 			resolve(
 				'/(social)/(lens)/lens/(lensNetwork)/post/[postId=stringSegment]/(lensPost)/comments',
 				{
-					postId: String(params.postId),
+					postId: params.postId,
 				}
 			)
 		}

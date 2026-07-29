@@ -21,9 +21,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.HederaContractLog> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const titleFallback = 'hedera contract log'
-
 
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -36,7 +33,7 @@
 <EntityView
 	entityType={EntityType.HederaContractLog}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? 'hedera contract log'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -105,7 +102,7 @@
 			<div>
 				<dt>log index</dt>
 				<dd>
-					{String(pendingEntity.logIndex)}
+					{selection.entitySelector.logIndex}
 				</dd>
 			</div>
 
@@ -124,7 +121,7 @@
 						<div>
 							<dt>Address</dt>
 							<dd>
-								<TruncatedValue value={String(address)} />
+								<TruncatedValue value={address} />
 							</dd>
 						</div>
 					{/if}

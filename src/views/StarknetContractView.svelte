@@ -21,8 +21,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.StarknetContract> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const titleFallback = $derived((pendingEntity.address ?? '') || 'starknet contract')
 	const viewDomId = $derived('starknet-contract-' + encodeURIComponent(stringify(selection.entitySelector)))
 
 
@@ -43,19 +41,18 @@
 	entityType={EntityType.StarknetContract}
 	entitySelector={selection.entitySelector}
 	id={viewDomId}
-	title={title ?? titleFallback}
+	title={title ?? (selection.entitySelector.address || 'starknet contract')}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{(pendingEntity.address ?? '') || 'starknet contract'}
+		{selection.entitySelector.address || 'starknet contract'}
 	{/snippet}
 
 	{#snippet Value()}
 		<StarknetNetworkView
 			selection={select(EntityType.StarknetNetwork, selection.entitySelector.$network)}
-			href=""
 			layout={EntityLayout.Value}
 			open={false}
 		/>
@@ -77,7 +74,7 @@
 			<div>
 				<dt>Address</dt>
 				<dd>
-					<TruncatedValue value={pendingEntity.address} />
+					<TruncatedValue value={selection.entitySelector.address} />
 				</dd>
 			</div>
 		</dl>

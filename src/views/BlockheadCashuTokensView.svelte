@@ -46,7 +46,7 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{[blockheadCashuToken.status, (String(blockheadCashuToken.totalAmount ?? '') ? String(blockheadCashuToken.totalAmount ?? '') + blockheadCashuToken.unit : '')].filter(Boolean).join(' ')}
+				{[blockheadCashuToken.status, (blockheadCashuToken.totalAmount != null ? String(blockheadCashuToken.totalAmount) + blockheadCashuToken.unit : '')].filter(Boolean).join(' ')}
 			{/snippet}
 		</EntityView>
 	{/snippet}

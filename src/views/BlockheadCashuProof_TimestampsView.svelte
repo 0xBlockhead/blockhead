@@ -41,7 +41,7 @@
 			entitySelector={blockheadCashuProofTimestampSelector}
 		>
 			{#snippet Title()}
-				{String(blockheadCashuProofTimestampSelector.timestampMs) || 'blockhead Cashu proof timestamp'}
+				{blockheadCashuProofTimestampSelector.timestampMs}
 			{/snippet}
 
 			{#snippet Value()}

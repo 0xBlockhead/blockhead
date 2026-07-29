@@ -33,7 +33,7 @@
 			resolve(
 				'/(social)/(rss)/rss/(rssNetwork)/feed/[feedUrl=absoluteUrl]',
 				{
-					feedUrl: String(params.feedUrl),
+					feedUrl: params.feedUrl,
 				}
 			)
 		}
@@ -50,7 +50,7 @@
 					resolve(
 						'/(social)/(rss)/rss/(rssNetwork)/feed/[feedUrl=absoluteUrl]',
 						{
-							feedUrl: String(params.feedUrl),
+							feedUrl: params.feedUrl,
 						}
 					)
 				}

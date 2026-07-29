@@ -28,7 +28,7 @@ import {
 	EvmTransactionKind,
 } from '$/constants/Evm.ts'
 import { MarketAssetKind, MarketKind } from '$/constants/Market.ts'
-import { CoinInstanceType } from '$/schema/EvmCoinInstance.ts'
+import { CoinInstanceType } from '$/schema/CoinInstanceType.ts'
 import { seededCoinSpotUsdMarketByCoinId, type CatalogCoinCurrencyMarket } from '$/constants/MarketCatalog.ts'
 import type {
 	BlockscoutInternalTransaction,

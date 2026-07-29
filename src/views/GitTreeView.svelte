@@ -5,7 +5,6 @@
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 
 
 	// Context
@@ -22,8 +21,7 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.GitTree> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const titleFallback = $derived(String(pendingEntity.objectId ?? '') || 'Git tree')
+	const titleFallback = $derived(selection.entitySelector.objectId || 'Git tree')
 
 
 	// Components
@@ -43,11 +41,11 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<TruncatedValue value={String(pendingEntity.objectId)} />
+		<TruncatedValue value={selection.entitySelector.objectId} />
 	{/snippet}
 
 	{#snippet Value()}
-		{(pendingEntity.objectFormat ?? '') || String(pendingEntity.objectId ?? '') || titleFallback}
+		{selection.entitySelector.objectFormat || selection.entitySelector.objectId || titleFallback}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -55,14 +53,14 @@
 			<div>
 				<dt>object ID</dt>
 				<dd>
-					<TruncatedValue value={String(pendingEntity.objectId)} />
+					<TruncatedValue value={selection.entitySelector.objectId} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>object format</dt>
 				<dd>
-					{pendingEntity.objectFormat}
+					{selection.entitySelector.objectFormat}
 				</dd>
 			</div>
 
@@ -87,15 +85,15 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const gitTreeGitTreeEntriesViewEntriesResource = selection.$$entries}
+		{@const entriesResource = selection.$$entries}
 		<ResourceBoundary
-			resource={gitTreeGitTreeEntriesViewEntriesResource}
+			resource={entriesResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<GitTreeEntriesView
-						selection={gitTreeGitTreeEntriesViewEntriesResource}
-						countResource={gitTreeGitTreeEntriesViewEntriesResource.count}
+						selection={entriesResource}
+						countResource={entriesResource.count}
 						title='entries'
 						id='entries'
 					/>

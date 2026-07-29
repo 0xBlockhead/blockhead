@@ -21,19 +21,17 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.ActivityPubInstanceModeratedDomain> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const viewSelection = $derived(selection({
+	const activityPubInstanceModeratedDomain = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Mastodon_Rest,
 		],
-	}))
-	const activityPubInstanceModeratedDomain = $derived(viewSelection({
+	})({
 		fields: {
 			severity: true,
 			comment: true,
 		},
 	}))
-	const titleFallback = $derived([(pendingEntity.domain ?? ''), (pendingEntity.severity ?? ''), (pendingEntity.comment ?? '')].filter(Boolean).join(' ') || 'ActivityPub instance moderated domain')
+	const titleFallback = $derived([selection.entitySelector.domain, (prefetched.severity ?? ''), (prefetched.comment ?? '')].filter(Boolean).join(' ') || 'ActivityPub instance moderated domain')
 
 
 	// Components
@@ -53,7 +51,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={activityPubInstanceModeratedDomain}>
 			{#snippet children(entity)}
-				{[pendingEntity.domain, (entity.severity ?? ''), (entity.comment ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+				{[selection.entitySelector.domain, (entity.severity ?? ''), (entity.comment ?? '')].filter(Boolean).join(' ') || title || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -61,7 +59,7 @@
 	{#snippet Value()}
 		<ActivityPubInstance_TimestampView
 			selection={select(EntityType.ActivityPubInstance_Timestamp, selection.entitySelector.$observation)}
-			href=""
+			href={null}
 			layout={EntityLayout.Value}
 			open={false}
 		/>
@@ -89,7 +87,7 @@
 			<div>
 				<dt>Domain</dt>
 				<dd>
-					{pendingEntity.domain}
+					{selection.entitySelector.domain}
 				</dd>
 			</div>
 

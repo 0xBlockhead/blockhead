@@ -33,8 +33,8 @@
 			resolve(
 				'/(social)/(youtube)/youtube/(globalYoutubeNetwork)/comment/[videoId=stringSegment]/[commentId=stringSegment]',
 				{
-					videoId: String(params.videoId),
-					commentId: String(params.commentId),
+					videoId: params.videoId,
+					commentId: params.commentId,
 				}
 			)
 		}
@@ -51,8 +51,8 @@
 					resolve(
 						'/(social)/(youtube)/youtube/(globalYoutubeNetwork)/comment/[videoId=stringSegment]/[commentId=stringSegment]',
 						{
-							videoId: String(params.videoId),
-							commentId: String(params.commentId),
+							videoId: params.videoId,
+							commentId: params.commentId,
 						}
 					)
 				}

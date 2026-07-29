@@ -2,7 +2,8 @@
 
 import bindings from '$/sources/BitcoinCashBcmr/bindings.ts'
 import { Source } from '$/sources/Source.ts'
-import { SourceProvider, type SourceProviderDefinition } from '$/sources/SourceProvider.ts'
+import { SourceProvider } from '$/sources/SourceProvider.ts'
+import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinition.ts'
 
 export default {
 	provider: SourceProvider.BitcoinCashBcmr,
@@ -13,5 +14,5 @@ export default {
 			label: 'Bitcoin Cash BCMR GitHub',
 		},
 	],
-	bindings: [bindings[Source.BitcoinCashBcmr_Github]],
+	bindings: Object.values(bindings).flat(),
 } satisfies SourceProviderDefinition

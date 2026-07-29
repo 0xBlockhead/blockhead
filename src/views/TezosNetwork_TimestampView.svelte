@@ -20,9 +20,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.TezosNetwork_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const titleFallback = 'tezos network timestamp'
-
 
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -35,7 +32,7 @@
 <EntityView
 	entityType={EntityType.TezosNetwork_Timestamp}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? 'tezos network timestamp'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -60,14 +57,14 @@
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+					<Timestamp timestamp={selection.entitySelector.timestampMs} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 
@@ -86,7 +83,7 @@
 						<div>
 							<dt>latest level</dt>
 							<dd>
-								{String(latestLevel)}
+								{latestLevel}
 							</dd>
 						</div>
 					{/if}
@@ -130,7 +127,7 @@
 						<div>
 							<dt>cycle</dt>
 							<dd>
-								{String(cycle)}
+								{cycle}
 							</dd>
 						</div>
 					{/if}
@@ -152,7 +149,7 @@
 						<div>
 							<dt>total supply mutez</dt>
 							<dd>
-								{String(totalSupplyMutez)}
+								{totalSupplyMutez}
 							</dd>
 						</div>
 					{/if}
@@ -174,7 +171,7 @@
 						<div>
 							<dt>active baker count</dt>
 							<dd>
-								{String(activeBakerCount)}
+								{activeBakerCount}
 							</dd>
 						</div>
 					{/if}
@@ -196,7 +193,7 @@
 						<div>
 							<dt>indexer lag blocks</dt>
 							<dd>
-								{String(indexerLagBlocks)}
+								{indexerLagBlocks}
 							</dd>
 						</div>
 					{/if}

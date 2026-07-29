@@ -42,7 +42,7 @@
 			entitySelector={avalancheValidatorTimestampSelector}
 		>
 			{#snippet Title()}
-				{String(avalancheValidatorTimestampSelector.timestampMs) || 'avalanche validator timestamp'}
+				{avalancheValidatorTimestampSelector.timestampMs}
 			{/snippet}
 
 			{#snippet Value()}

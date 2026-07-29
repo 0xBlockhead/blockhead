@@ -2,7 +2,8 @@
 
 import bindings from '$/sources/Ensips/bindings.ts'
 import { Source } from '$/sources/Source.ts'
-import { SourceProvider, type SourceProviderDefinition } from '$/sources/SourceProvider.ts'
+import { SourceProvider } from '$/sources/SourceProvider.ts'
+import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinition.ts'
 
 export default {
 	provider: SourceProvider.Ensips,
@@ -13,5 +14,5 @@ export default {
 			label: 'ENSIPs GitHub',
 		},
 	],
-	bindings: [bindings[Source.Ensips_Github]],
+	bindings: Object.values(bindings).flat(),
 } satisfies SourceProviderDefinition

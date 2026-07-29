@@ -21,19 +21,17 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.NearAccessKey> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const viewSelection = $derived(selection({
+	const nearAccessKey = $derived(selection({
 		sources: selection.sources ?? [
 			Source.NearRpc_JsonRpc,
 		],
-	}))
-	const nearAccessKey = $derived(viewSelection({
+	})({
 		fields: {
 			permission: true,
 			nonce: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.publicKey ?? '') || 'near access key')
+	const titleFallback = $derived(selection.entitySelector.publicKey || 'near access key')
 
 
 	// Components
@@ -53,13 +51,13 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<TruncatedValue value={pendingEntity.publicKey} />
+		<TruncatedValue value={selection.entitySelector.publicKey} />
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={nearAccessKey}>
 			{#snippet children(entity)}
-				{(entity.permission ?? '') || pendingEntity.publicKey || titleFallback}
+				{(entity.permission ?? '') || selection.entitySelector.publicKey || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -67,11 +65,11 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={nearAccessKey}>
 			{#snippet children(entity)}
-				{@const nonce0 = entity.nonce}
-				{#if nonce0 != null}
+				{@const nonce = entity.nonce}
+				{#if nonce != null}
 					<span data-text="muted">
 						<NumberValue
-							value={nonce0}
+							value={nonce}
 						/>
 					</span>
 				{/if}
@@ -95,7 +93,7 @@
 			<div>
 				<dt>Public key</dt>
 				<dd>
-					<TruncatedValue value={pendingEntity.publicKey} />
+					<TruncatedValue value={selection.entitySelector.publicKey} />
 				</dd>
 			</div>
 

@@ -4,8 +4,6 @@
 	// Types/constants
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { UrlString } from '$/schema/UrlString.ts'
-	import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 
 
 	// Context
@@ -22,9 +20,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.AlgorandAsset_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const titleFallback = 'algorand asset timestamp'
-
 
 	// Components
 	import NumberValue from '$/components/NumberValue.svelte'
@@ -37,7 +32,7 @@
 <EntityView
 	entityType={EntityType.AlgorandAsset_Timestamp}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? 'algorand asset timestamp'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -62,14 +57,14 @@
 			<div>
 				<dt>round</dt>
 				<dd>
-					{String(pendingEntity.round)}
+					{selection.entitySelector.round}
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 
@@ -141,7 +136,7 @@
 									decimalPlaces={entity.decimals}
 								/>
 
-								<span>{entity.unitName == null ? '' : ` ${String(entity.unitName)}`}</span>
+								<span>{entity.unitName == null ? '' : ` ${entity.unitName}`}</span>
 							</dd>
 						</div>
 					{/if}
@@ -163,7 +158,7 @@
 						<div>
 							<dt>Decimals</dt>
 							<dd>
-								{String(decimals)}
+								{decimals}
 							</dd>
 						</div>
 					{/if}
@@ -208,11 +203,11 @@
 							<dt>URL</dt>
 							<dd>
 								<a
-									href={String(url)}
+									href={url}
 									target="_blank"
 									rel="noreferrer noopener"
 								>
-									<TruncatedValue value={String(url)} />
+									<TruncatedValue value={url} />
 								</a>
 							</dd>
 						</div>
@@ -235,7 +230,7 @@
 						<div>
 							<dt>metadata hash</dt>
 							<dd>
-								<TruncatedValue value={String(metadataHash)} />
+								<TruncatedValue value={metadataHash} />
 							</dd>
 						</div>
 					{/if}
@@ -347,7 +342,7 @@
 						<div>
 							<dt>holder count</dt>
 							<dd>
-								{String(holderCount)}
+								{holderCount}
 							</dd>
 						</div>
 					{/if}

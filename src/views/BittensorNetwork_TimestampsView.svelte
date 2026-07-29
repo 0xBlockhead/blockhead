@@ -43,15 +43,15 @@
 			entitySelector={bittensorNetworkTimestampSelector}
 		>
 			{#snippet Title()}
-				{String(bittensorNetworkTimestampSelector.timestampMs) || 'Bittensor network observation'}
+				{bittensorNetworkTimestampSelector.timestampMs}
 			{/snippet}
 
 			{#snippet Value()}
-				{String(bittensorNetworkTimestamp.finalizedBlockNumber ?? '')}
+				{bittensorNetworkTimestamp.finalizedBlockNumber ?? ''}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{(bittensorNetworkTimestamp.runtimeSpecName ?? '')}</span>
+				<span data-text="annotation">{bittensorNetworkTimestamp.runtimeSpecName ?? ''}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

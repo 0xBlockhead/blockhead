@@ -9,7 +9,8 @@ import XUserSchema from '$/schema/XUser.ts'
 import { type as arktype } from 'arktype'
 
 export const load: LayoutLoad = ({ params }) => {
-	if (!(matchStringSegment(params.userId))) error(404, 'Route mapping not applicable')
+	if (!(matchStringSegment(params.userId)))
+		error(404, 'Route mapping not applicable')
 
 	const xUserIdSelector = parseEntitySelector(
 		schema,
@@ -18,7 +19,8 @@ export const load: LayoutLoad = ({ params }) => {
 			id: params.userId,
 		}
 	)
-	if (xUserIdSelector instanceof arktype.errors) error(404, 'Invalid XUser selector')
+	if (xUserIdSelector instanceof arktype.errors)
+		error(404, 'Invalid XUser selector')
 
 	return {
 		selector: xUserIdSelector,

@@ -15,7 +15,8 @@ export const load: LayoutLoad = ({ params }) => {
 			scope: 'IpfsProtocol',
 		}
 	)
-	if (ipfsProtocolScopeSelector instanceof arktype.errors) error(404, 'Invalid IpfsProtocol selector')
+	if (ipfsProtocolScopeSelector instanceof arktype.errors)
+		error(404, 'Invalid IpfsProtocol selector')
 
 	return {
 		selector: ipfsProtocolScopeSelector,

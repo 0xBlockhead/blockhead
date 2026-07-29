@@ -44,8 +44,8 @@
 				resolve(
 					'/(social)/(youtube)/youtube/(globalYoutubeNetwork)/comment/[videoId=stringSegment]/[commentId=stringSegment]',
 					{
-						videoId: encodeURIComponent(String(youtubeCommentSelector.videoId)),
-						commentId: encodeURIComponent(String(youtubeCommentSelector.commentId)),
+						videoId: encodeURIComponent(youtubeCommentSelector.videoId),
+						commentId: encodeURIComponent(youtubeCommentSelector.commentId),
 					}
 				)
 			}
@@ -55,7 +55,7 @@
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{String(youtubeComment.publishedAtMs ?? '')}</span>
+				<span data-text="annotation">{youtubeComment.publishedAtMs ?? ''}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

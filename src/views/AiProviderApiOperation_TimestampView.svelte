@@ -21,7 +21,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.AiProviderApiOperation_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Anthropic_Rest,
@@ -55,7 +54,6 @@
 	{#snippet Title()}
 		<AiProviderApiOperationView
 			selection={select(EntityType.AiProviderApiOperation, selection.entitySelector.$operation)}
-			href=""
 			layout={EntityLayout.Title}
 			open={false}
 		/>
@@ -72,10 +70,10 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={aiProviderApiOperationTimestamp}>
 			{#snippet children(entity)}
-				{@const error0 = entity.error}
-				{#if error0 != null}
+				{@const error = entity.error}
+				{#if error != null}
 					<span data-text="muted">
-						{error0}
+						{error}
 					</span>
 				{/if}
 			{/snippet}
@@ -98,14 +96,14 @@
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+					<Timestamp timestamp={selection.entitySelector.timestampMs} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 		</dl>

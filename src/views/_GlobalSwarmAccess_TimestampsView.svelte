@@ -46,7 +46,7 @@
 					'/(swarm)/swarm/(swarmProtocol)/access/(globalSwarmAccess)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
 					{
 						timestampMs: String(globalSwarmAccessTimestampSelector.timestampMs),
-						source: String(globalSwarmAccessTimestampSelector.source),
+						source: globalSwarmAccessTimestampSelector.source,
 					}
 				)
 			}
@@ -56,7 +56,7 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{String(globalSwarmAccessTimestampSelector.timestampMs)}
+				{globalSwarmAccessTimestampSelector.timestampMs}
 			{/snippet}
 		</EntityView>
 	{/snippet}

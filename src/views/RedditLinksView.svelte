@@ -48,7 +48,7 @@
 				resolve(
 					'/(social)/(reddit)/reddit/(globalRedditNetwork)/link/[fullname=stringSegment]',
 					{
-						fullname: encodeURIComponent(String(redditLinkSelector.fullname)),
+						fullname: encodeURIComponent(redditLinkSelector.fullname),
 					}
 				)
 			}
@@ -58,7 +58,7 @@
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{String(redditLink.createdAt ?? '')}</span>
+				<span data-text="annotation">{redditLink.createdAt ?? ''}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

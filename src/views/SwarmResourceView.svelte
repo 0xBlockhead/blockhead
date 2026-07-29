@@ -6,7 +6,6 @@
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { UrlString } from '$/schema/UrlString.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -25,7 +24,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.SwarmResource> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Swarm_Rest,
@@ -44,7 +42,7 @@
 			isContentTypeInferred: true,
 		},
 	}))
-	const titleFallback = $derived(String(pendingEntity.canonicalUri ?? '') || 'Swarm resource')
+	const titleFallback = $derived((prefetched.canonicalUri ?? '') || 'Swarm resource')
 
 
 	// Components
@@ -60,23 +58,26 @@
 	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
 	href={
-		href ?? (
-			selection.entitySelector.contentPath === '' ?
-				resolve(
-					'/(swarm)/swarm/(swarmProtocol)/[reference=stringSegment]',
-					{
-						reference: String(selection.entitySelector.reference),
-					}
-				)
-			:
-				resolve(
-					'/(swarm)/swarm/(swarmProtocol)/[reference=stringSegment]/path/[...contentPath=stringSegment]',
-					{
-						reference: String(selection.entitySelector.reference),
-						contentPath: String(selection.entitySelector.contentPath),
-					}
-				)
-		)
+		href === undefined ?
+			(
+				selection.entitySelector.contentPath === '' ?
+					resolve(
+						'/(swarm)/swarm/(swarmProtocol)/[reference=stringSegment]',
+						{
+							reference: selection.entitySelector.reference,
+						}
+					)
+				:
+					resolve(
+						'/(swarm)/swarm/(swarmProtocol)/[reference=stringSegment]/path/[...contentPath=stringSegment]',
+						{
+							reference: selection.entitySelector.reference,
+							contentPath: selection.entitySelector.contentPath,
+						}
+					)
+			)
+		:
+			href ?? undefined
 	}
 	{layout}
 	bind:open
@@ -85,7 +86,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={swarmResource}>
 			{#snippet children(entity)}
-				<TruncatedValue value={String(entity.canonicalUri)} />
+				<TruncatedValue value={entity.canonicalUri} />
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -93,7 +94,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={swarmResource}>
 			{#snippet children(entity)}
-				{[(entity.contentType ?? ''), entity.displayType].filter(Boolean).join(' ') || String(entity.canonicalUri) || titleFallback}
+				{[(entity.contentType ?? ''), entity.displayType].filter(Boolean).join(' ') || entity.canonicalUri || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -103,14 +104,14 @@
 			<div>
 				<dt>Reference</dt>
 				<dd>
-					<TruncatedValue value={pendingEntity.reference} />
+					<TruncatedValue value={selection.entitySelector.reference} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Content path</dt>
 				<dd>
-					{pendingEntity.contentPath}
+					{selection.entitySelector.contentPath}
 				</dd>
 			</div>
 
@@ -122,11 +123,11 @@
 					>
 						{#snippet children(entity)}
 							<a
-								href={String(entity.canonicalUri)}
+								href={entity.canonicalUri}
 								target="_blank"
 								rel="noreferrer noopener"
 							>
-								<TruncatedValue value={String(entity.canonicalUri)} />
+								<TruncatedValue value={entity.canonicalUri} />
 							</a>
 						{/snippet}
 					</ResourceBoundary>
@@ -141,11 +142,11 @@
 					>
 						{#snippet children(entity)}
 							<a
-								href={String(entity.gatewayUrl)}
+								href={entity.gatewayUrl}
 								target="_blank"
 								rel="noreferrer noopener"
 							>
-								<TruncatedValue value={String(entity.gatewayUrl)} />
+								<TruncatedValue value={entity.gatewayUrl} />
 							</a>
 						{/snippet}
 					</ResourceBoundary>
@@ -161,7 +162,7 @@
 						resource={swarmResource}
 					>
 						{#snippet children(entity)}
-							{String(entity.gatewayOrigin)}
+							{entity.gatewayOrigin}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>

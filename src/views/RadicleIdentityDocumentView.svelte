@@ -21,9 +21,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.RadicleIdentityDocument> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const titleFallback = 'radicle identity document'
-
 
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -35,7 +32,7 @@
 <EntityView
 	entityType={EntityType.RadicleIdentityDocument}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? 'radicle identity document'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -49,14 +46,14 @@
 			<div>
 				<dt>rid</dt>
 				<dd>
-					{pendingEntity.rid}
+					{selection.entitySelector.rid}
 				</dd>
 			</div>
 
 			<div>
 				<dt>revision</dt>
 				<dd>
-					{pendingEntity.revision}
+					{selection.entitySelector.revision}
 				</dd>
 			</div>
 
@@ -94,7 +91,7 @@
 						<div>
 							<dt>signature threshold</dt>
 							<dd>
-								<TruncatedValue value={String(signatureThreshold)} />
+								{signatureThreshold}
 							</dd>
 						</div>
 					{/if}
@@ -116,7 +113,7 @@
 						<div>
 							<dt>verified signature count</dt>
 							<dd>
-								<TruncatedValue value={String(verifiedSignatureCount)} />
+								{verifiedSignatureCount}
 							</dd>
 						</div>
 					{/if}

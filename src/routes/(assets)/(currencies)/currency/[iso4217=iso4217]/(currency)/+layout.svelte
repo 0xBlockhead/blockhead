@@ -33,7 +33,7 @@
 			resolve(
 				'/(assets)/(currencies)/currency/[iso4217=iso4217]',
 				{
-					iso4217: String(params.iso4217),
+					iso4217: params.iso4217,
 				}
 			)
 		}
@@ -49,7 +49,7 @@
 					resolve(
 						'/(assets)/(currencies)/currency/[iso4217=iso4217]',
 						{
-							iso4217: String(params.iso4217),
+							iso4217: params.iso4217,
 						}
 					)
 				}

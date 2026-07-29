@@ -20,9 +20,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.IcpSubnet_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const titleFallback = 'ICP subnet timestamp'
-
 
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -35,7 +32,7 @@
 <EntityView
 	entityType={EntityType.IcpSubnet_Timestamp}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? 'ICP subnet timestamp'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -60,14 +57,14 @@
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+					<Timestamp timestamp={selection.entitySelector.timestampMs} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 
@@ -130,7 +127,7 @@
 						<div>
 							<dt>node count</dt>
 							<dd>
-								{String(nodeCount)}
+								{nodeCount}
 							</dd>
 						</div>
 					{/if}
@@ -152,7 +149,7 @@
 						<div>
 							<dt>canister count</dt>
 							<dd>
-								{String(canisterCount)}
+								{canisterCount}
 							</dd>
 						</div>
 					{/if}
@@ -218,7 +215,7 @@
 						<div>
 							<dt>certified height</dt>
 							<dd>
-								{String(certifiedHeight)}
+								{certifiedHeight}
 							</dd>
 						</div>
 					{/if}

@@ -41,7 +41,7 @@
 			entitySelector={bittensorBlockSelector}
 		>
 			{#snippet Title()}
-				{String(bittensorBlockSelector.blockNumber) || 'Bittensor block'}
+				{bittensorBlockSelector.blockNumber}
 			{/snippet}
 
 			{#snippet Value()}
@@ -49,7 +49,7 @@
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{(String(bittensorBlock.extrinsicCount ?? '') ? String(bittensorBlock.extrinsicCount ?? '') + ' extrinsics' : '')}</span>
+				<span data-text="annotation">{bittensorBlock.extrinsicCount != null ? bittensorBlock.extrinsicCount + ' extrinsics' : ''}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

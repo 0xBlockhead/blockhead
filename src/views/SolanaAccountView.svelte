@@ -24,8 +24,7 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.SolanaAccount> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const titleFallback = $derived((pendingEntity.pubkey ?? '') || 'solana account')
+	const network = $derived(selection.entitySelector.$network)
 	const viewDomId = $derived('solana-account-' + encodeURIComponent(stringify(selection.entitySelector)))
 
 
@@ -43,33 +42,36 @@
 	entityType={EntityType.SolanaAccount}
 	entitySelector={selection.entitySelector}
 	id={viewDomId}
-	title={title ?? titleFallback}
+	title={title ?? (selection.entitySelector.pubkey || 'solana account')}
 	href={
-		href ?? resolve(
-			'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(accounts)/account/[accountId=polkadotAccountIdOrStringSegmentOrEvmAddressOrSolanaPubkey]',
-			{
-				network: (
-					'caip2' in selection.entitySelector.$network ?
-						String(caip2StringFromValue(selection.entitySelector.$network.caip2))
-					:
-						String(selection.entitySelector.$network.slug)
-				),
-				accountId: String(selection.entitySelector.pubkey),
-			}
-		)
+		href === undefined ?
+			resolve(
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(accounts)/account/[accountId=polkadotAccountIdOrStringSegmentOrEvmAddressOrSolanaPubkey]',
+				{
+					network: (
+						'caip2' in network ?
+							caip2StringFromValue(network.caip2)
+						:
+							network.slug
+					),
+					accountId: selection.entitySelector.pubkey,
+				}
+			)
+		:
+			href ?? undefined
 	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<TruncatedValue value={pendingEntity.pubkey} />
+		<TruncatedValue value={selection.entitySelector.pubkey} />
 	{/snippet}
 
 	{#snippet Value()}
 		<NetworkView
 			selection={select(EntityType.Network, selection.entitySelector.$network)}
-			href=""
+			href={null}
 			layout={EntityLayout.Value}
 			open={false}
 		/>
@@ -80,7 +82,7 @@
 			<div>
 				<dt>Public key</dt>
 				<dd>
-					<TruncatedValue value={pendingEntity.pubkey} />
+					<TruncatedValue value={selection.entitySelector.pubkey} />
 				</dd>
 			</div>
 

@@ -2,6 +2,7 @@ import {
 	ApiFamily,
 	SourceEndpointKind,
 	WireProtocol,
+	sourceBindingId,
 	type SourceBinding,
 } from '$/sources/SourceBinding.ts'
 import sourceServerCredentialsById from '$/sources/$sourceServerCredentials.server.ts'
@@ -52,11 +53,7 @@ export const iterateSourceLive = async function* (
 		yield* iterateManagedGrpcLive({
 			binding,
 			signal,
-			serverCredential: binding.serverCredentialId == null ?
-				undefined
-			:
-				Object.entries(sourceServerCredentialsById)
-					.find(([serverCredentialId]) => serverCredentialId === binding.serverCredentialId)?.[1],
+			serverCredential: sourceServerCredentialsById.get(sourceBindingId(binding)),
 			request: {
 				service: request.grpc.service,
 				method: request.grpc.method,

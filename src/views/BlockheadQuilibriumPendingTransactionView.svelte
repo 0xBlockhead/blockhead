@@ -22,7 +22,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.BlockheadQuilibriumPendingTransaction> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Local_Internal,
@@ -35,7 +34,6 @@
 			deliveryType: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.transactionAddress ?? '') || 'blockhead quilibrium pending transaction')
 
 
 	// Components
@@ -51,22 +49,22 @@
 <EntityView
 	entityType={EntityType.BlockheadQuilibriumPendingTransaction}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? (selection.entitySelector.transactionAddress || 'blockhead quilibrium pending transaction')}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{(pendingEntity.transactionAddress ?? '') || 'blockhead quilibrium pending transaction'}
+		{selection.entitySelector.transactionAddress || 'blockhead quilibrium pending transaction'}
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={blockheadQuilibriumPendingTransaction}>
 			{#snippet children(entity)}
-				{@const amount0 = entity.amount}
-				{#if amount0 != null}
+				{@const amount = entity.amount}
+				{#if amount != null}
 					<NumberValue
-						value={amount0}
+						value={amount}
 					/>
 				{/if}
 			{/snippet}
@@ -76,10 +74,10 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={blockheadQuilibriumPendingTransaction}>
 			{#snippet children(entity)}
-				{@const deliveryType0 = entity.deliveryType}
-				{#if deliveryType0 != null}
+				{@const deliveryType = entity.deliveryType}
+				{#if deliveryType != null}
 					<span data-text="muted">
-						{deliveryType0}
+						{deliveryType}
 					</span>
 				{/if}
 			{/snippet}
@@ -102,7 +100,7 @@
 			<div>
 				<dt>transaction address</dt>
 				<dd>
-					<TruncatedValue value={pendingEntity.transactionAddress} />
+					<TruncatedValue value={selection.entitySelector.transactionAddress} />
 				</dd>
 			</div>
 
@@ -241,7 +239,7 @@
 						<div>
 							<dt>observed AT</dt>
 							<dd>
-								<Timestamp timestamp={Number(observedAt)} />
+								<Timestamp timestamp={observedAt} />
 							</dd>
 						</div>
 					{/if}

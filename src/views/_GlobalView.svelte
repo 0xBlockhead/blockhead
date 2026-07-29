@@ -18,8 +18,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType._Global> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const titleFallback = 'global'
 	const viewDomId = $derived('-global-' + encodeURIComponent(stringify(selection.entitySelector)))
 
 
@@ -79,7 +77,7 @@
 	entityType={EntityType._Global}
 	entitySelector={selection.entitySelector}
 	id={viewDomId}
-	title={title ?? titleFallback}
+	title={title ?? 'global'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -99,7 +97,7 @@
 			<div>
 				<dt>Scope</dt>
 				<dd>
-					{pendingEntity.scope}
+					{selection.entitySelector.scope}
 				</dd>
 			</div>
 		</dl>

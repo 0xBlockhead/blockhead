@@ -2,7 +2,8 @@
 
 import bindings from '$/sources/Local/bindings.ts'
 import { Source } from '$/sources/Source.ts'
-import { SourceProvider, type SourceProviderDefinition } from '$/sources/SourceProvider.ts'
+import { SourceProvider } from '$/sources/SourceProvider.ts'
+import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinition.ts'
 
 export default {
 	provider: SourceProvider.Local,
@@ -13,5 +14,5 @@ export default {
 			label: 'Local Internal',
 		},
 	],
-	bindings: [bindings[Source.Local_Internal]],
+	bindings: Object.values(bindings).flat(),
 } satisfies SourceProviderDefinition

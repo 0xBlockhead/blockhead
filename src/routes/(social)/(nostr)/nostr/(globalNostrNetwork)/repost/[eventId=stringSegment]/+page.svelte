@@ -42,7 +42,7 @@
 
 
 <svelte:head>
-	<title>{(pageSelection.entity == null ? 'Nostr repost' : (pageSelection.entity.repostedEventId ?? '') || 'Nostr repost')} • Nostr repost • Blockhead</title>
+	<title>{pageSelection.entity == null ? 'Nostr repost' : (pageSelection.entity.repostedEventId ?? '') || 'Nostr repost'} • Nostr repost • Blockhead</title>
 </svelte:head>
 
 

@@ -21,9 +21,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.SwapQuote_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const titleFallback = 'swap quote timestamp'
-
 
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -38,7 +35,7 @@
 <EntityView
 	entityType={EntityType.SwapQuote_Timestamp}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? 'swap quote timestamp'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -52,21 +49,21 @@
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 
 			<div>
 				<dt>quote request hash</dt>
 				<dd>
-					<TruncatedValue value={pendingEntity.quoteRequestHash} />
+					<TruncatedValue value={selection.entitySelector.quoteRequestHash} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+					<Timestamp timestamp={selection.entitySelector.timestampMs} />
 				</dd>
 			</div>
 
@@ -137,7 +134,7 @@
 						}
 					>
 						{#snippet children(entity)}
-							{String(entity.amountIn)}
+							{entity.amountIn}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -158,7 +155,7 @@
 						<div>
 							<dt>slippage</dt>
 							<dd>
-								{String(slippage)}
+								{slippage}
 							</dd>
 						</div>
 					{/if}
@@ -180,7 +177,7 @@
 						<div>
 							<dt>from address</dt>
 							<dd>
-								<TruncatedValue value={String(fromAddress)} />
+								<TruncatedValue value={fromAddress} />
 							</dd>
 						</div>
 					{/if}
@@ -202,7 +199,7 @@
 						<div>
 							<dt>to address</dt>
 							<dd>
-								<TruncatedValue value={String(toAddress)} />
+								<TruncatedValue value={toAddress} />
 							</dd>
 						</div>
 					{/if}
@@ -266,7 +263,7 @@
 						<div>
 							<dt>amount out</dt>
 							<dd>
-								{String(amountOut)}
+								{amountOut}
 							</dd>
 						</div>
 					{/if}
@@ -288,7 +285,7 @@
 						<div>
 							<dt>amount out min</dt>
 							<dd>
-								{String(amountOutMin)}
+								{amountOutMin}
 							</dd>
 						</div>
 					{/if}
@@ -310,7 +307,7 @@
 						<div>
 							<dt>price impact</dt>
 							<dd>
-								{String(priceImpact)}
+								{priceImpact}
 							</dd>
 						</div>
 					{/if}
@@ -332,7 +329,7 @@
 						<div>
 							<dt>estimated gas</dt>
 							<dd>
-								{String(estimatedGas)}
+								{estimatedGas}
 							</dd>
 						</div>
 					{/if}
@@ -354,7 +351,7 @@
 						<div>
 							<dt>estimated gas usd</dt>
 							<dd>
-								{String(estimatedGasUsd)}
+								{estimatedGasUsd}
 							</dd>
 						</div>
 					{/if}
@@ -376,7 +373,7 @@
 						<div>
 							<dt>allowance target</dt>
 							<dd>
-								{String(allowanceTarget)}
+								{allowanceTarget}
 							</dd>
 						</div>
 					{/if}
@@ -398,7 +395,7 @@
 						<div>
 							<dt>transaction to</dt>
 							<dd>
-								{String(transactionTo)}
+								{transactionTo}
 							</dd>
 						</div>
 					{/if}
@@ -442,7 +439,7 @@
 						<div>
 							<dt>Value</dt>
 							<dd>
-								{String(value)}
+								{value}
 							</dd>
 						</div>
 					{/if}
@@ -464,7 +461,7 @@
 						<div>
 							<dt>valid until ms</dt>
 							<dd>
-								{String(validUntilMs)}
+								{validUntilMs}
 							</dd>
 						</div>
 					{/if}
@@ -486,7 +483,7 @@
 						<div>
 							<dt>Block number</dt>
 							<dd>
-								{String(blockNumber)}
+								{blockNumber}
 							</dd>
 						</div>
 					{/if}

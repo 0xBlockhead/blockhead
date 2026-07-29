@@ -10,7 +10,7 @@ import {
 	EntityMetaKey,
 	entityFieldAddressKey,
 } from '$/schema/$schema.ts'
-import { MediaType } from '$/schema/Media.ts'
+import { MediaType } from '$/schema/MediaType.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 

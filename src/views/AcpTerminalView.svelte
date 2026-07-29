@@ -21,7 +21,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.AcpTerminal> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.AcpLocal_JsonRpc,
@@ -33,7 +32,7 @@
 			cwd: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.terminalId ?? '') || 'ACP terminal')
+	const titleFallback = $derived(selection.entitySelector.terminalId || 'ACP terminal')
 
 
 	// Components
@@ -53,13 +52,13 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{(pendingEntity.terminalId ?? '') || 'ACP terminal'}
+		{selection.entitySelector.terminalId || 'ACP terminal'}
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={acpTerminal}>
 			{#snippet children(entity)}
-				{(entity.command ?? '') || pendingEntity.terminalId || titleFallback}
+				{(entity.command ?? '') || selection.entitySelector.terminalId || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -67,10 +66,10 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={acpTerminal}>
 			{#snippet children(entity)}
-				{@const cwd0 = entity.cwd}
-				{#if cwd0 != null}
+				{@const cwd = entity.cwd}
+				{#if cwd != null}
 					<span data-text="muted">
-						{cwd0}
+						{cwd}
 					</span>
 				{/if}
 			{/snippet}
@@ -93,7 +92,7 @@
 			<div>
 				<dt>terminal ID</dt>
 				<dd>
-					{pendingEntity.terminalId}
+					{selection.entitySelector.terminalId}
 				</dd>
 			</div>
 
@@ -146,7 +145,7 @@
 						<div>
 							<dt>Created</dt>
 							<dd>
-								<Timestamp timestamp={Number(createdAt)} />
+								<Timestamp timestamp={createdAt} />
 							</dd>
 						</div>
 					{/if}
@@ -168,7 +167,7 @@
 						<div>
 							<dt>released AT</dt>
 							<dd>
-								<Timestamp timestamp={Number(releasedAt)} />
+								<Timestamp timestamp={releasedAt} />
 							</dd>
 						</div>
 					{/if}
@@ -178,15 +177,15 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const acpTerminalAcpTerminalTimestampsViewTimestampsResource = selection.$$timestamps}
+		{@const timestampsResource = selection.$$timestamps}
 		<ResourceBoundary
-			resource={acpTerminalAcpTerminalTimestampsViewTimestampsResource}
+			resource={timestampsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<AcpTerminal_TimestampsView
-						selection={acpTerminalAcpTerminalTimestampsViewTimestampsResource}
-						countResource={acpTerminalAcpTerminalTimestampsViewTimestampsResource.count}
+						selection={timestampsResource}
+						countResource={timestampsResource.count}
 						title='timestamps'
 						id='timestamps'
 					/>

@@ -37,7 +37,7 @@
 
 
 <svelte:head>
-	<title>{(String(pageSelection.entitySelector.timestampMs) || 'AT Protocol post observation')} • AT Protocol post observation • Blockhead</title>
+	<title>{String(pageSelection.entitySelector.timestampMs) || 'AT Protocol post observation'} • AT Protocol post observation • Blockhead</title>
 </svelte:head>
 
 

@@ -44,7 +44,7 @@
 				resolve(
 					'/~/agents/conversation/[conversationId=stringSegment]',
 					{
-						conversationId: String(blockheadAgentConversationSelector.id),
+						conversationId: blockheadAgentConversationSelector.id,
 					}
 				)
 			}
@@ -54,7 +54,7 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{String(blockheadAgentConversation.updatedAt)}
+				{blockheadAgentConversation.updatedAt}
 			{/snippet}
 		</EntityView>
 	{/snippet}

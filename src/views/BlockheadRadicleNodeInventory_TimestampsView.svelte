@@ -47,11 +47,11 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{String(blockheadRadicleNodeInventoryTimestampSelector.timestampMs)}
+				{blockheadRadicleNodeInventoryTimestampSelector.timestampMs}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{String(blockheadRadicleNodeInventoryTimestamp.repositoryCount ?? '')}</span>
+				<span data-text="annotation">{blockheadRadicleNodeInventoryTimestamp.repositoryCount ?? ''}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

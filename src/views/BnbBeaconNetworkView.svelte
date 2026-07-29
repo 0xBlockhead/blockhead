@@ -26,7 +26,6 @@
 			decommissionedAtMs: true,
 		},
 	}))
-	const titleFallback = 'bnb beacon network'
 	const viewDomId = $derived('bnb-beacon-network-' + encodeURIComponent(stringify(selection.entitySelector)))
 
 
@@ -49,7 +48,7 @@
 	entityType={EntityType.BnbBeaconNetwork}
 	entitySelector={selection.entitySelector}
 	id={viewDomId}
-	title={title ?? titleFallback}
+	title={title ?? 'bnb beacon network'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -57,7 +56,7 @@
 	{#snippet Title()}
 		<NetworkView
 			selection={select(EntityType.Network, selection.entitySelector.$network)}
-			href=""
+			href={null}
 			layout={EntityLayout.Title}
 			open={false}
 		/>
@@ -66,9 +65,9 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={bnbBeaconNetwork}>
 			{#snippet children(entity)}
-				{@const decommissionedAtMs0 = entity.decommissionedAtMs}
-				{#if decommissionedAtMs0 != null}
-					<Timestamp timestamp={Number(decommissionedAtMs0)} />
+				{@const decommissionedAtMs = entity.decommissionedAtMs}
+				{#if decommissionedAtMs != null}
+					<Timestamp timestamp={decommissionedAtMs} />
 				{/if}
 			{/snippet}
 		</ResourceBoundary>
@@ -96,7 +95,7 @@
 						<div>
 							<dt>decommissioned AT ms</dt>
 							<dd>
-								<Timestamp timestamp={Number(decommissionedAtMs)} />
+								<Timestamp timestamp={decommissionedAtMs} />
 							</dd>
 						</div>
 					{/if}
@@ -118,7 +117,7 @@
 						<div>
 							<dt>fusion deadline ms</dt>
 							<dd>
-								<Timestamp timestamp={Number(fusionDeadlineMs)} />
+								<Timestamp timestamp={fusionDeadlineMs} />
 							</dd>
 						</div>
 					{/if}

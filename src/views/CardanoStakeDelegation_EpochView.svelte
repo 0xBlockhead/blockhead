@@ -21,9 +21,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.CardanoStakeDelegation_Epoch> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const titleFallback = 'Cardano stake delegation epoch'
-
 
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -37,7 +34,7 @@
 <EntityView
 	entityType={EntityType.CardanoStakeDelegation_Epoch}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? 'Cardano stake delegation epoch'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -62,14 +59,14 @@
 			<div>
 				<dt>epoch</dt>
 				<dd>
-					{String(pendingEntity.epoch)}
+					{selection.entitySelector.epoch}
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 
@@ -128,7 +125,7 @@
 						<div>
 							<dt>active stake</dt>
 							<dd>
-								{String(activeStake)}
+								{activeStake}
 							</dd>
 						</div>
 					{/if}
@@ -150,7 +147,7 @@
 						<div>
 							<dt>reward amount</dt>
 							<dd>
-								{String(rewardAmount)}
+								{rewardAmount}
 							</dd>
 						</div>
 					{/if}
@@ -172,7 +169,7 @@
 						<div>
 							<dt>withdrawal amount</dt>
 							<dd>
-								{String(withdrawalAmount)}
+								{withdrawalAmount}
 							</dd>
 						</div>
 					{/if}

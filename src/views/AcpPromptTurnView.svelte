@@ -4,7 +4,6 @@
 	// Types/constants
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -22,7 +21,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.AcpPromptTurn> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.AcpLocal_JsonRpc,
@@ -34,7 +32,7 @@
 			startedAt: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.turnId ?? '') || 'ACP prompt turn')
+	const titleFallback = $derived(selection.entitySelector.turnId || 'ACP prompt turn')
 
 
 	// Components
@@ -54,13 +52,13 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{(pendingEntity.turnId ?? '') || 'ACP prompt turn'}
+		{selection.entitySelector.turnId || 'ACP prompt turn'}
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={acpPromptTurn}>
 			{#snippet children(entity)}
-				{(entity.stopReason ?? '') || pendingEntity.turnId || titleFallback}
+				{(entity.stopReason ?? '') || selection.entitySelector.turnId || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -68,10 +66,10 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={acpPromptTurn}>
 			{#snippet children(entity)}
-				{@const startedAt0 = entity.startedAt}
-				{#if startedAt0 != null}
+				{@const startedAt = entity.startedAt}
+				{#if startedAt != null}
 					<span data-text="muted">
-						<Timestamp timestamp={Number(startedAt0)} />
+						<Timestamp timestamp={startedAt} />
 					</span>
 				{/if}
 			{/snippet}
@@ -94,7 +92,7 @@
 			<div>
 				<dt>turn ID</dt>
 				<dd>
-					{pendingEntity.turnId}
+					{selection.entitySelector.turnId}
 				</dd>
 			</div>
 
@@ -125,7 +123,7 @@
 						<div>
 							<dt>started AT</dt>
 							<dd>
-								<Timestamp timestamp={Number(startedAt)} />
+								<Timestamp timestamp={startedAt} />
 							</dd>
 						</div>
 					{/if}
@@ -147,7 +145,7 @@
 						<div>
 							<dt>completed AT</dt>
 							<dd>
-								<Timestamp timestamp={Number(completedAt)} />
+								<Timestamp timestamp={completedAt} />
 							</dd>
 						</div>
 					{/if}
@@ -169,7 +167,7 @@
 						<div>
 							<dt>cancelled AT</dt>
 							<dd>
-								<Timestamp timestamp={Number(cancelledAt)} />
+								<Timestamp timestamp={cancelledAt} />
 							</dd>
 						</div>
 					{/if}
@@ -193,7 +191,7 @@
 						<div>
 							<dt>user prompt hash algorithm</dt>
 							<dd>
-								<TruncatedValue value={userPromptHashAlgorithm} />
+								{userPromptHashAlgorithm}
 							</dd>
 						</div>
 					{/if}
@@ -215,7 +213,7 @@
 						<div>
 							<dt>user prompt hash</dt>
 							<dd>
-								<TruncatedValue value={String(userPromptHash)} />
+								<TruncatedValue value={userPromptHash} />
 							</dd>
 						</div>
 					{/if}

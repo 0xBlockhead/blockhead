@@ -42,7 +42,7 @@
 
 
 <svelte:head>
-	<title>{(pageSelection.entity == null ? (pageSelection.entitySelector.eventId ?? '') || 'Nostr reaction' : (pageSelection.entity.content ?? '') || pageSelection.entitySelector.eventId || 'Nostr reaction')} • Nostr reaction • Blockhead</title>
+	<title>{pageSelection.entity == null ? (pageSelection.entitySelector.eventId ?? '') || 'Nostr reaction' : (pageSelection.entity.content ?? '') || pageSelection.entitySelector.eventId || 'Nostr reaction'} • Nostr reaction • Blockhead</title>
 </svelte:head>
 
 

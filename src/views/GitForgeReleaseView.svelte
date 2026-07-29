@@ -4,7 +4,6 @@
 	// Types/constants
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 
 
 	// Context
@@ -21,13 +20,12 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.GitForgeRelease> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const gitForgeRelease = $derived(selection({
 		fields: {
 			name: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.name ?? '') || (pendingEntity.releaseTagName ?? '') || 'Git forge release')
+	const titleFallback = $derived((prefetched.name ?? '') || selection.entitySelector.releaseTagName || 'Git forge release')
 
 
 	// Components
@@ -55,7 +53,7 @@
 	{/snippet}
 
 	{#snippet Value()}
-		{(pendingEntity.releaseTagName ?? '') || (pendingEntity.name ?? '') || titleFallback}
+		{selection.entitySelector.releaseTagName || (prefetched.name ?? '') || titleFallback}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -74,7 +72,7 @@
 			<div>
 				<dt>release tag name</dt>
 				<dd>
-					{pendingEntity.releaseTagName}
+					{selection.entitySelector.releaseTagName}
 				</dd>
 			</div>
 
@@ -109,7 +107,7 @@
 						<div>
 							<dt>target object ID</dt>
 							<dd>
-								<TruncatedValue value={String(targetObjectId)} />
+								<TruncatedValue value={targetObjectId} />
 							</dd>
 						</div>
 					{/if}
@@ -177,7 +175,7 @@
 						<div>
 							<dt>Created</dt>
 							<dd>
-								<Timestamp timestamp={Number(createdAt)} />
+								<Timestamp timestamp={createdAt} />
 							</dd>
 						</div>
 					{/if}
@@ -199,7 +197,7 @@
 						<div>
 							<dt>published AT</dt>
 							<dd>
-								<Timestamp timestamp={Number(publishedAt)} />
+								<Timestamp timestamp={publishedAt} />
 							</dd>
 						</div>
 					{/if}

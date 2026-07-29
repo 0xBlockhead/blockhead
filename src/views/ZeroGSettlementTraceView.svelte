@@ -21,7 +21,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.ZeroGSettlementTrace> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.ZeroGChain_JsonRpc,
@@ -34,7 +33,6 @@
 			settlementTransactionHash: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.traceId ?? '') || 'zero g settlement trace')
 
 
 	// Components
@@ -48,19 +46,18 @@
 <EntityView
 	entityType={EntityType.ZeroGSettlementTrace}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? (selection.entitySelector.traceId || 'zero g settlement trace')}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{(pendingEntity.traceId ?? '') || 'zero g settlement trace'}
+		{selection.entitySelector.traceId || 'zero g settlement trace'}
 	{/snippet}
 
 	{#snippet Value()}
 		<ZeroGServiceRequestView
 			selection={select(EntityType.ZeroGServiceRequest, selection.entitySelector.$serviceRequest)}
-			href=""
 			layout={EntityLayout.Value}
 			open={false}
 		/>
@@ -69,10 +66,10 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={zeroGSettlementTrace}>
 			{#snippet children(entity)}
-				{@const settlementTransactionHash0 = entity.settlementTransactionHash}
-				{#if settlementTransactionHash0 != null}
+				{@const settlementTransactionHash = entity.settlementTransactionHash}
+				{#if settlementTransactionHash != null}
 					<span data-text="muted">
-						<TruncatedValue value={settlementTransactionHash0} />
+						<TruncatedValue value={settlementTransactionHash} />
 					</span>
 				{/if}
 			{/snippet}
@@ -95,7 +92,7 @@
 			<div>
 				<dt>trace ID</dt>
 				<dd>
-					{pendingEntity.traceId}
+					{selection.entitySelector.traceId}
 				</dd>
 			</div>
 

@@ -42,7 +42,7 @@
 			entitySelector={celestiaNetworkTimestampSelector}
 		>
 			{#snippet Title()}
-				{String(celestiaNetworkTimestampSelector.timestampMs) || 'celestia network timestamp'}
+				{celestiaNetworkTimestampSelector.timestampMs}
 			{/snippet}
 
 			{#snippet Value()}

@@ -38,6 +38,7 @@
 >
 	{#snippet Item({ item: cardanoTransaction })}
 		{@const cardanoTransactionSelector = cardanoTransaction[EntityMetaKey.Selector]}
+		{@const network = cardanoTransactionSelector.$network}
 		<EntityView
 			entityType={EntityType.CardanoTransaction}
 			entitySelector={cardanoTransactionSelector}
@@ -46,12 +47,12 @@
 					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(transactions)/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]',
 					{
 						network: (
-							'caip2' in cardanoTransactionSelector.$network ?
-								String(caip2StringFromValue(cardanoTransactionSelector.$network.caip2))
+							'caip2' in network ?
+								caip2StringFromValue(network.caip2)
 							:
-								String(cardanoTransactionSelector.$network.slug)
+								network.slug
 						),
-						transactionId: String(cardanoTransactionSelector.hash),
+						transactionId: cardanoTransactionSelector.hash,
 					}
 				)
 			}
@@ -61,11 +62,11 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{String(cardanoTransaction.blockSlot ?? '')}
+				{cardanoTransaction.blockSlot ?? ''}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{String(cardanoTransaction.fee ?? '')}</span>
+				<span data-text="annotation">{cardanoTransaction.fee ?? ''}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

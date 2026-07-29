@@ -1,6 +1,6 @@
 import { Caip2Namespace, Caip2Reference } from '$/constants/Network.ts'
 import { WalletCapability, WalletDiscoveryKind, WalletProtocol, WalletTransportKind } from '$/constants/Wallet.ts'
-import { BlockheadConnectionStatus } from '$/schema/BlockheadWalletConnection.ts'
+import { BlockheadConnectionStatus } from '$/schema/BlockheadConnectionStatus.ts'
 import { base58 } from '@scure/base'
 import type { WalletAccount, WalletAdapter, WalletCandidate, WalletConnection } from './types.ts'
 

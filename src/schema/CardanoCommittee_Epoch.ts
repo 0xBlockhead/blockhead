@@ -1,7 +1,8 @@
 // Generated from APP.ts. Do not edit by hand.
 
 import { entity } from '$/schema/$schema.ts'
-import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
+import { EntityFieldCardinality } from '$/schema/EntityFieldCardinality.ts'
+import { EntityFieldType } from '$/schema/EntityFieldType.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
@@ -95,7 +96,16 @@ export default entity({
 	members: {
 		label: 'members',
 		type: EntityFieldType.Primitive,
-		primitiveType: type({ 'cc_cold_id': type('string'), 'cc_cold_hex': type('string'), 'cc_cold_has_script': type('boolean'), 'cc_hot_id': type('unknown'), 'cc_hot_hex': type('unknown'), 'cc_hot_has_script': type('unknown'), 'status': type('string'), 'expiration_epoch': type('number') }),
+		primitiveType: type({
+			cc_cold_id: type('string'),
+			cc_cold_hex: type('string'),
+			cc_cold_has_script: type('boolean'),
+			cc_hot_id: type('unknown'),
+			cc_hot_hex: type('unknown'),
+			cc_hot_has_script: type('unknown'),
+			status: type('string'),
+			expiration_epoch: type('number'),
+		}),
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
 			Source.Blockfrost_Rest,

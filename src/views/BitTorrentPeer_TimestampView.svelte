@@ -20,13 +20,12 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.BitTorrentPeer_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const bitTorrentPeerTimestamp = $derived(selection({
 		fields: {
 			client: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.peerId ?? '') || 'bit torrent peer timestamp')
+	const titleFallback = $derived(selection.entitySelector.peerId || 'bit torrent peer timestamp')
 
 
 	// Components
@@ -47,20 +46,20 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{(pendingEntity.peerId ?? '') || 'bit torrent peer timestamp'}
+		{selection.entitySelector.peerId || 'bit torrent peer timestamp'}
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={bitTorrentPeerTimestamp}>
 			{#snippet children(entity)}
-				{(entity.client ?? '') || pendingEntity.peerId || titleFallback}
+				{(entity.client ?? '') || selection.entitySelector.peerId || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
 		<span data-text="muted">
-			<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+			<Timestamp timestamp={selection.entitySelector.timestampMs} />
 		</span>
 	{/snippet}
 
@@ -80,21 +79,21 @@
 			<div>
 				<dt>peer ID</dt>
 				<dd>
-					{pendingEntity.peerId}
+					{selection.entitySelector.peerId}
 				</dd>
 			</div>
 
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+					<Timestamp timestamp={selection.entitySelector.timestampMs} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 		</dl>

@@ -4,7 +4,6 @@
 	// Types/constants
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -22,7 +21,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.EigenLayerDelegation_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.EigenExplorer_Rest,
@@ -32,7 +30,6 @@
 			Source.Voltaire_JsonRpc,
 		],
 	}))
-	const titleFallback = 'eigen layer delegation timestamp'
 
 
 	// Components
@@ -48,7 +45,7 @@
 <EntityView
 	entityType={EntityType.EigenLayerDelegation_Timestamp}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? 'eigen layer delegation timestamp'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -56,7 +53,7 @@
 	{#snippet Title()}
 		<EvmNetworkAccountView
 			selection={select(EntityType.EvmNetworkAccount, selection.entitySelector.$staker)}
-			href=""
+			href={null}
 			layout={EntityLayout.Title}
 			open={false}
 		/>
@@ -65,7 +62,6 @@
 	{#snippet Value()}
 		<EigenLayerOperatorView
 			selection={select(EntityType.EigenLayerOperator, selection.entitySelector.$operator)}
-			href=""
 			layout={EntityLayout.Value}
 			open={false}
 		/>
@@ -119,14 +115,14 @@
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+					<Timestamp timestamp={selection.entitySelector.timestampMs} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 
@@ -195,7 +191,7 @@
 						<div>
 							<dt>deposit root</dt>
 							<dd>
-								{String(depositRoot)}
+								{depositRoot}
 							</dd>
 						</div>
 					{/if}
@@ -217,7 +213,7 @@
 						<div>
 							<dt>withdrawal root</dt>
 							<dd>
-								{String(withdrawalRoot)}
+								{withdrawalRoot}
 							</dd>
 						</div>
 					{/if}

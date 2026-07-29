@@ -45,7 +45,7 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{String(starknetStorageEntryTimestampSelector.blockNumber)}
+				{starknetStorageEntryTimestampSelector.blockNumber}
 			{/snippet}
 
 			{#snippet HeadingAfter()}

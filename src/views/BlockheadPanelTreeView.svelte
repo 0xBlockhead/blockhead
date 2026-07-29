@@ -23,9 +23,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.BlockheadPanelTree> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const titleFallback = $derived((pendingEntity.id ?? '') || 'dashboard')
-
 
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -38,21 +35,24 @@
 <EntityView
 	entityType={EntityType.BlockheadPanelTree}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? (selection.entitySelector.id || 'dashboard')}
 	href={
-		href ?? resolve(
-			'/~/dashboard/[dashboardId=stringSegment]',
-			{
-				dashboardId: String(selection.entitySelector.id),
-			}
-		)
+		href === undefined ?
+			resolve(
+				'/~/dashboard/[dashboardId=stringSegment]',
+				{
+					dashboardId: selection.entitySelector.id,
+				}
+			)
+		:
+			href ?? undefined
 	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<TruncatedValue value={pendingEntity.id} />
+		<TruncatedValue value={selection.entitySelector.id} />
 	{/snippet}
 
 	{#snippet Value()}
@@ -64,7 +64,7 @@
 			<div>
 				<dt>ID</dt>
 				<dd>
-					{pendingEntity.id}
+					{selection.entitySelector.id}
 				</dd>
 			</div>
 
@@ -91,15 +91,15 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const blockheadPanelTreeBlockheadPanelsViewPanelsResource = selection.$$panels}
+		{@const panelsResource = selection.$$panels}
 		<ResourceBoundary
-			resource={blockheadPanelTreeBlockheadPanelsViewPanelsResource}
+			resource={panelsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<BlockheadPanelsView
-						selection={blockheadPanelTreeBlockheadPanelsViewPanelsResource}
-						countResource={blockheadPanelTreeBlockheadPanelsViewPanelsResource.count}
+						selection={panelsResource}
+						countResource={panelsResource.count}
 						title='panels'
 						id='panels'
 					/>

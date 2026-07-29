@@ -21,19 +21,17 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.NearExecutionOutcome> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const viewSelection = $derived(selection({
+	const nearExecutionOutcome = $derived(selection({
 		sources: selection.sources ?? [
 			Source.NearRpc_JsonRpc,
 		],
-	}))
-	const nearExecutionOutcome = $derived(viewSelection({
+	})({
 		fields: {
 			status: true,
 			gasBurnt: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.outcomeId ?? '') || 'near execution outcome')
+	const titleFallback = $derived(selection.entitySelector.outcomeId || 'near execution outcome')
 
 
 	// Components
@@ -54,13 +52,13 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<TruncatedValue value={pendingEntity.outcomeId} />
+		<TruncatedValue value={selection.entitySelector.outcomeId} />
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={nearExecutionOutcome}>
 			{#snippet children(entity)}
-				{(entity.status ?? '') || pendingEntity.outcomeId || titleFallback}
+				{(entity.status ?? '') || selection.entitySelector.outcomeId || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -68,11 +66,11 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={nearExecutionOutcome}>
 			{#snippet children(entity)}
-				{@const gasBurnt0 = entity.gasBurnt}
-				{#if gasBurnt0 != null}
+				{@const gasBurnt = entity.gasBurnt}
+				{#if gasBurnt != null}
 					<span data-text="muted">
 						<NumberValue
-							value={gasBurnt0}
+							value={gasBurnt}
 						/>
 					</span>
 				{/if}
@@ -96,7 +94,7 @@
 			<div>
 				<dt>Outcome ID</dt>
 				<dd>
-					<TruncatedValue value={pendingEntity.outcomeId} />
+					<TruncatedValue value={selection.entitySelector.outcomeId} />
 				</dd>
 			</div>
 
@@ -137,15 +135,15 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const nearExecutionOutcomeNearReceiptsViewReceiptsResource = selection.$$receipts}
+		{@const receiptsResource = selection.$$receipts}
 		<ResourceBoundary
-			resource={nearExecutionOutcomeNearReceiptsViewReceiptsResource}
+			resource={receiptsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<NearReceiptsView
-						selection={nearExecutionOutcomeNearReceiptsViewReceiptsResource}
-						countResource={nearExecutionOutcomeNearReceiptsViewReceiptsResource.count}
+						selection={receiptsResource}
+						countResource={receiptsResource.count}
 						title='Receipts'
 						id='receipts'
 					/>

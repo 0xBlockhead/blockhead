@@ -41,7 +41,7 @@
 			entitySelector={magnetResolutionTimestampSelector}
 		>
 			{#snippet Title()}
-				{String(magnetResolutionTimestampSelector.timestampMs) || 'magnet resolution timestamp'}
+				{magnetResolutionTimestampSelector.timestampMs}
 			{/snippet}
 
 			{#snippet Value()}

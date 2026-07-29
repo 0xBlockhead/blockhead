@@ -39,6 +39,7 @@
 >
 	{#snippet Item({ item: ethereumBeaconFinalityTimestamp })}
 		{@const ethereumBeaconFinalityTimestampSelector = ethereumBeaconFinalityTimestamp[EntityMetaKey.Selector]}
+		{@const network = ethereumBeaconFinalityTimestampSelector.$network}
 		<EntityView
 			entityType={EntityType.EthereumBeaconFinality_Timestamp}
 			entitySelector={ethereumBeaconFinalityTimestampSelector}
@@ -47,10 +48,10 @@
 					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/finality/[timestampMs=nonNegativeInteger]',
 					{
 						network: (
-							'caip2' in ethereumBeaconFinalityTimestampSelector.$network ?
-								String(caip2StringFromValue(ethereumBeaconFinalityTimestampSelector.$network.caip2))
+							'caip2' in network ?
+								caip2StringFromValue(network.caip2)
 							:
-								String(ethereumBeaconFinalityTimestampSelector.$network.slug)
+								network.slug
 						),
 						timestampMs: String(ethereumBeaconFinalityTimestampSelector.timestampMs),
 					}
@@ -58,15 +59,15 @@
 			}
 		>
 			{#snippet Title()}
-				{(String(ethereumBeaconFinalityTimestamp.finalizedCheckpointEpoch) ? 'Finalized epoch ' + String(ethereumBeaconFinalityTimestamp.finalizedCheckpointEpoch) : '') || 'ethereum beacon finality timestamp'}
+				{'Finalized epoch ' + ethereumBeaconFinalityTimestamp.finalizedCheckpointEpoch}
 			{/snippet}
 
 			{#snippet Value()}
-				{String(ethereumBeaconFinalityTimestamp.finalizedCheckpointEpoch)}
+				{ethereumBeaconFinalityTimestamp.finalizedCheckpointEpoch}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{String(ethereumBeaconFinalityTimestampSelector.timestampMs)}</span>
+				<span data-text="annotation">{ethereumBeaconFinalityTimestampSelector.timestampMs}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

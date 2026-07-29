@@ -5,7 +5,6 @@
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { UrlString } from '$/schema/UrlString.ts'
 
 
 	// State
@@ -46,11 +45,11 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{(aiDocument.mediaType ?? '')}
+				{aiDocument.mediaType ?? ''}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{String(aiDocumentSelector.documentUrl ?? '')}</span>
+				<span data-text="annotation">{aiDocumentSelector.documentUrl ?? ''}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

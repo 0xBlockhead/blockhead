@@ -21,7 +21,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.EigenLayerAvs_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.EigenExplorer_Rest,
@@ -36,7 +35,6 @@
 			operatorCount: true,
 		},
 	}))
-	const titleFallback = 'eigen layer avs timestamp'
 
 
 	// Components
@@ -50,7 +48,7 @@
 <EntityView
 	entityType={EntityType.EigenLayerAvs_Timestamp}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? 'eigen layer avs timestamp'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -58,24 +56,23 @@
 	{#snippet Title()}
 		<EigenLayerAvsView
 			selection={select(EntityType.EigenLayerAvs, selection.entitySelector.$avs)}
-			href=""
 			layout={EntityLayout.Title}
 			open={false}
 		/>
 	{/snippet}
 
 	{#snippet Value()}
-		<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+		<Timestamp timestamp={selection.entitySelector.timestampMs} />
 	{/snippet}
 
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={eigenLayerAvsTimestamp}>
 			{#snippet children(entity)}
-				{@const operatorCount0 = entity.operatorCount}
-				{#if operatorCount0 != null}
+				{@const operatorCount = entity.operatorCount}
+				{#if operatorCount != null}
 					<span data-text="muted">
 						<NumberValue
-							value={operatorCount0}
+							value={operatorCount}
 						/>
 					</span>
 				{/if}
@@ -99,14 +96,14 @@
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+					<Timestamp timestamp={selection.entitySelector.timestampMs} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 

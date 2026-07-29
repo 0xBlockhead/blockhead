@@ -50,7 +50,7 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{String(nearAccount.amountYoctoNear ?? '')}
+				{nearAccount.amountYoctoNear ?? ''}
 			{/snippet}
 
 			{#snippet HeadingAfter()}

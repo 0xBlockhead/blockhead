@@ -20,9 +20,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.StellarNetwork_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const titleFallback = 'stellar network timestamp'
-
 
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -34,7 +31,7 @@
 <EntityView
 	entityType={EntityType.StellarNetwork_Timestamp}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? 'stellar network timestamp'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -59,14 +56,14 @@
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+					<Timestamp timestamp={selection.entitySelector.timestampMs} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 
@@ -85,7 +82,7 @@
 						<div>
 							<dt>latest ledger</dt>
 							<dd>
-								{String(latestLedger)}
+								{latestLedger}
 							</dd>
 						</div>
 					{/if}
@@ -107,7 +104,7 @@
 						<div>
 							<dt>protocol version</dt>
 							<dd>
-								{String(protocolVersion)}
+								{protocolVersion}
 							</dd>
 						</div>
 					{/if}
@@ -129,7 +126,7 @@
 						<div>
 							<dt>base fee</dt>
 							<dd>
-								{String(baseFee)}
+								{baseFee}
 							</dd>
 						</div>
 					{/if}
@@ -151,7 +148,7 @@
 						<div>
 							<dt>base reserve</dt>
 							<dd>
-								{String(baseReserve)}
+								{baseReserve}
 							</dd>
 						</div>
 					{/if}

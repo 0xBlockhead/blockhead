@@ -4,7 +4,7 @@ import {
 	EntityMetaKey,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import { OptimisticProviderResult } from '$/schema/Network_Activity_Day.ts'
+import { OptimisticProviderResult } from '$/schema/OptimisticProviderResult.ts'
 import { Source } from '$/sources/Source.ts'
 import { getActivityDay } from '$/sources/SpaceAndTime/MakeInfinite/queries.ts'
 

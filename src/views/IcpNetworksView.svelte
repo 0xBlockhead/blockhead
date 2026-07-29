@@ -39,7 +39,7 @@
 			entitySelector={icpNetworkSelector}
 		>
 			{#snippet Title()}
-				{(icpNetwork.$network.name || (icpNetworkSelector.$network.caip2 == null ? '' : `${icpNetworkSelector.$network.caip2.namespace}:${icpNetworkSelector.$network.caip2.reference}`) || 'Network')}
+				{icpNetwork.$network.name || (icpNetworkSelector.$network.caip2 == null ? '' : `${icpNetworkSelector.$network.caip2.namespace}:${icpNetworkSelector.$network.caip2.reference}`) || 'Network'}
 			{/snippet}
 		</EntityView>
 	{/snippet}

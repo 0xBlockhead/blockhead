@@ -20,14 +20,10 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.HederaNetwork_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const titleFallback = 'hedera network timestamp'
-
 
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
-	import TruncatedValue from '$/components/TruncatedValue.svelte'
 	import NetworkView from '$/views/NetworkView.svelte'
 </script>
 
@@ -35,7 +31,7 @@
 <EntityView
 	entityType={EntityType.HederaNetwork_Timestamp}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? 'hedera network timestamp'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -60,14 +56,14 @@
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+					<Timestamp timestamp={selection.entitySelector.timestampMs} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 
@@ -108,7 +104,7 @@
 						<div>
 							<dt>latest block number</dt>
 							<dd>
-								{String(latestBlockNumber)}
+								{latestBlockNumber}
 							</dd>
 						</div>
 					{/if}
@@ -130,7 +126,7 @@
 						<div>
 							<dt>latest transaction count</dt>
 							<dd>
-								{String(latestTransactionCount)}
+								{latestTransactionCount}
 							</dd>
 						</div>
 					{/if}
@@ -152,7 +148,7 @@
 						<div>
 							<dt>account count</dt>
 							<dd>
-								<TruncatedValue value={String(accountCount)} />
+								{accountCount}
 							</dd>
 						</div>
 					{/if}
@@ -174,7 +170,7 @@
 						<div>
 							<dt>token count</dt>
 							<dd>
-								{String(tokenCount)}
+								{tokenCount}
 							</dd>
 						</div>
 					{/if}
@@ -196,7 +192,7 @@
 						<div>
 							<dt>topic count</dt>
 							<dd>
-								{String(topicCount)}
+								{topicCount}
 							</dd>
 						</div>
 					{/if}
@@ -218,7 +214,7 @@
 						<div>
 							<dt>contract count</dt>
 							<dd>
-								{String(contractCount)}
+								{contractCount}
 							</dd>
 						</div>
 					{/if}
@@ -240,7 +236,7 @@
 						<div>
 							<dt>mirror node lag ms</dt>
 							<dd>
-								{String(mirrorNodeLagMs)}
+								{mirrorNodeLagMs}
 							</dd>
 						</div>
 					{/if}

@@ -2,7 +2,8 @@
 
 import bindings from '$/sources/LightningLnd/bindings.ts'
 import { Source } from '$/sources/Source.ts'
-import { SourceProvider, type SourceProviderDefinition } from '$/sources/SourceProvider.ts'
+import { SourceProvider } from '$/sources/SourceProvider.ts'
+import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinition.ts'
 
 export default {
 	provider: SourceProvider.LightningLnd,
@@ -17,8 +18,5 @@ export default {
 			label: 'LND REST',
 		},
 	],
-	bindings: [
-		bindings[Source.LightningLnd_Grpc],
-		bindings[Source.LightningLnd_Rest],
-	],
+	bindings: Object.values(bindings).flat(),
 } satisfies SourceProviderDefinition

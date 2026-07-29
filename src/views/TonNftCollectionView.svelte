@@ -22,8 +22,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.TonNftCollection> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const titleFallback = 'TON NFT collection'
 	const viewDomId = $derived('ton-nft-collection-' + encodeURIComponent(stringify(selection.entitySelector)))
 
 
@@ -44,7 +42,7 @@
 	entityType={EntityType.TonNftCollection}
 	entitySelector={selection.entitySelector}
 	id={viewDomId}
-	title={title ?? titleFallback}
+	title={title ?? 'TON NFT collection'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -69,7 +67,7 @@
 			<div>
 				<dt>collection address</dt>
 				<dd>
-					<TruncatedValue value={pendingEntity.collectionAddress} />
+					<TruncatedValue value={selection.entitySelector.collectionAddress} />
 				</dd>
 			</div>
 

@@ -4,7 +4,6 @@
 	// Types/constants
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -22,7 +21,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.BlockheadWakuMessageObservation_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Local_Internal,
@@ -33,7 +31,6 @@
 			contentTopic: true,
 		},
 	}))
-	const titleFallback = $derived(String(pendingEntity.messageHash ?? '') || 'blockhead waku message observation timestamp')
 
 
 	// Components
@@ -48,26 +45,26 @@
 <EntityView
 	entityType={EntityType.BlockheadWakuMessageObservation_Timestamp}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? (selection.entitySelector.messageHash || 'blockhead waku message observation timestamp')}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{String(pendingEntity.messageHash ?? '') || 'blockhead waku message observation timestamp'}
+		{selection.entitySelector.messageHash || 'blockhead waku message observation timestamp'}
 	{/snippet}
 
 	{#snippet Value()}
-		<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+		<Timestamp timestamp={selection.entitySelector.timestampMs} />
 	{/snippet}
 
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={blockheadWakuMessageObservationTimestamp}>
 			{#snippet children(entity)}
-				{@const contentTopic0 = entity.contentTopic}
-				{#if contentTopic0 != null}
+				{@const contentTopic = entity.contentTopic}
+				{#if contentTopic != null}
 					<span data-text="muted">
-						{contentTopic0}
+						{contentTopic}
 					</span>
 				{/if}
 			{/snippet}
@@ -90,21 +87,21 @@
 			<div>
 				<dt>message hash</dt>
 				<dd>
-					<TruncatedValue value={String(pendingEntity.messageHash)} />
+					<TruncatedValue value={selection.entitySelector.messageHash} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+					<Timestamp timestamp={selection.entitySelector.timestampMs} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 
@@ -163,7 +160,7 @@
 						<div>
 							<dt>payload hash</dt>
 							<dd>
-								<TruncatedValue value={String(payloadHash)} />
+								<TruncatedValue value={payloadHash} />
 							</dd>
 						</div>
 					{/if}

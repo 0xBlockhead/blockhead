@@ -38,6 +38,7 @@
 >
 	{#snippet Item({ item: utxoOutput })}
 		{@const utxoOutputSelector = utxoOutput[EntityMetaKey.Selector]}
+		{@const transaction = utxoOutputSelector.$transaction}
 		<EntityView
 			entityType={EntityType.UtxoOutput}
 			entitySelector={utxoOutputSelector}
@@ -46,19 +47,19 @@
 					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(transactions)/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/(selection)/output/[outputIndex=nonNegativeInteger]',
 					{
 						network: (
-							'caip2' in utxoOutputSelector.$transaction.$network ?
-								String(caip2StringFromValue(utxoOutputSelector.$transaction.$network.caip2))
+							'caip2' in transaction.$network ?
+								caip2StringFromValue(transaction.$network.caip2)
 							:
-								String(utxoOutputSelector.$transaction.$network.slug)
+								transaction.$network.slug
 						),
-						transactionId: String(utxoOutputSelector.$transaction.txId),
+						transactionId: transaction.txId,
 						outputIndex: String(utxoOutputSelector.indexInTransaction),
 					}
 				)
 			}
 		>
 			{#snippet Title()}
-				{(String(utxoOutputSelector.indexInTransaction ?? '') ? 'Output #' + String(utxoOutputSelector.indexInTransaction ?? '') : '') || 'UTXO output'}
+				{`Output #${utxoOutputSelector.indexInTransaction}`}
 			{/snippet}
 
 			{#snippet HeadingAfter()}

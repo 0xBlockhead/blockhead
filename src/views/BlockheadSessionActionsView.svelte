@@ -44,11 +44,11 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{(blockheadSessionAction.selectedProtocol ?? '')}
+				{blockheadSessionAction.selectedProtocol ?? ''}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{String(blockheadSessionAction.indexInSequence)}</span>
+				<span data-text="annotation">{blockheadSessionAction.indexInSequence}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

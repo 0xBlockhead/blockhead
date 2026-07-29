@@ -6,7 +6,6 @@
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { UrlString } from '$/schema/UrlString.ts'
 
 
 	// State
@@ -45,21 +44,21 @@
 				resolve(
 					'/(social)/(rss)/rss/(rssNetwork)/feed/[feedUrl=absoluteUrl]',
 					{
-						feedUrl: encodeURIComponent(String(rssFeedSelector.feedUrl)),
+						feedUrl: encodeURIComponent(rssFeedSelector.feedUrl),
 					}
 				)
 			}
 		>
 			{#snippet Title()}
-				{[(rssFeed.title ?? ''), String(rssFeedSelector.feedUrl)].filter(Boolean).join(' ') || 'RSS feed'}
+				{[(rssFeed.title ?? ''), rssFeedSelector.feedUrl].filter(Boolean).join(' ') || 'RSS feed'}
 			{/snippet}
 
 			{#snippet Value()}
-				{String(rssFeedSelector.feedUrl)}
+				{rssFeedSelector.feedUrl}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{String(rssFeed.lastBuildDate ?? '')}</span>
+				<span data-text="annotation">{rssFeed.lastBuildDate ?? ''}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

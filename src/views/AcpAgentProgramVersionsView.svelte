@@ -42,15 +42,15 @@
 			entitySelector={acpAgentProgramVersionSelector}
 		>
 			{#snippet Title()}
-				{(acpAgentProgramVersionSelector.version ?? '') || (acpAgentProgramVersion.$artifact == null ? '' : (acpAgentProgramVersion.$artifact.artifactType ?? '') || [(acpAgentProgramVersion.$artifact.providerArtifactId ?? ''), (acpAgentProgramVersion.$artifact.ociDigest ?? ''), (acpAgentProgramVersion.$artifact.ipfsCid ?? ''), (acpAgentProgramVersion.$artifact.arweaveId ?? ''), (acpAgentProgramVersion.$artifact.gitObject ?? ''), String(acpAgentProgramVersion.$artifact.digest ?? '')].filter(Boolean).join(' ') || 'AI artifact')}
+				{(acpAgentProgramVersionSelector.version ?? '') || (acpAgentProgramVersion.$artifact == null ? '' : (acpAgentProgramVersion.$artifact.artifactType ?? '') || [(acpAgentProgramVersion.$artifact.providerArtifactId ?? ''), (acpAgentProgramVersion.$artifact.ociDigest ?? ''), (acpAgentProgramVersion.$artifact.ipfsCid ?? ''), (acpAgentProgramVersion.$artifact.arweaveId ?? ''), (acpAgentProgramVersion.$artifact.gitObject ?? ''), (acpAgentProgramVersion.$artifact.digest ?? '')].filter(Boolean).join(' ') || 'AI artifact') || 'ACP agent program version'}
 			{/snippet}
 
 			{#snippet Value()}
-				{acpAgentProgramVersion.$program == null ? '' : (acpAgentProgramVersion.$program.label ?? '') || [(acpAgentProgramVersion.$program.registryAgentId ?? ''), (acpAgentProgramVersion.$program.packageName ?? ''), String(acpAgentProgramVersion.$program.repositoryUrl ?? '')].filter(Boolean).join(' ') || 'ACP agent program'}
+				{acpAgentProgramVersion.$program == null ? '' : (acpAgentProgramVersion.$program.label ?? '') || [(acpAgentProgramVersion.$program.registryAgentId ?? ''), (acpAgentProgramVersion.$program.packageName ?? ''), (acpAgentProgramVersion.$program.repositoryUrl ?? '')].filter(Boolean).join(' ') || 'ACP agent program'}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{(acpAgentProgramVersion.distributionKind ?? '')}</span>
+				<span data-text="annotation">{acpAgentProgramVersion.distributionKind ?? ''}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

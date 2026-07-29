@@ -1,7 +1,8 @@
 // Generated from APP.ts. Do not edit by hand.
 
 import { entity } from '$/schema/$schema.ts'
-import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
+import { EntityFieldCardinality } from '$/schema/EntityFieldCardinality.ts'
+import { EntityFieldType } from '$/schema/EntityFieldType.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { type } from 'arktype'
 
@@ -27,13 +28,19 @@ export default entity({
 	saplingTree: {
 		label: 'Sapling tree',
 		type: EntityFieldType.Primitive,
-		primitiveType: type({ 'finalRoot': type('string'), 'finalState': type('string') }),
+		primitiveType: type({
+			finalRoot: type('string'),
+			finalState: type('string'),
+		}),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	orchardTree: {
 		label: 'Orchard tree',
 		type: EntityFieldType.Primitive,
-		primitiveType: type({ 'finalRoot': type('string'), 'finalState': type('string') }),
+		primitiveType: type({
+			finalRoot: type('string'),
+			finalState: type('string'),
+		}),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 })({

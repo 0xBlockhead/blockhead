@@ -45,7 +45,7 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{(bnbValidator.consensusAddress ?? '')}
+				{bnbValidator.consensusAddress ?? ''}
 			{/snippet}
 		</EntityView>
 	{/snippet}

@@ -1,11 +1,11 @@
 // Generated from APP.ts. Do not edit by hand.
 
 import { Source } from '$/sources/Source.ts'
-import { ApiFamily, SourceArtifactKind, SourceCredentialScope, SourceDelivery, SourceEndpointKind, SourceOperationGroup, SourceTargetKind, WireProtocol, type SourceBindingIndex } from '$/sources/SourceBinding.ts'
+import { ApiFamily, indexSourceBindings, SourceArtifactKind, SourceCredentialScope, SourceDelivery, SourceEndpointKind, SourceOperationGroup, SourceTargetKind, WireProtocol, type SourceBinding } from '$/sources/SourceBinding.ts'
 import { type as arktype } from 'arktype'
 
-export default {
-	[Source.Defillama_OpenApi]: {
+const bindings = [
+	{
 		source: Source.Defillama_OpenApi,
 		target: {
 			kind: SourceTargetKind.Global,
@@ -36,7 +36,6 @@ export default {
 				scope: SourceCredentialScope.None,
 			},
 		],
-		proxyId: '["Defillama_OpenApi","Global","coins-openapi","HttpProxy","OpenApiHttp"]',
 		artifacts: [
 			{
 				kind: SourceArtifactKind.OpenApiSpec,
@@ -55,7 +54,7 @@ export default {
 			},
 		],
 	},
-	[Source.Defillama_Rest]: {
+	{
 		source: Source.Defillama_Rest,
 		target: {
 			kind: SourceTargetKind.Global,
@@ -86,7 +85,6 @@ export default {
 				],
 			},
 		],
-		proxyId: '["Defillama_Rest","Global","coins-pro-rest","HttpProxy","RestJson"]',
 		artifacts: [
 			{
 				kind: SourceArtifactKind.HandwrittenTypes,
@@ -95,4 +93,9 @@ export default {
 			},
 		],
 	},
-} as const satisfies SourceBindingIndex
+] as const satisfies readonly SourceBinding[]
+
+export default indexSourceBindings<{
+	readonly [Source.Defillama_OpenApi]: typeof bindings[0]
+	readonly [Source.Defillama_Rest]: typeof bindings[1]
+}>(bindings)

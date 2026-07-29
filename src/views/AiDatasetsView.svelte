@@ -5,7 +5,6 @@
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { UrlString } from '$/schema/UrlString.ts'
 
 
 	// State
@@ -45,15 +44,15 @@
 			entitySelector={aiDatasetSelector}
 		>
 			{#snippet Title()}
-				{(aiDataset.label ?? '') || [String(aiDatasetSelector.datasetUri ?? ''), (aiDatasetSelector.datasetName ?? ''), (aiDatasetSelector.huggingFaceDatasetId ?? '')].filter(Boolean).join(' ') || 'AI dataset'}
+				{(aiDataset.label ?? '') || [(aiDatasetSelector.datasetUri ?? ''), (aiDatasetSelector.datasetName ?? ''), (aiDatasetSelector.huggingFaceDatasetId ?? '')].filter(Boolean).join(' ') || 'AI dataset'}
 			{/snippet}
 
 			{#snippet Value()}
-				{(aiDataset.modality ?? '')}
+				{aiDataset.modality ?? ''}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{(aiDataset.license ?? '')}</span>
+				<span data-text="annotation">{aiDataset.license ?? ''}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

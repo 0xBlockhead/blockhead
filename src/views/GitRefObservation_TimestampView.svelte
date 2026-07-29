@@ -4,7 +4,6 @@
 	// Types/constants
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 
 
 	// Context
@@ -21,13 +20,11 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.GitRefObservation_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const gitRefObservationTimestamp = $derived(selection({
 		fields: {
 			targetObjectId: true,
 		},
 	}))
-	const titleFallback = $derived(String(pendingEntity.timestampMs ?? '') || 'Git ref observation timestamp')
 
 
 	// Components
@@ -41,26 +38,26 @@
 <EntityView
 	entityType={EntityType.GitRefObservation_Timestamp}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? String(selection.entitySelector.timestampMs)}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+		<Timestamp timestamp={selection.entitySelector.timestampMs} />
 	{/snippet}
 
 	{#snippet Value()}
-		{(pendingEntity.source ?? '') || String(pendingEntity.timestampMs ?? '') || titleFallback}
+		{selection.entitySelector.source || String(selection.entitySelector.timestampMs)}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={gitRefObservationTimestamp}>
 			{#snippet children(entity)}
-				{@const targetObjectId0 = entity.targetObjectId}
-				{#if targetObjectId0 != null}
+				{@const targetObjectId = entity.targetObjectId}
+				{#if targetObjectId != null}
 					<span data-text="muted">
-						<TruncatedValue value={String(targetObjectId0)} />
+						<TruncatedValue value={targetObjectId} />
 					</span>
 				{/if}
 			{/snippet}
@@ -83,14 +80,14 @@
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+					<Timestamp timestamp={selection.entitySelector.timestampMs} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 
@@ -103,7 +100,7 @@
 						<div>
 							<dt>target object ID</dt>
 							<dd>
-								<TruncatedValue value={String(targetObjectId)} />
+								<TruncatedValue value={targetObjectId} />
 							</dd>
 						</div>
 					{/if}
@@ -125,7 +122,7 @@
 						<div>
 							<dt>peeled object ID</dt>
 							<dd>
-								<TruncatedValue value={String(peeledObjectId)} />
+								<TruncatedValue value={peeledObjectId} />
 							</dd>
 						</div>
 					{/if}

@@ -49,7 +49,7 @@
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{String(eip8004AgentRegistrationSelector.chainId)}</span>
+				<span data-text="annotation">{eip8004AgentRegistrationSelector.chainId}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

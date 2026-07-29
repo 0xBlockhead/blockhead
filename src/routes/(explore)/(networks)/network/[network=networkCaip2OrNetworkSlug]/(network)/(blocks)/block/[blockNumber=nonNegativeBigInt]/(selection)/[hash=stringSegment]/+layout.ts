@@ -2,7 +2,6 @@
 
 import type { LayoutLoad } from './$types'
 import { error } from '@sveltejs/kit'
-import { networkByCaip2, networkBySlug } from '$/constants/Network.ts'
 import { match as matchNonNegativeBigInt } from '$/params/nonNegativeBigInt.ts'
 import { match as matchStringSegment } from '$/params/stringSegment.ts'
 import { parseEntitySelector, type EntitySelectorForSelectorName } from '$/schema/$schema.ts'
@@ -14,9 +13,6 @@ import { type as arktype } from 'arktype'
 
 export const load: LayoutLoad = async ({ params, parent }) => {
 	const parentData = await parent()
-
-	const projectionNetwork = (Object.getOwnPropertyDescriptor(networkByCaip2, decodeURIComponent(params.network))?.value ?? Object.getOwnPropertyDescriptor(networkBySlug, params.network)?.value)
-	if (projectionNetwork == null) error(404, 'Network projection context not found')
 
 	const routeCandidates: (
 		| {
@@ -39,7 +35,17 @@ export const load: LayoutLoad = async ({ params, parent }) => {
 		}
 	)[] = []
 
-	if (((projectionNetwork.executionModels !== undefined && projectionNetwork.executionModels.some((value: string | number | boolean | null) => value === 'PolkadotRuntime')) && projectionNetwork.namespace === 'Polkadot') && matchNonNegativeBigInt(params.blockNumber) && matchStringSegment(params.hash)) {
+	if (
+		(
+			(
+				parentData.projectionNetwork.executionModels !== undefined
+				&& parentData.projectionNetwork.executionModels.some((value: string | number | boolean | null) => value === 'PolkadotRuntime')
+			)
+			&& parentData.projectionNetwork.namespace === 'Polkadot'
+		)
+		&& matchNonNegativeBigInt(params.blockNumber)
+		&& matchStringSegment(params.hash)
+	) {
 		const polkadotBlockNetworkBlockNumberHashSelector = parseEntitySelector(
 			schema,
 			PolkadotBlockSchema,
@@ -49,19 +55,38 @@ export const load: LayoutLoad = async ({ params, parent }) => {
 				hash: params.hash,
 			}
 		)
-		if (!(polkadotBlockNetworkBlockNumberHashSelector instanceof arktype.errors) && '$network' in polkadotBlockNetworkBlockNumberHashSelector && 'blockNumber' in polkadotBlockNetworkBlockNumberHashSelector && 'hash' in polkadotBlockNetworkBlockNumberHashSelector)
-			routeCandidates.push({ entityType: EntityType.PolkadotBlock, selectorName: 'NetworkBlockNumberHash', selector: polkadotBlockNetworkBlockNumberHashSelector })
+		if (
+			!(polkadotBlockNetworkBlockNumberHashSelector instanceof arktype.errors)
+			&& '$network' in polkadotBlockNetworkBlockNumberHashSelector
+			&& 'blockNumber' in polkadotBlockNetworkBlockNumberHashSelector
+			&& 'hash' in polkadotBlockNetworkBlockNumberHashSelector
+		)
+			routeCandidates.push({
+				entityType: EntityType.PolkadotBlock,
+				selectorName: 'NetworkBlockNumberHash',
+				selector: polkadotBlockNetworkBlockNumberHashSelector,
+			})
 	}
 
-	if (((projectionNetwork.ledgerModels !== undefined && projectionNetwork.ledgerModels.some((value: string | number | boolean | null) => value === 'Utxo')) && [
-	'Bitcoin',
-	'BitcoinCash',
-	'Cardano',
-	'Dogecoin',
-	'Elements',
-	'Litecoin',
-	'Zcash',
-].includes(projectionNetwork.namespace)) && matchNonNegativeBigInt(params.blockNumber) && matchStringSegment(params.hash)) {
+	if (
+		(
+			(
+				parentData.projectionNetwork.ledgerModels !== undefined
+				&& parentData.projectionNetwork.ledgerModels.some((value: string | number | boolean | null) => value === 'Utxo')
+			)
+			&& [
+				'Bitcoin',
+				'BitcoinCash',
+				'Cardano',
+				'Dogecoin',
+				'Elements',
+				'Litecoin',
+				'Zcash',
+			].includes(parentData.projectionNetwork.namespace)
+		)
+		&& matchNonNegativeBigInt(params.blockNumber)
+		&& matchStringSegment(params.hash)
+	) {
 		const utxoBlockNetworkHeightHashSelector = parseEntitySelector(
 			schema,
 			UtxoBlockSchema,
@@ -71,12 +96,24 @@ export const load: LayoutLoad = async ({ params, parent }) => {
 				hash: params.hash,
 			}
 		)
-		if (!(utxoBlockNetworkHeightHashSelector instanceof arktype.errors) && '$network' in utxoBlockNetworkHeightHashSelector && 'height' in utxoBlockNetworkHeightHashSelector && 'hash' in utxoBlockNetworkHeightHashSelector)
-			routeCandidates.push({ entityType: EntityType.UtxoBlock, selectorName: 'NetworkHeightHash', selector: utxoBlockNetworkHeightHashSelector })
+		if (
+			!(utxoBlockNetworkHeightHashSelector instanceof arktype.errors)
+			&& '$network' in utxoBlockNetworkHeightHashSelector
+			&& 'height' in utxoBlockNetworkHeightHashSelector
+			&& 'hash' in utxoBlockNetworkHeightHashSelector
+		)
+			routeCandidates.push({
+				entityType: EntityType.UtxoBlock,
+				selectorName: 'NetworkHeightHash',
+				selector: utxoBlockNetworkHeightHashSelector,
+			})
 	}
 
-	if (routeCandidates.length === 0) error(404, 'Route selector not applicable')
-	if (routeCandidates.length > 1) error(500, 'Route selector is ambiguous')
+	if (routeCandidates.length === 0)
+		error(404, 'Route selector not applicable')
+
+	if (routeCandidates.length > 1)
+		error(500, 'Route selector is ambiguous')
 
 	return routeCandidates[0]
 }

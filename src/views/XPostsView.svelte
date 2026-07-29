@@ -44,7 +44,7 @@
 				resolve(
 					'/(social)/(x)/x/(xNetwork)/post/[postId=stringSegment]',
 					{
-						postId: String(xPostSelector.id),
+						postId: xPostSelector.id,
 					}
 				)
 			}
@@ -58,7 +58,7 @@
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{String(xPost.createdAt ?? '')}</span>
+				<span data-text="annotation">{xPost.createdAt ?? ''}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

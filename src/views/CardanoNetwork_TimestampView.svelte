@@ -20,9 +20,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.CardanoNetwork_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const titleFallback = 'Cardano network timestamp'
-
 
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -35,7 +32,7 @@
 <EntityView
 	entityType={EntityType.CardanoNetwork_Timestamp}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? 'Cardano network timestamp'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -60,14 +57,14 @@
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+					<Timestamp timestamp={selection.entitySelector.timestampMs} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 
@@ -86,7 +83,7 @@
 						<div>
 							<dt>Latest slot</dt>
 							<dd>
-								{String(latestSlot)}
+								{latestSlot}
 							</dd>
 						</div>
 					{/if}
@@ -108,7 +105,7 @@
 						<div>
 							<dt>Latest block number</dt>
 							<dd>
-								{String(latestBlockNo)}
+								{latestBlockNo}
 							</dd>
 						</div>
 					{/if}
@@ -152,7 +149,7 @@
 						<div>
 							<dt>Latest block time</dt>
 							<dd>
-								{String(latestBlockTimeMs)}
+								{latestBlockTimeMs}
 							</dd>
 						</div>
 					{/if}
@@ -174,7 +171,7 @@
 						<div>
 							<dt>Latest block transactions</dt>
 							<dd>
-								{String(latestBlockTransactionCount)}
+								{latestBlockTransactionCount}
 							</dd>
 						</div>
 					{/if}
@@ -196,7 +193,7 @@
 						<div>
 							<dt>Epoch</dt>
 							<dd>
-								{String(epoch)}
+								{epoch}
 							</dd>
 						</div>
 					{/if}
@@ -218,7 +215,7 @@
 						<div>
 							<dt>Epoch blocks</dt>
 							<dd>
-								{String(epochBlockCount)}
+								{epochBlockCount}
 							</dd>
 						</div>
 					{/if}
@@ -240,7 +237,7 @@
 						<div>
 							<dt>Epoch transactions</dt>
 							<dd>
-								{String(epochTransactionCount)}
+								{epochTransactionCount}
 							</dd>
 						</div>
 					{/if}
@@ -262,7 +259,7 @@
 						<div>
 							<dt>Circulating supply</dt>
 							<dd>
-								{String(circulatingSupplyLovelace)}
+								{circulatingSupplyLovelace}
 							</dd>
 						</div>
 					{/if}
@@ -284,7 +281,7 @@
 						<div>
 							<dt>Total supply</dt>
 							<dd>
-								{String(totalSupplyLovelace)}
+								{totalSupplyLovelace}
 							</dd>
 						</div>
 					{/if}
@@ -306,7 +303,7 @@
 						<div>
 							<dt>Live stake</dt>
 							<dd>
-								{String(liveStakeLovelace)}
+								{liveStakeLovelace}
 							</dd>
 						</div>
 					{/if}
@@ -328,7 +325,7 @@
 						<div>
 							<dt>Active stake</dt>
 							<dd>
-								{String(activeStakeLovelace)}
+								{activeStakeLovelace}
 							</dd>
 						</div>
 					{/if}

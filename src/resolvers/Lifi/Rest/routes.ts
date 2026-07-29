@@ -3,7 +3,7 @@
  * @see https://docs.li.fi/api-reference/get-a-quote-for-a-token-transfer
  */
 
-import { BridgeRouteTag } from '$/schema/BridgeRoute.ts'
+import { BridgeRouteTag } from '$/schema/BridgeRouteTag.ts'
 import { EntityMetaKey } from '$/schema/$schema.ts'
 import type { EntitySelector } from '$/schema/$schema.ts'
 import type { schema } from '$/schema/index.ts'

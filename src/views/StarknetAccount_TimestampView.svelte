@@ -21,7 +21,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.StarknetAccount_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Juno_JsonRpc,
@@ -31,7 +30,6 @@
 			Source.Voyager_Rest,
 		],
 	}))
-	const titleFallback = 'starknet account timestamp'
 
 
 	// Components
@@ -45,7 +43,7 @@
 <EntityView
 	entityType={EntityType.StarknetAccount_Timestamp}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? 'starknet account timestamp'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -53,7 +51,6 @@
 	{#snippet Title()}
 		<StarknetContractView
 			selection={select(EntityType.StarknetContract, selection.entitySelector.$contract)}
-			href=""
 			layout={EntityLayout.Title}
 			open={false}
 		/>
@@ -61,13 +58,13 @@
 
 	{#snippet Value()}
 		<NumberValue
-			value={pendingEntity.blockNumber}
+			value={selection.entitySelector.blockNumber}
 		/>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
 		<span data-text="muted">
-			{pendingEntity.source}
+			{selection.entitySelector.source}
 		</span>
 	{/snippet}
 
@@ -88,7 +85,7 @@
 				<dt>Block number</dt>
 				<dd>
 					<NumberValue
-						value={pendingEntity.blockNumber}
+						value={selection.entitySelector.blockNumber}
 					/>
 				</dd>
 			</div>
@@ -96,7 +93,7 @@
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 

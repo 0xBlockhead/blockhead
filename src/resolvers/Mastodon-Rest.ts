@@ -10,7 +10,7 @@ import {
 	entityFieldAddressKey,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import { MediaType } from '$/schema/Media.ts'
+import { MediaType } from '$/schema/MediaType.ts'
 import { Source } from '$/sources/Source.ts'
 import {
 	mastodonInstanceOrigins,

@@ -5,7 +5,6 @@
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -23,7 +22,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.PythPriceFeed> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.PythBenchmarks_Rest,
@@ -38,7 +36,7 @@
 			symbol: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.symbol ?? '') || String(pendingEntity.priceFeedId ?? '') || 'Pyth price feed')
+	const titleFallback = $derived((prefetched.symbol ?? '') || selection.entitySelector.priceFeedId || 'Pyth price feed')
 
 
 	// Components
@@ -65,7 +63,7 @@
 	{/snippet}
 
 	{#snippet Value()}
-		{(pendingEntity.channel ?? '') || (pendingEntity.symbol ?? '') || titleFallback}
+		{selection.entitySelector.channel || (prefetched.symbol ?? '') || titleFallback}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
@@ -92,14 +90,14 @@
 			<div>
 				<dt>Price feed ID</dt>
 				<dd>
-					{String(pendingEntity.priceFeedId)}
+					{selection.entitySelector.priceFeedId}
 				</dd>
 			</div>
 
 			<div>
 				<dt>Channel</dt>
 				<dd>
-					{pendingEntity.channel}
+					{selection.entitySelector.channel}
 				</dd>
 			</div>
 
@@ -210,15 +208,15 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const pythPriceFeedPythPriceFeedTimestampsViewTimestampsResource = selection.$$timestamps}
+		{@const timestampsResource = selection.$$timestamps}
 		<ResourceBoundary
-			resource={pythPriceFeedPythPriceFeedTimestampsViewTimestampsResource}
+			resource={timestampsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<PythPriceFeed_TimestampsView
-						selection={pythPriceFeedPythPriceFeedTimestampsViewTimestampsResource}
-						countResource={pythPriceFeedPythPriceFeedTimestampsViewTimestampsResource.count}
+						selection={timestampsResource}
+						countResource={timestampsResource.count}
 						title='Timestamps'
 						id='timestamps'
 					/>

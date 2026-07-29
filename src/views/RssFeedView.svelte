@@ -5,7 +5,6 @@
 	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { UrlString } from '$/schema/UrlString.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -20,14 +19,12 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.RssFeed> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const viewSelection = $derived(selection({
+	const rssFeed = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Rss_Rest,
 			Source.Rss2Json_Rest,
 		],
-	}))
-	const rssFeed = $derived(viewSelection({
+	})({
 		fields: {
 			title: true,
 			description: true,
@@ -38,7 +35,7 @@
 			imageUrl: true,
 		},
 	}))
-	const titleFallback = $derived([(pendingEntity.title ?? ''), String(pendingEntity.feedUrl ?? '')].filter(Boolean).join(' ') || 'RSS feed')
+	const titleFallback = $derived([(prefetched.title ?? ''), selection.entitySelector.feedUrl].filter(Boolean).join(' ') || 'RSS feed')
 
 
 	// Components
@@ -55,12 +52,15 @@
 	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
 	href={
-		href ?? resolve(
-			'/(social)/(rss)/rss/(rssNetwork)/feed/[feedUrl=absoluteUrl]',
-			{
-				feedUrl: encodeURIComponent(String(selection.entitySelector.feedUrl)),
-			}
-		)
+		href === undefined ?
+			resolve(
+				'/(social)/(rss)/rss/(rssNetwork)/feed/[feedUrl=absoluteUrl]',
+				{
+					feedUrl: encodeURIComponent(selection.entitySelector.feedUrl),
+				}
+			)
+		:
+			href ?? undefined
 	}
 	{layout}
 	bind:open
@@ -69,22 +69,22 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={rssFeed}>
 			{#snippet children(entity)}
-				{[(entity.title ?? ''), String(pendingEntity.feedUrl)].filter(Boolean).join(' ') || title || titleFallback}
+				{[(entity.title ?? ''), selection.entitySelector.feedUrl].filter(Boolean).join(' ') || title || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Value()}
-		<TruncatedValue value={String(pendingEntity.feedUrl)} />
+		<TruncatedValue value={selection.entitySelector.feedUrl} />
 	{/snippet}
 
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={rssFeed}>
 			{#snippet children(entity)}
-				{@const lastBuildDate0 = entity.lastBuildDate}
-				{#if lastBuildDate0 != null}
+				{@const lastBuildDate = entity.lastBuildDate}
+				{#if lastBuildDate != null}
 					<span data-text="muted">
-						<Timestamp timestamp={Number(lastBuildDate0)} />
+						<Timestamp timestamp={lastBuildDate} />
 					</span>
 				{/if}
 			{/snippet}
@@ -97,11 +97,11 @@
 				<dt>Feed URL</dt>
 				<dd>
 					<a
-						href={String(pendingEntity.feedUrl)}
+						href={selection.entitySelector.feedUrl}
 						target="_blank"
 						rel="noreferrer noopener"
 					>
-						<TruncatedValue value={String(pendingEntity.feedUrl)} />
+						<TruncatedValue value={selection.entitySelector.feedUrl} />
 					</a>
 				</dd>
 			</div>
@@ -118,11 +118,11 @@
 							<dt>Link</dt>
 							<dd>
 								<a
-									href={String(link)}
+									href={link}
 									target="_blank"
 									rel="noreferrer noopener"
 								>
-									<TruncatedValue value={String(link)} />
+									<TruncatedValue value={link} />
 								</a>
 							</dd>
 						</div>
@@ -142,11 +142,11 @@
 							<dt>Site URL</dt>
 							<dd>
 								<a
-									href={String(siteUrl)}
+									href={siteUrl}
 									target="_blank"
 									rel="noreferrer noopener"
 								>
-									<TruncatedValue value={String(siteUrl)} />
+									<TruncatedValue value={siteUrl} />
 								</a>
 							</dd>
 						</div>
@@ -183,7 +183,7 @@
 						<div>
 							<dt>Last build</dt>
 							<dd>
-								<Timestamp timestamp={Number(lastBuildDate)} />
+								<Timestamp timestamp={lastBuildDate} />
 							</dd>
 						</div>
 					{/if}
@@ -204,30 +204,30 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const rssFeedRssItemsViewItemsResource = selection.$$items}
+		{@const itemsResource = selection.$$items}
 		<ResourceBoundary
-			resource={rssFeedRssItemsViewItemsResource}
+			resource={itemsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<RssItemsView
-						selection={rssFeedRssItemsViewItemsResource}
-						countResource={rssFeedRssItemsViewItemsResource.count}
+						selection={itemsResource}
+						countResource={itemsResource.count}
 						title='Items'
 						id='items'
 					/>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>
-		{@const rssFeedRssFeedTimestampsViewTimestampsResource = selection.$$timestamps}
+		{@const timestampsResource = selection.$$timestamps}
 		<ResourceBoundary
-			resource={rssFeedRssFeedTimestampsViewTimestampsResource}
+			resource={timestampsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<RssFeed_TimestampsView
-						selection={rssFeedRssFeedTimestampsViewTimestampsResource}
-						countResource={rssFeedRssFeedTimestampsViewTimestampsResource.count}
+						selection={timestampsResource}
+						countResource={timestampsResource.count}
 						title='Observations'
 						id='timestamps'
 					/>

@@ -9,7 +9,7 @@ import {
 	Caip2Namespace,
 	Caip2Reference,
 } from '$/constants/Network.ts'
-import { BlockheadConnectionStatus } from '$/schema/BlockheadWalletConnection.ts'
+import { BlockheadConnectionStatus } from '$/schema/BlockheadConnectionStatus.ts'
 import type { ClientContext } from '$/client/$client.svelte.ts'
 import {
 	deleteLocalBlockheadWalletConnection,

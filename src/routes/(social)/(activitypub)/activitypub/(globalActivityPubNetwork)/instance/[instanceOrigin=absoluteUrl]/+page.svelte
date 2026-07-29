@@ -4,7 +4,6 @@
 	// Types/constants
 	import type { PageProps } from './$types.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { UrlString } from '$/schema/UrlString.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -31,7 +30,7 @@
 
 
 <svelte:head>
-	<title>{(data.title ?? (String(pageSelection.entitySelector.instanceOrigin) || 'ActivityPub instance'))} • ActivityPub instance • Blockhead</title>
+	<title>{data.title ?? (pageSelection.entitySelector.instanceOrigin || 'ActivityPub instance')} • ActivityPub instance • Blockhead</title>
 </svelte:head>
 
 

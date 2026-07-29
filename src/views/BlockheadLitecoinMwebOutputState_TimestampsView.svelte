@@ -43,15 +43,15 @@
 			entitySelector={blockheadLitecoinMwebOutputStateTimestampSelector}
 		>
 			{#snippet Title()}
-				{String(blockheadLitecoinMwebOutputStateTimestampSelector.timestampMs) || 'blockhead litecoin mweb output state timestamp'}
+				{blockheadLitecoinMwebOutputStateTimestampSelector.timestampMs}
 			{/snippet}
 
 			{#snippet Value()}
-				{String(blockheadLitecoinMwebOutputStateTimestamp.spent ?? '')}
+				{blockheadLitecoinMwebOutputStateTimestamp.spent ?? ''}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{String(blockheadLitecoinMwebOutputStateTimestamp.confirmations ?? '')}</span>
+				<span data-text="annotation">{blockheadLitecoinMwebOutputStateTimestamp.confirmations ?? ''}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

@@ -41,15 +41,15 @@
 			entitySelector={acpTerminalTimestampSelector}
 		>
 			{#snippet Title()}
-				{String(acpTerminalTimestampSelector.timestampMs) || 'ACP terminal timestamp'}
+				{acpTerminalTimestampSelector.timestampMs}
 			{/snippet}
 
 			{#snippet Value()}
-				{(acpTerminalTimestamp.status ?? '')}
+				{acpTerminalTimestamp.status ?? ''}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{String(acpTerminalTimestamp.exitCode ?? '')}</span>
+				<span data-text="annotation">{acpTerminalTimestamp.exitCode ?? ''}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

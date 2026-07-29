@@ -23,14 +23,14 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.EvmNetwork_Txpool_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const network = $derived(selection.entitySelector.$network)
 	const evmNetworkTxpoolTimestamp = $derived(selection({
 		fields: {
 			pendingCount: true,
 			queuedCount: true,
 		},
 	}))
-	const titleFallback = $derived(([(String(pendingEntity.pendingCount ?? '') ? String(pendingEntity.pendingCount ?? '') + ' pending' : ''), (String(pendingEntity.queuedCount ?? '') ? String(pendingEntity.queuedCount ?? '') + ' queued' : '')].filter(Boolean).join(' ')) || 'EVM network txpool timestamp')
+	const titleFallback = $derived([String(prefetched.pendingCount ?? '') + ' pending', String(prefetched.queuedCount ?? '') + ' queued'].filter(Boolean).join(' ') || 'EVM network txpool timestamp')
 
 
 	// Components
@@ -46,19 +46,22 @@
 	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
 	href={
-		href ?? resolve(
-			'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/mempool/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
-			{
-				network: (
-					'caip2' in selection.entitySelector.$network ?
-						String(caip2StringFromValue(selection.entitySelector.$network.caip2))
-					:
-						String(selection.entitySelector.$network.slug)
-				),
-				timestampMs: String(selection.entitySelector.timestampMs),
-				source: String(selection.entitySelector.source),
-			}
-		)
+		href === undefined ?
+			resolve(
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/mempool/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
+				{
+					network: (
+						'caip2' in network ?
+							caip2StringFromValue(network.caip2)
+						:
+							network.slug
+					),
+					timestampMs: String(selection.entitySelector.timestampMs),
+					source: selection.entitySelector.source,
+				}
+			)
+		:
+			href ?? undefined
 	}
 	{layout}
 	bind:open
@@ -67,7 +70,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={evmNetworkTxpoolTimestamp}>
 			{#snippet children(entity)}
-				{([(String(entity.pendingCount) ? String(entity.pendingCount) + ' pending' : ''), (String(entity.queuedCount) ? String(entity.queuedCount) + ' queued' : '')].filter(Boolean).join(' ')) || title || titleFallback}
+				{[String(entity.pendingCount) + ' pending', String(entity.queuedCount) + ' queued'].filter(Boolean).join(' ') || title || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -131,14 +134,14 @@
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+					<Timestamp timestamp={selection.entitySelector.timestampMs} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 

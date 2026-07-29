@@ -4,7 +4,6 @@
 	// Types/constants
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { UrlString } from '$/schema/UrlString.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -18,7 +17,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.BlockheadCodexStorageNodeState> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Local_Internal,
@@ -29,7 +27,7 @@
 			endpoint: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.peerId ?? '') || 'blockhead codex storage node state')
+	const titleFallback = $derived(selection.entitySelector.peerId || 'blockhead codex storage node state')
 
 
 	// Components
@@ -49,25 +47,25 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{(pendingEntity.peerId ?? '') || 'blockhead codex storage node state'}
+		{selection.entitySelector.peerId || 'blockhead codex storage node state'}
 	{/snippet}
 
 	{#snippet Value()}
-		{(pendingEntity.connectionId ?? '') || (pendingEntity.peerId ?? '') || titleFallback}
+		{selection.entitySelector.connectionId || selection.entitySelector.peerId || titleFallback}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={blockheadCodexStorageNodeState}>
 			{#snippet children(entity)}
-				{@const endpoint0 = entity.endpoint}
-				{#if endpoint0 != null}
+				{@const endpoint = entity.endpoint}
+				{#if endpoint != null}
 					<span data-text="muted">
 						<a
-							href={String(endpoint0)}
+							href={endpoint}
 							target="_blank"
 							rel="noreferrer noopener"
 						>
-							<TruncatedValue value={String(endpoint0)} />
+							<TruncatedValue value={endpoint} />
 						</a>
 					</span>
 				{/if}
@@ -80,14 +78,14 @@
 			<div>
 				<dt>connection ID</dt>
 				<dd>
-					{pendingEntity.connectionId}
+					{selection.entitySelector.connectionId}
 				</dd>
 			</div>
 
 			<div>
 				<dt>peer ID</dt>
 				<dd>
-					{pendingEntity.peerId}
+					{selection.entitySelector.peerId}
 				</dd>
 			</div>
 
@@ -101,11 +99,11 @@
 							<dt>endpoint</dt>
 							<dd>
 								<a
-									href={String(endpoint)}
+									href={endpoint}
 									target="_blank"
 									rel="noreferrer noopener"
 								>
-									<TruncatedValue value={String(endpoint)} />
+									<TruncatedValue value={endpoint} />
 								</a>
 							</dd>
 						</div>
@@ -138,30 +136,30 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const blockheadCodexStorageNodeStateBlockheadCodexStorageNodeStateTimestampsViewTimestampsResource = selection.$$timestamps}
+		{@const timestampsResource = selection.$$timestamps}
 		<ResourceBoundary
-			resource={blockheadCodexStorageNodeStateBlockheadCodexStorageNodeStateTimestampsViewTimestampsResource}
+			resource={timestampsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<BlockheadCodexStorageNodeState_TimestampsView
-						selection={blockheadCodexStorageNodeStateBlockheadCodexStorageNodeStateTimestampsViewTimestampsResource}
-						countResource={blockheadCodexStorageNodeStateBlockheadCodexStorageNodeStateTimestampsViewTimestampsResource.count}
+						selection={timestampsResource}
+						countResource={timestampsResource.count}
 						title='timestamps'
 						id='timestamps'
 					/>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>
-		{@const blockheadCodexStorageNodeStateBlockheadCodexStoredDataEntriesViewStoredDataResource = selection.$$storedData}
+		{@const storedDataResource = selection.$$storedData}
 		<ResourceBoundary
-			resource={blockheadCodexStorageNodeStateBlockheadCodexStoredDataEntriesViewStoredDataResource}
+			resource={storedDataResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<BlockheadCodexStoredDataEntriesView
-						selection={blockheadCodexStorageNodeStateBlockheadCodexStoredDataEntriesViewStoredDataResource}
-						countResource={blockheadCodexStorageNodeStateBlockheadCodexStoredDataEntriesViewStoredDataResource.count}
+						selection={storedDataResource}
+						countResource={storedDataResource.count}
 						title='Stored Data'
 						id='stored-data'
 					/>

@@ -39,6 +39,7 @@
 >
 	{#snippet Item({ item: solanaTransaction })}
 		{@const solanaTransactionSelector = solanaTransaction[EntityMetaKey.Selector]}
+		{@const network = solanaTransactionSelector.$network}
 		<EntityView
 			entityType={EntityType.SolanaTransaction}
 			entitySelector={solanaTransactionSelector}
@@ -47,12 +48,12 @@
 					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(transactions)/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]',
 					{
 						network: (
-							'caip2' in solanaTransactionSelector.$network ?
-								String(caip2StringFromValue(solanaTransactionSelector.$network.caip2))
+							'caip2' in network ?
+								caip2StringFromValue(network.caip2)
 							:
-								String(solanaTransactionSelector.$network.slug)
+								network.slug
 						),
-						transactionId: String(solanaTransactionSelector.signature),
+						transactionId: solanaTransactionSelector.signature,
 					}
 				)
 			}
@@ -66,7 +67,7 @@
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{(solanaTransaction.status ?? '')}</span>
+				<span data-text="annotation">{solanaTransaction.status ?? ''}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

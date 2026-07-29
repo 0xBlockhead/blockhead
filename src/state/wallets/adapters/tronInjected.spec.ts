@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import { WalletCapability, WalletDiscoveryKind } from '$/constants/Wallet.ts'
-import { BlockheadConnectionStatus } from '$/schema/BlockheadWalletConnection.ts'
+import { BlockheadConnectionStatus } from '$/schema/BlockheadConnectionStatus.ts'
 import type { JsonValue } from '$/typescript/JsonValue.ts'
 import { createTronInjectedAdapter } from './tronInjected.ts'
 import type { WalletCandidate, WalletConnection } from './types.ts'

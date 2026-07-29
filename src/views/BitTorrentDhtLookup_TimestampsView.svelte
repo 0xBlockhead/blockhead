@@ -49,7 +49,7 @@
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{String(bitTorrentDhtLookupTimestampSelector.timestampMs)}</span>
+				<span data-text="annotation">{bitTorrentDhtLookupTimestampSelector.timestampMs}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

@@ -23,7 +23,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.BlockheadMoneroWalletState> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Local_Internal,
@@ -34,7 +33,7 @@
 			primaryAddress: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.walletId ?? '') || 'blockhead monero wallet state')
+	const titleFallback = $derived(selection.entitySelector.walletId || 'blockhead monero wallet state')
 	const viewDomId = $derived('blockhead-monero-wallet-state-' + encodeURIComponent(stringify(selection.entitySelector)))
 
 
@@ -62,13 +61,13 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{(pendingEntity.walletId ?? '') || 'blockhead monero wallet state'}
+		{selection.entitySelector.walletId || 'blockhead monero wallet state'}
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={blockheadMoneroWalletState}>
 			{#snippet children(entity)}
-				{(entity.primaryAddress ?? '') || pendingEntity.walletId || titleFallback}
+				{(entity.primaryAddress ?? '') || selection.entitySelector.walletId || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -95,7 +94,7 @@
 			<div>
 				<dt>wallet ID</dt>
 				<dd>
-					{pendingEntity.walletId}
+					{selection.entitySelector.walletId}
 				</dd>
 			</div>
 

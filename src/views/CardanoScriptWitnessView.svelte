@@ -20,14 +20,13 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.CardanoScriptWitness> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const cardanoScriptWitness = $derived(selection({
 		fields: {
 			scriptKind: true,
 			scriptHash: true,
 		},
 	}))
-	const titleFallback = $derived(([(pendingEntity.scriptKind ?? ''), (String(pendingEntity.witnessIndex ?? '') ? 'Script #' + String(pendingEntity.witnessIndex ?? '') : '')].filter(Boolean).join(' ')) || 'Cardano script witness')
+	const titleFallback = $derived([(prefetched.scriptKind ?? ''), 'Script #' + String(selection.entitySelector.witnessIndex)].filter(Boolean).join(' ') || 'Cardano script witness')
 
 
 	// Components
@@ -48,7 +47,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={cardanoScriptWitness}>
 			{#snippet children(entity)}
-				{([entity.scriptKind, (String(pendingEntity.witnessIndex) ? 'Script #' + String(pendingEntity.witnessIndex) : '')].filter(Boolean).join(' ')) || title || titleFallback}
+				{[entity.scriptKind, 'Script #' + String(selection.entitySelector.witnessIndex)].filter(Boolean).join(' ') || title || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -56,7 +55,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={cardanoScriptWitness}>
 			{#snippet children(entity)}
-				{(entity.scriptHash ?? '') || ([entity.scriptKind, (String(pendingEntity.witnessIndex) ? 'Script #' + String(pendingEntity.witnessIndex) : '')].filter(Boolean).join(' ')) || titleFallback}
+				{(entity.scriptHash ?? '') || [entity.scriptKind, 'Script #' + String(selection.entitySelector.witnessIndex)].filter(Boolean).join(' ') || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -77,7 +76,7 @@
 			<div>
 				<dt>witness index</dt>
 				<dd>
-					{String(pendingEntity.witnessIndex)}
+					{selection.entitySelector.witnessIndex}
 				</dd>
 			</div>
 

@@ -41,11 +41,11 @@
 			entitySelector={bnbBeaconBlockSelector}
 		>
 			{#snippet Title()}
-				{String(bnbBeaconBlockSelector.height) || bnbBeaconBlockSelector.hash || 'bnb beacon block'}
+				{bnbBeaconBlockSelector.height}
 			{/snippet}
 
 			{#snippet Value()}
-				{String(bnbBeaconBlock.timestampMs ?? '')}
+				{bnbBeaconBlock.timestampMs ?? ''}
 			{/snippet}
 		</EntityView>
 	{/snippet}

@@ -20,13 +20,12 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.MoveFunction> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const moveFunction = $derived(selection({
 		fields: {
 			visibility: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.functionName ?? '') || 'move function')
+	const titleFallback = $derived(selection.entitySelector.functionName || 'move function')
 
 
 	// Components
@@ -44,13 +43,13 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{(pendingEntity.functionName ?? '') || 'move function'}
+		{selection.entitySelector.functionName || 'move function'}
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={moveFunction}>
 			{#snippet children(entity)}
-				{(entity.visibility ?? '') || pendingEntity.functionName || titleFallback}
+				{(entity.visibility ?? '') || selection.entitySelector.functionName || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -81,7 +80,7 @@
 			<div>
 				<dt>function name</dt>
 				<dd>
-					{pendingEntity.functionName}
+					{selection.entitySelector.functionName}
 				</dd>
 			</div>
 

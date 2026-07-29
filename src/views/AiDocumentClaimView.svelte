@@ -21,7 +21,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.AiDocumentClaim> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Eip8004Scan_Rest,
@@ -34,7 +33,7 @@
 			confidence: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.claimPath ?? '') || 'AI document claim')
+	const titleFallback = $derived(selection.entitySelector.claimPath || 'AI document claim')
 
 
 	// Components
@@ -53,13 +52,13 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{(pendingEntity.claimPath ?? '') || 'AI document claim'}
+		{selection.entitySelector.claimPath || 'AI document claim'}
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={aiDocumentClaim}>
 			{#snippet children(entity)}
-				{entity.claimKind || pendingEntity.claimPath || titleFallback}
+				{entity.claimKind || selection.entitySelector.claimPath || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -67,11 +66,11 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={aiDocumentClaim}>
 			{#snippet children(entity)}
-				{@const confidence0 = entity.confidence}
-				{#if confidence0 != null}
+				{@const confidence = entity.confidence}
+				{#if confidence != null}
 					<span data-text="muted">
 						<NumberValue
-							value={confidence0}
+							value={confidence}
 						/>
 					</span>
 				{/if}
@@ -95,14 +94,14 @@
 			<div>
 				<dt>extractor ID</dt>
 				<dd>
-					{pendingEntity.extractorId}
+					{selection.entitySelector.extractorId}
 				</dd>
 			</div>
 
 			<div>
 				<dt>claim path</dt>
 				<dd>
-					{pendingEntity.claimPath}
+					{selection.entitySelector.claimPath}
 				</dd>
 			</div>
 

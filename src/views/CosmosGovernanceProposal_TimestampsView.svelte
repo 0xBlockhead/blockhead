@@ -47,11 +47,11 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{(cosmosGovernanceProposalTimestamp.status ?? '')}
+				{cosmosGovernanceProposalTimestamp.status ?? ''}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{String(cosmosGovernanceProposalTimestampSelector.timestampMs)}</span>
+				<span data-text="annotation">{cosmosGovernanceProposalTimestampSelector.timestampMs}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

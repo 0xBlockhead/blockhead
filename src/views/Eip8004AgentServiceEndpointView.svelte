@@ -5,7 +5,6 @@
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { UrlString } from '$/schema/UrlString.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -23,7 +22,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.Eip8004AgentServiceEndpoint> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Eip8004Scan_Rest,
@@ -34,7 +32,7 @@
 			protocolKind: true,
 		},
 	}))
-	const titleFallback = $derived(String(pendingEntity.endpointUrl ?? '') || 'EIP-8004 agent service endpoint')
+	const titleFallback = $derived(selection.entitySelector.endpointUrl || 'EIP-8004 agent service endpoint')
 
 
 	// Components
@@ -56,25 +54,25 @@
 >
 	{#snippet Title()}
 		<a
-			href={String(pendingEntity.endpointUrl)}
+			href={selection.entitySelector.endpointUrl}
 			target="_blank"
 			rel="noreferrer noopener"
 		>
-			<TruncatedValue value={String(pendingEntity.endpointUrl)} />
+			<TruncatedValue value={selection.entitySelector.endpointUrl} />
 		</a>
 	{/snippet}
 
 	{#snippet Value()}
-		{(pendingEntity.endpointKind ?? '') || String(pendingEntity.endpointUrl ?? '') || titleFallback}
+		{selection.entitySelector.endpointKind || selection.entitySelector.endpointUrl || titleFallback}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={eip8004AgentServiceEndpoint}>
 			{#snippet children(entity)}
-				{@const protocolKind0 = entity.protocolKind}
-				{#if protocolKind0 != null}
+				{@const protocolKind = entity.protocolKind}
+				{#if protocolKind != null}
 					<span data-text="muted">
-						{protocolKind0}
+						{protocolKind}
 					</span>
 				{/if}
 			{/snippet}
@@ -97,7 +95,7 @@
 			<div>
 				<dt>Endpoint kind</dt>
 				<dd>
-					{pendingEntity.endpointKind}
+					{selection.entitySelector.endpointKind}
 				</dd>
 			</div>
 
@@ -105,11 +103,11 @@
 				<dt>Endpoint URL</dt>
 				<dd>
 					<a
-						href={String(pendingEntity.endpointUrl)}
+						href={selection.entitySelector.endpointUrl}
 						target="_blank"
 						rel="noreferrer noopener"
 					>
-						<TruncatedValue value={String(pendingEntity.endpointUrl)} />
+						<TruncatedValue value={selection.entitySelector.endpointUrl} />
 					</a>
 				</dd>
 			</div>
@@ -221,15 +219,15 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const eip8004AgentServiceEndpointAgentPaymentRequirementTimestampsViewPaymentRequirementsResource = selection.$$paymentRequirements}
+		{@const paymentRequirementsResource = selection.$$paymentRequirements}
 		<ResourceBoundary
-			resource={eip8004AgentServiceEndpointAgentPaymentRequirementTimestampsViewPaymentRequirementsResource}
+			resource={paymentRequirementsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<AgentPaymentRequirement_TimestampsView
-						selection={eip8004AgentServiceEndpointAgentPaymentRequirementTimestampsViewPaymentRequirementsResource}
-						countResource={eip8004AgentServiceEndpointAgentPaymentRequirementTimestampsViewPaymentRequirementsResource.count}
+						selection={paymentRequirementsResource}
+						countResource={paymentRequirementsResource.count}
 						title='Payment requirements'
 						id='payment-requirements'
 					/>

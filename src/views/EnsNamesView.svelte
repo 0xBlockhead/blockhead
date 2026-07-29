@@ -42,7 +42,7 @@
 				resolve(
 					'/(explore)/(ens)/ens/(globalEnsNetwork)/name/[ensName=stringSegment]',
 					{
-						ensName: encodeURIComponent(String(ensNameSelector.name)),
+						ensName: encodeURIComponent(ensNameSelector.name),
 					}
 				)
 			}

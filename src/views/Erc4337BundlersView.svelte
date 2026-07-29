@@ -7,7 +7,6 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
-	import { EvmAddress } from '$/schema/ZeroExHex.ts'
 
 
 	// State
@@ -38,6 +37,7 @@
 >
 	{#snippet Item({ item: erc4337Bundler })}
 		{@const erc4337BundlerSelector = erc4337Bundler[EntityMetaKey.Selector]}
+		{@const network = erc4337BundlerSelector.$network}
 		<EntityView
 			entityType={EntityType.Erc4337Bundler}
 			entitySelector={erc4337BundlerSelector}
@@ -46,22 +46,22 @@
 					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/erc-4337/bundler/[address=evmAddress]',
 					{
 						network: (
-							'caip2' in erc4337BundlerSelector.$network ?
-								String(caip2StringFromValue(erc4337BundlerSelector.$network.caip2))
+							'caip2' in network ?
+								caip2StringFromValue(network.caip2)
 							:
-								String(erc4337BundlerSelector.$network.slug)
+								network.slug
 						),
-						address: String(erc4337BundlerSelector.address),
+						address: erc4337BundlerSelector.address,
 					}
 				)
 			}
 		>
 			{#snippet Title()}
-				{String(erc4337BundlerSelector.address) || 'ERC-4337 bundler'}
+				{erc4337BundlerSelector.address || 'ERC-4337 bundler'}
 			{/snippet}
 
 			{#snippet Value()}
-				{String(erc4337BundlerSelector.address)}
+				{erc4337BundlerSelector.address}
 			{/snippet}
 
 			{#snippet HeadingAfter()}

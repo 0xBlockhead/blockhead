@@ -4,7 +4,6 @@
 	// Types/constants
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { UrlString } from '$/schema/UrlString.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -22,7 +21,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.AiProviderApiOperation> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Anthropic_Rest,
@@ -36,7 +34,7 @@
 			pathTemplate: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.label ?? '') || (pendingEntity.operationId ?? '') || 'AI provider API operation')
+	const titleFallback = $derived((prefetched.label ?? '') || selection.entitySelector.operationId || 'AI provider API operation')
 
 
 	// Components
@@ -74,10 +72,10 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={aiProviderApiOperation}>
 			{#snippet children(entity)}
-				{@const pathTemplate0 = entity.pathTemplate}
-				{#if pathTemplate0 != null}
+				{@const pathTemplate = entity.pathTemplate}
+				{#if pathTemplate != null}
 					<span data-text="muted">
-						{pathTemplate0}
+						{pathTemplate}
 					</span>
 				{/if}
 			{/snippet}
@@ -100,7 +98,7 @@
 			<div>
 				<dt>operation ID</dt>
 				<dd>
-					{pendingEntity.operationId}
+					{selection.entitySelector.operationId}
 				</dd>
 			</div>
 
@@ -192,11 +190,11 @@
 							<dt>document URL</dt>
 							<dd>
 								<a
-									href={String(documentUrl)}
+									href={documentUrl}
 									target="_blank"
 									rel="noreferrer noopener"
 								>
-									<TruncatedValue value={String(documentUrl)} />
+									<TruncatedValue value={documentUrl} />
 								</a>
 							</dd>
 						</div>
@@ -207,15 +205,15 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const aiProviderApiOperationAiProviderApiOperationTimestampsViewTimestampsResource = selection.$$timestamps}
+		{@const timestampsResource = selection.$$timestamps}
 		<ResourceBoundary
-			resource={aiProviderApiOperationAiProviderApiOperationTimestampsViewTimestampsResource}
+			resource={timestampsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<AiProviderApiOperation_TimestampsView
-						selection={aiProviderApiOperationAiProviderApiOperationTimestampsViewTimestampsResource}
-						countResource={aiProviderApiOperationAiProviderApiOperationTimestampsViewTimestampsResource.count}
+						selection={timestampsResource}
+						countResource={timestampsResource.count}
 						title='timestamps'
 						id='timestamps'
 					/>

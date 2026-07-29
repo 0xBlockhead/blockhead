@@ -5,7 +5,6 @@
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 
 
 	// Context
@@ -22,9 +21,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.Payout> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const titleFallback = 'payout'
-
 
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -40,7 +36,7 @@
 <EntityView
 	entityType={EntityType.Payout}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? 'payout'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -54,14 +50,14 @@
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 
 			<div>
 				<dt>payout ID</dt>
 				<dd>
-					{pendingEntity.payoutId}
+					{selection.entitySelector.payoutId}
 				</dd>
 			</div>
 
@@ -184,7 +180,7 @@
 						<div>
 							<dt>merkle root</dt>
 							<dd>
-								{String(merkleRoot)}
+								{merkleRoot}
 							</dd>
 						</div>
 					{/if}
@@ -206,7 +202,7 @@
 						<div>
 							<dt>total amount</dt>
 							<dd>
-								{String(totalAmount)}
+								{totalAmount}
 							</dd>
 						</div>
 					{/if}
@@ -228,7 +224,7 @@
 						<div>
 							<dt>recipient count</dt>
 							<dd>
-								{String(recipientCount)}
+								{recipientCount}
 							</dd>
 						</div>
 					{/if}
@@ -252,7 +248,7 @@
 						<div>
 							<dt>opened AT</dt>
 							<dd>
-								<Timestamp timestamp={Number(openedAt)} />
+								<Timestamp timestamp={openedAt} />
 							</dd>
 						</div>
 					{/if}
@@ -274,7 +270,7 @@
 						<div>
 							<dt>closed AT</dt>
 							<dd>
-								<Timestamp timestamp={Number(closedAt)} />
+								<Timestamp timestamp={closedAt} />
 							</dd>
 						</div>
 					{/if}
@@ -284,15 +280,15 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const payoutPayoutClaimTimestampsViewClaimsResource = selection.$$claims}
+		{@const claimsResource = selection.$$claims}
 		<ResourceBoundary
-			resource={payoutPayoutClaimTimestampsViewClaimsResource}
+			resource={claimsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<PayoutClaim_TimestampsView
-						selection={payoutPayoutClaimTimestampsViewClaimsResource}
-						countResource={payoutPayoutClaimTimestampsViewClaimsResource.count}
+						selection={claimsResource}
+						countResource={claimsResource.count}
 						title='claims'
 						id='claims'
 					/>

@@ -4,7 +4,6 @@
 	// Types/constants
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 
 
 	// Context
@@ -21,13 +20,12 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.GitFetchObservation> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const gitFetchObservation = $derived(selection({
 		fields: {
 			status: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.remoteName ?? '') || 'Git fetch observation')
+	const titleFallback = $derived(selection.entitySelector.remoteName || 'Git fetch observation')
 
 
 	// Components
@@ -48,24 +46,24 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{(pendingEntity.remoteName ?? '') || 'Git fetch observation'}
+		{selection.entitySelector.remoteName || 'Git fetch observation'}
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={gitFetchObservation}>
 			{#snippet children(entity)}
-				{entity.status || pendingEntity.remoteName || titleFallback}
+				{entity.status || selection.entitySelector.remoteName || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
 		<span data-text="muted">
-			<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+			<Timestamp timestamp={selection.entitySelector.timestampMs} />
 		</span>
 
 		<span data-text="muted">
-			{pendingEntity.source}
+			{selection.entitySelector.source}
 		</span>
 	{/snippet}
 
@@ -85,21 +83,21 @@
 			<div>
 				<dt>remote name</dt>
 				<dd>
-					{pendingEntity.remoteName}
+					{selection.entitySelector.remoteName}
 				</dd>
 			</div>
 
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+					<Timestamp timestamp={selection.entitySelector.timestampMs} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 
@@ -227,7 +225,7 @@
 						<div>
 							<dt>packfile hash</dt>
 							<dd>
-								<TruncatedValue value={String(packfileHash)} />
+								<TruncatedValue value={packfileHash} />
 							</dd>
 						</div>
 					{/if}

@@ -46,11 +46,11 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{(codexDataset.mimetype ?? '')}
+				{codexDataset.mimetype ?? ''}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{String(codexDataset.datasetSizeBytes ?? '')}</span>
+				<span data-text="annotation">{codexDataset.datasetSizeBytes ?? ''}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

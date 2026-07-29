@@ -5,7 +5,6 @@
 	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { EvmAddress } from '$/schema/ZeroExHex.ts'
 
 
 	// State
@@ -18,14 +17,13 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.LensFeed> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const lensFeed = $derived(selection({
 		fields: {
 			name: true,
 			createdAt: true,
 		},
 	}))
-	const titleFallback = $derived([(pendingEntity.name ?? ''), String(pendingEntity.address ?? '')].filter(Boolean).join(' ') || 'Lens feed')
+	const titleFallback = $derived([(prefetched.name ?? ''), selection.entitySelector.address].filter(Boolean).join(' ') || 'Lens feed')
 
 
 	// Components
@@ -47,22 +45,22 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={lensFeed}>
 			{#snippet children(entity)}
-				{[(entity.name ?? ''), String(pendingEntity.address)].filter(Boolean).join(' ') || title || titleFallback}
+				{[(entity.name ?? ''), selection.entitySelector.address].filter(Boolean).join(' ') || title || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Value()}
-		<TruncatedValue value={String(pendingEntity.address)} />
+		<TruncatedValue value={selection.entitySelector.address} />
 	{/snippet}
 
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={lensFeed}>
 			{#snippet children(entity)}
-				{@const createdAt0 = entity.createdAt}
-				{#if createdAt0 != null}
+				{@const createdAt = entity.createdAt}
+				{#if createdAt != null}
 					<span data-text="muted">
-						<Timestamp timestamp={Number(createdAt0)} />
+						<Timestamp timestamp={createdAt} />
 					</span>
 				{/if}
 			{/snippet}
@@ -90,7 +88,7 @@
 			<div>
 				<dt>Address</dt>
 				<dd>
-					<TruncatedValue value={String(pendingEntity.address)} />
+					<TruncatedValue value={selection.entitySelector.address} />
 				</dd>
 			</div>
 
@@ -109,7 +107,7 @@
 						<div>
 							<dt>Owner</dt>
 							<dd>
-								<TruncatedValue value={String(owner)} />
+								<TruncatedValue value={owner} />
 							</dd>
 						</div>
 					{/if}
@@ -125,7 +123,7 @@
 						<div>
 							<dt>Created</dt>
 							<dd>
-								<Timestamp timestamp={Number(createdAt)} />
+								<Timestamp timestamp={createdAt} />
 							</dd>
 						</div>
 					{/if}
@@ -152,15 +150,15 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const lensFeedLensPostsViewPostsResource = selection.$$posts}
+		{@const postsResource = selection.$$posts}
 		<ResourceBoundary
-			resource={lensFeedLensPostsViewPostsResource}
+			resource={postsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<LensPostsView
-						selection={lensFeedLensPostsViewPostsResource}
-						countResource={lensFeedLensPostsViewPostsResource.count}
+						selection={postsResource}
+						countResource={postsResource.count}
 						title='Posts'
 						id='posts'
 					/>

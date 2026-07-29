@@ -5,7 +5,6 @@
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { UrlString } from '$/schema/UrlString.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -23,7 +22,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.McpServerPackageVersion> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.McpPackageRegistry_Rest,
@@ -35,7 +33,7 @@
 			registryStatus: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.version ?? '') || 'mcp server package version')
+	const titleFallback = $derived((prefetched.version ?? '') || 'mcp server package version')
 
 
 	// Components
@@ -72,7 +70,6 @@
 					<McpServerPackageView
 						selection={select(EntityType.McpServerPackage, mcpServerPackage[EntityMetaKey.Selector])}
 						prefetched={mcpServerPackage}
-						href=""
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -84,10 +81,10 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={mcpServerPackageVersion}>
 			{#snippet children(entity)}
-				{@const registryStatus0 = entity.registryStatus}
-				{#if registryStatus0 != null}
+				{@const registryStatus = entity.registryStatus}
+				{#if registryStatus != null}
 					<span data-text="muted">
-						{registryStatus0}
+						{registryStatus}
 					</span>
 				{/if}
 			{/snippet}
@@ -207,7 +204,7 @@
 						<div>
 							<dt>release date</dt>
 							<dd>
-								<Timestamp timestamp={Number(releaseDate)} />
+								<Timestamp timestamp={releaseDate} />
 							</dd>
 						</div>
 					{/if}
@@ -229,7 +226,7 @@
 						<div>
 							<dt>published AT</dt>
 							<dd>
-								<Timestamp timestamp={Number(publishedAt)} />
+								<Timestamp timestamp={publishedAt} />
 							</dd>
 						</div>
 					{/if}
@@ -274,11 +271,11 @@
 							<dt>package registry base URL</dt>
 							<dd>
 								<a
-									href={String(packageRegistryBaseUrl)}
+									href={packageRegistryBaseUrl}
 									target="_blank"
 									rel="noreferrer noopener"
 								>
-									<TruncatedValue value={String(packageRegistryBaseUrl)} />
+									<TruncatedValue value={packageRegistryBaseUrl} />
 								</a>
 							</dd>
 						</div>

@@ -40,39 +40,37 @@
 			entityType={EntityType.FarcasterFeed}
 			entitySelector={farcasterFeedSelector}
 			href={
-				(
-					farcasterFeedSelector.variant === 'byUser'
-					&& 'fid' in farcasterFeedSelector ?
+				farcasterFeedSelector.variant === 'byUser'
+				&& 'fid' in farcasterFeedSelector ?
+					resolve(
+						'/(social)/(farcaster)/farcaster/(farcasterNetwork)/feed/user/[userId=farcasterFid]',
+						{
+							userId: String(farcasterFeedSelector.fid),
+						}
+					)
+				:
+					farcasterFeedSelector.variant === 'byChannel'
+					&& 'channelId' in farcasterFeedSelector ?
 						resolve(
-							'/(social)/(farcaster)/farcaster/(farcasterNetwork)/feed/user/[userId=farcasterFid]',
+							'/(social)/(farcaster)/farcaster/(farcasterNetwork)/feed/channel/[channelId=stringSegment]',
 							{
-								userId: String(farcasterFeedSelector.fid),
+								channelId: farcasterFeedSelector.channelId,
 							}
 						)
 					:
-						farcasterFeedSelector.variant === 'byChannel'
-						&& 'channelId' in farcasterFeedSelector ?
+						farcasterFeedSelector.variant === 'following'
+						&& 'viewerFid' in farcasterFeedSelector ?
 							resolve(
-								'/(social)/(farcaster)/farcaster/(farcasterNetwork)/feed/channel/[channelId=stringSegment]',
+								'/(social)/(farcaster)/farcaster/(farcasterNetwork)/feed/following/[userId=farcasterFid]',
 								{
-									channelId: String(farcasterFeedSelector.channelId),
+									userId: String(farcasterFeedSelector.viewerFid),
 								}
 							)
 						:
-							farcasterFeedSelector.variant === 'following'
-							&& 'viewerFid' in farcasterFeedSelector ?
-								resolve(
-									'/(social)/(farcaster)/farcaster/(farcasterNetwork)/feed/following/[userId=farcasterFid]',
-									{
-										userId: String(farcasterFeedSelector.viewerFid),
-									}
-								)
+							farcasterFeedSelector.variant === 'trending' ?
+								resolve('/(social)/(farcaster)/farcaster/(farcasterNetwork)/feed/trending')
 							:
-								farcasterFeedSelector.variant === 'trending' ?
-									resolve('/(social)/(farcaster)/farcaster/(farcasterNetwork)/feed/trending')
-								:
-									undefined
-				)
+								undefined
 			}
 		>
 			{#snippet Title()}

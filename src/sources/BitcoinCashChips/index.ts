@@ -2,7 +2,8 @@
 
 import bindings from '$/sources/BitcoinCashChips/bindings.ts'
 import { Source } from '$/sources/Source.ts'
-import { SourceProvider, type SourceProviderDefinition } from '$/sources/SourceProvider.ts'
+import { SourceProvider } from '$/sources/SourceProvider.ts'
+import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinition.ts'
 
 export default {
 	provider: SourceProvider.BitcoinCashChips,
@@ -13,5 +14,5 @@ export default {
 			label: 'Bitcoin Cash CHIPs GitLab',
 		},
 	],
-	bindings: [bindings[Source.BitcoinCashChips_Gitlab]],
+	bindings: Object.values(bindings).flat(),
 } satisfies SourceProviderDefinition

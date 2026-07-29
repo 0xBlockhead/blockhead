@@ -5,7 +5,6 @@
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 
 
 	// State
@@ -42,11 +41,11 @@
 			entitySelector={gitCommitSelector}
 		>
 			{#snippet Title()}
-				{String(gitCommitSelector.objectId) || 'Git commit'}
+				{gitCommitSelector.objectId || 'Git commit'}
 			{/snippet}
 
 			{#snippet Value()}
-				{(gitCommit.message ?? '')}
+				{gitCommit.message ?? ''}
 			{/snippet}
 
 			{#snippet HeadingAfter()}

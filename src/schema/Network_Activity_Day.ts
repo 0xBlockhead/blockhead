@@ -1,14 +1,12 @@
 // Generated from APP.ts. Do not edit by hand.
 
 import { entity } from '$/schema/$schema.ts'
-import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
+import { EntityFieldCardinality } from '$/schema/EntityFieldCardinality.ts'
+import { EntityFieldType } from '$/schema/EntityFieldType.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { OptimisticProviderResult } from '$/schema/OptimisticProviderResult.ts'
 import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
-
-export enum OptimisticProviderResult {
-	OptimisticProviderResult = 'OptimisticProviderResult',
-}
 
 export default entity({
 	entityType: EntityType.Network_Activity_Day,

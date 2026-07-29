@@ -21,9 +21,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.TransferRestrictionCheck_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const titleFallback = 'transfer restriction check timestamp'
-
 
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -37,7 +34,7 @@
 <EntityView
 	entityType={EntityType.TransferRestrictionCheck_Timestamp}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? 'transfer restriction check timestamp'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -62,21 +59,21 @@
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+					<Timestamp timestamp={selection.entitySelector.timestampMs} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 
 			<div>
 				<dt>subject key</dt>
 				<dd>
-					{pendingEntity.subjectKey}
+					{selection.entitySelector.subjectKey}
 				</dd>
 			</div>
 		</dl>
@@ -117,7 +114,7 @@
 						<div>
 							<dt>amount</dt>
 							<dd>
-								{String(amount)}
+								{amount}
 							</dd>
 						</div>
 					{/if}
@@ -207,7 +204,7 @@
 						<div>
 							<dt>ledger coordinate value</dt>
 							<dd>
-								{String(ledgerCoordinateValue)}
+								{ledgerCoordinateValue}
 							</dd>
 						</div>
 					{/if}
@@ -229,7 +226,7 @@
 						<div>
 							<dt>valid from ms</dt>
 							<dd>
-								<Timestamp timestamp={Number(validFromMs)} />
+								<Timestamp timestamp={validFromMs} />
 							</dd>
 						</div>
 					{/if}
@@ -251,7 +248,7 @@
 						<div>
 							<dt>valid to ms</dt>
 							<dd>
-								<Timestamp timestamp={Number(validToMs)} />
+								<Timestamp timestamp={validToMs} />
 							</dd>
 						</div>
 					{/if}

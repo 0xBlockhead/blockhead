@@ -45,7 +45,7 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{(avalanchePChainTransaction.txType ?? '')}
+				{avalanchePChainTransaction.txType ?? ''}
 			{/snippet}
 
 			{#snippet HeadingAfter()}

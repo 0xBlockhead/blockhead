@@ -17,7 +17,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.StarknetBlock> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Juno_JsonRpc,
@@ -34,7 +33,7 @@
 			status: true,
 		},
 	}))
-	const titleFallback = $derived(String(pendingEntity.blockNumber ?? '') || 'starknet block')
+	const titleFallback = $derived(String(prefetched.blockNumber ?? '') || 'starknet block')
 
 
 	// Components
@@ -75,10 +74,10 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={starknetBlock}>
 			{#snippet children(entity)}
-				{@const status0 = entity.status}
-				{#if status0 != null}
+				{@const status = entity.status}
+				{#if status != null}
 					<span data-text="muted">
-						{status0}
+						{status}
 					</span>
 				{/if}
 			{/snippet}
@@ -174,7 +173,7 @@
 						<div>
 							<dt>Timestamp</dt>
 							<dd>
-								<Timestamp timestamp={Number(timestampMs)} />
+								<Timestamp timestamp={timestampMs} />
 							</dd>
 						</div>
 					{/if}
@@ -224,15 +223,15 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const starknetBlockStarknetTransactionsViewTransactionsResource = selection.$$transactions}
+		{@const transactionsResource = selection.$$transactions}
 		<ResourceBoundary
-			resource={starknetBlockStarknetTransactionsViewTransactionsResource}
+			resource={transactionsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<StarknetTransactionsView
-						selection={starknetBlockStarknetTransactionsViewTransactionsResource}
-						countResource={starknetBlockStarknetTransactionsViewTransactionsResource.count}
+						selection={transactionsResource}
+						countResource={transactionsResource.count}
 						title='transactions'
 						id='transactions'
 					/>

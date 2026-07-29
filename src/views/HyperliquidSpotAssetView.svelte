@@ -22,13 +22,11 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.HyperliquidSpotAsset> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const viewSelection = $derived(selection({
+	const hyperliquidSpotAsset = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Hyperliquid_Rest,
 		],
-	}))
-	const hyperliquidSpotAsset = $derived(viewSelection({
+	})({
 		fields: {
 			name: true,
 			szDecimals: true,
@@ -36,7 +34,7 @@
 			tokenId: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.name ?? '') || String(pendingEntity.assetId ?? '') || 'hyperliquid spot asset')
+	const titleFallback = $derived((prefetched.name ?? '') || String(selection.entitySelector.assetId) || 'hyperliquid spot asset')
 	const viewDomId = $derived('hyperliquid-spot-asset-' + encodeURIComponent(stringify(selection.entitySelector)))
 
 
@@ -70,7 +68,7 @@
 
 	{#snippet Value()}
 		<NumberValue
-			value={pendingEntity.assetId}
+			value={selection.entitySelector.assetId}
 		/>
 	{/snippet}
 
@@ -101,7 +99,7 @@
 				<dt>asset ID</dt>
 				<dd>
 					<NumberValue
-						value={pendingEntity.assetId}
+						value={selection.entitySelector.assetId}
 					/>
 				</dd>
 			</div>

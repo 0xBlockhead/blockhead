@@ -9,7 +9,8 @@ import NostrRelaySchema from '$/schema/NostrRelay.ts'
 import { type as arktype } from 'arktype'
 
 export const load: LayoutLoad = ({ params }) => {
-	if (!(matchStringSegment(params.relayKey))) error(404, 'Route mapping not applicable')
+	if (!(matchStringSegment(params.relayKey)))
+		error(404, 'Route mapping not applicable')
 
 	const nostrRelayRelayUrlSelector = parseEntitySelector(
 		schema,
@@ -18,7 +19,8 @@ export const load: LayoutLoad = ({ params }) => {
 			relayUrl: decodeURIComponent(params.relayKey),
 		}
 	)
-	if (nostrRelayRelayUrlSelector instanceof arktype.errors) error(404, 'Invalid NostrRelay selector')
+	if (nostrRelayRelayUrlSelector instanceof arktype.errors)
+		error(404, 'Invalid NostrRelay selector')
 
 	return {
 		selector: nostrRelayRelayUrlSelector,

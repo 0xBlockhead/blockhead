@@ -4,7 +4,6 @@
 	// Types/constants
 	import type { PageProps } from './$types.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { ExecutionProtocol } from '$/schema/NetworkUpgradeProtocols.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -39,7 +38,7 @@
 
 
 <svelte:head>
-	<title>{(data.title ?? (pageSelection.entity == null ? 'Ethereum execution upgrade' : pageSelection.entity.upgradeId || pageSelection.entity.name || 'Ethereum execution upgrade'))} • Ethereum execution upgrade • Blockhead</title>
+	<title>{data.title ?? (pageSelection.entity == null ? 'Ethereum execution upgrade' : pageSelection.entity.upgradeId || pageSelection.entity.name || 'Ethereum execution upgrade')} • Ethereum execution upgrade • Blockhead</title>
 </svelte:head>
 
 

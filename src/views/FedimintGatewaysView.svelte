@@ -44,7 +44,7 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{(fedimintGateway.apiUrl ?? '')}
+				{fedimintGateway.apiUrl ?? ''}
 			{/snippet}
 		</EntityView>
 	{/snippet}

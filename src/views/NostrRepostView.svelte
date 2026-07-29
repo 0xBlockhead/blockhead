@@ -25,14 +25,12 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.NostrRepost> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const viewSelection = $derived(selection({
+	const nostrRepost = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Primal_Rest,
 			Source.NostrBand_Rest,
 		],
-	}))
-	const nostrRepost = $derived(viewSelection({
+	})({
 		fields: {
 			kind: true,
 			pubkey: true,
@@ -40,7 +38,6 @@
 			repostedEventId: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.repostedEventId ?? '') || 'Nostr repost')
 
 
 	// Components
@@ -55,14 +52,17 @@
 <EntityView
 	entityType={EntityType.NostrRepost}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? ((prefetched.repostedEventId ?? '') || 'Nostr repost')}
 	href={
-		href ?? resolve(
-			'/(social)/(nostr)/nostr/(globalNostrNetwork)/repost/[eventId=stringSegment]',
-			{
-				eventId: String(selection.entitySelector.eventId),
-			}
-		)
+		href === undefined ?
+			resolve(
+				'/(social)/(nostr)/nostr/(globalNostrNetwork)/repost/[eventId=stringSegment]',
+				{
+					eventId: selection.entitySelector.eventId,
+				}
+			)
+		:
+			href ?? undefined
 	}
 	{layout}
 	bind:open
@@ -71,9 +71,9 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={nostrRepost}>
 			{#snippet children(entity)}
-				{@const repostedEventId0 = entity.repostedEventId}
-				{#if repostedEventId0 != null}
-					<TruncatedValue value={repostedEventId0} />
+				{@const repostedEventId = entity.repostedEventId}
+				{#if repostedEventId != null}
+					<TruncatedValue value={repostedEventId} />
 				{/if}
 			{/snippet}
 		</ResourceBoundary>
@@ -81,7 +81,7 @@
 
 	{#snippet Value()}
 		<TruncatedValue
-			value={String(selection.entitySelector.eventId ?? '')}
+			value={selection.entitySelector.eventId}
 			format={TruncatedValueFormat.Visual}
 		/>
 	{/snippet}
@@ -89,10 +89,10 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={nostrRepost}>
 			{#snippet children(entity)}
-				{@const createdAt0 = entity.createdAt}
-				{#if createdAt0 != null}
+				{@const createdAt = entity.createdAt}
+				{#if createdAt != null}
 					<span data-text="muted">
-						<Timestamp timestamp={Number(createdAt0)} />
+						<Timestamp timestamp={createdAt} />
 					</span>
 				{/if}
 			{/snippet}
@@ -110,7 +110,7 @@
 			<div>
 				<dt>Event ID</dt>
 				<dd>
-					<TruncatedValue value={pendingEntity.eventId} />
+					<TruncatedValue value={selection.entitySelector.eventId} />
 				</dd>
 			</div>
 
@@ -123,7 +123,7 @@
 						<div>
 							<dt>Created</dt>
 							<dd>
-								<Timestamp timestamp={Number(createdAt)} />
+								<Timestamp timestamp={createdAt} />
 							</dd>
 						</div>
 					{/if}
@@ -138,7 +138,7 @@
 							resource={nostrRepost}
 						>
 							{#snippet children(entity)}
-								{String(entity.kind)}
+								{entity.kind}
 							{/snippet}
 						</ResourceBoundary>
 					</dd>

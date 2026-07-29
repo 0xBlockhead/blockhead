@@ -2,7 +2,8 @@
 
 import bindings from '$/sources/GetBlock/bindings.ts'
 import { Source } from '$/sources/Source.ts'
-import { SourceProvider, type SourceProviderDefinition } from '$/sources/SourceProvider.ts'
+import { SourceProvider } from '$/sources/SourceProvider.ts'
+import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinition.ts'
 
 export default {
 	provider: SourceProvider.GetBlock,
@@ -17,8 +18,5 @@ export default {
 			label: 'GetBlock Yellowstone gRPC',
 		},
 	],
-	bindings: [
-		bindings[Source.GetBlockRpc_JsonRpc],
-		bindings[Source.GetBlockYellowstone_Grpc],
-	],
+	bindings: Object.values(bindings).flat(),
 } satisfies SourceProviderDefinition

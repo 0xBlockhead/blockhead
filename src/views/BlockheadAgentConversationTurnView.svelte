@@ -24,7 +24,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.BlockheadAgentConversationTurn> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Local_Internal,
@@ -38,7 +37,6 @@
 			createdAt: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.userPrompt ?? '') || 'agent conversation turn')
 
 
 	// Components
@@ -53,20 +51,23 @@
 <EntityView
 	entityType={EntityType.BlockheadAgentConversationTurn}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? ((prefetched.userPrompt ?? '') || 'agent conversation turn')}
 	href={
-		href ?? (
-			'$conversation' in selection.entitySelector ?
-				resolve(
-					'/~/agents/conversation/[conversationId=stringSegment]/(blockheadAgentConversation)/turn/[turnId=stringSegment]',
-					{
-						conversationId: String(selection.entitySelector.$conversation.id),
-						turnId: String(selection.entitySelector.id),
-					}
-				)
-			:
-				undefined
-		)
+		href === undefined ?
+			(
+				'$conversation' in selection.entitySelector ?
+					resolve(
+						'/~/agents/conversation/[conversationId=stringSegment]/(blockheadAgentConversation)/turn/[turnId=stringSegment]',
+						{
+							conversationId: selection.entitySelector.$conversation.id,
+							turnId: selection.entitySelector.id,
+						}
+					)
+				:
+					undefined
+			)
+		:
+			href ?? undefined
 	}
 	{layout}
 	bind:open
@@ -83,7 +84,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={blockheadAgentConversationTurn}>
 			{#snippet children(entity)}
-				<Timestamp timestamp={Number(entity.createdAt)} />
+				<Timestamp timestamp={entity.createdAt} />
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -128,7 +129,7 @@
 						resource={blockheadAgentConversationTurn}
 					>
 						{#snippet children(entity)}
-							<Timestamp timestamp={Number(entity.createdAt)} />
+							<Timestamp timestamp={entity.createdAt} />
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -238,15 +239,15 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const blockheadAgentConversationTurnBlockheadAgentProviderCallsViewProviderCallsResource = selection.$$providerCalls}
+		{@const providerCallsResource = selection.$$providerCalls}
 		<ResourceBoundary
-			resource={blockheadAgentConversationTurnBlockheadAgentProviderCallsViewProviderCallsResource}
+			resource={providerCallsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<BlockheadAgentProviderCallsView
-						selection={blockheadAgentConversationTurnBlockheadAgentProviderCallsViewProviderCallsResource}
-						countResource={blockheadAgentConversationTurnBlockheadAgentProviderCallsViewProviderCallsResource.count}
+						selection={providerCallsResource}
+						countResource={providerCallsResource.count}
 						title='provider calls'
 						id='provider-calls'
 					/>

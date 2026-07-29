@@ -40,11 +40,11 @@
 			entitySelector={erc4626VaultTimestampSelector}
 		>
 			{#snippet Title()}
-				{String(erc4626VaultTimestampSelector.timestampMs) || 'erc4626 vault timestamp'}
+				{erc4626VaultTimestampSelector.timestampMs}
 			{/snippet}
 
 			{#snippet Value()}
-				{String(erc4626VaultTimestamp.apyTotal ?? '')}
+				{erc4626VaultTimestamp.apyTotal ?? ''}
 			{/snippet}
 		</EntityView>
 	{/snippet}

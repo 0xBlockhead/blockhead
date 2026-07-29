@@ -47,7 +47,7 @@
 				resolve(
 					'/(social)/(atproto)/atproto/(globalAtprotoNetwork)/post/[...uri=stringSegment]',
 					{
-						uri: encodeURIComponent(String(atprotoPostSelector.uri)),
+						uri: encodeURIComponent(atprotoPostSelector.uri),
 					}
 				)
 			}
@@ -57,7 +57,7 @@
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{String(atprotoPost.createdAt ?? '')}</span>
+				<span data-text="annotation">{atprotoPost.createdAt ?? ''}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

@@ -6,8 +6,6 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { stringify } from 'devalue'
-	import { UrlString } from '$/schema/UrlString.ts'
-	import { EvmAddress } from '$/schema/ZeroExHex.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -25,7 +23,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.EigenLayerOperator> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.EigenExplorer_Rest,
@@ -40,7 +37,7 @@
 			name: true,
 		},
 	}))
-	const titleFallback = $derived(String(pendingEntity.operatorAddress ?? '') || 'eigen layer operator')
+	const titleFallback = $derived(selection.entitySelector.operatorAddress || 'eigen layer operator')
 	const viewDomId = $derived('eigen-layer-operator-' + encodeURIComponent(stringify(selection.entitySelector)))
 
 
@@ -69,13 +66,13 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{String(pendingEntity.operatorAddress ?? '') || 'eigen layer operator'}
+		{selection.entitySelector.operatorAddress || 'eigen layer operator'}
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={eigenLayerOperator}>
 			{#snippet children(entity)}
-				{(entity.name ?? '') || String(pendingEntity.operatorAddress) || titleFallback}
+				{(entity.name ?? '') || selection.entitySelector.operatorAddress || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -95,7 +92,7 @@
 			<div>
 				<dt>operator address</dt>
 				<dd>
-					<TruncatedValue value={String(pendingEntity.operatorAddress)} />
+					<TruncatedValue value={selection.entitySelector.operatorAddress} />
 				</dd>
 			</div>
 
@@ -131,11 +128,11 @@
 							<dt>website</dt>
 							<dd>
 								<a
-									href={String(website)}
+									href={website}
 									target="_blank"
 									rel="noreferrer noopener"
 								>
-									<TruncatedValue value={String(website)} />
+									<TruncatedValue value={website} />
 								</a>
 							</dd>
 						</div>
@@ -159,11 +156,11 @@
 							<dt>metadata URI</dt>
 							<dd>
 								<a
-									href={String(metadataUri)}
+									href={metadataUri}
 									target="_blank"
 									rel="noreferrer noopener"
 								>
-									<TruncatedValue value={String(metadataUri)} />
+									<TruncatedValue value={metadataUri} />
 								</a>
 							</dd>
 						</div>
@@ -188,7 +185,7 @@
 						<div>
 							<dt>earnings receiver</dt>
 							<dd>
-								{String(earningsReceiver)}
+								{earningsReceiver}
 							</dd>
 						</div>
 					{/if}
@@ -210,7 +207,7 @@
 						<div>
 							<dt>delegation approver</dt>
 							<dd>
-								{String(delegationApprover)}
+								{delegationApprover}
 							</dd>
 						</div>
 					{/if}

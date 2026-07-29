@@ -21,7 +21,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.BlockheadLightningNodeState_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.LightningLnd_Grpc,
@@ -36,7 +35,6 @@
 			blockHeight: true,
 		},
 	}))
-	const titleFallback = $derived(String(pendingEntity.timestampMs ?? '') || 'blockhead Lightning node state timestamp')
 
 
 	// Components
@@ -50,19 +48,19 @@
 <EntityView
 	entityType={EntityType.BlockheadLightningNodeState_Timestamp}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? String(selection.entitySelector.timestampMs)}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+		<Timestamp timestamp={selection.entitySelector.timestampMs} />
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={blockheadLightningNodeStateTimestamp}>
 			{#snippet children(entity)}
-				{[String(entity.syncedToChain ?? ''), String(entity.syncedToGraph ?? '')].filter(Boolean).join(' ') || String(pendingEntity.timestampMs) || titleFallback}
+				{[String(entity.syncedToChain ?? ''), String(entity.syncedToGraph ?? '')].filter(Boolean).join(' ') || String(selection.entitySelector.timestampMs)}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -70,11 +68,11 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={blockheadLightningNodeStateTimestamp}>
 			{#snippet children(entity)}
-				{@const blockHeight0 = entity.blockHeight}
-				{#if blockHeight0 != null}
+				{@const blockHeight = entity.blockHeight}
+				{#if blockHeight != null}
 					<span data-text="muted">
 						<NumberValue
-							value={blockHeight0}
+							value={blockHeight}
 						/>
 					</span>
 				{/if}
@@ -98,14 +96,14 @@
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+					<Timestamp timestamp={selection.entitySelector.timestampMs} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 
@@ -176,7 +174,7 @@
 						<div>
 							<dt>best header timestamp ms</dt>
 							<dd>
-								<Timestamp timestamp={Number(bestHeaderTimestampMs)} />
+								<Timestamp timestamp={bestHeaderTimestampMs} />
 							</dd>
 						</div>
 					{/if}

@@ -23,13 +23,12 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.LensAccount_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const account = $derived(selection.entitySelector.$account)
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Lens_Graphql,
 		],
 	}))
-	const titleFallback = 'Lens account observation'
 
 
 	// Components
@@ -44,20 +43,23 @@
 <EntityView
 	entityType={EntityType.LensAccount_Timestamp}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? 'Lens account observation'}
 	href={
-		href ?? (
-			'address' in selection.entitySelector.$account ?
-				resolve(
-					'/(social)/(lens)/lens/(lensNetwork)/account/[address=evmAddress]/(lensAccount)/observations/[timestampMs=nonNegativeInteger]',
-					{
-						address: String(selection.entitySelector.$account.address),
-						timestampMs: String(selection.entitySelector.timestampMs),
-					}
-				)
-			:
-				undefined
-		)
+		href === undefined ?
+			(
+				'address' in account ?
+					resolve(
+						'/(social)/(lens)/lens/(lensNetwork)/account/[address=evmAddress]/(lensAccount)/observations/[timestampMs=nonNegativeInteger]',
+						{
+							address: account.address,
+							timestampMs: String(selection.entitySelector.timestampMs),
+						}
+					)
+				:
+					undefined
+			)
+		:
+			href ?? undefined
 	}
 	{layout}
 	bind:open
@@ -66,14 +68,14 @@
 	{#snippet Title()}
 		<LensAccountView
 			selection={select(EntityType.LensAccount, selection.entitySelector.$account)}
-			href=""
+			href={null}
 			layout={EntityLayout.Title}
 			open={false}
 		/>
 	{/snippet}
 
 	{#snippet Value()}
-		<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+		<Timestamp timestamp={selection.entitySelector.timestampMs} />
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -94,7 +96,7 @@
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+					<Timestamp timestamp={selection.entitySelector.timestampMs} />
 				</dd>
 			</div>
 		</dl>

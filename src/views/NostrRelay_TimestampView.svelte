@@ -22,7 +22,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.NostrRelay_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const nostrRelayTimestamp = $derived(selection({
 		fields: {
 			name: true,
@@ -30,7 +29,7 @@
 			software: true,
 		},
 	}))
-	const titleFallback = $derived([(pendingEntity.name ?? ''), (pendingEntity.source ?? '')].filter(Boolean).join(' ') || 'Nostr relay timestamp')
+	const titleFallback = $derived([(prefetched.name ?? ''), selection.entitySelector.source].filter(Boolean).join(' ') || 'Nostr relay timestamp')
 
 
 	// Components
@@ -46,14 +45,17 @@
 	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
 	href={
-		href ?? resolve(
-			'/(social)/(nostr)/nostr/(globalNostrNetwork)/relay/[relayKey=stringSegment]/(nostrRelay)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
-			{
-				relayKey: encodeURIComponent(String(selection.entitySelector.$relay.relayUrl)),
-				timestampMs: String(selection.entitySelector.timestampMs),
-				source: String(selection.entitySelector.source),
-			}
-		)
+		href === undefined ?
+			resolve(
+				'/(social)/(nostr)/nostr/(globalNostrNetwork)/relay/[relayKey=stringSegment]/(nostrRelay)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
+				{
+					relayKey: encodeURIComponent(selection.entitySelector.$relay.relayUrl),
+					timestampMs: String(selection.entitySelector.timestampMs),
+					source: selection.entitySelector.source,
+				}
+			)
+		:
+			href ?? undefined
 	}
 	{layout}
 	bind:open
@@ -62,7 +64,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={nostrRelayTimestamp}>
 			{#snippet children(entity)}
-				{[(entity.name ?? ''), pendingEntity.source].filter(Boolean).join(' ') || title || titleFallback}
+				{[(entity.name ?? ''), selection.entitySelector.source].filter(Boolean).join(' ') || title || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -70,14 +72,14 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={nostrRelayTimestamp}>
 			{#snippet children(entity)}
-				{[String(entity.reachable ?? ''), (entity.software ?? '')].filter(Boolean).join(' ') || [(entity.name ?? ''), pendingEntity.source].filter(Boolean).join(' ') || titleFallback}
+				{[String(entity.reachable ?? ''), (entity.software ?? '')].filter(Boolean).join(' ') || [(entity.name ?? ''), selection.entitySelector.source].filter(Boolean).join(' ') || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
 		<span data-text="muted">
-			<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+			<Timestamp timestamp={selection.entitySelector.timestampMs} />
 		</span>
 	{/snippet}
 
@@ -86,14 +88,14 @@
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+					<Timestamp timestamp={selection.entitySelector.timestampMs} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 
@@ -212,7 +214,7 @@
 						<div>
 							<dt>Active users</dt>
 							<dd>
-								{String(activeUsers)}
+								{activeUsers}
 							</dd>
 						</div>
 					{/if}
@@ -234,7 +236,7 @@
 						<div>
 							<dt>Events per day</dt>
 							<dd>
-								{String(eventsPerDay)}
+								{eventsPerDay}
 							</dd>
 						</div>
 					{/if}
@@ -256,7 +258,7 @@
 						<div>
 							<dt>Rank</dt>
 							<dd>
-								{String(rank)}
+								{rank}
 							</dd>
 						</div>
 					{/if}
@@ -297,11 +299,11 @@
 							<dt>Payments URL</dt>
 							<dd>
 								<a
-									href={String(paymentsUrl)}
+									href={paymentsUrl}
 									target="_blank"
 									rel="noreferrer noopener"
 								>
-									<TruncatedValue value={String(paymentsUrl)} />
+									<TruncatedValue value={paymentsUrl} />
 								</a>
 							</dd>
 						</div>
@@ -325,11 +327,11 @@
 							<dt>Terms of service URL</dt>
 							<dd>
 								<a
-									href={String(termsOfServiceUrl)}
+									href={termsOfServiceUrl}
 									target="_blank"
 									rel="noreferrer noopener"
 								>
-									<TruncatedValue value={String(termsOfServiceUrl)} />
+									<TruncatedValue value={termsOfServiceUrl} />
 								</a>
 							</dd>
 						</div>
@@ -353,11 +355,11 @@
 							<dt>Icon URL</dt>
 							<dd>
 								<a
-									href={String(iconUrl)}
+									href={iconUrl}
 									target="_blank"
 									rel="noreferrer noopener"
 								>
-									<TruncatedValue value={String(iconUrl)} />
+									<TruncatedValue value={iconUrl} />
 								</a>
 							</dd>
 						</div>
@@ -381,11 +383,11 @@
 							<dt>Banner URL</dt>
 							<dd>
 								<a
-									href={String(bannerUrl)}
+									href={bannerUrl}
 									target="_blank"
 									rel="noreferrer noopener"
 								>
-									<TruncatedValue value={String(bannerUrl)} />
+									<TruncatedValue value={bannerUrl} />
 								</a>
 							</dd>
 						</div>

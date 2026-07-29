@@ -5,7 +5,6 @@
 	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { MarketVenueId } from '$/constants/MarketVenue.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -20,18 +19,16 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.MarketVenue> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const viewSelection = $derived(selection({
+	const marketVenue = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Constants_Internal,
 		],
-	}))
-	const marketVenue = $derived(viewSelection({
+	})({
 		fields: {
 			label: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.label ?? '') || (pendingEntity.marketVenueId ?? '') || 'Market venue')
+	const titleFallback = $derived((prefetched.label ?? '') || selection.entitySelector.marketVenueId || 'Market venue')
 
 
 	// Components
@@ -45,12 +42,15 @@
 	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
 	href={
-		href ?? resolve(
-			'/(assets)/(marketVenues)/market-venue/[marketVenueId=marketVenueId]',
-			{
-				marketVenueId: String(selection.entitySelector.marketVenueId),
-			}
-		)
+		href === undefined ?
+			resolve(
+				'/(assets)/(marketVenues)/market-venue/[marketVenueId=marketVenueId]',
+				{
+					marketVenueId: selection.entitySelector.marketVenueId,
+				}
+			)
+		:
+			href ?? undefined
 	}
 	{layout}
 	bind:open
@@ -75,22 +75,22 @@
 			<div>
 				<dt>Market venue ID</dt>
 				<dd>
-					{pendingEntity.marketVenueId}
+					{selection.entitySelector.marketVenueId}
 				</dd>
 			</div>
 		</dl>
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const marketVenueMarketsViewMarketsResource = selection.$$markets}
+		{@const marketsResource = selection.$$markets}
 		<ResourceBoundary
-			resource={marketVenueMarketsViewMarketsResource}
+			resource={marketsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<MarketsView
-						selection={marketVenueMarketsViewMarketsResource}
-						countResource={marketVenueMarketsViewMarketsResource.count}
+						selection={marketsResource}
+						countResource={marketsResource.count}
 						title='Markets'
 						href={resolve('/(assets)/markets')}
 						id='markets'

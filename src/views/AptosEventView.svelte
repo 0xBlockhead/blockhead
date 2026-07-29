@@ -21,13 +21,12 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.AptosEvent> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const aptosEvent = $derived(selection({
 		fields: {
 			eventType: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.eventType ?? '') || 'aptos event')
+	const titleFallback = $derived((prefetched.eventType ?? '') || 'aptos event')
 
 
 	// Components
@@ -56,7 +55,7 @@
 	{/snippet}
 
 	{#snippet Value()}
-		{[String(pendingEntity.transactionVersion ?? ''), String(pendingEntity.eventIndex ?? '')].filter(Boolean).join(' ') || (pendingEntity.eventType ?? '') || titleFallback}
+		{[String(selection.entitySelector.transactionVersion), String(selection.entitySelector.eventIndex)].filter(Boolean).join(' ') || (prefetched.eventType ?? '') || titleFallback}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -107,7 +106,7 @@
 				<dt>transaction version</dt>
 				<dd>
 					<NumberValue
-						value={pendingEntity.transactionVersion}
+						value={selection.entitySelector.transactionVersion}
 					/>
 				</dd>
 			</div>
@@ -116,7 +115,7 @@
 				<dt>event index</dt>
 				<dd>
 					<NumberValue
-						value={pendingEntity.eventIndex}
+						value={selection.entitySelector.eventIndex}
 					/>
 				</dd>
 			</div>

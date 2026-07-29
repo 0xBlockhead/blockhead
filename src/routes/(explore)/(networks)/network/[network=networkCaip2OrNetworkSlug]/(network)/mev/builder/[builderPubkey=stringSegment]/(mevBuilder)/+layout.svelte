@@ -32,8 +32,8 @@
 			resolve(
 				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/mev/builder/[builderPubkey=stringSegment]',
 				{
-					network: String(params.network),
-					builderPubkey: String(params.builderPubkey),
+					network: params.network,
+					builderPubkey: params.builderPubkey,
 				}
 			)
 		}
@@ -45,8 +45,8 @@
 					resolve(
 						'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/mev/builder/[builderPubkey=stringSegment]',
 						{
-							network: String(params.network),
-							builderPubkey: String(params.builderPubkey),
+							network: params.network,
+							builderPubkey: params.builderPubkey,
 						}
 					)
 				}

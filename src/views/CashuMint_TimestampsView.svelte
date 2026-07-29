@@ -42,7 +42,7 @@
 			entitySelector={cashuMintTimestampSelector}
 		>
 			{#snippet Title()}
-				{String(cashuMintTimestampSelector.timestampMs) || 'Cashu mint timestamp'}
+				{cashuMintTimestampSelector.timestampMs}
 			{/snippet}
 
 			{#snippet Value()}
@@ -50,7 +50,7 @@
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{String(cashuMintTimestamp.reachable ?? '')}</span>
+				<span data-text="annotation">{cashuMintTimestamp.reachable ?? ''}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

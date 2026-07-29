@@ -32,8 +32,8 @@
 			resolve(
 				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/erc-4337/paymaster/[address=evmAddress]',
 				{
-					network: String(params.network),
-					address: String(params.address),
+					network: params.network,
+					address: params.address,
 				}
 			)
 		}
@@ -45,8 +45,8 @@
 					resolve(
 						'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/erc-4337/paymaster/[address=evmAddress]',
 						{
-							network: String(params.network),
-							address: String(params.address),
+							network: params.network,
+							address: params.address,
 						}
 					)
 				}

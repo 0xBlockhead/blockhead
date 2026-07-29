@@ -38,6 +38,7 @@
 >
 	{#snippet Item({ item: erc4337SmartAccountTimestamp })}
 		{@const erc4337SmartAccountTimestampSelector = erc4337SmartAccountTimestamp[EntityMetaKey.Selector]}
+		{@const account = erc4337SmartAccountTimestampSelector.$account}
 		<EntityView
 			entityType={EntityType.Erc4337SmartAccount_Timestamp}
 			entitySelector={erc4337SmartAccountTimestampSelector}
@@ -46,24 +47,24 @@
 					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/erc-4337/smart-account/[address=evmAddress]/(erc4337SmartAccount)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
 					{
 						network: (
-							'caip2' in erc4337SmartAccountTimestampSelector.$account.$network ?
-								String(caip2StringFromValue(erc4337SmartAccountTimestampSelector.$account.$network.caip2))
+							'caip2' in account.$network ?
+								caip2StringFromValue(account.$network.caip2)
 							:
-								String(erc4337SmartAccountTimestampSelector.$account.$network.slug)
+								account.$network.slug
 						),
-						address: String(erc4337SmartAccountTimestampSelector.$account.address),
+						address: account.address,
 						timestampMs: String(erc4337SmartAccountTimestampSelector.timestampMs),
-						source: String(erc4337SmartAccountTimestampSelector.source),
+						source: erc4337SmartAccountTimestampSelector.source,
 					}
 				)
 			}
 		>
 			{#snippet Title()}
-				{String(erc4337SmartAccountTimestampSelector.timestampMs) || 'ERC-4337 smart account timestamp'}
+				{erc4337SmartAccountTimestampSelector.timestampMs}
 			{/snippet}
 
 			{#snippet Value()}
-				{String(erc4337SmartAccountTimestamp.userOperationsCount ?? '')}
+				{erc4337SmartAccountTimestamp.userOperationsCount ?? ''}
 			{/snippet}
 
 			{#snippet HeadingAfter()}

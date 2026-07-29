@@ -4,7 +4,6 @@
 	// Types/constants
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 
 
 	// Context
@@ -21,13 +20,11 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.EvmStorageRead_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const evmStorageReadTimestamp = $derived(selection({
 		fields: {
 			value: true,
 		},
 	}))
-	const titleFallback = $derived(String(pendingEntity.slot ?? '') || 'EVM storage read timestamp')
 
 
 	// Components
@@ -41,21 +38,21 @@
 <EntityView
 	entityType={EntityType.EvmStorageRead_Timestamp}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? (selection.entitySelector.slot || 'EVM storage read timestamp')}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<TruncatedValue value={String(pendingEntity.slot)} />
+		<TruncatedValue value={selection.entitySelector.slot} />
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={evmStorageReadTimestamp}>
 			{#snippet children(entity)}
-				{@const value0 = entity.value}
-				{#if value0 != null}
-					<TruncatedValue value={String(value0)} />
+				{@const value = entity.value}
+				{#if value != null}
+					<TruncatedValue value={value} />
 				{/if}
 			{/snippet}
 		</ResourceBoundary>
@@ -63,7 +60,7 @@
 
 	{#snippet HeadingAfter()}
 		<span data-text="muted">
-			{pendingEntity.source}
+			{selection.entitySelector.source}
 		</span>
 	{/snippet}
 
@@ -72,7 +69,7 @@
 			<div>
 				<dt>Slot</dt>
 				<dd>
-					<TruncatedValue value={String(pendingEntity.slot)} />
+					<TruncatedValue value={selection.entitySelector.slot} />
 				</dd>
 			</div>
 
@@ -85,7 +82,7 @@
 						<div>
 							<dt>Value</dt>
 							<dd>
-								<TruncatedValue value={String(value)} />
+								<TruncatedValue value={value} />
 							</dd>
 						</div>
 					{/if}
@@ -107,7 +104,7 @@
 						<div>
 							<dt>Block number</dt>
 							<dd>
-								{String(blockNumber)}
+								{blockNumber}
 							</dd>
 						</div>
 					{/if}
@@ -119,14 +116,14 @@
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+					<Timestamp timestamp={selection.entitySelector.timestampMs} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 

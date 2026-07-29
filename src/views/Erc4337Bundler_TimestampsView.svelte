@@ -38,6 +38,7 @@
 >
 	{#snippet Item({ item: erc4337BundlerTimestamp })}
 		{@const erc4337BundlerTimestampSelector = erc4337BundlerTimestamp[EntityMetaKey.Selector]}
+		{@const bundler = erc4337BundlerTimestampSelector.$bundler}
 		<EntityView
 			entityType={EntityType.Erc4337Bundler_Timestamp}
 			entitySelector={erc4337BundlerTimestampSelector}
@@ -46,24 +47,24 @@
 					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/erc-4337/bundler/[address=evmAddress]/(erc4337Bundler)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
 					{
 						network: (
-							'caip2' in erc4337BundlerTimestampSelector.$bundler.$network ?
-								String(caip2StringFromValue(erc4337BundlerTimestampSelector.$bundler.$network.caip2))
+							'caip2' in bundler.$network ?
+								caip2StringFromValue(bundler.$network.caip2)
 							:
-								String(erc4337BundlerTimestampSelector.$bundler.$network.slug)
+								bundler.$network.slug
 						),
-						address: String(erc4337BundlerTimestampSelector.$bundler.address),
+						address: bundler.address,
 						timestampMs: String(erc4337BundlerTimestampSelector.timestampMs),
-						source: String(erc4337BundlerTimestampSelector.source),
+						source: erc4337BundlerTimestampSelector.source,
 					}
 				)
 			}
 		>
 			{#snippet Title()}
-				{String(erc4337BundlerTimestampSelector.timestampMs) || 'ERC-4337 bundler timestamp'}
+				{erc4337BundlerTimestampSelector.timestampMs}
 			{/snippet}
 
 			{#snippet Value()}
-				{String(erc4337BundlerTimestamp.userOperationsCount ?? '')}
+				{erc4337BundlerTimestamp.userOperationsCount ?? ''}
 			{/snippet}
 
 			{#snippet HeadingAfter()}

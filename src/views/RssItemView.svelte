@@ -5,7 +5,6 @@
 	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { UrlString } from '$/schema/UrlString.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -24,7 +23,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.RssItem> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Rss_Rest,
@@ -38,7 +36,7 @@
 			publishedAt: true,
 		},
 	}))
-	const titleFallback = $derived([(pendingEntity.title ?? ''), (pendingEntity.itemIdentity ?? '')].filter(Boolean).join(' ') || 'RSS item')
+	const titleFallback = $derived([(prefetched.title ?? ''), selection.entitySelector.itemIdentity].filter(Boolean).join(' ') || 'RSS item')
 
 
 	// Components
@@ -55,14 +53,17 @@
 	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
 	href={
-		href ?? resolve(
-			'/(social)/(rss)/rss/(rssNetwork)/feed/[feedUrl=absoluteUrl]/(rssFeed)/item/[itemIdentityKind=rssItemIdentityKind]/[itemIdentity=stringSegment]',
-			{
-				feedUrl: encodeURIComponent(String(selection.entitySelector.$feed.feedUrl)),
-				itemIdentityKind: String(selection.entitySelector.itemIdentityKind),
-				itemIdentity: encodeURIComponent(String(selection.entitySelector.itemIdentity)),
-			}
-		)
+		href === undefined ?
+			resolve(
+				'/(social)/(rss)/rss/(rssNetwork)/feed/[feedUrl=absoluteUrl]/(rssFeed)/item/[itemIdentityKind=rssItemIdentityKind]/[itemIdentity=stringSegment]',
+				{
+					feedUrl: encodeURIComponent(selection.entitySelector.$feed.feedUrl),
+					itemIdentityKind: selection.entitySelector.itemIdentityKind,
+					itemIdentity: encodeURIComponent(selection.entitySelector.itemIdentity),
+				}
+			)
+		:
+			href ?? undefined
 	}
 	{layout}
 	bind:open
@@ -71,22 +72,22 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={rssItem}>
 			{#snippet children(entity)}
-				{[(entity.title ?? ''), pendingEntity.itemIdentity].filter(Boolean).join(' ') || title || titleFallback}
+				{[(entity.title ?? ''), selection.entitySelector.itemIdentity].filter(Boolean).join(' ') || title || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Value()}
-		<TruncatedValue value={pendingEntity.itemIdentity} />
+		<TruncatedValue value={selection.entitySelector.itemIdentity} />
 	{/snippet}
 
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={rssItem}>
 			{#snippet children(entity)}
-				{@const publishedAt0 = entity.publishedAt}
-				{#if publishedAt0 != null}
+				{@const publishedAt = entity.publishedAt}
+				{#if publishedAt != null}
 					<span data-text="muted">
-						<Timestamp timestamp={Number(publishedAt0)} />
+						<Timestamp timestamp={publishedAt} />
 					</span>
 				{/if}
 			{/snippet}
@@ -142,11 +143,11 @@
 							<dt>Link</dt>
 							<dd>
 								<a
-									href={String(link)}
+									href={link}
 									target="_blank"
 									rel="noreferrer noopener"
 								>
-									<TruncatedValue value={String(link)} />
+									<TruncatedValue value={link} />
 								</a>
 							</dd>
 						</div>
@@ -165,7 +166,7 @@
 						<div>
 							<dt>Published</dt>
 							<dd>
-								<Timestamp timestamp={Number(publishedAt)} />
+								<Timestamp timestamp={publishedAt} />
 							</dd>
 						</div>
 					{/if}
@@ -189,7 +190,7 @@
 						<div>
 							<dt>Updated</dt>
 							<dd>
-								<Timestamp timestamp={Number(updatedAt)} />
+								<Timestamp timestamp={updatedAt} />
 							</dd>
 						</div>
 					{/if}
@@ -214,11 +215,11 @@
 							<dt>Enclosure URL</dt>
 							<dd>
 								<a
-									href={String(enclosureUrl)}
+									href={enclosureUrl}
 									target="_blank"
 									rel="noreferrer noopener"
 								>
-									<TruncatedValue value={String(enclosureUrl)} />
+									<TruncatedValue value={enclosureUrl} />
 								</a>
 							</dd>
 						</div>
@@ -244,11 +245,11 @@
 							<dt>Comments URL</dt>
 							<dd>
 								<a
-									href={String(commentsUrl)}
+									href={commentsUrl}
 									target="_blank"
 									rel="noreferrer noopener"
 								>
-									<TruncatedValue value={String(commentsUrl)} />
+									<TruncatedValue value={commentsUrl} />
 								</a>
 							</dd>
 						</div>
@@ -276,15 +277,15 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const rssItemRssItemTimestampsViewTimestampsResource = selection.$$timestamps}
+		{@const timestampsResource = selection.$$timestamps}
 		<ResourceBoundary
-			resource={rssItemRssItemTimestampsViewTimestampsResource}
+			resource={timestampsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<RssItem_TimestampsView
-						selection={rssItemRssItemTimestampsViewTimestampsResource}
-						countResource={rssItemRssItemTimestampsViewTimestampsResource.count}
+						selection={timestampsResource}
+						countResource={timestampsResource.count}
 						title='Observations'
 						id='timestamps'
 					/>

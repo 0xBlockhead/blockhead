@@ -5,7 +5,6 @@
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { stringify } from 'devalue'
-	import { UrlString } from '$/schema/UrlString.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -23,7 +22,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.BlockheadQuilibriumNodeState> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Local_Internal,
@@ -36,7 +34,6 @@
 			endpoint: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.connectionId ?? '') || 'blockhead quilibrium node state')
 	const viewDomId = $derived('blockhead-quilibrium-node-state-' + encodeURIComponent(stringify(selection.entitySelector)))
 
 
@@ -57,19 +54,19 @@
 	entityType={EntityType.BlockheadQuilibriumNodeState}
 	entitySelector={selection.entitySelector}
 	id={viewDomId}
-	title={title ?? titleFallback}
+	title={title ?? (selection.entitySelector.connectionId || 'blockhead quilibrium node state')}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{(pendingEntity.connectionId ?? '') || 'blockhead quilibrium node state'}
+		{selection.entitySelector.connectionId || 'blockhead quilibrium node state'}
 	{/snippet}
 
 	{#snippet Value()}
 		<NetworkView
 			selection={select(EntityType.Network, selection.entitySelector.$network)}
-			href=""
+			href={null}
 			layout={EntityLayout.Value}
 			open={false}
 		/>
@@ -78,15 +75,15 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={blockheadQuilibriumNodeState}>
 			{#snippet children(entity)}
-				{@const endpoint0 = entity.endpoint}
-				{#if endpoint0 != null}
+				{@const endpoint = entity.endpoint}
+				{#if endpoint != null}
 					<span data-text="muted">
 						<a
-							href={String(endpoint0)}
+							href={endpoint}
 							target="_blank"
 							rel="noreferrer noopener"
 						>
-							<TruncatedValue value={String(endpoint0)} />
+							<TruncatedValue value={endpoint} />
 						</a>
 					</span>
 				{/if}
@@ -99,7 +96,7 @@
 			<div>
 				<dt>connection ID</dt>
 				<dd>
-					{pendingEntity.connectionId}
+					{selection.entitySelector.connectionId}
 				</dd>
 			</div>
 
@@ -124,11 +121,11 @@
 							<dt>endpoint</dt>
 							<dd>
 								<a
-									href={String(endpoint)}
+									href={endpoint}
 									target="_blank"
 									rel="noreferrer noopener"
 								>
-									<TruncatedValue value={String(endpoint)} />
+									<TruncatedValue value={endpoint} />
 								</a>
 							</dd>
 						</div>

@@ -7,8 +7,6 @@
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { CoinInstanceType } from '$/schema/EvmCoinInstance.ts'
-	import { UrlString } from '$/schema/UrlString.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -27,8 +25,7 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.EvmCoinInstance> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const titleFallback = 'EVM coin instance'
+	const network = $derived(selection.entitySelector.$network)
 
 
 	// Components
@@ -47,28 +44,35 @@
 <EntityView
 	entityType={EntityType.EvmCoinInstance}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? 'EVM coin instance'}
 	href={
-		href ?? (
-			'caip2' in selection.entitySelector.$network
-			&& (selection.entitySelector.type === 'NativeCurrency'
-			|| (selection.entitySelector.type === 'Erc20Token'
-			&& '$contract' in selection.entitySelector)) ?
-				resolve(
-					'/(assets)/coin-instance/[chainId=eip155ChainId]/[coinInstanceSlug=nativeCurrencySlugOrEvmAddress]',
-					{
-						chainId: String(selection.entitySelector.$network.caip2.reference),
-						coinInstanceSlug: (
-							selection.entitySelector.type === 'NativeCurrency' ?
-								'native'
-							:
-								String(selection.entitySelector.$contract.address)
-						),
-					}
-				)
-			:
-				undefined
-		)
+		href === undefined ?
+			(
+				'caip2' in network
+				&& (
+					selection.entitySelector.type === 'NativeCurrency'
+					|| (
+						selection.entitySelector.type === 'Erc20Token'
+						&& '$contract' in selection.entitySelector
+					)
+				) ?
+					resolve(
+						'/(assets)/coin-instance/[chainId=eip155ChainId]/[coinInstanceSlug=nativeCurrencySlugOrEvmAddress]',
+						{
+							chainId: network.caip2.reference,
+							coinInstanceSlug: (
+								selection.entitySelector.type === 'NativeCurrency' ?
+									'native'
+								:
+									selection.entitySelector.$contract.address
+							),
+						}
+					)
+				:
+					undefined
+			)
+		:
+			href ?? undefined
 	}
 	{layout}
 	bind:open
@@ -87,24 +91,58 @@
 				<ResourceBoundary
 					resource={projection.symbol}
 				>
-					{#snippet children(symbol0)}
-						{symbol0}
+					{#snippet children(symbol1)}
+						{symbol1}
+					{/snippet}
+				</ResourceBoundary>
+
+				<ResourceBoundary
+					resource={projection.name}
+				>
+					{#snippet children(name2)}
+						{#if name2 != null}
+							{name2}
+						{/if}
 					{/snippet}
 				</ResourceBoundary>
 			{/snippet}
 		</ProjectionBoundary>
 
 		<ProjectionBoundary
+			resource={selection.Erc20Token}
+		>
+			{#snippet Applicable(projection)}
+				<ResourceBoundary
+					resource={projection.symbol}
+				>
+					{#snippet children(symbol3)}
+						{symbol3}
+					{/snippet}
+				</ResourceBoundary>
+
+				<ResourceBoundary
+					resource={projection.name}
+				>
+					{#snippet children(name4)}
+						{#if name4 != null}
+							{name4}
+						{/if}
+					{/snippet}
+				</ResourceBoundary>
+			{/snippet}
+		</ProjectionBoundary>
+	{/snippet}
+
+	{#snippet Value()}
+		<ProjectionBoundary
 			resource={selection.NativeCurrency}
 		>
 			{#snippet Applicable(projection)}
 				<ResourceBoundary
-					resource={projection.name}
+					resource={projection.symbol}
 				>
-					{#snippet children(name1)}
-						{#if name1 != null}
-							{name1}
-						{/if}
+					{#snippet children(symbol1)}
+						{symbol1}
 					{/snippet}
 				</ResourceBoundary>
 			{/snippet}
@@ -123,52 +161,6 @@
 				</ResourceBoundary>
 			{/snippet}
 		</ProjectionBoundary>
-
-		<ProjectionBoundary
-			resource={selection.Erc20Token}
-		>
-			{#snippet Applicable(projection)}
-				<ResourceBoundary
-					resource={projection.name}
-				>
-					{#snippet children(name3)}
-						{#if name3 != null}
-							{name3}
-						{/if}
-					{/snippet}
-				</ResourceBoundary>
-			{/snippet}
-		</ProjectionBoundary>
-	{/snippet}
-
-	{#snippet Value()}
-		<ProjectionBoundary
-			resource={selection.NativeCurrency}
-		>
-			{#snippet Applicable(projection)}
-				<ResourceBoundary
-					resource={projection.symbol}
-				>
-					{#snippet children(symbol0)}
-						{symbol0}
-					{/snippet}
-				</ResourceBoundary>
-			{/snippet}
-		</ProjectionBoundary>
-
-		<ProjectionBoundary
-			resource={selection.Erc20Token}
-		>
-			{#snippet Applicable(projection)}
-				<ResourceBoundary
-					resource={projection.symbol}
-				>
-					{#snippet children(symbol1)}
-						{symbol1}
-					{/snippet}
-				</ResourceBoundary>
-			{/snippet}
-		</ProjectionBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -176,7 +168,7 @@
 			<div>
 				<dt>Type</dt>
 				<dd>
-					{pendingEntity.type}
+					{selection.entitySelector.type}
 				</dd>
 			</div>
 
@@ -225,7 +217,7 @@
 									resource={projection.symbol}
 								>
 									{#snippet children(symbol)}
-										{String(symbol)}
+										{symbol}
 									{/snippet}
 								</ResourceBoundary>
 							</dd>
@@ -253,7 +245,7 @@
 									resource={projection.coinId}
 								>
 									{#snippet children(coinId)}
-										{String(coinId)}
+										{coinId}
 									{/snippet}
 								</ResourceBoundary>
 							</dd>
@@ -276,7 +268,7 @@
 									resource={projection.decimals}
 								>
 									{#snippet children(decimals)}
-										{String(decimals)}
+										{decimals}
 									{/snippet}
 								</ResourceBoundary>
 							</dd>
@@ -321,11 +313,11 @@
 										<dt>Icon URL</dt>
 										<dd>
 											<a
-												href={String(iconUrl)}
+												href={iconUrl}
 												target="_blank"
 												rel="noreferrer noopener"
 											>
-												<TruncatedValue value={String(iconUrl)} />
+												<TruncatedValue value={iconUrl} />
 											</a>
 										</dd>
 									</div>
@@ -400,7 +392,7 @@
 									resource={projection.symbol}
 								>
 									{#snippet children(symbol)}
-										{String(symbol)}
+										{symbol}
 									{/snippet}
 								</ResourceBoundary>
 							</dd>
@@ -428,7 +420,7 @@
 									resource={projection.coinId}
 								>
 									{#snippet children(coinId)}
-										{String(coinId)}
+										{coinId}
 									{/snippet}
 								</ResourceBoundary>
 							</dd>
@@ -451,7 +443,7 @@
 									resource={projection.decimals}
 								>
 									{#snippet children(decimals)}
-										{String(decimals)}
+										{decimals}
 									{/snippet}
 								</ResourceBoundary>
 							</dd>
@@ -496,11 +488,11 @@
 										<dt>Icon URL</dt>
 										<dd>
 											<a
-												href={String(iconUrl)}
+												href={iconUrl}
 												target="_blank"
 												rel="noreferrer noopener"
 											>
-												<TruncatedValue value={String(iconUrl)} />
+												<TruncatedValue value={iconUrl} />
 											</a>
 										</dd>
 									</div>
@@ -569,20 +561,20 @@
 				resource={selection.NativeCurrency}
 			>
 				{#snippet Applicable(projection)}
-					{@const evmCoinInstanceCoinBridgeCapabilitiesViewNativeCurrencyOutboundBridgeCapabilitiesResource = projection
-					.$$outboundBridgeCapabilities({
-						sources: [
-							Source.Lifi_Rest,
-						],
-					})}
+					{@const outboundBridgeCapabilitiesResource = projection
+						.$$outboundBridgeCapabilities({
+							sources: [
+								Source.Lifi_Rest,
+							],
+						})}
 					<ResourceBoundary
-						resource={evmCoinInstanceCoinBridgeCapabilitiesViewNativeCurrencyOutboundBridgeCapabilitiesResource}
+						resource={outboundBridgeCapabilitiesResource}
 					>
 						{#snippet children(entities)}
 							{#if entities.values.length > 0}
 								<CoinBridgeCapabilitiesView
-									selection={evmCoinInstanceCoinBridgeCapabilitiesViewNativeCurrencyOutboundBridgeCapabilitiesResource}
-									countResource={evmCoinInstanceCoinBridgeCapabilitiesViewNativeCurrencyOutboundBridgeCapabilitiesResource.count}
+									selection={outboundBridgeCapabilitiesResource}
+									countResource={outboundBridgeCapabilitiesResource.count}
 									title='Outbound bridge capabilities'
 									id='outbound-bridge-capabilities'
 								/>
@@ -598,20 +590,20 @@
 				resource={selection.NativeCurrency}
 			>
 				{#snippet Applicable(projection)}
-					{@const evmCoinInstanceCoinBridgeCapabilitiesViewNativeCurrencyInboundBridgeCapabilitiesResource = projection
-					.$$inboundBridgeCapabilities({
-						sources: [
-							Source.Lifi_Rest,
-						],
-					})}
+					{@const inboundBridgeCapabilitiesResource = projection
+						.$$inboundBridgeCapabilities({
+							sources: [
+								Source.Lifi_Rest,
+							],
+						})}
 					<ResourceBoundary
-						resource={evmCoinInstanceCoinBridgeCapabilitiesViewNativeCurrencyInboundBridgeCapabilitiesResource}
+						resource={inboundBridgeCapabilitiesResource}
 					>
 						{#snippet children(entities)}
 							{#if entities.values.length > 0}
 								<CoinBridgeCapabilitiesView
-									selection={evmCoinInstanceCoinBridgeCapabilitiesViewNativeCurrencyInboundBridgeCapabilitiesResource}
-									countResource={evmCoinInstanceCoinBridgeCapabilitiesViewNativeCurrencyInboundBridgeCapabilitiesResource.count}
+									selection={inboundBridgeCapabilitiesResource}
+									countResource={inboundBridgeCapabilitiesResource.count}
 									title='Inbound bridge capabilities'
 									id='inbound-bridge-capabilities'
 								/>
@@ -627,15 +619,15 @@
 				resource={selection.NativeCurrency}
 			>
 				{#snippet Applicable(projection)}
-					{@const evmCoinInstanceMarketsViewNativeCurrencyMarketsWithInstanceAsBaseResource = projection.$$marketsWithInstanceAsBase}
+					{@const marketsWithInstanceAsBaseResource = projection.$$marketsWithInstanceAsBase}
 					<ResourceBoundary
-						resource={evmCoinInstanceMarketsViewNativeCurrencyMarketsWithInstanceAsBaseResource}
+						resource={marketsWithInstanceAsBaseResource}
 					>
 						{#snippet children(entities)}
 							{#if entities.values.length > 0}
 								<MarketsView
-									selection={evmCoinInstanceMarketsViewNativeCurrencyMarketsWithInstanceAsBaseResource}
-									countResource={evmCoinInstanceMarketsViewNativeCurrencyMarketsWithInstanceAsBaseResource.count}
+									selection={marketsWithInstanceAsBaseResource}
+									countResource={marketsWithInstanceAsBaseResource.count}
 									title='Markets with instance as base'
 									href={resolve('/(assets)/markets')}
 									id='markets-with-instance-as-base'
@@ -652,15 +644,15 @@
 				resource={selection.NativeCurrency}
 			>
 				{#snippet Applicable(projection)}
-					{@const evmCoinInstanceMarketsViewNativeCurrencyMarketsWithInstanceAsQuoteResource = projection.$$marketsWithInstanceAsQuote}
+					{@const marketsWithInstanceAsQuoteResource = projection.$$marketsWithInstanceAsQuote}
 					<ResourceBoundary
-						resource={evmCoinInstanceMarketsViewNativeCurrencyMarketsWithInstanceAsQuoteResource}
+						resource={marketsWithInstanceAsQuoteResource}
 					>
 						{#snippet children(entities)}
 							{#if entities.values.length > 0}
 								<MarketsView
-									selection={evmCoinInstanceMarketsViewNativeCurrencyMarketsWithInstanceAsQuoteResource}
-									countResource={evmCoinInstanceMarketsViewNativeCurrencyMarketsWithInstanceAsQuoteResource.count}
+									selection={marketsWithInstanceAsQuoteResource}
+									countResource={marketsWithInstanceAsQuoteResource.count}
 									title='Markets with instance as quote'
 									href={resolve('/(assets)/markets')}
 									id='markets-with-instance-as-quote'
@@ -677,20 +669,20 @@
 				resource={selection.Erc20Token}
 			>
 				{#snippet Applicable(projection)}
-					{@const evmCoinInstanceCoinBridgeCapabilitiesViewErc20TokenOutboundBridgeCapabilitiesResource = projection
-					.$$outboundBridgeCapabilities({
-						sources: [
-							Source.Lifi_Rest,
-						],
-					})}
+					{@const outboundBridgeCapabilitiesResource = projection
+						.$$outboundBridgeCapabilities({
+							sources: [
+								Source.Lifi_Rest,
+							],
+						})}
 					<ResourceBoundary
-						resource={evmCoinInstanceCoinBridgeCapabilitiesViewErc20TokenOutboundBridgeCapabilitiesResource}
+						resource={outboundBridgeCapabilitiesResource}
 					>
 						{#snippet children(entities)}
 							{#if entities.values.length > 0}
 								<CoinBridgeCapabilitiesView
-									selection={evmCoinInstanceCoinBridgeCapabilitiesViewErc20TokenOutboundBridgeCapabilitiesResource}
-									countResource={evmCoinInstanceCoinBridgeCapabilitiesViewErc20TokenOutboundBridgeCapabilitiesResource.count}
+									selection={outboundBridgeCapabilitiesResource}
+									countResource={outboundBridgeCapabilitiesResource.count}
 									title='Outbound bridge capabilities'
 									id='outbound-bridge-capabilities'
 								/>
@@ -706,20 +698,20 @@
 				resource={selection.Erc20Token}
 			>
 				{#snippet Applicable(projection)}
-					{@const evmCoinInstanceCoinBridgeCapabilitiesViewErc20TokenInboundBridgeCapabilitiesResource = projection
-					.$$inboundBridgeCapabilities({
-						sources: [
-							Source.Lifi_Rest,
-						],
-					})}
+					{@const inboundBridgeCapabilitiesResource = projection
+						.$$inboundBridgeCapabilities({
+							sources: [
+								Source.Lifi_Rest,
+							],
+						})}
 					<ResourceBoundary
-						resource={evmCoinInstanceCoinBridgeCapabilitiesViewErc20TokenInboundBridgeCapabilitiesResource}
+						resource={inboundBridgeCapabilitiesResource}
 					>
 						{#snippet children(entities)}
 							{#if entities.values.length > 0}
 								<CoinBridgeCapabilitiesView
-									selection={evmCoinInstanceCoinBridgeCapabilitiesViewErc20TokenInboundBridgeCapabilitiesResource}
-									countResource={evmCoinInstanceCoinBridgeCapabilitiesViewErc20TokenInboundBridgeCapabilitiesResource.count}
+									selection={inboundBridgeCapabilitiesResource}
+									countResource={inboundBridgeCapabilitiesResource.count}
 									title='Inbound bridge capabilities'
 									id='inbound-bridge-capabilities'
 								/>
@@ -735,15 +727,15 @@
 				resource={selection.Erc20Token}
 			>
 				{#snippet Applicable(projection)}
-					{@const evmCoinInstanceMarketsViewErc20TokenMarketsWithInstanceAsBaseResource = projection.$$marketsWithInstanceAsBase}
+					{@const marketsWithInstanceAsBaseResource = projection.$$marketsWithInstanceAsBase}
 					<ResourceBoundary
-						resource={evmCoinInstanceMarketsViewErc20TokenMarketsWithInstanceAsBaseResource}
+						resource={marketsWithInstanceAsBaseResource}
 					>
 						{#snippet children(entities)}
 							{#if entities.values.length > 0}
 								<MarketsView
-									selection={evmCoinInstanceMarketsViewErc20TokenMarketsWithInstanceAsBaseResource}
-									countResource={evmCoinInstanceMarketsViewErc20TokenMarketsWithInstanceAsBaseResource.count}
+									selection={marketsWithInstanceAsBaseResource}
+									countResource={marketsWithInstanceAsBaseResource.count}
 									title='Markets with instance as base'
 									href={resolve('/(assets)/markets')}
 									id='markets-with-instance-as-base'
@@ -760,15 +752,15 @@
 				resource={selection.Erc20Token}
 			>
 				{#snippet Applicable(projection)}
-					{@const evmCoinInstanceMarketsViewErc20TokenMarketsWithInstanceAsQuoteResource = projection.$$marketsWithInstanceAsQuote}
+					{@const marketsWithInstanceAsQuoteResource = projection.$$marketsWithInstanceAsQuote}
 					<ResourceBoundary
-						resource={evmCoinInstanceMarketsViewErc20TokenMarketsWithInstanceAsQuoteResource}
+						resource={marketsWithInstanceAsQuoteResource}
 					>
 						{#snippet children(entities)}
 							{#if entities.values.length > 0}
 								<MarketsView
-									selection={evmCoinInstanceMarketsViewErc20TokenMarketsWithInstanceAsQuoteResource}
-									countResource={evmCoinInstanceMarketsViewErc20TokenMarketsWithInstanceAsQuoteResource.count}
+									selection={marketsWithInstanceAsQuoteResource}
+									countResource={marketsWithInstanceAsQuoteResource.count}
 									title='Markets with instance as quote'
 									href={resolve('/(assets)/markets')}
 									id='markets-with-instance-as-quote'

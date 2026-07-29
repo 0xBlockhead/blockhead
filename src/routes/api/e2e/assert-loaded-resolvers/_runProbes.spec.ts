@@ -7,8 +7,9 @@ import {
 } from '$/schema/$schema.ts'
 import { schema } from '$/schema/index.ts'
 import { indexResolvers } from '$/resolvers/$resolvers.ts'
-import { loadAllResolvers } from '$/resolvers/index.ts'
+import { loadResolvers } from '$/resolvers/index.ts'
 import { enabledSources } from '$/sources/index.ts'
+import { Source } from '$/sources/Source.ts'
 
 import {
 	assertLoadedResolverProbeCategories,
@@ -22,14 +23,15 @@ import {
 	assertNoFulfilledButAssertFailed,
 } from './_runProbes.ts'
 
-const resolvers = await loadAllResolvers()
+const resolvers = await loadResolvers()
 
 
 describe('resolver snapshot probes', () => {
 	test('resolves alternate selectors from exact selector-addressed fixtures', async () => {
 		await expect(resolveProbeEntitySelector(
 			'AtprotoActor',
-			'Handle'
+			'Handle',
+			Source.Atproto_Xrpc
 		)).resolves.toEqual({
 			handle: 'bsky.app',
 		})

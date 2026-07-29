@@ -9,7 +9,8 @@ import { schema } from '$/schema/index.ts'
 import { type as arktype } from 'arktype'
 
 export const load: LayoutLoad = ({ params }) => {
-	if (!(matchEvmTopicHash(params.hex))) error(404, 'Route mapping not applicable')
+	if (!(matchEvmTopicHash(params.hex)))
+		error(404, 'Route mapping not applicable')
 
 	const evmTopicHexSelector = parseEntitySelector(
 		schema,
@@ -18,7 +19,8 @@ export const load: LayoutLoad = ({ params }) => {
 			hex: params.hex,
 		}
 	)
-	if (evmTopicHexSelector instanceof arktype.errors) error(404, 'Invalid EvmTopic selector')
+	if (evmTopicHexSelector instanceof arktype.errors)
+		error(404, 'Invalid EvmTopic selector')
 
 	return {
 		selector: evmTopicHexSelector,

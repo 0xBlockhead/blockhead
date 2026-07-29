@@ -54,7 +54,7 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{String(farcasterUserTimestampSelector.timestampMs)}
+				{farcasterUserTimestampSelector.timestampMs}
 			{/snippet}
 		</EntityView>
 	{/snippet}

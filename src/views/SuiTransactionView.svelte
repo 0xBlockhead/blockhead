@@ -21,8 +21,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.SuiTransaction> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const titleFallback = 'Sui transaction'
 	const viewDomId = $derived('sui-transaction-' + encodeURIComponent(stringify(selection.entitySelector)))
 
 
@@ -44,7 +42,7 @@
 	entityType={EntityType.SuiTransaction}
 	entitySelector={selection.entitySelector}
 	id={viewDomId}
-	title={title ?? titleFallback}
+	title={title ?? 'Sui transaction'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -69,7 +67,7 @@
 			<div>
 				<dt>digest</dt>
 				<dd>
-					<TruncatedValue value={pendingEntity.digest} />
+					<TruncatedValue value={selection.entitySelector.digest} />
 				</dd>
 			</div>
 

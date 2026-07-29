@@ -43,15 +43,15 @@
 			entitySelector={blockheadStateChannelStateSelector}
 		>
 			{#snippet Title()}
-				{String(blockheadStateChannelStateSelector.version) || 'blockhead state channel state'}
+				{blockheadStateChannelStateSelector.version}
 			{/snippet}
 
 			{#snippet Value()}
-				{String(blockheadStateChannelState.isFinal)}
+				{blockheadStateChannelState.isFinal}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{String(blockheadStateChannelState.timestamp)}</span>
+				<span data-text="annotation">{blockheadStateChannelState.timestamp}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

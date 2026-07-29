@@ -42,12 +42,10 @@
 			entityType={EntityType.EvmProtocol}
 			entitySelector={evmProtocolSelector}
 			href={
-				(
-					evmProtocolSelector.scope === 'EvmProtocol' ?
-						resolve('/(explore)/(protocols)/evm')
-					:
-						undefined
-				)
+				evmProtocolSelector.scope === 'EvmProtocol' ?
+					resolve('/(explore)/(protocols)/evm')
+				:
+					undefined
 			}
 		>
 			{#snippet Title()}

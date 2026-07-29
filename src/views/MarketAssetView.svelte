@@ -7,7 +7,6 @@
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { MarketAssetKind } from '$/constants/Market.ts'
 
 
 	// Context
@@ -25,9 +24,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.MarketAsset> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const titleFallback = $derived((pendingEntity.assetKey ?? '') || 'Market asset')
-
 
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -40,27 +36,30 @@
 <EntityView
 	entityType={EntityType.MarketAsset}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? (selection.entitySelector.assetKey || 'Market asset')}
 	href={
-		href ?? resolve(
-			'/(assets)/(marketAssets)/market-asset/[kind=stringSegment]/[assetKey=stringSegment]',
-			{
-				kind: String(selection.entitySelector.kind),
-				assetKey: String(selection.entitySelector.assetKey),
-			}
-		)
+		href === undefined ?
+			resolve(
+				'/(assets)/(marketAssets)/market-asset/[kind=stringSegment]/[assetKey=stringSegment]',
+				{
+					kind: selection.entitySelector.kind,
+					assetKey: selection.entitySelector.assetKey,
+				}
+			)
+		:
+			href ?? undefined
 	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{(pendingEntity.assetKey ?? '') || 'Market asset'}
+		{selection.entitySelector.assetKey || 'Market asset'}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
 		<span data-text="muted">
-			{pendingEntity.kind}
+			{selection.entitySelector.kind}
 		</span>
 	{/snippet}
 
@@ -69,14 +68,14 @@
 			<div>
 				<dt>Kind</dt>
 				<dd>
-					{pendingEntity.kind}
+					{selection.entitySelector.kind}
 				</dd>
 			</div>
 
 			<div>
 				<dt>Asset key</dt>
 				<dd>
-					{pendingEntity.assetKey}
+					{selection.entitySelector.assetKey}
 				</dd>
 			</div>
 		</dl>

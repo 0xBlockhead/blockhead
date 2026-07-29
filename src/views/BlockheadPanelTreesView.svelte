@@ -42,7 +42,7 @@
 				resolve(
 					'/~/dashboard/[dashboardId=stringSegment]',
 					{
-						dashboardId: String(blockheadPanelTreeSelector.id),
+						dashboardId: blockheadPanelTreeSelector.id,
 					}
 				)
 			}

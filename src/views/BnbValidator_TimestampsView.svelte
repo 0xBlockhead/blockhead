@@ -42,7 +42,7 @@
 			entitySelector={bnbValidatorTimestampSelector}
 		>
 			{#snippet Title()}
-				{String(bnbValidatorTimestampSelector.timestampMs) || 'bnb validator timestamp'}
+				{bnbValidatorTimestampSelector.timestampMs}
 			{/snippet}
 
 			{#snippet Value()}

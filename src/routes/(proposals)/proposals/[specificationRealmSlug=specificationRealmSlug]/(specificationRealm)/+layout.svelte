@@ -33,7 +33,7 @@
 			resolve(
 				'/(proposals)/proposals/[specificationRealmSlug=specificationRealmSlug]',
 				{
-					specificationRealmSlug: String(params.specificationRealmSlug),
+					specificationRealmSlug: params.specificationRealmSlug,
 				}
 			)
 		}
@@ -49,7 +49,7 @@
 					resolve(
 						'/(proposals)/proposals/[specificationRealmSlug=specificationRealmSlug]',
 						{
-							specificationRealmSlug: String(params.specificationRealmSlug),
+							specificationRealmSlug: params.specificationRealmSlug,
 						}
 					)
 				}

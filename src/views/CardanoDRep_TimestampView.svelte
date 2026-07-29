@@ -20,9 +20,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.CardanoDRep_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const titleFallback = 'Cardano DRep timestamp'
-
 
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -34,7 +31,7 @@
 <EntityView
 	entityType={EntityType.CardanoDRep_Timestamp}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? 'Cardano DRep timestamp'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -59,14 +56,14 @@
 			<div>
 				<dt>epoch</dt>
 				<dd>
-					{String(pendingEntity.epoch)}
+					{selection.entitySelector.epoch}
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 
@@ -85,7 +82,7 @@
 						<div>
 							<dt>slot</dt>
 							<dd>
-								{String(slot)}
+								{slot}
 							</dd>
 						</div>
 					{/if}
@@ -107,7 +104,7 @@
 						<div>
 							<dt>voting power lovelace</dt>
 							<dd>
-								{String(votingPowerLovelace)}
+								{votingPowerLovelace}
 							</dd>
 						</div>
 					{/if}
@@ -129,7 +126,7 @@
 						<div>
 							<dt>delegator count</dt>
 							<dd>
-								{String(delegatorCount)}
+								{delegatorCount}
 							</dd>
 						</div>
 					{/if}
@@ -195,7 +192,7 @@
 						<div>
 							<dt>deposit lovelace</dt>
 							<dd>
-								{String(depositLovelace)}
+								{depositLovelace}
 							</dd>
 						</div>
 					{/if}
@@ -218,11 +215,11 @@
 							<dt>anchor URL</dt>
 							<dd>
 								<a
-									href={String(anchorUrl)}
+									href={anchorUrl}
 									target="_blank"
 									rel="noreferrer noopener"
 								>
-									<TruncatedValue value={String(anchorUrl)} />
+									<TruncatedValue value={anchorUrl} />
 								</a>
 							</dd>
 						</div>

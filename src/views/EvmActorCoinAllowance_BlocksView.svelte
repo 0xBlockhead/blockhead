@@ -43,11 +43,11 @@
 			entitySelector={evmActorCoinAllowanceBlockSelector}
 		>
 			{#snippet Title()}
-				{(String(evmActorCoinAllowanceBlockSelector.blockNumber) ? 'Block ' + String(evmActorCoinAllowanceBlockSelector.blockNumber) : '') || 'EVM actor coin allowance block'}
+				{'Block ' + evmActorCoinAllowanceBlockSelector.blockNumber}
 			{/snippet}
 
 			{#snippet Value()}
-				{String(evmActorCoinAllowanceBlock.allowance)}
+				{evmActorCoinAllowanceBlock.allowance}
 			{/snippet}
 
 			{#snippet HeadingAfter()}

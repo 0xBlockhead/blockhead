@@ -39,6 +39,7 @@
 >
 	{#snippet Item({ item: solanaAccount })}
 		{@const solanaAccountSelector = solanaAccount[EntityMetaKey.Selector]}
+		{@const network = solanaAccountSelector.$network}
 		<EntityView
 			entityType={EntityType.SolanaAccount}
 			entitySelector={solanaAccountSelector}
@@ -47,12 +48,12 @@
 					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(accounts)/account/[accountId=polkadotAccountIdOrStringSegmentOrEvmAddressOrSolanaPubkey]',
 					{
 						network: (
-							'caip2' in solanaAccountSelector.$network ?
-								String(caip2StringFromValue(solanaAccountSelector.$network.caip2))
+							'caip2' in network ?
+								caip2StringFromValue(network.caip2)
 							:
-								String(solanaAccountSelector.$network.slug)
+								network.slug
 						),
-						accountId: String(solanaAccountSelector.pubkey),
+						accountId: solanaAccountSelector.pubkey,
 					}
 				)
 			}

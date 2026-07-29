@@ -37,6 +37,7 @@
 >
 	{#snippet Item({ item: hederaAccount })}
 		{@const hederaAccountSelector = hederaAccount[EntityMetaKey.Selector]}
+		{@const network = hederaAccountSelector.$network}
 		<EntityView
 			entityType={EntityType.HederaAccount}
 			entitySelector={hederaAccountSelector}
@@ -45,12 +46,12 @@
 					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(accounts)/account/[accountId=polkadotAccountIdOrStringSegmentOrEvmAddressOrSolanaPubkey]',
 					{
 						network: (
-							'caip2' in hederaAccountSelector.$network ?
-								String(caip2StringFromValue(hederaAccountSelector.$network.caip2))
+							'caip2' in network ?
+								caip2StringFromValue(network.caip2)
 							:
-								String(hederaAccountSelector.$network.slug)
+								network.slug
 						),
-						accountId: String(hederaAccountSelector.accountId),
+						accountId: hederaAccountSelector.accountId,
 					}
 				)
 			}

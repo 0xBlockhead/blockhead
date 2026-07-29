@@ -41,7 +41,7 @@
 			entitySelector={cashuKeysetTimestampSelector}
 		>
 			{#snippet Title()}
-				{String(cashuKeysetTimestampSelector.timestampMs) || 'Cashu keyset timestamp'}
+				{cashuKeysetTimestampSelector.timestampMs}
 			{/snippet}
 
 			{#snippet Value()}

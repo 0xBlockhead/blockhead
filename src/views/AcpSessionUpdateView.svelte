@@ -21,19 +21,17 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.AcpSessionUpdate> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const viewSelection = $derived(selection({
+	const acpSessionUpdate = $derived(selection({
 		sources: selection.sources ?? [
 			Source.AcpLocal_JsonRpc,
 		],
-	}))
-	const acpSessionUpdate = $derived(viewSelection({
+	})({
 		fields: {
 			updateKind: true,
 			timestampMs: true,
 		},
 	}))
-	const titleFallback = $derived((String(pendingEntity.sequence ?? '') ? 'Update #' + String(pendingEntity.sequence ?? '') : '') || 'ACP session update')
+	const titleFallback = $derived(`Update #${selection.entitySelector.sequence}`)
 
 
 	// Components
@@ -48,7 +46,7 @@
 	entityType={EntityType.AcpSessionUpdate}
 	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	idDragPlainText={String(pendingEntity.sequence ?? '')}
+	idDragPlainText={String(selection.entitySelector.sequence)}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -57,7 +55,7 @@
 		<span data-row="inline align-center gap-2 wrap">
 			<span>Update </span>
 			<span data-badge="small">
-				#{String(pendingEntity.sequence)}
+				#{selection.entitySelector.sequence}
 			</span>
 		</span>
 	{/snippet}
@@ -73,10 +71,10 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={acpSessionUpdate}>
 			{#snippet children(entity)}
-				{@const timestampMs0 = entity.timestampMs}
-				{#if timestampMs0 != null}
+				{@const timestampMs = entity.timestampMs}
+				{#if timestampMs != null}
 					<span data-text="muted">
-						<Timestamp timestamp={Number(timestampMs0)} />
+						<Timestamp timestamp={timestampMs} />
 					</span>
 				{/if}
 			{/snippet}
@@ -100,7 +98,7 @@
 				<dt>sequence</dt>
 				<dd>
 					<NumberValue
-						value={pendingEntity.sequence}
+						value={selection.entitySelector.sequence}
 					/>
 				</dd>
 			</div>
@@ -127,7 +125,7 @@
 						<div>
 							<dt>Timestamp</dt>
 							<dd>
-								<Timestamp timestamp={Number(timestampMs)} />
+								<Timestamp timestamp={timestampMs} />
 							</dd>
 						</div>
 					{/if}

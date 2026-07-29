@@ -39,6 +39,7 @@
 >
 	{#snippet Item({ item: beaconAttestation })}
 		{@const beaconAttestationSelector = beaconAttestation[EntityMetaKey.Selector]}
+		{@const network = beaconAttestationSelector.$network}
 		<EntityView
 			entityType={EntityType.BeaconAttestation}
 			entitySelector={beaconAttestationSelector}
@@ -47,10 +48,10 @@
 					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/slot/[slot=nonNegativeInteger]/(beaconSlot)/attestation/[index=nonNegativeInteger]',
 					{
 						network: (
-							'caip2' in beaconAttestationSelector.$network ?
-								String(caip2StringFromValue(beaconAttestationSelector.$network.caip2))
+							'caip2' in network ?
+								caip2StringFromValue(network.caip2)
 							:
-								String(beaconAttestationSelector.$network.slug)
+								network.slug
 						),
 						slot: String(beaconAttestationSelector.slot),
 						index: String(beaconAttestationSelector.indexInSlot),
@@ -59,11 +60,11 @@
 			}
 		>
 			{#snippet Title()}
-				{(String(beaconAttestationSelector.indexInSlot ?? '') ? 'Attestation #' + String(beaconAttestationSelector.indexInSlot ?? '') : '') || 'beacon attestation'}
+				{`Attestation #${beaconAttestationSelector.indexInSlot}`}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{(String(beaconAttestationSelector.slot) ? 'Slot ' + String(beaconAttestationSelector.slot) : '')}</span>
+				<span data-text="annotation">{'Slot ' + beaconAttestationSelector.slot}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

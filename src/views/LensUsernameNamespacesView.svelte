@@ -5,7 +5,6 @@
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { EvmAddress } from '$/schema/ZeroExHex.ts'
 
 
 	// State
@@ -49,11 +48,11 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{String(lensUsernameNamespaceSelector.address)}
+				{lensUsernameNamespaceSelector.address}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{String(lensUsernameNamespace.totalUsernames ?? '')}</span>
+				<span data-text="annotation">{lensUsernameNamespace.totalUsernames ?? ''}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

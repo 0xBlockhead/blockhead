@@ -9,7 +9,8 @@ import { schema } from '$/schema/index.ts'
 import { type as arktype } from 'arktype'
 
 export const load: LayoutLoad = ({ params }) => {
-	if (!(matchIso4217(params.iso4217))) error(404, 'Route mapping not applicable')
+	if (!(matchIso4217(params.iso4217)))
+		error(404, 'Route mapping not applicable')
 
 	const currencyIso4217Selector = parseEntitySelector(
 		schema,
@@ -18,7 +19,8 @@ export const load: LayoutLoad = ({ params }) => {
 			iso4217: params.iso4217,
 		}
 	)
-	if (currencyIso4217Selector instanceof arktype.errors) error(404, 'Invalid Currency selector')
+	if (currencyIso4217Selector instanceof arktype.errors)
+		error(404, 'Invalid Currency selector')
 
 	return {
 		selector: currencyIso4217Selector,

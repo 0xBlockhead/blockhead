@@ -20,13 +20,11 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.AvailAppId_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const availAppIdTimestamp = $derived(selection({
 		fields: {
 			dataSubmissionCount: true,
 		},
 	}))
-	const titleFallback = $derived(String(pendingEntity.timestampMs ?? '') || 'avail app ID timestamp')
 
 
 	// Components
@@ -40,22 +38,22 @@
 <EntityView
 	entityType={EntityType.AvailAppId_Timestamp}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? String(selection.entitySelector.timestampMs)}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+		<Timestamp timestamp={selection.entitySelector.timestampMs} />
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={availAppIdTimestamp}>
 			{#snippet children(entity)}
-				{@const dataSubmissionCount0 = entity.dataSubmissionCount}
-				{#if dataSubmissionCount0 != null}
+				{@const dataSubmissionCount = entity.dataSubmissionCount}
+				{#if dataSubmissionCount != null}
 					<NumberValue
-						value={dataSubmissionCount0}
+						value={dataSubmissionCount}
 					/>
 				{/if}
 			{/snippet}
@@ -64,7 +62,7 @@
 
 	{#snippet HeadingAfter()}
 		<span data-text="muted">
-			{pendingEntity.source}
+			{selection.entitySelector.source}
 		</span>
 	{/snippet}
 
@@ -84,14 +82,14 @@
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+					<Timestamp timestamp={selection.entitySelector.timestampMs} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 		</dl>

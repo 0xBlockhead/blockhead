@@ -21,18 +21,15 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.BitcoinCashCashTokenCommitment> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const viewSelection = $derived(selection({
+	const bitcoinCashCashTokenCommitment = $derived(selection({
 		sources: selection.sources ?? [
 			Source.BitcoinCashNode_JsonRpc,
 		],
-	}))
-	const bitcoinCashCashTokenCommitment = $derived(viewSelection({
+	})({
 		fields: {
 			commitmentHex: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.commitmentHex ?? '') || 'Bitcoin Cash CashToken commitment')
 
 
 	// Components
@@ -45,7 +42,7 @@
 <EntityView
 	entityType={EntityType.BitcoinCashCashTokenCommitment}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? ((prefetched.commitmentHex ?? '') || 'Bitcoin Cash CashToken commitment')}
 	{layout}
 	bind:open
 	{...EntityViewProps}

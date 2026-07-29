@@ -21,9 +21,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.TonNftTransfer> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const titleFallback = 'TON NFT transfer'
-
 
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -41,7 +38,7 @@
 <EntityView
 	entityType={EntityType.TonNftTransfer}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? 'TON NFT transfer'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -66,14 +63,14 @@
 			<div>
 				<dt>transfer ID</dt>
 				<dd>
-					{pendingEntity.transferId}
+					{selection.entitySelector.transferId}
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 
@@ -212,7 +209,7 @@
 						<div>
 							<dt>transaction lt</dt>
 							<dd>
-								{String(transactionLt)}
+								{transactionLt}
 							</dd>
 						</div>
 					{/if}
@@ -256,7 +253,7 @@
 						<div>
 							<dt>Timestamp</dt>
 							<dd>
-								<Timestamp timestamp={Number(timestampMs)} />
+								<Timestamp timestamp={timestampMs} />
 							</dd>
 						</div>
 					{/if}
@@ -278,7 +275,7 @@
 						<div>
 							<dt>query ID</dt>
 							<dd>
-								{String(queryId)}
+								{queryId}
 							</dd>
 						</div>
 					{/if}
@@ -300,7 +297,7 @@
 						<div>
 							<dt>forward amount nano</dt>
 							<dd>
-								{String(forwardAmountNano)}
+								{forwardAmountNano}
 							</dd>
 						</div>
 					{/if}

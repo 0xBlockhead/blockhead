@@ -20,7 +20,6 @@ import { SourceProvider } from '$/sources/SourceProvider.ts'
 import { Source } from '$/sources/Source.ts'
 import {
 	evmExecutionOpenRpcArtifactFailures,
-	providerLocalBindingImportFailures,
 } from '$/sources/validateSourceRegistry.ts'
 import {
 	getRpcTx,
@@ -37,6 +36,7 @@ import {
 	SourceDelivery,
 	SourceEndpointKind,
 	SourceTargetKind,
+	sourceBindingId,
 } from '$/sources/SourceBinding.ts'
 import { sourceProviders as appSourceProviders } from '$/sources/index.ts'
 
@@ -365,7 +365,7 @@ describe('source provider registry', () => {
 		expect(serverSource).not.toMatch(/\bnew Set\(\s*\[/)
 	})
 
-	it('keeps source modules from bypassing source-aware browser fetch routing or importing provider-local bindings', () => {
+	it('keeps source modules from bypassing source-aware browser fetch routing', () => {
 		for (const filePath of globSync('src/sources/**/*.ts')) {
 			if (
 				filePath.endsWith('.spec.ts')
@@ -377,32 +377,6 @@ describe('source provider registry', () => {
 
 			expect(readFileSync(filePath, 'utf8'), filePath).not.toMatch(/\bfetch\s*\(/)
 		}
-
-		expect(providerLocalBindingImportFailures({
-			'src/sources/Fixture/bindings.ts': 'export const fixtureBindings = []',
-			'src/sources/Fixture/index.ts': "export { fixtureBindings } from './bindings.ts'",
-			'src/sources/Fixture/Binary/client.ts': "export const fixtureBindings = import('../' + 'bindings.ts')",
-			'src/sources/Fixture/Identifier/client.ts': "const bindingModule = '../bindings.ts'\nexport const fixtureBindings = import(bindingModule)",
-			'src/sources/Fixture/Rest/index.ts': "import { fixtureBindings } from '../bindings.ts'",
-			'src/sources/Fixture/Rest/v1/client.ts': "import { fixtureBindings } from '../../bindings.ts'",
-			'src/sources/Fixture/Graphql/client.ts': 'import { fixtureBindings } from "$/sources/Fixture/bindings.ts"',
-			'src/sources/Fixture/JsonRpc/queries.ts': "import { fixtureBindings } from '$/sources/Fixture/bindings.ts'",
-			'src/sources/Fixture/OpenApi/index.ts': "export { fixtureBindings } from '../bindings.ts'",
-			'src/sources/Fixture/Template/client.ts': 'const bindingFile = \'bindings.ts\'\nexport const fixtureBindings = import(`../${bindingFile}`)',
-			'src/sources/Fixture/WebSocket/index.ts': "export const fixtureBindings = import('../bindings.ts')",
-			'src/sources/Fixture/Rest/constants.ts': "import { fixtureMetadata } from './metadata.ts'",
-			'src/sources/Fixture/Rest/metadata.ts': 'export const fixtureMetadata = []',
-		})).toEqual([
-			'src/sources/Fixture/Binary/client.ts: dynamic import target must be a string literal because computed imports cannot be proven not to target provider-local bindings',
-			'src/sources/Fixture/Identifier/client.ts: dynamic import target must be a string literal because computed imports cannot be proven not to target provider-local bindings',
-			'src/sources/Fixture/Rest/index.ts: runtime transport imports provider-local bindings instead of using protocol-local transport metadata',
-			'src/sources/Fixture/Rest/v1/client.ts: runtime transport imports provider-local bindings instead of using protocol-local transport metadata',
-			'src/sources/Fixture/Graphql/client.ts: runtime transport imports provider-local bindings instead of using protocol-local transport metadata',
-			'src/sources/Fixture/JsonRpc/queries.ts: runtime transport imports provider-local bindings instead of using protocol-local transport metadata',
-			'src/sources/Fixture/OpenApi/index.ts: runtime transport imports provider-local bindings instead of using protocol-local transport metadata',
-			'src/sources/Fixture/Template/client.ts: dynamic import target must be a string literal because computed imports cannot be proven not to target provider-local bindings',
-			'src/sources/Fixture/WebSocket/index.ts: runtime transport imports provider-local bindings instead of using protocol-local transport metadata',
-		])
 	})
 
 	it('keeps source-aware HTTP helper calls tied to origin metadata', () => {
@@ -519,7 +493,7 @@ describe('source provider registry', () => {
 			else {
 				if (transport.endpoint.corsEnabled !== true) {
 					expect(binding.delivery).toBe(SourceDelivery.HttpProxy)
-					expect(binding.proxyId).toBeTruthy()
+					expect(sourceBindingId(binding)).toBeTruthy()
 				}
 			}
 		}

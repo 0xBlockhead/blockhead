@@ -20,9 +20,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.AlgorandAssetHolding_Round> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const titleFallback = 'algorand asset holding round'
-
 
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -35,7 +32,7 @@
 <EntityView
 	entityType={EntityType.AlgorandAssetHolding_Round}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? 'algorand asset holding round'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -71,14 +68,14 @@
 			<div>
 				<dt>round</dt>
 				<dd>
-					{String(pendingEntity.round)}
+					{selection.entitySelector.round}
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 		</dl>
@@ -99,7 +96,7 @@
 						<div>
 							<dt>amount</dt>
 							<dd>
-								{String(amount)}
+								{amount}
 							</dd>
 						</div>
 					{/if}
@@ -143,7 +140,7 @@
 						<div>
 							<dt>opted in AT round</dt>
 							<dd>
-								{String(optedInAtRound)}
+								{optedInAtRound}
 							</dd>
 						</div>
 					{/if}

@@ -41,7 +41,7 @@
 			entitySelector={algorandAssetSelector}
 		>
 			{#snippet Title()}
-				{String(algorandAssetSelector.assetId) || 'algorand asset'}
+				{algorandAssetSelector.assetId}
 			{/snippet}
 
 			{#snippet Value()}
@@ -49,7 +49,7 @@
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{(algorandAsset.creator ?? '')}</span>
+				<span data-text="annotation">{algorandAsset.creator ?? ''}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

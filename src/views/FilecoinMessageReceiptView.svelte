@@ -22,7 +22,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.FilecoinMessageReceipt> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Filfox_Rest,
@@ -34,7 +33,6 @@
 			gasUsed: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.tipsetKey ?? '') || 'filecoin message receipt')
 
 
 	// Components
@@ -49,22 +47,22 @@
 <EntityView
 	entityType={EntityType.FilecoinMessageReceipt}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? (selection.entitySelector.tipsetKey || 'filecoin message receipt')}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{(pendingEntity.tipsetKey ?? '') || 'filecoin message receipt'}
+		{selection.entitySelector.tipsetKey || 'filecoin message receipt'}
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={filecoinMessageReceipt}>
 			{#snippet children(entity)}
-				{@const exitCode0 = entity.exitCode}
-				{#if exitCode0 != null}
+				{@const exitCode = entity.exitCode}
+				{#if exitCode != null}
 					<NumberValue
-						value={exitCode0}
+						value={exitCode}
 					/>
 				{/if}
 			{/snippet}
@@ -74,11 +72,11 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={filecoinMessageReceipt}>
 			{#snippet children(entity)}
-				{@const gasUsed0 = entity.gasUsed}
-				{#if gasUsed0 != null}
+				{@const gasUsed = entity.gasUsed}
+				{#if gasUsed != null}
 					<span data-text="muted">
 						<NumberValue
-							value={gasUsed0}
+							value={gasUsed}
 						/>
 					</span>
 				{/if}
@@ -102,14 +100,14 @@
 			<div>
 				<dt>Tipset key</dt>
 				<dd>
-					{pendingEntity.tipsetKey}
+					{selection.entitySelector.tipsetKey}
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 

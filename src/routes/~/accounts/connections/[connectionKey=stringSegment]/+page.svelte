@@ -45,7 +45,7 @@
 
 
 <svelte:head>
-	<title>{(pageSelection.entity == null ? 'wallet connection' : 'wallet connection')} • wallet connection • Blockhead</title>
+	<title>{pageSelection.entity == null ? 'wallet connection' : 'wallet connection'} • wallet connection • Blockhead</title>
 </svelte:head>
 
 

@@ -21,14 +21,12 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.BlockheadCashuProof> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const blockheadCashuProof = $derived(selection({
 		fields: {
 			amount: true,
 			unit: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.secretHash ?? '') || 'blockhead Cashu proof')
 
 
 	// Components
@@ -45,13 +43,13 @@
 <EntityView
 	entityType={EntityType.BlockheadCashuProof}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? (selection.entitySelector.secretHash || 'blockhead Cashu proof')}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<TruncatedValue value={pendingEntity.secretHash} />
+		<TruncatedValue value={selection.entitySelector.secretHash} />
 	{/snippet}
 
 	{#snippet Value()}
@@ -61,7 +59,7 @@
 					value={entity.amount}
 				/>
 
-				<span>{entity.unit == null ? '' : ` ${String(entity.unit)}`}</span>
+				<span>{entity.unit == null ? '' : ` ${entity.unit}`}</span>
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -71,7 +69,7 @@
 			<div>
 				<dt>wallet ID</dt>
 				<dd>
-					{pendingEntity.walletId}
+					{selection.entitySelector.walletId}
 				</dd>
 			</div>
 
@@ -97,11 +95,11 @@
 				<dt>mint URL</dt>
 				<dd>
 					<a
-						href={String(pendingEntity.mintUrl)}
+						href={selection.entitySelector.mintUrl}
 						target="_blank"
 						rel="noreferrer noopener"
 					>
-						<TruncatedValue value={String(pendingEntity.mintUrl)} />
+						<TruncatedValue value={selection.entitySelector.mintUrl} />
 					</a>
 				</dd>
 			</div>
@@ -129,14 +127,14 @@
 			<div>
 				<dt>keyset ID</dt>
 				<dd>
-					{pendingEntity.keysetId}
+					{selection.entitySelector.keysetId}
 				</dd>
 			</div>
 
 			<div>
 				<dt>secret hash</dt>
 				<dd>
-					<TruncatedValue value={pendingEntity.secretHash} />
+					<TruncatedValue value={selection.entitySelector.secretHash} />
 				</dd>
 			</div>
 		</dl>
@@ -153,7 +151,7 @@
 								value={entity.amount}
 							/>
 
-							<span>{entity.unit == null ? '' : ` ${String(entity.unit)}`}</span>
+							<span>{entity.unit == null ? '' : ` ${entity.unit}`}</span>
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -220,7 +218,7 @@
 						<div>
 							<dt>received AT</dt>
 							<dd>
-								<Timestamp timestamp={Number(receivedAt)} />
+								<Timestamp timestamp={receivedAt} />
 							</dd>
 						</div>
 					{/if}
@@ -252,15 +250,15 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const blockheadCashuProofBlockheadCashuProofTimestampsViewTimestampsResource = selection.$$timestamps}
+		{@const timestampsResource = selection.$$timestamps}
 		<ResourceBoundary
-			resource={blockheadCashuProofBlockheadCashuProofTimestampsViewTimestampsResource}
+			resource={timestampsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<BlockheadCashuProof_TimestampsView
-						selection={blockheadCashuProofBlockheadCashuProofTimestampsViewTimestampsResource}
-						countResource={blockheadCashuProofBlockheadCashuProofTimestampsViewTimestampsResource.count}
+						selection={timestampsResource}
+						countResource={timestampsResource.count}
 						title='timestamps'
 						id='timestamps'
 					/>

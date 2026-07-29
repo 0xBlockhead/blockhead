@@ -24,8 +24,7 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.SolanaInstruction> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const titleFallback = 'solana instruction'
+	const transaction = $derived(selection.entitySelector.$transaction)
 
 
 	// Components
@@ -40,45 +39,48 @@
 <EntityView
 	entityType={EntityType.SolanaInstruction}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? 'solana instruction'}
 	href={
-		href ?? (
-			selection.entitySelector.instructionKind === 'InnerInstruction'
-			&& 'indexInInstruction' in selection.entitySelector ?
-				resolve(
-					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(transactions)/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/(selection)/instruction/[instructionKind=stringSegment]/[indexInTransaction=nonNegativeInteger]/(solanaInstruction)/inner/[indexInInstruction=nonNegativeInteger]',
-					{
-						network: (
-							'caip2' in selection.entitySelector.$transaction.$network ?
-								String(caip2StringFromValue(selection.entitySelector.$transaction.$network.caip2))
-							:
-								String(selection.entitySelector.$transaction.$network.slug)
-						),
-						transactionId: String(selection.entitySelector.$transaction.signature),
-						instructionKind: String(selection.entitySelector.instructionKind),
-						indexInTransaction: String(selection.entitySelector.indexInTransaction),
-						indexInInstruction: String(selection.entitySelector.indexInInstruction),
-					}
-				)
-			:
-				selection.entitySelector.instructionKind === 'Instruction' ?
+		href === undefined ?
+			(
+				selection.entitySelector.instructionKind === 'InnerInstruction'
+				&& 'indexInInstruction' in selection.entitySelector ?
 					resolve(
-						'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(transactions)/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/(selection)/instruction/[instructionKind=stringSegment]/[indexInTransaction=nonNegativeInteger]',
+						'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(transactions)/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/(selection)/instruction/[instructionKind=stringSegment]/[indexInTransaction=nonNegativeInteger]/(solanaInstruction)/inner/[indexInInstruction=nonNegativeInteger]',
 						{
 							network: (
-								'caip2' in selection.entitySelector.$transaction.$network ?
-									String(caip2StringFromValue(selection.entitySelector.$transaction.$network.caip2))
+								'caip2' in transaction.$network ?
+									caip2StringFromValue(transaction.$network.caip2)
 								:
-									String(selection.entitySelector.$transaction.$network.slug)
+									transaction.$network.slug
 							),
-							transactionId: String(selection.entitySelector.$transaction.signature),
-							instructionKind: String(selection.entitySelector.instructionKind),
+							transactionId: transaction.signature,
+							instructionKind: selection.entitySelector.instructionKind,
 							indexInTransaction: String(selection.entitySelector.indexInTransaction),
+							indexInInstruction: String(selection.entitySelector.indexInInstruction),
 						}
 					)
 				:
-					undefined
-		)
+					selection.entitySelector.instructionKind === 'Instruction' ?
+						resolve(
+							'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(transactions)/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/(selection)/instruction/[instructionKind=stringSegment]/[indexInTransaction=nonNegativeInteger]',
+							{
+								network: (
+									'caip2' in transaction.$network ?
+										caip2StringFromValue(transaction.$network.caip2)
+									:
+										transaction.$network.slug
+								),
+								transactionId: transaction.signature,
+								instructionKind: selection.entitySelector.instructionKind,
+								indexInTransaction: String(selection.entitySelector.indexInTransaction),
+							}
+						)
+					:
+						undefined
+			)
+		:
+			href ?? undefined
 	}
 	{layout}
 	bind:open
@@ -87,7 +89,7 @@
 	{#snippet Title()}
 		<SolanaTransactionView
 			selection={select(EntityType.SolanaTransaction, selection.entitySelector.$transaction)}
-			href=""
+			href={null}
 			layout={EntityLayout.Title}
 			open={false}
 		/>
@@ -96,7 +98,7 @@
 	{#snippet Value()}
 		<SolanaTransactionView
 			selection={select(EntityType.SolanaTransaction, selection.entitySelector.$transaction)}
-			href=""
+			href={null}
 			layout={EntityLayout.Value}
 			open={false}
 		/>
@@ -104,11 +106,11 @@
 
 	{#snippet HeadingAfter()}
 		<span data-text="muted">
-			{pendingEntity.instructionKind}
+			{selection.entitySelector.instructionKind}
 		</span>
 
 		<span data-text="muted">
-			{String(pendingEntity.indexInTransaction)}
+			{selection.entitySelector.indexInTransaction}
 		</span>
 	{/snippet}
 
@@ -117,7 +119,7 @@
 			<div>
 				<dt>Instruction kind</dt>
 				<dd>
-					{pendingEntity.instructionKind}
+					{selection.entitySelector.instructionKind}
 				</dd>
 			</div>
 
@@ -125,7 +127,7 @@
 				<dt>Index in transaction</dt>
 				<dd>
 					<NumberValue
-						value={pendingEntity.indexInTransaction}
+						value={selection.entitySelector.indexInTransaction}
 					/>
 				</dd>
 			</div>
@@ -191,7 +193,7 @@
 						<div>
 							<dt>Stack height</dt>
 							<dd>
-								{String(stackHeight)}
+								{stackHeight}
 							</dd>
 						</div>
 					{/if}
@@ -253,15 +255,15 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const solanaInstructionSolanaAccountsViewAccountsResource = selection.$$accounts}
+		{@const accountsResource = selection.$$accounts}
 		<ResourceBoundary
-			resource={solanaInstructionSolanaAccountsViewAccountsResource}
+			resource={accountsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<SolanaAccountsView
-						selection={solanaInstructionSolanaAccountsViewAccountsResource}
-						countResource={solanaInstructionSolanaAccountsViewAccountsResource.count}
+						selection={accountsResource}
+						countResource={accountsResource.count}
 						title='Accounts'
 						id='accounts'
 					/>

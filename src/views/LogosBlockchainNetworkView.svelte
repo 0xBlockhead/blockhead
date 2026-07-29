@@ -20,8 +20,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.LogosBlockchainNetwork> = $props()
 
-	const titleFallback = 'Logos blockchain network'
-
 
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -33,7 +31,7 @@
 <EntityView
 	entityType={EntityType.LogosBlockchainNetwork}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? 'Logos blockchain network'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -41,7 +39,7 @@
 	{#snippet Title()}
 		<NetworkView
 			selection={select(EntityType.Network, selection.entitySelector.$network)}
-			href=""
+			href={null}
 			layout={EntityLayout.Title}
 			open={false}
 		/>
@@ -50,7 +48,7 @@
 	{#snippet Value()}
 		<NetworkView
 			selection={select(EntityType.Network, selection.entitySelector.$network)}
-			href=""
+			href={null}
 			layout={EntityLayout.Value}
 			open={false}
 		/>
@@ -72,15 +70,15 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const logosBlockchainNetworkLogosBlockchainNetworkTimestampsViewTimestampsResource = selection.$$timestamps}
+		{@const timestampsResource = selection.$$timestamps}
 		<ResourceBoundary
-			resource={logosBlockchainNetworkLogosBlockchainNetworkTimestampsViewTimestampsResource}
+			resource={timestampsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<LogosBlockchainNetwork_TimestampsView
-						selection={logosBlockchainNetworkLogosBlockchainNetworkTimestampsViewTimestampsResource}
-						countResource={logosBlockchainNetworkLogosBlockchainNetworkTimestampsViewTimestampsResource.count}
+						selection={timestampsResource}
+						countResource={timestampsResource.count}
 						title='Timestamps'
 						id='timestamps'
 					/>

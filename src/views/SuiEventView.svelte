@@ -20,9 +20,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.SuiEvent> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const titleFallback = 'Sui event'
-
 
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -34,7 +31,7 @@
 <EntityView
 	entityType={EntityType.SuiEvent}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? 'Sui event'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -59,14 +56,14 @@
 			<div>
 				<dt>transaction digest</dt>
 				<dd>
-					<TruncatedValue value={pendingEntity.transactionDigest} />
+					<TruncatedValue value={selection.entitySelector.transactionDigest} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>event index</dt>
 				<dd>
-					{String(pendingEntity.eventIndex)}
+					{selection.entitySelector.eventIndex}
 				</dd>
 			</div>
 

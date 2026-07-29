@@ -24,7 +24,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.RedditSubreddit> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Reddit_PublicJson,
@@ -35,7 +34,7 @@
 			title: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.title ?? '') || ((pendingEntity.name ?? '') ? 'r/' + (pendingEntity.name ?? '') : '') || 'Reddit subreddit')
+	const titleFallback = $derived((prefetched.title ?? '') || 'r/' + selection.entitySelector.name)
 
 
 	// Components
@@ -52,12 +51,15 @@
 	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
 	href={
-		href ?? resolve(
-			'/(social)/(reddit)/reddit/(globalRedditNetwork)/r/[name=stringSegment]',
-			{
-				name: encodeURIComponent(String(selection.entitySelector.name)),
-			}
-		)
+		href === undefined ?
+			resolve(
+				'/(social)/(reddit)/reddit/(globalRedditNetwork)/r/[name=stringSegment]',
+				{
+					name: encodeURIComponent(selection.entitySelector.name),
+				}
+			)
+		:
+			href ?? undefined
 	}
 	{layout}
 	bind:open
@@ -68,7 +70,7 @@
 		<ResourceBoundary resource={redditSubreddit}>
 			{#snippet children(entity)}
 				{@const reference = entity.$icon}
-				{#if reference != null && reference[EntityMetaKey.Selector] !== undefined}
+				{#if reference != null}
 					<MediaView
 						selection={select(EntityType.Media, reference[EntityMetaKey.Selector])}
 						prefetched={reference}
@@ -94,7 +96,7 @@
 				<dt>Subreddit</dt>
 				<dd>
 					<span>r/</span>
-					{pendingEntity.name}
+					{selection.entitySelector.name}
 				</dd>
 			</div>
 
@@ -154,7 +156,7 @@
 							<div>
 								<dt>Created</dt>
 								<dd>
-									<Timestamp timestamp={Number(createdAt)} />
+									<Timestamp timestamp={createdAt} />
 								</dd>
 							</div>
 						{/if}
@@ -189,21 +191,21 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const redditSubredditRedditLinksViewLinksResource = selection.$$links}
+		{@const linksResource = selection.$$links}
 		<ResourceBoundary
-			resource={redditSubredditRedditLinksViewLinksResource}
+			resource={linksResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<RedditLinksView
-						selection={redditSubredditRedditLinksViewLinksResource}
-						countResource={redditSubredditRedditLinksViewLinksResource.count}
+						selection={linksResource}
+						countResource={linksResource.count}
 						title='Submissions'
 						href={
 							resolve(
 								'/(social)/(reddit)/reddit/(globalRedditNetwork)/r/[name=stringSegment]/(redditSubreddit)/links',
 								{
-									name: encodeURIComponent(String(selection.entitySelector.name)),
+									name: encodeURIComponent(selection.entitySelector.name),
 								}
 							)
 						}
@@ -212,21 +214,21 @@
 				{/if}
 			{/snippet}
 		</ResourceBoundary>
-		{@const redditSubredditRedditSubredditTimestampsViewTimestampsResource = selection.$$timestamps}
+		{@const timestampsResource = selection.$$timestamps}
 		<ResourceBoundary
-			resource={redditSubredditRedditSubredditTimestampsViewTimestampsResource}
+			resource={timestampsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<RedditSubreddit_TimestampsView
-						selection={redditSubredditRedditSubredditTimestampsViewTimestampsResource}
-						countResource={redditSubredditRedditSubredditTimestampsViewTimestampsResource.count}
+						selection={timestampsResource}
+						countResource={timestampsResource.count}
 						title='Observations'
 						href={
 							resolve(
 								'/(social)/(reddit)/reddit/(globalRedditNetwork)/r/[name=stringSegment]/(redditSubreddit)/observations',
 								{
-									name: encodeURIComponent(String(selection.entitySelector.name)),
+									name: encodeURIComponent(selection.entitySelector.name),
 								}
 							)
 						}

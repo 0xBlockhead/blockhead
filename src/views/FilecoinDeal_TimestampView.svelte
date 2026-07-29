@@ -21,14 +21,12 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.FilecoinDeal_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const filecoinDealTimestamp = $derived(selection({
 		fields: {
 			verifiedDeal: true,
 			height: true,
 		},
 	}))
-	const titleFallback = $derived(String(pendingEntity.timestampMs ?? '') || 'filecoin deal timestamp')
 
 
 	// Components
@@ -43,19 +41,19 @@
 <EntityView
 	entityType={EntityType.FilecoinDeal_Timestamp}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? String(selection.entitySelector.timestampMs)}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+		<Timestamp timestamp={selection.entitySelector.timestampMs} />
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={filecoinDealTimestamp}>
 			{#snippet children(entity)}
-				{String(entity.verifiedDeal ?? '') || String(pendingEntity.timestampMs) || titleFallback}
+				{String(entity.verifiedDeal ?? '') || String(selection.entitySelector.timestampMs)}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -63,11 +61,11 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={filecoinDealTimestamp}>
 			{#snippet children(entity)}
-				{@const height0 = entity.height}
-				{#if height0 != null}
+				{@const height = entity.height}
+				{#if height != null}
 					<span data-text="muted">
 						<NumberValue
-							value={height0}
+							value={height}
 						/>
 					</span>
 				{/if}
@@ -91,14 +89,14 @@
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+					<Timestamp timestamp={selection.entitySelector.timestampMs} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 

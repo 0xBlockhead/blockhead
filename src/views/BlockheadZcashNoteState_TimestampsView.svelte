@@ -43,15 +43,15 @@
 			entitySelector={blockheadZcashNoteStateTimestampSelector}
 		>
 			{#snippet Title()}
-				{String(blockheadZcashNoteStateTimestampSelector.timestampMs) || 'blockhead zcash note state timestamp'}
+				{blockheadZcashNoteStateTimestampSelector.timestampMs}
 			{/snippet}
 
 			{#snippet Value()}
-				{String(blockheadZcashNoteStateTimestamp.spent ?? '')}
+				{blockheadZcashNoteStateTimestamp.spent ?? ''}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{String(blockheadZcashNoteStateTimestamp.confirmations ?? '')}</span>
+				<span data-text="annotation">{blockheadZcashNoteStateTimestamp.confirmations ?? ''}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

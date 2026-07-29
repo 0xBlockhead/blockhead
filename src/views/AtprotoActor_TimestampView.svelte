@@ -23,14 +23,14 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.AtprotoActor_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const actor = $derived(selection.entitySelector.$actor)
 	const atprotoActorTimestamp = $derived(selection({
 		fields: {
 			displayName: true,
 			handle: true,
 		},
 	}))
-	const titleFallback = $derived([(pendingEntity.displayName ?? ''), (pendingEntity.handle ?? '')].filter(Boolean).join(' ') || String(pendingEntity.timestampMs ?? '') || 'AT Protocol account observation')
+	const titleFallback = $derived([(prefetched.displayName ?? ''), (prefetched.handle ?? '')].filter(Boolean).join(' ') || String(selection.entitySelector.timestampMs) || 'AT Protocol account observation')
 
 
 	// Components
@@ -46,19 +46,22 @@
 	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
 	href={
-		href ?? (
-			'did' in selection.entitySelector.$actor ?
-				resolve(
-					'/(social)/(atproto)/atproto/(globalAtprotoNetwork)/actor/[did=stringSegment]/(atprotoActor)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
-					{
-						did: encodeURIComponent(String(selection.entitySelector.$actor.did)),
-						timestampMs: String(selection.entitySelector.timestampMs),
-						source: String(selection.entitySelector.source),
-					}
-				)
-			:
-				undefined
-		)
+		href === undefined ?
+			(
+				'did' in actor ?
+					resolve(
+						'/(social)/(atproto)/atproto/(globalAtprotoNetwork)/actor/[did=stringSegment]/(atprotoActor)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
+						{
+							did: encodeURIComponent(actor.did),
+							timestampMs: String(selection.entitySelector.timestampMs),
+							source: selection.entitySelector.source,
+						}
+					)
+				:
+					undefined
+			)
+		:
+			href ?? undefined
 	}
 	{layout}
 	bind:open
@@ -69,7 +72,7 @@
 		<ResourceBoundary resource={atprotoActorTimestamp}>
 			{#snippet children(entity)}
 				{@const reference = entity.$icon}
-				{#if reference != null && reference[EntityMetaKey.Selector] !== undefined}
+				{#if reference != null}
 					<MediaView
 						selection={select(EntityType.Media, reference[EntityMetaKey.Selector])}
 						prefetched={reference}
@@ -91,7 +94,7 @@
 
 	{#snippet HeadingAfter()}
 		<span data-text="muted">
-			{pendingEntity.source}
+			{selection.entitySelector.source}
 		</span>
 	{/snippet}
 
@@ -100,14 +103,14 @@
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+					<Timestamp timestamp={selection.entitySelector.timestampMs} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 
@@ -156,7 +159,7 @@
 						<div>
 							<dt>Indexed</dt>
 							<dd>
-								<Timestamp timestamp={Number(indexedAt)} />
+								<Timestamp timestamp={indexedAt} />
 							</dd>
 						</div>
 					{/if}

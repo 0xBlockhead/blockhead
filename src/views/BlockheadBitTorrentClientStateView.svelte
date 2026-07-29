@@ -16,14 +16,13 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.BlockheadBitTorrentClientState> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const blockheadBitTorrentClientState = $derived(selection({
 		fields: {
 			clientName: true,
 			peerId: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.clientName ?? '') || (pendingEntity.clientId ?? '') || 'blockhead bit torrent client state')
+	const titleFallback = $derived((prefetched.clientName ?? '') || selection.entitySelector.clientId || 'blockhead bit torrent client state')
 
 
 	// Components
@@ -62,7 +61,7 @@
 			<div>
 				<dt>client ID</dt>
 				<dd>
-					{pendingEntity.clientId}
+					{selection.entitySelector.clientId}
 				</dd>
 			</div>
 
@@ -123,30 +122,30 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const blockheadBitTorrentClientStateBlockheadBitTorrentClientStateTimestampsViewTimestampsResource = selection.$$timestamps}
+		{@const timestampsResource = selection.$$timestamps}
 		<ResourceBoundary
-			resource={blockheadBitTorrentClientStateBlockheadBitTorrentClientStateTimestampsViewTimestampsResource}
+			resource={timestampsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<BlockheadBitTorrentClientState_TimestampsView
-						selection={blockheadBitTorrentClientStateBlockheadBitTorrentClientStateTimestampsViewTimestampsResource}
-						countResource={blockheadBitTorrentClientStateBlockheadBitTorrentClientStateTimestampsViewTimestampsResource.count}
+						selection={timestampsResource}
+						countResource={timestampsResource.count}
 						title='timestamps'
 						id='timestamps'
 					/>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>
-		{@const blockheadBitTorrentClientStateBlockheadBitTorrentTransferTimestampsViewTransfersResource = selection.$$transfers}
+		{@const transfersResource = selection.$$transfers}
 		<ResourceBoundary
-			resource={blockheadBitTorrentClientStateBlockheadBitTorrentTransferTimestampsViewTransfersResource}
+			resource={transfersResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<BlockheadBitTorrentTransfer_TimestampsView
-						selection={blockheadBitTorrentClientStateBlockheadBitTorrentTransferTimestampsViewTransfersResource}
-						countResource={blockheadBitTorrentClientStateBlockheadBitTorrentTransferTimestampsViewTransfersResource.count}
+						selection={transfersResource}
+						countResource={transfersResource.count}
 						title='transfers'
 						id='transfers'
 					/>

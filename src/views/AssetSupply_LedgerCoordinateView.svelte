@@ -21,7 +21,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.AssetSupply_LedgerCoordinate> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const assetSupplyLedgerCoordinate = $derived(selection({
 		fields: {
 			totalSupply: true,
@@ -33,7 +32,6 @@
 			},
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.supplyScopeKey ?? '') || 'asset supply ledger coordinate')
 
 
 	// Components
@@ -47,26 +45,26 @@
 <EntityView
 	entityType={EntityType.AssetSupply_LedgerCoordinate}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? (selection.entitySelector.supplyScopeKey || 'asset supply ledger coordinate')}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{(pendingEntity.supplyScopeKey ?? '') || 'asset supply ledger coordinate'}
+		{selection.entitySelector.supplyScopeKey || 'asset supply ledger coordinate'}
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={assetSupplyLedgerCoordinate}>
 			{#snippet children(entity)}
-				{@const totalSupply0 = entity.totalSupply}
-				{#if totalSupply0 != null}
+				{@const totalSupply = entity.totalSupply}
+				{#if totalSupply != null}
 					<NumberValue
-						value={totalSupply0}
-						decimalPlaces={pendingEntity.$assetInstance.decimals}
+						value={totalSupply}
+						decimalPlaces={selection.entitySelector.$assetInstance.decimals}
 					/>
 
-					<span>{pendingEntity.$assetInstance.symbol == null ? '' : ` ${String(pendingEntity.$assetInstance.symbol)}`}</span>
+					<span>{selection.entitySelector.$assetInstance.symbol == null ? '' : ` ${selection.entitySelector.$assetInstance.symbol}`}</span>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>
@@ -74,7 +72,7 @@
 
 	{#snippet HeadingAfter()}
 		<span data-text="muted">
-			{pendingEntity.source}
+			{selection.entitySelector.source}
 		</span>
 	{/snippet}
 
@@ -94,7 +92,7 @@
 			<div>
 				<dt>supply scope key</dt>
 				<dd>
-					{pendingEntity.supplyScopeKey}
+					{selection.entitySelector.supplyScopeKey}
 				</dd>
 			</div>
 
@@ -145,7 +143,7 @@
 			<div>
 				<dt>ledger coordinate kind</dt>
 				<dd>
-					{pendingEntity.ledgerCoordinateKind}
+					{selection.entitySelector.ledgerCoordinateKind}
 				</dd>
 			</div>
 
@@ -153,7 +151,7 @@
 				<dt>ledger coordinate value</dt>
 				<dd>
 					<NumberValue
-						value={pendingEntity.ledgerCoordinateValue}
+						value={selection.entitySelector.ledgerCoordinateValue}
 					/>
 				</dd>
 			</div>
@@ -161,7 +159,7 @@
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 		</dl>
@@ -178,10 +176,10 @@
 							<dd>
 								<NumberValue
 									value={totalSupply}
-									decimalPlaces={pendingEntity.$assetInstance.decimals}
+									decimalPlaces={selection.entitySelector.$assetInstance.decimals}
 								/>
 
-								<span>{pendingEntity.$assetInstance.symbol == null ? '' : ` ${String(pendingEntity.$assetInstance.symbol)}`}</span>
+								<span>{selection.entitySelector.$assetInstance.symbol == null ? '' : ` ${selection.entitySelector.$assetInstance.symbol}`}</span>
 							</dd>
 						</div>
 					{/if}
@@ -211,10 +209,10 @@
 							<dd>
 								<NumberValue
 									value={maxSupply}
-									decimalPlaces={pendingEntity.$assetInstance.decimals}
+									decimalPlaces={selection.entitySelector.$assetInstance.decimals}
 								/>
 
-								<span>{pendingEntity.$assetInstance.symbol == null ? '' : ` ${String(pendingEntity.$assetInstance.symbol)}`}</span>
+								<span>{selection.entitySelector.$assetInstance.symbol == null ? '' : ` ${selection.entitySelector.$assetInstance.symbol}`}</span>
 							</dd>
 						</div>
 					{/if}
@@ -244,10 +242,10 @@
 							<dd>
 								<NumberValue
 									value={mintedSupply}
-									decimalPlaces={pendingEntity.$assetInstance.decimals}
+									decimalPlaces={selection.entitySelector.$assetInstance.decimals}
 								/>
 
-								<span>{pendingEntity.$assetInstance.symbol == null ? '' : ` ${String(pendingEntity.$assetInstance.symbol)}`}</span>
+								<span>{selection.entitySelector.$assetInstance.symbol == null ? '' : ` ${selection.entitySelector.$assetInstance.symbol}`}</span>
 							</dd>
 						</div>
 					{/if}
@@ -277,10 +275,10 @@
 							<dd>
 								<NumberValue
 									value={burnedSupply}
-									decimalPlaces={pendingEntity.$assetInstance.decimals}
+									decimalPlaces={selection.entitySelector.$assetInstance.decimals}
 								/>
 
-								<span>{pendingEntity.$assetInstance.symbol == null ? '' : ` ${String(pendingEntity.$assetInstance.symbol)}`}</span>
+								<span>{selection.entitySelector.$assetInstance.symbol == null ? '' : ` ${selection.entitySelector.$assetInstance.symbol}`}</span>
 							</dd>
 						</div>
 					{/if}

@@ -22,7 +22,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.FilecoinMessage> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Filfox_Rest,
@@ -33,7 +32,6 @@
 			valueAttoFil: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.cid ?? '') || 'filecoin message')
 
 
 	// Components
@@ -48,13 +46,13 @@
 <EntityView
 	entityType={EntityType.FilecoinMessage}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? (selection.entitySelector.cid || 'filecoin message')}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<TruncatedValue value={pendingEntity.cid} />
+		<TruncatedValue value={selection.entitySelector.cid} />
 	{/snippet}
 
 	{#snippet Value()}
@@ -66,7 +64,7 @@
 					<FilecoinActorView
 						selection={select(EntityType.FilecoinActor, filecoinActor[EntityMetaKey.Selector])}
 						prefetched={filecoinActor}
-						href=""
+						href={null}
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -82,7 +80,7 @@
 					<FilecoinActorView
 						selection={select(EntityType.FilecoinActor, filecoinActor[EntityMetaKey.Selector])}
 						prefetched={filecoinActor}
-						href=""
+						href={null}
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -94,11 +92,11 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={filecoinMessage}>
 			{#snippet children(entity)}
-				{@const valueAttoFil0 = entity.valueAttoFil}
-				{#if valueAttoFil0 != null}
+				{@const valueAttoFil = entity.valueAttoFil}
+				{#if valueAttoFil != null}
 					<span data-text="muted">
 						<NumberValue
-							value={valueAttoFil0}
+							value={valueAttoFil}
 						/>
 					</span>
 				{/if}
@@ -122,7 +120,7 @@
 			<div>
 				<dt>CID</dt>
 				<dd>
-					<TruncatedValue value={pendingEntity.cid} />
+					<TruncatedValue value={selection.entitySelector.cid} />
 				</dd>
 			</div>
 

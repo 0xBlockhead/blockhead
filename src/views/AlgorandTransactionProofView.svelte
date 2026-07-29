@@ -4,7 +4,6 @@
 	// Types/constants
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 
 
 	// Context
@@ -21,9 +20,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.AlgorandTransactionProof> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const titleFallback = 'algorand transaction proof'
-
 
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -35,7 +31,7 @@
 <EntityView
 	entityType={EntityType.AlgorandTransactionProof}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? 'algorand transaction proof'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -60,21 +56,21 @@
 			<div>
 				<dt>round</dt>
 				<dd>
-					{String(pendingEntity.round)}
+					{selection.entitySelector.round}
 				</dd>
 			</div>
 
 			<div>
 				<dt>hash type</dt>
 				<dd>
-					<TruncatedValue value={pendingEntity.hashType} />
+					{selection.entitySelector.hashType}
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 		</dl>
@@ -117,7 +113,7 @@
 						<div>
 							<dt>stib hash</dt>
 							<dd>
-								<TruncatedValue value={String(stibHash)} />
+								<TruncatedValue value={stibHash} />
 							</dd>
 						</div>
 					{/if}
@@ -139,7 +135,7 @@
 						<div>
 							<dt>tree depth</dt>
 							<dd>
-								{String(treeDepth)}
+								{treeDepth}
 							</dd>
 						</div>
 					{/if}

@@ -47,8 +47,8 @@
 					'/(social)/(farcaster)/farcaster/(farcasterNetwork)/user/[userId=farcasterFid]/(farcasterUser)/verified-address/[protocol=stringSegment]/[address=stringSegment]',
 					{
 						userId: String(farcasterVerifiedAddressSelector.fid),
-						protocol: String(farcasterVerifiedAddressSelector.protocol),
-						address: String(farcasterVerifiedAddressSelector.address),
+						protocol: farcasterVerifiedAddressSelector.protocol,
+						address: farcasterVerifiedAddressSelector.address,
 					}
 				)
 			}
@@ -58,7 +58,7 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{[String(farcasterVerifiedAddressSelector.protocol), String(farcasterVerifiedAddressSelector.fid)].filter(Boolean).join(' ')}
+				{[farcasterVerifiedAddressSelector.protocol, String(farcasterVerifiedAddressSelector.fid)].filter(Boolean).join(' ')}
 			{/snippet}
 		</EntityView>
 	{/snippet}

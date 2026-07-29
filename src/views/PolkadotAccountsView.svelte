@@ -39,6 +39,7 @@
 >
 	{#snippet Item({ item: polkadotAccount })}
 		{@const polkadotAccountSelector = polkadotAccount[EntityMetaKey.Selector]}
+		{@const network = polkadotAccountSelector.$network}
 		<EntityView
 			entityType={EntityType.PolkadotAccount}
 			entitySelector={polkadotAccountSelector}
@@ -47,12 +48,12 @@
 					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(accounts)/account/[accountId=polkadotAccountIdOrStringSegmentOrEvmAddressOrSolanaPubkey]',
 					{
 						network: (
-							'caip2' in polkadotAccountSelector.$network ?
-								String(caip2StringFromValue(polkadotAccountSelector.$network.caip2))
+							'caip2' in network ?
+								caip2StringFromValue(network.caip2)
 							:
-								String(polkadotAccountSelector.$network.slug)
+								network.slug
 						),
-						accountId: String(polkadotAccountSelector.accountId),
+						accountId: polkadotAccountSelector.accountId,
 					}
 				)
 			}

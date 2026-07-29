@@ -23,13 +23,13 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.PolkadotPallet> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const network = $derived(selection.entitySelector.$network)
 	const polkadotPallet = $derived(selection({
 		fields: {
 			index: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.palletName ?? '') || 'Polkadot pallet')
+	const titleFallback = $derived(selection.entitySelector.palletName || 'Polkadot pallet')
 
 
 	// Components
@@ -43,38 +43,41 @@
 	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
 	href={
-		href ?? resolve(
-			'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/pallet/[palletName=stringSegment]',
-			{
-				network: (
-					'caip2' in selection.entitySelector.$network ?
-						String(caip2StringFromValue(selection.entitySelector.$network.caip2))
-					:
-						String(selection.entitySelector.$network.slug)
-				),
-				palletName: String(selection.entitySelector.palletName),
-			}
-		)
+		href === undefined ?
+			resolve(
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/pallet/[palletName=stringSegment]',
+				{
+					network: (
+						'caip2' in network ?
+							caip2StringFromValue(network.caip2)
+						:
+							network.slug
+					),
+					palletName: selection.entitySelector.palletName,
+				}
+			)
+		:
+			href ?? undefined
 	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{(pendingEntity.palletName ?? '') || 'Polkadot pallet'}
+		{selection.entitySelector.palletName || 'Polkadot pallet'}
 	{/snippet}
 
 	{#snippet Value()}
-		{(pendingEntity.palletName ?? '') || titleFallback}
+		{selection.entitySelector.palletName || titleFallback}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={polkadotPallet}>
 			{#snippet children(entity)}
-				{@const index0 = entity.index}
-				{#if index0 != null}
+				{@const index = entity.index}
+				{#if index != null}
 					<span data-text="muted">
-						{String(index0)}
+						{index}
 					</span>
 				{/if}
 			{/snippet}
@@ -86,7 +89,7 @@
 			<div>
 				<dt>Pallet name</dt>
 				<dd>
-					{pendingEntity.palletName}
+					{selection.entitySelector.palletName}
 				</dd>
 			</div>
 
@@ -99,7 +102,7 @@
 						<div>
 							<dt>Index</dt>
 							<dd>
-								{String(index)}
+								{index}
 							</dd>
 						</div>
 					{/if}

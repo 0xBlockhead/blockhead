@@ -2,7 +2,8 @@
 
 import bindings from '$/sources/CardanoNode/bindings.ts'
 import { Source } from '$/sources/Source.ts'
-import { SourceProvider, type SourceProviderDefinition } from '$/sources/SourceProvider.ts'
+import { SourceProvider } from '$/sources/SourceProvider.ts'
+import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinition.ts'
 
 export default {
 	provider: SourceProvider.CardanoNode,
@@ -13,5 +14,5 @@ export default {
 			label: 'Cardano node local-state query',
 		},
 	],
-	bindings: [bindings[Source.CardanoNode_LocalStateQuery]],
+	bindings: Object.values(bindings).flat(),
 } satisfies SourceProviderDefinition

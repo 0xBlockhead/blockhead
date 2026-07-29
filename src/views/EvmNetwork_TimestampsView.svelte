@@ -40,6 +40,7 @@
 >
 	{#snippet Item({ item: evmNetworkTimestamp })}
 		{@const evmNetworkTimestampSelector = evmNetworkTimestamp[EntityMetaKey.Selector]}
+		{@const network = evmNetworkTimestampSelector.$network}
 		<EntityView
 			entityType={EntityType.EvmNetwork_Timestamp}
 			entitySelector={evmNetworkTimestampSelector}
@@ -48,23 +49,23 @@
 					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
 					{
 						network: (
-							'caip2' in evmNetworkTimestampSelector.$network ?
-								String(caip2StringFromValue(evmNetworkTimestampSelector.$network.caip2))
+							'caip2' in network ?
+								caip2StringFromValue(network.caip2)
 							:
-								String(evmNetworkTimestampSelector.$network.slug)
+								network.slug
 						),
 						timestampMs: String(evmNetworkTimestampSelector.timestampMs),
-						source: String(evmNetworkTimestampSelector.source),
+						source: evmNetworkTimestampSelector.source,
 					}
 				)
 			}
 		>
 			{#snippet Title()}
-				{([(String(evmNetworkTimestamp.blockHeight) ? 'Block ' + String(evmNetworkTimestamp.blockHeight) : ''), String(evmNetworkTimestampSelector.timestampMs)].filter(Boolean).join(' ')) || 'EVM network timestamp'}
+				{['Block ' + String(evmNetworkTimestamp.blockHeight), String(evmNetworkTimestampSelector.timestampMs)].filter(Boolean).join(' ') || 'EVM network timestamp'}
 			{/snippet}
 
 			{#snippet Value()}
-				{String(evmNetworkTimestamp.blockHeight)}
+				{evmNetworkTimestamp.blockHeight}
 			{/snippet}
 
 			{#snippet HeadingAfter()}

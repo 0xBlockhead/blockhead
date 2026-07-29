@@ -4,6 +4,7 @@
 	// Types/constants
 	import type { PageProps } from './$types.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { entityDefinitionByType } from '$/schema/index.ts'
 
 
 	// Context
@@ -43,20 +44,14 @@
 	const pageTitle = $derived(
 		(
 			data.entityType === EntityType.PolkadotBlock && data.selectorName === 'NetworkBlockNumberHash' ?
-				((String(data.selector.blockNumber ?? '') ? 'Block #' + String(data.selector.blockNumber ?? '') : '') || (data.selector.hash ?? '') || 'Polkadot block')
+				(String(data.selector.blockNumber ?? '') ? 'Block #' + String(data.selector.blockNumber ?? '') : '') || (data.selector.hash ?? '') || 'Polkadot block'
 			:
-				((String(data.selector.height ?? '') ? 'Block #' + String(data.selector.height ?? '') : '') || (data.selector.hash ?? '') || 'UTXO block')
+				(String(data.selector.height ?? '') ? 'Block #' + String(data.selector.height ?? '') : '') || (data.selector.hash ?? '') || 'UTXO block'
 		)
 	)
 	const entityViewByType = {
-		[EntityType.PolkadotBlock]: {
-			Component: PolkadotBlockView,
-			label: 'Polkadot block',
-		},
-		[EntityType.UtxoBlock]: {
-			Component: UtxoBlockView,
-			label: 'UTXO block',
-		},
+		[EntityType.PolkadotBlock]: PolkadotBlockView,
+		[EntityType.UtxoBlock]: UtxoBlockView,
 	}
 
 	// Components
@@ -67,12 +62,12 @@
 
 
 <svelte:head>
-	<title>{pageTitle} • {entityViewByType[data.entityType].label} • Blockhead</title>
+	<title>{pageTitle} • {entityDefinitionByType[data.entityType].labels.singular} • Blockhead</title>
 </svelte:head>
 
 
 <Page>
-	{@const EntityView = entityViewByType[data.entityType].Component}
+	{@const EntityView = entityViewByType[data.entityType]}
 
 	<EntityView
 		selection={pageSelection}

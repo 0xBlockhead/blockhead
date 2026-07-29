@@ -25,14 +25,12 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.EnsName> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const viewSelection = $derived(selection({
+	const ensName = $derived(selection({
 		sources: selection.sources ?? [
 			Source.TheGraph_Graphql,
 			Source.Voltaire_JsonRpc,
 		],
-	}))
-	const ensName = $derived(viewSelection({
+	})({
 		fields: {
 			normalizedName: true,
 			node: true,
@@ -40,7 +38,7 @@
 			labelhash: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.name ?? '') || 'ENS name')
+	const titleFallback = $derived(selection.entitySelector.name || 'ENS name')
 	const viewDomId = $derived('ens-name-' + encodeURIComponent(stringify(selection.entitySelector)))
 
 
@@ -64,23 +62,26 @@
 	id={viewDomId}
 	title={title ?? titleFallback}
 	href={
-		href ?? resolve(
-			'/(explore)/(ens)/ens/(globalEnsNetwork)/name/[ensName=stringSegment]',
-			{
-				ensName: encodeURIComponent(String(selection.entitySelector.name)),
-			}
-		)
+		href === undefined ?
+			resolve(
+				'/(explore)/(ens)/ens/(globalEnsNetwork)/name/[ensName=stringSegment]',
+				{
+					ensName: encodeURIComponent(selection.entitySelector.name),
+				}
+			)
+		:
+			href ?? undefined
 	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{(pendingEntity.name ?? '') || 'ENS name'}
+		{selection.entitySelector.name || 'ENS name'}
 	{/snippet}
 
 	{#snippet Value()}
-		{(pendingEntity.name ?? '') || titleFallback}
+		{selection.entitySelector.name || titleFallback}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -88,7 +89,7 @@
 			<div>
 				<dt>Name</dt>
 				<dd>
-					{pendingEntity.name}
+					{selection.entitySelector.name}
 				</dd>
 			</div>
 
@@ -287,7 +288,7 @@
 						resolve(
 							'/(explore)/(ens)/ens/(globalEnsNetwork)/name/[ensName=stringSegment]/(ensName)/records',
 							{
-								ensName: encodeURIComponent(String(selection.entitySelector.name)),
+								ensName: encodeURIComponent(selection.entitySelector.name),
 							}
 						)
 					}

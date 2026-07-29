@@ -21,9 +21,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.HederaTokenTransfer> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const titleFallback = 'hedera token transfer'
-
 
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -38,7 +35,7 @@
 <EntityView
 	entityType={EntityType.HederaTokenTransfer}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? 'hedera token transfer'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -63,21 +60,21 @@
 			<div>
 				<dt>Token ID</dt>
 				<dd>
-					{pendingEntity.tokenId}
+					{selection.entitySelector.tokenId}
 				</dd>
 			</div>
 
 			<div>
 				<dt>account ID</dt>
 				<dd>
-					<TruncatedValue value={pendingEntity.accountId} />
+					<TruncatedValue value={selection.entitySelector.accountId} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>transfer index</dt>
 				<dd>
-					{String(pendingEntity.transferIndex)}
+					{selection.entitySelector.transferIndex}
 				</dd>
 			</div>
 
@@ -96,7 +93,7 @@
 						<div>
 							<dt>amount</dt>
 							<dd>
-								{String(amount)}
+								{amount}
 							</dd>
 						</div>
 					{/if}
@@ -118,7 +115,7 @@
 						<div>
 							<dt>serial number</dt>
 							<dd>
-								{String(serialNumber)}
+								{serialNumber}
 							</dd>
 						</div>
 					{/if}

@@ -44,7 +44,7 @@
 			entitySelector={blockheadKaspaNodeStateTimestampSelector}
 		>
 			{#snippet Title()}
-				{String(blockheadKaspaNodeStateTimestampSelector.timestampMs) || 'blockhead kaspa node state timestamp'}
+				{blockheadKaspaNodeStateTimestampSelector.timestampMs}
 			{/snippet}
 
 			{#snippet Value()}
@@ -52,7 +52,7 @@
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{String(blockheadKaspaNodeStateTimestamp.peerCount ?? '')}</span>
+				<span data-text="annotation">{blockheadKaspaNodeStateTimestamp.peerCount ?? ''}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

@@ -1,7 +1,8 @@
 // Generated from APP.ts. Do not edit by hand.
 
 import { Source } from '$/sources/Source.ts'
-import { SourceProvider, type SourceProviderDefinition } from '$/sources/SourceProvider.ts'
+import { SourceProvider } from '$/sources/SourceProvider.ts'
+import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinition.ts'
 import bindings from '$/sources/Wormholescan/bindings.ts'
 
 export default {
@@ -13,5 +14,5 @@ export default {
 			label: 'Wormholescan REST',
 		},
 	],
-	bindings: [bindings[Source.Wormholescan_Rest]],
+	bindings: Object.values(bindings).flat(),
 } satisfies SourceProviderDefinition

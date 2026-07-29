@@ -8,6 +8,7 @@ import { Source } from '$/sources/Source.ts'
 import {
 	SourceDelivery,
 	SourceTargetKind,
+	sourceBindingId,
 } from '$/sources/SourceBinding.ts'
 
 const binding = bindings[Source.Blockchair_Rest]
@@ -39,7 +40,7 @@ describe('Blockchair REST client delivery', () => {
 		expect(binding.delivery).toBe(SourceDelivery.HttpProxy)
 		expect(fetchMock).toHaveBeenCalledOnce()
 		expect(fetchMock).toHaveBeenCalledWith(
-			`/api-proxy/${encodeURIComponent(binding.proxyId)}/0/${encodeURIComponent('https://api.blockchair.com/bitcoin/blocks?limit=16&key=public+key')}`,
+			`/api-proxy/${encodeURIComponent(sourceBindingId(binding))}/0/${encodeURIComponent('https://api.blockchair.com/bitcoin/blocks?limit=16&key=public+key')}`,
 			expect.objectContaining({
 				signal: expect.any(AbortSignal),
 			})

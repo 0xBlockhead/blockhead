@@ -41,7 +41,7 @@
 			entitySelector={blockheadLightningInvoiceTimestampSelector}
 		>
 			{#snippet Title()}
-				{String(blockheadLightningInvoiceTimestampSelector.timestampMs) || 'Lightning invoice timestamp'}
+				{blockheadLightningInvoiceTimestampSelector.timestampMs}
 			{/snippet}
 
 			{#snippet Value()}

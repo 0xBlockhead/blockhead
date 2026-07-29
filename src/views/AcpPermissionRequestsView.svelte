@@ -49,7 +49,7 @@
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{(acpPermissionRequest.decision ?? '')}</span>
+				<span data-text="annotation">{acpPermissionRequest.decision ?? ''}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

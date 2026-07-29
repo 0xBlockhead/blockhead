@@ -41,11 +41,11 @@
 			entitySelector={arweaveBlockSelector}
 		>
 			{#snippet Title()}
-				{String(arweaveBlockSelector.height) || arweaveBlockSelector.indepHash || 'arweave block'}
+				{arweaveBlockSelector.height}
 			{/snippet}
 
 			{#snippet Value()}
-				{String(arweaveBlock.timestampMs ?? '')}
+				{arweaveBlock.timestampMs ?? ''}
 			{/snippet}
 		</EntityView>
 	{/snippet}

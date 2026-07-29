@@ -39,35 +39,34 @@
 >
 	{#snippet Item({ item: beaconValidator })}
 		{@const beaconValidatorSelector = beaconValidator[EntityMetaKey.Selector]}
+		{@const network = beaconValidatorSelector.$network}
 		<EntityView
 			entityType={EntityType.BeaconValidator}
 			entitySelector={beaconValidatorSelector}
 			href={
-				(
-					'indexInNetwork' in beaconValidatorSelector ?
-						resolve(
-							'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/validator/[validatorId=nonNegativeIntegerOrSolanaPubkey]',
-							{
-								network: (
-									'caip2' in beaconValidatorSelector.$network ?
-										String(caip2StringFromValue(beaconValidatorSelector.$network.caip2))
-									:
-										String(beaconValidatorSelector.$network.slug)
-								),
-								validatorId: String(beaconValidatorSelector.indexInNetwork),
-							}
-						)
-					:
-						undefined
-				)
+				'indexInNetwork' in beaconValidatorSelector ?
+					resolve(
+						'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/validator/[validatorId=nonNegativeIntegerOrSolanaPubkey]',
+						{
+							network: (
+								'caip2' in network ?
+									caip2StringFromValue(network.caip2)
+								:
+									network.slug
+							),
+							validatorId: String(beaconValidatorSelector.indexInNetwork),
+						}
+					)
+				:
+					undefined
 			}
 		>
 			{#snippet Title()}
-				{(String(beaconValidatorSelector.indexInNetwork ?? '') ? 'Validator #' + String(beaconValidatorSelector.indexInNetwork ?? '') : '') || 'beacon validator'}
+				{`Validator #${beaconValidatorSelector.indexInNetwork}`}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{(beaconValidator.status ?? '')}</span>
+				<span data-text="annotation">{beaconValidator.status ?? ''}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

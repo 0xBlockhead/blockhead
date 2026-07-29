@@ -5,7 +5,6 @@
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { EvmAddress } from '$/schema/ZeroExHex.ts'
 
 
 	// Context
@@ -22,14 +21,13 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.OracleFeed> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const oracleFeed = $derived(selection({
 		fields: {
 			label: true,
 			feedKind: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.label ?? '') || String(pendingEntity.address ?? '') || 'oracle feed')
+	const titleFallback = $derived((prefetched.label ?? '') || selection.entitySelector.address || 'oracle feed')
 
 
 	// Components
@@ -61,9 +59,9 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={oracleFeed}>
 			{#snippet children(entity)}
-				{@const feedKind0 = entity.feedKind}
-				{#if feedKind0 != null}
-					{feedKind0}
+				{@const feedKind = entity.feedKind}
+				{#if feedKind != null}
+					{feedKind}
 				{/if}
 
 				<ResourceBoundary
@@ -74,7 +72,7 @@
 							<MarketView
 								selection={select(EntityType.Market, market[EntityMetaKey.Selector])}
 								prefetched={market}
-								href=""
+								href={null}
 								layout={EntityLayout.Value}
 								open={false}
 							/>
@@ -101,7 +99,7 @@
 			<div>
 				<dt>Address</dt>
 				<dd>
-					<TruncatedValue value={String(pendingEntity.address)} />
+					<TruncatedValue value={selection.entitySelector.address} />
 				</dd>
 			</div>
 
@@ -146,30 +144,30 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const oracleFeedOracleFeedTimestampsViewTimestampsResource = selection.$$timestamps}
+		{@const timestampsResource = selection.$$timestamps}
 		<ResourceBoundary
-			resource={oracleFeedOracleFeedTimestampsViewTimestampsResource}
+			resource={timestampsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<OracleFeed_TimestampsView
-						selection={oracleFeedOracleFeedTimestampsViewTimestampsResource}
-						countResource={oracleFeedOracleFeedTimestampsViewTimestampsResource.count}
+						selection={timestampsResource}
+						countResource={timestampsResource.count}
 						title='timestamps'
 						id='timestamps'
 					/>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>
-		{@const oracleFeedOracleFeedRoundsViewRoundsResource = selection.$$rounds}
+		{@const roundsResource = selection.$$rounds}
 		<ResourceBoundary
-			resource={oracleFeedOracleFeedRoundsViewRoundsResource}
+			resource={roundsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<OracleFeed_RoundsView
-						selection={oracleFeedOracleFeedRoundsViewRoundsResource}
-						countResource={oracleFeedOracleFeedRoundsViewRoundsResource.count}
+						selection={roundsResource}
+						countResource={roundsResource.count}
 						title='rounds'
 						id='rounds'
 					/>

@@ -5,7 +5,6 @@
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 
 
 	// State
@@ -42,11 +41,11 @@
 			entitySelector={gitTagSelector}
 		>
 			{#snippet Title()}
-				{[(gitTag.tagName ?? ''), String(gitTagSelector.objectId)].filter(Boolean).join(' ') || 'Git tag'}
+				{[(gitTag.tagName ?? ''), gitTagSelector.objectId].filter(Boolean).join(' ') || 'Git tag'}
 			{/snippet}
 
 			{#snippet Value()}
-				{(gitTag.targetKind ?? '')}
+				{gitTag.targetKind ?? ''}
 			{/snippet}
 		</EntityView>
 	{/snippet}

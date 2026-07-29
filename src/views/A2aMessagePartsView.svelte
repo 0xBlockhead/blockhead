@@ -41,7 +41,7 @@
 			entitySelector={a2aMessagePartSelector}
 		>
 			{#snippet Title()}
-				{String(a2aMessagePartSelector.partIndex) || 'A2A message part'}
+				{a2aMessagePartSelector.partIndex}
 			{/snippet}
 
 			{#snippet Value()}
@@ -49,7 +49,7 @@
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{(a2aMessagePart.mimeType ?? '')}</span>
+				<span data-text="annotation">{a2aMessagePart.mimeType ?? ''}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

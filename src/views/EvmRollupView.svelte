@@ -24,13 +24,13 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.EvmRollup> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const network = $derived(selection.entitySelector.$network)
 	const evmRollup = $derived(selection({
 		fields: {
 			name: true,
 		},
 	}))
-	const titleFallback = $derived([(pendingEntity.name ?? ''), (pendingEntity.projectId ?? '')].filter(Boolean).join(' ') || 'EVM rollup')
+	const titleFallback = $derived([(prefetched.name ?? ''), selection.entitySelector.projectId].filter(Boolean).join(' ') || 'EVM rollup')
 
 
 	// Components
@@ -45,18 +45,21 @@
 	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
 	href={
-		href ?? resolve(
-			'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/rollup/[projectId=stringSegment]',
-			{
-				network: (
-					'caip2' in selection.entitySelector.$network ?
-						String(caip2StringFromValue(selection.entitySelector.$network.caip2))
-					:
-						String(selection.entitySelector.$network.slug)
-				),
-				projectId: String(selection.entitySelector.projectId),
-			}
-		)
+		href === undefined ?
+			resolve(
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/rollup/[projectId=stringSegment]',
+				{
+					network: (
+						'caip2' in network ?
+							caip2StringFromValue(network.caip2)
+						:
+							network.slug
+					),
+					projectId: selection.entitySelector.projectId,
+				}
+			)
+		:
+			href ?? undefined
 	}
 	{layout}
 	bind:open
@@ -65,7 +68,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={evmRollup}>
 			{#snippet children(entity)}
-				{[(entity.name ?? ''), pendingEntity.projectId].filter(Boolean).join(' ') || title || titleFallback}
+				{[(entity.name ?? ''), selection.entitySelector.projectId].filter(Boolean).join(' ') || title || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -73,7 +76,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={evmRollup}>
 			{#snippet children(entity)}
-				{[(entity.name ?? ''), pendingEntity.projectId].filter(Boolean).join(' ') || titleFallback}
+				{[(entity.name ?? ''), selection.entitySelector.projectId].filter(Boolean).join(' ') || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -109,7 +112,7 @@
 			<div>
 				<dt>Project ID</dt>
 				<dd>
-					{pendingEntity.projectId}
+					{selection.entitySelector.projectId}
 				</dd>
 			</div>
 		</dl>
@@ -217,15 +220,15 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const evmRollupEvmRollupTimestampsViewTimestampsResource = selection.$$timestamps}
+		{@const timestampsResource = selection.$$timestamps}
 		<ResourceBoundary
-			resource={evmRollupEvmRollupTimestampsViewTimestampsResource}
+			resource={timestampsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<EvmRollup_TimestampsView
-						selection={evmRollupEvmRollupTimestampsViewTimestampsResource}
-						countResource={evmRollupEvmRollupTimestampsViewTimestampsResource.count}
+						selection={timestampsResource}
+						countResource={timestampsResource.count}
 						title='Timestamps'
 						id='timestamps'
 					/>

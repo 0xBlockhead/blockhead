@@ -47,11 +47,11 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{(starknetClass.contractClassVersion ?? '')}
+				{starknetClass.contractClassVersion ?? ''}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{String(starknetClass.declaredAtBlockNumber ?? '')}</span>
+				<span data-text="annotation">{starknetClass.declaredAtBlockNumber ?? ''}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

@@ -21,9 +21,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.StellarLiquidityPool> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const titleFallback = 'stellar liquidity pool'
-
 
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -35,7 +32,7 @@
 <EntityView
 	entityType={EntityType.StellarLiquidityPool}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? 'stellar liquidity pool'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -60,7 +57,7 @@
 			<div>
 				<dt>liquidity pool ID</dt>
 				<dd>
-					{pendingEntity.liquidityPoolId}
+					{selection.entitySelector.liquidityPoolId}
 				</dd>
 			</div>
 
@@ -141,7 +138,7 @@
 						<div>
 							<dt>fee bps</dt>
 							<dd>
-								{String(feeBps)}
+								{feeBps}
 							</dd>
 						</div>
 					{/if}

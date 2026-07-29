@@ -46,7 +46,7 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{String(arweaveTransaction.quantityWinston ?? '')}
+				{arweaveTransaction.quantityWinston ?? ''}
 			{/snippet}
 
 			{#snippet HeadingAfter()}

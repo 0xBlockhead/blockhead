@@ -47,7 +47,7 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{String(blockheadRadicleSeedObservationTimestampSelector.timestampMs)}
+				{blockheadRadicleSeedObservationTimestampSelector.timestampMs}
 			{/snippet}
 
 			{#snippet HeadingAfter()}

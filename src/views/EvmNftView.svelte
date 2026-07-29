@@ -8,8 +8,6 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import IconComponent from '$/components/Icon.svelte'
-	import { EvmNftFormat, EvmNftStandard } from '$/constants/Evm.ts'
-	import { UrlString } from '$/schema/UrlString.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -28,7 +26,7 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.EvmNft> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const contract = $derived(selection.entitySelector.$contract)
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Eip8004Scan_Rest,
@@ -41,7 +39,7 @@
 			image: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.name ?? '') || (pendingEntity.tokenId ?? '') || 'EVM NFT')
+	const titleFallback = $derived((prefetched.name ?? '') || selection.entitySelector.tokenId || 'EVM NFT')
 
 
 	// Components
@@ -58,19 +56,22 @@
 	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
 	href={
-		href ?? (
-			'caip2' in selection.entitySelector.$contract.$network ?
-				resolve(
-					'/services/agent/[chainId=eip155ChainId]/[contractAddress=evmAddress]/[tokenId=stringSegment]',
-					{
-						chainId: String(selection.entitySelector.$contract.$network.caip2.reference),
-						contractAddress: String(selection.entitySelector.$contract.address),
-						tokenId: String(selection.entitySelector.tokenId),
-					}
-				)
-			:
-				undefined
-		)
+		href === undefined ?
+			(
+				'caip2' in contract.$network ?
+					resolve(
+						'/services/agent/[chainId=eip155ChainId]/[contractAddress=evmAddress]/[tokenId=stringSegment]',
+						{
+							chainId: contract.$network.caip2.reference,
+							contractAddress: contract.address,
+							tokenId: selection.entitySelector.tokenId,
+						}
+					)
+				:
+					undefined
+			)
+		:
+			href ?? undefined
 	}
 	{layout}
 	bind:open
@@ -83,8 +84,8 @@
 				{@const image = entity.image}
 				{#if image}
 					<IconComponent
-						src={String(image)}
-						alt={String(entity.name ?? selection.entitySelector.tokenId ?? '')}
+						src={image}
+						alt={entity.name ?? selection.entitySelector.tokenId}
 					/>
 				{/if}
 			{/snippet}
@@ -101,7 +102,7 @@
 
 	{#snippet Value()}
 		<span data-text="font-monospace">
-			{String(selection.entitySelector.tokenId ?? '')}
+			{selection.entitySelector.tokenId}
 		</span>
 	{/snippet}
 
@@ -127,7 +128,7 @@
 			<div>
 				<dt>Token ID</dt>
 				<dd>
-					{pendingEntity.tokenId}
+					{selection.entitySelector.tokenId}
 				</dd>
 			</div>
 
@@ -176,7 +177,7 @@
 								resource={projection.agentRegistry}
 							>
 								{#snippet children(agentRegistry)}
-									{String(agentRegistry)}
+									{agentRegistry}
 								{/snippet}
 							</ResourceBoundary>
 						</dd>
@@ -189,7 +190,7 @@
 								resource={projection.agentId}
 							>
 								{#snippet children(agentId)}
-									{String(agentId)}
+									{agentId}
 								{/snippet}
 							</ResourceBoundary>
 						</dd>
@@ -204,11 +205,11 @@
 									<dt>Agent URI</dt>
 									<dd>
 										<a
-											href={String(agentUri)}
+											href={agentUri}
 											target="_blank"
 											rel="noreferrer noopener"
 										>
-											<TruncatedValue value={String(agentUri)} />
+											<TruncatedValue value={agentUri} />
 										</a>
 									</dd>
 								</div>
@@ -224,7 +225,7 @@
 								<div>
 									<dt>Contact endpoint</dt>
 									<dd>
-										{String(contactEndpoint)}
+										{contactEndpoint}
 									</dd>
 								</div>
 							{/if}
@@ -325,7 +326,7 @@
 								<div>
 									<dt>Registration type IRI</dt>
 									<dd>
-										{String(registrationTypeIri)}
+										{registrationTypeIri}
 									</dd>
 								</div>
 							{/if}
@@ -340,7 +341,7 @@
 								<div>
 									<dt>Fetched at</dt>
 									<dd>
-										<Timestamp timestamp={Number(fetchedAt)} />
+										<Timestamp timestamp={fetchedAt} />
 									</dd>
 								</div>
 							{/if}

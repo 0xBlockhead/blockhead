@@ -46,11 +46,11 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{(aptosTransaction.transactionKind ?? '')}
+				{aptosTransaction.transactionKind ?? ''}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{(aptosTransaction.sender ?? '')}</span>
+				<span data-text="annotation">{aptosTransaction.sender ?? ''}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

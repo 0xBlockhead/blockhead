@@ -5,7 +5,6 @@
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { stringify } from 'devalue'
-	import { UrlString } from '$/schema/UrlString.ts'
 
 
 	// State
@@ -18,7 +17,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.GitRepository> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const gitRepository = $derived(selection({
 		fields: {
 			repositoryId: true,
@@ -26,7 +24,7 @@
 			objectFormat: true,
 		},
 	}))
-	const titleFallback = $derived([(pendingEntity.repositoryId ?? ''), String(pendingEntity.canonicalRemoteUrl ?? '')].filter(Boolean).join(' ') || 'Git repository')
+	const titleFallback = $derived([(prefetched.repositoryId ?? ''), (prefetched.canonicalRemoteUrl ?? '')].filter(Boolean).join(' ') || 'Git repository')
 	const viewDomId = $derived('git-repository-' + encodeURIComponent(stringify(selection.entitySelector)))
 
 
@@ -54,7 +52,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={gitRepository}>
 			{#snippet children(entity)}
-				{[entity.repositoryId, String(entity.canonicalRemoteUrl ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+				{[entity.repositoryId, (entity.canonicalRemoteUrl ?? '')].filter(Boolean).join(' ') || title || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -62,7 +60,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={gitRepository}>
 			{#snippet children(entity)}
-				{entity.objectFormat || [entity.repositoryId, String(entity.canonicalRemoteUrl ?? '')].filter(Boolean).join(' ') || titleFallback}
+				{entity.objectFormat || [entity.repositoryId, (entity.canonicalRemoteUrl ?? '')].filter(Boolean).join(' ') || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -92,11 +90,11 @@
 							<dt>canonical remote URL</dt>
 							<dd>
 								<a
-									href={String(canonicalRemoteUrl)}
+									href={canonicalRemoteUrl}
 									target="_blank"
 									rel="noreferrer noopener"
 								>
-									<TruncatedValue value={String(canonicalRemoteUrl)} />
+									<TruncatedValue value={canonicalRemoteUrl} />
 								</a>
 							</dd>
 						</div>

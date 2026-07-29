@@ -20,7 +20,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.SpecificationProposal> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? specificationProposalSources({}),
 	}))
@@ -30,13 +29,6 @@
 			documentStatus: true,
 		},
 	}))
-	const titleFallback = $derived(([
-			[((proposalCategoryById[String(pendingEntity.category)]?.label ?? ((pendingEntity.category ?? ''))) ? (proposalCategoryById[String(pendingEntity.category)]?.label ?? ((pendingEntity.category ?? ''))) + '-' : ''), String(pendingEntity.number ?? '')].filter(Boolean).join(''),
-			(pendingEntity.documentTitle ?? ''),
-		].filter(Boolean).join(': ')) || [
-			(proposalCategoryById[String(pendingEntity.category)]?.label ?? ((pendingEntity.category ?? ''))),
-			String(pendingEntity.number ?? ''),
-		].filter(Boolean).join('-') || 'Specification proposal')
 	const viewDomId = $derived('specification-proposal-' + encodeURIComponent(stringify(selection.entitySelector)))
 
 
@@ -50,16 +42,33 @@
 	entityType={EntityType.SpecificationProposal}
 	entitySelector={selection.entitySelector}
 	id={viewDomId}
-	title={title ?? titleFallback}
+	title={
+		title ?? (([
+		    [(proposalCategoryById[selection.entitySelector.category]?.label ?? selection.entitySelector.category) + '-', String(selection.entitySelector.number)].filter(Boolean).join(''),
+		    (prefetched.documentTitle ?? ''),
+		]
+		    .filter(Boolean)
+		    .join(': ')
+		    || [
+		        (proposalCategoryById[selection.entitySelector.category]?.label ?? selection.entitySelector.category),
+		        String(selection.entitySelector.number),
+		    ]
+		        .filter(Boolean)
+		        .join('-'))
+		    || 'Specification proposal')
+	}
 	href={
-		href ?? resolve(
-			'/(proposals)/proposals/[specificationRealmSlug=specificationRealmSlug]/(specificationRealm)/[proposalKindSlug=proposalKindSlug]/(specificationProposalKind)/[proposalRef=proposalRef]',
-			{
-				specificationRealmSlug: String(specificationRealmById[String(selection.entitySelector.realm)].slug),
-				proposalKindSlug: String(proposalCategoryById[String(selection.entitySelector.category)].slug),
-				proposalRef: `${proposalCategoryById[String(selection.entitySelector.category)].label}-${selection.entitySelector.number}`,
-			}
-		)
+		href === undefined ?
+			resolve(
+				'/(proposals)/proposals/[specificationRealmSlug=specificationRealmSlug]/(specificationRealm)/[proposalKindSlug=proposalKindSlug]/(specificationProposalKind)/[proposalRef=proposalRef]',
+				{
+					specificationRealmSlug: specificationRealmById[selection.entitySelector.realm].slug,
+					proposalKindSlug: proposalCategoryById[selection.entitySelector.category].slug,
+					proposalRef: `${proposalCategoryById[selection.entitySelector.category].label}-${selection.entitySelector.number}`,
+				}
+			)
+		:
+			href ?? undefined
 	}
 	{layout}
 	bind:open
@@ -67,13 +76,13 @@
 >
 	{#snippet Title()}
 		{#if layout === EntityLayout.SummaryInline}
-			{`${String(proposalCategoryById[String(selection.entitySelector.category)].label ?? selection.entitySelector.category ?? '')}-${String(selection.entitySelector.number ?? '')}`}
+			{`${proposalCategoryById[selection.entitySelector.category].label ?? selection.entitySelector.category}-${selection.entitySelector.number}`}
 		{:else}
 			<ResourceBoundary resource={specificationProposal}>
 				{#snippet children(entity)}
-					{@const proposalIdentifier = `${String(entity.categoryLabel ?? proposalCategoryById[String(selection.entitySelector.category)].label ?? selection.entitySelector.category ?? '')}-${String(selection.entitySelector.number ?? '')}`}
-					{@const documentTitle = String(entity.documentTitle ?? '').trim()}
-					{@const heading = documentTitle !== '' ? documentTitle : String(selection.entitySelector.category) === 'Ensip' ? (String(entity.documentBody ?? '').match(/#\s*(ENSIP-\d+:\s*.+)/)?.[1] ?? '').trim() : ''}
+					{@const proposalIdentifier = `${entity.categoryLabel ?? proposalCategoryById[selection.entitySelector.category].label ?? selection.entitySelector.category}-${selection.entitySelector.number}`}
+					{@const documentTitle = (entity.documentTitle ?? '').trim()}
+					{@const heading = documentTitle !== '' ? documentTitle : selection.entitySelector.category === 'Ensip' ? ((entity.documentBody ?? '').match(/#\s*(ENSIP-\d+:\s*.+)/)?.[1] ?? '').trim() : ''}
 					{#if heading === ''}
 						{proposalIdentifier}
 					{:else if heading.toLowerCase().startsWith(`${proposalIdentifier.toLowerCase()}:`)}
@@ -90,7 +99,7 @@
 		<ResourceBoundary resource={specificationProposal}>
 			{#snippet children(entity)}
 				<span>
-					{`${String(entity.categoryLabel ?? proposalCategoryById[String(selection.entitySelector.category)].label ?? selection.entitySelector.category ?? '')}-${String(selection.entitySelector.number ?? '')}`}
+					{`${entity.categoryLabel ?? proposalCategoryById[selection.entitySelector.category].label ?? selection.entitySelector.category}-${selection.entitySelector.number}`}
 				</span>
 			{/snippet}
 		</ResourceBoundary>
@@ -157,12 +166,12 @@
 								resolve(
 									'/proposals/[specificationRealmSlug=specificationRealmSlug]',
 									{
-										specificationRealmSlug: String(specificationRealmById[String(pendingEntity.realm)].slug ?? ''),
+										specificationRealmSlug: specificationRealmById[selection.entitySelector.realm].slug,
 									}
 								)
 							}
 						>
-							{String((specificationRealmById[String(pendingEntity.realm)]?.label ?? (pendingEntity.realm)) ?? '')}
+							{specificationRealmById[selection.entitySelector.realm]?.label ?? selection.entitySelector.realm}
 						</a>
 					</dd>
 				</div>
@@ -177,13 +186,13 @@
 								resolve(
 									'/proposals/[specificationRealmSlug=specificationRealmSlug]/[proposalKindSlug=proposalKindSlug]',
 									{
-										specificationRealmSlug: String(specificationRealmById[String(pendingEntity.realm)].slug ?? ''),
-										proposalKindSlug: String(proposalCategoryById[String(pendingEntity.category)].slug ?? ''),
+										specificationRealmSlug: specificationRealmById[selection.entitySelector.realm].slug,
+										proposalKindSlug: proposalCategoryById[selection.entitySelector.category].slug,
 									}
 								)
 							}
 						>
-							{String((proposalCategoryById[String(pendingEntity.category)]?.label ?? (pendingEntity.category)) ?? '')}
+							{proposalCategoryById[selection.entitySelector.category]?.label ?? selection.entitySelector.category}
 						</a>
 					</dd>
 				</div>
@@ -207,7 +216,7 @@
 				{#snippet children(entity)}
 					{@const documentBody = entity.documentBody}
 					{#if documentBody != null && documentBody !== ''}
-						<Markdown content={String(documentBody)} />
+						<Markdown content={documentBody} />
 					{:else}
 						<p data-text="muted">No proposal body available.</p>
 					{/if}

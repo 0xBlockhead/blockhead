@@ -16,13 +16,12 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.Eip8004EndpointDomainVerification_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const eip8004EndpointDomainVerificationTimestamp = $derived(selection({
 		fields: {
 			verified: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.endpointUrl ?? '') || 'EIP-8004 endpoint domain verification timestamp')
+	const titleFallback = $derived(selection.entitySelector.endpointUrl || 'EIP-8004 endpoint domain verification timestamp')
 
 
 	// Components
@@ -42,25 +41,25 @@
 >
 	{#snippet Title()}
 		<a
-			href={String(pendingEntity.endpointUrl)}
+			href={selection.entitySelector.endpointUrl}
 			target="_blank"
 			rel="noreferrer noopener"
 		>
-			<TruncatedValue value={String(pendingEntity.endpointUrl)} />
+			<TruncatedValue value={selection.entitySelector.endpointUrl} />
 		</a>
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={eip8004EndpointDomainVerificationTimestamp}>
 			{#snippet children(entity)}
-				{String(entity.verified ?? '') || pendingEntity.endpointUrl || titleFallback}
+				{String(entity.verified ?? '') || selection.entitySelector.endpointUrl || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
 		<span data-text="muted">
-			<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+			<Timestamp timestamp={selection.entitySelector.timestampMs} />
 		</span>
 	{/snippet}
 
@@ -70,11 +69,11 @@
 				<dt>Endpoint URL</dt>
 				<dd>
 					<a
-						href={String(pendingEntity.endpointUrl)}
+						href={selection.entitySelector.endpointUrl}
 						target="_blank"
 						rel="noreferrer noopener"
 					>
-						<TruncatedValue value={String(pendingEntity.endpointUrl)} />
+						<TruncatedValue value={selection.entitySelector.endpointUrl} />
 					</a>
 				</dd>
 			</div>
@@ -82,14 +81,14 @@
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+					<Timestamp timestamp={selection.entitySelector.timestampMs} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 		</dl>

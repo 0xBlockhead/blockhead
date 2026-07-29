@@ -5,7 +5,6 @@
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { ZcashShieldedPoolKind } from '$/schema/ZcashShieldedPool.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -23,7 +22,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.BlockheadZcashNoteState> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Local_Internal,
@@ -37,7 +35,7 @@
 			valueZatoshis: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.noteCommitment ?? '') || 'blockhead zcash note state')
+	const titleFallback = $derived(selection.entitySelector.noteCommitment || 'blockhead zcash note state')
 
 
 	// Components
@@ -59,21 +57,21 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{(pendingEntity.noteCommitment ?? '') || 'blockhead zcash note state'}
+		{selection.entitySelector.noteCommitment || 'blockhead zcash note state'}
 	{/snippet}
 
 	{#snippet Value()}
-		{(pendingEntity.pool ?? '') || (pendingEntity.noteCommitment ?? '') || titleFallback}
+		{selection.entitySelector.pool || selection.entitySelector.noteCommitment || titleFallback}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={blockheadZcashNoteState}>
 			{#snippet children(entity)}
-				{@const valueZatoshis0 = entity.valueZatoshis}
-				{#if valueZatoshis0 != null}
+				{@const valueZatoshis = entity.valueZatoshis}
+				{#if valueZatoshis != null}
 					<span data-text="muted">
 						<NumberValue
-							value={valueZatoshis0}
+							value={valueZatoshis}
 						/>
 					</span>
 				{/if}
@@ -86,7 +84,7 @@
 			<div>
 				<dt>wallet ID</dt>
 				<dd>
-					{pendingEntity.walletId}
+					{selection.entitySelector.walletId}
 				</dd>
 			</div>
 
@@ -133,14 +131,14 @@
 			<div>
 				<dt>pool</dt>
 				<dd>
-					{pendingEntity.pool}
+					{selection.entitySelector.pool}
 				</dd>
 			</div>
 
 			<div>
 				<dt>note commitment</dt>
 				<dd>
-					{pendingEntity.noteCommitment}
+					{selection.entitySelector.noteCommitment}
 				</dd>
 			</div>
 
@@ -303,15 +301,15 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const blockheadZcashNoteStateBlockheadZcashNoteStateTimestampsViewTimestampsResource = selection.$$timestamps}
+		{@const timestampsResource = selection.$$timestamps}
 		<ResourceBoundary
-			resource={blockheadZcashNoteStateBlockheadZcashNoteStateTimestampsViewTimestampsResource}
+			resource={timestampsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<BlockheadZcashNoteState_TimestampsView
-						selection={blockheadZcashNoteStateBlockheadZcashNoteStateTimestampsViewTimestampsResource}
-						countResource={blockheadZcashNoteStateBlockheadZcashNoteStateTimestampsViewTimestampsResource.count}
+						selection={timestampsResource}
+						countResource={timestampsResource.count}
 						title='timestamps'
 						id='timestamps'
 					/>

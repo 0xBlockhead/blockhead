@@ -21,9 +21,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.StellarTrade> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const titleFallback = 'stellar trade'
-
 
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -41,7 +38,7 @@
 <EntityView
 	entityType={EntityType.StellarTrade}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? 'stellar trade'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -66,14 +63,14 @@
 			<div>
 				<dt>trade ID</dt>
 				<dd>
-					{pendingEntity.tradeId}
+					{selection.entitySelector.tradeId}
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 
@@ -92,7 +89,7 @@
 						<div>
 							<dt>ledger close time ms</dt>
 							<dd>
-								{String(ledgerCloseTimeMs)}
+								{ledgerCloseTimeMs}
 							</dd>
 						</div>
 					{/if}
@@ -318,7 +315,7 @@
 						<div>
 							<dt>price numerator</dt>
 							<dd>
-								{String(priceNumerator)}
+								{priceNumerator}
 							</dd>
 						</div>
 					{/if}
@@ -340,7 +337,7 @@
 						<div>
 							<dt>price denominator</dt>
 							<dd>
-								{String(priceDenominator)}
+								{priceDenominator}
 							</dd>
 						</div>
 					{/if}

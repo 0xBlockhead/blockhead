@@ -22,7 +22,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.AiModelVersion> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.HuggingFaceHub_Rest,
@@ -39,7 +38,7 @@
 			quantization: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.versionId ?? '') || (pendingEntity.revision ?? '') || 'AI model version')
+	const titleFallback = $derived((prefetched.versionId ?? '') || (prefetched.revision ?? '') || 'AI model version')
 
 
 	// Components
@@ -76,7 +75,6 @@
 					<AiModelView
 						selection={select(EntityType.AiModel, aiModel[EntityMetaKey.Selector])}
 						prefetched={aiModel}
-						href=""
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -88,10 +86,10 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={aiModelVersion}>
 			{#snippet children(entity)}
-				{@const quantization0 = entity.quantization}
-				{#if quantization0 != null}
+				{@const quantization = entity.quantization}
+				{#if quantization != null}
 					<span data-text="muted">
-						{quantization0}
+						{quantization}
 					</span>
 				{/if}
 			{/snippet}
@@ -237,7 +235,7 @@
 						<div>
 							<dt>onnx ir version</dt>
 							<dd>
-								{String(onnxIrVersion)}
+								{onnxIrVersion}
 							</dd>
 						</div>
 					{/if}
@@ -261,7 +259,7 @@
 						<div>
 							<dt>Created</dt>
 							<dd>
-								<Timestamp timestamp={Number(createdAt)} />
+								<Timestamp timestamp={createdAt} />
 							</dd>
 						</div>
 					{/if}
@@ -283,7 +281,7 @@
 						<div>
 							<dt>training cutoff</dt>
 							<dd>
-								<Timestamp timestamp={Number(trainingCutoff)} />
+								<Timestamp timestamp={trainingCutoff} />
 							</dd>
 						</div>
 					{/if}
@@ -331,15 +329,15 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const aiModelVersionAiDocumentsViewDocumentsResource = selection.$$documents}
+		{@const documentsResource = selection.$$documents}
 		<ResourceBoundary
-			resource={aiModelVersionAiDocumentsViewDocumentsResource}
+			resource={documentsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<AiDocumentsView
-						selection={aiModelVersionAiDocumentsViewDocumentsResource}
-						countResource={aiModelVersionAiDocumentsViewDocumentsResource.count}
+						selection={documentsResource}
+						countResource={documentsResource.count}
 						title='documents'
 						id='documents'
 					/>

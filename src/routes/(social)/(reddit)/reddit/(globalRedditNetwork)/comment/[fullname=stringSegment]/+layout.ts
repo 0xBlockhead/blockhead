@@ -9,7 +9,8 @@ import RedditCommentSchema from '$/schema/RedditComment.ts'
 import { type as arktype } from 'arktype'
 
 export const load: LayoutLoad = ({ params }) => {
-	if (!(matchStringSegment(params.fullname))) error(404, 'Route mapping not applicable')
+	if (!(matchStringSegment(params.fullname)))
+		error(404, 'Route mapping not applicable')
 
 	const redditCommentFullnameSelector = parseEntitySelector(
 		schema,
@@ -18,7 +19,8 @@ export const load: LayoutLoad = ({ params }) => {
 			fullname: decodeURIComponent(params.fullname),
 		}
 	)
-	if (redditCommentFullnameSelector instanceof arktype.errors) error(404, 'Invalid RedditComment selector')
+	if (redditCommentFullnameSelector instanceof arktype.errors)
+		error(404, 'Invalid RedditComment selector')
 
 	return {
 		selector: redditCommentFullnameSelector,

@@ -1,10 +1,10 @@
 // Generated from APP.ts. Do not edit by hand.
 
 import { Source } from '$/sources/Source.ts'
-import { ApiFamily, SourceArtifactKind, SourceCredentialScope, SourceDelivery, SourceEndpointKind, SourceOperationGroup, SourceTargetKind, WireProtocol, type SourceBindingIndex } from '$/sources/SourceBinding.ts'
+import { ApiFamily, indexSourceBindings, SourceArtifactKind, SourceCredentialScope, SourceDelivery, SourceEndpointKind, SourceOperationGroup, SourceTargetKind, WireProtocol, type SourceBinding } from '$/sources/SourceBinding.ts'
 
-export default {
-	[Source.KaspaNode_Grpc]: {
+const bindings = [
+	{
 		source: Source.KaspaNode_Grpc,
 		target: {
 			kind: SourceTargetKind.NetworkSlug,
@@ -40,7 +40,7 @@ export default {
 			},
 		],
 	},
-	[Source.KaspaNode_Rest]: {
+	{
 		source: Source.KaspaNode_Rest,
 		target: {
 			kind: SourceTargetKind.NetworkSlug,
@@ -65,7 +65,7 @@ export default {
 			},
 		],
 	},
-	[Source.KaspaNode_Wrpc]: {
+	{
 		source: Source.KaspaNode_Wrpc,
 		target: {
 			kind: SourceTargetKind.NetworkSlug,
@@ -90,4 +90,10 @@ export default {
 			},
 		],
 	},
-} as const satisfies SourceBindingIndex
+] as const satisfies readonly SourceBinding[]
+
+export default indexSourceBindings<{
+	readonly [Source.KaspaNode_Grpc]: typeof bindings[0]
+	readonly [Source.KaspaNode_Rest]: typeof bindings[1]
+	readonly [Source.KaspaNode_Wrpc]: typeof bindings[2]
+}>(bindings)

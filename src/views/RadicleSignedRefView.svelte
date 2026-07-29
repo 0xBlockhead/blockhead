@@ -21,9 +21,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.RadicleSignedRef> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const titleFallback = 'radicle signed ref'
-
 
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -37,7 +34,7 @@
 <EntityView
 	entityType={EntityType.RadicleSignedRef}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? 'radicle signed ref'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -62,14 +59,14 @@
 			<div>
 				<dt>node ID</dt>
 				<dd>
-					{pendingEntity.nodeId}
+					{selection.entitySelector.nodeId}
 				</dd>
 			</div>
 
 			<div>
 				<dt>ref name</dt>
 				<dd>
-					{pendingEntity.refName}
+					{selection.entitySelector.refName}
 				</dd>
 			</div>
 

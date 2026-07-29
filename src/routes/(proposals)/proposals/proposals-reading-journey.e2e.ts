@@ -1,7 +1,10 @@
 import { expect, test } from '@playwright/test'
 import type { Page } from '@playwright/test'
 import sourceProviderDefinitions from '$/sources/$sourceProviders.ts'
-import { SourceTargetKind } from '$/sources/SourceBinding.ts'
+import {
+	SourceTargetKind,
+	sourceBindingId,
+} from '$/sources/SourceBinding.ts'
 import { SourceProvider } from '$/sources/SourceProvider.ts'
 
 
@@ -15,7 +18,7 @@ const ethereumEipsBinding = sourceProviderDefinitions
 		target.kind === SourceTargetKind.GitRepository
 		&& target.key === 'ethereum/EIPs@master:EIPS'
 	))
-if (ethereumEipsBinding?.proxyId == null)
+if (ethereumEipsBinding == null)
 	throw new Error('Ethereum EIPs Git repository proxy binding is missing')
 
 const githubApiEndpointIndex = ethereumEipsBinding.endpoints
@@ -78,7 +81,7 @@ const installEthereumProposalFixtures = async (
 			const decodedUrl = decodeURIComponent(request.url())
 			if (
 				request.method() === 'GET'
-				&& decodedUrl.endsWith(`/api-proxy/${ethereumEipsBinding.proxyId}/${githubApiEndpointIndex}/${contentsUrl}`)
+				&& decodedUrl.endsWith(`/api-proxy/${sourceBindingId(ethereumEipsBinding)}/${githubApiEndpointIndex}/${contentsUrl}`)
 			) {
 				requests.contents += 1
 				return route.fulfill({
@@ -93,7 +96,7 @@ const installEthereumProposalFixtures = async (
 			}
 			if (
 				request.method() === 'GET'
-				&& decodedUrl.endsWith(`/api-proxy/${ethereumEipsBinding.proxyId}/${githubRawEndpointIndex}/${markdownUrl}`)
+				&& decodedUrl.endsWith(`/api-proxy/${sourceBindingId(ethereumEipsBinding)}/${githubRawEndpointIndex}/${markdownUrl}`)
 			) {
 				requests.markdown += 1
 				return route.fulfill({

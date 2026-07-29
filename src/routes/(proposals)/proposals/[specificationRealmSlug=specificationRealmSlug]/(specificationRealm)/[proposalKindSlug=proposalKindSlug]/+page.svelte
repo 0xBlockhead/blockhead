@@ -37,7 +37,7 @@
 
 
 <svelte:head>
-	<title>{(data.title ?? (pageSelection.entity == null ? (proposalCategoryById[String(pageSelection.entitySelector.category)]?.labelPlural ?? ((pageSelection.entitySelector.category ?? ''))) || 'Specification proposal kind' : pageSelection.entity.labelPlural || String((proposalCategoryById[String(pageSelection.entitySelector.category)]?.labelPlural ?? (pageSelection.entitySelector.category)) ?? '') || 'Specification proposal kind'))} • Specification proposal kind • Blockhead</title>
+	<title>{data.title ?? (pageSelection.entity == null ? (proposalCategoryById[pageSelection.entitySelector.category]?.labelPlural ?? pageSelection.entitySelector.category ?? '') || 'Specification proposal kind' : pageSelection.entity.labelPlural || (proposalCategoryById[pageSelection.entitySelector.category]?.labelPlural ?? pageSelection.entitySelector.category) || 'Specification proposal kind')} • Specification proposal kind • Blockhead</title>
 </svelte:head>
 
 

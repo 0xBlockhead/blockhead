@@ -40,11 +40,11 @@
 			entitySelector={bittensorMetagraphTimestampSelector}
 		>
 			{#snippet Title()}
-				{String(bittensorMetagraphTimestampSelector.timestampMs) || 'Bittensor metagraph observation'}
+				{bittensorMetagraphTimestampSelector.timestampMs}
 			{/snippet}
 
 			{#snippet Value()}
-				{String(bittensorMetagraphTimestamp.metagraphByteLength ?? '')}
+				{bittensorMetagraphTimestamp.metagraphByteLength ?? ''}
 			{/snippet}
 		</EntityView>
 	{/snippet}

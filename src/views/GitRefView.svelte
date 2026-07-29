@@ -4,7 +4,6 @@
 	// Types/constants
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 
 
 	// Context
@@ -21,14 +20,13 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.GitRef> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const gitRef = $derived(selection({
 		fields: {
 			refKind: true,
 			targetObjectId: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.refName ?? '') || 'Git ref')
+	const titleFallback = $derived(selection.entitySelector.refName || 'Git ref')
 
 
 	// Components
@@ -48,13 +46,13 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{(pendingEntity.refName ?? '') || 'Git ref'}
+		{selection.entitySelector.refName || 'Git ref'}
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={gitRef}>
 			{#snippet children(entity)}
-				{entity.refKind || pendingEntity.refName || titleFallback}
+				{entity.refKind || selection.entitySelector.refName || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -62,10 +60,10 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={gitRef}>
 			{#snippet children(entity)}
-				{@const targetObjectId0 = entity.targetObjectId}
-				{#if targetObjectId0 != null}
+				{@const targetObjectId = entity.targetObjectId}
+				{#if targetObjectId != null}
 					<span data-text="muted">
-						<TruncatedValue value={String(targetObjectId0)} />
+						<TruncatedValue value={targetObjectId} />
 					</span>
 				{/if}
 			{/snippet}
@@ -88,7 +86,7 @@
 			<div>
 				<dt>ref name</dt>
 				<dd>
-					{pendingEntity.refName}
+					{selection.entitySelector.refName}
 				</dd>
 			</div>
 
@@ -114,7 +112,7 @@
 						<div>
 							<dt>target object ID</dt>
 							<dd>
-								<TruncatedValue value={String(targetObjectId)} />
+								<TruncatedValue value={targetObjectId} />
 							</dd>
 						</div>
 					{/if}
@@ -146,15 +144,15 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const gitRefGitRefObservationTimestampsViewObservationsResource = selection.$$observations}
+		{@const observationsResource = selection.$$observations}
 		<ResourceBoundary
-			resource={gitRefGitRefObservationTimestampsViewObservationsResource}
+			resource={observationsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<GitRefObservation_TimestampsView
-						selection={gitRefGitRefObservationTimestampsViewObservationsResource}
-						countResource={gitRefGitRefObservationTimestampsViewObservationsResource.count}
+						selection={observationsResource}
+						countResource={observationsResource.count}
 						title='observations'
 						id='observations'
 					/>

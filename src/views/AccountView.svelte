@@ -22,19 +22,16 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.Account> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const viewSelection = $derived(selection({
+	const account = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Constants_Internal,
 		],
-	}))
-	const account = $derived(viewSelection({
+	})({
 		fields: {
 			namespace: true,
 			address: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.caip10 == null ? '' : `${pendingEntity.caip10.namespace}:${pendingEntity.caip10.reference}:${pendingEntity.caip10.accountAddress}`) || 'account')
 
 
 	// Components
@@ -47,13 +44,13 @@
 <EntityView
 	entityType={EntityType.Account}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? (`${selection.entitySelector.caip10.namespace}:${selection.entitySelector.caip10.reference}:${selection.entitySelector.caip10.accountAddress}` || 'account')}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{(pendingEntity.caip10 == null ? '' : `${pendingEntity.caip10.namespace}:${pendingEntity.caip10.reference}:${pendingEntity.caip10.accountAddress}`) || 'account'}
+		{`${selection.entitySelector.caip10.namespace}:${selection.entitySelector.caip10.reference}:${selection.entitySelector.caip10.accountAddress}` || 'account'}
 	{/snippet}
 
 	{#snippet TypeAnnotationTooltip()}
@@ -67,7 +64,7 @@
 			<div>
 				<dt>CAIP-10</dt>
 				<dd>
-					<TruncatedValue value={`${pendingEntity.caip10.namespace}:${pendingEntity.caip10.reference}:${pendingEntity.caip10.accountAddress}`} />
+					<TruncatedValue value={`${selection.entitySelector.caip10.namespace}:${selection.entitySelector.caip10.reference}:${selection.entitySelector.caip10.accountAddress}`} />
 				</dd>
 			</div>
 

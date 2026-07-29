@@ -45,11 +45,11 @@
 		{#snippet children(resolvedField)}
 			{#if typeof window !== 'undefined'}
 				{@const canonicalEntityHref = resolve(
-					'/(social)/(atproto)/atproto/(globalAtprotoNetwork)/actor/[did=stringSegment]',
-					{
-						did: encodeURIComponent(String({ ...pageSelection.entitySelector, did: resolvedField }.did)),
-					}
-				)}
+						'/(social)/(atproto)/atproto/(globalAtprotoNetwork)/actor/[did=stringSegment]',
+						{
+							did: encodeURIComponent({ ...pageSelection.entitySelector, did: resolvedField }.did),
+						}
+					)}
 				{#if canonicalEntityHref != null}
 					{globalThis.location.replace(canonicalEntityHref)}
 				{/if}

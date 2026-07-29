@@ -46,7 +46,7 @@
 				resolve(
 					'/(social)/(x)/x/(xNetwork)/user/[userId=stringSegment]',
 					{
-						userId: String(xUser.id),
+						userId: xUser.id,
 					}
 				)
 			}
@@ -56,11 +56,11 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{[(xUserSelector.username ? '@' + xUserSelector.username : ''), xUserSelector.id].filter(Boolean).join(' ')}
+				{['@' + xUserSelector.username, xUserSelector.id].filter(Boolean).join(' ')}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{String(xUser.createdAt ?? '')}</span>
+				<span data-text="annotation">{xUser.createdAt ?? ''}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

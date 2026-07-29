@@ -45,11 +45,11 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{(bitTorrentPeerTimestamp.client ?? '')}
+				{bitTorrentPeerTimestamp.client ?? ''}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{String(bitTorrentPeerTimestampSelector.timestampMs)}</span>
+				<span data-text="annotation">{bitTorrentPeerTimestampSelector.timestampMs}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

@@ -49,9 +49,9 @@
 					{
 						network: (
 							'caip2' in networkSelector ?
-								String(caip2StringFromValue(networkSelector.caip2))
+								caip2StringFromValue(networkSelector.caip2)
 							:
-								String(networkSelector.slug)
+								networkSelector.slug
 						),
 					}
 				)

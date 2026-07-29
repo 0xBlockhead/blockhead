@@ -1,11 +1,11 @@
 // Generated from APP.ts. Do not edit by hand.
 
 import { Source } from '$/sources/Source.ts'
-import { ApiFamily, SourceArtifactKind, SourceCredentialScope, SourceDelivery, SourceEndpointKind, SourceOperationGroup, SourceTargetKind, WireProtocol, type SourceBindingIndex } from '$/sources/SourceBinding.ts'
+import { ApiFamily, indexSourceBindings, SourceArtifactKind, SourceCredentialScope, SourceDelivery, SourceEndpointKind, SourceOperationGroup, SourceTargetKind, WireProtocol, type SourceBinding } from '$/sources/SourceBinding.ts'
 import { type as arktype } from 'arktype'
 
-export default {
-	[Source.Dune_Rest]: {
+const bindings = [
+	{
 		source: Source.Dune_Rest,
 		target: {
 			kind: SourceTargetKind.Global,
@@ -36,7 +36,6 @@ export default {
 				],
 			},
 		],
-		proxyId: '["Dune_Rest","Global","api","HttpProxy","RestJson"]',
 		artifacts: [
 			{
 				kind: SourceArtifactKind.HandwrittenTypes,
@@ -45,4 +44,6 @@ export default {
 			},
 		],
 	},
-} as const satisfies SourceBindingIndex
+] as const satisfies readonly SourceBinding[]
+
+export default indexSourceBindings<{ readonly [Source.Dune_Rest]: typeof bindings[0] }>(bindings)

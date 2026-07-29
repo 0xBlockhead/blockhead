@@ -39,6 +39,7 @@
 >
 	{#snippet Item({ item: solanaValidator })}
 		{@const solanaValidatorSelector = solanaValidator[EntityMetaKey.Selector]}
+		{@const network = solanaValidatorSelector.$network}
 		<EntityView
 			entityType={EntityType.SolanaValidator}
 			entitySelector={solanaValidatorSelector}
@@ -47,12 +48,12 @@
 					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/validator/[validatorId=nonNegativeIntegerOrSolanaPubkey]',
 					{
 						network: (
-							'caip2' in solanaValidatorSelector.$network ?
-								String(caip2StringFromValue(solanaValidatorSelector.$network.caip2))
+							'caip2' in network ?
+								caip2StringFromValue(network.caip2)
 							:
-								String(solanaValidatorSelector.$network.slug)
+								network.slug
 						),
-						validatorId: String(solanaValidatorSelector.votePubkey),
+						validatorId: solanaValidatorSelector.votePubkey,
 					}
 				)
 			}

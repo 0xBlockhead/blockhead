@@ -46,9 +46,9 @@
 				resolve(
 					'/(social)/(activitypub)/activitypub/(globalActivityPubNetwork)/instance/[instanceOrigin=absoluteUrl]/(activityPubInstance)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
 					{
-						instanceOrigin: encodeURIComponent(String(activityPubInstanceTimestampSelector.$instance.instanceOrigin)),
+						instanceOrigin: encodeURIComponent(activityPubInstanceTimestampSelector.$instance.instanceOrigin),
 						timestampMs: String(activityPubInstanceTimestampSelector.timestampMs),
-						source: String(activityPubInstanceTimestampSelector.source),
+						source: activityPubInstanceTimestampSelector.source,
 					}
 				)
 			}
@@ -58,7 +58,7 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{[String(activityPubInstanceTimestampSelector.$instance.instanceOrigin) || 'ActivityPub instance', activityPubInstanceTimestampSelector.source, (activityPubInstanceTimestamp.version ?? '')].filter(Boolean).join(' ')}
+				{[activityPubInstanceTimestampSelector.$instance.instanceOrigin || 'ActivityPub instance', activityPubInstanceTimestampSelector.source, (activityPubInstanceTimestamp.version ?? '')].filter(Boolean).join(' ')}
 			{/snippet}
 		</EntityView>
 	{/snippet}

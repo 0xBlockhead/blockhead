@@ -41,11 +41,11 @@
 			entitySelector={availBlockSelector}
 		>
 			{#snippet Title()}
-				{String(availBlockSelector.blockNumber) || availBlockSelector.blockHash || 'avail block'}
+				{availBlockSelector.blockNumber}
 			{/snippet}
 
 			{#snippet Value()}
-				{String(availBlock.timestampMs ?? '')}
+				{availBlock.timestampMs ?? ''}
 			{/snippet}
 		</EntityView>
 	{/snippet}

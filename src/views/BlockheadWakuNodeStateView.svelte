@@ -4,7 +4,6 @@
 	// Types/constants
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { UrlString } from '$/schema/UrlString.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -18,18 +17,16 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.BlockheadWakuNodeState> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const viewSelection = $derived(selection({
+	const blockheadWakuNodeState = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Local_Internal,
 		],
-	}))
-	const blockheadWakuNodeState = $derived(viewSelection({
+	})({
 		fields: {
 			endpoint: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.nodeId ?? '') || 'blockhead waku node state')
+	const titleFallback = $derived(selection.entitySelector.nodeId || 'blockhead waku node state')
 
 
 	// Components
@@ -49,25 +46,25 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{(pendingEntity.nodeId ?? '') || 'blockhead waku node state'}
+		{selection.entitySelector.nodeId || 'blockhead waku node state'}
 	{/snippet}
 
 	{#snippet Value()}
-		{(pendingEntity.connectionId ?? '') || (pendingEntity.nodeId ?? '') || titleFallback}
+		{selection.entitySelector.connectionId || selection.entitySelector.nodeId || titleFallback}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={blockheadWakuNodeState}>
 			{#snippet children(entity)}
-				{@const endpoint0 = entity.endpoint}
-				{#if endpoint0 != null}
+				{@const endpoint = entity.endpoint}
+				{#if endpoint != null}
 					<span data-text="muted">
 						<a
-							href={String(endpoint0)}
+							href={endpoint}
 							target="_blank"
 							rel="noreferrer noopener"
 						>
-							<TruncatedValue value={String(endpoint0)} />
+							<TruncatedValue value={endpoint} />
 						</a>
 					</span>
 				{/if}
@@ -80,14 +77,14 @@
 			<div>
 				<dt>connection ID</dt>
 				<dd>
-					{pendingEntity.connectionId}
+					{selection.entitySelector.connectionId}
 				</dd>
 			</div>
 
 			<div>
 				<dt>node ID</dt>
 				<dd>
-					{pendingEntity.nodeId}
+					{selection.entitySelector.nodeId}
 				</dd>
 			</div>
 
@@ -101,11 +98,11 @@
 							<dt>endpoint</dt>
 							<dd>
 								<a
-									href={String(endpoint)}
+									href={endpoint}
 									target="_blank"
 									rel="noreferrer noopener"
 								>
-									<TruncatedValue value={String(endpoint)} />
+									<TruncatedValue value={endpoint} />
 								</a>
 							</dd>
 						</div>
@@ -116,30 +113,30 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const blockheadWakuNodeStateBlockheadWakuNodeStateTimestampsViewTimestampsResource = selection.$$timestamps}
+		{@const timestampsResource = selection.$$timestamps}
 		<ResourceBoundary
-			resource={blockheadWakuNodeStateBlockheadWakuNodeStateTimestampsViewTimestampsResource}
+			resource={timestampsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<BlockheadWakuNodeState_TimestampsView
-						selection={blockheadWakuNodeStateBlockheadWakuNodeStateTimestampsViewTimestampsResource}
-						countResource={blockheadWakuNodeStateBlockheadWakuNodeStateTimestampsViewTimestampsResource.count}
+						selection={timestampsResource}
+						countResource={timestampsResource.count}
 						title='timestamps'
 						id='timestamps'
 					/>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>
-		{@const blockheadWakuNodeStateBlockheadWakuMessageObservationTimestampsViewMessageObservationsResource = selection.$$messageObservations}
+		{@const messageObservationsResource = selection.$$messageObservations}
 		<ResourceBoundary
-			resource={blockheadWakuNodeStateBlockheadWakuMessageObservationTimestampsViewMessageObservationsResource}
+			resource={messageObservationsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<BlockheadWakuMessageObservation_TimestampsView
-						selection={blockheadWakuNodeStateBlockheadWakuMessageObservationTimestampsViewMessageObservationsResource}
-						countResource={blockheadWakuNodeStateBlockheadWakuMessageObservationTimestampsViewMessageObservationsResource.count}
+						selection={messageObservationsResource}
+						countResource={messageObservationsResource.count}
 						title='message observations'
 						id='message-observations'
 					/>

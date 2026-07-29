@@ -42,7 +42,7 @@
 			entitySelector={fedimintGatewayTimestampSelector}
 		>
 			{#snippet Title()}
-				{String(fedimintGatewayTimestampSelector.timestampMs) || 'Fedimint gateway timestamp'}
+				{fedimintGatewayTimestampSelector.timestampMs}
 			{/snippet}
 
 			{#snippet Value()}

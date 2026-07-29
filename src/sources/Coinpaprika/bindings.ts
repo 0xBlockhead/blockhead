@@ -1,11 +1,11 @@
 // Generated from APP.ts. Do not edit by hand.
 
 import { Source } from '$/sources/Source.ts'
-import { ApiFamily, SourceArtifactKind, SourceCredentialScope, SourceDelivery, SourceEndpointKind, SourceOperationGroup, SourceTargetKind, WireProtocol, type SourceBindingIndex } from '$/sources/SourceBinding.ts'
+import { ApiFamily, indexSourceBindings, SourceArtifactKind, SourceCredentialScope, SourceDelivery, SourceEndpointKind, SourceOperationGroup, SourceTargetKind, WireProtocol, type SourceBinding } from '$/sources/SourceBinding.ts'
 import { type as arktype } from 'arktype'
 
-export default {
-	[Source.Coinpaprika_OpenApi]: {
+const bindings = [
+	{
 		source: Source.Coinpaprika_OpenApi,
 		target: {
 			kind: SourceTargetKind.Global,
@@ -42,7 +42,6 @@ export default {
 				],
 			},
 		],
-		proxyId: '["Coinpaprika_OpenApi","Global","coinpaprika-openapi","HttpProxy","OpenApiHttp"]',
 		artifacts: [
 			{
 				kind: SourceArtifactKind.OpenApiSpec,
@@ -61,4 +60,6 @@ export default {
 			},
 		],
 	},
-} as const satisfies SourceBindingIndex
+] as const satisfies readonly SourceBinding[]
+
+export default indexSourceBindings<{ readonly [Source.Coinpaprika_OpenApi]: typeof bindings[0] }>(bindings)

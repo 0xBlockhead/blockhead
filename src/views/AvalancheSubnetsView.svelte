@@ -45,7 +45,7 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{String(avalancheSubnet.threshold ?? '')}
+				{avalancheSubnet.threshold ?? ''}
 			{/snippet}
 		</EntityView>
 	{/snippet}

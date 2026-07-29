@@ -21,14 +21,13 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.HederaToken> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const hederaToken = $derived(selection({
 		fields: {
 			tokenType: true,
 			decimals: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.tokenId ?? '') || 'hedera token')
+	const titleFallback = $derived(selection.entitySelector.tokenId || 'hedera token')
 	const viewDomId = $derived('hedera-token-' + encodeURIComponent(stringify(selection.entitySelector)))
 
 
@@ -54,13 +53,13 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{(pendingEntity.tokenId ?? '') || 'hedera token'}
+		{selection.entitySelector.tokenId || 'hedera token'}
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={hederaToken}>
 			{#snippet children(entity)}
-				{entity.tokenType || pendingEntity.tokenId || titleFallback}
+				{entity.tokenType || selection.entitySelector.tokenId || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -68,11 +67,11 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={hederaToken}>
 			{#snippet children(entity)}
-				{@const decimals0 = entity.decimals}
-				{#if decimals0 != null}
+				{@const decimals = entity.decimals}
+				{#if decimals != null}
 					<span data-text="muted">
 						<NumberValue
-							value={decimals0}
+							value={decimals}
 						/>
 					</span>
 				{/if}
@@ -96,7 +95,7 @@
 			<div>
 				<dt>Token ID</dt>
 				<dd>
-					{pendingEntity.tokenId}
+					{selection.entitySelector.tokenId}
 				</dd>
 			</div>
 

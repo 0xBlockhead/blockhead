@@ -21,9 +21,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.RadicleCollaborationEvent> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const titleFallback = 'radicle collaboration event'
-
 
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -38,7 +35,7 @@
 <EntityView
 	entityType={EntityType.RadicleCollaborationEvent}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? 'radicle collaboration event'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -63,7 +60,7 @@
 			<div>
 				<dt>event ID</dt>
 				<dd>
-					{pendingEntity.eventId}
+					{selection.entitySelector.eventId}
 				</dd>
 			</div>
 
@@ -167,7 +164,7 @@
 						<div>
 							<dt>Timestamp</dt>
 							<dd>
-								<Timestamp timestamp={Number(timestampMs)} />
+								<Timestamp timestamp={timestampMs} />
 							</dd>
 						</div>
 					{/if}

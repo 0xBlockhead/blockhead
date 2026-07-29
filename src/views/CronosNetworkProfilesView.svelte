@@ -41,7 +41,7 @@
 			entitySelector={cronosNetworkProfileSelector}
 		>
 			{#snippet Title()}
-				{(cronosNetworkProfile.$network.name || (cronosNetworkProfileSelector.$network.caip2 == null ? '' : `${cronosNetworkProfileSelector.$network.caip2.namespace}:${cronosNetworkProfileSelector.$network.caip2.reference}`) || 'Network')}
+				{cronosNetworkProfile.$network.name || (cronosNetworkProfileSelector.$network.caip2 == null ? '' : `${cronosNetworkProfileSelector.$network.caip2.namespace}:${cronosNetworkProfileSelector.$network.caip2.reference}`) || 'Network'}
 			{/snippet}
 
 			{#snippet Value()}
@@ -49,7 +49,7 @@
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{(cronosNetworkProfile.consensusKind ?? '')}</span>
+				<span data-text="annotation">{cronosNetworkProfile.consensusKind ?? ''}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

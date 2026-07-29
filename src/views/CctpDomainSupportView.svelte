@@ -22,7 +22,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.CctpDomainSupport> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.CircleCctpContracts_Evm,
@@ -36,7 +35,7 @@
 			name: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.name ?? '') || 'CCTP domain support')
+	const titleFallback = $derived((prefetched.name ?? '') || 'CCTP domain support')
 
 
 	// Components
@@ -65,12 +64,12 @@
 	{/snippet}
 
 	{#snippet Value()}
-		{String(pendingEntity.domainId ?? '') || (pendingEntity.name ?? '') || titleFallback}
+		{String(selection.entitySelector.domainId) || (prefetched.name ?? '') || titleFallback}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
 		<span data-text="muted">
-			{String(pendingEntity.cctpVersion)}
+			{selection.entitySelector.cctpVersion}
 		</span>
 	{/snippet}
 
@@ -79,14 +78,14 @@
 			<div>
 				<dt>CCTP version</dt>
 				<dd>
-					{String(pendingEntity.cctpVersion)}
+					{selection.entitySelector.cctpVersion}
 				</dd>
 			</div>
 
 			<div>
 				<dt>Domain ID</dt>
 				<dd>
-					{String(pendingEntity.domainId)}
+					{selection.entitySelector.domainId}
 				</dd>
 			</div>
 
@@ -281,30 +280,30 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const cctpDomainSupportCctpMessagesViewMessagesResource = selection.$$messages}
+		{@const messagesResource = selection.$$messages}
 		<ResourceBoundary
-			resource={cctpDomainSupportCctpMessagesViewMessagesResource}
+			resource={messagesResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<CctpMessagesView
-						selection={cctpDomainSupportCctpMessagesViewMessagesResource}
-						countResource={cctpDomainSupportCctpMessagesViewMessagesResource.count}
+						selection={messagesResource}
+						countResource={messagesResource.count}
 						title='Messages'
 						id='messages'
 					/>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>
-		{@const cctpDomainSupportCctpBurnFeeTimestampsViewBurnFeeTimestampsResource = selection.$$burnFeeTimestamps}
+		{@const burnFeeTimestampsResource = selection.$$burnFeeTimestamps}
 		<ResourceBoundary
-			resource={cctpDomainSupportCctpBurnFeeTimestampsViewBurnFeeTimestampsResource}
+			resource={burnFeeTimestampsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<CctpBurnFee_TimestampsView
-						selection={cctpDomainSupportCctpBurnFeeTimestampsViewBurnFeeTimestampsResource}
-						countResource={cctpDomainSupportCctpBurnFeeTimestampsViewBurnFeeTimestampsResource.count}
+						selection={burnFeeTimestampsResource}
+						countResource={burnFeeTimestampsResource.count}
 						title='Burn fee timestamps'
 						id='burn-fee-timestamps'
 					/>

@@ -4,7 +4,6 @@
 	// Types/constants
 	import type { PageProps } from './$types.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { EvmTokenStandard } from '$/constants/Evm.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -51,7 +50,7 @@
 
 
 <svelte:head>
-	<title>{(data.title ?? (pageSelection.entity == null ? (String(pageSelection.entitySelector.indexInLog ?? '') ? 'Transfer #' + String(pageSelection.entitySelector.indexInLog ?? '') : '') || 'Token transfer' : (String(pageSelection.entitySelector.indexInLog ?? '') ? 'Transfer #' + String(pageSelection.entitySelector.indexInLog ?? '') : '') || 'Token transfer'))} • Token transfer • Blockhead</title>
+	<title>{data.title ?? (pageSelection.entity == null ? `Transfer #${pageSelection.entitySelector.indexInLog}` : (String(pageSelection.entitySelector.indexInLog ?? '') ? 'Transfer #' + String(pageSelection.entitySelector.indexInLog ?? '') : '') || 'Token transfer')} • Token transfer • Blockhead</title>
 </svelte:head>
 
 

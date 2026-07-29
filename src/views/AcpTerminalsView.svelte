@@ -45,11 +45,11 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{(acpTerminal.command ?? '')}
+				{acpTerminal.command ?? ''}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{(acpTerminal.cwd ?? '')}</span>
+				<span data-text="annotation">{acpTerminal.cwd ?? ''}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

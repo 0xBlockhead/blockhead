@@ -21,9 +21,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.BlockheadLitecoinMwebWalletState> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const titleFallback = $derived((pendingEntity.walletId ?? '') || 'blockhead litecoin mweb wallet state')
-
 
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -37,19 +34,19 @@
 <EntityView
 	entityType={EntityType.BlockheadLitecoinMwebWalletState}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? (selection.entitySelector.walletId || 'blockhead litecoin mweb wallet state')}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{(pendingEntity.walletId ?? '') || 'blockhead litecoin mweb wallet state'}
+		{selection.entitySelector.walletId || 'blockhead litecoin mweb wallet state'}
 	{/snippet}
 
 	{#snippet Value()}
 		<NetworkView
 			selection={select(EntityType.Network, selection.entitySelector.$network)}
-			href=""
+			href={null}
 			layout={EntityLayout.Value}
 			open={false}
 		/>
@@ -79,7 +76,7 @@
 			<div>
 				<dt>wallet ID</dt>
 				<dd>
-					{pendingEntity.walletId}
+					{selection.entitySelector.walletId}
 				</dd>
 			</div>
 
@@ -117,30 +114,30 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const blockheadLitecoinMwebWalletStateBlockheadLitecoinMwebWalletStateTimestampsViewTimestampsResource = selection.$$timestamps}
+		{@const timestampsResource = selection.$$timestamps}
 		<ResourceBoundary
-			resource={blockheadLitecoinMwebWalletStateBlockheadLitecoinMwebWalletStateTimestampsViewTimestampsResource}
+			resource={timestampsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<BlockheadLitecoinMwebWalletState_TimestampsView
-						selection={blockheadLitecoinMwebWalletStateBlockheadLitecoinMwebWalletStateTimestampsViewTimestampsResource}
-						countResource={blockheadLitecoinMwebWalletStateBlockheadLitecoinMwebWalletStateTimestampsViewTimestampsResource.count}
+						selection={timestampsResource}
+						countResource={timestampsResource.count}
 						title='timestamps'
 						id='timestamps'
 					/>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>
-		{@const blockheadLitecoinMwebWalletStateBlockheadLitecoinMwebOutputStatesViewOutputsResource = selection.$$outputs}
+		{@const outputsResource = selection.$$outputs}
 		<ResourceBoundary
-			resource={blockheadLitecoinMwebWalletStateBlockheadLitecoinMwebOutputStatesViewOutputsResource}
+			resource={outputsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<BlockheadLitecoinMwebOutputStatesView
-						selection={blockheadLitecoinMwebWalletStateBlockheadLitecoinMwebOutputStatesViewOutputsResource}
-						countResource={blockheadLitecoinMwebWalletStateBlockheadLitecoinMwebOutputStatesViewOutputsResource.count}
+						selection={outputsResource}
+						countResource={outputsResource.count}
 						title='outputs'
 						id='outputs'
 					/>

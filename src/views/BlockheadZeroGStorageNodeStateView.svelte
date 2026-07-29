@@ -5,8 +5,6 @@
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { stringify } from 'devalue'
-	import { UrlString } from '$/schema/UrlString.ts'
-	import { EvmAddress } from '$/schema/ZeroExHex.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -24,14 +22,12 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.BlockheadZeroGStorageNodeState> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Local_Internal,
 			Source.ZeroGStorageNode_JsonRpc,
 		],
 	}))
-	const titleFallback = $derived(String(pendingEntity.nodeId ?? '') || 'blockhead zero g storage node state')
 	const viewDomId = $derived('blockhead-zero-gstorage-node-state-' + encodeURIComponent(stringify(selection.entitySelector)))
 
 
@@ -51,19 +47,18 @@
 	entityType={EntityType.BlockheadZeroGStorageNodeState}
 	entitySelector={selection.entitySelector}
 	id={viewDomId}
-	title={title ?? titleFallback}
+	title={title ?? (selection.entitySelector.nodeId || 'blockhead zero g storage node state')}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{String(pendingEntity.nodeId ?? '') || 'blockhead zero g storage node state'}
+		{selection.entitySelector.nodeId || 'blockhead zero g storage node state'}
 	{/snippet}
 
 	{#snippet Value()}
 		<ZeroGNetworkView
 			selection={select(EntityType.ZeroGNetwork, selection.entitySelector.$network)}
-			href=""
 			layout={EntityLayout.Value}
 			open={false}
 		/>
@@ -71,7 +66,7 @@
 
 	{#snippet HeadingAfter()}
 		<span data-text="muted">
-			{pendingEntity.connectionId}
+			{selection.entitySelector.connectionId}
 		</span>
 	{/snippet}
 
@@ -80,7 +75,7 @@
 			<div>
 				<dt>connection ID</dt>
 				<dd>
-					{pendingEntity.connectionId}
+					{selection.entitySelector.connectionId}
 				</dd>
 			</div>
 
@@ -98,7 +93,7 @@
 			<div>
 				<dt>node ID</dt>
 				<dd>
-					{String(pendingEntity.nodeId)}
+					{selection.entitySelector.nodeId}
 				</dd>
 			</div>
 
@@ -118,11 +113,11 @@
 							<dt>endpoint</dt>
 							<dd>
 								<a
-									href={String(endpoint)}
+									href={endpoint}
 									target="_blank"
 									rel="noreferrer noopener"
 								>
-									<TruncatedValue value={String(endpoint)} />
+									<TruncatedValue value={endpoint} />
 								</a>
 							</dd>
 						</div>

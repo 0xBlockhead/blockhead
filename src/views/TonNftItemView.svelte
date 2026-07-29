@@ -21,8 +21,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.TonNftItem> = $props()
 
-	const titleFallback = 'TON NFT item'
-
 
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -36,7 +34,7 @@
 <EntityView
 	entityType={EntityType.TonNftItem}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? 'TON NFT item'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -119,7 +117,7 @@
 						<div>
 							<dt>item index</dt>
 							<dd>
-								{String(itemIndex)}
+								{itemIndex}
 							</dd>
 						</div>
 					{/if}

@@ -5,7 +5,6 @@
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 
 
 	// State
@@ -48,15 +47,15 @@
 			entitySelector={aiArtifactSelector}
 		>
 			{#snippet Title()}
-				{(aiArtifact.artifactType ?? '') || [(aiArtifactSelector.providerArtifactId ?? ''), (aiArtifactSelector.ociDigest ?? ''), (aiArtifactSelector.ipfsCid ?? ''), (aiArtifactSelector.arweaveId ?? ''), (aiArtifactSelector.gitObject ?? ''), String(aiArtifactSelector.digest ?? '')].filter(Boolean).join(' ') || 'AI artifact'}
+				{(aiArtifact.artifactType ?? '') || [(aiArtifactSelector.providerArtifactId ?? ''), (aiArtifactSelector.ociDigest ?? ''), (aiArtifactSelector.ipfsCid ?? ''), (aiArtifactSelector.arweaveId ?? ''), (aiArtifactSelector.gitObject ?? ''), (aiArtifactSelector.digest ?? '')].filter(Boolean).join(' ') || 'AI artifact'}
 			{/snippet}
 
 			{#snippet Value()}
-				{(aiArtifact.mediaType ?? '')}
+				{aiArtifact.mediaType ?? ''}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{String(aiArtifact.size ?? '')}</span>
+				<span data-text="annotation">{aiArtifact.size ?? ''}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

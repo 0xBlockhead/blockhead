@@ -1,5 +1,5 @@
 import { WalletCapability, WalletDiscoveryKind, WalletProtocol, WalletTransportKind } from '$/constants/Wallet.ts'
-import { BlockheadConnectionStatus } from '$/schema/BlockheadWalletConnection.ts'
+import { BlockheadConnectionStatus } from '$/schema/BlockheadConnectionStatus.ts'
 import { SvelteMap } from 'svelte/reactivity'
 import type { WalletAdapter, WalletCandidate, WalletConnection } from './types.ts'
 

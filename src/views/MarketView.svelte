@@ -30,7 +30,8 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.Market> = $props()
 
-	const titleFallback = 'Market'
+	const base = $derived(selection.entitySelector.$base)
+	const quote = $derived(selection.entitySelector.$quote)
 	const viewDomId = $derived('market-' + encodeURIComponent(stringify(selection.entitySelector)))
 
 
@@ -49,19 +50,22 @@
 	entityType={EntityType.Market}
 	entitySelector={selection.entitySelector}
 	id={viewDomId}
-	title={title ?? titleFallback}
+	title={title ?? 'Market'}
 	href={
-		href ?? resolve(
-			'/(assets)/venue/[marketVenue=marketVenueId]/market/[baseKind=stringSegment]/[base=stringSegment]/[quoteKind=stringSegment]/[quote=stringSegment]/[marketKind=stringSegment]',
-			{
-				marketVenue: String(selection.entitySelector.$marketVenue.marketVenueId),
-				baseKind: String(marketAssetRouteLabelByKind[String(selection.entitySelector.$base.kind)]),
-				base: String(selection.entitySelector.$base.assetKey),
-				quoteKind: String(marketAssetRouteLabelByKind[String(selection.entitySelector.$quote.kind)]),
-				quote: String(selection.entitySelector.$quote.assetKey),
-				marketKind: String(selection.entitySelector.marketKind),
-			}
-		)
+		href === undefined ?
+			resolve(
+				'/(assets)/venue/[marketVenue=marketVenueId]/market/[baseKind=stringSegment]/[base=stringSegment]/[quoteKind=stringSegment]/[quote=stringSegment]/[marketKind=stringSegment]',
+				{
+					marketVenue: selection.entitySelector.$marketVenue.marketVenueId,
+					baseKind: marketAssetRouteLabelByKind[base.kind],
+					base: base.assetKey,
+					quoteKind: marketAssetRouteLabelByKind[quote.kind],
+					quote: quote.assetKey,
+					marketKind: selection.entitySelector.marketKind,
+				}
+			)
+		:
+			href ?? undefined
 	}
 	{layout}
 	bind:open
@@ -75,7 +79,7 @@
 	{#snippet Title()}
 		{selection.entitySelector.$marketVenue.marketVenueId}:{selection.entitySelector.$base.assetKey}-{selection.entitySelector.$quote.assetKey}
 		{#if selection.entitySelector.marketKind !== MarketKind.Spot}
-			{String(marketKindByMarketKind[String(selection.entitySelector.marketKind)].label)}
+			{marketKindByMarketKind[selection.entitySelector.marketKind].label}
 		{/if}
 	{/snippet}
 
@@ -85,7 +89,7 @@
 				<div>
 					<dt>Kind</dt>
 					<dd>
-						{String(marketKindByMarketKind[String(selection.entitySelector.marketKind)].label)}
+						{marketKindByMarketKind[selection.entitySelector.marketKind].label}
 					</dd>
 				</div>
 

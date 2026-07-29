@@ -39,7 +39,7 @@
 
 
 <svelte:head>
-	<title>{(data.title ?? (pageSelection.entity == null ? 'Ethereum network upgrade' : pageSelection.entity.upgradeId || pageSelection.entity.name || 'Ethereum network upgrade'))} • Ethereum network upgrade • Blockhead</title>
+	<title>{data.title ?? (pageSelection.entity == null ? 'Ethereum network upgrade' : pageSelection.entity.upgradeId || pageSelection.entity.name || 'Ethereum network upgrade')} • Ethereum network upgrade • Blockhead</title>
 </svelte:head>
 
 

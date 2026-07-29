@@ -20,9 +20,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.TonShard_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const titleFallback = 'TON shard timestamp'
-
 
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -35,7 +32,7 @@
 <EntityView
 	entityType={EntityType.TonShard_Timestamp}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? 'TON shard timestamp'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -60,21 +57,21 @@
 			<div>
 				<dt>shard prefix</dt>
 				<dd>
-					{pendingEntity.shardPrefix}
+					{selection.entitySelector.shardPrefix}
 				</dd>
 			</div>
 
 			<div>
 				<dt>seqno</dt>
 				<dd>
-					{String(pendingEntity.seqno)}
+					{selection.entitySelector.seqno}
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 
@@ -93,7 +90,7 @@
 						<div>
 							<dt>Timestamp</dt>
 							<dd>
-								<Timestamp timestamp={Number(timestampMs)} />
+								<Timestamp timestamp={timestampMs} />
 							</dd>
 						</div>
 					{/if}
@@ -115,7 +112,7 @@
 						<div>
 							<dt>start lt</dt>
 							<dd>
-								{String(startLt)}
+								{startLt}
 							</dd>
 						</div>
 					{/if}
@@ -137,7 +134,7 @@
 						<div>
 							<dt>end lt</dt>
 							<dd>
-								{String(endLt)}
+								{endLt}
 							</dd>
 						</div>
 					{/if}
@@ -159,7 +156,7 @@
 						<div>
 							<dt>min ref mc seqno</dt>
 							<dd>
-								{String(minRefMcSeqno)}
+								{minRefMcSeqno}
 							</dd>
 						</div>
 					{/if}

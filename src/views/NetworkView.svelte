@@ -11,7 +11,7 @@
 	import { networkApplicableSources } from '$/sources/index.ts'
 	import { beaconRestBaseByExecutionChainId } from '$/constants/BeaconConsensus.ts'
 	import { consensusProtocolByProtocol } from '$/constants/EvmNetwork.ts'
-	import { networkByCaip2, networkBySlug, NetworkExecutionModel, NetworkLedgerModel, NetworkNamespace } from '$/constants/Network.ts'
+	import { networkByCaip2, networkBySlug } from '$/constants/Network.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
 	import { Source } from '$/sources/Source.ts'
 
@@ -181,12 +181,11 @@
 	)
 
 
-	const viewSelection = $derived(selection({
+	const network = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Constants_Internal,
 		],
-	}))
-	const network = $derived(viewSelection({
+	})({
 		fields: {
 			name: true,
 			namespace: true,
@@ -321,17 +320,20 @@
 	id={viewDomId}
 	title={title ?? titleFallback}
 	href={
-		href ?? resolve(
-			'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]',
-			{
-				network: (
-					'caip2' in selection.entitySelector ?
-						String(caip2StringFromValue(selection.entitySelector.caip2))
-					:
-						String(selection.entitySelector.slug)
-				),
-			}
-		)
+		href === undefined ?
+			resolve(
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]',
+				{
+					network: (
+						'caip2' in selection.entitySelector ?
+							caip2StringFromValue(selection.entitySelector.caip2)
+						:
+							selection.entitySelector.slug
+					),
+				}
+			)
+		:
+			href ?? undefined
 	}
 	{layout}
 	bind:open
@@ -353,9 +355,9 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={network}>
 			{#snippet children(entity)}
-				{@const caip20 = entity.caip2}
-				{#if caip20 != null}
-					<TruncatedValue value={`${caip20.namespace}:${caip20.reference}`} />
+				{@const caip2 = entity.caip2}
+				{#if caip2 != null}
+					<TruncatedValue value={`${caip2.namespace}:${caip2.reference}`} />
 				{/if}
 			{/snippet}
 		</ResourceBoundary>
@@ -376,19 +378,19 @@
 						<ResourceBoundary
 							resource={
 								selection.Evm
-									.$$upgrades({
-										sources: [
-											Source.Constants_Internal,
-										],
-										fields: {
-											name: true,
-											activationBlock: true,
-										},
-										limit: 1,
-										orderBy: [
-											[({ fieldRow }) => fieldRow[EntityMetaKey.Value].activationBlock ?? Number.NEGATIVE_INFINITY, 'desc'],
-										],
-									})
+								.$$upgrades({
+									sources: [
+										Source.Constants_Internal,
+									],
+									fields: {
+										name: true,
+										activationBlock: true,
+									},
+									limit: 1,
+									orderBy: [
+										[({ fieldRow }) => fieldRow[EntityMetaKey.Value].activationBlock ?? Number.NEGATIVE_INFINITY, 'desc'],
+									],
+								})
 							}
 						>
 							{#snippet children(ethereumNetworkUpgrades)}
@@ -423,18 +425,18 @@
 						<ResourceBoundary
 							resource={
 								selection.Evm
-									.$$blocks({
-										sources: [
-											Source.Voltaire_JsonRpc,
-										],
-										fields: {
-											blockNumber: true,
-										},
-										limit: 1,
-										orderBy: [
-											[({ fieldRow }) => fieldRow[EntityMetaKey.Value][EntityMetaKey.Selector].blockNumber ?? Number.NEGATIVE_INFINITY, 'desc'],
-										],
-									})
+								.$$blocks({
+									sources: [
+										Source.Voltaire_JsonRpc,
+									],
+									fields: {
+										blockNumber: true,
+									},
+									limit: 1,
+									orderBy: [
+										[({ fieldRow }) => fieldRow[EntityMetaKey.Value][EntityMetaKey.Selector].blockNumber ?? Number.NEGATIVE_INFINITY, 'desc'],
+									],
+								})
 							}
 						>
 							{#snippet children(evmBlocks)}
@@ -469,20 +471,20 @@
 						<ResourceBoundary
 							resource={
 								selection.Evm
-									.$$gasFeeBlocks({
-										sources: [
-											Source.Voltaire_JsonRpc,
-										],
-										fields: {
-											blockNumber: true,
-											baseFeePerGas: true,
-											gasUsedRatio: true,
-										},
-										limit: 1,
-										orderBy: [
-											[({ fieldRow }) => fieldRow[EntityMetaKey.Value][EntityMetaKey.Selector].blockNumber ?? Number.NEGATIVE_INFINITY, 'desc'],
-										],
-									})
+								.$$gasFeeBlocks({
+									sources: [
+										Source.Voltaire_JsonRpc,
+									],
+									fields: {
+										blockNumber: true,
+										baseFeePerGas: true,
+										gasUsedRatio: true,
+									},
+									limit: 1,
+									orderBy: [
+										[({ fieldRow }) => fieldRow[EntityMetaKey.Value][EntityMetaKey.Selector].blockNumber ?? Number.NEGATIVE_INFINITY, 'desc'],
+									],
+								})
 							}
 						>
 							{#snippet children(evmNetworkGasFeeBlocks)}
@@ -517,20 +519,20 @@
 						<ResourceBoundary
 							resource={
 								selection.Evm
-									.$$txpoolTimestamps({
-										sources: [
-											Source.Voltaire_JsonRpc,
-										],
-										fields: {
-											timestampMs: true,
-											pendingCount: true,
-											queuedCount: true,
-										},
-										limit: 1,
-										orderBy: [
-											[({ fieldRow }) => fieldRow[EntityMetaKey.Value][EntityMetaKey.Selector].timestampMs ?? Number.NEGATIVE_INFINITY, 'desc'],
-										],
-									})
+								.$$txpoolTimestamps({
+									sources: [
+										Source.Voltaire_JsonRpc,
+									],
+									fields: {
+										timestampMs: true,
+										pendingCount: true,
+										queuedCount: true,
+									},
+									limit: 1,
+									orderBy: [
+										[({ fieldRow }) => fieldRow[EntityMetaKey.Value][EntityMetaKey.Selector].timestampMs ?? Number.NEGATIVE_INFINITY, 'desc'],
+									],
+								})
 							}
 						>
 							{#snippet children(evmNetworkTxpoolTimestamps)}
@@ -565,20 +567,20 @@
 						<ResourceBoundary
 							resource={
 								selection.Evm
-									.$$beaconEpochs({
-										sources: [
-											Source.Beacon_Rest,
-										],
-										fields: {
-											epoch: true,
-											startSlot: true,
-											endSlot: true,
-										},
-										limit: 1,
-										orderBy: [
-											[({ fieldRow }) => fieldRow[EntityMetaKey.Value][EntityMetaKey.Selector].epoch ?? Number.NEGATIVE_INFINITY, 'desc'],
-										],
-									})
+								.$$beaconEpochs({
+									sources: [
+										Source.Beacon_Rest,
+									],
+									fields: {
+										epoch: true,
+										startSlot: true,
+										endSlot: true,
+									},
+									limit: 1,
+									orderBy: [
+										[({ fieldRow }) => fieldRow[EntityMetaKey.Value][EntityMetaKey.Selector].epoch ?? Number.NEGATIVE_INFINITY, 'desc'],
+									],
+								})
 							}
 						>
 							{#snippet children(beaconEpochs)}
@@ -613,19 +615,19 @@
 						<ResourceBoundary
 							resource={
 								selection.Evm
-									.$$beaconSlots({
-										sources: [
-											Source.Beacon_Rest,
-										],
-										fields: {
-											slot: true,
-											epoch: true,
-										},
-										limit: 1,
-										orderBy: [
-											[({ fieldRow }) => fieldRow[EntityMetaKey.Value][EntityMetaKey.Selector].slot ?? Number.NEGATIVE_INFINITY, 'desc'],
-										],
-									})
+								.$$beaconSlots({
+									sources: [
+										Source.Beacon_Rest,
+									],
+									fields: {
+										slot: true,
+										epoch: true,
+									},
+									limit: 1,
+									orderBy: [
+										[({ fieldRow }) => fieldRow[EntityMetaKey.Value][EntityMetaKey.Selector].slot ?? Number.NEGATIVE_INFINITY, 'desc'],
+									],
+								})
 							}
 						>
 							{#snippet children(beaconSlots)}
@@ -768,7 +770,7 @@
 								<div>
 									<dt>Consensus</dt>
 									<dd>
-										{String((consensusProtocolByProtocol[String(consensusProtocol)]?.label ?? (consensusProtocol)) ?? '')}
+										{consensusProtocolByProtocol[consensusProtocol]?.label ?? consensusProtocol}
 									</dd>
 								</div>
 							{/if}
@@ -1049,12 +1051,12 @@
 				<AssetInstancesView
 					selection={
 						selection
-							.$$nativeAssets({
-								sources: [
-									Source.Constants_Internal,
-								],
-								limit: 16,
-							})
+						.$$nativeAssets({
+							sources: [
+								Source.Constants_Internal,
+							],
+							limit: 16,
+						})
 					}
 					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
@@ -1097,12 +1099,12 @@
 				<UrlsView
 					selection={
 						selection
-							.$$faucetUrls({
-								sources: [
-									Source.Constants_Internal,
-									Source.Chainlist_Rest,
-								],
-							})
+						.$$faucetUrls({
+							sources: [
+								Source.Constants_Internal,
+								Source.Chainlist_Rest,
+							],
+						})
 					}
 					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
@@ -1119,14 +1121,14 @@
 				<UrlsView
 					selection={
 						selection
-							.$$blockExplorerUrls({
-								sources: [
-									Source.Constants_Internal,
-									Source.Chainlist_Rest,
-									Source.EthereumLists_Rest,
-									Source.Lifi_Rest,
-								],
-							})
+						.$$blockExplorerUrls({
+							sources: [
+								Source.Constants_Internal,
+								Source.Chainlist_Rest,
+								Source.EthereumLists_Rest,
+								Source.Lifi_Rest,
+							],
+						})
 					}
 					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
@@ -1146,28 +1148,28 @@
 		>
 			{#snippet Applicable(projection)}
 				{@const evmNetworkTopologyParentLayerResource = projection
-				.$parent({
-					sources: [
-						Source.Chainlist_Rest,
-						Source.EthereumLists_Rest,
-						Source.L2Beat_Rest,
-					],
-				})}
+					.$parent({
+						sources: [
+							Source.Chainlist_Rest,
+							Source.EthereumLists_Rest,
+							Source.L2Beat_Rest,
+						],
+					})}
 
 				{@const evmNetworkTopologyRollupResource = projection
-				.$rollup({
-					sources: [
-						Source.L2Beat_Rest,
-					],
-				})}
+					.$rollup({
+						sources: [
+							Source.L2Beat_Rest,
+						],
+					})}
 
 				{@const evmNetworkTopologyMainnetResource = projection
-				.$mainnet({
-					sources: [
-						Source.Chainlist_Rest,
-						Source.EthereumLists_Rest,
-					],
-				})}
+					.$mainnet({
+						sources: [
+							Source.Chainlist_Rest,
+							Source.EthereumLists_Rest,
+						],
+					})}
 
 				<CollapsibleTabs
 					id={viewDomId + '-carousel-evm-network-topology'}
@@ -1260,32 +1262,36 @@
 						>
 							{#snippet children(network)}
 								{#if network != null}
-								<section
-									id={id}
-									aria-labelledby={`${id}:marker`}
-									data-scroll-marker-label={label}
-									data-column-item="flexible"
-									data-column
-									data-active={active}
-								>
-															<article
-																id={`${id}-list`}
-																data-column-item="flexible"
-																data-card
-																data-scroll-container
-															>
-																<NetworkView
-																	selection={select(EntityType.Network, network[EntityMetaKey.Selector], { sources: [
-										Source.Chainlist_Rest,
-										Source.EthereumLists_Rest,
-										Source.L2Beat_Rest,
-									] })}
-																	prefetched={network}
-																	layout={EntityLayout.SummaryInline}
-																	open={false}
-																/>
-															</article>
-								</section>
+									<section
+										id={id}
+										aria-labelledby={`${id}:marker`}
+										data-scroll-marker-label={label}
+										data-column-item="flexible"
+										data-column
+										data-active={active}
+									>
+										<article
+											id={`${id}-list`}
+											data-column-item="flexible"
+											data-card
+											data-scroll-container
+										>
+											<NetworkView
+												selection={
+													select(EntityType.Network, network[EntityMetaKey.Selector], {
+														sources: [
+															Source.Chainlist_Rest,
+															Source.EthereumLists_Rest,
+															Source.L2Beat_Rest,
+														],
+													})
+												}
+												prefetched={network}
+												layout={EntityLayout.SummaryInline}
+												open={false}
+											/>
+										</article>
+									</section>
 								{/if}
 							{/snippet}
 
@@ -1333,30 +1339,34 @@
 						>
 							{#snippet children(evmRollup)}
 								{#if evmRollup != null}
-								<section
-									id={id}
-									aria-labelledby={`${id}:marker`}
-									data-scroll-marker-label={label}
-									data-column-item="flexible"
-									data-column
-									data-active={active}
-								>
-															<article
-																id={`${id}-list`}
-																data-column-item="flexible"
-																data-card
-																data-scroll-container
-															>
-																<EvmRollupView
-																	selection={select(EntityType.EvmRollup, evmRollup[EntityMetaKey.Selector], { sources: [
-										Source.L2Beat_Rest,
-									] })}
-																	prefetched={evmRollup}
-																	layout={EntityLayout.SummaryInline}
-																	open={false}
-																/>
-															</article>
-								</section>
+									<section
+										id={id}
+										aria-labelledby={`${id}:marker`}
+										data-scroll-marker-label={label}
+										data-column-item="flexible"
+										data-column
+										data-active={active}
+									>
+										<article
+											id={`${id}-list`}
+											data-column-item="flexible"
+											data-card
+											data-scroll-container
+										>
+											<EvmRollupView
+												selection={
+													select(EntityType.EvmRollup, evmRollup[EntityMetaKey.Selector], {
+														sources: [
+															Source.L2Beat_Rest,
+														],
+													})
+												}
+												prefetched={evmRollup}
+												layout={EntityLayout.SummaryInline}
+												open={false}
+											/>
+										</article>
+									</section>
 								{/if}
 							{/snippet}
 
@@ -1382,13 +1392,13 @@
 						<NetworksView
 							selection={
 								projection
-									.$$siblingShardNetworks({
-										sources: [
-											Source.Chainlist_Rest,
-											Source.EthereumLists_Rest,
-										],
-										limit: 16,
-									})
+								.$$siblingShardNetworks({
+									sources: [
+										Source.Chainlist_Rest,
+										Source.EthereumLists_Rest,
+									],
+									limit: 16,
+								})
 							}
 							CollapsibleProps={{ canToggle: false }}
 							collapsible={false}
@@ -1406,13 +1416,13 @@
 						<NetworksView
 							selection={
 								projection
-									.$$testnets({
-										sources: [
-											Source.Chainlist_Rest,
-											Source.EthereumLists_Rest,
-										],
-										limit: 16,
-									})
+								.$$testnets({
+									sources: [
+										Source.Chainlist_Rest,
+										Source.EthereumLists_Rest,
+									],
+									limit: 16,
+								})
 							}
 							CollapsibleProps={{ canToggle: false }}
 							collapsible={false}
@@ -1452,31 +1462,35 @@
 						>
 							{#snippet children(network)}
 								{#if network != null}
-								<section
-									id={id}
-									aria-labelledby={`${id}:marker`}
-									data-scroll-marker-label={label}
-									data-column-item="flexible"
-									data-column
-									data-active={active}
-								>
-															<article
-																id={`${id}-list`}
-																data-column-item="flexible"
-																data-card
-																data-scroll-container
-															>
-																<NetworkView
-																	selection={select(EntityType.Network, network[EntityMetaKey.Selector], { sources: [
-										Source.Chainlist_Rest,
-										Source.EthereumLists_Rest,
-									] })}
-																	prefetched={network}
-																	layout={EntityLayout.SummaryInline}
-																	open={false}
-																/>
-															</article>
-								</section>
+									<section
+										id={id}
+										aria-labelledby={`${id}:marker`}
+										data-scroll-marker-label={label}
+										data-column-item="flexible"
+										data-column
+										data-active={active}
+									>
+										<article
+											id={`${id}-list`}
+											data-column-item="flexible"
+											data-card
+											data-scroll-container
+										>
+											<NetworkView
+												selection={
+													select(EntityType.Network, network[EntityMetaKey.Selector], {
+														sources: [
+															Source.Chainlist_Rest,
+															Source.EthereumLists_Rest,
+														],
+													})
+												}
+												prefetched={network}
+												layout={EntityLayout.SummaryInline}
+												open={false}
+											/>
+										</article>
+									</section>
 								{/if}
 							{/snippet}
 
@@ -1502,14 +1516,14 @@
 						<NetworksView
 							selection={
 								projection
-									.$$childLayers({
-										sources: [
-											Source.Chainlist_Rest,
-											Source.EthereumLists_Rest,
-											Source.L2Beat_Rest,
-										],
-										limit: 16,
-									})
+								.$$childLayers({
+									sources: [
+										Source.Chainlist_Rest,
+										Source.EthereumLists_Rest,
+										Source.L2Beat_Rest,
+									],
+									limit: 16,
+								})
 							}
 							CollapsibleProps={{ canToggle: false }}
 							collapsible={false}
@@ -1527,12 +1541,12 @@
 						<EvmRollupsView
 							selection={
 								projection
-									.$$settledRollups({
-										sources: [
-											Source.L2Beat_Rest,
-										],
-										limit: 16,
-									})
+								.$$settledRollups({
+									sources: [
+										Source.L2Beat_Rest,
+									],
+									limit: 16,
+								})
 							}
 							CollapsibleProps={{ canToggle: false }}
 							collapsible={false}
@@ -1555,75 +1569,75 @@
 		>
 			{#snippet Applicable(projection)}
 				{@const evmExecutionGasEstimatesSources = networkApplicableSources([
-					Source.Blockscout_Rest,
-					Source.Etherscan_Rest,
-				], pendingEntity)}
+						Source.Blockscout_Rest,
+						Source.Etherscan_Rest,
+					], pendingEntity)}
 
 				{@const evmExecutionSections = [
-					{
-						id: 'evm-execution-upgrades',
-						label: 'Upgrades',
-					},
-					...(
-						voltaireJsonRpcSources.length > 0 ?
-							[
-								{
-									id: 'evm-execution-blocks',
-									label: 'Blocks',
-								},
-							]
-						:
-							[]
-					),
-					...(
-						blockscoutRestSources.length > 0 ?
-							[
-								{
-									id: 'evm-execution-transactions',
-									label: 'Transactions',
-								},
-							]
-						:
-							[]
-					),
-					...(
-						voltaireJsonRpcSources.length > 0 ?
-							[
-								{
-									id: 'evm-execution-mempool',
-									label: 'Mempool',
-								},
-							]
-						:
-							[]
-					),
-					...(
-						voltaireJsonRpcSources.length > 0 ?
-							[
-								{
-									id: 'evm-execution-gas-blocks',
-									label: 'Fee market',
-								},
-							]
-						:
-							[]
-					),
-					...(
-						evmExecutionGasEstimatesSources.length > 0 ?
-							[
-								{
-									id: 'evm-execution-gas-estimates',
-									label: 'Gas estimates',
-								},
-							]
-						:
-							[]
-					),
-					{
-						id: 'evm-execution-endpoints',
-						label: 'Endpoints',
-					},
-				]}
+						{
+							id: 'evm-execution-upgrades',
+							label: 'Upgrades',
+						},
+						...(
+							voltaireJsonRpcSources.length > 0 ?
+								[
+									{
+										id: 'evm-execution-blocks',
+										label: 'Blocks',
+									},
+								]
+							:
+								[]
+						),
+						...(
+							blockscoutRestSources.length > 0 ?
+								[
+									{
+										id: 'evm-execution-transactions',
+										label: 'Transactions',
+									},
+								]
+							:
+								[]
+						),
+						...(
+							voltaireJsonRpcSources.length > 0 ?
+								[
+									{
+										id: 'evm-execution-mempool',
+										label: 'Mempool',
+									},
+								]
+							:
+								[]
+						),
+						...(
+							voltaireJsonRpcSources.length > 0 ?
+								[
+									{
+										id: 'evm-execution-gas-blocks',
+										label: 'Fee market',
+									},
+								]
+							:
+								[]
+						),
+						...(
+							evmExecutionGasEstimatesSources.length > 0 ?
+								[
+									{
+										id: 'evm-execution-gas-estimates',
+										label: 'Gas estimates',
+									},
+								]
+							:
+								[]
+						),
+						{
+							id: 'evm-execution-endpoints',
+							label: 'Endpoints',
+						},
+					]}
 
 				{#if evmExecutionSections.length > 0}
 					<CollapsibleTabs
@@ -1655,12 +1669,12 @@
 							<EthereumExecutionUpgradesView
 								selection={
 									projection
-										.$$executionUpgrades({
-											sources: [
-												Source.Constants_Internal,
-											],
-											limit: 512,
-										})
+									.$$executionUpgrades({
+										sources: [
+											Source.Constants_Internal,
+										],
+										limit: 512,
+									})
 								}
 								CollapsibleProps={{ canToggle: false }}
 								collapsible={false}
@@ -1677,10 +1691,10 @@
 							<EvmBlocksView
 								selection={
 									projection
-										.$$blocks({
-											sources: voltaireJsonRpcSources,
-											limit: 4,
-										})
+									.$$blocks({
+										sources: voltaireJsonRpcSources,
+										limit: 4,
+									})
 								}
 								CollapsibleProps={{ canToggle: false }}
 								collapsible={false}
@@ -1697,10 +1711,10 @@
 							<EvmTransactionsView
 								selection={
 									projection
-										.$$transactions({
-											sources: blockscoutRestSources,
-											limit: 16,
-										})
+									.$$transactions({
+										sources: blockscoutRestSources,
+										limit: 16,
+									})
 								}
 								CollapsibleProps={{ canToggle: false }}
 								collapsible={false}
@@ -1717,10 +1731,10 @@
 							<EvmNetwork_Txpool_TimestampsView
 								selection={
 									projection
-										.$$txpoolTimestamps({
-											sources: voltaireJsonRpcSources,
-											limit: 16,
-										})
+									.$$txpoolTimestamps({
+										sources: voltaireJsonRpcSources,
+										limit: 16,
+									})
 								}
 								CollapsibleProps={{ canToggle: false }}
 								collapsible={false}
@@ -1737,10 +1751,10 @@
 							<EvmNetwork_GasFee_BlocksView
 								selection={
 									projection
-										.$$gasFeeBlocks({
-											sources: voltaireJsonRpcSources,
-											limit: 16,
-										})
+									.$$gasFeeBlocks({
+										sources: voltaireJsonRpcSources,
+										limit: 16,
+									})
 								}
 								CollapsibleProps={{ canToggle: false }}
 								collapsible={false}
@@ -1757,10 +1771,10 @@
 							<EvmNetwork_GasEstimate_TimestampsView
 								selection={
 									projection
-										.$$gasEstimateTimestamps({
-											sources: evmExecutionGasEstimatesSources,
-											limit: 16,
-										})
+									.$$gasEstimateTimestamps({
+										sources: evmExecutionGasEstimatesSources,
+										limit: 16,
+									})
 								}
 								CollapsibleProps={{ canToggle: false }}
 								collapsible={false}
@@ -1777,14 +1791,14 @@
 							<UrlsView
 								selection={
 									projection
-										.$$rpcUrls({
-											sources: [
-												Source.Constants_Internal,
-												Source.Chainlist_Rest,
-												Source.EthereumLists_Rest,
-												Source.Lifi_Rest,
-											],
-										})
+									.$$rpcUrls({
+										sources: [
+											Source.Constants_Internal,
+											Source.Chainlist_Rest,
+											Source.EthereumLists_Rest,
+											Source.Lifi_Rest,
+										],
+									})
 								}
 								CollapsibleProps={{ canToggle: false }}
 								collapsible={false}
@@ -1807,127 +1821,127 @@
 		>
 			{#snippet Applicable(projection)}
 				{@const evmConsensusBlockProductionSections = [
-					{
-						id: 'evm-consensus-upgrades',
-						label: 'Upgrades',
-					},
-					...(
-						beaconRestSources.length > 0 ?
-							[
-								{
-									id: 'evm-consensus-finality',
-									label: 'Finality',
-								},
-							]
-						:
-							[]
-					),
-					...(
-						beaconRestSources.length > 0 ?
-							[
-								{
-									id: 'evm-consensus-committees',
-									label: 'Committees',
-								},
-							]
-						:
-							[]
-					),
-					...(
-						beaconRestSources.length > 0 ?
-							[
-								{
-									id: 'evm-consensus-sync-committees',
-									label: 'Sync committees',
-								},
-							]
-						:
-							[]
-					),
-					...(
-						beaconRestSources.length > 0 ?
-							[
-								{
-									id: 'evm-consensus-attestations',
-									label: 'Attestations',
-								},
-							]
-						:
-							[]
-					),
-					...(
-						beaconRestSources.length > 0 ?
-							[
-								{
-									id: 'evm-consensus-withdrawals',
-									label: 'Withdrawals',
-								},
-							]
-						:
-							[]
-					),
-					...(
-						beaconRestSources.length > 0 ?
-							[
-								{
-									id: 'evm-consensus-slashings',
-									label: 'Slashings',
-								},
-							]
-						:
-							[]
-					),
-					...(
-						beaconRestSources.length > 0 ?
-							[
-								{
-									id: 'evm-consensus-validators',
-									label: 'Validators',
-								},
-							]
-						:
-							[]
-					),
-					...(
-						beaconRestSources.length > 0 ?
-							[
-								{
-									id: 'evm-consensus-epochs',
-									label: 'Epochs',
-								},
-							]
-						:
-							[]
-					),
-					...(
-						beaconRestSources.length > 0 ?
-							[
-								{
-									id: 'evm-consensus-slots',
-									label: 'Slots',
-								},
-							]
-						:
-							[]
-					),
-					{
-						id: 'evm-consensus-mev-relays',
-						label: 'Relays',
-					},
-					{
-						id: 'evm-consensus-mev-builders',
-						label: 'Builders',
-					},
-					{
-						id: 'evm-consensus-mev-boost',
-						label: 'MEV-Boost',
-					},
-					{
-						id: 'evm-consensus-endpoints',
-						label: 'Endpoints',
-						ownsSection: true,
-					},
-				]}
+						{
+							id: 'evm-consensus-upgrades',
+							label: 'Upgrades',
+						},
+						...(
+							beaconRestSources.length > 0 ?
+								[
+									{
+										id: 'evm-consensus-finality',
+										label: 'Finality',
+									},
+								]
+							:
+								[]
+						),
+						...(
+							beaconRestSources.length > 0 ?
+								[
+									{
+										id: 'evm-consensus-committees',
+										label: 'Committees',
+									},
+								]
+							:
+								[]
+						),
+						...(
+							beaconRestSources.length > 0 ?
+								[
+									{
+										id: 'evm-consensus-sync-committees',
+										label: 'Sync committees',
+									},
+								]
+							:
+								[]
+						),
+						...(
+							beaconRestSources.length > 0 ?
+								[
+									{
+										id: 'evm-consensus-attestations',
+										label: 'Attestations',
+									},
+								]
+							:
+								[]
+						),
+						...(
+							beaconRestSources.length > 0 ?
+								[
+									{
+										id: 'evm-consensus-withdrawals',
+										label: 'Withdrawals',
+									},
+								]
+							:
+								[]
+						),
+						...(
+							beaconRestSources.length > 0 ?
+								[
+									{
+										id: 'evm-consensus-slashings',
+										label: 'Slashings',
+									},
+								]
+							:
+								[]
+						),
+						...(
+							beaconRestSources.length > 0 ?
+								[
+									{
+										id: 'evm-consensus-validators',
+										label: 'Validators',
+									},
+								]
+							:
+								[]
+						),
+						...(
+							beaconRestSources.length > 0 ?
+								[
+									{
+										id: 'evm-consensus-epochs',
+										label: 'Epochs',
+									},
+								]
+							:
+								[]
+						),
+						...(
+							beaconRestSources.length > 0 ?
+								[
+									{
+										id: 'evm-consensus-slots',
+										label: 'Slots',
+									},
+								]
+							:
+								[]
+						),
+						{
+							id: 'evm-consensus-mev-relays',
+							label: 'Relays',
+						},
+						{
+							id: 'evm-consensus-mev-builders',
+							label: 'Builders',
+						},
+						{
+							id: 'evm-consensus-mev-boost',
+							label: 'MEV-Boost',
+						},
+						{
+							id: 'evm-consensus-endpoints',
+							label: 'Endpoints',
+							ownsSection: true,
+						},
+					]}
 
 				{#if evmConsensusBlockProductionSections.length > 0}
 					<CollapsibleTabs
@@ -1947,12 +1961,12 @@
 							<EthereumConsensusUpgradesView
 								selection={
 									selection.Evm
-										.$$consensusUpgrades({
-											sources: [
-												Source.Constants_Internal,
-											],
-											limit: 512,
-										})
+									.$$consensusUpgrades({
+										sources: [
+											Source.Constants_Internal,
+										],
+										limit: 512,
+									})
 								}
 								CollapsibleProps={{ canToggle: false }}
 								collapsible={false}
@@ -1969,10 +1983,10 @@
 							<EthereumBeaconFinality_TimestampsView
 								selection={
 									selection.Evm
-										.$$beaconFinalityTimestamps({
-											sources: beaconRestSources,
-											limit: 16,
-										})
+									.$$beaconFinalityTimestamps({
+										sources: beaconRestSources,
+										limit: 16,
+									})
 								}
 								CollapsibleProps={{ canToggle: false }}
 								collapsible={false}
@@ -1989,10 +2003,10 @@
 							<BeaconCommitteesView
 								selection={
 									selection.Evm
-										.$$beaconCommittees({
-											sources: beaconRestSources,
-											limit: 16,
-										})
+									.$$beaconCommittees({
+										sources: beaconRestSources,
+										limit: 16,
+									})
 								}
 								CollapsibleProps={{ canToggle: false }}
 								collapsible={false}
@@ -2009,10 +2023,10 @@
 							<BeaconSyncCommitteesView
 								selection={
 									selection.Evm
-										.$$beaconSyncCommittees({
-											sources: beaconRestSources,
-											limit: 16,
-										})
+									.$$beaconSyncCommittees({
+										sources: beaconRestSources,
+										limit: 16,
+									})
 								}
 								CollapsibleProps={{ canToggle: false }}
 								collapsible={false}
@@ -2029,10 +2043,10 @@
 							<BeaconAttestationsView
 								selection={
 									selection.Evm
-										.$$beaconAttestations({
-											sources: beaconRestSources,
-											limit: 16,
-										})
+									.$$beaconAttestations({
+										sources: beaconRestSources,
+										limit: 16,
+									})
 								}
 								CollapsibleProps={{ canToggle: false }}
 								collapsible={false}
@@ -2049,10 +2063,10 @@
 							<BeaconWithdrawalsView
 								selection={
 									selection.Evm
-										.$$beaconWithdrawals({
-											sources: beaconRestSources,
-											limit: 16,
-										})
+									.$$beaconWithdrawals({
+										sources: beaconRestSources,
+										limit: 16,
+									})
 								}
 								CollapsibleProps={{ canToggle: false }}
 								collapsible={false}
@@ -2069,10 +2083,10 @@
 							<BeaconSlashingsView
 								selection={
 									selection.Evm
-										.$$beaconSlashings({
-											sources: beaconRestSources,
-											limit: 16,
-										})
+									.$$beaconSlashings({
+										sources: beaconRestSources,
+										limit: 16,
+									})
 								}
 								CollapsibleProps={{ canToggle: false }}
 								collapsible={false}
@@ -2089,10 +2103,10 @@
 							<BeaconValidatorsView
 								selection={
 									selection.Evm
-										.$$beaconValidators({
-											sources: beaconRestSources,
-											limit: 16,
-										})
+									.$$beaconValidators({
+										sources: beaconRestSources,
+										limit: 16,
+									})
 								}
 								CollapsibleProps={{ canToggle: false }}
 								collapsible={false}
@@ -2109,10 +2123,10 @@
 							<BeaconEpochsView
 								selection={
 									selection.Evm
-										.$$beaconEpochs({
-											sources: beaconRestSources,
-											limit: 16,
-										})
+									.$$beaconEpochs({
+										sources: beaconRestSources,
+										limit: 16,
+									})
 								}
 								CollapsibleProps={{ canToggle: false }}
 								collapsible={false}
@@ -2129,10 +2143,10 @@
 							<BeaconSlotsView
 								selection={
 									selection.Evm
-										.$$beaconSlots({
-											sources: beaconRestSources,
-											limit: 16,
-										})
+									.$$beaconSlots({
+										sources: beaconRestSources,
+										limit: 16,
+									})
 								}
 								CollapsibleProps={{ canToggle: false }}
 								collapsible={false}
@@ -2149,12 +2163,12 @@
 							<MevRelaysView
 								selection={
 									selection.Evm
-										.$$mevRelays({
-											sources: [
-												Source.Constants_Internal,
-											],
-											limit: 64,
-										})
+									.$$mevRelays({
+										sources: [
+											Source.Constants_Internal,
+										],
+										limit: 64,
+									})
 								}
 								CollapsibleProps={{ canToggle: false }}
 								collapsible={false}
@@ -2171,12 +2185,12 @@
 							<MevBuildersView
 								selection={
 									selection.Evm
-										.$$mevBuilders({
-											sources: [
-												Source.MevRelay_Rest,
-											],
-											limit: 16,
-										})
+									.$$mevBuilders({
+										sources: [
+											Source.MevRelay_Rest,
+										],
+										limit: 16,
+									})
 								}
 								CollapsibleProps={{ canToggle: false }}
 								collapsible={false}
@@ -2193,12 +2207,12 @@
 							<MevRelay_ProposerPayloadDeliveredsView
 								selection={
 									selection.Evm
-										.$$mevProposerPayloadDelivered({
-											sources: [
-												Source.MevRelay_Rest,
-											],
-											limit: 16,
-										})
+									.$$mevProposerPayloadDelivered({
+										sources: [
+											Source.MevRelay_Rest,
+										],
+										limit: 16,
+									})
 								}
 								CollapsibleProps={{ canToggle: false }}
 								collapsible={false}
@@ -2236,25 +2250,25 @@
 
 											<ul data-column="gap-2" data-section-state="resolved-nonempty">
 												{#each consensusEndpointsField.values as consensusEndpoint, consensusEndpointIndex (consensusEndpointIndex)}
-													{@const restBaseUrlValue = consensusEndpoint.restBaseUrl}
-													{@const consensusProtocolValue = consensusEndpoint.consensusProtocol}
 													<li>
 														<dl data-column-item="center">
 															<div>
 																<dt>REST</dt>
 																<dd>
-																	{#if restBaseUrlValue != null}
-																		{String(restBaseUrlValue)}
-																	{/if}
+																	<a
+																		href={consensusEndpoint.restBaseUrl}
+																		target="_blank"
+																		rel="noreferrer noopener"
+																	>
+																		<TruncatedValue value={consensusEndpoint.restBaseUrl} />
+																	</a>
 																</dd>
 															</div>
 
 															<div>
 																<dt>Protocol</dt>
 																<dd>
-																	{#if consensusProtocolValue != null}
-																		{(consensusProtocolByProtocol[String(consensusProtocolValue)]?.label ?? (String(consensusProtocolValue)))}
-																	{/if}
+																	{consensusProtocolByProtocol[consensusEndpoint.consensusProtocol]?.label ?? consensusEndpoint.consensusProtocol}
 																</dd>
 															</div>
 														</dl>
@@ -2293,78 +2307,78 @@
 		>
 			{#snippet Applicable(projection)}
 				{@const evmContractsAccountsSections = [
-					{
-						id: 'evm-contracts-precompiles',
-						label: 'Precompiles',
-						description: 'Catalog precompiles active at the chain head according to the execution upgrade schedule.',
-					},
-					...(
-						blockscoutRestSources.length > 0 ?
-							[
-								{
-									id: 'evm-contracts-verified',
-									label: 'Verified contracts',
-								},
-							]
-						:
-							[]
-					),
-					...(
-						blockscoutRestSources.length > 0 ?
-							[
-								{
-									id: 'evm-contracts-smart-accounts',
-									label: 'Smart accounts',
-								},
-							]
-						:
-							[]
-					),
-					...(
-						blockscoutRestSources.length > 0 ?
-							[
-								{
-									id: 'evm-contracts-bundlers',
-									label: 'Bundlers',
-								},
-							]
-						:
-							[]
-					),
-					...(
-						blockscoutRestSources.length > 0 ?
-							[
-								{
-									id: 'evm-contracts-paymasters',
-									label: 'Paymasters',
-								},
-							]
-						:
-							[]
-					),
-					...(
-						blockscoutRestSources.length > 0 ?
-							[
-								{
-									id: 'evm-contracts-user-operations',
-									label: 'User operations',
-								},
-							]
-						:
-							[]
-					),
-					...(
-						blockscoutRestSources.length > 0 ?
-							[
-								{
-									id: 'evm-contracts-factories',
-									label: 'Factories',
-								},
-							]
-						:
-							[]
-					),
-				]}
+						{
+							id: 'evm-contracts-precompiles',
+							label: 'Precompiles',
+							description: 'Catalog precompiles active at the chain head according to the execution upgrade schedule.',
+						},
+						...(
+							blockscoutRestSources.length > 0 ?
+								[
+									{
+										id: 'evm-contracts-verified',
+										label: 'Verified contracts',
+									},
+								]
+							:
+								[]
+						),
+						...(
+							blockscoutRestSources.length > 0 ?
+								[
+									{
+										id: 'evm-contracts-smart-accounts',
+										label: 'Smart accounts',
+									},
+								]
+							:
+								[]
+						),
+						...(
+							blockscoutRestSources.length > 0 ?
+								[
+									{
+										id: 'evm-contracts-bundlers',
+										label: 'Bundlers',
+									},
+								]
+							:
+								[]
+						),
+						...(
+							blockscoutRestSources.length > 0 ?
+								[
+									{
+										id: 'evm-contracts-paymasters',
+										label: 'Paymasters',
+									},
+								]
+							:
+								[]
+						),
+						...(
+							blockscoutRestSources.length > 0 ?
+								[
+									{
+										id: 'evm-contracts-user-operations',
+										label: 'User operations',
+									},
+								]
+							:
+								[]
+						),
+						...(
+							blockscoutRestSources.length > 0 ?
+								[
+									{
+										id: 'evm-contracts-factories',
+										label: 'Factories',
+									},
+								]
+							:
+								[]
+						),
+					]}
 
 				{#if evmContractsAccountsSections.length > 0}
 					<CollapsibleTabs
@@ -2384,12 +2398,12 @@
 							<EvmContractsView
 								selection={
 									projection
-										.$$precompiles({
-											sources: [
-												Source.Constants_Internal,
-											],
-											limit: 64,
-										})
+									.$$precompiles({
+										sources: [
+											Source.Constants_Internal,
+										],
+										limit: 64,
+									})
 								}
 								CollapsibleProps={{ canToggle: false }}
 								collapsible={false}
@@ -2406,10 +2420,10 @@
 							<EvmContractsView
 								selection={
 									projection
-										.$$contracts({
-											sources: blockscoutRestSources,
-											limit: 16,
-										})
+									.$$contracts({
+										sources: blockscoutRestSources,
+										limit: 16,
+									})
 								}
 								CollapsibleProps={{ canToggle: false }}
 								collapsible={false}
@@ -2426,10 +2440,10 @@
 							<Erc4337SmartAccountsView
 								selection={
 									projection
-										.$$erc4337SmartAccounts({
-											sources: blockscoutRestSources,
-											limit: 16,
-										})
+									.$$erc4337SmartAccounts({
+										sources: blockscoutRestSources,
+										limit: 16,
+									})
 								}
 								CollapsibleProps={{ canToggle: false }}
 								collapsible={false}
@@ -2446,10 +2460,10 @@
 							<Erc4337BundlersView
 								selection={
 									projection
-										.$$erc4337Bundlers({
-											sources: blockscoutRestSources,
-											limit: 16,
-										})
+									.$$erc4337Bundlers({
+										sources: blockscoutRestSources,
+										limit: 16,
+									})
 								}
 								CollapsibleProps={{ canToggle: false }}
 								collapsible={false}
@@ -2466,10 +2480,10 @@
 							<Erc4337PaymastersView
 								selection={
 									projection
-										.$$erc4337Paymasters({
-											sources: blockscoutRestSources,
-											limit: 16,
-										})
+									.$$erc4337Paymasters({
+										sources: blockscoutRestSources,
+										limit: 16,
+									})
 								}
 								CollapsibleProps={{ canToggle: false }}
 								collapsible={false}
@@ -2486,10 +2500,10 @@
 							<EvmUserOperationsView
 								selection={
 									projection
-										.$$userOperations({
-											sources: blockscoutRestSources,
-											limit: 16,
-										})
+									.$$userOperations({
+										sources: blockscoutRestSources,
+										limit: 16,
+									})
 								}
 								CollapsibleProps={{ canToggle: false }}
 								collapsible={false}
@@ -2506,10 +2520,10 @@
 							<Erc4337AccountFactoriesView
 								selection={
 									projection
-										.$$erc4337AccountFactories({
-											sources: blockscoutRestSources,
-											limit: 16,
-										})
+									.$$erc4337AccountFactories({
+										sources: blockscoutRestSources,
+										limit: 16,
+									})
 								}
 								CollapsibleProps={{ canToggle: false }}
 								collapsible={false}
@@ -2532,57 +2546,57 @@
 		>
 			{#snippet Applicable(projection)}
 				{@const evmAssetsNativeCoinResource = projection
-				.$nativeCoin({
-					sources: [
-						Source.Constants_Internal,
-					],
-				})}
+					.$nativeCoin({
+						sources: [
+							Source.Constants_Internal,
+						],
+					})}
 
 				{@const evmAssetsNativeInstanceResource = projection
-				.$nativeCoinInstance({
-					sources: [
-						Source.Constants_Internal,
-					],
-				})}
+					.$nativeCoinInstance({
+						sources: [
+							Source.Constants_Internal,
+						],
+					})}
 
 				{@const evmAssetsSections = [
-					{
-						id: 'evm-assets-native-coin',
-						label: 'Native coin',
-						ownsSection: true,
-					},
-					{
-						id: 'evm-assets-native-instance',
-						label: 'Native coin instance',
-						ownsSection: true,
-					},
-					{
-						id: 'evm-assets-bridges',
-						label: 'Bridges',
-					},
-					...(
-						blockscoutRestSources.length > 0 ?
-							[
-								{
-									id: 'evm-assets-erc20-transfers',
-									label: 'ERC-20 transfers',
-								},
-							]
-						:
-							[]
-					),
-					...(
-						blockscoutRestSources.length > 0 ?
-							[
-								{
-									id: 'evm-assets-nft-transfers',
-									label: 'NFT transfers',
-								},
-							]
-						:
-							[]
-					),
-				]}
+						{
+							id: 'evm-assets-native-coin',
+							label: 'Native coin',
+							ownsSection: true,
+						},
+						{
+							id: 'evm-assets-native-instance',
+							label: 'Native coin instance',
+							ownsSection: true,
+						},
+						{
+							id: 'evm-assets-bridges',
+							label: 'Bridges',
+						},
+						...(
+							blockscoutRestSources.length > 0 ?
+								[
+									{
+										id: 'evm-assets-erc20-transfers',
+										label: 'ERC-20 transfers',
+									},
+								]
+							:
+								[]
+						),
+						...(
+							blockscoutRestSources.length > 0 ?
+								[
+									{
+										id: 'evm-assets-nft-transfers',
+										label: 'NFT transfers',
+									},
+								]
+							:
+								[]
+						),
+					]}
 
 				{#if evmAssetsSections.length > 0}
 					<CollapsibleTabs
@@ -2624,30 +2638,34 @@
 							>
 								{#snippet children(coin)}
 									{#if coin != null}
-									<section
-										id={id}
-										aria-labelledby={`${id}:marker`}
-										data-scroll-marker-label={label}
-										data-column-item="flexible"
-										data-column
-										data-active={active}
-									>
-																<article
-																	id={`${id}-list`}
-																	data-column-item="flexible"
-																	data-card
-																	data-scroll-container
-																>
-																	<CoinView
-																		selection={select(EntityType.Coin, coin[EntityMetaKey.Selector], { sources: [
-											Source.Constants_Internal,
-										] })}
-																		prefetched={coin}
-																		layout={EntityLayout.SummaryInline}
-																		open={false}
-																	/>
-																</article>
-									</section>
+										<section
+											id={id}
+											aria-labelledby={`${id}:marker`}
+											data-scroll-marker-label={label}
+											data-column-item="flexible"
+											data-column
+											data-active={active}
+										>
+											<article
+												id={`${id}-list`}
+												data-column-item="flexible"
+												data-card
+												data-scroll-container
+											>
+												<CoinView
+													selection={
+														select(EntityType.Coin, coin[EntityMetaKey.Selector], {
+															sources: [
+																Source.Constants_Internal,
+															],
+														})
+													}
+													prefetched={coin}
+													layout={EntityLayout.SummaryInline}
+													open={false}
+												/>
+											</article>
+										</section>
 									{/if}
 								{/snippet}
 
@@ -2695,30 +2713,34 @@
 							>
 								{#snippet children(evmCoinInstance)}
 									{#if evmCoinInstance != null}
-									<section
-										id={id}
-										aria-labelledby={`${id}:marker`}
-										data-scroll-marker-label={label}
-										data-column-item="flexible"
-										data-column
-										data-active={active}
-									>
-																<article
-																	id={`${id}-list`}
-																	data-column-item="flexible"
-																	data-card
-																	data-scroll-container
-																>
-																	<EvmCoinInstanceView
-																		selection={select(EntityType.EvmCoinInstance, evmCoinInstance[EntityMetaKey.Selector], { sources: [
-											Source.Constants_Internal,
-										] })}
-																		prefetched={evmCoinInstance}
-																		layout={EntityLayout.SummaryInline}
-																		open={false}
-																	/>
-																</article>
-									</section>
+										<section
+											id={id}
+											aria-labelledby={`${id}:marker`}
+											data-scroll-marker-label={label}
+											data-column-item="flexible"
+											data-column
+											data-active={active}
+										>
+											<article
+												id={`${id}-list`}
+												data-column-item="flexible"
+												data-card
+												data-scroll-container
+											>
+												<EvmCoinInstanceView
+													selection={
+														select(EntityType.EvmCoinInstance, evmCoinInstance[EntityMetaKey.Selector], {
+															sources: [
+																Source.Constants_Internal,
+															],
+														})
+													}
+													prefetched={evmCoinInstance}
+													layout={EntityLayout.SummaryInline}
+													open={false}
+												/>
+											</article>
+										</section>
 									{/if}
 								{/snippet}
 
@@ -2744,13 +2766,13 @@
 							<EvmNetworkBridgesView
 								selection={
 									projection
-										.$$bridges({
-											sources: [
-												Source.Chainlist_Rest,
-												Source.EthereumLists_Rest,
-												Source.Lifi_Rest,
-											],
-										})
+									.$$bridges({
+										sources: [
+											Source.Chainlist_Rest,
+											Source.EthereumLists_Rest,
+											Source.Lifi_Rest,
+										],
+									})
 								}
 								CollapsibleProps={{ canToggle: false }}
 								collapsible={false}
@@ -2767,10 +2789,10 @@
 							<EvmTokenTransfersView
 								selection={
 									projection
-										.$$erc20TokenTransfers({
-											sources: blockscoutRestSources,
-											limit: 16,
-										})
+									.$$erc20TokenTransfers({
+										sources: blockscoutRestSources,
+										limit: 16,
+									})
 								}
 								CollapsibleProps={{ canToggle: false }}
 								collapsible={false}
@@ -2787,10 +2809,10 @@
 							<EvmTokenTransfersView
 								selection={
 									projection
-										.$$nftTokenTransfers({
-											sources: blockscoutRestSources,
-											limit: 16,
-										})
+									.$$nftTokenTransfers({
+										sources: blockscoutRestSources,
+										limit: 16,
+									})
 								}
 								CollapsibleProps={{ canToggle: false }}
 								collapsible={false}
@@ -2813,29 +2835,29 @@
 		>
 			{#snippet Applicable(projection)}
 				{@const cosmosConsensusBlockProductionSections = [
-					...(
-						cosmosSdkRestSources.length > 0 ?
-							[
-								{
-									id: 'cosmos-consensus-blocks',
-									label: 'Blocks',
-								},
-							]
-						:
-							[]
-					),
-					...(
-						cosmosSdkRestSources.length > 0 ?
-							[
-								{
-									id: 'cosmos-consensus-validators',
-									label: 'Validators',
-								},
-							]
-						:
-							[]
-					),
-				]}
+						...(
+							cosmosSdkRestSources.length > 0 ?
+								[
+									{
+										id: 'cosmos-consensus-blocks',
+										label: 'Blocks',
+									},
+								]
+							:
+								[]
+						),
+						...(
+							cosmosSdkRestSources.length > 0 ?
+								[
+									{
+										id: 'cosmos-consensus-validators',
+										label: 'Validators',
+									},
+								]
+							:
+								[]
+						),
+					]}
 
 				{#if cosmosConsensusBlockProductionSections.length > 0}
 					<CollapsibleTabs
@@ -2867,10 +2889,10 @@
 							<CosmosBlocksView
 								selection={
 									projection
-										.$$blocks({
-											sources: cosmosSdkRestSources,
-											limit: 16,
-										})
+									.$$blocks({
+										sources: cosmosSdkRestSources,
+										limit: 16,
+									})
 								}
 								CollapsibleProps={{ canToggle: false }}
 								collapsible={false}
@@ -2887,10 +2909,10 @@
 							<CosmosValidatorsView
 								selection={
 									projection
-										.$$validators({
-											sources: cosmosSdkRestSources,
-											limit: 16,
-										})
+									.$$validators({
+										sources: cosmosSdkRestSources,
+										limit: 16,
+									})
 								}
 								CollapsibleProps={{ canToggle: false }}
 								collapsible={false}
@@ -2913,18 +2935,18 @@
 		>
 			{#snippet Applicable(projection)}
 				{@const cosmosContractsAccountsSections = [
-					...(
-						cosmosSdkRestSources.length > 0 ?
-							[
-								{
-									id: 'cosmos-contracts-accounts-accounts',
-									label: 'Accounts',
-								},
-							]
-						:
-							[]
-					),
-				]}
+						...(
+							cosmosSdkRestSources.length > 0 ?
+								[
+									{
+										id: 'cosmos-contracts-accounts-accounts',
+										label: 'Accounts',
+									},
+								]
+							:
+								[]
+						),
+					]}
 
 				{#if cosmosContractsAccountsSections.length > 0}
 					<CollapsibleTabs
@@ -2944,10 +2966,10 @@
 							<CosmosAccountsView
 								selection={
 									projection
-										.$$accounts({
-											sources: cosmosSdkRestSources,
-											limit: 16,
-										})
+									.$$accounts({
+										sources: cosmosSdkRestSources,
+										limit: 16,
+									})
 								}
 								CollapsibleProps={{ canToggle: false }}
 								collapsible={false}
@@ -2970,18 +2992,18 @@
 		>
 			{#snippet Applicable(projection)}
 				{@const cosmosGovernanceSections = [
-					...(
-						cosmosSdkRestSources.length > 0 ?
-							[
-								{
-									id: 'cosmos-governance-proposals',
-									label: 'Proposals',
-								},
-							]
-						:
-							[]
-					),
-				]}
+						...(
+							cosmosSdkRestSources.length > 0 ?
+								[
+									{
+										id: 'cosmos-governance-proposals',
+										label: 'Proposals',
+									},
+								]
+							:
+								[]
+						),
+					]}
 
 				{#if cosmosGovernanceSections.length > 0}
 					<CollapsibleTabs
@@ -3013,10 +3035,10 @@
 							<CosmosGovernanceProposalsView
 								selection={
 									projection
-										.$$governanceProposals({
-											sources: cosmosSdkRestSources,
-											limit: 16,
-										})
+									.$$governanceProposals({
+										sources: cosmosSdkRestSources,
+										limit: 16,
+									})
 								}
 								CollapsibleProps={{ canToggle: false }}
 								collapsible={false}
@@ -3039,19 +3061,19 @@
 		>
 			{#snippet Applicable(projection)}
 				{@const cosmosResourcesSections = [
-					...(
-						cosmosSdkRestSources.length > 0 ?
-							[
-								{
-									id: 'cosmos-resources-endpoints',
-									label: 'Endpoints',
-									ownsSection: true,
-								},
-							]
-						:
-							[]
-					),
-				]}
+						...(
+							cosmosSdkRestSources.length > 0 ?
+								[
+									{
+										id: 'cosmos-resources-endpoints',
+										label: 'Endpoints',
+										ownsSection: true,
+									},
+								]
+							:
+								[]
+						),
+					]}
 
 				{#if cosmosResourcesSections.length > 0}
 					<CollapsibleTabs
@@ -3071,9 +3093,9 @@
 							<ResourceBoundary
 								resource={
 									projection
-										.restEndpoints({
-											sources: cosmosSdkRestSources,
-										})
+									.restEndpoints({
+										sources: cosmosSdkRestSources,
+									})
 								}
 							>
 								{#snippet children(restEndpointsField)}
@@ -3097,35 +3119,32 @@
 
 											<ul data-column="gap-2" data-section-state="resolved-nonempty">
 												{#each restEndpointsField.values as restEndpoint, restEndpointIndex (restEndpointIndex)}
-													{@const urlValue = restEndpoint.url}
-													{@const providerNameValue = restEndpoint.providerName}
-													{@const transportTypeValue = restEndpoint.transportType}
 													<li>
 														<dl data-column-item="center">
 															<div>
 																<dt>REST</dt>
 																<dd>
-																	{#if urlValue != null}
-																		{String(urlValue)}
-																	{/if}
+																	<a
+																		href={restEndpoint.url}
+																		target="_blank"
+																		rel="noreferrer noopener"
+																	>
+																		<TruncatedValue value={restEndpoint.url} />
+																	</a>
 																</dd>
 															</div>
 
 															<div>
 																<dt>Provider</dt>
 																<dd>
-																	{#if providerNameValue != null}
-																		{String(providerNameValue)}
-																	{/if}
+																	{restEndpoint.providerName}
 																</dd>
 															</div>
 
 															<div>
 																<dt>Transport</dt>
 																<dd>
-																	{#if transportTypeValue != null}
-																		{String(transportTypeValue)}
-																	{/if}
+																	{restEndpoint.transportType}
 																</dd>
 															</div>
 														</dl>
@@ -3164,22 +3183,22 @@
 		>
 			{#snippet Applicable(projection)}
 				{@const polkadotConsensusBlockProductionSections = [
-					...(
-						polkadotJsonRpcSources.length > 0 ?
-							[
-								{
-									id: 'polkadot-consensus-blocks',
-									label: 'Blocks',
-								},
-							]
-						:
-							[]
-					),
-					{
-						id: 'polkadot-consensus-validators',
-						label: 'Validators',
-					},
-				]}
+						...(
+							polkadotJsonRpcSources.length > 0 ?
+								[
+									{
+										id: 'polkadot-consensus-blocks',
+										label: 'Blocks',
+									},
+								]
+							:
+								[]
+						),
+						{
+							id: 'polkadot-consensus-validators',
+							label: 'Validators',
+						},
+					]}
 
 				{#if polkadotConsensusBlockProductionSections.length > 0}
 					<CollapsibleTabs
@@ -3199,10 +3218,10 @@
 							<PolkadotBlocksView
 								selection={
 									projection
-										.$$blocks({
-											sources: polkadotJsonRpcSources,
-											limit: 16,
-										})
+									.$$blocks({
+										sources: polkadotJsonRpcSources,
+										limit: 16,
+									})
 								}
 								CollapsibleProps={{ canToggle: false }}
 								collapsible={false}
@@ -3219,12 +3238,12 @@
 							<PolkadotValidatorsView
 								selection={
 									projection
-										.$$validators({
-											sources: [
-												Source.SubstrateSidecar_Rest,
-											],
-											limit: 16,
-										})
+									.$$validators({
+										sources: [
+											Source.SubstrateSidecar_Rest,
+										],
+										limit: 16,
+									})
 								}
 								CollapsibleProps={{ canToggle: false }}
 								collapsible={false}
@@ -3247,19 +3266,19 @@
 		>
 			{#snippet Applicable(projection)}
 				{@const polkadotResourcesSections = [
-					...(
-						polkadotJsonRpcSources.length > 0 ?
-							[
-								{
-									id: 'polkadot-resources-endpoints',
-									label: 'Endpoints',
-									ownsSection: true,
-								},
-							]
-						:
-							[]
-					),
-				]}
+						...(
+							polkadotJsonRpcSources.length > 0 ?
+								[
+									{
+										id: 'polkadot-resources-endpoints',
+										label: 'Endpoints',
+										ownsSection: true,
+									},
+								]
+							:
+								[]
+						),
+					]}
 
 				{#if polkadotResourcesSections.length > 0}
 					<CollapsibleTabs
@@ -3279,9 +3298,9 @@
 							<ResourceBoundary
 								resource={
 									projection
-										.rpcEndpoints({
-											sources: polkadotJsonRpcSources,
-										})
+									.rpcEndpoints({
+										sources: polkadotJsonRpcSources,
+									})
 								}
 							>
 								{#snippet children(rpcEndpointsField)}
@@ -3305,35 +3324,32 @@
 
 											<ul data-column="gap-2" data-section-state="resolved-nonempty">
 												{#each rpcEndpointsField.values as rpcEndpoint, rpcEndpointIndex (rpcEndpointIndex)}
-													{@const urlValue = rpcEndpoint.url}
-													{@const providerNameValue = rpcEndpoint.providerName}
-													{@const transportTypeValue = rpcEndpoint.transportType}
 													<li>
 														<dl data-column-item="center">
 															<div>
 																<dt>RPC</dt>
 																<dd>
-																	{#if urlValue != null}
-																		{String(urlValue)}
-																	{/if}
+																	<a
+																		href={rpcEndpoint.url}
+																		target="_blank"
+																		rel="noreferrer noopener"
+																	>
+																		<TruncatedValue value={rpcEndpoint.url} />
+																	</a>
 																</dd>
 															</div>
 
 															<div>
 																<dt>Provider</dt>
 																<dd>
-																	{#if providerNameValue != null}
-																		{String(providerNameValue)}
-																	{/if}
+																	{rpcEndpoint.providerName}
 																</dd>
 															</div>
 
 															<div>
 																<dt>Transport</dt>
 																<dd>
-																	{#if transportTypeValue != null}
-																		{String(transportTypeValue)}
-																	{/if}
+																	{rpcEndpoint.transportType}
 																</dd>
 															</div>
 														</dl>
@@ -3372,29 +3388,29 @@
 		>
 			{#snippet Applicable(projection)}
 				{@const solanaExecutionSections = [
-					...(
-						solanaJsonRpcSources.length > 0 ?
-							[
-								{
-									id: 'solana-execution-blocks',
-									label: 'Blocks',
-								},
-							]
-						:
-							[]
-					),
-					...(
-						solanaJsonRpcSources.length > 0 ?
-							[
-								{
-									id: 'solana-execution-transactions',
-									label: 'Transactions',
-								},
-							]
-						:
-							[]
-					),
-				]}
+						...(
+							solanaJsonRpcSources.length > 0 ?
+								[
+									{
+										id: 'solana-execution-blocks',
+										label: 'Blocks',
+									},
+								]
+							:
+								[]
+						),
+						...(
+							solanaJsonRpcSources.length > 0 ?
+								[
+									{
+										id: 'solana-execution-transactions',
+										label: 'Transactions',
+									},
+								]
+							:
+								[]
+						),
+					]}
 
 				{#if solanaExecutionSections.length > 0}
 					<CollapsibleTabs
@@ -3426,10 +3442,10 @@
 							<SolanaBlocksView
 								selection={
 									projection
-										.$$blocks({
-											sources: solanaJsonRpcSources,
-											limit: 16,
-										})
+									.$$blocks({
+										sources: solanaJsonRpcSources,
+										limit: 16,
+									})
 								}
 								CollapsibleProps={{ canToggle: false }}
 								collapsible={false}
@@ -3446,10 +3462,10 @@
 							<SolanaTransactionsView
 								selection={
 									projection
-										.$$transactions({
-											sources: solanaJsonRpcSources,
-											limit: 16,
-										})
+									.$$transactions({
+										sources: solanaJsonRpcSources,
+										limit: 16,
+									})
 								}
 								CollapsibleProps={{ canToggle: false }}
 								collapsible={false}
@@ -3472,18 +3488,18 @@
 		>
 			{#snippet Applicable(projection)}
 				{@const solanaConsensusBlockProductionSections = [
-					...(
-						solanaJsonRpcSources.length > 0 ?
-							[
-								{
-									id: 'solana-consensus-validators',
-									label: 'Validators',
-								},
-							]
-						:
-							[]
-					),
-				]}
+						...(
+							solanaJsonRpcSources.length > 0 ?
+								[
+									{
+										id: 'solana-consensus-validators',
+										label: 'Validators',
+									},
+								]
+							:
+								[]
+						),
+					]}
 
 				{#if solanaConsensusBlockProductionSections.length > 0}
 					<CollapsibleTabs
@@ -3515,10 +3531,10 @@
 							<SolanaValidatorsView
 								selection={
 									projection
-										.$$validators({
-											sources: solanaJsonRpcSources,
-											limit: 16,
-										})
+									.$$validators({
+										sources: solanaJsonRpcSources,
+										limit: 16,
+									})
 								}
 								CollapsibleProps={{ canToggle: false }}
 								collapsible={false}
@@ -3541,29 +3557,29 @@
 		>
 			{#snippet Applicable(projection)}
 				{@const solanaContractsAccountsSections = [
-					...(
-						solanaJsonRpcSources.length > 0 ?
-							[
-								{
-									id: 'solana-contracts-accounts-accounts',
-									label: 'Accounts',
-								},
-							]
-						:
-							[]
-					),
-					...(
-						solanaJsonRpcSources.length > 0 ?
-							[
-								{
-									id: 'solana-contracts-accounts-programs',
-									label: 'Programs',
-								},
-							]
-						:
-							[]
-					),
-				]}
+						...(
+							solanaJsonRpcSources.length > 0 ?
+								[
+									{
+										id: 'solana-contracts-accounts-accounts',
+										label: 'Accounts',
+									},
+								]
+							:
+								[]
+						),
+						...(
+							solanaJsonRpcSources.length > 0 ?
+								[
+									{
+										id: 'solana-contracts-accounts-programs',
+										label: 'Programs',
+									},
+								]
+							:
+								[]
+						),
+					]}
 
 				{#if solanaContractsAccountsSections.length > 0}
 					<CollapsibleTabs
@@ -3595,10 +3611,10 @@
 							<SolanaAccountsView
 								selection={
 									projection
-										.$$accounts({
-											sources: solanaJsonRpcSources,
-											limit: 16,
-										})
+									.$$accounts({
+										sources: solanaJsonRpcSources,
+										limit: 16,
+									})
 								}
 								CollapsibleProps={{ canToggle: false }}
 								collapsible={false}
@@ -3615,10 +3631,10 @@
 							<SolanaProgramsView
 								selection={
 									projection
-										.$$programs({
-											sources: solanaJsonRpcSources,
-											limit: 16,
-										})
+									.$$programs({
+										sources: solanaJsonRpcSources,
+										limit: 16,
+									})
 								}
 								CollapsibleProps={{ canToggle: false }}
 								collapsible={false}
@@ -3641,29 +3657,29 @@
 		>
 			{#snippet Applicable(projection)}
 				{@const solanaAssetsSections = [
-					...(
-						solanaJsonRpcSources.length > 0 ?
-							[
-								{
-									id: 'solana-assets-token-accounts',
-									label: 'Token accounts',
-								},
-							]
-						:
-							[]
-					),
-					...(
-						solanaJsonRpcSources.length > 0 ?
-							[
-								{
-									id: 'solana-assets-token-mints',
-									label: 'Token mints',
-								},
-							]
-						:
-							[]
-					),
-				]}
+						...(
+							solanaJsonRpcSources.length > 0 ?
+								[
+									{
+										id: 'solana-assets-token-accounts',
+										label: 'Token accounts',
+									},
+								]
+							:
+								[]
+						),
+						...(
+							solanaJsonRpcSources.length > 0 ?
+								[
+									{
+										id: 'solana-assets-token-mints',
+										label: 'Token mints',
+									},
+								]
+							:
+								[]
+						),
+					]}
 
 				{#if solanaAssetsSections.length > 0}
 					<CollapsibleTabs
@@ -3683,10 +3699,10 @@
 							<SolanaTokenAccountsView
 								selection={
 									projection
-										.$$tokenAccounts({
-											sources: solanaJsonRpcSources,
-											limit: 16,
-										})
+									.$$tokenAccounts({
+										sources: solanaJsonRpcSources,
+										limit: 16,
+									})
 								}
 								CollapsibleProps={{ canToggle: false }}
 								collapsible={false}
@@ -3703,10 +3719,10 @@
 							<SolanaTokenMintsView
 								selection={
 									projection
-										.$$tokenMints({
-											sources: solanaJsonRpcSources,
-											limit: 16,
-										})
+									.$$tokenMints({
+										sources: solanaJsonRpcSources,
+										limit: 16,
+									})
 								}
 								CollapsibleProps={{ canToggle: false }}
 								collapsible={false}
@@ -3729,19 +3745,19 @@
 		>
 			{#snippet Applicable(projection)}
 				{@const solanaResourcesSections = [
-					...(
-						solanaJsonRpcSources.length > 0 ?
-							[
-								{
-									id: 'solana-resources-endpoints',
-									label: 'Endpoints',
-									ownsSection: true,
-								},
-							]
-						:
-							[]
-					),
-				]}
+						...(
+							solanaJsonRpcSources.length > 0 ?
+								[
+									{
+										id: 'solana-resources-endpoints',
+										label: 'Endpoints',
+										ownsSection: true,
+									},
+								]
+							:
+								[]
+						),
+					]}
 
 				{#if solanaResourcesSections.length > 0}
 					<CollapsibleTabs
@@ -3761,9 +3777,9 @@
 							<ResourceBoundary
 								resource={
 									projection
-										.rpcEndpoints({
-											sources: solanaJsonRpcSources,
-										})
+									.rpcEndpoints({
+										sources: solanaJsonRpcSources,
+									})
 								}
 							>
 								{#snippet children(rpcEndpointsField)}
@@ -3787,35 +3803,32 @@
 
 											<ul data-column="gap-2" data-section-state="resolved-nonempty">
 												{#each rpcEndpointsField.values as rpcEndpoint, rpcEndpointIndex (rpcEndpointIndex)}
-													{@const urlValue = rpcEndpoint.url}
-													{@const providerNameValue = rpcEndpoint.providerName}
-													{@const transportTypeValue = rpcEndpoint.transportType}
 													<li>
 														<dl data-column-item="center">
 															<div>
 																<dt>RPC</dt>
 																<dd>
-																	{#if urlValue != null}
-																		{String(urlValue)}
-																	{/if}
+																	<a
+																		href={rpcEndpoint.url}
+																		target="_blank"
+																		rel="noreferrer noopener"
+																	>
+																		<TruncatedValue value={rpcEndpoint.url} />
+																	</a>
 																</dd>
 															</div>
 
 															<div>
 																<dt>Provider</dt>
 																<dd>
-																	{#if providerNameValue != null}
-																		{String(providerNameValue)}
-																	{/if}
+																	{rpcEndpoint.providerName}
 																</dd>
 															</div>
 
 															<div>
 																<dt>Transport</dt>
 																<dd>
-																	{#if transportTypeValue != null}
-																		{String(transportTypeValue)}
-																	{/if}
+																	{rpcEndpoint.transportType}
 																</dd>
 															</div>
 														</dl>
@@ -3854,29 +3867,29 @@
 		>
 			{#snippet Applicable(projection)}
 				{@const utxoChainActivitySections = [
-					...(
-						mempoolSpaceRestAndBlockchairRestSources.length > 0 ?
-							[
-								{
-									id: 'utxo-consensus-observations',
-									label: 'Observations',
-								},
-							]
-						:
-							[]
-					),
-					...(
-						mempoolSpaceRestAndBlockchairRestSources.length > 0 ?
-							[
-								{
-									id: 'utxo-consensus-blocks',
-									label: 'Blocks',
-								},
-							]
-						:
-							[]
-					),
-				]}
+						...(
+							mempoolSpaceRestAndBlockchairRestSources.length > 0 ?
+								[
+									{
+										id: 'utxo-consensus-observations',
+										label: 'Observations',
+									},
+								]
+							:
+								[]
+						),
+						...(
+							mempoolSpaceRestAndBlockchairRestSources.length > 0 ?
+								[
+									{
+										id: 'utxo-consensus-blocks',
+										label: 'Blocks',
+									},
+								]
+							:
+								[]
+						),
+					]}
 
 				{#if utxoChainActivitySections.length > 0}
 					<CollapsibleTabs
@@ -3896,10 +3909,10 @@
 							<Network_TimestampsView
 								selection={
 									selection
-										.$$timestamps({
-											sources: mempoolSpaceRestAndBlockchairRestSources,
-											limit: 16,
-										})
+									.$$timestamps({
+										sources: mempoolSpaceRestAndBlockchairRestSources,
+										limit: 16,
+									})
 								}
 								CollapsibleProps={{ canToggle: false }}
 								collapsible={false}
@@ -3916,10 +3929,10 @@
 							<UtxoBlocksView
 								selection={
 									projection
-										.$$blocks({
-											sources: mempoolSpaceRestAndBlockchairRestSources,
-											limit: 16,
-										})
+									.$$blocks({
+										sources: mempoolSpaceRestAndBlockchairRestSources,
+										limit: 16,
+									})
 								}
 								CollapsibleProps={{ canToggle: false }}
 								collapsible={false}
@@ -3942,33 +3955,33 @@
 		>
 			{#snippet Applicable(projection)}
 				{@const utxoTransactionGraphUtxoExecutionMempoolSources = networkApplicableSources([
-					Source.MempoolSpace_Rest,
-				], pendingEntity)}
+						Source.MempoolSpace_Rest,
+					], pendingEntity)}
 
 				{@const utxoTransactionGraphSections = [
-					...(
-						mempoolSpaceRestAndBlockchairRestSources.length > 0 ?
-							[
-								{
-									id: 'utxo-execution-transactions',
-									label: 'Transactions',
-								},
-							]
-						:
-							[]
-					),
-					...(
-						utxoTransactionGraphUtxoExecutionMempoolSources.length > 0 ?
-							[
-								{
-									id: 'utxo-execution-mempool',
-									label: 'Mempool',
-								},
-							]
-						:
-							[]
-					),
-				]}
+						...(
+							mempoolSpaceRestAndBlockchairRestSources.length > 0 ?
+								[
+									{
+										id: 'utxo-execution-transactions',
+										label: 'Transactions',
+									},
+								]
+							:
+								[]
+						),
+						...(
+							utxoTransactionGraphUtxoExecutionMempoolSources.length > 0 ?
+								[
+									{
+										id: 'utxo-execution-mempool',
+										label: 'Mempool',
+									},
+								]
+							:
+								[]
+						),
+					]}
 
 				{#if utxoTransactionGraphSections.length > 0}
 					<CollapsibleTabs
@@ -3988,10 +4001,10 @@
 							<UtxoTransactionsView
 								selection={
 									projection
-										.$$transactions({
-											sources: mempoolSpaceRestAndBlockchairRestSources,
-											limit: 16,
-										})
+									.$$transactions({
+										sources: mempoolSpaceRestAndBlockchairRestSources,
+										limit: 16,
+									})
 								}
 								CollapsibleProps={{ canToggle: false }}
 								collapsible={false}
@@ -4008,10 +4021,10 @@
 							<UtxoTransactionsView
 								selection={
 									projection
-										.$$transactions({
-											sources: utxoTransactionGraphUtxoExecutionMempoolSources,
-											limit: 16,
-										})
+									.$$transactions({
+										sources: utxoTransactionGraphUtxoExecutionMempoolSources,
+										limit: 16,
+									})
 								}
 								CollapsibleProps={{ canToggle: false }}
 								collapsible={false}
@@ -4057,11 +4070,11 @@
 						<ZcashShieldedPoolsView
 							selection={
 								projection
-									.$$shieldedPools({
-										sources: [
-											Source.Constants_Internal,
-										],
-									})
+								.$$shieldedPools({
+									sources: [
+										Source.Constants_Internal,
+									],
+								})
 							}
 							CollapsibleProps={{ canToggle: false }}
 							collapsible={false}
@@ -4083,29 +4096,29 @@
 		>
 			{#snippet Applicable(projection)}
 				{@const bittensorChainActivitySections = [
-					...(
-						bittensorJsonRpcSources.length > 0 ?
-							[
-								{
-									id: 'bittensor-chain-observations',
-									label: 'Observations',
-								},
-							]
-						:
-							[]
-					),
-					...(
-						bittensorJsonRpcSources.length > 0 ?
-							[
-								{
-									id: 'bittensor-chain-blocks',
-									label: 'Blocks',
-								},
-							]
-						:
-							[]
-					),
-				]}
+						...(
+							bittensorJsonRpcSources.length > 0 ?
+								[
+									{
+										id: 'bittensor-chain-observations',
+										label: 'Observations',
+									},
+								]
+							:
+								[]
+						),
+						...(
+							bittensorJsonRpcSources.length > 0 ?
+								[
+									{
+										id: 'bittensor-chain-blocks',
+										label: 'Blocks',
+									},
+								]
+							:
+								[]
+						),
+					]}
 
 				{#if bittensorChainActivitySections.length > 0}
 					<CollapsibleTabs
@@ -4125,10 +4138,10 @@
 							<BittensorNetwork_TimestampsView
 								selection={
 									projection
-										.$$timestamps({
-											sources: bittensorJsonRpcSources,
-											limit: 16,
-										})
+									.$$timestamps({
+										sources: bittensorJsonRpcSources,
+										limit: 16,
+									})
 								}
 								CollapsibleProps={{ canToggle: false }}
 								collapsible={false}
@@ -4145,10 +4158,10 @@
 							<BittensorBlocksView
 								selection={
 									projection
-										.$$blocks({
-											sources: bittensorJsonRpcSources,
-											limit: 16,
-										})
+									.$$blocks({
+										sources: bittensorJsonRpcSources,
+										limit: 16,
+									})
 								}
 								CollapsibleProps={{ canToggle: false }}
 								collapsible={false}
@@ -4171,18 +4184,18 @@
 		>
 			{#snippet Applicable(projection)}
 				{@const bittensorSubnetsSections = [
-					...(
-						bittensorJsonRpcSources.length > 0 ?
-							[
-								{
-									id: 'bittensor-subnets-subnets',
-									label: 'Subnets',
-								},
-							]
-						:
-							[]
-					),
-				]}
+						...(
+							bittensorJsonRpcSources.length > 0 ?
+								[
+									{
+										id: 'bittensor-subnets-subnets',
+										label: 'Subnets',
+									},
+								]
+							:
+								[]
+						),
+					]}
 
 				{#if bittensorSubnetsSections.length > 0}
 					<CollapsibleTabs
@@ -4202,10 +4215,10 @@
 							<BittensorSubnetsView
 								selection={
 									projection
-										.$$subnets({
-											sources: bittensorJsonRpcSources,
-											limit: 16,
-										})
+									.$$subnets({
+										sources: bittensorJsonRpcSources,
+										limit: 16,
+									})
 								}
 								CollapsibleProps={{ canToggle: false }}
 								collapsible={false}
@@ -4263,12 +4276,12 @@
 						<ZeroGNetwork_TimestampsView
 							selection={
 								projection
-									.$$timestamps({
-										sources: [
-											Source.ZeroGStorageScan_Rest,
-										],
-										limit: 16,
-									})
+								.$$timestamps({
+									sources: [
+										Source.ZeroGStorageScan_Rest,
+									],
+									limit: 16,
+								})
 							}
 							CollapsibleProps={{ canToggle: false }}
 							collapsible={false}
@@ -4285,12 +4298,12 @@
 						<ZeroGStorageNodesView
 							selection={
 								projection
-									.$$storageNodes({
-										sources: [
-											Source.ZeroGStorageScan_Rest,
-										],
-										limit: 16,
-									})
+								.$$storageNodes({
+									sources: [
+										Source.ZeroGStorageScan_Rest,
+									],
+									limit: 16,
+								})
 							}
 							CollapsibleProps={{ canToggle: false }}
 							collapsible={false}
@@ -4307,12 +4320,12 @@
 						<ZeroGDataBlobsView
 							selection={
 								projection
-									.$$dataBlobs({
-										sources: [
-											Source.ZeroGStorageScan_Rest,
-										],
-										limit: 16,
-									})
+								.$$dataBlobs({
+									sources: [
+										Source.ZeroGStorageScan_Rest,
+									],
+									limit: 16,
+								})
 							}
 							CollapsibleProps={{ canToggle: false }}
 							collapsible={false}
@@ -4329,12 +4342,12 @@
 						<ZeroGStorageLogEntriesView
 							selection={
 								projection
-									.$$storageLogEntries({
-										sources: [
-											Source.ZeroGStorageScan_Rest,
-										],
-										limit: 16,
-									})
+								.$$storageLogEntries({
+									sources: [
+										Source.ZeroGStorageScan_Rest,
+									],
+									limit: 16,
+								})
 							}
 							CollapsibleProps={{ canToggle: false }}
 							collapsible={false}
@@ -4383,12 +4396,12 @@
 						<FilecoinNetwork_TimestampsView
 							selection={
 								projection
-									.$$timestamps({
-										sources: [
-											Source.Lotus_JsonRpc,
-										],
-										limit: 16,
-									})
+								.$$timestamps({
+									sources: [
+										Source.Lotus_JsonRpc,
+									],
+									limit: 16,
+								})
 							}
 							CollapsibleProps={{ canToggle: false }}
 							collapsible={false}
@@ -4405,12 +4418,12 @@
 						<FilecoinTipsetsView
 							selection={
 								projection
-									.$$tipsets({
-										sources: [
-											Source.Lotus_JsonRpc,
-										],
-										limit: 16,
-									})
+								.$$tipsets({
+									sources: [
+										Source.Lotus_JsonRpc,
+									],
+									limit: 16,
+								})
 							}
 							CollapsibleProps={{ canToggle: false }}
 							collapsible={false}
@@ -4477,35 +4490,32 @@
 
 										<ul data-column="gap-2" data-section-state="resolved-nonempty">
 											{#each rpcEndpointsField.values as rpcEndpoint, rpcEndpointIndex (rpcEndpointIndex)}
-												{@const urlValue = rpcEndpoint.url}
-												{@const providerNameValue = rpcEndpoint.providerName}
-												{@const transportTypeValue = rpcEndpoint.transportType}
 												<li>
 													<dl data-column-item="center">
 														<div>
 															<dt>RPC</dt>
 															<dd>
-																{#if urlValue != null}
-																	{String(urlValue)}
-																{/if}
+																<a
+																	href={rpcEndpoint.url}
+																	target="_blank"
+																	rel="noreferrer noopener"
+																>
+																	<TruncatedValue value={rpcEndpoint.url} />
+																</a>
 															</dd>
 														</div>
 
 														<div>
 															<dt>Provider</dt>
 															<dd>
-																{#if providerNameValue != null}
-																	{String(providerNameValue)}
-																{/if}
+																{rpcEndpoint.providerName}
 															</dd>
 														</div>
 
 														<div>
 															<dt>Transport</dt>
 															<dd>
-																{#if transportTypeValue != null}
-																	{String(transportTypeValue)}
-																{/if}
+																{rpcEndpoint.transportType}
 															</dd>
 														</div>
 													</dl>
@@ -4543,29 +4553,29 @@
 		>
 			{#snippet Applicable(projection)}
 				{@const nearChainActivitySections = [
-					...(
-						nearRpcJsonRpcSources.length > 0 ?
-							[
-								{
-									id: 'near-chain-observations',
-									label: 'Observations',
-								},
-							]
-						:
-							[]
-					),
-					...(
-						nearRpcJsonRpcSources.length > 0 ?
-							[
-								{
-									id: 'near-chain-blocks',
-									label: 'Blocks',
-								},
-							]
-						:
-							[]
-					),
-				]}
+						...(
+							nearRpcJsonRpcSources.length > 0 ?
+								[
+									{
+										id: 'near-chain-observations',
+										label: 'Observations',
+									},
+								]
+							:
+								[]
+						),
+						...(
+							nearRpcJsonRpcSources.length > 0 ?
+								[
+									{
+										id: 'near-chain-blocks',
+										label: 'Blocks',
+									},
+								]
+							:
+								[]
+						),
+					]}
 
 				{#if nearChainActivitySections.length > 0}
 					<CollapsibleTabs
@@ -4585,10 +4595,10 @@
 							<NearNetwork_TimestampsView
 								selection={
 									projection
-										.$$timestamps({
-											sources: nearRpcJsonRpcSources,
-											limit: 16,
-										})
+									.$$timestamps({
+										sources: nearRpcJsonRpcSources,
+										limit: 16,
+									})
 								}
 								CollapsibleProps={{ canToggle: false }}
 								collapsible={false}
@@ -4605,10 +4615,10 @@
 							<NearBlocksView
 								selection={
 									projection
-										.$$blocks({
-											sources: nearRpcJsonRpcSources,
-											limit: 16,
-										})
+									.$$blocks({
+										sources: nearRpcJsonRpcSources,
+										limit: 16,
+									})
 								}
 								CollapsibleProps={{ canToggle: false }}
 								collapsible={false}
@@ -4631,18 +4641,18 @@
 		>
 			{#snippet Applicable(projection)}
 				{@const nearConsensusSections = [
-					...(
-						nearRpcJsonRpcSources.length > 0 ?
-							[
-								{
-									id: 'near-consensus-validators',
-									label: 'Validators',
-								},
-							]
-						:
-							[]
-					),
-				]}
+						...(
+							nearRpcJsonRpcSources.length > 0 ?
+								[
+									{
+										id: 'near-consensus-validators',
+										label: 'Validators',
+									},
+								]
+							:
+								[]
+						),
+					]}
 
 				{#if nearConsensusSections.length > 0}
 					<CollapsibleTabs
@@ -4662,10 +4672,10 @@
 							<NearValidatorsView
 								selection={
 									projection
-										.$$validators({
-											sources: nearRpcJsonRpcSources,
-											limit: 16,
-										})
+									.$$validators({
+										sources: nearRpcJsonRpcSources,
+										limit: 16,
+									})
 								}
 								CollapsibleProps={{ canToggle: false }}
 								collapsible={false}
@@ -4733,35 +4743,32 @@
 
 										<ul data-column="gap-2" data-section-state="resolved-nonempty">
 											{#each rpcEndpointsField.values as rpcEndpoint, rpcEndpointIndex (rpcEndpointIndex)}
-												{@const urlValue = rpcEndpoint.url}
-												{@const providerNameValue = rpcEndpoint.providerName}
-												{@const transportTypeValue = rpcEndpoint.transportType}
 												<li>
 													<dl data-column-item="center">
 														<div>
 															<dt>RPC</dt>
 															<dd>
-																{#if urlValue != null}
-																	{String(urlValue)}
-																{/if}
+																<a
+																	href={rpcEndpoint.url}
+																	target="_blank"
+																	rel="noreferrer noopener"
+																>
+																	<TruncatedValue value={rpcEndpoint.url} />
+																</a>
 															</dd>
 														</div>
 
 														<div>
 															<dt>Provider</dt>
 															<dd>
-																{#if providerNameValue != null}
-																	{String(providerNameValue)}
-																{/if}
+																{rpcEndpoint.providerName}
 															</dd>
 														</div>
 
 														<div>
 															<dt>Transport</dt>
 															<dd>
-																{#if transportTypeValue != null}
-																	{String(transportTypeValue)}
-																{/if}
+																{rpcEndpoint.transportType}
 															</dd>
 														</div>
 													</dl>
@@ -4826,12 +4833,12 @@
 						<MoneroNetwork_TimestampsView
 							selection={
 								projection
-									.$$timestamps({
-										sources: [
-											Source.MoneroDaemonRpc_JsonRpc,
-										],
-										limit: 16,
-									})
+								.$$timestamps({
+									sources: [
+										Source.MoneroDaemonRpc_JsonRpc,
+									],
+									limit: 16,
+								})
 							}
 							CollapsibleProps={{ canToggle: false }}
 							collapsible={false}
@@ -4848,12 +4855,12 @@
 						<MoneroBlocksView
 							selection={
 								projection
-									.$$blocks({
-										sources: [
-											Source.MoneroDaemonRpc_JsonRpc,
-										],
-										limit: 16,
-									})
+								.$$blocks({
+									sources: [
+										Source.MoneroDaemonRpc_JsonRpc,
+									],
+									limit: 16,
+								})
 							}
 							CollapsibleProps={{ canToggle: false }}
 							collapsible={false}
@@ -4920,35 +4927,32 @@
 
 										<ul data-column="gap-2" data-section-state="resolved-nonempty">
 											{#each rpcEndpointsField.values as rpcEndpoint, rpcEndpointIndex (rpcEndpointIndex)}
-												{@const urlValue = rpcEndpoint.url}
-												{@const providerNameValue = rpcEndpoint.providerName}
-												{@const transportTypeValue = rpcEndpoint.transportType}
 												<li>
 													<dl data-column-item="center">
 														<div>
 															<dt>RPC</dt>
 															<dd>
-																{#if urlValue != null}
-																	{String(urlValue)}
-																{/if}
+																<a
+																	href={rpcEndpoint.url}
+																	target="_blank"
+																	rel="noreferrer noopener"
+																>
+																	<TruncatedValue value={rpcEndpoint.url} />
+																</a>
 															</dd>
 														</div>
 
 														<div>
 															<dt>Provider</dt>
 															<dd>
-																{#if providerNameValue != null}
-																	{String(providerNameValue)}
-																{/if}
+																{rpcEndpoint.providerName}
 															</dd>
 														</div>
 
 														<div>
 															<dt>Transport</dt>
 															<dd>
-																{#if transportTypeValue != null}
-																	{String(transportTypeValue)}
-																{/if}
+																{rpcEndpoint.transportType}
 															</dd>
 														</div>
 													</dl>
@@ -4986,38 +4990,38 @@
 		>
 			{#snippet Applicable(projection)}
 				{@const lightningNetworkGraphLightningNetworkObservationsSources = networkApplicableSources([
-					Source.LightningMempoolSpace_Rest,
-				], pendingEntity)}
+						Source.LightningMempoolSpace_Rest,
+					], pendingEntity)}
 
 				{@const lightningNetworkGraphLightningNetworkNodesSources = networkApplicableSources([
-					Source.LightningMempoolSpace_Rest,
-					Source.LightningLnd_Rest,
-				], pendingEntity)}
+						Source.LightningMempoolSpace_Rest,
+						Source.LightningLnd_Rest,
+					], pendingEntity)}
 
 				{@const lightningNetworkGraphSections = [
-					...(
-						lightningNetworkGraphLightningNetworkObservationsSources.length > 0 ?
-							[
-								{
-									id: 'lightning-network-observations',
-									label: 'Observations',
-								},
-							]
-						:
-							[]
-					),
-					...(
-						lightningNetworkGraphLightningNetworkNodesSources.length > 0 ?
-							[
-								{
-									id: 'lightning-network-nodes',
-									label: 'Nodes',
-								},
-							]
-						:
-							[]
-					),
-				]}
+						...(
+							lightningNetworkGraphLightningNetworkObservationsSources.length > 0 ?
+								[
+									{
+										id: 'lightning-network-observations',
+										label: 'Observations',
+									},
+								]
+							:
+								[]
+						),
+						...(
+							lightningNetworkGraphLightningNetworkNodesSources.length > 0 ?
+								[
+									{
+										id: 'lightning-network-nodes',
+										label: 'Nodes',
+									},
+								]
+							:
+								[]
+						),
+					]}
 
 				{#if lightningNetworkGraphSections.length > 0}
 					<CollapsibleTabs
@@ -5037,10 +5041,10 @@
 							<LightningNetwork_TimestampsView
 								selection={
 									projection
-										.$$timestamps({
-											sources: lightningNetworkGraphLightningNetworkObservationsSources,
-											limit: 16,
-										})
+									.$$timestamps({
+										sources: lightningNetworkGraphLightningNetworkObservationsSources,
+										limit: 16,
+									})
 								}
 								CollapsibleProps={{ canToggle: false }}
 								collapsible={false}
@@ -5057,10 +5061,10 @@
 							<LightningNodesView
 								selection={
 									projection
-										.$$nodes({
-											sources: lightningNetworkGraphLightningNetworkNodesSources,
-											limit: 16,
-										})
+									.$$nodes({
+										sources: lightningNetworkGraphLightningNetworkNodesSources,
+										limit: 16,
+									})
 								}
 								CollapsibleProps={{ canToggle: false }}
 								collapsible={false}
@@ -5083,40 +5087,40 @@
 		>
 			{#snippet Applicable(projection)}
 				{@const cardanoChainActivitySections = [
-					...(
-						cardanoKoiosRestSources.length > 0 ?
-							[
-								{
-									id: 'cardano-chain-observations',
-									label: 'Observations',
-								},
-							]
-						:
-							[]
-					),
-					...(
-						cardanoKoiosRestSources.length > 0 ?
-							[
-								{
-									id: 'cardano-chain-blocks',
-									label: 'Blocks',
-								},
-							]
-						:
-							[]
-					),
-					...(
-						cardanoKoiosRestSources.length > 0 ?
-							[
-								{
-									id: 'cardano-chain-transactions',
-									label: 'Transactions',
-								},
-							]
-						:
-							[]
-					),
-				]}
+						...(
+							cardanoKoiosRestSources.length > 0 ?
+								[
+									{
+										id: 'cardano-chain-observations',
+										label: 'Observations',
+									},
+								]
+							:
+								[]
+						),
+						...(
+							cardanoKoiosRestSources.length > 0 ?
+								[
+									{
+										id: 'cardano-chain-blocks',
+										label: 'Blocks',
+									},
+								]
+							:
+								[]
+						),
+						...(
+							cardanoKoiosRestSources.length > 0 ?
+								[
+									{
+										id: 'cardano-chain-transactions',
+										label: 'Transactions',
+									},
+								]
+							:
+								[]
+						),
+					]}
 
 				{#if cardanoChainActivitySections.length > 0}
 					<CollapsibleTabs
@@ -5136,10 +5140,10 @@
 							<CardanoNetwork_TimestampsView
 								selection={
 									projection
-										.$$timestamps({
-											sources: cardanoKoiosRestSources,
-											limit: 16,
-										})
+									.$$timestamps({
+										sources: cardanoKoiosRestSources,
+										limit: 16,
+									})
 								}
 								CollapsibleProps={{ canToggle: false }}
 								collapsible={false}
@@ -5156,10 +5160,10 @@
 							<CardanoBlocksView
 								selection={
 									projection
-										.$$blocks({
-											sources: cardanoKoiosRestSources,
-											limit: 16,
-										})
+									.$$blocks({
+										sources: cardanoKoiosRestSources,
+										limit: 16,
+									})
 								}
 								CollapsibleProps={{ canToggle: false }}
 								collapsible={false}
@@ -5176,10 +5180,10 @@
 							<CardanoTransactionsView
 								selection={
 									projection
-										.$$transactions({
-											sources: cardanoKoiosRestSources,
-											limit: 16,
-										})
+									.$$transactions({
+										sources: cardanoKoiosRestSources,
+										limit: 16,
+									})
 								}
 								CollapsibleProps={{ canToggle: false }}
 								collapsible={false}
@@ -5202,18 +5206,18 @@
 		>
 			{#snippet Applicable(projection)}
 				{@const cardanoStakeDelegationSections = [
-					...(
-						cardanoKoiosRestSources.length > 0 ?
-							[
-								{
-									id: 'cardano-stake-pools',
-									label: 'Stake pools',
-								},
-							]
-						:
-							[]
-					),
-				]}
+						...(
+							cardanoKoiosRestSources.length > 0 ?
+								[
+									{
+										id: 'cardano-stake-pools',
+										label: 'Stake pools',
+									},
+								]
+							:
+								[]
+						),
+					]}
 
 				{#if cardanoStakeDelegationSections.length > 0}
 					<CollapsibleTabs
@@ -5233,10 +5237,10 @@
 							<CardanoStakePoolsView
 								selection={
 									projection
-										.$$stakePools({
-											sources: cardanoKoiosRestSources,
-											limit: 16,
-										})
+									.$$stakePools({
+										sources: cardanoKoiosRestSources,
+										limit: 16,
+									})
 								}
 								CollapsibleProps={{ canToggle: false }}
 								collapsible={false}
@@ -5259,40 +5263,40 @@
 		>
 			{#snippet Applicable(projection)}
 				{@const cardanoGovernanceSections = [
-					...(
-						cardanoKoiosRestSources.length > 0 ?
-							[
-								{
-									id: 'cardano-governance-dreps',
-									label: 'DReps',
-								},
-							]
-						:
-							[]
-					),
-					...(
-						cardanoKoiosRestSources.length > 0 ?
-							[
-								{
-									id: 'cardano-governance-proposals',
-									label: 'Proposals',
-								},
-							]
-						:
-							[]
-					),
-					...(
-						cardanoKoiosRestSources.length > 0 ?
-							[
-								{
-									id: 'cardano-governance-committee',
-									label: 'Committee epochs',
-								},
-							]
-						:
-							[]
-					),
-				]}
+						...(
+							cardanoKoiosRestSources.length > 0 ?
+								[
+									{
+										id: 'cardano-governance-dreps',
+										label: 'DReps',
+									},
+								]
+							:
+								[]
+						),
+						...(
+							cardanoKoiosRestSources.length > 0 ?
+								[
+									{
+										id: 'cardano-governance-proposals',
+										label: 'Proposals',
+									},
+								]
+							:
+								[]
+						),
+						...(
+							cardanoKoiosRestSources.length > 0 ?
+								[
+									{
+										id: 'cardano-governance-committee',
+										label: 'Committee epochs',
+									},
+								]
+							:
+								[]
+						),
+					]}
 
 				{#if cardanoGovernanceSections.length > 0}
 					<CollapsibleTabs
@@ -5312,10 +5316,10 @@
 							<CardanoDRepsView
 								selection={
 									projection
-										.$$dReps({
-											sources: cardanoKoiosRestSources,
-											limit: 16,
-										})
+									.$$dReps({
+										sources: cardanoKoiosRestSources,
+										limit: 16,
+									})
 								}
 								CollapsibleProps={{ canToggle: false }}
 								collapsible={false}
@@ -5332,10 +5336,10 @@
 							<CardanoGovernanceProposalsView
 								selection={
 									projection
-										.$$governanceProposals({
-											sources: cardanoKoiosRestSources,
-											limit: 16,
-										})
+									.$$governanceProposals({
+										sources: cardanoKoiosRestSources,
+										limit: 16,
+									})
 								}
 								CollapsibleProps={{ canToggle: false }}
 								collapsible={false}
@@ -5352,10 +5356,10 @@
 							<CardanoCommittee_EpochsView
 								selection={
 									projection
-										.$$committeeEpochs({
-											sources: cardanoKoiosRestSources,
-											limit: 16,
-										})
+									.$$committeeEpochs({
+										sources: cardanoKoiosRestSources,
+										limit: 16,
+									})
 								}
 								CollapsibleProps={{ canToggle: false }}
 								collapsible={false}
@@ -5378,29 +5382,29 @@
 		>
 			{#snippet Applicable(projection)}
 				{@const cardanoAssetsProtocolSections = [
-					...(
-						cardanoKoiosRestSources.length > 0 ?
-							[
-								{
-									id: 'cardano-assets-native',
-									label: 'Native assets',
-								},
-							]
-						:
-							[]
-					),
-					...(
-						cardanoKoiosRestSources.length > 0 ?
-							[
-								{
-									id: 'cardano-protocol-parameters',
-									label: 'Protocol parameters',
-								},
-							]
-						:
-							[]
-					),
-				]}
+						...(
+							cardanoKoiosRestSources.length > 0 ?
+								[
+									{
+										id: 'cardano-assets-native',
+										label: 'Native assets',
+									},
+								]
+							:
+								[]
+						),
+						...(
+							cardanoKoiosRestSources.length > 0 ?
+								[
+									{
+										id: 'cardano-protocol-parameters',
+										label: 'Protocol parameters',
+									},
+								]
+							:
+								[]
+						),
+					]}
 
 				{#if cardanoAssetsProtocolSections.length > 0}
 					<CollapsibleTabs
@@ -5420,10 +5424,10 @@
 							<CardanoNativeAssetsView
 								selection={
 									projection
-										.$$assets({
-											sources: cardanoKoiosRestSources,
-											limit: 16,
-										})
+									.$$assets({
+										sources: cardanoKoiosRestSources,
+										limit: 16,
+									})
 								}
 								CollapsibleProps={{ canToggle: false }}
 								collapsible={false}
@@ -5440,10 +5444,10 @@
 							<CardanoProtocolParameters_EpochsView
 								selection={
 									projection
-										.$$protocolParameterEpochs({
-											sources: cardanoKoiosRestSources,
-											limit: 16,
-										})
+									.$$protocolParameterEpochs({
+										sources: cardanoKoiosRestSources,
+										limit: 16,
+									})
 								}
 								CollapsibleProps={{ canToggle: false }}
 								collapsible={false}
@@ -5466,19 +5470,19 @@
 		>
 			{#snippet Applicable(projection)}
 				{@const cardanoResourcesSections = [
-					...(
-						cardanoKoiosRestSources.length > 0 ?
-							[
-								{
-									id: 'cardano-resources-endpoints',
-									label: 'Endpoints',
-									ownsSection: true,
-								},
-							]
-						:
-							[]
-					),
-				]}
+						...(
+							cardanoKoiosRestSources.length > 0 ?
+								[
+									{
+										id: 'cardano-resources-endpoints',
+										label: 'Endpoints',
+										ownsSection: true,
+									},
+								]
+							:
+								[]
+						),
+					]}
 
 				{#if cardanoResourcesSections.length > 0}
 					<CollapsibleTabs
@@ -5498,9 +5502,9 @@
 							<ResourceBoundary
 								resource={
 									projection
-										.restEndpoints({
-											sources: cardanoKoiosRestSources,
-										})
+									.restEndpoints({
+										sources: cardanoKoiosRestSources,
+									})
 								}
 							>
 								{#snippet children(restEndpointsField)}
@@ -5524,35 +5528,32 @@
 
 											<ul data-column="gap-2" data-section-state="resolved-nonempty">
 												{#each restEndpointsField.values as restEndpoint, restEndpointIndex (restEndpointIndex)}
-													{@const urlValue = restEndpoint.url}
-													{@const providerNameValue = restEndpoint.providerName}
-													{@const transportTypeValue = restEndpoint.transportType}
 													<li>
 														<dl data-column-item="center">
 															<div>
 																<dt>REST</dt>
 																<dd>
-																	{#if urlValue != null}
-																		{String(urlValue)}
-																	{/if}
+																	<a
+																		href={restEndpoint.url}
+																		target="_blank"
+																		rel="noreferrer noopener"
+																	>
+																		<TruncatedValue value={restEndpoint.url} />
+																	</a>
 																</dd>
 															</div>
 
 															<div>
 																<dt>Provider</dt>
 																<dd>
-																	{#if providerNameValue != null}
-																		{String(providerNameValue)}
-																	{/if}
+																	{restEndpoint.providerName}
 																</dd>
 															</div>
 
 															<div>
 																<dt>Transport</dt>
 																<dd>
-																	{#if transportTypeValue != null}
-																		{String(transportTypeValue)}
-																	{/if}
+																	{restEndpoint.transportType}
 																</dd>
 															</div>
 														</dl>
@@ -5591,40 +5592,40 @@
 		>
 			{#snippet Applicable(projection)}
 				{@const tronChainActivitySections = [
-					...(
-						tronGridRestSources.length > 0 ?
-							[
-								{
-									id: 'tron-chain-observations',
-									label: 'Observations',
-								},
-							]
-						:
-							[]
-					),
-					...(
-						tronGridRestSources.length > 0 ?
-							[
-								{
-									id: 'tron-chain-blocks',
-									label: 'Blocks',
-								},
-							]
-						:
-							[]
-					),
-					...(
-						tronGridRestSources.length > 0 ?
-							[
-								{
-									id: 'tron-chain-witnesses',
-									label: 'Witnesses',
-								},
-							]
-						:
-							[]
-					),
-				]}
+						...(
+							tronGridRestSources.length > 0 ?
+								[
+									{
+										id: 'tron-chain-observations',
+										label: 'Observations',
+									},
+								]
+							:
+								[]
+						),
+						...(
+							tronGridRestSources.length > 0 ?
+								[
+									{
+										id: 'tron-chain-blocks',
+										label: 'Blocks',
+									},
+								]
+							:
+								[]
+						),
+						...(
+							tronGridRestSources.length > 0 ?
+								[
+									{
+										id: 'tron-chain-witnesses',
+										label: 'Witnesses',
+									},
+								]
+							:
+								[]
+						),
+					]}
 
 				{#if tronChainActivitySections.length > 0}
 					<CollapsibleTabs
@@ -5644,10 +5645,10 @@
 							<TronNetwork_TimestampsView
 								selection={
 									projection
-										.$$timestamps({
-											sources: tronGridRestSources,
-											limit: 16,
-										})
+									.$$timestamps({
+										sources: tronGridRestSources,
+										limit: 16,
+									})
 								}
 								CollapsibleProps={{ canToggle: false }}
 								collapsible={false}
@@ -5664,10 +5665,10 @@
 							<TronBlocksView
 								selection={
 									projection
-										.$$blocks({
-											sources: tronGridRestSources,
-											limit: 16,
-										})
+									.$$blocks({
+										sources: tronGridRestSources,
+										limit: 16,
+									})
 								}
 								CollapsibleProps={{ canToggle: false }}
 								collapsible={false}
@@ -5684,10 +5685,10 @@
 							<TronWitnessesView
 								selection={
 									projection
-										.$$witnesses({
-											sources: tronGridRestSources,
-											limit: 16,
-										})
+									.$$witnesses({
+										sources: tronGridRestSources,
+										limit: 16,
+									})
 								}
 								CollapsibleProps={{ canToggle: false }}
 								collapsible={false}
@@ -5710,19 +5711,19 @@
 		>
 			{#snippet Applicable(projection)}
 				{@const tronResourcesSections = [
-					...(
-						tronGridRestSources.length > 0 ?
-							[
-								{
-									id: 'tron-resources-endpoints',
-									label: 'Endpoints',
-									ownsSection: true,
-								},
-							]
-						:
-							[]
-					),
-				]}
+						...(
+							tronGridRestSources.length > 0 ?
+								[
+									{
+										id: 'tron-resources-endpoints',
+										label: 'Endpoints',
+										ownsSection: true,
+									},
+								]
+							:
+								[]
+						),
+					]}
 
 				{#if tronResourcesSections.length > 0}
 					<CollapsibleTabs
@@ -5742,9 +5743,9 @@
 							<ResourceBoundary
 								resource={
 									projection
-										.restEndpoints({
-											sources: tronGridRestSources,
-										})
+									.restEndpoints({
+										sources: tronGridRestSources,
+									})
 								}
 							>
 								{#snippet children(restEndpointsField)}
@@ -5768,35 +5769,32 @@
 
 											<ul data-column="gap-2" data-section-state="resolved-nonempty">
 												{#each restEndpointsField.values as restEndpoint, restEndpointIndex (restEndpointIndex)}
-													{@const urlValue = restEndpoint.url}
-													{@const providerNameValue = restEndpoint.providerName}
-													{@const transportTypeValue = restEndpoint.transportType}
 													<li>
 														<dl data-column-item="center">
 															<div>
 																<dt>REST</dt>
 																<dd>
-																	{#if urlValue != null}
-																		{String(urlValue)}
-																	{/if}
+																	<a
+																		href={restEndpoint.url}
+																		target="_blank"
+																		rel="noreferrer noopener"
+																	>
+																		<TruncatedValue value={restEndpoint.url} />
+																	</a>
 																</dd>
 															</div>
 
 															<div>
 																<dt>Provider</dt>
 																<dd>
-																	{#if providerNameValue != null}
-																		{String(providerNameValue)}
-																	{/if}
+																	{restEndpoint.providerName}
 																</dd>
 															</div>
 
 															<div>
 																<dt>Transport</dt>
 																<dd>
-																	{#if transportTypeValue != null}
-																		{String(transportTypeValue)}
-																	{/if}
+																	{restEndpoint.transportType}
 																</dd>
 															</div>
 														</dl>
@@ -5835,22 +5833,22 @@
 		>
 			{#snippet Applicable(projection)}
 				{@const tonChainActivityTonChainObservationsSources = networkApplicableSources([
-					Source.TonApi_Rest,
-				], pendingEntity)}
+						Source.TonApi_Rest,
+					], pendingEntity)}
 
 				{@const tonChainActivitySections = [
-					...(
-						tonChainActivityTonChainObservationsSources.length > 0 ?
-							[
-								{
-									id: 'ton-chain-observations',
-									label: 'Observations',
-								},
-							]
-						:
-							[]
-					),
-				]}
+						...(
+							tonChainActivityTonChainObservationsSources.length > 0 ?
+								[
+									{
+										id: 'ton-chain-observations',
+										label: 'Observations',
+									},
+								]
+							:
+								[]
+						),
+					]}
 
 				{#if tonChainActivitySections.length > 0}
 					<CollapsibleTabs
@@ -5870,10 +5868,10 @@
 							<TonNetwork_TimestampsView
 								selection={
 									projection
-										.$$timestamps({
-											sources: tonChainActivityTonChainObservationsSources,
-											limit: 16,
-										})
+									.$$timestamps({
+										sources: tonChainActivityTonChainObservationsSources,
+										limit: 16,
+									})
 								}
 								CollapsibleProps={{ canToggle: false }}
 								collapsible={false}
@@ -5896,29 +5894,29 @@
 		>
 			{#snippet Applicable(projection)}
 				{@const xrplChainActivitySections = [
-					...(
-						xrplRippledSources.length > 0 ?
-							[
-								{
-									id: 'xrpl-chain-ledgers',
-									label: 'Ledgers',
-								},
-							]
-						:
-							[]
-					),
-					...(
-						xrplRippledSources.length > 0 ?
-							[
-								{
-									id: 'xrpl-chain-transactions',
-									label: 'Transactions',
-								},
-							]
-						:
-							[]
-					),
-				]}
+						...(
+							xrplRippledSources.length > 0 ?
+								[
+									{
+										id: 'xrpl-chain-ledgers',
+										label: 'Ledgers',
+									},
+								]
+							:
+								[]
+						),
+						...(
+							xrplRippledSources.length > 0 ?
+								[
+									{
+										id: 'xrpl-chain-transactions',
+										label: 'Transactions',
+									},
+								]
+							:
+								[]
+						),
+					]}
 
 				{#if xrplChainActivitySections.length > 0}
 					<CollapsibleTabs
@@ -5938,10 +5936,10 @@
 							<XrplLedgersView
 								selection={
 									projection
-										.$$ledgers({
-											sources: xrplRippledSources,
-											limit: 16,
-										})
+									.$$ledgers({
+										sources: xrplRippledSources,
+										limit: 16,
+									})
 								}
 								CollapsibleProps={{ canToggle: false }}
 								collapsible={false}
@@ -5959,10 +5957,10 @@
 							<XrplTransactionsView
 								selection={
 									projection
-										.$$transactions({
-											sources: xrplRippledSources,
-											limit: 16,
-										})
+									.$$transactions({
+										sources: xrplRippledSources,
+										limit: 16,
+									})
 								}
 								CollapsibleProps={{ canToggle: false }}
 								collapsible={false}
@@ -5986,29 +5984,29 @@
 		>
 			{#snippet Applicable(projection)}
 				{@const xrplLedgerStateSections = [
-					...(
-						xrplRippledSources.length > 0 ?
-							[
-								{
-									id: 'xrpl-ledger-state-accounts',
-									label: 'Accounts',
-								},
-							]
-						:
-							[]
-					),
-					...(
-						xrplRippledSources.length > 0 ?
-							[
-								{
-									id: 'xrpl-ledger-state-entries',
-									label: 'Ledger entries',
-								},
-							]
-						:
-							[]
-					),
-				]}
+						...(
+							xrplRippledSources.length > 0 ?
+								[
+									{
+										id: 'xrpl-ledger-state-accounts',
+										label: 'Accounts',
+									},
+								]
+							:
+								[]
+						),
+						...(
+							xrplRippledSources.length > 0 ?
+								[
+									{
+										id: 'xrpl-ledger-state-entries',
+										label: 'Ledger entries',
+									},
+								]
+							:
+								[]
+						),
+					]}
 
 				{#if xrplLedgerStateSections.length > 0}
 					<CollapsibleTabs
@@ -6028,10 +6026,10 @@
 							<XrplAccountsView
 								selection={
 									projection
-										.$$accounts({
-											sources: xrplRippledSources,
-											limit: 16,
-										})
+									.$$accounts({
+										sources: xrplRippledSources,
+										limit: 16,
+									})
 								}
 								CollapsibleProps={{ canToggle: false }}
 								collapsible={false}
@@ -6049,10 +6047,10 @@
 							<XrplLedgerEntriesView
 								selection={
 									projection
-										.$$ledgerEntries({
-											sources: xrplRippledSources,
-											limit: 16,
-										})
+									.$$ledgerEntries({
+										sources: xrplRippledSources,
+										limit: 16,
+									})
 								}
 								CollapsibleProps={{ canToggle: false }}
 								collapsible={false}
@@ -6076,29 +6074,29 @@
 		>
 			{#snippet Applicable(projection)}
 				{@const xrplProtocolLiquiditySections = [
-					...(
-						xrplRippledSources.length > 0 ?
-							[
-								{
-									id: 'xrpl-protocol-amendments',
-									label: 'Amendments',
-								},
-							]
-						:
-							[]
-					),
-					...(
-						xrplRippledSources.length > 0 ?
-							[
-								{
-									id: 'xrpl-liquidity-amms',
-									label: 'AMMs',
-								},
-							]
-						:
-							[]
-					),
-				]}
+						...(
+							xrplRippledSources.length > 0 ?
+								[
+									{
+										id: 'xrpl-protocol-amendments',
+										label: 'Amendments',
+									},
+								]
+							:
+								[]
+						),
+						...(
+							xrplRippledSources.length > 0 ?
+								[
+									{
+										id: 'xrpl-liquidity-amms',
+										label: 'AMMs',
+									},
+								]
+							:
+								[]
+						),
+					]}
 
 				{#if xrplProtocolLiquiditySections.length > 0}
 					<CollapsibleTabs
@@ -6118,10 +6116,10 @@
 							<XrplAmendmentsView
 								selection={
 									projection
-										.$$amendments({
-											sources: xrplRippledSources,
-											limit: 16,
-										})
+									.$$amendments({
+										sources: xrplRippledSources,
+										limit: 16,
+									})
 								}
 								CollapsibleProps={{ canToggle: false }}
 								collapsible={false}
@@ -6139,10 +6137,10 @@
 							<XrplAmmsView
 								selection={
 									projection
-										.$$amms({
-											sources: xrplRippledSources,
-											limit: 16,
-										})
+									.$$amms({
+										sources: xrplRippledSources,
+										limit: 16,
+									})
 								}
 								CollapsibleProps={{ canToggle: false }}
 								collapsible={false}
@@ -6166,18 +6164,18 @@
 		>
 			{#snippet Applicable(projection)}
 				{@const hederaChainActivitySections = [
-					...(
-						hederaMirrorNodeRestSources.length > 0 ?
-							[
-								{
-									id: 'hedera-chain-blocks',
-									label: 'Blocks',
-								},
-							]
-						:
-							[]
-					),
-				]}
+						...(
+							hederaMirrorNodeRestSources.length > 0 ?
+								[
+									{
+										id: 'hedera-chain-blocks',
+										label: 'Blocks',
+									},
+								]
+							:
+								[]
+						),
+					]}
 
 				{#if hederaChainActivitySections.length > 0}
 					<CollapsibleTabs
@@ -6197,10 +6195,10 @@
 							<HederaBlocksView
 								selection={
 									projection
-										.$$blocks({
-											sources: hederaMirrorNodeRestSources,
-											limit: 16,
-										})
+									.$$blocks({
+										sources: hederaMirrorNodeRestSources,
+										limit: 16,
+									})
 								}
 								CollapsibleProps={{ canToggle: false }}
 								collapsible={false}
@@ -6224,18 +6222,18 @@
 		>
 			{#snippet Applicable(projection)}
 				{@const hederaAccountsTokensSections = [
-					...(
-						hederaMirrorNodeRestSources.length > 0 ?
-							[
-								{
-									id: 'hedera-accounts',
-									label: 'Accounts',
-								},
-							]
-						:
-							[]
-					),
-				]}
+						...(
+							hederaMirrorNodeRestSources.length > 0 ?
+								[
+									{
+										id: 'hedera-accounts',
+										label: 'Accounts',
+									},
+								]
+							:
+								[]
+						),
+					]}
 
 				{#if hederaAccountsTokensSections.length > 0}
 					<CollapsibleTabs
@@ -6255,10 +6253,10 @@
 							<HederaAccountsView
 								selection={
 									projection
-										.$$accounts({
-											sources: hederaMirrorNodeRestSources,
-											limit: 16,
-										})
+									.$$accounts({
+										sources: hederaMirrorNodeRestSources,
+										limit: 16,
+									})
 								}
 								CollapsibleProps={{ canToggle: false }}
 								collapsible={false}
@@ -6282,45 +6280,45 @@
 		>
 			{#snippet Applicable(projection)}
 				{@const hyperliquidChainActivityHyperliquidChainObservationsSources = networkApplicableSources([
-					Source.Hyperliquid_Rest,
-					Source.Hyperliquid_JsonRpc,
-				], pendingEntity)}
+						Source.Hyperliquid_Rest,
+						Source.Hyperliquid_JsonRpc,
+					], pendingEntity)}
 
 				{@const hyperliquidChainActivitySections = [
-					...(
-						hyperliquidChainActivityHyperliquidChainObservationsSources.length > 0 ?
-							[
-								{
-									id: 'hyperliquid-chain-observations',
-									label: 'Observations',
-								},
-							]
-						:
-							[]
-					),
-					...(
-						hyperliquidJsonRpcSources.length > 0 ?
-							[
-								{
-									id: 'hyperliquid-chain-blocks',
-									label: 'Blocks',
-								},
-							]
-						:
-							[]
-					),
-					...(
-						hyperliquidJsonRpcSources.length > 0 ?
-							[
-								{
-									id: 'hyperliquid-chain-transactions',
-									label: 'Transactions',
-								},
-							]
-						:
-							[]
-					),
-				]}
+						...(
+							hyperliquidChainActivityHyperliquidChainObservationsSources.length > 0 ?
+								[
+									{
+										id: 'hyperliquid-chain-observations',
+										label: 'Observations',
+									},
+								]
+							:
+								[]
+						),
+						...(
+							hyperliquidJsonRpcSources.length > 0 ?
+								[
+									{
+										id: 'hyperliquid-chain-blocks',
+										label: 'Blocks',
+									},
+								]
+							:
+								[]
+						),
+						...(
+							hyperliquidJsonRpcSources.length > 0 ?
+								[
+									{
+										id: 'hyperliquid-chain-transactions',
+										label: 'Transactions',
+									},
+								]
+							:
+								[]
+						),
+					]}
 
 				{#if hyperliquidChainActivitySections.length > 0}
 					<CollapsibleTabs
@@ -6340,10 +6338,10 @@
 							<HyperliquidNetwork_TimestampsView
 								selection={
 									projection
-										.$$timestamps({
-											sources: hyperliquidChainActivityHyperliquidChainObservationsSources,
-											limit: 16,
-										})
+									.$$timestamps({
+										sources: hyperliquidChainActivityHyperliquidChainObservationsSources,
+										limit: 16,
+									})
 								}
 								CollapsibleProps={{ canToggle: false }}
 								collapsible={false}
@@ -6360,10 +6358,10 @@
 							<HyperliquidBlocksView
 								selection={
 									projection
-										.$$blocks({
-											sources: hyperliquidJsonRpcSources,
-											limit: 16,
-										})
+									.$$blocks({
+										sources: hyperliquidJsonRpcSources,
+										limit: 16,
+									})
 								}
 								CollapsibleProps={{ canToggle: false }}
 								collapsible={false}
@@ -6380,10 +6378,10 @@
 							<HyperliquidTransactionsView
 								selection={
 									projection
-										.$$transactions({
-											sources: hyperliquidJsonRpcSources,
-											limit: 16,
-										})
+									.$$transactions({
+										sources: hyperliquidJsonRpcSources,
+										limit: 16,
+									})
 								}
 								CollapsibleProps={{ canToggle: false }}
 								collapsible={false}
@@ -6406,18 +6404,18 @@
 		>
 			{#snippet Applicable(projection)}
 				{@const hyperliquidConsensusSections = [
-					...(
-						hyperliquidRestSources.length > 0 ?
-							[
-								{
-									id: 'hyperliquid-consensus-validators',
-									label: 'Validators',
-								},
-							]
-						:
-							[]
-					),
-				]}
+						...(
+							hyperliquidRestSources.length > 0 ?
+								[
+									{
+										id: 'hyperliquid-consensus-validators',
+										label: 'Validators',
+									},
+								]
+							:
+								[]
+						),
+					]}
 
 				{#if hyperliquidConsensusSections.length > 0}
 					<CollapsibleTabs
@@ -6437,10 +6435,10 @@
 							<HyperliquidValidatorsView
 								selection={
 									projection
-										.$$validators({
-											sources: hyperliquidRestSources,
-											limit: 16,
-										})
+									.$$validators({
+										sources: hyperliquidRestSources,
+										limit: 16,
+									})
 								}
 								CollapsibleProps={{ canToggle: false }}
 								collapsible={false}
@@ -6463,29 +6461,29 @@
 		>
 			{#snippet Applicable(projection)}
 				{@const hyperliquidMarketsSections = [
-					...(
-						hyperliquidRestSources.length > 0 ?
-							[
-								{
-									id: 'hyperliquid-markets-perps',
-									label: 'Perps',
-								},
-							]
-						:
-							[]
-					),
-					...(
-						hyperliquidRestSources.length > 0 ?
-							[
-								{
-									id: 'hyperliquid-markets-spot-assets',
-									label: 'Spot assets',
-								},
-							]
-						:
-							[]
-					),
-				]}
+						...(
+							hyperliquidRestSources.length > 0 ?
+								[
+									{
+										id: 'hyperliquid-markets-perps',
+										label: 'Perps',
+									},
+								]
+							:
+								[]
+						),
+						...(
+							hyperliquidRestSources.length > 0 ?
+								[
+									{
+										id: 'hyperliquid-markets-spot-assets',
+										label: 'Spot assets',
+									},
+								]
+							:
+								[]
+						),
+					]}
 
 				{#if hyperliquidMarketsSections.length > 0}
 					<CollapsibleTabs
@@ -6505,10 +6503,10 @@
 							<HyperliquidPerpMarketsView
 								selection={
 									projection
-										.$$perpMarkets({
-											sources: hyperliquidRestSources,
-											limit: 16,
-										})
+									.$$perpMarkets({
+										sources: hyperliquidRestSources,
+										limit: 16,
+									})
 								}
 								CollapsibleProps={{ canToggle: false }}
 								collapsible={false}
@@ -6525,10 +6523,10 @@
 							<HyperliquidSpotAssetsView
 								selection={
 									projection
-										.$$spotAssets({
-											sources: hyperliquidRestSources,
-											limit: 16,
-										})
+									.$$spotAssets({
+										sources: hyperliquidRestSources,
+										limit: 16,
+									})
 								}
 								CollapsibleProps={{ canToggle: false }}
 								collapsible={false}
@@ -6551,31 +6549,31 @@
 		>
 			{#snippet Applicable(projection)}
 				{@const hyperliquidResourcesSections = [
-					...(
-						hyperliquidJsonRpcSources.length > 0 ?
-							[
-								{
-									id: 'hyperliquid-resources-rpc-endpoints',
-									label: 'RPC endpoints',
-									ownsSection: true,
-								},
-							]
-						:
-							[]
-					),
-					...(
-						hyperliquidRestSources.length > 0 ?
-							[
-								{
-									id: 'hyperliquid-resources-rest-endpoints',
-									label: 'REST endpoints',
-									ownsSection: true,
-								},
-							]
-						:
-							[]
-					),
-				]}
+						...(
+							hyperliquidJsonRpcSources.length > 0 ?
+								[
+									{
+										id: 'hyperliquid-resources-rpc-endpoints',
+										label: 'RPC endpoints',
+										ownsSection: true,
+									},
+								]
+							:
+								[]
+						),
+						...(
+							hyperliquidRestSources.length > 0 ?
+								[
+									{
+										id: 'hyperliquid-resources-rest-endpoints',
+										label: 'REST endpoints',
+										ownsSection: true,
+									},
+								]
+							:
+								[]
+						),
+					]}
 
 				{#if hyperliquidResourcesSections.length > 0}
 					<CollapsibleTabs
@@ -6595,9 +6593,9 @@
 							<ResourceBoundary
 								resource={
 									projection
-										.rpcEndpoints({
-											sources: hyperliquidJsonRpcSources,
-										})
+									.rpcEndpoints({
+										sources: hyperliquidJsonRpcSources,
+									})
 								}
 							>
 								{#snippet children(rpcEndpointsField)}
@@ -6621,35 +6619,32 @@
 
 											<ul data-column="gap-2" data-section-state="resolved-nonempty">
 												{#each rpcEndpointsField.values as rpcEndpoint, rpcEndpointIndex (rpcEndpointIndex)}
-													{@const urlValue = rpcEndpoint.url}
-													{@const providerNameValue = rpcEndpoint.providerName}
-													{@const transportTypeValue = rpcEndpoint.transportType}
 													<li>
 														<dl data-column-item="center">
 															<div>
 																<dt>RPC</dt>
 																<dd>
-																	{#if urlValue != null}
-																		{String(urlValue)}
-																	{/if}
+																	<a
+																		href={rpcEndpoint.url}
+																		target="_blank"
+																		rel="noreferrer noopener"
+																	>
+																		<TruncatedValue value={rpcEndpoint.url} />
+																	</a>
 																</dd>
 															</div>
 
 															<div>
 																<dt>Provider</dt>
 																<dd>
-																	{#if providerNameValue != null}
-																		{String(providerNameValue)}
-																	{/if}
+																	{rpcEndpoint.providerName}
 																</dd>
 															</div>
 
 															<div>
 																<dt>Transport</dt>
 																<dd>
-																	{#if transportTypeValue != null}
-																		{String(transportTypeValue)}
-																	{/if}
+																	{rpcEndpoint.transportType}
 																</dd>
 															</div>
 														</dl>
@@ -6682,9 +6677,9 @@
 							<ResourceBoundary
 								resource={
 									projection
-										.restEndpoints({
-											sources: hyperliquidRestSources,
-										})
+									.restEndpoints({
+										sources: hyperliquidRestSources,
+									})
 								}
 							>
 								{#snippet children(restEndpointsField)}
@@ -6708,35 +6703,32 @@
 
 											<ul data-column="gap-2" data-section-state="resolved-nonempty">
 												{#each restEndpointsField.values as restEndpoint, restEndpointIndex (restEndpointIndex)}
-													{@const urlValue = restEndpoint.url}
-													{@const providerNameValue = restEndpoint.providerName}
-													{@const transportTypeValue = restEndpoint.transportType}
 													<li>
 														<dl data-column-item="center">
 															<div>
 																<dt>REST</dt>
 																<dd>
-																	{#if urlValue != null}
-																		{String(urlValue)}
-																	{/if}
+																	<a
+																		href={restEndpoint.url}
+																		target="_blank"
+																		rel="noreferrer noopener"
+																	>
+																		<TruncatedValue value={restEndpoint.url} />
+																	</a>
 																</dd>
 															</div>
 
 															<div>
 																<dt>Provider</dt>
 																<dd>
-																	{#if providerNameValue != null}
-																		{String(providerNameValue)}
-																	{/if}
+																	{restEndpoint.providerName}
 																</dd>
 															</div>
 
 															<div>
 																<dt>Transport</dt>
 																<dd>
-																	{#if transportTypeValue != null}
-																		{String(transportTypeValue)}
-																	{/if}
+																	{restEndpoint.transportType}
 																</dd>
 															</div>
 														</dl>

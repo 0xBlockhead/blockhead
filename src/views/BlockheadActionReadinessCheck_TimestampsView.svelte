@@ -45,7 +45,7 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{String(blockheadActionReadinessCheckTimestampSelector.timestampMs)}
+				{blockheadActionReadinessCheckTimestampSelector.timestampMs}
 			{/snippet}
 
 			{#snippet HeadingAfter()}

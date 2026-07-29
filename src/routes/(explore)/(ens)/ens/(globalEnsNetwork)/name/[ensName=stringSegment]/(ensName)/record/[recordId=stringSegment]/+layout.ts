@@ -9,7 +9,8 @@ import { schema } from '$/schema/index.ts'
 import { type as arktype } from 'arktype'
 
 export const load: LayoutLoad = ({ params }) => {
-	if (!(matchStringSegment(params.recordId) && matchStringSegment(params.ensName))) error(404, 'Route mapping not applicable')
+	if (!(matchStringSegment(params.recordId) && matchStringSegment(params.ensName)))
+		error(404, 'Route mapping not applicable')
 
 	const ensRecordNameRecordKeySelector = parseEntitySelector(
 		schema,
@@ -21,7 +22,8 @@ export const load: LayoutLoad = ({ params }) => {
 			recordKey: decodeURIComponent(params.recordId),
 		}
 	)
-	if (ensRecordNameRecordKeySelector instanceof arktype.errors) error(404, 'Invalid EnsRecord selector')
+	if (ensRecordNameRecordKeySelector instanceof arktype.errors)
+		error(404, 'Invalid EnsRecord selector')
 
 	return {
 		selector: ensRecordNameRecordKeySelector,

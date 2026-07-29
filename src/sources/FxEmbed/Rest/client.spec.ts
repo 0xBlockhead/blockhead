@@ -69,7 +69,6 @@ it('pins the canonical FxEmbed binding fingerprint', () => {
 				scope: SourceCredentialScope.None,
 			},
 		],
-		proxyId: '["X_FxEmbed_Rest","Global","fxembed-api","HttpProxy","RestJson"]',
 		artifacts: [
 			{
 				kind: SourceArtifactKind.HandwrittenTypes,

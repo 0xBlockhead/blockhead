@@ -45,7 +45,7 @@
 				resolve(
 					'/channel/[channelId=stringSegment]',
 					{
-						channelId: String(blockheadStateChannelSelector.id),
+						channelId: blockheadStateChannelSelector.id,
 					}
 				)
 			}
@@ -55,7 +55,7 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{String(blockheadStateChannel.createdAt)}
+				{blockheadStateChannel.createdAt}
 			{/snippet}
 		</EntityView>
 	{/snippet}

@@ -1,16 +1,11 @@
 // Generated from APP.ts. Do not edit by hand.
 
 import { entity } from '$/schema/$schema.ts'
-import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
+import { BlockheadConnectionStatus } from '$/schema/BlockheadConnectionStatus.ts'
+import { EntityFieldCardinality } from '$/schema/EntityFieldCardinality.ts'
+import { EntityFieldType } from '$/schema/EntityFieldType.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { type } from 'arktype'
-
-export enum BlockheadConnectionStatus {
-	Disconnected = 'disconnected',
-	Connecting = 'connecting',
-	Connected = 'connected',
-	Error = 'error',
-}
 
 export default entity({
 	entityType: EntityType.BlockheadWalletConnection,
@@ -52,7 +47,12 @@ export default entity({
 	scopes: {
 		label: 'Scopes',
 		type: EntityFieldType.Primitive,
-		primitiveType: type({ 'namespace': type('string'), 'reference': type('string'), 'methods': type('string').array(), 'events': type('string').array() }).array(),
+		primitiveType: type({
+			namespace: type('string'),
+			reference: type('string'),
+			methods: type('string').array(),
+			events: type('string').array(),
+		}).array(),
 		cardinality: EntityFieldCardinality.One,
 	},
 	selected: {

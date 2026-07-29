@@ -20,9 +20,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.ZeroGConsensusNetwork> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const titleFallback = $derived((pendingEntity.consensusNetworkId ?? '') || 'zero g consensus network')
-
 
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -34,19 +31,19 @@
 <EntityView
 	entityType={EntityType.ZeroGConsensusNetwork}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? (selection.entitySelector.consensusNetworkId || 'zero g consensus network')}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{(pendingEntity.consensusNetworkId ?? '') || 'zero g consensus network'}
+		{selection.entitySelector.consensusNetworkId || 'zero g consensus network'}
 	{/snippet}
 
 	{#snippet Value()}
 		<NetworkView
 			selection={select(EntityType.Network, selection.entitySelector.$network)}
-			href=""
+			href={null}
 			layout={EntityLayout.Value}
 			open={false}
 		/>
@@ -68,22 +65,22 @@
 			<div>
 				<dt>consensus network ID</dt>
 				<dd>
-					{pendingEntity.consensusNetworkId}
+					{selection.entitySelector.consensusNetworkId}
 				</dd>
 			</div>
 		</dl>
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const zeroGConsensusNetworkZeroGConsensusNetworkTimestampsViewTimestampsResource = selection.$$timestamps}
+		{@const timestampsResource = selection.$$timestamps}
 		<ResourceBoundary
-			resource={zeroGConsensusNetworkZeroGConsensusNetworkTimestampsViewTimestampsResource}
+			resource={timestampsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<ZeroGConsensusNetwork_TimestampsView
-						selection={zeroGConsensusNetworkZeroGConsensusNetworkTimestampsViewTimestampsResource}
-						countResource={zeroGConsensusNetworkZeroGConsensusNetworkTimestampsViewTimestampsResource.count}
+						selection={timestampsResource}
+						countResource={timestampsResource.count}
 						title='timestamps'
 						id='timestamps'
 					/>

@@ -28,7 +28,6 @@
 			transactionCount: true,
 		},
 	}))
-	const titleFallback = $derived((String(pendingEntity.height ?? '') ? 'Block #' + String(pendingEntity.height ?? '') : '') || (pendingEntity.hash ?? '') || 'Cosmos block')
 
 
 	// Components
@@ -43,34 +42,42 @@
 <EntityView
 	entityType={EntityType.CosmosBlock}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? `Block #${pendingEntity.height}`}
 	idDragPlainText={String(pendingEntity.height ?? '')}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<span data-row="inline align-center gap-2 wrap">
-			<span>Block </span>
-			<span data-badge="small">
-				#{String(pendingEntity.height)}
-			</span>
-		</span>
+		<ResourceBoundary resource={cosmosBlock}>
+			{#snippet children(entity)}
+				<span data-row="inline align-center gap-2 wrap">
+					<span>Block </span>
+					<span data-badge="small">
+						#{entity.height}
+					</span>
+				</span>
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Value()}
-		<span data-badge="small">
-			#{String(pendingEntity.height)}
-		</span>
+		<ResourceBoundary resource={cosmosBlock}>
+			{#snippet children(entity)}
+				<span data-badge="small">
+					#{entity.height}
+				</span>
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={cosmosBlock}>
 			{#snippet children(entity)}
-				{@const transactionCount0 = entity.transactionCount}
-				{#if transactionCount0 != null}
+				{@const transactionCount = entity.transactionCount}
+				{#if transactionCount != null}
 					<span data-text="muted">
-						{String(transactionCount0)}
+						{transactionCount}
 					</span>
 				{/if}
 			{/snippet}
@@ -86,7 +93,7 @@
 						resource={cosmosBlock}
 					>
 						{#snippet children(entity)}
-							{String(entity.height)}
+							{entity.height}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -142,7 +149,7 @@
 						<div>
 							<dt>Timestamp</dt>
 							<dd>
-								<Timestamp timestamp={Number(timestampMs)} />
+								<Timestamp timestamp={timestampMs} />
 							</dd>
 						</div>
 					{/if}
@@ -158,7 +165,7 @@
 						<div>
 							<dt>Transaction count</dt>
 							<dd>
-								{String(transactionCount)}
+								{transactionCount}
 							</dd>
 						</div>
 					{/if}

@@ -76,7 +76,7 @@ describe('generated route href contracts', () => {
 	it('keeps generated page titles in the public format for collection and entity routes', () => {
 		expect(assetsRoute).toMatch(/<title>Assets • Blockhead<\/title>/)
 		expect(sessionRoute).not.toMatch(/\bpageEntity\b/)
-		expect(sessionRoute).toMatch(/<title>\{\(pageSelection\.entity == null \?[\s\S]*?pageSelection\.entitySelector\.id[\s\S]*?pageSelection\.entity\.name[\s\S]*?\)\} • session • Blockhead<\/title>/)
+		expect(sessionRoute).toMatch(/<title>\{pageSelection\.entity == null \?[\s\S]*?pageSelection\.entitySelector\.id[\s\S]*?pageSelection\.entity\.name[\s\S]*?\} • session • Blockhead<\/title>/)
 	})
 
 })

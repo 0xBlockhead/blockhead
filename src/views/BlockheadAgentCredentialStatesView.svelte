@@ -46,7 +46,7 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{(blockheadAgentCredentialState.credentialKind ?? '')}
+				{blockheadAgentCredentialState.credentialKind ?? ''}
 			{/snippet}
 
 			{#snippet HeadingAfter()}

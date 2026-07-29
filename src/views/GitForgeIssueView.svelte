@@ -20,14 +20,13 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.GitForgeIssue> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const gitForgeIssue = $derived(selection({
 		fields: {
 			title: true,
 			state: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.title ?? '') || String(pendingEntity.issueNumber ?? '') || 'Git forge issue')
+	const titleFallback = $derived((prefetched.title ?? '') || String(selection.entitySelector.issueNumber) || 'Git forge issue')
 
 
 	// Components
@@ -79,7 +78,7 @@
 				<dt>issue number</dt>
 				<dd>
 					<NumberValue
-						value={pendingEntity.issueNumber}
+						value={selection.entitySelector.issueNumber}
 					/>
 				</dd>
 			</div>
@@ -149,7 +148,7 @@
 						<div>
 							<dt>Created</dt>
 							<dd>
-								<Timestamp timestamp={Number(createdAt)} />
+								<Timestamp timestamp={createdAt} />
 							</dd>
 						</div>
 					{/if}
@@ -171,7 +170,7 @@
 						<div>
 							<dt>Updated</dt>
 							<dd>
-								<Timestamp timestamp={Number(updatedAt)} />
+								<Timestamp timestamp={updatedAt} />
 							</dd>
 						</div>
 					{/if}
@@ -193,7 +192,7 @@
 						<div>
 							<dt>closed AT</dt>
 							<dd>
-								<Timestamp timestamp={Number(closedAt)} />
+								<Timestamp timestamp={closedAt} />
 							</dd>
 						</div>
 					{/if}

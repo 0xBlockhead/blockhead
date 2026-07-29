@@ -42,7 +42,7 @@
 
 
 <svelte:head>
-	<title>{(data.title ?? ('RSS item observation'))} • RSS item observation • Blockhead</title>
+	<title>{data.title ?? 'RSS item observation'} • RSS item observation • Blockhead</title>
 </svelte:head>
 
 

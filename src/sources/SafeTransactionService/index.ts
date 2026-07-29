@@ -2,7 +2,8 @@
 
 import bindings from '$/sources/SafeTransactionService/bindings.ts'
 import { Source } from '$/sources/Source.ts'
-import { SourceProvider, type SourceProviderDefinition } from '$/sources/SourceProvider.ts'
+import { SourceProvider } from '$/sources/SourceProvider.ts'
+import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinition.ts'
 
 export default {
 	provider: SourceProvider.SafeTransactionService,
@@ -13,5 +14,5 @@ export default {
 			label: 'Safe Transaction Service REST',
 		},
 	],
-	bindings: bindings[Source.SafeTransactionService_Rest],
+	bindings: Object.values(bindings).flat(),
 } satisfies SourceProviderDefinition

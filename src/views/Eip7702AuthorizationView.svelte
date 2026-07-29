@@ -5,7 +5,6 @@
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { EvmAddress, ZeroExHex } from '$/schema/ZeroExHex.ts'
 
 
 	// Context
@@ -22,14 +21,12 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.Eip7702Authorization> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const eip7702Authorization = $derived(selection({
 		fields: {
 			delegationAddress: true,
 			authority: true,
 		},
 	}))
-	const titleFallback = $derived(String(pendingEntity.authorizationIndex ?? '') || 'eip7702 authorization')
 
 
 	// Components
@@ -45,19 +42,19 @@
 <EntityView
 	entityType={EntityType.Eip7702Authorization}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? String(selection.entitySelector.authorizationIndex)}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{String(pendingEntity.authorizationIndex ?? '') || 'eip7702 authorization'}
+		{String(selection.entitySelector.authorizationIndex)}
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={eip7702Authorization}>
 			{#snippet children(entity)}
-				{String(entity.delegationAddress) || String(pendingEntity.authorizationIndex) || titleFallback}
+				{entity.delegationAddress || String(selection.entitySelector.authorizationIndex)}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -65,10 +62,10 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={eip7702Authorization}>
 			{#snippet children(entity)}
-				{@const authority0 = entity.authority}
-				{#if authority0 != null}
+				{@const authority = entity.authority}
+				{#if authority != null}
 					<span data-text="muted">
-						{String(authority0)}
+						{authority}
 					</span>
 				{/if}
 			{/snippet}
@@ -91,7 +88,7 @@
 			<div>
 				<dt>authorization index</dt>
 				<dd>
-					{String(pendingEntity.authorizationIndex)}
+					{selection.entitySelector.authorizationIndex}
 				</dd>
 			</div>
 
@@ -108,7 +105,7 @@
 						}
 					>
 						{#snippet children(entity)}
-							{String(entity.chainId)}
+							{entity.chainId}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -123,7 +120,7 @@
 						resource={eip7702Authorization}
 					>
 						{#snippet children(entity)}
-							<TruncatedValue value={String(entity.delegationAddress)} />
+							<TruncatedValue value={entity.delegationAddress} />
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -138,7 +135,7 @@
 						<div>
 							<dt>authority</dt>
 							<dd>
-								{String(authority)}
+								{authority}
 							</dd>
 						</div>
 					{/if}
@@ -158,7 +155,7 @@
 						}
 					>
 						{#snippet children(entity)}
-							{String(entity.nonce)}
+							{entity.nonce}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -177,7 +174,7 @@
 						}
 					>
 						{#snippet children(entity)}
-							{String(entity.yParity)}
+							{entity.yParity}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -198,7 +195,7 @@
 						}
 					>
 						{#snippet children(entity)}
-							{String(entity.r)}
+							{entity.r}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -217,7 +214,7 @@
 						}
 					>
 						{#snippet children(entity)}
-							{String(entity.s)}
+							{entity.s}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -260,7 +257,7 @@
 						<div>
 							<dt>verified AT ms</dt>
 							<dd>
-								<Timestamp timestamp={Number(verifiedAtMs)} />
+								<Timestamp timestamp={verifiedAtMs} />
 							</dd>
 						</div>
 					{/if}

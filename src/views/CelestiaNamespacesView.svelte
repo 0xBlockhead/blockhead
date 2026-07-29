@@ -45,7 +45,7 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{String(celestiaNamespace.namespaceVersion ?? '')}
+				{celestiaNamespace.namespaceVersion ?? ''}
 			{/snippet}
 		</EntityView>
 	{/snippet}

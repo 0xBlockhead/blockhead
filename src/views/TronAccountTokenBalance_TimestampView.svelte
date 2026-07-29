@@ -20,7 +20,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.TronAccountTokenBalance_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const tronAccountTokenBalanceTimestamp = $derived(selection({
 		fields: {
 			tokenSymbol: true,
@@ -29,7 +28,7 @@
 			tokenId: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.tokenSymbol ?? '') || [(pendingEntity.tokenName ?? ''), (pendingEntity.tokenId ?? '')].filter(Boolean).join(' ') || 'tron account token balance timestamp')
+	const titleFallback = $derived((prefetched.tokenSymbol ?? '') || [(prefetched.tokenName ?? ''), (prefetched.tokenId ?? '')].filter(Boolean).join(' ') || 'tron account token balance timestamp')
 
 
 	// Components
@@ -61,10 +60,10 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={tronAccountTokenBalanceTimestamp}>
 			{#snippet children(entity)}
-				{@const balance0 = entity.balance}
-				{#if balance0 != null}
+				{@const balance = entity.balance}
+				{#if balance != null}
 					<NumberValue
-						value={balance0}
+						value={balance}
 					/>
 				{/if}
 			{/snippet}
@@ -97,14 +96,14 @@
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+					<Timestamp timestamp={selection.entitySelector.timestampMs} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 
@@ -123,7 +122,7 @@
 						<div>
 							<dt>Block height</dt>
 							<dd>
-								{String(blockHeight)}
+								{blockHeight}
 							</dd>
 						</div>
 					{/if}
@@ -186,7 +185,7 @@
 						<div>
 							<dt>Frozen balance</dt>
 							<dd>
-								{String(frozenBalance)}
+								{frozenBalance}
 							</dd>
 						</div>
 					{/if}
@@ -208,7 +207,7 @@
 						<div>
 							<dt>Delegated balance</dt>
 							<dd>
-								{String(delegatedBalance)}
+								{delegatedBalance}
 							</dd>
 						</div>
 					{/if}

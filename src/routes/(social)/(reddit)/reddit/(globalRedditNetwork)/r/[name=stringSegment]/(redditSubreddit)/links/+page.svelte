@@ -36,7 +36,7 @@
 			resolve(
 				'/(social)/(reddit)/reddit/(globalRedditNetwork)/r/[name=stringSegment]/(redditSubreddit)/links',
 				{
-					name: String(params.name),
+					name: params.name,
 				}
 			)
 		}

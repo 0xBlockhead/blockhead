@@ -41,15 +41,15 @@
 			entitySelector={eigenLayerStrategyTimestampSelector}
 		>
 			{#snippet Title()}
-				{String(eigenLayerStrategyTimestampSelector.$strategy.strategyAddress) || 'eigen layer strategy'}
+				{eigenLayerStrategyTimestampSelector.$strategy.strategyAddress || 'eigen layer strategy'}
 			{/snippet}
 
 			{#snippet Value()}
-				{String(eigenLayerStrategyTimestampSelector.timestampMs)}
+				{eigenLayerStrategyTimestampSelector.timestampMs}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{String(eigenLayerStrategyTimestamp.totalShares ?? '')}</span>
+				<span data-text="annotation">{eigenLayerStrategyTimestamp.totalShares ?? ''}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

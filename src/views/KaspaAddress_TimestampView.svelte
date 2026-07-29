@@ -21,7 +21,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.KaspaAddress_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.KaspaExplorer_Rest,
@@ -30,7 +29,6 @@
 			Source.KaspaNode_Wrpc,
 		],
 	}))
-	const titleFallback = 'kaspa address timestamp'
 
 
 	// Components
@@ -45,7 +43,7 @@
 <EntityView
 	entityType={EntityType.KaspaAddress_Timestamp}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? 'kaspa address timestamp'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -70,14 +68,14 @@
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+					<Timestamp timestamp={selection.entitySelector.timestampMs} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 

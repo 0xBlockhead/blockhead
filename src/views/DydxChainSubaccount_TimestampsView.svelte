@@ -42,7 +42,7 @@
 			entitySelector={dydxChainSubaccountTimestampSelector}
 		>
 			{#snippet Title()}
-				{String(dydxChainSubaccountTimestampSelector.timestampMs) || 'dydx chain subaccount timestamp'}
+				{dydxChainSubaccountTimestampSelector.timestampMs}
 			{/snippet}
 
 			{#snippet Value()}

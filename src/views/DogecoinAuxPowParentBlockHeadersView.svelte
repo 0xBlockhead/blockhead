@@ -40,11 +40,11 @@
 			entitySelector={dogecoinAuxPowParentBlockHeaderSelector}
 		>
 			{#snippet Title()}
-				{((String(dogecoinAuxPowParentBlockHeaderSelector.$auxPow.$block.height ?? '') ? 'Block #' + String(dogecoinAuxPowParentBlockHeaderSelector.$auxPow.$block.height ?? '') : '') || (dogecoinAuxPowParentBlockHeaderSelector.$auxPow.$block.hash ?? '') || 'UTXO block')}
+				{`Block #${dogecoinAuxPowParentBlockHeaderSelector.$auxPow.$block.height}`}
 			{/snippet}
 
 			{#snippet Value()}
-				{(dogecoinAuxPowParentBlockHeader.merkleRoot ?? '')}
+				{dogecoinAuxPowParentBlockHeader.merkleRoot ?? ''}
 			{/snippet}
 		</EntityView>
 	{/snippet}

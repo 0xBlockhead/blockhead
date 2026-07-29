@@ -45,7 +45,7 @@
 				resolve(
 					'/(explore)/network-stack/[networkStackId=stringSegment]',
 					{
-						networkStackId: String(networkStackSelector.networkStackId),
+						networkStackId: networkStackSelector.networkStackId,
 					}
 				)
 			}

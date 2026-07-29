@@ -27,7 +27,7 @@
 		resolve(
 			'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/transactions',
 			{
-				network: String(params.network),
+				network: params.network,
 			}
 		)
 	}

@@ -22,7 +22,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.NearChunk> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.NearRpc_JsonRpc,
@@ -33,7 +32,6 @@
 			shardId: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.chunkHash ?? '') || 'near chunk')
 
 
 	// Components
@@ -49,13 +47,13 @@
 <EntityView
 	entityType={EntityType.NearChunk}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? (selection.entitySelector.chunkHash || 'near chunk')}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<TruncatedValue value={pendingEntity.chunkHash} />
+		<TruncatedValue value={selection.entitySelector.chunkHash} />
 	{/snippet}
 
 	{#snippet Value()}
@@ -67,7 +65,6 @@
 					<NearBlockView
 						selection={select(EntityType.NearBlock, nearBlock[EntityMetaKey.Selector])}
 						prefetched={nearBlock}
-						href=""
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -79,11 +76,11 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={nearChunk}>
 			{#snippet children(entity)}
-				{@const shardId0 = entity.shardId}
-				{#if shardId0 != null}
+				{@const shardId = entity.shardId}
+				{#if shardId != null}
 					<span data-text="muted">
 						<NumberValue
-							value={shardId0}
+							value={shardId}
 						/>
 					</span>
 				{/if}
@@ -107,7 +104,7 @@
 			<div>
 				<dt>Chunk hash</dt>
 				<dd>
-					<TruncatedValue value={pendingEntity.chunkHash} />
+					<TruncatedValue value={selection.entitySelector.chunkHash} />
 				</dd>
 			</div>
 
@@ -176,15 +173,15 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const nearChunkNearTransactionsViewTransactionsResource = selection.$$transactions}
+		{@const transactionsResource = selection.$$transactions}
 		<ResourceBoundary
-			resource={nearChunkNearTransactionsViewTransactionsResource}
+			resource={transactionsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<NearTransactionsView
-						selection={nearChunkNearTransactionsViewTransactionsResource}
-						countResource={nearChunkNearTransactionsViewTransactionsResource.count}
+						selection={transactionsResource}
+						countResource={transactionsResource.count}
 						title='Transactions'
 						id='transactions'
 					/>

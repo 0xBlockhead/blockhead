@@ -46,15 +46,15 @@
 			entitySelector={litecoinMwebBlockSelector}
 		>
 			{#snippet Title()}
-				{((String(litecoinMwebBlockSelector.$block.height ?? '') ? 'Block #' + String(litecoinMwebBlockSelector.$block.height ?? '') : '') || (litecoinMwebBlockSelector.$block.hash ?? '') || 'UTXO block')}
+				{`Block #${litecoinMwebBlockSelector.$block.height}`}
 			{/snippet}
 
 			{#snippet Value()}
-				{(litecoinMwebBlock.hogExTransactionId ?? '')}
+				{litecoinMwebBlock.hogExTransactionId ?? ''}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{(litecoinMwebBlock.kernelRoot ?? '')}</span>
+				<span data-text="annotation">{litecoinMwebBlock.kernelRoot ?? ''}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

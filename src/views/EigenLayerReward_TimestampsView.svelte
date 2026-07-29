@@ -5,7 +5,6 @@
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { EvmAddress } from '$/schema/ZeroExHex.ts'
 
 
 	// State
@@ -42,7 +41,7 @@
 			entitySelector={eigenLayerRewardTimestampSelector}
 		>
 			{#snippet Title()}
-				{String(eigenLayerRewardTimestampSelector.$earner.$actor.address) || 'EVM account'}
+				{eigenLayerRewardTimestampSelector.$earner.$actor.address || 'EVM account'}
 			{/snippet}
 
 			{#snippet Value()}
@@ -50,7 +49,7 @@
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{String(eigenLayerRewardTimestamp.rewardToken ?? '')}</span>
+				<span data-text="annotation">{eigenLayerRewardTimestamp.rewardToken ?? ''}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

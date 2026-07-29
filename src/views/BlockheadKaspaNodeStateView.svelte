@@ -4,7 +4,6 @@
 	// Types/constants
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { UrlString } from '$/schema/UrlString.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -22,7 +21,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.BlockheadKaspaNodeState> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Local_Internal,
@@ -33,7 +31,6 @@
 			networkId: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.connectionId ?? '') || 'blockhead kaspa node state')
 
 
 	// Components
@@ -47,19 +44,18 @@
 <EntityView
 	entityType={EntityType.BlockheadKaspaNodeState}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? (selection.entitySelector.connectionId || 'blockhead kaspa node state')}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{(pendingEntity.connectionId ?? '') || 'blockhead kaspa node state'}
+		{selection.entitySelector.connectionId || 'blockhead kaspa node state'}
 	{/snippet}
 
 	{#snippet Value()}
 		<KaspaNetworkView
 			selection={select(EntityType.KaspaNetwork, selection.entitySelector.$network)}
-			href=""
 			layout={EntityLayout.Value}
 			open={false}
 		/>
@@ -68,10 +64,10 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={blockheadKaspaNodeState}>
 			{#snippet children(entity)}
-				{@const networkId0 = entity.networkId}
-				{#if networkId0 != null}
+				{@const networkId = entity.networkId}
+				{#if networkId != null}
 					<span data-text="muted">
-						{networkId0}
+						{networkId}
 					</span>
 				{/if}
 			{/snippet}
@@ -83,7 +79,7 @@
 			<div>
 				<dt>connection ID</dt>
 				<dd>
-					{pendingEntity.connectionId}
+					{selection.entitySelector.connectionId}
 				</dd>
 			</div>
 
@@ -114,11 +110,11 @@
 							<dt>RPC URL</dt>
 							<dd>
 								<a
-									href={String(rpcUrl)}
+									href={rpcUrl}
 									target="_blank"
 									rel="noreferrer noopener"
 								>
-									<TruncatedValue value={String(rpcUrl)} />
+									<TruncatedValue value={rpcUrl} />
 								</a>
 							</dd>
 						</div>
@@ -167,15 +163,15 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const blockheadKaspaNodeStateBlockheadKaspaNodeStateTimestampsViewTimestampsResource = selection.$$timestamps}
+		{@const timestampsResource = selection.$$timestamps}
 		<ResourceBoundary
-			resource={blockheadKaspaNodeStateBlockheadKaspaNodeStateTimestampsViewTimestampsResource}
+			resource={timestampsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<BlockheadKaspaNodeState_TimestampsView
-						selection={blockheadKaspaNodeStateBlockheadKaspaNodeStateTimestampsViewTimestampsResource}
-						countResource={blockheadKaspaNodeStateBlockheadKaspaNodeStateTimestampsViewTimestampsResource.count}
+						selection={timestampsResource}
+						countResource={timestampsResource.count}
 						title='timestamps'
 						id='timestamps'
 					/>

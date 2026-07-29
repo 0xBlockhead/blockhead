@@ -6,7 +6,6 @@
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { stringify } from 'devalue'
-	import { UrlString } from '$/schema/UrlString.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -21,12 +20,11 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType._GlobalNostrNetwork> = $props()
 
-	const viewSelection = $derived(selection({
+	const globalNostrNetwork = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Constants_Internal,
 		],
-	}))
-	const globalNostrNetwork = $derived(viewSelection({
+	})({
 		fields: {
 			protocolName: true,
 			registryName: true,
@@ -35,7 +33,6 @@
 			relationshipModel: true,
 		},
 	}))
-	const titleFallback = 'Nostr'
 	const viewDomId = $derived('-global-nostr-network-' + encodeURIComponent(stringify(selection.entitySelector)))
 
 
@@ -56,8 +53,13 @@
 	entityType={EntityType._GlobalNostrNetwork}
 	entitySelector={selection.entitySelector}
 	id={viewDomId}
-	title={title ?? titleFallback}
-	href={href ?? resolve('/(social)/(nostr)/nostr')}
+	title={title ?? 'Nostr'}
+	href={
+		href === undefined ?
+			resolve('/(social)/(nostr)/nostr')
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -117,11 +119,11 @@
 								<dt>Home</dt>
 								<dd>
 									<a
-										href={String(homeUrl)}
+										href={homeUrl}
 										target="_blank"
 										rel="noreferrer noopener"
 									>
-										<TruncatedValue value={String(homeUrl)} />
+										<TruncatedValue value={homeUrl} />
 									</a>
 								</dd>
 							</div>
@@ -141,11 +143,11 @@
 								<dt>NIPs</dt>
 								<dd>
 									<a
-										href={String(docsUrl)}
+										href={docsUrl}
 										target="_blank"
 										rel="noreferrer noopener"
 									>
-										<TruncatedValue value={String(docsUrl)} />
+										<TruncatedValue value={docsUrl} />
 									</a>
 								</dd>
 							</div>

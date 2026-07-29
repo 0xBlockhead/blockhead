@@ -22,7 +22,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.BlockheadPanel> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Local_Internal,
@@ -35,7 +34,7 @@
 			entityType: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.kind ?? '') || 'panel')
+	const titleFallback = $derived((prefetched.kind ?? '') || 'panel')
 
 
 	// Components
@@ -86,14 +85,14 @@
 			<div>
 				<dt>tree ID</dt>
 				<dd>
-					{pendingEntity.treeId}
+					{selection.entitySelector.treeId}
 				</dd>
 			</div>
 
 			<div>
 				<dt>panel ID</dt>
 				<dd>
-					{pendingEntity.panelId}
+					{selection.entitySelector.panelId}
 				</dd>
 			</div>
 

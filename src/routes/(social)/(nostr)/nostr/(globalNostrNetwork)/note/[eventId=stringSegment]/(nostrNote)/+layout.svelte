@@ -33,7 +33,7 @@
 			resolve(
 				'/(social)/(nostr)/nostr/(globalNostrNetwork)/note/[eventId=stringSegment]',
 				{
-					eventId: String(params.eventId),
+					eventId: params.eventId,
 				}
 			)
 		}
@@ -51,7 +51,7 @@
 					resolve(
 						'/(social)/(nostr)/nostr/(globalNostrNetwork)/note/[eventId=stringSegment]',
 						{
-							eventId: String(params.eventId),
+							eventId: params.eventId,
 						}
 					)
 				}

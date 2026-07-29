@@ -192,7 +192,6 @@ describe('XRPL rippled queries', () => {
 			credentials: [{
 				scope: SourceCredentialScope.None,
 			}],
-			proxyId: '["Xrpl_Rippled","Caip2Network","xrpl:0","HttpProxy","JsonRpcApi"]',
 			artifacts: [{
 				kind: SourceArtifactKind.HandwrittenTypes,
 				path: 'src/sources/Xrpl/JsonRpc/types.ts',

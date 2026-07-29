@@ -8,7 +8,6 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
-	import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -27,7 +26,7 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.EvmLog> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const transaction = $derived(selection.entitySelector.$transaction)
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Blockscout_Rest,
@@ -38,7 +37,6 @@
 			data: true,
 		},
 	}))
-	const titleFallback = $derived((String(pendingEntity.indexInTransaction ?? '') ? 'Log #' + String(pendingEntity.indexInTransaction ?? '') : '') || 'EVM log')
 
 
 	// Components
@@ -56,22 +54,25 @@
 <EntityView
 	entityType={EntityType.EvmLog}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
-	idDragPlainText={String(pendingEntity.indexInTransaction ?? '')}
+	title={title ?? `Log #${selection.entitySelector.indexInTransaction}`}
+	idDragPlainText={String(selection.entitySelector.indexInTransaction)}
 	href={
-		href ?? resolve(
-			'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(transactions)/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/(selection)/log/[indexInTransaction=nonNegativeInteger]',
-			{
-				network: (
-					'caip2' in selection.entitySelector.$transaction.$network ?
-						String(caip2StringFromValue(selection.entitySelector.$transaction.$network.caip2))
-					:
-						String(selection.entitySelector.$transaction.$network.slug)
-				),
-				transactionId: String(selection.entitySelector.$transaction.txHash),
-				indexInTransaction: String(selection.entitySelector.indexInTransaction),
-			}
-		)
+		href === undefined ?
+			resolve(
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(transactions)/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/(selection)/log/[indexInTransaction=nonNegativeInteger]',
+				{
+					network: (
+						'caip2' in transaction.$network ?
+							caip2StringFromValue(transaction.$network.caip2)
+						:
+							transaction.$network.slug
+					),
+					transactionId: transaction.txHash,
+					indexInTransaction: String(selection.entitySelector.indexInTransaction),
+				}
+			)
+		:
+			href ?? undefined
 	}
 	{layout}
 	bind:open
@@ -86,7 +87,7 @@
 					<EvmContractView
 						selection={select(EntityType.EvmContract, evmContract[EntityMetaKey.Selector])}
 						prefetched={evmContract}
-						href=""
+						href={null}
 						layout={EntityLayout.Title}
 						open={false}
 					/>
@@ -95,12 +96,12 @@
 		</ResourceBoundary>
 
 		<span>#</span>
-		{String(pendingEntity.indexInTransaction)}
+		{selection.entitySelector.indexInTransaction}
 	{/snippet}
 
 	{#snippet Value()}
 		<span data-badge="small">
-			#{String(pendingEntity.indexInTransaction)}
+			#{selection.entitySelector.indexInTransaction}
 		</span>
 	{/snippet}
 
@@ -116,7 +117,7 @@
 				<dt>Index in transaction</dt>
 				<dd>
 					<span>#</span>
-					{String(pendingEntity.indexInTransaction)}
+					{selection.entitySelector.indexInTransaction}
 				</dd>
 			</div>
 
@@ -184,7 +185,7 @@
 						<div>
 							<dt>Data</dt>
 							<dd>
-								<TruncatedValue value={String(data)} />
+								<TruncatedValue value={data} />
 							</dd>
 						</div>
 					{/if}
@@ -218,15 +219,15 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const evmLogEvmTopicsViewTopicsResource = selection.$$topics}
+		{@const topicsResource = selection.$$topics}
 		<ResourceBoundary
-			resource={evmLogEvmTopicsViewTopicsResource}
+			resource={topicsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<EvmTopicsView
-						selection={evmLogEvmTopicsViewTopicsResource}
-						countResource={evmLogEvmTopicsViewTopicsResource.count}
+						selection={topicsResource}
+						countResource={topicsResource.count}
 						title='Topics'
 						id='topics'
 					/>
@@ -238,15 +239,15 @@
 			resource={selection.Event.TokenTransfer}
 		>
 			{#snippet Applicable(projection)}
-				{@const evmLogEvmTokenTransfersViewEventTokenTransferTokenTransfersResource = projection.$$tokenTransfers}
+				{@const tokenTransfersResource = projection.$$tokenTransfers}
 				<ResourceBoundary
-					resource={evmLogEvmTokenTransfersViewEventTokenTransferTokenTransfersResource}
+					resource={tokenTransfersResource}
 				>
 					{#snippet children(entities)}
 						{#if entities.values.length > 0}
 							<EvmTokenTransfersView
-								selection={evmLogEvmTokenTransfersViewEventTokenTransferTokenTransfersResource}
-								countResource={evmLogEvmTokenTransfersViewEventTokenTransferTokenTransfersResource.count}
+								selection={tokenTransfersResource}
+								countResource={tokenTransfersResource.count}
 								title='Token transfers'
 								id='token-transfers'
 							/>

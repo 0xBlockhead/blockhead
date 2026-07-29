@@ -20,9 +20,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.TonTransactionPhase> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const titleFallback = 'TON transaction phase'
-
 
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -33,7 +30,7 @@
 <EntityView
 	entityType={EntityType.TonTransactionPhase}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? 'TON transaction phase'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -58,7 +55,7 @@
 			<div>
 				<dt>phase kind</dt>
 				<dd>
-					{pendingEntity.phaseKind}
+					{selection.entitySelector.phaseKind}
 				</dd>
 			</div>
 
@@ -99,7 +96,7 @@
 						<div>
 							<dt>exit code</dt>
 							<dd>
-								{String(exitCode)}
+								{exitCode}
 							</dd>
 						</div>
 					{/if}
@@ -121,7 +118,7 @@
 						<div>
 							<dt>gas used</dt>
 							<dd>
-								{String(gasUsed)}
+								{gasUsed}
 							</dd>
 						</div>
 					{/if}
@@ -143,7 +140,7 @@
 						<div>
 							<dt>gas fees nano</dt>
 							<dd>
-								{String(gasFeesNano)}
+								{gasFeesNano}
 							</dd>
 						</div>
 					{/if}
@@ -165,7 +162,7 @@
 						<div>
 							<dt>storage fees nano</dt>
 							<dd>
-								{String(storageFeesNano)}
+								{storageFeesNano}
 							</dd>
 						</div>
 					{/if}
@@ -187,7 +184,7 @@
 						<div>
 							<dt>action result code</dt>
 							<dd>
-								{String(actionResultCode)}
+								{actionResultCode}
 							</dd>
 						</div>
 					{/if}

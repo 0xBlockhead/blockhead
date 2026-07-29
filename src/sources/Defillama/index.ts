@@ -2,7 +2,8 @@
 
 import bindings from '$/sources/Defillama/bindings.ts'
 import { Source } from '$/sources/Source.ts'
-import { SourceProvider, type SourceProviderDefinition } from '$/sources/SourceProvider.ts'
+import { SourceProvider } from '$/sources/SourceProvider.ts'
+import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinition.ts'
 import { type as arktype } from 'arktype'
 
 export default {
@@ -24,8 +25,5 @@ export default {
 			}),
 		},
 	],
-	bindings: [
-		bindings[Source.Defillama_OpenApi],
-		bindings[Source.Defillama_Rest],
-	],
+	bindings: Object.values(bindings).flat(),
 } satisfies SourceProviderDefinition

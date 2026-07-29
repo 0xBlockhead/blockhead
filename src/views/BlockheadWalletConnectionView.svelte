@@ -24,7 +24,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.BlockheadWalletConnection> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Local_Internal,
@@ -56,12 +55,15 @@
 	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
 	href={
-		href ?? resolve(
-			'/~/accounts/connections/[connectionKey=stringSegment]',
-			{
-				connectionKey: String(selection.entitySelector.connectionKey),
-			}
-		)
+		href === undefined ?
+			resolve(
+				'/~/accounts/connections/[connectionKey=stringSegment]',
+				{
+					connectionKey: selection.entitySelector.connectionKey,
+				}
+			)
+		:
+			href ?? undefined
 	}
 	{layout}
 	bind:open
@@ -75,7 +77,6 @@
 				<BlockheadWalletView
 					selection={select(EntityType.BlockheadWallet, blockheadWallet[EntityMetaKey.Selector])}
 					prefetched={blockheadWallet}
-					href=""
 					layout={EntityLayout.Title}
 					open={false}
 				/>
@@ -106,7 +107,7 @@
 			<div>
 				<dt>connection key</dt>
 				<dd>
-					{pendingEntity.connectionKey}
+					{selection.entitySelector.connectionKey}
 				</dd>
 			</div>
 
@@ -197,7 +198,7 @@
 						<div>
 							<dt>Connected</dt>
 							<dd>
-								<Timestamp timestamp={Number(connectedAt)} />
+								<Timestamp timestamp={connectedAt} />
 							</dd>
 						</div>
 					{/if}
@@ -219,7 +220,7 @@
 						<div>
 							<dt>Disconnected</dt>
 							<dd>
-								<Timestamp timestamp={Number(disconnectedAt)} />
+								<Timestamp timestamp={disconnectedAt} />
 							</dd>
 						</div>
 					{/if}
@@ -315,15 +316,15 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const blockheadWalletConnectionAccountsViewAccountsResource = selection.$$accounts}
+		{@const accountsResource = selection.$$accounts}
 		<ResourceBoundary
-			resource={blockheadWalletConnectionAccountsViewAccountsResource}
+			resource={accountsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<AccountsView
-						selection={blockheadWalletConnectionAccountsViewAccountsResource}
-						countResource={blockheadWalletConnectionAccountsViewAccountsResource.count}
+						selection={accountsResource}
+						countResource={accountsResource.count}
 						title='Accounts'
 						id='accounts'
 					/>

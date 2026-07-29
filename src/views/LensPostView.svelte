@@ -24,7 +24,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.LensPost> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Lens_Graphql,
@@ -37,7 +36,7 @@
 			isDeleted: true,
 		},
 	}))
-	const titleFallback = $derived([(pendingEntity.text ?? ''), (pendingEntity.id ?? '')].filter(Boolean).join(' ') || 'Lens post')
+	const titleFallback = $derived([(prefetched.text ?? ''), selection.entitySelector.id].filter(Boolean).join(' ') || 'Lens post')
 
 
 	// Components
@@ -56,12 +55,15 @@
 	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
 	href={
-		href ?? resolve(
-			'/(social)/(lens)/lens/(lensNetwork)/post/[postId=stringSegment]',
-			{
-				postId: String(selection.entitySelector.id),
-			}
-		)
+		href === undefined ?
+			resolve(
+				'/(social)/(lens)/lens/(lensNetwork)/post/[postId=stringSegment]',
+				{
+					postId: selection.entitySelector.id,
+				}
+			)
+		:
+			href ?? undefined
 	}
 	{layout}
 	bind:open
@@ -70,7 +72,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={lensPost}>
 			{#snippet children(entity)}
-				{[(entity.text ?? ''), pendingEntity.id].filter(Boolean).join(' ') || title || titleFallback}
+				{[(entity.text ?? ''), selection.entitySelector.id].filter(Boolean).join(' ') || title || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -78,7 +80,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={lensPost}>
 			{#snippet children(entity)}
-				{[String(entity.timestamp ?? ''), pendingEntity.id].filter(Boolean).join(' ') || [(entity.text ?? ''), pendingEntity.id].filter(Boolean).join(' ') || titleFallback}
+				{[String(entity.timestamp ?? ''), selection.entitySelector.id].filter(Boolean).join(' ') || [(entity.text ?? ''), selection.entitySelector.id].filter(Boolean).join(' ') || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -116,7 +118,7 @@
 						<div>
 							<dt>Timestamp</dt>
 							<dd>
-								<Timestamp timestamp={Number(timestamp)} />
+								<Timestamp timestamp={timestamp} />
 							</dd>
 						</div>
 					{/if}
@@ -183,11 +185,11 @@
 							<dt>Content URI</dt>
 							<dd>
 								<a
-									href={String(contentUri)}
+									href={contentUri}
 									target="_blank"
 									rel="noreferrer noopener"
 								>
-									<TruncatedValue value={String(contentUri)} />
+									<TruncatedValue value={contentUri} />
 								</a>
 							</dd>
 						</div>
@@ -321,21 +323,21 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const lensPostLensPostsViewCommentsResource = selection.$$comments}
+		{@const commentsResource = selection.$$comments}
 		<ResourceBoundary
-			resource={lensPostLensPostsViewCommentsResource}
+			resource={commentsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<LensPostsView
-						selection={lensPostLensPostsViewCommentsResource}
-						countResource={lensPostLensPostsViewCommentsResource.count}
+						selection={commentsResource}
+						countResource={commentsResource.count}
 						title='Comments'
 						href={
 							resolve(
 								'/(social)/(lens)/lens/(lensNetwork)/post/[postId=stringSegment]/(lensPost)/comments',
 								{
-									postId: String(selection.entitySelector.id),
+									postId: selection.entitySelector.id,
 								}
 							)
 						}
@@ -344,15 +346,15 @@
 				{/if}
 			{/snippet}
 		</ResourceBoundary>
-		{@const lensPostLensPostTimestampsViewTimestampsResource = selection.$$timestamps}
+		{@const timestampsResource = selection.$$timestamps}
 		<ResourceBoundary
-			resource={lensPostLensPostTimestampsViewTimestampsResource}
+			resource={timestampsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<LensPost_TimestampsView
-						selection={lensPostLensPostTimestampsViewTimestampsResource}
-						countResource={lensPostLensPostTimestampsViewTimestampsResource.count}
+						selection={timestampsResource}
+						countResource={timestampsResource.count}
 						title='Observations'
 						id='timestamps'
 					/>

@@ -22,7 +22,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.BlockheadZeroGStoredChunk> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Local_Internal,
@@ -34,7 +33,6 @@
 			present: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.dataRoot ?? '') || 'blockhead zero g stored chunk')
 
 
 	// Components
@@ -50,18 +48,18 @@
 <EntityView
 	entityType={EntityType.BlockheadZeroGStoredChunk}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? (selection.entitySelector.dataRoot || 'blockhead zero g stored chunk')}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{(pendingEntity.dataRoot ?? '') || 'blockhead zero g stored chunk'}
+		{selection.entitySelector.dataRoot || 'blockhead zero g stored chunk'}
 	{/snippet}
 
 	{#snippet Value()}
 		<NumberValue
-			value={pendingEntity.chunkIndex}
+			value={selection.entitySelector.chunkIndex}
 		/>
 	{/snippet}
 
@@ -91,7 +89,7 @@
 			<div>
 				<dt>data root</dt>
 				<dd>
-					{pendingEntity.dataRoot}
+					{selection.entitySelector.dataRoot}
 				</dd>
 			</div>
 
@@ -99,7 +97,7 @@
 				<dt>chunk index</dt>
 				<dd>
 					<NumberValue
-						value={pendingEntity.chunkIndex}
+						value={selection.entitySelector.chunkIndex}
 					/>
 				</dd>
 			</div>
@@ -242,7 +240,7 @@
 						<div>
 							<dt>last checked AT</dt>
 							<dd>
-								<Timestamp timestamp={Number(lastCheckedAt)} />
+								<Timestamp timestamp={lastCheckedAt} />
 							</dd>
 						</div>
 					{/if}

@@ -5,7 +5,6 @@
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -37,7 +36,6 @@
 			slashedShares: true,
 		},
 	}))
-	const titleFallback = 'eigen layer slashing event'
 
 
 	// Components
@@ -55,7 +53,7 @@
 <EntityView
 	entityType={EntityType.EigenLayerSlashingEvent}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? 'eigen layer slashing event'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -69,7 +67,6 @@
 					<EigenLayerOperatorView
 						selection={select(EntityType.EigenLayerOperator, eigenLayerOperator[EntityMetaKey.Selector])}
 						prefetched={eigenLayerOperator}
-						href=""
 						layout={EntityLayout.Title}
 						open={false}
 					/>
@@ -87,7 +84,6 @@
 					<EigenLayerAvsView
 						selection={select(EntityType.EigenLayerAvs, eigenLayerAvs[EntityMetaKey.Selector])}
 						prefetched={eigenLayerAvs}
-						href=""
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -99,11 +95,11 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={eigenLayerSlashingEvent}>
 			{#snippet children(entity)}
-				{@const slashedShares0 = entity.slashedShares}
-				{#if slashedShares0 != null}
+				{@const slashedShares = entity.slashedShares}
+				{#if slashedShares != null}
 					<span data-text="muted">
 						<NumberValue
-							value={slashedShares0}
+							value={slashedShares}
 						/>
 					</span>
 				{/if}
@@ -296,7 +292,7 @@
 						<div>
 							<dt>transaction hash</dt>
 							<dd>
-								<TruncatedValue value={String(transactionHash)} />
+								<TruncatedValue value={transactionHash} />
 							</dd>
 						</div>
 					{/if}
@@ -366,7 +362,7 @@
 						<div>
 							<dt>Timestamp</dt>
 							<dd>
-								<Timestamp timestamp={Number(timestampMs)} />
+								<Timestamp timestamp={timestampMs} />
 							</dd>
 						</div>
 					{/if}

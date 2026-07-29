@@ -33,7 +33,7 @@
 			resolve(
 				'/(social)/(reddit)/reddit/(globalRedditNetwork)/r/[name=stringSegment]',
 				{
-					name: String(params.name),
+					name: params.name,
 				}
 			)
 		}
@@ -49,7 +49,7 @@
 					resolve(
 						'/(social)/(reddit)/reddit/(globalRedditNetwork)/r/[name=stringSegment]',
 						{
-							name: String(params.name),
+							name: params.name,
 						}
 					)
 				}

@@ -35,7 +35,7 @@
 
 
 <svelte:head>
-	<title>{(pageSelection.entitySelector.address || 'Farcaster verified address')} • Farcaster verified address • Blockhead</title>
+	<title>{pageSelection.entitySelector.address || 'Farcaster verified address'} • Farcaster verified address • Blockhead</title>
 </svelte:head>
 
 

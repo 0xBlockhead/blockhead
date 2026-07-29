@@ -1,10 +1,10 @@
 // Generated from APP.ts. Do not edit by hand.
 
 import { Source } from '$/sources/Source.ts'
-import { ApiFamily, SourceCredentialScope, SourceDelivery, SourceEndpointKind, SourceOperationGroup, SourceTargetKind, WireProtocol, type SourceBindingIndex } from '$/sources/SourceBinding.ts'
+import { ApiFamily, indexSourceBindings, SourceCredentialScope, SourceDelivery, SourceEndpointKind, SourceOperationGroup, SourceTargetKind, WireProtocol, type SourceBinding } from '$/sources/SourceBinding.ts'
 
-export default {
-	[Source.OpenAI_Rest]: {
+const bindings = [
+	{
 		source: Source.OpenAI_Rest,
 		target: {
 			kind: SourceTargetKind.Global,
@@ -31,7 +31,7 @@ export default {
 				scope: SourceCredentialScope.RuntimeSecret,
 			},
 		],
-		proxyId: '["OpenAI_Rest","Global","openai-api","HttpProxy","RestJson"]',
-		serverCredentialId: '["OpenAI_Rest","Global","openai-api","HttpProxy","RestJson"]',
 	},
-} as const satisfies SourceBindingIndex
+] as const satisfies readonly SourceBinding[]
+
+export default indexSourceBindings<{ readonly [Source.OpenAI_Rest]: typeof bindings[0] }>(bindings)

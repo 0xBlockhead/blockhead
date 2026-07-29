@@ -22,8 +22,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.HyperliquidAccount> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const titleFallback = 'hyperliquid account'
 	const viewDomId = $derived('hyperliquid-account-' + encodeURIComponent(stringify(selection.entitySelector)))
 
 
@@ -45,7 +43,7 @@
 	entityType={EntityType.HyperliquidAccount}
 	entitySelector={selection.entitySelector}
 	id={viewDomId}
-	title={title ?? titleFallback}
+	title={title ?? 'hyperliquid account'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -70,7 +68,7 @@
 			<div>
 				<dt>Address</dt>
 				<dd>
-					<TruncatedValue value={pendingEntity.address} />
+					<TruncatedValue value={selection.entitySelector.address} />
 				</dd>
 			</div>
 
@@ -87,7 +85,7 @@
 						}
 					>
 						{#snippet children(entity)}
-							<TruncatedValue value={entity.accountRole} />
+							{entity.accountRole}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>

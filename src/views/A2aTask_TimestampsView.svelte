@@ -41,15 +41,15 @@
 			entitySelector={a2aTaskTimestampSelector}
 		>
 			{#snippet Title()}
-				{String(a2aTaskTimestampSelector.timestampMs) || 'A2A task timestamp'}
+				{a2aTaskTimestampSelector.timestampMs}
 			{/snippet}
 
 			{#snippet Value()}
-				{(a2aTaskTimestamp.state ?? '')}
+				{a2aTaskTimestamp.state ?? ''}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{(a2aTaskTimestamp.error ?? '')}</span>
+				<span data-text="annotation">{a2aTaskTimestamp.error ?? ''}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

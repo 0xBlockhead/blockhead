@@ -4,8 +4,6 @@
 	// Types/constants
 	import type { PageProps } from './$types.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { UrlString } from '$/schema/UrlString.ts'
-	import { EvmAddress } from '$/schema/ZeroExHex.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -39,7 +37,7 @@
 
 
 <svelte:head>
-	<title>{(String(pageSelection.entitySelector.address) || 'EVM account')} • EVM account • Blockhead</title>
+	<title>{pageSelection.entitySelector.address || 'EVM account'} • EVM account • Blockhead</title>
 </svelte:head>
 
 

@@ -1,7 +1,7 @@
 // Generated from APP.ts. Do not edit by hand.
 
 import { Source } from '$/sources/Source.ts'
-import { ApiFamily, SourceArtifactKind, SourceCredentialScope, SourceDelivery, SourceEndpointKind, SourceOperationGroup, SourceTargetKind, WireProtocol, type SourceBindingIndex } from '$/sources/SourceBinding.ts'
+import { ApiFamily, indexSourceBindings, SourceArtifactKind, SourceCredentialScope, SourceDelivery, SourceEndpointKind, SourceOperationGroup, SourceTargetKind, WireProtocol, type SourceBinding } from '$/sources/SourceBinding.ts'
 
 const mastodonRestGlobalMastodonInstanceHttpsFosstodonOrgEndpoints = [
 	{
@@ -27,59 +27,56 @@ const mastodonRestArtifacts = [
 	},
 ] as const
 
-export default {
-	[Source.Mastodon_Rest]: [
-		{
-			source: Source.Mastodon_Rest,
-			target: {
-				kind: SourceTargetKind.Global,
-				key: 'mastodon-instance:https://mastodon.social',
-			},
-			endpoints: [
-				{
-					endpointKind: SourceEndpointKind.HttpUrl,
-					locator: 'https://mastodon.social',
-					origin: 'https://mastodon.social',
-					corsEnabled: false,
-				},
-			],
-			wireProtocol: WireProtocol.HttpRest,
-			apiFamily: ApiFamily.RestJson,
-			operationGroups: mastodonRestGenericReadOperationGroups,
-			delivery: SourceDelivery.HttpProxy,
-			credentials: mastodonRestCredentials,
-			proxyId: '["Mastodon_Rest","Global","mastodon-instance:https://mastodon.social","HttpProxy","RestJson"]',
-			artifacts: mastodonRestArtifacts,
+const bindings = [
+	{
+		source: Source.Mastodon_Rest,
+		target: {
+			kind: SourceTargetKind.Global,
+			key: 'mastodon-instance:https://mastodon.social',
 		},
-		{
-			source: Source.Mastodon_Rest,
-			target: {
-				kind: SourceTargetKind.Global,
-				key: 'mastodon-instance:https://fosstodon.org',
+		endpoints: [
+			{
+				endpointKind: SourceEndpointKind.HttpUrl,
+				locator: 'https://mastodon.social',
+				origin: 'https://mastodon.social',
+				corsEnabled: false,
 			},
-			endpoints: mastodonRestGlobalMastodonInstanceHttpsFosstodonOrgEndpoints,
-			wireProtocol: WireProtocol.HttpRest,
-			apiFamily: ApiFamily.RestJson,
-			operationGroups: mastodonRestGenericReadOperationGroups,
-			delivery: SourceDelivery.HttpProxy,
-			credentials: mastodonRestCredentials,
-			proxyId: '["Mastodon_Rest","Global","mastodon-instance:https://fosstodon.org","HttpProxy","RestJson"]',
-			artifacts: mastodonRestArtifacts,
+		],
+		wireProtocol: WireProtocol.HttpRest,
+		apiFamily: ApiFamily.RestJson,
+		operationGroups: mastodonRestGenericReadOperationGroups,
+		delivery: SourceDelivery.HttpProxy,
+		credentials: mastodonRestCredentials,
+		artifacts: mastodonRestArtifacts,
+	},
+	{
+		source: Source.Mastodon_Rest,
+		target: {
+			kind: SourceTargetKind.Global,
+			key: 'mastodon-instance:https://fosstodon.org',
 		},
-		{
-			source: Source.Mastodon_Rest,
-			target: {
-				kind: SourceTargetKind.Feed,
-				key: 'mastodon-public-timeline:https://fosstodon.org',
-			},
-			endpoints: mastodonRestGlobalMastodonInstanceHttpsFosstodonOrgEndpoints,
-			wireProtocol: WireProtocol.HttpRest,
-			apiFamily: ApiFamily.RestJson,
-			operationGroups: mastodonRestGenericReadOperationGroups,
-			delivery: SourceDelivery.HttpProxy,
-			credentials: mastodonRestCredentials,
-			proxyId: '["Mastodon_Rest","Feed","mastodon-public-timeline:https://fosstodon.org","HttpProxy","RestJson"]',
-			artifacts: mastodonRestArtifacts,
+		endpoints: mastodonRestGlobalMastodonInstanceHttpsFosstodonOrgEndpoints,
+		wireProtocol: WireProtocol.HttpRest,
+		apiFamily: ApiFamily.RestJson,
+		operationGroups: mastodonRestGenericReadOperationGroups,
+		delivery: SourceDelivery.HttpProxy,
+		credentials: mastodonRestCredentials,
+		artifacts: mastodonRestArtifacts,
+	},
+	{
+		source: Source.Mastodon_Rest,
+		target: {
+			kind: SourceTargetKind.Feed,
+			key: 'mastodon-public-timeline:https://fosstodon.org',
 		},
-	],
-} as const satisfies SourceBindingIndex
+		endpoints: mastodonRestGlobalMastodonInstanceHttpsFosstodonOrgEndpoints,
+		wireProtocol: WireProtocol.HttpRest,
+		apiFamily: ApiFamily.RestJson,
+		operationGroups: mastodonRestGenericReadOperationGroups,
+		delivery: SourceDelivery.HttpProxy,
+		credentials: mastodonRestCredentials,
+		artifacts: mastodonRestArtifacts,
+	},
+] as const satisfies readonly SourceBinding[]
+
+export default indexSourceBindings<{ readonly [Source.Mastodon_Rest]: readonly [typeof bindings[0], typeof bindings[1], typeof bindings[2]] }>(bindings)

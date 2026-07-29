@@ -20,14 +20,13 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.IbcConnection> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const ibcConnection = $derived(selection({
 		fields: {
 			state: true,
 			clientId: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.connectionId ?? '') || 'IBC connection')
+	const titleFallback = $derived(selection.entitySelector.connectionId || 'IBC connection')
 
 
 	// Components
@@ -46,13 +45,13 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{(pendingEntity.connectionId ?? '') || 'IBC connection'}
+		{selection.entitySelector.connectionId || 'IBC connection'}
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={ibcConnection}>
 			{#snippet children(entity)}
-				{[(entity.state ?? ''), pendingEntity.connectionId].filter(Boolean).join(' ') || pendingEntity.connectionId || titleFallback}
+				{[(entity.state ?? ''), selection.entitySelector.connectionId].filter(Boolean).join(' ') || selection.entitySelector.connectionId || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -60,10 +59,10 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={ibcConnection}>
 			{#snippet children(entity)}
-				{@const clientId0 = entity.clientId}
-				{#if clientId0 != null}
+				{@const clientId = entity.clientId}
+				{#if clientId != null}
 					<span data-text="muted">
-						{clientId0}
+						{clientId}
 					</span>
 				{/if}
 			{/snippet}
@@ -75,7 +74,7 @@
 			<div>
 				<dt>Connection ID</dt>
 				<dd>
-					{pendingEntity.connectionId}
+					{selection.entitySelector.connectionId}
 				</dd>
 			</div>
 
@@ -126,7 +125,7 @@
 						<div>
 							<dt>Delay period ns</dt>
 							<dd>
-								{String(delayPeriodNs)}
+								{delayPeriodNs}
 							</dd>
 						</div>
 					{/if}
@@ -193,15 +192,15 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const ibcConnectionIbcChannelsViewChannelsResource = selection.$$channels}
+		{@const channelsResource = selection.$$channels}
 		<ResourceBoundary
-			resource={ibcConnectionIbcChannelsViewChannelsResource}
+			resource={channelsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<IbcChannelsView
-						selection={ibcConnectionIbcChannelsViewChannelsResource}
-						countResource={ibcConnectionIbcChannelsViewChannelsResource.count}
+						selection={channelsResource}
+						countResource={channelsResource.count}
 						title='Channels'
 						id='channels'
 					/>

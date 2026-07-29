@@ -20,9 +20,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.ActivityPubInstancePeer> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const titleFallback = $derived((pendingEntity.peerDomain ?? '') || 'ActivityPub instance peer')
-
 
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -33,19 +30,19 @@
 <EntityView
 	entityType={EntityType.ActivityPubInstancePeer}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? (selection.entitySelector.peerDomain || 'ActivityPub instance peer')}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{(pendingEntity.peerDomain ?? '') || 'ActivityPub instance peer'}
+		{selection.entitySelector.peerDomain || 'ActivityPub instance peer'}
 	{/snippet}
 
 	{#snippet Value()}
 		<ActivityPubInstance_TimestampView
 			selection={select(EntityType.ActivityPubInstance_Timestamp, selection.entitySelector.$observation)}
-			href=""
+			href={null}
 			layout={EntityLayout.Value}
 			open={false}
 		/>
@@ -73,7 +70,7 @@
 			<div>
 				<dt>Peer domain</dt>
 				<dd>
-					{pendingEntity.peerDomain}
+					{selection.entitySelector.peerDomain}
 				</dd>
 			</div>
 		</dl>

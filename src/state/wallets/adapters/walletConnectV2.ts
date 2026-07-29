@@ -4,7 +4,7 @@ import {
 	WalletProtocol,
 	WalletTransportKind,
 } from '$/constants/Wallet.ts'
-import { BlockheadConnectionStatus } from '$/schema/BlockheadWalletConnection.ts'
+import { BlockheadConnectionStatus } from '$/schema/BlockheadConnectionStatus.ts'
 import type { JsonValue } from '$/typescript/JsonValue.ts'
 import { type as arktype } from 'arktype'
 import type {

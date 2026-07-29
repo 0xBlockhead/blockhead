@@ -22,7 +22,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.BlockheadTransferRequest> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Local_Internal,
@@ -34,7 +33,7 @@
 			createdAt: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.id ?? '') || 'blockhead transfer request')
+	const titleFallback = $derived(selection.entitySelector.id || 'blockhead transfer request')
 
 
 	// Components
@@ -56,13 +55,13 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<TruncatedValue value={pendingEntity.id} />
+		<TruncatedValue value={selection.entitySelector.id} />
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={blockheadTransferRequest}>
 			{#snippet children(entity)}
-				{entity.status || pendingEntity.id || titleFallback}
+				{entity.status || selection.entitySelector.id || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -71,7 +70,7 @@
 		<ResourceBoundary resource={blockheadTransferRequest}>
 			{#snippet children(entity)}
 				<span data-text="muted">
-					<Timestamp timestamp={Number(entity.createdAt)} />
+					<Timestamp timestamp={entity.createdAt} />
 				</span>
 			{/snippet}
 		</ResourceBoundary>
@@ -82,7 +81,7 @@
 			<div>
 				<dt>ID</dt>
 				<dd>
-					{pendingEntity.id}
+					{selection.entitySelector.id}
 				</dd>
 			</div>
 
@@ -192,7 +191,7 @@
 						resource={blockheadTransferRequest}
 					>
 						{#snippet children(entity)}
-							<Timestamp timestamp={Number(entity.createdAt)} />
+							<Timestamp timestamp={entity.createdAt} />
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -211,7 +210,7 @@
 						}
 					>
 						{#snippet children(entity)}
-							<Timestamp timestamp={Number(entity.expiresAt)} />
+							<Timestamp timestamp={entity.expiresAt} />
 						{/snippet}
 					</ResourceBoundary>
 				</dd>

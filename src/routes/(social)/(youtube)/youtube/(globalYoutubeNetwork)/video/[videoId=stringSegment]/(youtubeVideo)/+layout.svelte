@@ -33,7 +33,7 @@
 			resolve(
 				'/(social)/(youtube)/youtube/(globalYoutubeNetwork)/video/[videoId=stringSegment]',
 				{
-					videoId: String(params.videoId),
+					videoId: params.videoId,
 				}
 			)
 		}
@@ -51,7 +51,7 @@
 					resolve(
 						'/(social)/(youtube)/youtube/(globalYoutubeNetwork)/video/[videoId=stringSegment]',
 						{
-							videoId: String(params.videoId),
+							videoId: params.videoId,
 						}
 					)
 				}

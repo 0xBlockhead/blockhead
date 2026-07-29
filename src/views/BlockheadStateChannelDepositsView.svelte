@@ -41,7 +41,7 @@
 			entitySelector={blockheadStateChannelDepositSelector}
 		>
 			{#snippet Title()}
-				{String(blockheadStateChannelDepositSelector.$account.address) || 'EVM account'}
+				{blockheadStateChannelDepositSelector.$account.address || 'EVM account'}
 			{/snippet}
 
 			{#snippet Value()}

@@ -9,7 +9,8 @@ import RedditLinkSchema from '$/schema/RedditLink.ts'
 import { type as arktype } from 'arktype'
 
 export const load: LayoutLoad = ({ params }) => {
-	if (!(matchStringSegment(params.fullname))) error(404, 'Route mapping not applicable')
+	if (!(matchStringSegment(params.fullname)))
+		error(404, 'Route mapping not applicable')
 
 	const redditLinkFullnameSelector = parseEntitySelector(
 		schema,
@@ -18,7 +19,8 @@ export const load: LayoutLoad = ({ params }) => {
 			fullname: decodeURIComponent(params.fullname),
 		}
 	)
-	if (redditLinkFullnameSelector instanceof arktype.errors) error(404, 'Invalid RedditLink selector')
+	if (redditLinkFullnameSelector instanceof arktype.errors)
+		error(404, 'Invalid RedditLink selector')
 
 	return {
 		selector: redditLinkFullnameSelector,

@@ -1,10 +1,10 @@
 // Generated from APP.ts. Do not edit by hand.
 
 import { Source } from '$/sources/Source.ts'
-import { ApiFamily, SourceCredentialScope, SourceDelivery, SourceEndpointKind, SourceOperationGroup, SourceTargetKind, WireProtocol, type SourceBindingIndex } from '$/sources/SourceBinding.ts'
+import { ApiFamily, indexSourceBindings, SourceCredentialScope, SourceDelivery, SourceEndpointKind, SourceOperationGroup, SourceTargetKind, WireProtocol, type SourceBinding } from '$/sources/SourceBinding.ts'
 
-export default {
-	[Source.Xmtp_BrowserSdk]: {
+const bindings = [
+	{
 		source: Source.Xmtp_BrowserSdk,
 		target: {
 			kind: SourceTargetKind.Global,
@@ -29,7 +29,7 @@ export default {
 			},
 		],
 	},
-	[Source.Xmtp_NodeSdk]: {
+	{
 		source: Source.Xmtp_NodeSdk,
 		target: {
 			kind: SourceTargetKind.Global,
@@ -54,4 +54,9 @@ export default {
 			},
 		],
 	},
-} as const satisfies SourceBindingIndex
+] as const satisfies readonly SourceBinding[]
+
+export default indexSourceBindings<{
+	readonly [Source.Xmtp_BrowserSdk]: typeof bindings[0]
+	readonly [Source.Xmtp_NodeSdk]: typeof bindings[1]
+}>(bindings)

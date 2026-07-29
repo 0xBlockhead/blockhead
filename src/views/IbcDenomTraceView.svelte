@@ -20,7 +20,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.IbcDenomTrace> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const ibcDenomTrace = $derived(selection({
 		fields: {
 			displayDenom: true,
@@ -29,7 +28,7 @@
 			sourceChannel: true,
 		},
 	}))
-	const titleFallback = $derived([(pendingEntity.displayDenom ?? ''), (pendingEntity.baseDenom ?? ''), (pendingEntity.traceKey ?? '')].filter(Boolean).join(' ') || 'IBC denom trace')
+	const titleFallback = $derived([(prefetched.displayDenom ?? ''), (prefetched.baseDenom ?? ''), selection.entitySelector.traceKey].filter(Boolean).join(' ') || 'IBC denom trace')
 
 
 	// Components
@@ -50,7 +49,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={ibcDenomTrace}>
 			{#snippet children(entity)}
-				{[(entity.displayDenom ?? ''), (entity.baseDenom ?? ''), pendingEntity.traceKey].filter(Boolean).join(' ') || title || titleFallback}
+				{[(entity.displayDenom ?? ''), (entity.baseDenom ?? ''), selection.entitySelector.traceKey].filter(Boolean).join(' ') || title || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -58,7 +57,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={ibcDenomTrace}>
 			{#snippet children(entity)}
-				{[(entity.denomHash ?? ''), pendingEntity.traceKey].filter(Boolean).join(' ') || [(entity.displayDenom ?? ''), (entity.baseDenom ?? ''), pendingEntity.traceKey].filter(Boolean).join(' ') || titleFallback}
+				{[(entity.denomHash ?? ''), selection.entitySelector.traceKey].filter(Boolean).join(' ') || [(entity.displayDenom ?? ''), (entity.baseDenom ?? ''), selection.entitySelector.traceKey].filter(Boolean).join(' ') || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -66,10 +65,10 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={ibcDenomTrace}>
 			{#snippet children(entity)}
-				{@const sourceChannel0 = entity.sourceChannel}
-				{#if sourceChannel0 != null}
+				{@const sourceChannel = entity.sourceChannel}
+				{#if sourceChannel != null}
 					<span data-text="muted">
-						{sourceChannel0}
+						{sourceChannel}
 					</span>
 				{/if}
 			{/snippet}
@@ -81,7 +80,7 @@
 			<div>
 				<dt>Trace key</dt>
 				<dd>
-					<TruncatedValue value={pendingEntity.traceKey} />
+					<TruncatedValue value={selection.entitySelector.traceKey} />
 				</dd>
 			</div>
 

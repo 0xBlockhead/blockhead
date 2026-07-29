@@ -47,7 +47,7 @@
 
 
 <svelte:head>
-	<title>{('ENS name observation')} • ENS name observation • Blockhead</title>
+	<title>{'ENS name observation'} • ENS name observation • Blockhead</title>
 </svelte:head>
 
 

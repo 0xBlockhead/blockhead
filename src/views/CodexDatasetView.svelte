@@ -17,7 +17,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.CodexDataset> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Local_Internal,
@@ -30,7 +29,7 @@
 			datasetSizeBytes: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.filename ?? '') || (pendingEntity.cid ?? '') || 'codex dataset')
+	const titleFallback = $derived((prefetched.filename ?? '') || selection.entitySelector.cid || 'codex dataset')
 
 
 	// Components
@@ -67,11 +66,11 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={codexDataset}>
 			{#snippet children(entity)}
-				{@const datasetSizeBytes0 = entity.datasetSizeBytes}
-				{#if datasetSizeBytes0 != null}
+				{@const datasetSizeBytes = entity.datasetSizeBytes}
+				{#if datasetSizeBytes != null}
 					<span data-text="muted">
 						<NumberValue
-							value={datasetSizeBytes0}
+							value={datasetSizeBytes}
 						/>
 					</span>
 				{/if}
@@ -84,7 +83,7 @@
 			<div>
 				<dt>CID</dt>
 				<dd>
-					{pendingEntity.cid}
+					{selection.entitySelector.cid}
 				</dd>
 			</div>
 
@@ -189,15 +188,15 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const codexDatasetBlockheadCodexStoredDataEntriesViewLocalCopiesResource = selection.$$localCopies}
+		{@const localCopiesResource = selection.$$localCopies}
 		<ResourceBoundary
-			resource={codexDatasetBlockheadCodexStoredDataEntriesViewLocalCopiesResource}
+			resource={localCopiesResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<BlockheadCodexStoredDataEntriesView
-						selection={codexDatasetBlockheadCodexStoredDataEntriesViewLocalCopiesResource}
-						countResource={codexDatasetBlockheadCodexStoredDataEntriesViewLocalCopiesResource.count}
+						selection={localCopiesResource}
+						countResource={localCopiesResource.count}
 						title='local copies'
 						id='local-copies'
 					/>

@@ -4,7 +4,6 @@
 	// Types/constants
 	import type { PageProps } from './$types.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { ZcashShieldedPoolKind } from '$/schema/ZcashShieldedPool.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -35,7 +34,7 @@
 
 
 <svelte:head>
-	<title>{(data.title ?? (pageSelection.entitySelector.pool || 'Zcash shielded pool'))} • Zcash shielded pool • Blockhead</title>
+	<title>{data.title ?? (pageSelection.entitySelector.pool || 'Zcash shielded pool')} • Zcash shielded pool • Blockhead</title>
 </svelte:head>
 
 

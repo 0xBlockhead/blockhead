@@ -38,6 +38,7 @@
 >
 	{#snippet Item({ item: evmRollupTimestamp })}
 		{@const evmRollupTimestampSelector = evmRollupTimestamp[EntityMetaKey.Selector]}
+		{@const rollup = evmRollupTimestampSelector.$rollup}
 		<EntityView
 			entityType={EntityType.EvmRollup_Timestamp}
 			entitySelector={evmRollupTimestampSelector}
@@ -46,14 +47,14 @@
 					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/rollup/[projectId=stringSegment]/(evmRollup)/timestamp/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
 					{
 						network: (
-							'caip2' in evmRollupTimestampSelector.$rollup.$network ?
-								String(caip2StringFromValue(evmRollupTimestampSelector.$rollup.$network.caip2))
+							'caip2' in rollup.$network ?
+								caip2StringFromValue(rollup.$network.caip2)
 							:
-								String(evmRollupTimestampSelector.$rollup.$network.slug)
+								rollup.$network.slug
 						),
-						projectId: String(evmRollupTimestampSelector.$rollup.projectId),
+						projectId: rollup.projectId,
 						timestampMs: String(evmRollupTimestampSelector.timestampMs),
-						source: String(evmRollupTimestampSelector.source),
+						source: evmRollupTimestampSelector.source,
 					}
 				)
 			}
@@ -63,7 +64,7 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{(evmRollupTimestamp.listingStage ?? '')}
+				{evmRollupTimestamp.listingStage ?? ''}
 			{/snippet}
 
 			{#snippet HeadingAfter()}

@@ -24,8 +24,7 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.LightningNode> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const titleFallback = $derived((pendingEntity.publicKey ?? '') || 'Lightning node')
+	const network = $derived(selection.entitySelector.$network)
 	const viewDomId = $derived('lightning-node-' + encodeURIComponent(stringify(selection.entitySelector)))
 
 
@@ -44,33 +43,36 @@
 	entityType={EntityType.LightningNode}
 	entitySelector={selection.entitySelector}
 	id={viewDomId}
-	title={title ?? titleFallback}
+	title={title ?? (selection.entitySelector.publicKey || 'Lightning node')}
 	href={
-		href ?? resolve(
-			'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/nodes/[pubkey=stringSegment]',
-			{
-				network: (
-					'caip2' in selection.entitySelector.$network ?
-						String(caip2StringFromValue(selection.entitySelector.$network.caip2))
-					:
-						String(selection.entitySelector.$network.slug)
-				),
-				pubkey: String(selection.entitySelector.publicKey),
-			}
-		)
+		href === undefined ?
+			resolve(
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/nodes/[pubkey=stringSegment]',
+				{
+					network: (
+						'caip2' in network ?
+							caip2StringFromValue(network.caip2)
+						:
+							network.slug
+					),
+					pubkey: selection.entitySelector.publicKey,
+				}
+			)
+		:
+			href ?? undefined
 	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<TruncatedValue value={pendingEntity.publicKey} />
+		<TruncatedValue value={selection.entitySelector.publicKey} />
 	{/snippet}
 
 	{#snippet Value()}
 		<NetworkView
 			selection={select(EntityType.Network, selection.entitySelector.$network)}
-			href=""
+			href={null}
 			layout={EntityLayout.Value}
 			open={false}
 		/>
@@ -81,7 +83,7 @@
 			<div>
 				<dt>Public key</dt>
 				<dd>
-					<TruncatedValue value={pendingEntity.publicKey} />
+					<TruncatedValue value={selection.entitySelector.publicKey} />
 				</dd>
 			</div>
 

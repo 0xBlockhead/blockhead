@@ -1,7 +1,8 @@
 // Generated from APP.ts. Do not edit by hand.
 
 import { entity } from '$/schema/$schema.ts'
-import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
+import { EntityFieldCardinality } from '$/schema/EntityFieldCardinality.ts'
+import { EntityFieldType } from '$/schema/EntityFieldType.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { EvmAddress, ZeroExHex } from '$/schema/ZeroExHex.ts'
 import { type } from 'arktype'
@@ -48,7 +49,11 @@ export default entity({
 		label: 'CAIP-10',
 		description: 'The account identifier in CAIP-10 namespace, reference, and address form.',
 		type: EntityFieldType.Primitive,
-		primitiveType: type({ 'namespace': type('string'), 'reference': type('string'), 'accountAddress': type('string') }),
+		primitiveType: type({
+			namespace: type('string'),
+			reference: type('string'),
+			accountAddress: type('string'),
+		}),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	requestKind: {

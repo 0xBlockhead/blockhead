@@ -4,7 +4,6 @@
 	// Types/constants
 	import type { PageProps } from './$types.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { CoinId } from '$/constants/Coin.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -36,7 +35,7 @@
 
 
 <svelte:head>
-	<title>{(data.title ?? (pageSelection.entity == null ? 'Coin' : [pageSelection.entity.symbol, pageSelection.entity.name].filter(Boolean).join(' ') || 'Coin'))} • Coin • Blockhead</title>
+	<title>{data.title ?? (pageSelection.entity == null ? 'Coin' : [pageSelection.entity.symbol, pageSelection.entity.name].filter(Boolean).join(' ') || 'Coin')} • Coin • Blockhead</title>
 </svelte:head>
 
 

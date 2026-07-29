@@ -1,10 +1,10 @@
 // Generated from APP.ts. Do not edit by hand.
 
 import { Source } from '$/sources/Source.ts'
-import { ApiFamily, SourceCredentialScope, SourceDelivery, SourceEndpointKind, SourceOperationGroup, SourceTargetKind, WireProtocol, type SourceBindingIndex } from '$/sources/SourceBinding.ts'
+import { ApiFamily, indexSourceBindings, SourceCredentialScope, SourceDelivery, SourceEndpointKind, SourceOperationGroup, SourceTargetKind, WireProtocol, type SourceBinding } from '$/sources/SourceBinding.ts'
 
-export default {
-	[Source.Zcashd_JsonRpc]: {
+const bindings = [
+	{
 		source: Source.Zcashd_JsonRpc,
 		target: {
 			kind: SourceTargetKind.Caip2Network,
@@ -30,7 +30,7 @@ export default {
 			},
 		],
 	},
-	[Source.ZcashdWallet_JsonRpc]: {
+	{
 		source: Source.ZcashdWallet_JsonRpc,
 		target: {
 			kind: SourceTargetKind.LocalDevice,
@@ -57,4 +57,9 @@ export default {
 			},
 		],
 	},
-} as const satisfies SourceBindingIndex
+] as const satisfies readonly SourceBinding[]
+
+export default indexSourceBindings<{
+	readonly [Source.Zcashd_JsonRpc]: typeof bindings[0]
+	readonly [Source.ZcashdWallet_JsonRpc]: typeof bindings[1]
+}>(bindings)

@@ -22,8 +22,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.RadicleRepository> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const titleFallback = 'radicle repository'
 	const viewDomId = $derived('radicle-repository-' + encodeURIComponent(stringify(selection.entitySelector)))
 
 
@@ -44,7 +42,7 @@
 	entityType={EntityType.RadicleRepository}
 	entitySelector={selection.entitySelector}
 	id={viewDomId}
-	title={title ?? titleFallback}
+	title={title ?? 'radicle repository'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -58,7 +56,7 @@
 			<div>
 				<dt>rid</dt>
 				<dd>
-					{pendingEntity.rid}
+					{selection.entitySelector.rid}
 				</dd>
 			</div>
 

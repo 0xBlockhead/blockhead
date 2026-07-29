@@ -41,15 +41,15 @@
 			entitySelector={networkUpgradeTimestampSelector}
 		>
 			{#snippet Title()}
-				{String(networkUpgradeTimestampSelector.timestampMs) || 'network upgrade observation'}
+				{networkUpgradeTimestampSelector.timestampMs}
 			{/snippet}
 
 			{#snippet Value()}
-				{(networkUpgradeTimestamp.status ?? '')}
+				{networkUpgradeTimestamp.status ?? ''}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{String(networkUpgradeTimestamp.activationHeight ?? '')}</span>
+				<span data-text="annotation">{networkUpgradeTimestamp.activationHeight ?? ''}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

@@ -1,10 +1,10 @@
 // Generated from APP.ts. Do not edit by hand.
 
 import { Source } from '$/sources/Source.ts'
-import { ApiFamily, SourceArtifactKind, SourceCredentialScope, SourceDelivery, SourceEndpointKind, SourceOperationGroup, SourceTargetKind, WireProtocol, type SourceBindingIndex } from '$/sources/SourceBinding.ts'
+import { ApiFamily, indexSourceBindings, SourceArtifactKind, SourceCredentialScope, SourceDelivery, SourceEndpointKind, SourceOperationGroup, SourceTargetKind, WireProtocol, type SourceBinding } from '$/sources/SourceBinding.ts'
 
-export default {
-	[Source.GetBlockRpc_JsonRpc]: {
+const bindings = [
+	{
 		source: Source.GetBlockRpc_JsonRpc,
 		target: {
 			kind: SourceTargetKind.Eip155Chain,
@@ -29,8 +29,6 @@ export default {
 				scope: SourceCredentialScope.RuntimeSecret,
 			},
 		],
-		proxyId: '["GetBlockRpc_JsonRpc","Eip155Chain","1","HttpProxy","EvmExecutionJsonRpc"]',
-		serverCredentialId: '["GetBlockRpc_JsonRpc","Eip155Chain","1","HttpProxy","EvmExecutionJsonRpc"]',
 		artifacts: [
 			{
 				kind: SourceArtifactKind.OpenRpcSpec,
@@ -44,7 +42,7 @@ export default {
 			},
 		],
 	},
-	[Source.GetBlockYellowstone_Grpc]: {
+	{
 		source: Source.GetBlockYellowstone_Grpc,
 		target: {
 			kind: SourceTargetKind.Caip2Network,
@@ -69,7 +67,6 @@ export default {
 				scope: SourceCredentialScope.RuntimeSecret,
 			},
 		],
-		serverCredentialId: '["GetBlockYellowstone_Grpc","Caip2Network","solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp","RemoteLive","GrpcService"]',
 		artifacts: [
 			{
 				kind: SourceArtifactKind.HandwrittenTypes,
@@ -79,4 +76,9 @@ export default {
 			},
 		],
 	},
-} as const satisfies SourceBindingIndex
+] as const satisfies readonly SourceBinding[]
+
+export default indexSourceBindings<{
+	readonly [Source.GetBlockRpc_JsonRpc]: typeof bindings[0]
+	readonly [Source.GetBlockYellowstone_Grpc]: typeof bindings[1]
+}>(bindings)

@@ -20,8 +20,8 @@ import {
 	EntityMetaKey,
 	entityFieldAddressKey,
 } from '$/schema/$schema.ts'
-import { CoinInstanceType } from '$/schema/EvmCoinInstance.ts'
-import { MediaType } from '$/schema/Media.ts'
+import { CoinInstanceType } from '$/schema/CoinInstanceType.ts'
+import { MediaType } from '$/schema/MediaType.ts'
 import { EvmAddress } from '$/schema/ZeroExHex.ts'
 import type { EntitySelector } from '$/schema/$schema.ts'
 import { schema } from '$/schema/index.ts'

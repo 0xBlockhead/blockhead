@@ -21,9 +21,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.TezosBakingRight> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const titleFallback = 'tezos baking right'
-
 
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -36,7 +33,7 @@
 <EntityView
 	entityType={EntityType.TezosBakingRight}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? 'tezos baking right'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -61,35 +58,35 @@
 			<div>
 				<dt>cycle</dt>
 				<dd>
-					{String(pendingEntity.cycle)}
+					{selection.entitySelector.cycle}
 				</dd>
 			</div>
 
 			<div>
 				<dt>level</dt>
 				<dd>
-					{String(pendingEntity.level)}
+					{selection.entitySelector.level}
 				</dd>
 			</div>
 
 			<div>
 				<dt>right kind</dt>
 				<dd>
-					{pendingEntity.rightKind}
+					{selection.entitySelector.rightKind}
 				</dd>
 			</div>
 
 			<div>
 				<dt>baker address</dt>
 				<dd>
-					<TruncatedValue value={pendingEntity.bakerAddress} />
+					<TruncatedValue value={selection.entitySelector.bakerAddress} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 
@@ -128,7 +125,7 @@
 						<div>
 							<dt>round</dt>
 							<dd>
-								{String(round)}
+								{round}
 							</dd>
 						</div>
 					{/if}
@@ -150,7 +147,7 @@
 						<div>
 							<dt>slots</dt>
 							<dd>
-								{String(slots)}
+								{slots}
 							</dd>
 						</div>
 					{/if}
@@ -172,7 +169,7 @@
 						<div>
 							<dt>priority</dt>
 							<dd>
-								{String(priority)}
+								{priority}
 							</dd>
 						</div>
 					{/if}

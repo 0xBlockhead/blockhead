@@ -22,7 +22,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.BlockheadAgentCredentialState> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Local_Internal,
@@ -34,7 +33,7 @@
 			credentialKind: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.label ?? '') || (pendingEntity.credentialId ?? '') || 'blockhead agent credential state')
+	const titleFallback = $derived((prefetched.label ?? '') || selection.entitySelector.credentialId || 'blockhead agent credential state')
 
 
 	// Components
@@ -94,7 +93,7 @@
 			<div>
 				<dt>credential ID</dt>
 				<dd>
-					<TruncatedValue value={pendingEntity.credentialId} />
+					<TruncatedValue value={selection.entitySelector.credentialId} />
 				</dd>
 			</div>
 
@@ -127,7 +126,7 @@
 						<div>
 							<dt>credential kind</dt>
 							<dd>
-								<TruncatedValue value={credentialKind} />
+								{credentialKind}
 							</dd>
 						</div>
 					{/if}
@@ -167,7 +166,7 @@
 						<div>
 							<dt>Created</dt>
 							<dd>
-								<Timestamp timestamp={Number(createdAt)} />
+								<Timestamp timestamp={createdAt} />
 							</dd>
 						</div>
 					{/if}
@@ -189,7 +188,7 @@
 						<div>
 							<dt>Updated</dt>
 							<dd>
-								<Timestamp timestamp={Number(updatedAt)} />
+								<Timestamp timestamp={updatedAt} />
 							</dd>
 						</div>
 					{/if}
@@ -199,15 +198,15 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const blockheadAgentCredentialStateBlockheadAgentCredentialStateTimestampsViewTimestampsResource = selection.$$timestamps}
+		{@const timestampsResource = selection.$$timestamps}
 		<ResourceBoundary
-			resource={blockheadAgentCredentialStateBlockheadAgentCredentialStateTimestampsViewTimestampsResource}
+			resource={timestampsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<BlockheadAgentCredentialState_TimestampsView
-						selection={blockheadAgentCredentialStateBlockheadAgentCredentialStateTimestampsViewTimestampsResource}
-						countResource={blockheadAgentCredentialStateBlockheadAgentCredentialStateTimestampsViewTimestampsResource.count}
+						selection={timestampsResource}
+						countResource={timestampsResource.count}
 						title='timestamps'
 						id='timestamps'
 					/>

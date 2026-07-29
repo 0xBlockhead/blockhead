@@ -4,8 +4,6 @@
 	// Types/constants
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { UrlString } from '$/schema/UrlString.ts'
-	import { EvmAddress, ZeroExHex } from '$/schema/ZeroExHex.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -23,7 +21,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.Eip8004ReputationFeedback_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Eip8004Scan_Rest,
@@ -35,7 +32,7 @@
 			value: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.value ?? '') || String(pendingEntity.feedbackIndex ?? '') || 'EIP-8004 reputation feedback timestamp')
+	const titleFallback = $derived((prefetched.value ?? '') || String(selection.entitySelector.feedbackIndex) || 'EIP-8004 reputation feedback timestamp')
 
 
 	// Components
@@ -64,12 +61,12 @@
 	{/snippet}
 
 	{#snippet Value()}
-		<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+		<Timestamp timestamp={selection.entitySelector.timestampMs} />
 	{/snippet}
 
 	{#snippet HeadingAfter()}
 		<span data-text="muted">
-			{pendingEntity.source}
+			{selection.entitySelector.source}
 		</span>
 	{/snippet}
 
@@ -89,7 +86,7 @@
 			<div>
 				<dt>Client address</dt>
 				<dd>
-					<TruncatedValue value={String(pendingEntity.clientAddress)} />
+					<TruncatedValue value={selection.entitySelector.clientAddress} />
 				</dd>
 			</div>
 
@@ -97,7 +94,7 @@
 				<dt>Feedback index</dt>
 				<dd>
 					<NumberValue
-						value={pendingEntity.feedbackIndex}
+						value={selection.entitySelector.feedbackIndex}
 					/>
 				</dd>
 			</div>
@@ -105,7 +102,7 @@
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 		</dl>
@@ -211,11 +208,11 @@
 							<dt>Endpoint</dt>
 							<dd>
 								<a
-									href={String(endpoint)}
+									href={endpoint}
 									target="_blank"
 									rel="noreferrer noopener"
 								>
-									<TruncatedValue value={String(endpoint)} />
+									<TruncatedValue value={endpoint} />
 								</a>
 							</dd>
 						</div>
@@ -239,11 +236,11 @@
 							<dt>Feedback URI</dt>
 							<dd>
 								<a
-									href={String(feedbackUri)}
+									href={feedbackUri}
 									target="_blank"
 									rel="noreferrer noopener"
 								>
-									<TruncatedValue value={String(feedbackUri)} />
+									<TruncatedValue value={feedbackUri} />
 								</a>
 							</dd>
 						</div>
@@ -268,7 +265,7 @@
 						<div>
 							<dt>Feedback hash algorithm</dt>
 							<dd>
-								<TruncatedValue value={feedbackHashAlgorithm} />
+								{feedbackHashAlgorithm}
 							</dd>
 						</div>
 					{/if}
@@ -290,7 +287,7 @@
 						<div>
 							<dt>Feedback hash</dt>
 							<dd>
-								<TruncatedValue value={String(feedbackHash)} />
+								<TruncatedValue value={feedbackHash} />
 							</dd>
 						</div>
 					{/if}
@@ -358,7 +355,7 @@
 						<div>
 							<dt>Transaction hash</dt>
 							<dd>
-								<TruncatedValue value={String(transactionHash)} />
+								<TruncatedValue value={transactionHash} />
 							</dd>
 						</div>
 					{/if}

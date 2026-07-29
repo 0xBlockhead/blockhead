@@ -45,7 +45,7 @@
 			entitySelector={moneroNetworkSelector}
 		>
 			{#snippet Title()}
-				{(moneroNetwork.$network.name || (moneroNetworkSelector.$network.caip2 == null ? '' : `${moneroNetworkSelector.$network.caip2.namespace}:${moneroNetworkSelector.$network.caip2.reference}`) || 'Network')}
+				{moneroNetwork.$network.name || (moneroNetworkSelector.$network.caip2 == null ? '' : `${moneroNetworkSelector.$network.caip2.namespace}:${moneroNetworkSelector.$network.caip2.reference}`) || 'Network'}
 			{/snippet}
 		</EntityView>
 	{/snippet}

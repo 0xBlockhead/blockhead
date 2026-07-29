@@ -44,7 +44,7 @@
 				resolve(
 					'/(social)/(nostr)/nostr/(globalNostrNetwork)/profile/[pubkey=stringSegment]',
 					{
-						pubkey: String(nostrProfileSelector.pubkey),
+						pubkey: nostrProfileSelector.pubkey,
 					}
 				)
 			}

@@ -20,14 +20,13 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.CosmosValidator_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const cosmosValidatorTimestamp = $derived(selection({
 		fields: {
 			status: true,
 			tokens: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.source ?? '') || 'Cosmos validator timestamp')
+	const titleFallback = $derived(selection.entitySelector.source || 'Cosmos validator timestamp')
 
 
 	// Components
@@ -46,20 +45,20 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{(pendingEntity.source ?? '') || 'Cosmos validator timestamp'}
+		{selection.entitySelector.source || 'Cosmos validator timestamp'}
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={cosmosValidatorTimestamp}>
 			{#snippet children(entity)}
-				{[(entity.status ?? ''), String(entity.tokens ?? '')].filter(Boolean).join(' ') || pendingEntity.source || titleFallback}
+				{[(entity.status ?? ''), String(entity.tokens ?? '')].filter(Boolean).join(' ') || selection.entitySelector.source || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
 		<span data-text="muted">
-			<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+			<Timestamp timestamp={selection.entitySelector.timestampMs} />
 		</span>
 	{/snippet}
 
@@ -68,14 +67,14 @@
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+					<Timestamp timestamp={selection.entitySelector.timestampMs} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 
@@ -128,7 +127,7 @@
 						<div>
 							<dt>Tokens</dt>
 							<dd>
-								{String(tokens)}
+								{tokens}
 							</dd>
 						</div>
 					{/if}
@@ -194,7 +193,7 @@
 						<div>
 							<dt>Minimum self delegation</dt>
 							<dd>
-								{String(minSelfDelegation)}
+								{minSelfDelegation}
 							</dd>
 						</div>
 					{/if}

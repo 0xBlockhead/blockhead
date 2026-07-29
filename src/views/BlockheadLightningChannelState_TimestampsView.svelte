@@ -41,15 +41,15 @@
 			entitySelector={blockheadLightningChannelStateTimestampSelector}
 		>
 			{#snippet Title()}
-				{String(blockheadLightningChannelStateTimestampSelector.timestampMs) || 'blockhead Lightning channel state timestamp'}
+				{blockheadLightningChannelStateTimestampSelector.timestampMs}
 			{/snippet}
 
 			{#snippet Value()}
-				{String(blockheadLightningChannelStateTimestamp.active ?? '')}
+				{blockheadLightningChannelStateTimestamp.active ?? ''}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{String(blockheadLightningChannelStateTimestamp.localBalanceSats ?? '')}</span>
+				<span data-text="annotation">{blockheadLightningChannelStateTimestamp.localBalanceSats ?? ''}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

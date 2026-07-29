@@ -22,7 +22,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.ZeroGDataBlob> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.ZeroGStorageScan_Rest,
@@ -34,7 +33,6 @@
 			sizeBytes: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.dataRoot ?? '') || 'zero g data blob')
 
 
 	// Components
@@ -52,19 +50,19 @@
 <EntityView
 	entityType={EntityType.ZeroGDataBlob}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? (selection.entitySelector.dataRoot || 'zero g data blob')}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{(pendingEntity.dataRoot ?? '') || 'zero g data blob'}
+		{selection.entitySelector.dataRoot || 'zero g data blob'}
 	{/snippet}
 
 	{#snippet Value()}
 		<NetworkView
 			selection={select(EntityType.Network, selection.entitySelector.$network)}
-			href=""
+			href={null}
 			layout={EntityLayout.Value}
 			open={false}
 		/>
@@ -73,11 +71,11 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={zeroGDataBlob}>
 			{#snippet children(entity)}
-				{@const sizeBytes0 = entity.sizeBytes}
-				{#if sizeBytes0 != null}
+				{@const sizeBytes = entity.sizeBytes}
+				{#if sizeBytes != null}
 					<span data-text="muted">
 						<NumberValue
-							value={sizeBytes0}
+							value={sizeBytes}
 						/>
 					</span>
 				{/if}
@@ -101,7 +99,7 @@
 			<div>
 				<dt>data root</dt>
 				<dd>
-					{pendingEntity.dataRoot}
+					{selection.entitySelector.dataRoot}
 				</dd>
 			</div>
 
@@ -232,15 +230,15 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const zeroGDataBlobZeroGDataChunksViewChunksResource = selection.$$chunks}
+		{@const chunksResource = selection.$$chunks}
 		<ResourceBoundary
-			resource={zeroGDataBlobZeroGDataChunksViewChunksResource}
+			resource={chunksResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<ZeroGDataChunksView
-						selection={zeroGDataBlobZeroGDataChunksViewChunksResource}
-						countResource={zeroGDataBlobZeroGDataChunksViewChunksResource.count}
+						selection={chunksResource}
+						countResource={chunksResource.count}
 						title='chunks'
 						id='chunks'
 					/>

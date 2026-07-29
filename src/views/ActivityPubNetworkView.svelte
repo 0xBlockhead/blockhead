@@ -18,20 +18,18 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.ActivityPubNetwork> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const viewSelection = $derived(selection({
+	const activityPubNetwork = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Constants_Internal,
 		],
-	}))
-	const activityPubNetwork = $derived(viewSelection({
+	})({
 		fields: {
 			protocolName: true,
 			homeUrl: true,
 			docsUrl: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.protocolName ?? '') || 'ActivityPub')
+	const titleFallback = $derived((prefetched.protocolName ?? '') || 'ActivityPub')
 
 
 	// Components
@@ -59,7 +57,7 @@
 	{/snippet}
 
 	{#snippet Value()}
-		{(pendingEntity.protocolName ?? '') || titleFallback}
+		{(prefetched.protocolName ?? '') || titleFallback}
 	{/snippet}
 
 	{#snippet TypeAnnotationTooltip()}
@@ -93,11 +91,11 @@
 					>
 						{#snippet children(entity)}
 							<a
-								href={String(entity.homeUrl)}
+								href={entity.homeUrl}
 								target="_blank"
 								rel="noreferrer noopener"
 							>
-								<TruncatedValue value={String(entity.homeUrl)} />
+								<TruncatedValue value={entity.homeUrl} />
 							</a>
 						{/snippet}
 					</ResourceBoundary>
@@ -116,11 +114,11 @@
 							<dt>Docs URL</dt>
 							<dd>
 								<a
-									href={String(docsUrl)}
+									href={docsUrl}
 									target="_blank"
 									rel="noreferrer noopener"
 								>
-									<TruncatedValue value={String(docsUrl)} />
+									<TruncatedValue value={docsUrl} />
 								</a>
 							</dd>
 						</div>
@@ -131,30 +129,30 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const activityPubNetworkActivityPubActorsViewActivityPubActorsResource = selection.$$activityPubActors}
+		{@const activityPubActorsResource = selection.$$activityPubActors}
 		<ResourceBoundary
-			resource={activityPubNetworkActivityPubActorsViewActivityPubActorsResource}
+			resource={activityPubActorsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<ActivityPubActorsView
-						selection={activityPubNetworkActivityPubActorsViewActivityPubActorsResource}
-						countResource={activityPubNetworkActivityPubActorsViewActivityPubActorsResource.count}
+						selection={activityPubActorsResource}
+						countResource={activityPubActorsResource.count}
 						title='Actors'
 						id='activity-pub-actors'
 					/>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>
-		{@const activityPubNetworkActivityPubNotesViewActivityPubNotesResource = selection.$$activityPubNotes}
+		{@const activityPubNotesResource = selection.$$activityPubNotes}
 		<ResourceBoundary
-			resource={activityPubNetworkActivityPubNotesViewActivityPubNotesResource}
+			resource={activityPubNotesResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<ActivityPubNotesView
-						selection={activityPubNetworkActivityPubNotesViewActivityPubNotesResource}
-						countResource={activityPubNetworkActivityPubNotesViewActivityPubNotesResource.count}
+						selection={activityPubNotesResource}
+						countResource={activityPubNotesResource.count}
 						title='Notes'
 						id='activity-pub-notes'
 					/>

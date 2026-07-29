@@ -20,9 +20,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.IssuerPower> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const titleFallback = 'issuer power'
-
 
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -33,7 +30,7 @@
 <EntityView
 	entityType={EntityType.IssuerPower}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? 'issuer power'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -58,21 +55,21 @@
 			<div>
 				<dt>power kind</dt>
 				<dd>
-					{pendingEntity.powerKind}
+					{selection.entitySelector.powerKind}
 				</dd>
 			</div>
 
 			<div>
 				<dt>actor key</dt>
 				<dd>
-					{pendingEntity.actorKey}
+					{selection.entitySelector.actorKey}
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 		</dl>
@@ -115,7 +112,7 @@
 						<div>
 							<dt>ledger coordinate value</dt>
 							<dd>
-								{String(ledgerCoordinateValue)}
+								{ledgerCoordinateValue}
 							</dd>
 						</div>
 					{/if}

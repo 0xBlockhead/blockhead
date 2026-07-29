@@ -20,13 +20,12 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.CosmosValidator> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const cosmosValidator = $derived(selection({
 		fields: {
 			moniker: true,
 		},
 	}))
-	const titleFallback = $derived([(pendingEntity.moniker ?? ''), (pendingEntity.operatorAddress ?? '')].filter(Boolean).join(' ') || 'Cosmos validator')
+	const titleFallback = $derived([(prefetched.moniker ?? ''), selection.entitySelector.operatorAddress].filter(Boolean).join(' ') || 'Cosmos validator')
 
 
 	// Components
@@ -48,13 +47,13 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={cosmosValidator}>
 			{#snippet children(entity)}
-				{[(entity.moniker ?? ''), pendingEntity.operatorAddress].filter(Boolean).join(' ') || title || titleFallback}
+				{[(entity.moniker ?? ''), selection.entitySelector.operatorAddress].filter(Boolean).join(' ') || title || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Value()}
-		<TruncatedValue value={pendingEntity.operatorAddress} />
+		<TruncatedValue value={selection.entitySelector.operatorAddress} />
 	{/snippet}
 
 	{#snippet HeadingAfter()}
@@ -72,7 +71,7 @@
 			<div>
 				<dt>Operator address</dt>
 				<dd>
-					<TruncatedValue value={pendingEntity.operatorAddress} />
+					<TruncatedValue value={selection.entitySelector.operatorAddress} />
 				</dd>
 			</div>
 
@@ -165,11 +164,11 @@
 							<dt>Website</dt>
 							<dd>
 								<a
-									href={String(website)}
+									href={website}
 									target="_blank"
 									rel="noreferrer noopener"
 								>
-									<TruncatedValue value={String(website)} />
+									<TruncatedValue value={website} />
 								</a>
 							</dd>
 						</div>
@@ -192,13 +191,7 @@
 						<div>
 							<dt>Security contact</dt>
 							<dd>
-								<a
-									href={String(securityContact)}
-									target="_blank"
-									rel="noreferrer noopener"
-								>
-									<TruncatedValue value={String(securityContact)} />
-								</a>
+								{securityContact}
 							</dd>
 						</div>
 					{/if}
@@ -230,15 +223,15 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const cosmosValidatorCosmosValidatorTimestampsViewTimestampsResource = selection.$$timestamps}
+		{@const timestampsResource = selection.$$timestamps}
 		<ResourceBoundary
-			resource={cosmosValidatorCosmosValidatorTimestampsViewTimestampsResource}
+			resource={timestampsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<CosmosValidator_TimestampsView
-						selection={cosmosValidatorCosmosValidatorTimestampsViewTimestampsResource}
-						countResource={cosmosValidatorCosmosValidatorTimestampsViewTimestampsResource.count}
+						selection={timestampsResource}
+						countResource={timestampsResource.count}
 						title='Validator snapshots'
 						id='timestamps'
 					/>

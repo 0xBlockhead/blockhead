@@ -23,7 +23,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.BlockheadZcashWalletState> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Local_Internal,
@@ -37,7 +36,6 @@
 			unifiedAddress: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.walletId ?? '') || 'blockhead zcash wallet state')
 	const viewDomId = $derived('blockhead-zcash-wallet-state-' + encodeURIComponent(stringify(selection.entitySelector)))
 
 
@@ -59,13 +57,13 @@
 	entityType={EntityType.BlockheadZcashWalletState}
 	entitySelector={selection.entitySelector}
 	id={viewDomId}
-	title={title ?? titleFallback}
+	title={title ?? (selection.entitySelector.walletId || 'blockhead zcash wallet state')}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{(pendingEntity.walletId ?? '') || 'blockhead zcash wallet state'}
+		{selection.entitySelector.walletId || 'blockhead zcash wallet state'}
 	{/snippet}
 
 	{#snippet Value()}
@@ -76,7 +74,7 @@
 				<NetworkView
 					selection={select(EntityType.Network, network[EntityMetaKey.Selector])}
 					prefetched={network}
-					href=""
+					href={null}
 					layout={EntityLayout.Value}
 					open={false}
 				/>
@@ -87,10 +85,10 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={blockheadZcashWalletState}>
 			{#snippet children(entity)}
-				{@const unifiedAddress0 = entity.unifiedAddress}
-				{#if unifiedAddress0 != null}
+				{@const unifiedAddress = entity.unifiedAddress}
+				{#if unifiedAddress != null}
 					<span data-text="muted">
-						<TruncatedValue value={unifiedAddress0} />
+						<TruncatedValue value={unifiedAddress} />
 					</span>
 				{/if}
 			{/snippet}
@@ -102,7 +100,7 @@
 			<div>
 				<dt>wallet ID</dt>
 				<dd>
-					{pendingEntity.walletId}
+					{selection.entitySelector.walletId}
 				</dd>
 			</div>
 

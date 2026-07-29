@@ -47,7 +47,7 @@
 			entitySelector={nearBlockSelector}
 		>
 			{#snippet Title()}
-				{String(nearBlockSelector.height) || 'near block'}
+				{nearBlockSelector.height}
 			{/snippet}
 
 			{#snippet Value()}
@@ -55,7 +55,7 @@
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{String(nearBlock.timestampMs ?? '')}</span>
+				<span data-text="annotation">{nearBlock.timestampMs ?? ''}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

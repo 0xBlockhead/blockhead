@@ -7,8 +7,8 @@ import {
 	EntityMetaKey,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import { MediaType } from '$/schema/Media.ts'
-import { AssetInstanceKind } from '$/schema/AssetInstance.ts'
+import { MediaType } from '$/schema/MediaType.ts'
+import { AssetInstanceKind } from '$/schema/AssetInstanceKind.ts'
 import { Source } from '$/sources/Source.ts'
 import type {
 	CosmosChainRegistryAssetList,

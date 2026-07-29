@@ -45,7 +45,7 @@
 
 
 <svelte:head>
-	<title>{(pageSelection.entity == null ? 'EVM selector observation' : pageSelection.entity.signatures.values.join(', ') || 'EVM selector observation')} • EVM selector observation • Blockhead</title>
+	<title>{pageSelection.entity == null ? 'EVM selector observation' : pageSelection.entity.signatures.values.join(', ') || 'EVM selector observation'} • EVM selector observation • Blockhead</title>
 </svelte:head>
 
 

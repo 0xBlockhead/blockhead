@@ -37,6 +37,7 @@
 >
 	{#snippet Item({ item: xrplAccount })}
 		{@const xrplAccountSelector = xrplAccount[EntityMetaKey.Selector]}
+		{@const network = xrplAccountSelector.$network}
 		<EntityView
 			entityType={EntityType.XrplAccount}
 			entitySelector={xrplAccountSelector}
@@ -45,12 +46,12 @@
 					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(accounts)/account/[accountId=polkadotAccountIdOrStringSegmentOrEvmAddressOrSolanaPubkey]',
 					{
 						network: (
-							'caip2' in xrplAccountSelector.$network ?
-								String(caip2StringFromValue(xrplAccountSelector.$network.caip2))
+							'caip2' in network ?
+								caip2StringFromValue(network.caip2)
 							:
-								String(xrplAccountSelector.$network.slug)
+								network.slug
 						),
-						accountId: String(xrplAccountSelector.account),
+						accountId: xrplAccountSelector.account,
 					}
 				)
 			}

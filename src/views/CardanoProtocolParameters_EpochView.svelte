@@ -20,9 +20,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.CardanoProtocolParameters_Epoch> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const titleFallback = 'Cardano protocol parameters epoch'
-
 
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -33,7 +30,7 @@
 <EntityView
 	entityType={EntityType.CardanoProtocolParameters_Epoch}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? 'Cardano protocol parameters epoch'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -58,14 +55,14 @@
 			<div>
 				<dt>epoch</dt>
 				<dd>
-					{String(pendingEntity.epoch)}
+					{selection.entitySelector.epoch}
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 
@@ -84,7 +81,7 @@
 						<div>
 							<dt>min fee a</dt>
 							<dd>
-								{String(minFeeA)}
+								{minFeeA}
 							</dd>
 						</div>
 					{/if}
@@ -106,7 +103,7 @@
 						<div>
 							<dt>min fee b</dt>
 							<dd>
-								{String(minFeeB)}
+								{minFeeB}
 							</dd>
 						</div>
 					{/if}
@@ -128,7 +125,7 @@
 						<div>
 							<dt>max block body size</dt>
 							<dd>
-								{String(maxBlockBodySize)}
+								{maxBlockBodySize}
 							</dd>
 						</div>
 					{/if}
@@ -150,7 +147,7 @@
 						<div>
 							<dt>max transaction size</dt>
 							<dd>
-								{String(maxTxSize)}
+								{maxTxSize}
 							</dd>
 						</div>
 					{/if}
@@ -172,7 +169,7 @@
 						<div>
 							<dt>max block header size</dt>
 							<dd>
-								{String(maxBlockHeaderSize)}
+								{maxBlockHeaderSize}
 							</dd>
 						</div>
 					{/if}
@@ -194,7 +191,7 @@
 						<div>
 							<dt>key deposit</dt>
 							<dd>
-								{String(keyDeposit)}
+								{keyDeposit}
 							</dd>
 						</div>
 					{/if}
@@ -216,7 +213,7 @@
 						<div>
 							<dt>pool deposit</dt>
 							<dd>
-								{String(poolDeposit)}
+								{poolDeposit}
 							</dd>
 						</div>
 					{/if}
@@ -238,7 +235,7 @@
 						<div>
 							<dt>max epoch</dt>
 							<dd>
-								{String(maxEpoch)}
+								{maxEpoch}
 							</dd>
 						</div>
 					{/if}
@@ -260,7 +257,7 @@
 						<div>
 							<dt>n opt</dt>
 							<dd>
-								{String(nOpt)}
+								{nOpt}
 							</dd>
 						</div>
 					{/if}
@@ -348,7 +345,7 @@
 						<div>
 							<dt>protocol major</dt>
 							<dd>
-								{String(protocolMajor)}
+								{protocolMajor}
 							</dd>
 						</div>
 					{/if}
@@ -370,7 +367,7 @@
 						<div>
 							<dt>protocol minor</dt>
 							<dd>
-								{String(protocolMinor)}
+								{protocolMinor}
 							</dd>
 						</div>
 					{/if}
@@ -392,7 +389,7 @@
 						<div>
 							<dt>min pool cost</dt>
 							<dd>
-								{String(minPoolCost)}
+								{minPoolCost}
 							</dd>
 						</div>
 					{/if}
@@ -414,7 +411,7 @@
 						<div>
 							<dt>coins per UTXO byte</dt>
 							<dd>
-								{String(coinsPerUtxoByte)}
+								{coinsPerUtxoByte}
 							</dd>
 						</div>
 					{/if}
@@ -436,7 +433,7 @@
 						<div>
 							<dt>max value size</dt>
 							<dd>
-								{String(maxValueSize)}
+								{maxValueSize}
 							</dd>
 						</div>
 					{/if}
@@ -458,7 +455,7 @@
 						<div>
 							<dt>collateral percentage</dt>
 							<dd>
-								{String(collateralPercentage)}
+								{collateralPercentage}
 							</dd>
 						</div>
 					{/if}
@@ -480,7 +477,7 @@
 						<div>
 							<dt>max collateral inputs</dt>
 							<dd>
-								{String(maxCollateralInputs)}
+								{maxCollateralInputs}
 							</dd>
 						</div>
 					{/if}

@@ -21,13 +21,12 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.AptosStateChange> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const aptosStateChange = $derived(selection({
 		fields: {
 			changeKind: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.changeKind ?? '') || 'aptos state change')
+	const titleFallback = $derived((prefetched.changeKind ?? '') || 'aptos state change')
 
 
 	// Components
@@ -58,7 +57,7 @@
 
 	{#snippet Value()}
 		<NumberValue
-			value={pendingEntity.changeIndex}
+			value={selection.entitySelector.changeIndex}
 		/>
 	{/snippet}
 
@@ -89,7 +88,7 @@
 				<dt>change index</dt>
 				<dd>
 					<NumberValue
-						value={pendingEntity.changeIndex}
+						value={selection.entitySelector.changeIndex}
 					/>
 				</dd>
 			</div>

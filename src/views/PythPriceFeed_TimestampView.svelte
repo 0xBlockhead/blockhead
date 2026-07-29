@@ -4,7 +4,6 @@
 	// Types/constants
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -22,7 +21,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.PythPriceFeed_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.PythBenchmarks_Rest,
@@ -36,7 +34,6 @@
 			price: true,
 		},
 	}))
-	const titleFallback = $derived(String(pendingEntity.publishTimeMs ?? '') || 'Pyth price feed timestamp')
 
 
 	// Components
@@ -51,26 +48,26 @@
 <EntityView
 	entityType={EntityType.PythPriceFeed_Timestamp}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? String(selection.entitySelector.publishTimeMs)}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<Timestamp timestamp={Number(pendingEntity.publishTimeMs)} />
+		<Timestamp timestamp={selection.entitySelector.publishTimeMs} />
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={pythPriceFeedTimestamp}>
 			{#snippet children(entity)}
-				{String(entity.price ?? '') || String(pendingEntity.publishTimeMs) || titleFallback}
+				{String(entity.price ?? '') || String(selection.entitySelector.publishTimeMs)}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
 		<span data-text="muted">
-			{pendingEntity.source}
+			{selection.entitySelector.source}
 		</span>
 	{/snippet}
 
@@ -90,14 +87,14 @@
 			<div>
 				<dt>Publish time ms</dt>
 				<dd>
-					<Timestamp timestamp={Number(pendingEntity.publishTimeMs)} />
+					<Timestamp timestamp={selection.entitySelector.publishTimeMs} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 
@@ -116,7 +113,7 @@
 						<div>
 							<dt>Observed at ms</dt>
 							<dd>
-								<Timestamp timestamp={Number(observedAtMs)} />
+								<Timestamp timestamp={observedAtMs} />
 							</dd>
 						</div>
 					{/if}
@@ -256,7 +253,7 @@
 						<div>
 							<dt>VAA</dt>
 							<dd>
-								{String(vaa)}
+								{vaa}
 							</dd>
 						</div>
 					{/if}
@@ -278,7 +275,7 @@
 						<div>
 							<dt>Update data hash</dt>
 							<dd>
-								<TruncatedValue value={String(updateDataHash)} />
+								<TruncatedValue value={updateDataHash} />
 							</dd>
 						</div>
 					{/if}

@@ -4,7 +4,6 @@
 	// Types/constants
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 
 
 	// Context
@@ -21,9 +20,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.AlgorandBox> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const titleFallback = 'algorand box'
-
 
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -35,7 +31,7 @@
 <EntityView
 	entityType={EntityType.AlgorandBox}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? 'algorand box'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -60,22 +56,22 @@
 			<div>
 				<dt>box name</dt>
 				<dd>
-					{String(pendingEntity.boxName)}
+					{selection.entitySelector.boxName}
 				</dd>
 			</div>
 		</dl>
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const algorandBoxAlgorandBoxRoundsViewRoundsResource = selection.$$rounds}
+		{@const roundsResource = selection.$$rounds}
 		<ResourceBoundary
-			resource={algorandBoxAlgorandBoxRoundsViewRoundsResource}
+			resource={roundsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<AlgorandBox_RoundsView
-						selection={algorandBoxAlgorandBoxRoundsViewRoundsResource}
-						countResource={algorandBoxAlgorandBoxRoundsViewRoundsResource.count}
+						selection={roundsResource}
+						countResource={roundsResource.count}
 						title='rounds'
 						id='rounds'
 					/>

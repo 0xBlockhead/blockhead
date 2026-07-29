@@ -39,7 +39,7 @@
 
 
 <svelte:head>
-	<title>{('Lens account observation')} • Lens account observation • Blockhead</title>
+	<title>{'Lens account observation'} • Lens account observation • Blockhead</title>
 </svelte:head>
 
 

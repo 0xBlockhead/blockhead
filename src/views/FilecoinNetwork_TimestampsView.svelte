@@ -41,15 +41,15 @@
 			entitySelector={filecoinNetworkTimestampSelector}
 		>
 			{#snippet Title()}
-				{String(filecoinNetworkTimestampSelector.timestampMs) || 'filecoin network timestamp'}
+				{filecoinNetworkTimestampSelector.timestampMs}
 			{/snippet}
 
 			{#snippet Value()}
-				{String(filecoinNetworkTimestamp.headHeight ?? '')}
+				{filecoinNetworkTimestamp.headHeight ?? ''}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{(filecoinNetworkTimestamp.headTipsetKey ?? '')}</span>
+				<span data-text="annotation">{filecoinNetworkTimestamp.headTipsetKey ?? ''}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

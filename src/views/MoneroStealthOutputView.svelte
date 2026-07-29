@@ -21,19 +21,16 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.MoneroStealthOutput> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const viewSelection = $derived(selection({
+	const moneroStealthOutput = $derived(selection({
 		sources: selection.sources ?? [
 			Source.MoneroDaemonRpc_JsonRpc,
 		],
-	}))
-	const moneroStealthOutput = $derived(viewSelection({
+	})({
 		fields: {
 			publicKey: true,
 			commitment: true,
 		},
 	}))
-	const titleFallback = $derived(String(pendingEntity.outputIndex ?? '') || 'monero stealth output')
 
 
 	// Components
@@ -47,23 +44,23 @@
 <EntityView
 	entityType={EntityType.MoneroStealthOutput}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? String(selection.entitySelector.outputIndex)}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
 		<NumberValue
-			value={pendingEntity.outputIndex}
+			value={selection.entitySelector.outputIndex}
 		/>
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={moneroStealthOutput}>
 			{#snippet children(entity)}
-				{@const publicKey0 = entity.publicKey}
-				{#if publicKey0 != null}
-					<TruncatedValue value={publicKey0} />
+				{@const publicKey = entity.publicKey}
+				{#if publicKey != null}
+					<TruncatedValue value={publicKey} />
 				{/if}
 			{/snippet}
 		</ResourceBoundary>
@@ -72,10 +69,10 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={moneroStealthOutput}>
 			{#snippet children(entity)}
-				{@const commitment0 = entity.commitment}
-				{#if commitment0 != null}
+				{@const commitment = entity.commitment}
+				{#if commitment != null}
 					<span data-text="muted">
-						<TruncatedValue value={commitment0} />
+						<TruncatedValue value={commitment} />
 					</span>
 				{/if}
 			{/snippet}
@@ -99,7 +96,7 @@
 				<dt>Output index</dt>
 				<dd>
 					<NumberValue
-						value={pendingEntity.outputIndex}
+						value={selection.entitySelector.outputIndex}
 					/>
 				</dd>
 			</div>

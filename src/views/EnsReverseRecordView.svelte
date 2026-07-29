@@ -20,8 +20,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.EnsReverseRecord> = $props()
 
-	const titleFallback = 'ENS reverse record'
-
 
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -35,7 +33,7 @@
 <EntityView
 	entityType={EntityType.EnsReverseRecord}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? 'ENS reverse record'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -43,7 +41,7 @@
 	{#snippet Title()}
 		<EnsNameView
 			selection={select(EntityType.EnsName, selection.entitySelector.$name)}
-			href=""
+			href={null}
 			layout={EntityLayout.Title}
 			open={false}
 		/>
@@ -52,7 +50,6 @@
 	{#snippet Value()}
 		<AccountView
 			selection={select(EntityType.Account, selection.entitySelector.$account)}
-			href=""
 			layout={EntityLayout.Value}
 			open={false}
 		/>
@@ -85,15 +82,15 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const ensReverseRecordEnsReverseRecordTimestampsViewTimestampsResource = selection.$$timestamps}
+		{@const timestampsResource = selection.$$timestamps}
 		<ResourceBoundary
-			resource={ensReverseRecordEnsReverseRecordTimestampsViewTimestampsResource}
+			resource={timestampsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<EnsReverseRecord_TimestampsView
-						selection={ensReverseRecordEnsReverseRecordTimestampsViewTimestampsResource}
-						countResource={ensReverseRecordEnsReverseRecordTimestampsViewTimestampsResource.count}
+						selection={timestampsResource}
+						countResource={timestampsResource.count}
 						title='Timestamps'
 						id='timestamps'
 					/>

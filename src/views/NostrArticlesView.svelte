@@ -43,18 +43,16 @@
 			entityType={EntityType.NostrArticle}
 			entitySelector={nostrArticleSelector}
 			href={
-				(
-					nostrArticleSelector.kind === 30023 ?
-						resolve(
-							'/(social)/(nostr)/nostr/(globalNostrNetwork)/article/[pubkey=stringSegment]/[identifier=stringSegment]',
-							{
-								pubkey: String(nostrArticleSelector.pubkey),
-								identifier: String(nostrArticleSelector.identifier),
-							}
-						)
-					:
-						undefined
-				)
+				nostrArticleSelector.kind === 30023 ?
+					resolve(
+						'/(social)/(nostr)/nostr/(globalNostrNetwork)/article/[pubkey=stringSegment]/[identifier=stringSegment]',
+						{
+							pubkey: nostrArticleSelector.pubkey,
+							identifier: nostrArticleSelector.identifier,
+						}
+					)
+				:
+					undefined
 			}
 		>
 			{#snippet Title()}
@@ -62,7 +60,7 @@
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{(String(nostrArticleSelector.kind) ? 'kind ' + String(nostrArticleSelector.kind) : '')}</span>
+				<span data-text="annotation">{'kind ' + nostrArticleSelector.kind}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

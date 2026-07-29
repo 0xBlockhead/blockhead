@@ -1,21 +1,5 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import type { SourceDefinition, SourceProviderDefinition as SourceProviderDefinitionTemplate, SourcePublicEnv } from '$/sources/$sources.ts'
-import { Source } from '$/sources/Source.ts'
-import type { SourceBinding } from '$/sources/SourceBinding.ts'
-import type { Type } from 'arktype'
-
-export type SourceOrigin = {
-	origin: string
-	corsEnabled: boolean
-}
-
-export type SourceProviderDefinition = SourceProviderDefinitionTemplate<SourceProvider, Source> & {
-	env?: Type<SourcePublicEnv>
-	sources: readonly SourceDefinition<Source>[]
-	bindings: readonly SourceBinding[]
-}
-
 export enum SourceProvider {
 	Acp = 'Acp',
 	Across = 'Across',

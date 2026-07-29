@@ -45,7 +45,7 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{String(avalancheDelegator.stakeAmountNavax ?? '')}
+				{avalancheDelegator.stakeAmountNavax ?? ''}
 			{/snippet}
 		</EntityView>
 	{/snippet}

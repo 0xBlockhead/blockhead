@@ -21,9 +21,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.TonNftItem_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const titleFallback = 'TON NFT item timestamp'
-
 
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -37,7 +34,7 @@
 <EntityView
 	entityType={EntityType.TonNftItem_Timestamp}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? 'TON NFT item timestamp'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -62,14 +59,14 @@
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+					<Timestamp timestamp={selection.entitySelector.timestampMs} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 
@@ -197,11 +194,11 @@
 							<dt>image URL</dt>
 							<dd>
 								<a
-									href={String(imageUrl)}
+									href={imageUrl}
 									target="_blank"
 									rel="noreferrer noopener"
 								>
-									<TruncatedValue value={String(imageUrl)} />
+									<TruncatedValue value={imageUrl} />
 								</a>
 							</dd>
 						</div>
@@ -225,11 +222,11 @@
 							<dt>metadata URI</dt>
 							<dd>
 								<a
-									href={String(metadataUri)}
+									href={metadataUri}
 									target="_blank"
 									rel="noreferrer noopener"
 								>
-									<TruncatedValue value={String(metadataUri)} />
+									<TruncatedValue value={metadataUri} />
 								</a>
 							</dd>
 						</div>
@@ -340,7 +337,7 @@
 						<div>
 							<dt>last transaction lt</dt>
 							<dd>
-								{String(lastTransactionLt)}
+								{lastTransactionLt}
 							</dd>
 						</div>
 					{/if}

@@ -46,7 +46,7 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{(payjoinDirectory.ohttpGatewayUrl ?? '')}
+				{payjoinDirectory.ohttpGatewayUrl ?? ''}
 			{/snippet}
 		</EntityView>
 	{/snippet}

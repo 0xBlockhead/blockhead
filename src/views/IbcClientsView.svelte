@@ -49,7 +49,7 @@
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{(ibcClient.counterpartyChainId ?? '')}</span>
+				<span data-text="annotation">{ibcClient.counterpartyChainId ?? ''}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

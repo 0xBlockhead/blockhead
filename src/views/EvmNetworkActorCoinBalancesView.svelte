@@ -38,38 +38,35 @@
 >
 	{#snippet Item({ item: evmNetworkActorCoinBalance })}
 		{@const evmNetworkActorCoinBalanceSelector = evmNetworkActorCoinBalance[EntityMetaKey.Selector]}
+		{@const contract = evmNetworkActorCoinBalance.$contract}
 		<EntityView
 			entityType={EntityType.EvmNetworkActorCoinBalance}
 			entitySelector={evmNetworkActorCoinBalanceSelector}
 			href={
-				(
-					evmNetworkActorCoinBalance.$contract != null
-					&& evmNetworkActorCoinBalance.$contract.$network != null
-					&& evmNetworkActorCoinBalance.$contract.$network.caip2 != null
-					&& evmNetworkActorCoinBalance.$contract.$network.caip2.reference != null ?
-						resolve(
-							'/~/accounts/balance/[chainId=eip155ChainId]/[owner=evmAddress]/[coin=evmAddress]',
-							{
-								chainId: String(evmNetworkActorCoinBalance.$contract.$network.caip2.reference),
-								owner: String(evmNetworkActorCoinBalance.$actor.address),
-								coin: String(evmNetworkActorCoinBalance.$contract.address),
-							}
-						)
-					:
-						undefined
-				)
+				contract != null
+				&& contract.$network.caip2 != null ?
+					resolve(
+						'/~/accounts/balance/[chainId=eip155ChainId]/[owner=evmAddress]/[coin=evmAddress]',
+						{
+							chainId: contract.$network.caip2.reference,
+							owner: evmNetworkActorCoinBalance.$actor.address,
+							coin: contract.address,
+						}
+					)
+				:
+					undefined
 			}
 		>
 			{#snippet Title()}
-				{evmNetworkActorCoinBalance.symbol || [String(evmNetworkActorCoinBalance.$coinInstance.NativeCurrency.symbol ?? ''), String(evmNetworkActorCoinBalance.$coinInstance.NativeCurrency.name ?? ''), String(evmNetworkActorCoinBalance.$coinInstance.Erc20Token.symbol ?? ''), String(evmNetworkActorCoinBalance.$coinInstance.Erc20Token.name ?? '')].filter(Boolean).join(' ') || 'EVM coin instance'}
+				{evmNetworkActorCoinBalance.symbol || [evmNetworkActorCoinBalance.$coinInstance.NativeCurrency.symbol, (evmNetworkActorCoinBalance.$coinInstance.NativeCurrency.name ?? ''), evmNetworkActorCoinBalance.$coinInstance.Erc20Token.symbol, (evmNetworkActorCoinBalance.$coinInstance.Erc20Token.name ?? '')].filter(Boolean).join(' ') || 'EVM coin instance'}
 			{/snippet}
 
 			{#snippet Value()}
-				{String(evmNetworkActorCoinBalanceSelector.$actor.address) || 'EVM account'}
+				{evmNetworkActorCoinBalanceSelector.$actor.address || 'EVM account'}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{String(evmNetworkActorCoinBalanceSelector.$actor.address) || 'EVM account'}</span>
+				<span data-text="annotation">{evmNetworkActorCoinBalanceSelector.$actor.address || 'EVM account'}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

@@ -43,7 +43,7 @@
 				resolve(
 					'/(social)/(farcaster)/farcaster/(farcasterNetwork)/channel/[channelId=stringSegment]/(farcasterChannel)/observations/[timestampMs=nonNegativeInteger]',
 					{
-						channelId: String(farcasterChannelTimestampSelector.$channel.id),
+						channelId: farcasterChannelTimestampSelector.$channel.id,
 						timestampMs: String(farcasterChannelTimestampSelector.timestampMs),
 					}
 				)
@@ -54,7 +54,7 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{String(farcasterChannelTimestampSelector.timestampMs)}
+				{farcasterChannelTimestampSelector.timestampMs}
 			{/snippet}
 		</EntityView>
 	{/snippet}

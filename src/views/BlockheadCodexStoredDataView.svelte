@@ -22,18 +22,15 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.BlockheadCodexStoredData> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const viewSelection = $derived(selection({
+	const blockheadCodexStoredData = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Local_Internal,
 		],
-	}))
-	const blockheadCodexStoredData = $derived(viewSelection({
+	})({
 		fields: {
 			firstSeenAt: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.cid ?? '') || 'blockhead codex stored data')
 
 
 	// Components
@@ -48,19 +45,18 @@
 <EntityView
 	entityType={EntityType.BlockheadCodexStoredData}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? (selection.entitySelector.cid || 'blockhead codex stored data')}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{(pendingEntity.cid ?? '') || 'blockhead codex stored data'}
+		{selection.entitySelector.cid || 'blockhead codex stored data'}
 	{/snippet}
 
 	{#snippet Value()}
 		<BlockheadCodexStorageNodeStateView
 			selection={select(EntityType.BlockheadCodexStorageNodeState, selection.entitySelector.$nodeState)}
-			href=""
 			layout={EntityLayout.Value}
 			open={false}
 		/>
@@ -69,10 +65,10 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={blockheadCodexStoredData}>
 			{#snippet children(entity)}
-				{@const firstSeenAt0 = entity.firstSeenAt}
-				{#if firstSeenAt0 != null}
+				{@const firstSeenAt = entity.firstSeenAt}
+				{#if firstSeenAt != null}
 					<span data-text="muted">
-						<Timestamp timestamp={Number(firstSeenAt0)} />
+						<Timestamp timestamp={firstSeenAt} />
 					</span>
 				{/if}
 			{/snippet}
@@ -95,7 +91,7 @@
 			<div>
 				<dt>CID</dt>
 				<dd>
-					{pendingEntity.cid}
+					{selection.entitySelector.cid}
 				</dd>
 			</div>
 
@@ -128,7 +124,7 @@
 						<div>
 							<dt>first seen AT</dt>
 							<dd>
-								<Timestamp timestamp={Number(firstSeenAt)} />
+								<Timestamp timestamp={firstSeenAt} />
 							</dd>
 						</div>
 					{/if}
@@ -138,15 +134,15 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const blockheadCodexStoredDataBlockheadCodexStoredDataTimestampsViewTimestampsResource = selection.$$timestamps}
+		{@const timestampsResource = selection.$$timestamps}
 		<ResourceBoundary
-			resource={blockheadCodexStoredDataBlockheadCodexStoredDataTimestampsViewTimestampsResource}
+			resource={timestampsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<BlockheadCodexStoredData_TimestampsView
-						selection={blockheadCodexStoredDataBlockheadCodexStoredDataTimestampsViewTimestampsResource}
-						countResource={blockheadCodexStoredDataBlockheadCodexStoredDataTimestampsViewTimestampsResource.count}
+						selection={timestampsResource}
+						countResource={timestampsResource.count}
 						title='timestamps'
 						id='timestamps'
 					/>

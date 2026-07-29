@@ -20,8 +20,7 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.PolkadotAsset> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const titleFallback = $derived((pendingEntity.assetId ?? '') || 'Polkadot asset')
+	const titleFallback = $derived(selection.entitySelector.assetId || 'Polkadot asset')
 
 
 	// Components
@@ -41,11 +40,11 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{(pendingEntity.assetId ?? '') || 'Polkadot asset'}
+		{selection.entitySelector.assetId || 'Polkadot asset'}
 	{/snippet}
 
 	{#snippet Value()}
-		{(pendingEntity.assetKind ?? '') || (pendingEntity.assetId ?? '') || titleFallback}
+		{selection.entitySelector.assetKind || selection.entitySelector.assetId || titleFallback}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
@@ -74,44 +73,44 @@
 			<div>
 				<dt>Asset kind</dt>
 				<dd>
-					{pendingEntity.assetKind}
+					{selection.entitySelector.assetKind}
 				</dd>
 			</div>
 
 			<div>
 				<dt>Asset ID</dt>
 				<dd>
-					{pendingEntity.assetId}
+					{selection.entitySelector.assetId}
 				</dd>
 			</div>
 		</dl>
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const polkadotAssetPolkadotAssetTimestampsViewTimestampsResource = selection.$$timestamps}
+		{@const timestampsResource = selection.$$timestamps}
 		<ResourceBoundary
-			resource={polkadotAssetPolkadotAssetTimestampsViewTimestampsResource}
+			resource={timestampsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<PolkadotAsset_TimestampsView
-						selection={polkadotAssetPolkadotAssetTimestampsViewTimestampsResource}
-						countResource={polkadotAssetPolkadotAssetTimestampsViewTimestampsResource.count}
+						selection={timestampsResource}
+						countResource={timestampsResource.count}
 						title='Asset observations'
 						id='timestamps'
 					/>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>
-		{@const polkadotAssetPolkadotAssetBalanceTimestampsViewBalanceTimestampsResource = selection.$$balanceTimestamps}
+		{@const balanceTimestampsResource = selection.$$balanceTimestamps}
 		<ResourceBoundary
-			resource={polkadotAssetPolkadotAssetBalanceTimestampsViewBalanceTimestampsResource}
+			resource={balanceTimestampsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<PolkadotAssetBalance_TimestampsView
-						selection={polkadotAssetPolkadotAssetBalanceTimestampsViewBalanceTimestampsResource}
-						countResource={polkadotAssetPolkadotAssetBalanceTimestampsViewBalanceTimestampsResource.count}
+						selection={balanceTimestampsResource}
+						countResource={balanceTimestampsResource.count}
 						title='Balances'
 						id='balance-timestamps'
 					/>

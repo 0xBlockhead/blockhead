@@ -5,7 +5,6 @@
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { UrlString } from '$/schema/UrlString.ts'
 
 
 	// Context
@@ -22,7 +21,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.A2aMessagePart> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [],
 	}))
@@ -32,7 +30,6 @@
 			mimeType: true,
 		},
 	}))
-	const titleFallback = $derived(String(pendingEntity.partIndex ?? '') || 'A2A message part')
 
 
 	// Components
@@ -47,19 +44,19 @@
 <EntityView
 	entityType={EntityType.A2aMessagePart}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? String(selection.entitySelector.partIndex)}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{String(pendingEntity.partIndex ?? '') || 'A2A message part'}
+		{String(selection.entitySelector.partIndex)}
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={a2aMessagePart}>
 			{#snippet children(entity)}
-				{entity.partKind || String(pendingEntity.partIndex) || titleFallback}
+				{entity.partKind || String(selection.entitySelector.partIndex)}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -67,10 +64,10 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={a2aMessagePart}>
 			{#snippet children(entity)}
-				{@const mimeType0 = entity.mimeType}
-				{#if mimeType0 != null}
+				{@const mimeType = entity.mimeType}
+				{#if mimeType != null}
 					<span data-text="muted">
-						{mimeType0}
+						{mimeType}
 					</span>
 				{/if}
 			{/snippet}
@@ -122,7 +119,7 @@
 			<div>
 				<dt>part index</dt>
 				<dd>
-					{String(pendingEntity.partIndex)}
+					{selection.entitySelector.partIndex}
 				</dd>
 			</div>
 
@@ -177,11 +174,11 @@
 							<dt>URI</dt>
 							<dd>
 								<a
-									href={String(uri)}
+									href={uri}
 									target="_blank"
 									rel="noreferrer noopener"
 								>
-									<TruncatedValue value={String(uri)} />
+									<TruncatedValue value={uri} />
 								</a>
 							</dd>
 						</div>

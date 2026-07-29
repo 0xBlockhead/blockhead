@@ -4,7 +4,6 @@
 	// Types/constants
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { UrlString } from '$/schema/UrlString.ts'
 
 
 	// Context
@@ -21,9 +20,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.Eip8004AgentRegistrationFile> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const titleFallback = $derived(String(pendingEntity.fileUrl ?? '') || 'EIP-8004 agent registration file')
-
 
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -35,19 +31,18 @@
 <EntityView
 	entityType={EntityType.Eip8004AgentRegistrationFile}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? (selection.entitySelector.fileUrl || 'EIP-8004 agent registration file')}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{String(pendingEntity.fileUrl ?? '') || 'EIP-8004 agent registration file'}
+		{selection.entitySelector.fileUrl || 'EIP-8004 agent registration file'}
 	{/snippet}
 
 	{#snippet Value()}
 		<Eip8004AgentRegistrationView
 			selection={select(EntityType.Eip8004AgentRegistration, selection.entitySelector.$registration)}
-			href=""
 			layout={EntityLayout.Value}
 			open={false}
 		/>
@@ -70,11 +65,11 @@
 				<dt>File URL</dt>
 				<dd>
 					<a
-						href={String(pendingEntity.fileUrl)}
+						href={selection.entitySelector.fileUrl}
 						target="_blank"
 						rel="noreferrer noopener"
 					>
-						<TruncatedValue value={String(pendingEntity.fileUrl)} />
+						<TruncatedValue value={selection.entitySelector.fileUrl} />
 					</a>
 				</dd>
 			</div>

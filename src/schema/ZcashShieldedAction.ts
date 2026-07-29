@@ -1,17 +1,12 @@
 // Generated from APP.ts. Do not edit by hand.
 
 import { entity } from '$/schema/$schema.ts'
-import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
+import { EntityFieldCardinality } from '$/schema/EntityFieldCardinality.ts'
+import { EntityFieldType } from '$/schema/EntityFieldType.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import { ZcashShieldedPoolKind } from '$/schema/ZcashShieldedPool.ts'
+import { ZcashShieldedActionKind } from '$/schema/ZcashShieldedActionKind.ts'
+import { ZcashShieldedPoolKind } from '$/schema/ZcashShieldedPoolKind.ts'
 import { type } from 'arktype'
-
-export enum ZcashShieldedActionKind {
-	JoinSplit = 'joinSplit',
-	Spend = 'spend',
-	Output = 'output',
-	Action = 'action',
-}
 
 export default entity({
 	entityType: EntityType.ZcashShieldedAction,

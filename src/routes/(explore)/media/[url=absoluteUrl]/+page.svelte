@@ -4,8 +4,6 @@
 	// Types/constants
 	import type { PageProps } from './$types.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { MediaTransport, MediaType } from '$/schema/Media.ts'
-	import { UrlString } from '$/schema/UrlString.ts'
 
 
 	// Context
@@ -35,7 +33,7 @@
 
 
 <svelte:head>
-	<title>{(String(pageSelection.entitySelector.url) || 'Media')} • Media • Blockhead</title>
+	<title>{pageSelection.entitySelector.url || 'Media'} • Media • Blockhead</title>
 </svelte:head>
 
 

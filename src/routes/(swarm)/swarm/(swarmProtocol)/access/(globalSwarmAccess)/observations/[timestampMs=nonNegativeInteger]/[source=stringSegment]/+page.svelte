@@ -46,7 +46,7 @@
 
 
 <svelte:head>
-	<title>{('global Swarm access timestamp')} • global Swarm access timestamp • Blockhead</title>
+	<title>{'global Swarm access timestamp'} • global Swarm access timestamp • Blockhead</title>
 </svelte:head>
 
 

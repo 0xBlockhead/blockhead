@@ -43,7 +43,7 @@
 			entitySelector={bridgeRouteQuoteStepSelector}
 		>
 			{#snippet Title()}
-				{(String(bridgeRouteQuoteStepSelector.indexInQuote ?? '') ? 'Step #' + String(bridgeRouteQuoteStepSelector.indexInQuote ?? '') : '') || 'bridge route quote step'}
+				{`Step #${bridgeRouteQuoteStepSelector.indexInQuote}`}
 			{/snippet}
 
 			{#snippet HeadingAfter()}

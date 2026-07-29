@@ -41,7 +41,7 @@
 			entitySelector={bitTorrentTrackerScrapeTimestampSelector}
 		>
 			{#snippet Title()}
-				{String(bitTorrentTrackerScrapeTimestampSelector.timestampMs) || 'bit torrent tracker scrape timestamp'}
+				{bitTorrentTrackerScrapeTimestampSelector.timestampMs}
 			{/snippet}
 
 			{#snippet Value()}

@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import {
 	EntityMetaKey,
 } from '$/schema/$schema.ts'
-import { EntityFieldCardinality } from '$/schema/EntityField.ts'
+import { EntityFieldCardinality } from '$/schema/EntityFieldCardinality.ts'
 import AptosCoinBalance_Timestamp from '$/schema/AptosCoinBalance_Timestamp.ts'
 import { Source } from '$/sources/Source.ts'
 import bindings from '$/sources/AptosIndexer/bindings.ts'

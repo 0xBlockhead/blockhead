@@ -44,15 +44,15 @@
 			entitySelector={evmNetworkActorCoinBalanceEvmBlockSelector}
 		>
 			{#snippet Title()}
-				{((String(evmNetworkActorCoinBalanceEvmBlockSelector.$block.blockNumber ?? '') ? 'Block #' + String(evmNetworkActorCoinBalanceEvmBlockSelector.$block.blockNumber ?? '') : '') || String(evmNetworkActorCoinBalanceEvmBlockSelector.$block.hash ?? '') || 'EVM block')}
+				{`Block #${evmNetworkActorCoinBalanceEvmBlockSelector.$block.blockNumber}`}
 			{/snippet}
 
 			{#snippet Value()}
-				{[(String(evmNetworkActorCoinBalanceEvmBlock.balance) ? String(evmNetworkActorCoinBalanceEvmBlock.balance) + evmNetworkActorCoinBalanceEvmBlockSelector.$actorCoin.symbol : ''), String(evmNetworkActorCoinBalanceEvmBlock.usdValue ?? '')].filter(Boolean).join(' ')}
+				{[String(evmNetworkActorCoinBalanceEvmBlock.balance) + evmNetworkActorCoinBalanceEvmBlockSelector.$actorCoin.symbol, String(evmNetworkActorCoinBalanceEvmBlock.usdValue ?? '')].filter(Boolean).join(' ')}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{evmNetworkActorCoinBalanceEvmBlock.$actorCoin.symbol || [String(evmNetworkActorCoinBalanceEvmBlock.$actorCoin.$coinInstance.NativeCurrency.symbol ?? ''), String(evmNetworkActorCoinBalanceEvmBlock.$actorCoin.$coinInstance.NativeCurrency.name ?? ''), String(evmNetworkActorCoinBalanceEvmBlock.$actorCoin.$coinInstance.Erc20Token.symbol ?? ''), String(evmNetworkActorCoinBalanceEvmBlock.$actorCoin.$coinInstance.Erc20Token.name ?? '')].filter(Boolean).join(' ') || 'EVM coin instance'}</span>
+				<span data-text="annotation">{evmNetworkActorCoinBalanceEvmBlock.$actorCoin.symbol || [evmNetworkActorCoinBalanceEvmBlock.$actorCoin.$coinInstance.NativeCurrency.symbol, (evmNetworkActorCoinBalanceEvmBlock.$actorCoin.$coinInstance.NativeCurrency.name ?? ''), evmNetworkActorCoinBalanceEvmBlock.$actorCoin.$coinInstance.Erc20Token.symbol, (evmNetworkActorCoinBalanceEvmBlock.$actorCoin.$coinInstance.Erc20Token.name ?? '')].filter(Boolean).join(' ') || 'EVM coin instance'}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

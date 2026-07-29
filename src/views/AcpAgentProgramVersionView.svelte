@@ -22,7 +22,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.AcpAgentProgramVersion> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.AcpRegistry_Rest,
@@ -34,7 +33,7 @@
 			distributionKind: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.version ?? '') || 'ACP agent program version')
+	const titleFallback = $derived((prefetched.version ?? '') || 'ACP agent program version')
 
 
 	// Components
@@ -71,7 +70,6 @@
 					<AcpAgentProgramView
 						selection={select(EntityType.AcpAgentProgram, acpAgentProgram[EntityMetaKey.Selector])}
 						prefetched={acpAgentProgram}
-						href=""
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -83,10 +81,10 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={acpAgentProgramVersion}>
 			{#snippet children(entity)}
-				{@const distributionKind0 = entity.distributionKind}
-				{#if distributionKind0 != null}
+				{@const distributionKind = entity.distributionKind}
+				{#if distributionKind != null}
 					<span data-text="muted">
-						{distributionKind0}
+						{distributionKind}
 					</span>
 				{/if}
 			{/snippet}
@@ -168,7 +166,7 @@
 						<div>
 							<dt>release date</dt>
 							<dd>
-								<Timestamp timestamp={Number(releaseDate)} />
+								<Timestamp timestamp={releaseDate} />
 							</dd>
 						</div>
 					{/if}
@@ -216,15 +214,15 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const acpAgentProgramVersionAiDocumentsViewDocumentsResource = selection.$$documents}
+		{@const documentsResource = selection.$$documents}
 		<ResourceBoundary
-			resource={acpAgentProgramVersionAiDocumentsViewDocumentsResource}
+			resource={documentsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<AiDocumentsView
-						selection={acpAgentProgramVersionAiDocumentsViewDocumentsResource}
-						countResource={acpAgentProgramVersionAiDocumentsViewDocumentsResource.count}
+						selection={documentsResource}
+						countResource={documentsResource.count}
 						title='documents'
 						id='documents'
 					/>

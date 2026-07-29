@@ -33,8 +33,8 @@
 			resolve(
 				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(contracts)/contract/[address=evmAddress]',
 				{
-					network: String(params.network),
-					address: String(params.address),
+					network: params.network,
+					address: params.address,
 				}
 			)
 		}
@@ -51,8 +51,8 @@
 					resolve(
 						'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(contracts)/contract/[address=evmAddress]',
 						{
-							network: String(params.network),
-							address: String(params.address),
+							network: params.network,
+							address: params.address,
 						}
 					)
 				}

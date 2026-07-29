@@ -21,7 +21,7 @@ import {
 	type ResolverValue,
 	type SourceResolverDefinition,
 } from '$/resolvers/$resolvers.ts'
-import { loadAllResolvers } from '$/resolvers/index.ts'
+import { loadResolvers } from '$/resolvers/index.ts'
 import { Source } from '$/sources/Source.ts'
 import type { EntityType as SchemaEntityType } from '$/schema/$schema.ts'
 import {
@@ -39,7 +39,7 @@ import {
 	type AssertLoadedResolverProbeCategorySummary,
 } from './_fixtures.ts'
 
-const resolvers = await loadAllResolvers()
+const resolvers = await loadResolvers()
 
 const {
 	resolverDefinitions,
@@ -375,7 +375,11 @@ export const runAssertLoadedResolverProbes = async (
 			return {
 				kind: 'Ready' as const,
 				probe,
-				entitySelector: await resolveProbeEntitySelector(probe.entityType, probe.selectorName),
+				entitySelector: await resolveProbeEntitySelector(
+					probe.entityType,
+					probe.selectorName,
+					probe.source
+				),
 			}
 		} catch (error) {
 			return {

@@ -40,7 +40,7 @@
 			entitySelector={erc4626VaultBlockSelector}
 		>
 			{#snippet Title()}
-				{String(erc4626VaultBlockSelector.blockNumber) || 'erc4626 vault block'}
+				{erc4626VaultBlockSelector.blockNumber}
 			{/snippet}
 
 			{#snippet Value()}

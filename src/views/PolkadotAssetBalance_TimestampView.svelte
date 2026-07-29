@@ -20,14 +20,12 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.PolkadotAssetBalance_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const polkadotAssetBalanceTimestamp = $derived(selection({
 		fields: {
 			freeBalancePlancks: true,
 			status: true,
 		},
 	}))
-	const titleFallback = 'Polkadot asset balance timestamp'
 
 
 	// Components
@@ -43,7 +41,7 @@
 <EntityView
 	entityType={EntityType.PolkadotAssetBalance_Timestamp}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? 'Polkadot asset balance timestamp'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -51,7 +49,6 @@
 	{#snippet Title()}
 		<PolkadotAssetView
 			selection={select(EntityType.PolkadotAsset, selection.entitySelector.$asset)}
-			href=""
 			layout={EntityLayout.Title}
 			open={false}
 		/>
@@ -60,10 +57,10 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={polkadotAssetBalanceTimestamp}>
 			{#snippet children(entity)}
-				{@const freeBalancePlancks0 = entity.freeBalancePlancks}
-				{#if freeBalancePlancks0 != null}
+				{@const freeBalancePlancks = entity.freeBalancePlancks}
+				{#if freeBalancePlancks != null}
 					<NumberValue
-						value={freeBalancePlancks0}
+						value={freeBalancePlancks}
 					/>
 				{/if}
 			{/snippet}
@@ -73,10 +70,10 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={polkadotAssetBalanceTimestamp}>
 			{#snippet children(entity)}
-				{@const status0 = entity.status}
-				{#if status0 != null}
+				{@const status = entity.status}
+				{#if status != null}
 					<span data-text="muted">
-						{status0}
+						{status}
 					</span>
 				{/if}
 			{/snippet}
@@ -110,14 +107,14 @@
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+					<Timestamp timestamp={selection.entitySelector.timestampMs} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 

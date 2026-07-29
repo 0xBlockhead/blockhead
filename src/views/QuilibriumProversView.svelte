@@ -49,7 +49,7 @@
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{(quilibriumProver.version ?? '')}</span>
+				<span data-text="annotation">{quilibriumProver.version ?? ''}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

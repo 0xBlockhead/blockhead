@@ -41,7 +41,7 @@
 			entitySelector={acpSessionUpdateSelector}
 		>
 			{#snippet Title()}
-				{(String(acpSessionUpdateSelector.sequence ?? '') ? 'Update #' + String(acpSessionUpdateSelector.sequence ?? '') : '') || 'ACP session update'}
+				{`Update #${acpSessionUpdateSelector.sequence}`}
 			{/snippet}
 
 			{#snippet Value()}
@@ -49,7 +49,7 @@
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{String(acpSessionUpdate.timestampMs ?? '')}</span>
+				<span data-text="annotation">{acpSessionUpdate.timestampMs ?? ''}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

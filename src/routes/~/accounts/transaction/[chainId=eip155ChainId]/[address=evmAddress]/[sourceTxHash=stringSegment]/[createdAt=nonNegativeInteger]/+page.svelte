@@ -47,7 +47,7 @@
 
 
 <svelte:head>
-	<title>{(String(pageSelection.entitySelector.createdAt) || 'bridge transaction')} • bridge transaction • Blockhead</title>
+	<title>{String(pageSelection.entitySelector.createdAt) || 'bridge transaction'} • bridge transaction • Blockhead</title>
 </svelte:head>
 
 

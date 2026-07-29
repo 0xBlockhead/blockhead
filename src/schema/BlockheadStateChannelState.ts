@@ -1,7 +1,8 @@
 // Generated from APP.ts. Do not edit by hand.
 
 import { entity } from '$/schema/$schema.ts'
-import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
+import { EntityFieldCardinality } from '$/schema/EntityFieldCardinality.ts'
+import { EntityFieldType } from '$/schema/EntityFieldType.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { type } from 'arktype'
 
@@ -39,7 +40,11 @@ export default entity({
 	allocations: {
 		label: 'allocations',
 		type: EntityFieldType.Primitive,
-		primitiveType: type({ 'destination': type('string'), 'token': type('string'), 'amount': type('bigint') }).array(),
+		primitiveType: type({
+			destination: type('string'),
+			token: type('string'),
+			amount: type('bigint'),
+		}).array(),
 		cardinality: EntityFieldCardinality.One,
 	},
 	signatures: {

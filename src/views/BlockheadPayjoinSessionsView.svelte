@@ -50,7 +50,7 @@
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{String(blockheadPayjoinSession.amountSats ?? '')}</span>
+				<span data-text="annotation">{blockheadPayjoinSession.amountSats ?? ''}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

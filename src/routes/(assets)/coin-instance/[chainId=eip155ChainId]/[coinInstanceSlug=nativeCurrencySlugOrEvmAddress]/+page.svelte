@@ -4,8 +4,6 @@
 	// Types/constants
 	import type { PageProps } from './$types.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { CoinInstanceType } from '$/schema/EvmCoinInstance.ts'
-	import { UrlString } from '$/schema/UrlString.ts'
 
 
 	// Context
@@ -87,9 +85,9 @@
 	const pageTitle = $derived(
 		(
 			data.entityType === EntityType.EvmCoinInstance && data.selectorName === 'NetworkType' ?
-				(pageSelection.entity == null ? 'EVM coin instance' : 'EVM coin instance')
+				pageSelection.entity == null ? 'EVM coin instance' : 'EVM coin instance'
 			:
-				(pageSelection.entity == null ? 'EVM coin instance' : 'EVM coin instance')
+				pageSelection.entity == null ? 'EVM coin instance' : 'EVM coin instance'
 		)
 	)
 

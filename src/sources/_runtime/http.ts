@@ -5,9 +5,10 @@ import {
 import {
 	SourceDelivery,
 	SourceEndpointKind,
+	sourceBindingId,
 	type SourceBinding,
 } from '$/sources/SourceBinding.ts'
-import type { SourceOrigin } from '$/sources/SourceProvider.ts'
+import type { SourceOrigin } from '$/sources/SourceProviderDefinition.ts'
 
 const sourceFetchQueueByEndpoint = new Map<string, {
 	activeCount: number
@@ -55,9 +56,8 @@ export const sourceFetch = async (
 			|| (endpoint.locator.includes('{') && url.startsWith(endpoint.locator.slice(0, endpoint.locator.indexOf('{'))))
 		)
 	))
-	const proxyId = binding.proxyId
-	if (binding.delivery === SourceDelivery.HttpProxy && (proxyId == null || endpointIndex === -1))
-		throw new Error(`${binding.source}: missing HTTP proxy identity or endpoint for ${url}`)
+	if (binding.delivery === SourceDelivery.HttpProxy && endpointIndex === -1)
+		throw new Error(`${binding.source}: missing HTTP proxy endpoint for ${url}`)
 
 	const queueKey = `${binding.source}:${new URL(url).origin}`
 	const queue = sourceFetchQueueByEndpoint.get(queueKey) ?? {
@@ -71,15 +71,12 @@ export const sourceFetch = async (
 	queue.activeCount++
 	try {
 		if (binding.delivery === SourceDelivery.HttpProxy) {
-			if (proxyId == null)
-				throw new Error(`${binding.source}: missing HTTP proxy identity for ${url}`)
-
 			return await corsFetch(url, {
 				delivery: binding.delivery,
 				init,
 				origins: httpOriginsForBinding(binding),
 				proxy: {
-					proxyId,
+					proxyId: sourceBindingId(binding),
 					endpointIndex,
 				},
 			})

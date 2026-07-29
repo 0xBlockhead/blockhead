@@ -22,7 +22,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.BlockheadAgentProfile> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Local_Internal,
@@ -34,7 +33,7 @@
 			updatedAt: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.label ?? '') || (pendingEntity.profileId ?? '') || 'blockhead agent profile')
+	const titleFallback = $derived((prefetched.label ?? '') || selection.entitySelector.profileId || 'blockhead agent profile')
 
 
 	// Components
@@ -71,7 +70,6 @@
 					<AiModelView
 						selection={select(EntityType.AiModel, aiModel[EntityMetaKey.Selector])}
 						prefetched={aiModel}
-						href=""
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -83,10 +81,10 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={blockheadAgentProfile}>
 			{#snippet children(entity)}
-				{@const updatedAt0 = entity.updatedAt}
-				{#if updatedAt0 != null}
+				{@const updatedAt = entity.updatedAt}
+				{#if updatedAt != null}
 					<span data-text="muted">
-						<Timestamp timestamp={Number(updatedAt0)} />
+						<Timestamp timestamp={updatedAt} />
 					</span>
 				{/if}
 			{/snippet}
@@ -98,7 +96,7 @@
 			<div>
 				<dt>profile ID</dt>
 				<dd>
-					{pendingEntity.profileId}
+					{selection.entitySelector.profileId}
 				</dd>
 			</div>
 
@@ -197,7 +195,7 @@
 						<div>
 							<dt>Created</dt>
 							<dd>
-								<Timestamp timestamp={Number(createdAt)} />
+								<Timestamp timestamp={createdAt} />
 							</dd>
 						</div>
 					{/if}
@@ -213,7 +211,7 @@
 						<div>
 							<dt>Updated</dt>
 							<dd>
-								<Timestamp timestamp={Number(updatedAt)} />
+								<Timestamp timestamp={updatedAt} />
 							</dd>
 						</div>
 					{/if}

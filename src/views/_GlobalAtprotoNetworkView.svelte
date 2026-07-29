@@ -6,7 +6,6 @@
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { stringify } from 'devalue'
-	import { UrlString } from '$/schema/UrlString.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -21,7 +20,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType._GlobalAtprotoNetwork> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Constants_Internal,
@@ -32,7 +30,7 @@
 			protocolName: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.protocolName ?? '') || 'AT Protocol')
+	const titleFallback = $derived((prefetched.protocolName ?? '') || 'AT Protocol')
 	const viewDomId = $derived('-global-atproto-network-' + encodeURIComponent(stringify(selection.entitySelector)))
 
 
@@ -52,7 +50,12 @@
 	entitySelector={selection.entitySelector}
 	id={viewDomId}
 	title={title ?? titleFallback}
-	href={href ?? resolve('/(social)/(atproto)/atproto')}
+	href={
+		href === undefined ?
+			resolve('/(social)/(atproto)/atproto')
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -125,11 +128,11 @@
 						>
 							{#snippet children(entity)}
 								<a
-									href={String(entity.homeUrl)}
+									href={entity.homeUrl}
 									target="_blank"
 									rel="noreferrer noopener"
 								>
-									<TruncatedValue value={String(entity.homeUrl)} />
+									<TruncatedValue value={entity.homeUrl} />
 								</a>
 							{/snippet}
 						</ResourceBoundary>
@@ -154,11 +157,11 @@
 								<dt>Documentation</dt>
 								<dd>
 									<a
-										href={String(docsUrl)}
+										href={docsUrl}
 										target="_blank"
 										rel="noreferrer noopener"
 									>
-										<TruncatedValue value={String(docsUrl)} />
+										<TruncatedValue value={docsUrl} />
 									</a>
 								</dd>
 							</div>

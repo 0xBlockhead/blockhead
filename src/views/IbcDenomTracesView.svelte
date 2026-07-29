@@ -51,7 +51,7 @@
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{(ibcDenomTrace.sourceChannel ?? '')}</span>
+				<span data-text="annotation">{ibcDenomTrace.sourceChannel ?? ''}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

@@ -5,7 +5,6 @@
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 
 
 	// State
@@ -46,15 +45,15 @@
 			entitySelector={gitPackedObjectSelector}
 		>
 			{#snippet Title()}
-				{String(gitPackedObjectSelector.objectId) || 'Git packed object'}
+				{gitPackedObjectSelector.objectId || 'Git packed object'}
 			{/snippet}
 
 			{#snippet Value()}
-				{(gitPackedObject.storedKind ?? '')}
+				{gitPackedObject.storedKind ?? ''}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{String(gitPackedObject.$packfile.packHash) || 'Git packfile'}</span>
+				<span data-text="annotation">{gitPackedObject.$packfile.packHash || 'Git packfile'}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

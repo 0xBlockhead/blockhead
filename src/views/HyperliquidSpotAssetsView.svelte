@@ -45,7 +45,7 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{String(hyperliquidSpotAssetSelector.assetId)}
+				{hyperliquidSpotAssetSelector.assetId}
 			{/snippet}
 
 			{#snippet HeadingAfter()}

@@ -23,20 +23,18 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.BeaconValidator_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const validator = $derived(selection.entitySelector.$validator)
 	const beaconValidatorTimestamp = $derived(selection({
 		fields: {
 			status: true,
 		},
 	}))
-	const titleFallback = $derived((String(pendingEntity.slot ?? '') ? 'Slot #' + String(pendingEntity.slot ?? '') : '') || 'beacon validator timestamp')
 
 
 	// Components
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
-	import TruncatedValue from '$/components/TruncatedValue.svelte'
 	import BeaconValidatorView from '$/views/BeaconValidatorView.svelte'
 </script>
 
@@ -44,28 +42,31 @@
 <EntityView
 	entityType={EntityType.BeaconValidator_Timestamp}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
-	idDragPlainText={String(pendingEntity.slot ?? '')}
+	title={title ?? `Slot #${selection.entitySelector.slot}`}
+	idDragPlainText={String(selection.entitySelector.slot)}
 	href={
-		href ?? (
-			'indexInNetwork' in selection.entitySelector.$validator ?
-				resolve(
-					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/validator/[validatorId=nonNegativeIntegerOrSolanaPubkey]/(selection)/observations/[slot=nonNegativeInteger]/[source=stringSegment]',
-					{
-						network: (
-							'caip2' in selection.entitySelector.$validator.$network ?
-								String(caip2StringFromValue(selection.entitySelector.$validator.$network.caip2))
-							:
-								String(selection.entitySelector.$validator.$network.slug)
-						),
-						validatorId: String(selection.entitySelector.$validator.indexInNetwork),
-						slot: String(selection.entitySelector.slot),
-						source: String(selection.entitySelector.source),
-					}
-				)
-			:
-				undefined
-		)
+		href === undefined ?
+			(
+				'indexInNetwork' in validator ?
+					resolve(
+						'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/validator/[validatorId=nonNegativeIntegerOrSolanaPubkey]/(selection)/observations/[slot=nonNegativeInteger]/[source=stringSegment]',
+						{
+							network: (
+								'caip2' in validator.$network ?
+									caip2StringFromValue(validator.$network.caip2)
+								:
+									validator.$network.slug
+							),
+							validatorId: String(validator.indexInNetwork),
+							slot: String(selection.entitySelector.slot),
+							source: selection.entitySelector.source,
+						}
+					)
+				:
+					undefined
+			)
+		:
+			href ?? undefined
 	}
 	{layout}
 	bind:open
@@ -75,24 +76,24 @@
 		<span data-row="inline align-center gap-2 wrap">
 			<span>Slot </span>
 			<span data-badge="small">
-				#{String(pendingEntity.slot)}
+				#{selection.entitySelector.slot}
 			</span>
 		</span>
 	{/snippet}
 
 	{#snippet Value()}
 		<span data-badge="small">
-			#{String(pendingEntity.slot)}
+			#{selection.entitySelector.slot}
 		</span>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={beaconValidatorTimestamp}>
 			{#snippet children(entity)}
-				{@const status0 = entity.status}
-				{#if status0 != null}
+				{@const status = entity.status}
+				{#if status != null}
 					<span data-text="muted">
-						{status0}
+						{status}
 					</span>
 				{/if}
 			{/snippet}
@@ -105,7 +106,7 @@
 				<dt>Slot</dt>
 				<dd>
 					<NumberValue
-						value={pendingEntity.slot}
+						value={selection.entitySelector.slot}
 					/>
 				</dd>
 			</div>
@@ -113,7 +114,7 @@
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 
@@ -132,7 +133,7 @@
 						<div>
 							<dt>Balance</dt>
 							<dd>
-								{String(balanceGwei)}
+								{balanceGwei}
 							</dd>
 						</div>
 					{/if}
@@ -154,7 +155,7 @@
 						<div>
 							<dt>Effective balance</dt>
 							<dd>
-								{String(effectiveBalanceGwei)}
+								{effectiveBalanceGwei}
 							</dd>
 						</div>
 					{/if}
@@ -216,7 +217,7 @@
 						<div>
 							<dt>Activation eligibility epoch</dt>
 							<dd>
-								{String(activationEligibilityEpoch)}
+								{activationEligibilityEpoch}
 							</dd>
 						</div>
 					{/if}
@@ -238,7 +239,7 @@
 						<div>
 							<dt>Activation epoch</dt>
 							<dd>
-								{String(activationEpoch)}
+								{activationEpoch}
 							</dd>
 						</div>
 					{/if}
@@ -260,7 +261,7 @@
 						<div>
 							<dt>Exit epoch</dt>
 							<dd>
-								{String(exitEpoch)}
+								{exitEpoch}
 							</dd>
 						</div>
 					{/if}
@@ -282,7 +283,7 @@
 						<div>
 							<dt>Withdrawable epoch</dt>
 							<dd>
-								{String(withdrawableEpoch)}
+								{withdrawableEpoch}
 							</dd>
 						</div>
 					{/if}
@@ -304,7 +305,7 @@
 						<div>
 							<dt>Withdrawal credentials</dt>
 							<dd>
-								<TruncatedValue value={withdrawalCredentials} />
+								{withdrawalCredentials}
 							</dd>
 						</div>
 					{/if}
@@ -370,7 +371,7 @@
 						<div>
 							<dt>Timestamp</dt>
 							<dd>
-								<Timestamp timestamp={Number(timestampMs)} />
+								<Timestamp timestamp={timestampMs} />
 							</dd>
 						</div>
 					{/if}

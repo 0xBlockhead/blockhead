@@ -44,18 +44,18 @@
 				resolve(
 					'/(social)/(atproto)/atproto/(globalAtprotoNetwork)/post/[...uri=stringSegment]/(atprotoPost)/observations/[timestampMs=nonNegativeInteger]',
 					{
-						uri: encodeURIComponent(String(atprotoPostTimestampSelector.$post.uri)),
+						uri: encodeURIComponent(atprotoPostTimestampSelector.$post.uri),
 						timestampMs: String(atprotoPostTimestampSelector.timestampMs),
 					}
 				)
 			}
 		>
 			{#snippet Title()}
-				{String(atprotoPostTimestampSelector.timestampMs) || 'AT Protocol post observation'}
+				{atprotoPostTimestampSelector.timestampMs}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{[(String(atprotoPostTimestamp.likeCount ?? '') ? String(atprotoPostTimestamp.likeCount ?? '') + ' likes' : ''), (String(atprotoPostTimestamp.replyCount ?? '') ? String(atprotoPostTimestamp.replyCount ?? '') + ' replies' : '')].filter(Boolean).join(' ')}</span>
+				<span data-text="annotation">{[(atprotoPostTimestamp.likeCount != null ? String(atprotoPostTimestamp.likeCount) + ' likes' : ''), (atprotoPostTimestamp.replyCount != null ? String(atprotoPostTimestamp.replyCount) + ' replies' : '')].filter(Boolean).join(' ')}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

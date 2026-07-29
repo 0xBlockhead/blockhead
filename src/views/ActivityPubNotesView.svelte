@@ -7,7 +7,6 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { htmlToPlainText } from '$/lib/html.ts'
-	import { UrlString } from '$/schema/UrlString.ts'
 
 
 	// State
@@ -49,14 +48,14 @@
 				resolve(
 					'/(social)/(activitypub)/activitypub/(globalActivityPubNetwork)/note/[instanceOrigin=absoluteUrl]/[localStatusId=stringSegment]',
 					{
-						instanceOrigin: encodeURIComponent(String(activityPubNote.instanceOrigin)),
-						localStatusId: String(activityPubNote.localStatusId),
+						instanceOrigin: encodeURIComponent(activityPubNote.instanceOrigin),
+						localStatusId: activityPubNote.localStatusId,
 					}
 				)
 			}
 		>
 			{#snippet Title()}
-				{([activityPubNote.content == null ? '' : String((htmlToPlainText(activityPubNote.content)) ?? ''), activityPubNoteSelector.localStatusId].filter(Boolean).join(' ')) || 'ActivityPub note'}
+				{[activityPubNote.content == null ? '' : htmlToPlainText(activityPubNote.content), activityPubNoteSelector.localStatusId].filter(Boolean).join(' ') || 'ActivityPub note'}
 			{/snippet}
 
 			{#snippet Value()}

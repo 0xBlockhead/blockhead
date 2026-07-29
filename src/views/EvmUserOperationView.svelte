@@ -8,7 +8,6 @@
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { stringify } from 'devalue'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
-	import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -27,7 +26,7 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.EvmUserOperation> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const network = $derived(selection.entitySelector.$network)
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Blockscout_Rest,
@@ -41,7 +40,6 @@
 			nonce: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.hash ?? '') || 'User operation')
 	const viewDomId = $derived('evm-user-operation-' + encodeURIComponent(stringify(selection.entitySelector)))
 
 
@@ -65,40 +63,43 @@
 	entityType={EntityType.EvmUserOperation}
 	entitySelector={selection.entitySelector}
 	id={viewDomId}
-	title={title ?? titleFallback}
+	title={title ?? (selection.entitySelector.hash || 'User operation')}
 	href={
-		href ?? resolve(
-			'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/user-operation/[userOperationHash=userOperationHash]',
-			{
-				network: (
-					'caip2' in selection.entitySelector.$network ?
-						String(caip2StringFromValue(selection.entitySelector.$network.caip2))
-					:
-						String(selection.entitySelector.$network.slug)
-				),
-				userOperationHash: String(selection.entitySelector.hash),
-			}
-		)
+		href === undefined ?
+			resolve(
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/user-operation/[userOperationHash=userOperationHash]',
+				{
+					network: (
+						'caip2' in network ?
+							caip2StringFromValue(network.caip2)
+						:
+							network.slug
+					),
+					userOperationHash: selection.entitySelector.hash,
+				}
+			)
+		:
+			href ?? undefined
 	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<TruncatedValue value={pendingEntity.hash} />
+		<TruncatedValue value={selection.entitySelector.hash} />
 	{/snippet}
 
 	{#snippet Value()}
-		<TruncatedValue value={pendingEntity.hash} />
+		<TruncatedValue value={selection.entitySelector.hash} />
 	{/snippet}
 
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={evmUserOperation}>
 			{#snippet children(entity)}
-				{@const successful0 = entity.successful}
-				{#if successful0 != null}
+				{@const successful = entity.successful}
+				{#if successful != null}
 					<span data-text="muted">
-						{successful0 ? 'Yes' : 'No'}
+						{successful ? 'Yes' : 'No'}
 					</span>
 				{/if}
 			{/snippet}
@@ -121,7 +122,7 @@
 			<div>
 				<dt>Operation hash</dt>
 				<dd>
-					<TruncatedValue value={pendingEntity.hash} />
+					<TruncatedValue value={selection.entitySelector.hash} />
 				</dd>
 			</div>
 
@@ -150,7 +151,7 @@
 						<div>
 							<dt>Timestamp</dt>
 							<dd>
-								<Timestamp timestamp={Number(timestampMs)} />
+								<Timestamp timestamp={timestampMs} />
 							</dd>
 						</div>
 					{/if}
@@ -609,7 +610,7 @@
 									<div>
 										<dt>Init code</dt>
 										<dd>
-											<TruncatedValue value={String(initCode)} />
+											<TruncatedValue value={initCode} />
 										</dd>
 									</div>
 								{/if}
@@ -631,7 +632,7 @@
 									<div>
 										<dt>Call data</dt>
 										<dd>
-											<TruncatedValue value={String(callData)} />
+											<TruncatedValue value={callData} />
 										</dd>
 									</div>
 								{/if}
@@ -653,7 +654,7 @@
 									<div>
 										<dt>Paymaster data</dt>
 										<dd>
-											<TruncatedValue value={String(paymasterAndData)} />
+											<TruncatedValue value={paymasterAndData} />
 										</dd>
 									</div>
 								{/if}
@@ -675,7 +676,7 @@
 									<div>
 										<dt>Signature</dt>
 										<dd>
-											<TruncatedValue value={String(signature)} />
+											<TruncatedValue value={signature} />
 										</dd>
 									</div>
 								{/if}

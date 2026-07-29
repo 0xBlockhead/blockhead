@@ -41,15 +41,15 @@
 			entitySelector={a2aAgentServiceTimestampSelector}
 		>
 			{#snippet Title()}
-				{String(a2aAgentServiceTimestampSelector.timestampMs) || 'A2A agent service timestamp'}
+				{a2aAgentServiceTimestampSelector.timestampMs}
 			{/snippet}
 
 			{#snippet Value()}
-				{(a2aAgentServiceTimestamp.health ?? '')}
+				{a2aAgentServiceTimestamp.health ?? ''}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{String(a2aAgentServiceTimestamp.reachable ?? '')}</span>
+				<span data-text="annotation">{a2aAgentServiceTimestamp.reachable ?? ''}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

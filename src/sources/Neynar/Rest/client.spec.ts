@@ -8,6 +8,7 @@ import {
 import { neynarFetch } from '$/sources/Neynar/Rest/client.ts'
 import bindings from '$/sources/Neynar/bindings.ts'
 import { Source } from '$/sources/Source.ts'
+import { sourceBindingId } from '$/sources/SourceBinding.ts'
 
 const neynarBinding = bindings[Source.Neynar_Rest]
 
@@ -37,7 +38,7 @@ describe('Neynar REST binding authority', () => {
 		)
 
 		expect(fetchMock).toHaveBeenCalledWith(
-			`/api-proxy/${encodeURIComponent(neynarBinding.proxyId)}/0/https%3A%2F%2Fapi.neynar.com%2Fv2%2Ffarcaster%2Ffeed%2F%3Ffeed_type%3Dfilter`,
+			`/api-proxy/${encodeURIComponent(sourceBindingId(neynarBinding))}/0/https%3A%2F%2Fapi.neynar.com%2Fv2%2Ffarcaster%2Ffeed%2F%3Ffeed_type%3Dfilter`,
 			expect.objectContaining({
 				headers: expect.objectContaining({
 					'x-api-key': 'test-key',

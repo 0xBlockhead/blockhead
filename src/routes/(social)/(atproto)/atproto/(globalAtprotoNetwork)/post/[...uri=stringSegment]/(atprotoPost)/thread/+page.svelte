@@ -36,7 +36,7 @@
 			resolve(
 				'/(social)/(atproto)/atproto/(globalAtprotoNetwork)/post/[...uri=stringSegment]/(atprotoPost)/thread',
 				{
-					uri: String(params.uri),
+					uri: params.uri,
 				}
 			)
 		}

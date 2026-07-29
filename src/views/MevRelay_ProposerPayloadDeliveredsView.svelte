@@ -38,6 +38,7 @@
 >
 	{#snippet Item({ item: mevRelayProposerPayloadDelivered })}
 		{@const mevRelayProposerPayloadDeliveredSelector = mevRelayProposerPayloadDelivered[EntityMetaKey.Selector]}
+		{@const network = mevRelayProposerPayloadDeliveredSelector.$network}
 		<EntityView
 			entityType={EntityType.MevRelay_ProposerPayloadDelivered}
 			entitySelector={mevRelayProposerPayloadDeliveredSelector}
@@ -46,24 +47,24 @@
 					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/mev/payload/[relayHost=stringSegment]/[slot=nonNegativeInteger]/[blockHash=zeroExHex]',
 					{
 						network: (
-							'caip2' in mevRelayProposerPayloadDeliveredSelector.$network ?
-								String(caip2StringFromValue(mevRelayProposerPayloadDeliveredSelector.$network.caip2))
+							'caip2' in network ?
+								caip2StringFromValue(network.caip2)
 							:
-								String(mevRelayProposerPayloadDeliveredSelector.$network.slug)
+								network.slug
 						),
-						relayHost: String(mevRelayProposerPayloadDeliveredSelector.relayHost),
+						relayHost: mevRelayProposerPayloadDeliveredSelector.relayHost,
 						slot: String(mevRelayProposerPayloadDeliveredSelector.slot),
-						blockHash: String(mevRelayProposerPayloadDeliveredSelector.blockHash),
+						blockHash: mevRelayProposerPayloadDeliveredSelector.blockHash,
 					}
 				)
 			}
 		>
 			{#snippet Title()}
-				{([(String(mevRelayProposerPayloadDeliveredSelector.slot) ? 'Slot ' + String(mevRelayProposerPayloadDeliveredSelector.slot) : ''), (String(mevRelayProposerPayloadDelivered.value ?? '') ? String(mevRelayProposerPayloadDelivered.value ?? '') + ' wei' : '')].filter(Boolean).join(' ')) || 'MEV relay proposer payload delivered'}
+				{['Slot ' + String(mevRelayProposerPayloadDeliveredSelector.slot), (mevRelayProposerPayloadDelivered.value != null ? String(mevRelayProposerPayloadDelivered.value) + ' wei' : '')].filter(Boolean).join(' ') || 'MEV relay proposer payload delivered'}
 			{/snippet}
 
 			{#snippet Value()}
-				{(String(mevRelayProposerPayloadDelivered.value ?? '') ? String(mevRelayProposerPayloadDelivered.value ?? '') + ' wei' : '')}
+				{mevRelayProposerPayloadDelivered.value != null ? mevRelayProposerPayloadDelivered.value + ' wei' : ''}
 			{/snippet}
 
 			{#snippet HeadingAfter()}

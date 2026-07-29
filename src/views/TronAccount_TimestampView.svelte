@@ -20,13 +20,11 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.TronAccount_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const tronAccountTimestamp = $derived(selection({
 		fields: {
 			balanceSun: true,
 		},
 	}))
-	const titleFallback = 'tron account timestamp'
 
 
 	// Components
@@ -41,7 +39,7 @@
 <EntityView
 	entityType={EntityType.TronAccount_Timestamp}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? 'tron account timestamp'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -49,7 +47,6 @@
 	{#snippet Title()}
 		<TronAccountView
 			selection={select(EntityType.TronAccount, selection.entitySelector.$account)}
-			href=""
 			layout={EntityLayout.Title}
 			open={false}
 		/>
@@ -58,10 +55,10 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={tronAccountTimestamp}>
 			{#snippet children(entity)}
-				{@const balanceSun0 = entity.balanceSun}
-				{#if balanceSun0 != null}
+				{@const balanceSun = entity.balanceSun}
+				{#if balanceSun != null}
 					<NumberValue
-						value={balanceSun0}
+						value={balanceSun}
 					/>
 				{/if}
 			{/snippet}
@@ -70,11 +67,11 @@
 
 	{#snippet HeadingAfter()}
 		<span data-text="muted">
-			<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+			<Timestamp timestamp={selection.entitySelector.timestampMs} />
 		</span>
 
 		<span data-text="muted">
-			{pendingEntity.source}
+			{selection.entitySelector.source}
 		</span>
 	{/snippet}
 
@@ -95,7 +92,7 @@
 						<div>
 							<dt>Block height</dt>
 							<dd>
-								{String(blockHeight)}
+								{blockHeight}
 							</dd>
 						</div>
 					{/if}
@@ -117,7 +114,7 @@
 						<div>
 							<dt>Created</dt>
 							<dd>
-								<Timestamp timestamp={Number(createdTimestampMs)} />
+								<Timestamp timestamp={createdTimestampMs} />
 							</dd>
 						</div>
 					{/if}
@@ -139,7 +136,7 @@
 						<div>
 							<dt>Latest operation</dt>
 							<dd>
-								<Timestamp timestamp={Number(latestOperationTimestampMs)} />
+								<Timestamp timestamp={latestOperationTimestampMs} />
 							</dd>
 						</div>
 					{/if}
@@ -161,7 +158,7 @@
 						<div>
 							<dt>Total transactions</dt>
 							<dd>
-								{String(totalTransactionCount)}
+								{totalTransactionCount}
 							</dd>
 						</div>
 					{/if}
@@ -183,7 +180,7 @@
 						<div>
 							<dt>Free net used</dt>
 							<dd>
-								{String(freeNetUsed)}
+								{freeNetUsed}
 							</dd>
 						</div>
 					{/if}
@@ -205,7 +202,7 @@
 						<div>
 							<dt>Free net limit</dt>
 							<dd>
-								{String(freeNetLimit)}
+								{freeNetLimit}
 							</dd>
 						</div>
 					{/if}
@@ -227,7 +224,7 @@
 						<div>
 							<dt>Net used</dt>
 							<dd>
-								{String(netUsed)}
+								{netUsed}
 							</dd>
 						</div>
 					{/if}
@@ -249,7 +246,7 @@
 						<div>
 							<dt>Net limit</dt>
 							<dd>
-								{String(netLimit)}
+								{netLimit}
 							</dd>
 						</div>
 					{/if}
@@ -271,7 +268,7 @@
 						<div>
 							<dt>Energy used</dt>
 							<dd>
-								{String(energyUsed)}
+								{energyUsed}
 							</dd>
 						</div>
 					{/if}
@@ -293,7 +290,7 @@
 						<div>
 							<dt>Energy limit</dt>
 							<dd>
-								{String(energyLimit)}
+								{energyLimit}
 							</dd>
 						</div>
 					{/if}
@@ -315,7 +312,7 @@
 						<div>
 							<dt>TRON power used</dt>
 							<dd>
-								{String(tronPowerUsed)}
+								{tronPowerUsed}
 							</dd>
 						</div>
 					{/if}
@@ -337,7 +334,7 @@
 						<div>
 							<dt>TRON power limit</dt>
 							<dd>
-								{String(tronPowerLimit)}
+								{tronPowerLimit}
 							</dd>
 						</div>
 					{/if}

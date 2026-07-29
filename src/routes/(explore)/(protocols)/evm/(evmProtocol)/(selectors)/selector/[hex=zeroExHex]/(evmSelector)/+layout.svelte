@@ -33,7 +33,7 @@
 			resolve(
 				'/(explore)/(protocols)/evm/(evmProtocol)/(selectors)/selector/[hex=zeroExHex]',
 				{
-					hex: String(params.hex),
+					hex: params.hex,
 				}
 			)
 		}
@@ -49,7 +49,7 @@
 					resolve(
 						'/(explore)/(protocols)/evm/(evmProtocol)/(selectors)/selector/[hex=zeroExHex]',
 						{
-							hex: String(params.hex),
+							hex: params.hex,
 						}
 					)
 				}

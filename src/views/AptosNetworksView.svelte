@@ -39,7 +39,7 @@
 			entitySelector={aptosNetworkSelector}
 		>
 			{#snippet Title()}
-				{(aptosNetwork.$network.name || (aptosNetworkSelector.$network.caip2 == null ? '' : `${aptosNetworkSelector.$network.caip2.namespace}:${aptosNetworkSelector.$network.caip2.reference}`) || 'Network')}
+				{aptosNetwork.$network.name || (aptosNetworkSelector.$network.caip2 == null ? '' : `${aptosNetworkSelector.$network.caip2.namespace}:${aptosNetworkSelector.$network.caip2.reference}`) || 'Network'}
 			{/snippet}
 		</EntityView>
 	{/snippet}

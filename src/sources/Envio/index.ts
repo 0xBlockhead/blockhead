@@ -2,7 +2,8 @@
 
 import bindings from '$/sources/Envio/bindings.ts'
 import { Source } from '$/sources/Source.ts'
-import { SourceProvider, type SourceProviderDefinition } from '$/sources/SourceProvider.ts'
+import { SourceProvider } from '$/sources/SourceProvider.ts'
+import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinition.ts'
 
 export default {
 	provider: SourceProvider.Envio,
@@ -17,8 +18,5 @@ export default {
 			label: 'Envio HyperSync',
 		},
 	],
-	bindings: [
-		bindings[Source.EnvioHyperRpc_JsonRpc],
-		bindings[Source.EnvioHyperSync_RawHttp],
-	],
+	bindings: Object.values(bindings).flat(),
 } satisfies SourceProviderDefinition

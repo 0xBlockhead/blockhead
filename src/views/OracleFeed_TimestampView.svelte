@@ -4,7 +4,6 @@
 	// Types/constants
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { EvmAddress } from '$/schema/ZeroExHex.ts'
 
 
 	// Context
@@ -21,14 +20,12 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.OracleFeed_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const oracleFeedTimestamp = $derived(selection({
 		fields: {
 			description: true,
 			latestRoundId: true,
 		},
 	}))
-	const titleFallback = $derived(String(pendingEntity.timestampMs ?? '') || 'oracle feed timestamp')
 
 
 	// Components
@@ -43,26 +40,26 @@
 <EntityView
 	entityType={EntityType.OracleFeed_Timestamp}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? String(selection.entitySelector.timestampMs)}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+		<Timestamp timestamp={selection.entitySelector.timestampMs} />
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={oracleFeedTimestamp}>
 			{#snippet children(entity)}
-				{[(entity.description ?? ''), String(entity.latestRoundId ?? '')].filter(Boolean).join(' ') || String(pendingEntity.timestampMs) || titleFallback}
+				{[(entity.description ?? ''), String(entity.latestRoundId ?? '')].filter(Boolean).join(' ') || String(selection.entitySelector.timestampMs)}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
 		<span data-text="muted">
-			{pendingEntity.source}
+			{selection.entitySelector.source}
 		</span>
 	{/snippet}
 
@@ -82,14 +79,14 @@
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+					<Timestamp timestamp={selection.entitySelector.timestampMs} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 		</dl>
@@ -198,7 +195,7 @@
 						<div>
 							<dt>aggregator address</dt>
 							<dd>
-								<TruncatedValue value={String(aggregatorAddress)} />
+								<TruncatedValue value={aggregatorAddress} />
 							</dd>
 						</div>
 					{/if}
@@ -238,7 +235,7 @@
 						<div>
 							<dt>latest updated AT ms</dt>
 							<dd>
-								<Timestamp timestamp={Number(latestUpdatedAtMs)} />
+								<Timestamp timestamp={latestUpdatedAtMs} />
 							</dd>
 						</div>
 					{/if}

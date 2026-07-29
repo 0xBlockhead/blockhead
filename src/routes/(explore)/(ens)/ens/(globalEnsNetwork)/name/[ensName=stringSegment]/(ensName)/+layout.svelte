@@ -33,7 +33,7 @@
 			resolve(
 				'/(explore)/(ens)/ens/(globalEnsNetwork)/name/[ensName=stringSegment]',
 				{
-					ensName: String(params.ensName),
+					ensName: params.ensName,
 				}
 			)
 		}
@@ -50,7 +50,7 @@
 					resolve(
 						'/(explore)/(ens)/ens/(globalEnsNetwork)/name/[ensName=stringSegment]',
 						{
-							ensName: String(params.ensName),
+							ensName: params.ensName,
 						}
 					)
 				}

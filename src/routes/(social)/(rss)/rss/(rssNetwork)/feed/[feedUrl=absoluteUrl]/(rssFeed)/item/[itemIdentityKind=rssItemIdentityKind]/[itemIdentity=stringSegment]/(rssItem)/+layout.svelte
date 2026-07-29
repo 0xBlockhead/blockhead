@@ -33,9 +33,9 @@
 			resolve(
 				'/(social)/(rss)/rss/(rssNetwork)/feed/[feedUrl=absoluteUrl]/(rssFeed)/item/[itemIdentityKind=rssItemIdentityKind]/[itemIdentity=stringSegment]',
 				{
-					feedUrl: String(params.feedUrl),
-					itemIdentityKind: String(params.itemIdentityKind),
-					itemIdentity: String(params.itemIdentity),
+					feedUrl: params.feedUrl,
+					itemIdentityKind: params.itemIdentityKind,
+					itemIdentity: params.itemIdentity,
 				}
 			)
 		}
@@ -52,9 +52,9 @@
 					resolve(
 						'/(social)/(rss)/rss/(rssNetwork)/feed/[feedUrl=absoluteUrl]/(rssFeed)/item/[itemIdentityKind=rssItemIdentityKind]/[itemIdentity=stringSegment]',
 						{
-							feedUrl: String(params.feedUrl),
-							itemIdentityKind: String(params.itemIdentityKind),
-							itemIdentity: String(params.itemIdentity),
+							feedUrl: params.feedUrl,
+							itemIdentityKind: params.itemIdentityKind,
+							itemIdentity: params.itemIdentity,
 						}
 					)
 				}

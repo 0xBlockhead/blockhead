@@ -26,7 +26,8 @@
 			selection: RegisteredEntityProxyResource<_EntityType>
 			prefetched?: RegisteredEntityProxyPrefetchedData<_EntityType>
 			title?: string
-			href?: string
+			/** `undefined` derives the generated route; `null` intentionally suppresses linking. */
+			href?: string | null
 			layout?: EntityLayout
 			open?: boolean
 		},

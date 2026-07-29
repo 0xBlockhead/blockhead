@@ -41,7 +41,7 @@
 			entitySelector={lightningChannelTimestampSelector}
 		>
 			{#snippet Title()}
-				{String(lightningChannelTimestampSelector.timestampMs) || 'Lightning channel timestamp'}
+				{lightningChannelTimestampSelector.timestampMs}
 			{/snippet}
 
 			{#snippet Value()}

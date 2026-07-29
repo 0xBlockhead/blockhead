@@ -40,7 +40,7 @@
 			entitySelector={cardanoCertificateSelector}
 		>
 			{#snippet Title()}
-				{([cardanoCertificate.certificateKind, (String(cardanoCertificateSelector.certificateIndex) ? 'Certificate #' + String(cardanoCertificateSelector.certificateIndex) : '')].filter(Boolean).join(' ')) || 'Cardano certificate'}
+				{[cardanoCertificate.certificateKind, 'Certificate #' + String(cardanoCertificateSelector.certificateIndex)].filter(Boolean).join(' ') || 'Cardano certificate'}
 			{/snippet}
 		</EntityView>
 	{/snippet}

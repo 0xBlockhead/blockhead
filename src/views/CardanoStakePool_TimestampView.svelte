@@ -20,9 +20,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.CardanoStakePool_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const titleFallback = 'Cardano stake pool timestamp'
-
 
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -35,7 +32,7 @@
 <EntityView
 	entityType={EntityType.CardanoStakePool_Timestamp}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? 'Cardano stake pool timestamp'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -60,14 +57,14 @@
 			<div>
 				<dt>epoch</dt>
 				<dd>
-					{String(pendingEntity.epoch)}
+					{selection.entitySelector.epoch}
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 
@@ -86,7 +83,7 @@
 						<div>
 							<dt>Timestamp</dt>
 							<dd>
-								<Timestamp timestamp={Number(timestampMs)} />
+								<Timestamp timestamp={timestampMs} />
 							</dd>
 						</div>
 					{/if}
@@ -108,7 +105,7 @@
 						<div>
 							<dt>slot</dt>
 							<dd>
-								{String(slot)}
+								{slot}
 							</dd>
 						</div>
 					{/if}
@@ -130,7 +127,7 @@
 						<div>
 							<dt>pledge</dt>
 							<dd>
-								{String(pledge)}
+								{pledge}
 							</dd>
 						</div>
 					{/if}
@@ -152,7 +149,7 @@
 						<div>
 							<dt>margin</dt>
 							<dd>
-								{String(margin)}
+								{margin}
 							</dd>
 						</div>
 					{/if}
@@ -174,7 +171,7 @@
 						<div>
 							<dt>fixed cost lovelace</dt>
 							<dd>
-								{String(fixedCostLovelace)}
+								{fixedCostLovelace}
 							</dd>
 						</div>
 					{/if}
@@ -238,11 +235,11 @@
 							<dt>metadata URL</dt>
 							<dd>
 								<a
-									href={String(metadataUrl)}
+									href={metadataUrl}
 									target="_blank"
 									rel="noreferrer noopener"
 								>
-									<TruncatedValue value={String(metadataUrl)} />
+									<TruncatedValue value={metadataUrl} />
 								</a>
 							</dd>
 						</div>
@@ -287,7 +284,7 @@
 						<div>
 							<dt>live stake</dt>
 							<dd>
-								{String(liveStake)}
+								{liveStake}
 							</dd>
 						</div>
 					{/if}
@@ -309,7 +306,7 @@
 						<div>
 							<dt>active stake</dt>
 							<dd>
-								{String(activeStake)}
+								{activeStake}
 							</dd>
 						</div>
 					{/if}
@@ -331,7 +328,7 @@
 						<div>
 							<dt>delegator count</dt>
 							<dd>
-								{String(delegatorCount)}
+								{delegatorCount}
 							</dd>
 						</div>
 					{/if}
@@ -353,7 +350,7 @@
 						<div>
 							<dt>block count</dt>
 							<dd>
-								{String(blockCount)}
+								{blockCount}
 							</dd>
 						</div>
 					{/if}
@@ -375,7 +372,7 @@
 						<div>
 							<dt>saturation</dt>
 							<dd>
-								{String(saturation)}
+								{saturation}
 							</dd>
 						</div>
 					{/if}

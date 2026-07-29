@@ -21,9 +21,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.SwapQuoteStep> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const titleFallback = 'swap quote step'
-
 
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -36,7 +33,7 @@
 <EntityView
 	entityType={EntityType.SwapQuoteStep}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? 'swap quote step'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -61,7 +58,7 @@
 			<div>
 				<dt>index in quote</dt>
 				<dd>
-					{String(pendingEntity.indexInQuote)}
+					{selection.entitySelector.indexInQuote}
 				</dd>
 			</div>
 
@@ -228,7 +225,7 @@
 						<div>
 							<dt>amount in</dt>
 							<dd>
-								{String(amountIn)}
+								{amountIn}
 							</dd>
 						</div>
 					{/if}
@@ -250,7 +247,7 @@
 						<div>
 							<dt>amount out</dt>
 							<dd>
-								{String(amountOut)}
+								{amountOut}
 							</dd>
 						</div>
 					{/if}
@@ -272,7 +269,7 @@
 						<div>
 							<dt>fee bps</dt>
 							<dd>
-								{String(feeBps)}
+								{feeBps}
 							</dd>
 						</div>
 					{/if}
@@ -294,7 +291,7 @@
 						<div>
 							<dt>share bps</dt>
 							<dd>
-								{String(shareBps)}
+								{shareBps}
 							</dd>
 						</div>
 					{/if}
@@ -316,7 +313,7 @@
 						<div>
 							<dt>gas estimate</dt>
 							<dd>
-								{String(gasEstimate)}
+								{gasEstimate}
 							</dd>
 						</div>
 					{/if}

@@ -48,7 +48,7 @@
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{(assetFormatSupportTimestamp.confidence ?? '')}</span>
+				<span data-text="annotation">{assetFormatSupportTimestamp.confidence ?? ''}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

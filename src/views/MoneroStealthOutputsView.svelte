@@ -41,15 +41,15 @@
 			entitySelector={moneroStealthOutputSelector}
 		>
 			{#snippet Title()}
-				{String(moneroStealthOutputSelector.outputIndex) || 'monero stealth output'}
+				{moneroStealthOutputSelector.outputIndex}
 			{/snippet}
 
 			{#snippet Value()}
-				{(moneroStealthOutput.publicKey ?? '')}
+				{moneroStealthOutput.publicKey ?? ''}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{(moneroStealthOutput.commitment ?? '')}</span>
+				<span data-text="annotation">{moneroStealthOutput.commitment ?? ''}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

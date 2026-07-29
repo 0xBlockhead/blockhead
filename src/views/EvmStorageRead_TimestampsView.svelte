@@ -5,7 +5,6 @@
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 
 
 	// State
@@ -44,11 +43,11 @@
 			entitySelector={evmStorageReadTimestampSelector}
 		>
 			{#snippet Title()}
-				{String(evmStorageReadTimestampSelector.slot) || 'EVM storage read timestamp'}
+				{evmStorageReadTimestampSelector.slot || 'EVM storage read timestamp'}
 			{/snippet}
 
 			{#snippet Value()}
-				{String(evmStorageReadTimestamp.value ?? '')}
+				{evmStorageReadTimestamp.value ?? ''}
 			{/snippet}
 
 			{#snippet HeadingAfter()}

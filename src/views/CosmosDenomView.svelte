@@ -20,14 +20,13 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.CosmosDenom> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const cosmosDenom = $derived(selection({
 		fields: {
 			symbol: true,
 			display: true,
 		},
 	}))
-	const titleFallback = $derived([(pendingEntity.symbol ?? ''), (pendingEntity.display ?? ''), (pendingEntity.denom ?? '')].filter(Boolean).join(' ') || 'Cosmos denom')
+	const titleFallback = $derived([(prefetched.symbol ?? ''), (prefetched.display ?? ''), selection.entitySelector.denom].filter(Boolean).join(' ') || 'Cosmos denom')
 
 
 	// Components
@@ -47,13 +46,13 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={cosmosDenom}>
 			{#snippet children(entity)}
-				{[(entity.symbol ?? ''), (entity.display ?? ''), pendingEntity.denom].filter(Boolean).join(' ') || title || titleFallback}
+				{[(entity.symbol ?? ''), (entity.display ?? ''), selection.entitySelector.denom].filter(Boolean).join(' ') || title || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Value()}
-		{(pendingEntity.denom ?? '') || [(pendingEntity.symbol ?? ''), (pendingEntity.display ?? ''), (pendingEntity.denom ?? '')].filter(Boolean).join(' ') || titleFallback}
+		{selection.entitySelector.denom || [(prefetched.symbol ?? ''), (prefetched.display ?? ''), selection.entitySelector.denom].filter(Boolean).join(' ') || titleFallback}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
@@ -71,7 +70,7 @@
 			<div>
 				<dt>Denom</dt>
 				<dd>
-					{pendingEntity.denom}
+					{selection.entitySelector.denom}
 				</dd>
 			</div>
 

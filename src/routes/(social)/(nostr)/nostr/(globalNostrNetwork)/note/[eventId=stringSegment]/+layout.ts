@@ -9,7 +9,8 @@ import NostrNoteSchema from '$/schema/NostrNote.ts'
 import { type as arktype } from 'arktype'
 
 export const load: LayoutLoad = ({ params }) => {
-	if (!(matchStringSegment(params.eventId))) error(404, 'Route mapping not applicable')
+	if (!(matchStringSegment(params.eventId)))
+		error(404, 'Route mapping not applicable')
 
 	const nostrNoteCanonicalEventIdSelector = parseEntitySelector(
 		schema,
@@ -18,7 +19,8 @@ export const load: LayoutLoad = ({ params }) => {
 			eventId: params.eventId,
 		}
 	)
-	if (nostrNoteCanonicalEventIdSelector instanceof arktype.errors) error(404, 'Invalid NostrNote selector')
+	if (nostrNoteCanonicalEventIdSelector instanceof arktype.errors)
+		error(404, 'Invalid NostrNote selector')
 
 	return {
 		selector: nostrNoteCanonicalEventIdSelector,

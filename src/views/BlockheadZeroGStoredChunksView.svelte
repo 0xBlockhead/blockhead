@@ -47,11 +47,11 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{String(blockheadZeroGStoredChunkSelector.chunkIndex)}
+				{blockheadZeroGStoredChunkSelector.chunkIndex}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{String(blockheadZeroGStoredChunk.present)}</span>
+				<span data-text="annotation">{blockheadZeroGStoredChunk.present}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

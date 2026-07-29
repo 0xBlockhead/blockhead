@@ -38,6 +38,7 @@
 >
 	{#snippet Item({ item: evmRollup })}
 		{@const evmRollupSelector = evmRollup[EntityMetaKey.Selector]}
+		{@const network = evmRollupSelector.$network}
 		<EntityView
 			entityType={EntityType.EvmRollup}
 			entitySelector={evmRollupSelector}
@@ -46,12 +47,12 @@
 					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/rollup/[projectId=stringSegment]',
 					{
 						network: (
-							'caip2' in evmRollupSelector.$network ?
-								String(caip2StringFromValue(evmRollupSelector.$network.caip2))
+							'caip2' in network ?
+								caip2StringFromValue(network.caip2)
 							:
-								String(evmRollupSelector.$network.slug)
+								network.slug
 						),
-						projectId: String(evmRollupSelector.projectId),
+						projectId: evmRollupSelector.projectId,
 					}
 				)
 			}

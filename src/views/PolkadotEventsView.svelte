@@ -40,33 +40,32 @@
 >
 	{#snippet Item({ item: polkadotEvent })}
 		{@const polkadotEventSelector = polkadotEvent[EntityMetaKey.Selector]}
+		{@const block = polkadotEventSelector.$block}
 		<EntityView
 			entityType={EntityType.PolkadotEvent}
 			entitySelector={polkadotEventSelector}
 			href={
-				(
-					'hash' in polkadotEventSelector.$block ?
-						resolve(
-							'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(blocks)/block/[blockNumber=nonNegativeBigInt]/(selection)/[hash=stringSegment]/(selection)/event/[eventIndex=nonNegativeInteger]',
-							{
-								network: (
-									'caip2' in polkadotEventSelector.$block.$network ?
-										String(caip2StringFromValue(polkadotEventSelector.$block.$network.caip2))
-									:
-										String(polkadotEventSelector.$block.$network.slug)
-								),
-								blockNumber: String(polkadotEventSelector.$block.blockNumber),
-								hash: String(polkadotEventSelector.$block.hash),
-								eventIndex: String(polkadotEventSelector.indexInBlock),
-							}
-						)
-					:
-						undefined
-				)
+				'hash' in block ?
+					resolve(
+						'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(blocks)/block/[blockNumber=nonNegativeBigInt]/(selection)/[hash=stringSegment]/(selection)/event/[eventIndex=nonNegativeInteger]',
+						{
+							network: (
+								'caip2' in block.$network ?
+									caip2StringFromValue(block.$network.caip2)
+								:
+									block.$network.slug
+							),
+							blockNumber: String(block.blockNumber),
+							hash: block.hash,
+							eventIndex: String(polkadotEventSelector.indexInBlock),
+						}
+					)
+				:
+					undefined
 			}
 		>
 			{#snippet Title()}
-				{([polkadotEvent.eventName, (String(polkadotEventSelector.indexInBlock) ? 'Event ' + String(polkadotEventSelector.indexInBlock) : '')].filter(Boolean).join(' ')) || 'Polkadot event'}
+				{[polkadotEvent.eventName, 'Event ' + String(polkadotEventSelector.indexInBlock)].filter(Boolean).join(' ') || 'Polkadot event'}
 			{/snippet}
 
 			{#snippet Value()}

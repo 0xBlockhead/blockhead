@@ -22,20 +22,18 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.BlockheadWorkspace> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const viewSelection = $derived(selection({
+	const blockheadWorkspace = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Local_Internal,
 		],
-	}))
-	const blockheadWorkspace = $derived(viewSelection({
+	})({
 		fields: {
 			createdAt: true,
 			updatedAt: true,
 			name: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.name ?? '') || (pendingEntity.id ?? '') || 'workspace')
+	const titleFallback = $derived((prefetched.name ?? '') || selection.entitySelector.id || 'workspace')
 
 
 	// Components
@@ -65,7 +63,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={blockheadWorkspace}>
 			{#snippet children(entity)}
-				<Timestamp timestamp={Number(entity.updatedAt)} />
+				<Timestamp timestamp={entity.updatedAt} />
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -75,7 +73,7 @@
 			<div>
 				<dt>ID</dt>
 				<dd>
-					{pendingEntity.id}
+					{selection.entitySelector.id}
 				</dd>
 			</div>
 
@@ -124,7 +122,7 @@
 						resource={blockheadWorkspace}
 					>
 						{#snippet children(entity)}
-							<Timestamp timestamp={Number(entity.createdAt)} />
+							<Timestamp timestamp={entity.createdAt} />
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -137,7 +135,7 @@
 						resource={blockheadWorkspace}
 					>
 						{#snippet children(entity)}
-							<Timestamp timestamp={Number(entity.updatedAt)} />
+							<Timestamp timestamp={entity.updatedAt} />
 						{/snippet}
 					</ResourceBoundary>
 				</dd>

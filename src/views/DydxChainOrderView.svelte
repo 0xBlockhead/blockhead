@@ -22,7 +22,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.DydxChainOrder> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.DydxIndexer_Rest,
@@ -35,7 +34,7 @@
 			orderType: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.orderId ?? '') || 'dydx chain order')
+	const titleFallback = $derived(selection.entitySelector.orderId || 'dydx chain order')
 
 
 	// Components
@@ -57,13 +56,13 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{(pendingEntity.orderId ?? '') || 'dydx chain order'}
+		{selection.entitySelector.orderId || 'dydx chain order'}
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={dydxChainOrder}>
 			{#snippet children(entity)}
-				{(entity.side ?? '') || pendingEntity.orderId || titleFallback}
+				{(entity.side ?? '') || selection.entitySelector.orderId || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -71,10 +70,10 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={dydxChainOrder}>
 			{#snippet children(entity)}
-				{@const orderType0 = entity.orderType}
-				{#if orderType0 != null}
+				{@const orderType = entity.orderType}
+				{#if orderType != null}
 					<span data-text="muted">
-						{orderType0}
+						{orderType}
 					</span>
 				{/if}
 			{/snippet}
@@ -97,7 +96,7 @@
 			<div>
 				<dt>order ID</dt>
 				<dd>
-					{pendingEntity.orderId}
+					{selection.entitySelector.orderId}
 				</dd>
 			</div>
 
@@ -214,7 +213,7 @@
 						<div>
 							<dt>good til block</dt>
 							<dd>
-								{String(goodTilBlock)}
+								{goodTilBlock}
 							</dd>
 						</div>
 					{/if}
@@ -236,7 +235,7 @@
 						<div>
 							<dt>good til block time ms</dt>
 							<dd>
-								<Timestamp timestamp={Number(goodTilBlockTimeMs)} />
+								<Timestamp timestamp={goodTilBlockTimeMs} />
 							</dd>
 						</div>
 					{/if}
@@ -246,15 +245,15 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const dydxChainOrderDydxChainOrderTimestampsViewTimestampsResource = selection.$$timestamps}
+		{@const timestampsResource = selection.$$timestamps}
 		<ResourceBoundary
-			resource={dydxChainOrderDydxChainOrderTimestampsViewTimestampsResource}
+			resource={timestampsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<DydxChainOrder_TimestampsView
-						selection={dydxChainOrderDydxChainOrderTimestampsViewTimestampsResource}
-						countResource={dydxChainOrderDydxChainOrderTimestampsViewTimestampsResource.count}
+						selection={timestampsResource}
+						countResource={timestampsResource.count}
 						title='timestamps'
 						id='timestamps'
 					/>

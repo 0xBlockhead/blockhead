@@ -20,14 +20,10 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.RadicleSignedRef_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const titleFallback = 'radicle signed ref timestamp'
-
 
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
-	import TruncatedValue from '$/components/TruncatedValue.svelte'
 	import RadicleSignedRefView from '$/views/RadicleSignedRefView.svelte'
 </script>
 
@@ -35,7 +31,7 @@
 <EntityView
 	entityType={EntityType.RadicleSignedRef_Timestamp}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? 'radicle signed ref timestamp'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -60,14 +56,14 @@
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+					<Timestamp timestamp={selection.entitySelector.timestampMs} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 
@@ -103,7 +99,7 @@
 						}
 					>
 						{#snippet children(entity)}
-							<TruncatedValue value={entity.signatureStatus} />
+							{entity.signatureStatus}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -124,7 +120,7 @@
 						<div>
 							<dt>object available</dt>
 							<dd>
-								{String(objectAvailable)}
+								{objectAvailable}
 							</dd>
 						</div>
 					{/if}
@@ -146,7 +142,7 @@
 						<div>
 							<dt>delegate threshold met</dt>
 							<dd>
-								{String(delegateThresholdMet)}
+								{delegateThresholdMet}
 							</dd>
 						</div>
 					{/if}

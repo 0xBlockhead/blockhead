@@ -45,11 +45,11 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{(nearExecutionOutcome.status ?? '')}
+				{nearExecutionOutcome.status ?? ''}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{String(nearExecutionOutcome.gasBurnt ?? '')}</span>
+				<span data-text="annotation">{nearExecutionOutcome.gasBurnt ?? ''}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

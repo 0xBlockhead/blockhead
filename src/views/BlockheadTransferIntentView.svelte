@@ -5,7 +5,6 @@
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { EvmAddress } from '$/schema/ZeroExHex.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -33,7 +32,6 @@
 			amount: true,
 		},
 	}))
-	const titleFallback = 'blockhead transfer intent'
 
 
 	// Components
@@ -51,7 +49,7 @@
 <EntityView
 	entityType={EntityType.BlockheadTransferIntent}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? 'blockhead transfer intent'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -64,7 +62,6 @@
 				<BlockheadSessionActionView
 					selection={select(EntityType.BlockheadSessionAction, blockheadSessionAction[EntityMetaKey.Selector])}
 					prefetched={blockheadSessionAction}
-					href=""
 					layout={EntityLayout.Title}
 					open={false}
 				/>
@@ -75,10 +72,10 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={blockheadTransferIntent}>
 			{#snippet children(entity)}
-				{@const amount0 = entity.amount}
-				{#if amount0 != null}
+				{@const amount = entity.amount}
+				{#if amount != null}
 					<NumberValue
-						value={amount0}
+						value={amount}
 					/>
 				{/if}
 			{/snippet}
@@ -229,7 +226,7 @@
 						<div>
 							<dt>from address</dt>
 							<dd>
-								<TruncatedValue value={String(fromAddress)} />
+								<TruncatedValue value={fromAddress} />
 							</dd>
 						</div>
 					{/if}
@@ -251,7 +248,7 @@
 						<div>
 							<dt>to address</dt>
 							<dd>
-								<TruncatedValue value={String(toAddress)} />
+								<TruncatedValue value={toAddress} />
 							</dd>
 						</div>
 					{/if}
@@ -297,7 +294,7 @@
 						<div>
 							<dt>token address</dt>
 							<dd>
-								<TruncatedValue value={String(tokenAddress)} />
+								<TruncatedValue value={tokenAddress} />
 							</dd>
 						</div>
 					{/if}

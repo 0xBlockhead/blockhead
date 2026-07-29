@@ -46,11 +46,11 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{(aiProviderApiOperation.operationKind ?? '')}
+				{aiProviderApiOperation.operationKind ?? ''}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{(aiProviderApiOperation.pathTemplate ?? '')}</span>
+				<span data-text="annotation">{aiProviderApiOperation.pathTemplate ?? ''}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

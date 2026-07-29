@@ -5,7 +5,6 @@
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -23,7 +22,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.CctpMessage> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.CircleCctpContracts_Evm,
@@ -37,7 +35,7 @@
 			messageHash: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.nonce ?? '') || 'CCTP message')
+	const titleFallback = $derived(selection.entitySelector.nonce || 'CCTP message')
 
 
 	// Components
@@ -58,20 +56,20 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{(pendingEntity.nonce ?? '') || 'CCTP message'}
+		{selection.entitySelector.nonce || 'CCTP message'}
 	{/snippet}
 
 	{#snippet Value()}
-		{String(pendingEntity.sourceDomain ?? '') || (pendingEntity.nonce ?? '') || titleFallback}
+		{String(selection.entitySelector.sourceDomain) || selection.entitySelector.nonce || titleFallback}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={cctpMessage}>
 			{#snippet children(entity)}
-				{@const messageHash0 = entity.messageHash}
-				{#if messageHash0 != null}
+				{@const messageHash = entity.messageHash}
+				{#if messageHash != null}
 					<span data-text="muted">
-						<TruncatedValue value={String(messageHash0)} />
+						<TruncatedValue value={messageHash} />
 					</span>
 				{/if}
 			{/snippet}
@@ -83,14 +81,14 @@
 			<div>
 				<dt>Source domain</dt>
 				<dd>
-					{String(pendingEntity.sourceDomain)}
+					{selection.entitySelector.sourceDomain}
 				</dd>
 			</div>
 
 			<div>
 				<dt>Nonce</dt>
 				<dd>
-					{pendingEntity.nonce}
+					{selection.entitySelector.nonce}
 				</dd>
 			</div>
 
@@ -109,7 +107,7 @@
 						<div>
 							<dt>CCTP version</dt>
 							<dd>
-								{String(cctpVersion)}
+								{cctpVersion}
 							</dd>
 						</div>
 					{/if}
@@ -125,7 +123,7 @@
 						<div>
 							<dt>Message hash</dt>
 							<dd>
-								<TruncatedValue value={String(messageHash)} />
+								<TruncatedValue value={messageHash} />
 							</dd>
 						</div>
 					{/if}
@@ -147,7 +145,7 @@
 						<div>
 							<dt>Message bytes</dt>
 							<dd>
-								{String(messageBytes)}
+								{messageBytes}
 							</dd>
 						</div>
 					{/if}
@@ -171,7 +169,7 @@
 						<div>
 							<dt>Source transaction hash</dt>
 							<dd>
-								<TruncatedValue value={String(sourceTransactionHash)} />
+								<TruncatedValue value={sourceTransactionHash} />
 							</dd>
 						</div>
 					{/if}
@@ -193,7 +191,7 @@
 						<div>
 							<dt>Source log index</dt>
 							<dd>
-								{String(sourceLogIndex)}
+								{sourceLogIndex}
 							</dd>
 						</div>
 					{/if}
@@ -255,7 +253,7 @@
 						<div>
 							<dt>Destination domain</dt>
 							<dd>
-								{String(destinationDomain)}
+								{destinationDomain}
 							</dd>
 						</div>
 					{/if}
@@ -511,7 +509,7 @@
 						<div>
 							<dt>Hook data</dt>
 							<dd>
-								{String(hookData)}
+								{hookData}
 							</dd>
 						</div>
 					{/if}
@@ -533,7 +531,7 @@
 						<div>
 							<dt>Minimum finality threshold</dt>
 							<dd>
-								{String(minFinalityThreshold)}
+								{minFinalityThreshold}
 							</dd>
 						</div>
 					{/if}
@@ -555,7 +553,7 @@
 						<div>
 							<dt>Finality threshold executed</dt>
 							<dd>
-								{String(finalityThresholdExecuted)}
+								{finalityThresholdExecuted}
 							</dd>
 						</div>
 					{/if}
@@ -565,15 +563,15 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const cctpMessageCctpAttestationTimestampsViewAttestationTimestampsResource = selection.$$attestationTimestamps}
+		{@const attestationTimestampsResource = selection.$$attestationTimestamps}
 		<ResourceBoundary
-			resource={cctpMessageCctpAttestationTimestampsViewAttestationTimestampsResource}
+			resource={attestationTimestampsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<CctpAttestation_TimestampsView
-						selection={cctpMessageCctpAttestationTimestampsViewAttestationTimestampsResource}
-						countResource={cctpMessageCctpAttestationTimestampsViewAttestationTimestampsResource.count}
+						selection={attestationTimestampsResource}
+						countResource={attestationTimestampsResource.count}
 						title='Attestation timestamps'
 						id='attestation-timestamps'
 					/>

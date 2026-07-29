@@ -22,7 +22,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.Coin_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const coinTimestamp = $derived(selection({
 		fields: {
 			marketCap: true,
@@ -46,14 +45,17 @@
 	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
 	href={
-		href ?? resolve(
-			'/(assets)/coin/[coinId=stringSegment]/(coin)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
-			{
-				coinId: String(selection.entitySelector.$coin.coinId),
-				timestampMs: String(selection.entitySelector.timestampMs),
-				source: String(selection.entitySelector.source),
-			}
-		)
+		href === undefined ?
+			resolve(
+				'/(assets)/coin/[coinId=stringSegment]/(coin)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
+				{
+					coinId: selection.entitySelector.$coin.coinId,
+					timestampMs: String(selection.entitySelector.timestampMs),
+					source: selection.entitySelector.source,
+				}
+			)
+		:
+			href ?? undefined
 	}
 	{layout}
 	bind:open
@@ -62,7 +64,7 @@
 	{#snippet Title()}
 		<CoinView
 			selection={select(EntityType.Coin, selection.entitySelector.$coin)}
-			href=""
+			href={null}
 			layout={EntityLayout.Title}
 			open={false}
 		/>
@@ -79,10 +81,10 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={coinTimestamp}>
 			{#snippet children(entity)}
-				{@const change24hPercent0 = entity.change24hPercent}
-				{#if change24hPercent0 != null}
+				{@const change24hPercent = entity.change24hPercent}
+				{#if change24hPercent != null}
 					<span data-text="muted">
-						{String(change24hPercent0)}
+						{change24hPercent}
 						<span>%</span>
 					</span>
 				{/if}
@@ -107,7 +109,7 @@
 						<div>
 							<dt>Market cap rank</dt>
 							<dd>
-								{String(marketCapRank)}
+								{marketCapRank}
 							</dd>
 						</div>
 					{/if}
@@ -161,7 +163,7 @@
 						<div>
 							<dt>24h change</dt>
 							<dd>
-								{String(change24hPercent)}
+								{change24hPercent}
 								<span>%</span>
 							</dd>
 						</div>
@@ -186,7 +188,7 @@
 						<div>
 							<dt>Total supply</dt>
 							<dd>
-								{String(totalSupply)}
+								{totalSupply}
 							</dd>
 						</div>
 					{/if}
@@ -240,14 +242,14 @@
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+					<Timestamp timestamp={selection.entitySelector.timestampMs} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 

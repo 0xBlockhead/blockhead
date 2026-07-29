@@ -25,8 +25,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.NostrRelay> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const titleFallback = $derived((pendingEntity.relayUrl ?? '') || 'Nostr relay')
 	const viewDomId = $derived('nostr-relay-' + encodeURIComponent(stringify(selection.entitySelector)))
 
 
@@ -45,21 +43,24 @@
 	entityType={EntityType.NostrRelay}
 	entitySelector={selection.entitySelector}
 	id={viewDomId}
-	title={title ?? titleFallback}
+	title={title ?? (selection.entitySelector.relayUrl || 'Nostr relay')}
 	href={
-		href ?? resolve(
-			'/(social)/(nostr)/nostr/(globalNostrNetwork)/relay/[relayKey=stringSegment]',
-			{
-				relayKey: encodeURIComponent(String(selection.entitySelector.relayUrl)),
-			}
-		)
+		href === undefined ?
+			resolve(
+				'/(social)/(nostr)/nostr/(globalNostrNetwork)/relay/[relayKey=stringSegment]',
+				{
+					relayKey: encodeURIComponent(selection.entitySelector.relayUrl),
+				}
+			)
+		:
+			href ?? undefined
 	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<TruncatedValue value={pendingEntity.relayUrl} />
+		<TruncatedValue value={selection.entitySelector.relayUrl} />
 	{/snippet}
 
 	{#snippet TypeAnnotationTooltip()}
@@ -76,16 +77,16 @@
 					<ResourceBoundary
 						resource={
 							selection
-								.$$timestamps({
-									sources: [
-										Source.NostrBand_Rest,
-										Source.NostrRelay_Nip11_Http,
-									],
-									limit: 1,
-									orderBy: [
-										[({ fieldRow }) => fieldRow[EntityMetaKey.Value][EntityMetaKey.Selector].timestampMs ?? Number.NEGATIVE_INFINITY, 'desc'],
-									],
-								})
+							.$$timestamps({
+								sources: [
+									Source.NostrBand_Rest,
+									Source.NostrRelay_Nip11_Http,
+								],
+								limit: 1,
+								orderBy: [
+									[({ fieldRow }) => fieldRow[EntityMetaKey.Value][EntityMetaKey.Selector].timestampMs ?? Number.NEGATIVE_INFINITY, 'desc'],
+								],
+							})
 						}
 					>
 						{#snippet children(nostrRelayTimestamps)}
@@ -118,29 +119,29 @@
 			<div>
 				<dt>Relay URL</dt>
 				<dd>
-					<TruncatedValue value={pendingEntity.relayUrl} />
+					<TruncatedValue value={selection.entitySelector.relayUrl} />
 				</dd>
 			</div>
 		</dl>
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const nostrRelayNostrRelayTimestampsViewTimestampsResource = selection
-		.$$timestamps({
-			sources: [
-				Source.NostrBand_Rest,
-				Source.NostrRelay_Nip11_Http,
-			],
-			limit: 64,
-		})}
+		{@const timestampsResource = selection
+			.$$timestamps({
+				sources: [
+					Source.NostrBand_Rest,
+					Source.NostrRelay_Nip11_Http,
+				],
+				limit: 64,
+			})}
 		<ResourceBoundary
-			resource={nostrRelayNostrRelayTimestampsViewTimestampsResource}
+			resource={timestampsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<NostrRelay_TimestampsView
-						selection={nostrRelayNostrRelayTimestampsViewTimestampsResource}
-						countResource={nostrRelayNostrRelayTimestampsViewTimestampsResource.count}
+						selection={timestampsResource}
+						countResource={timestampsResource.count}
 						title='Observation history'
 						id='timestamps'
 					/>

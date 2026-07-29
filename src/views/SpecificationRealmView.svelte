@@ -20,20 +20,18 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.SpecificationRealm> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const viewSelection = $derived(selection({
+	const specificationRealm = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Constants_Internal,
 		],
-	}))
-	const specificationRealm = $derived(viewSelection({
+	})({
 		fields: {
 			label: true,
 			labelPlural: true,
 			slug: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.label ?? '') || (pendingEntity.realm ?? '') || 'Specification realm')
+	const titleFallback = $derived((prefetched.label ?? '') || selection.entitySelector.realm || 'Specification realm')
 
 
 	// Components
@@ -47,12 +45,15 @@
 	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
 	href={
-		href ?? resolve(
-			'/(proposals)/proposals/[specificationRealmSlug=specificationRealmSlug]',
-			{
-				specificationRealmSlug: String(specificationRealmById[String(selection.entitySelector.realm)].slug),
-			}
-		)
+		href === undefined ?
+			resolve(
+				'/(proposals)/proposals/[specificationRealmSlug=specificationRealmSlug]',
+				{
+					specificationRealmSlug: specificationRealmById[selection.entitySelector.realm].slug,
+				}
+			)
+		:
+			href ?? undefined
 	}
 	{layout}
 	bind:open
@@ -67,7 +68,7 @@
 	{/snippet}
 
 	{#snippet Value()}
-		{(pendingEntity.realm ?? '') || (pendingEntity.label ?? '') || titleFallback}
+		{selection.entitySelector.realm || (prefetched.label ?? '') || titleFallback}
 	{/snippet}
 
 	{#snippet TypeAnnotationTooltip()}
@@ -110,17 +111,17 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const specificationRealmSpecificationProposalKindsViewProposalKindsResource = selection.$$proposalKinds}
+		{@const proposalKindsResource = selection.$$proposalKinds}
 		<ResourceBoundary
-			resource={specificationRealmSpecificationProposalKindsViewProposalKindsResource}
+			resource={proposalKindsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<SpecificationProposalKindsView
-						selection={specificationRealmSpecificationProposalKindsViewProposalKindsResource}
-						countResource={specificationRealmSpecificationProposalKindsViewProposalKindsResource.count}
+						selection={proposalKindsResource}
+						countResource={proposalKindsResource.count}
 						title='Proposal kinds'
-						href='/proposals'
+						href={resolve('/(proposals)/proposals')}
 						id='proposal-kinds'
 					/>
 				{/if}

@@ -4,8 +4,7 @@
 	// Types/constants
 	import type { PageProps } from './$types.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { EvmTransactionEnvelopeType, EvmTransactionExecutionStatus, EvmTransactionKind } from '$/constants/Evm.ts'
-	import { ZeroExHex } from '$/schema/ZeroExHex.ts'
+	import { entityDefinitionByType } from '$/schema/index.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -109,34 +108,22 @@
 	const pageTitle = $derived(
 		(
 			data.entityType === EntityType.EvmTransaction && data.selectorName === 'EvmNetworkTxHash' ?
-				(data.selector.txHash || 'EVM transaction')
+				data.selector.txHash || 'EVM transaction'
 			:
 			data.entityType === EntityType.SolanaTransaction && data.selectorName === 'NetworkSignature' ?
-				(data.selector.signature || 'solana transaction')
+				data.selector.signature || 'solana transaction'
 			:
 			data.entityType === EntityType.CardanoTransaction && data.selectorName === 'NetworkHash' ?
-				(data.selector.hash || 'Cardano transaction')
+				data.selector.hash || 'Cardano transaction'
 			:
-				(data.selector.txId || 'UTXO transaction')
+				data.selector.txId || 'UTXO transaction'
 		)
 	)
 	const entityViewByType = {
-		[EntityType.EvmTransaction]: {
-			Component: EvmTransactionView,
-			label: 'EVM transaction',
-		},
-		[EntityType.SolanaTransaction]: {
-			Component: SolanaTransactionView,
-			label: 'solana transaction',
-		},
-		[EntityType.CardanoTransaction]: {
-			Component: CardanoTransactionView,
-			label: 'Cardano transaction',
-		},
-		[EntityType.UtxoTransaction]: {
-			Component: UtxoTransactionView,
-			label: 'UTXO transaction',
-		},
+		[EntityType.EvmTransaction]: EvmTransactionView,
+		[EntityType.SolanaTransaction]: SolanaTransactionView,
+		[EntityType.CardanoTransaction]: CardanoTransactionView,
+		[EntityType.UtxoTransaction]: UtxoTransactionView,
 	}
 
 	// Components
@@ -149,12 +136,12 @@
 
 
 <svelte:head>
-	<title>{pageTitle} • {entityViewByType[data.entityType].label} • Blockhead</title>
+	<title>{pageTitle} • {entityDefinitionByType[data.entityType].labels.singular} • Blockhead</title>
 </svelte:head>
 
 
 <Page>
-	{@const EntityView = entityViewByType[data.entityType].Component}
+	{@const EntityView = entityViewByType[data.entityType]}
 
 	<EntityView
 		selection={pageSelection}

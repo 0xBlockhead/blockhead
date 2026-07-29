@@ -43,7 +43,7 @@
 			resolve(
 				'/(explore)/(ens)/ens/(globalEnsNetwork)/name/[ensName=stringSegment]/(ensName)/records',
 				{
-					ensName: String(params.ensName),
+					ensName: params.ensName,
 				}
 			)
 		}

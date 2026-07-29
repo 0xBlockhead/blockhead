@@ -41,15 +41,15 @@
 			entitySelector={eigenLayerDelegationTimestampSelector}
 		>
 			{#snippet Title()}
-				{String(eigenLayerDelegationTimestampSelector.$staker.$actor.address) || 'EVM account'}
+				{eigenLayerDelegationTimestampSelector.$staker.$actor.address || 'EVM account'}
 			{/snippet}
 
 			{#snippet Value()}
-				{String(eigenLayerDelegationTimestampSelector.$operator.operatorAddress) || 'eigen layer operator'}
+				{eigenLayerDelegationTimestampSelector.$operator.operatorAddress || 'eigen layer operator'}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{String(eigenLayerDelegationTimestampSelector.$strategy.strategyAddress) || 'eigen layer strategy'}</span>
+				<span data-text="annotation">{eigenLayerDelegationTimestampSelector.$strategy.strategyAddress || 'eigen layer strategy'}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

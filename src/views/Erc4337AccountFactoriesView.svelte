@@ -7,7 +7,6 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
-	import { EvmAddress } from '$/schema/ZeroExHex.ts'
 
 
 	// State
@@ -40,6 +39,7 @@
 >
 	{#snippet Item({ item: erc4337AccountFactory })}
 		{@const erc4337AccountFactorySelector = erc4337AccountFactory[EntityMetaKey.Selector]}
+		{@const network = erc4337AccountFactorySelector.$network}
 		<EntityView
 			entityType={EntityType.Erc4337AccountFactory}
 			entitySelector={erc4337AccountFactorySelector}
@@ -48,22 +48,22 @@
 					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/erc-4337/account-factory/[address=evmAddress]',
 					{
 						network: (
-							'caip2' in erc4337AccountFactorySelector.$network ?
-								String(caip2StringFromValue(erc4337AccountFactorySelector.$network.caip2))
+							'caip2' in network ?
+								caip2StringFromValue(network.caip2)
 							:
-								String(erc4337AccountFactorySelector.$network.slug)
+								network.slug
 						),
-						address: String(erc4337AccountFactorySelector.address),
+						address: erc4337AccountFactorySelector.address,
 					}
 				)
 			}
 		>
 			{#snippet Title()}
-				{String(erc4337AccountFactorySelector.address) || 'ERC-4337 account factory'}
+				{erc4337AccountFactorySelector.address || 'ERC-4337 account factory'}
 			{/snippet}
 
 			{#snippet Value()}
-				{String(erc4337AccountFactorySelector.address)}
+				{erc4337AccountFactorySelector.address}
 			{/snippet}
 
 			{#snippet HeadingAfter()}

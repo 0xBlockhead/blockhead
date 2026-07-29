@@ -5,7 +5,6 @@
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { ZcashShieldedPoolKind } from '$/schema/ZcashShieldedPool.ts'
 
 
 	// State
@@ -52,7 +51,7 @@
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{String(blockheadZcashNoteState.valueZatoshis ?? '')}</span>
+				<span data-text="annotation">{blockheadZcashNoteState.valueZatoshis ?? ''}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

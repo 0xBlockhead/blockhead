@@ -24,8 +24,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.NostrProfile> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const titleFallback = $derived((pendingEntity.pubkey ?? '') || 'Nostr profile')
 	const viewDomId = $derived('nostr-profile-' + encodeURIComponent(stringify(selection.entitySelector)))
 
 
@@ -46,14 +44,17 @@
 	entityType={EntityType.NostrProfile}
 	entitySelector={selection.entitySelector}
 	id={viewDomId}
-	title={title ?? titleFallback}
+	title={title ?? (selection.entitySelector.pubkey || 'Nostr profile')}
 	href={
-		href ?? resolve(
-			'/(social)/(nostr)/nostr/(globalNostrNetwork)/profile/[pubkey=stringSegment]',
-			{
-				pubkey: String(selection.entitySelector.pubkey),
-			}
-		)
+		href === undefined ?
+			resolve(
+				'/(social)/(nostr)/nostr/(globalNostrNetwork)/profile/[pubkey=stringSegment]',
+				{
+					pubkey: selection.entitySelector.pubkey,
+				}
+			)
+		:
+			href ?? undefined
 	}
 	{layout}
 	bind:open
@@ -68,7 +69,7 @@
 					<NostrProfileMetadataEventView
 						selection={select(EntityType.NostrProfileMetadataEvent, nostrProfileMetadataEvent[EntityMetaKey.Selector])}
 						prefetched={nostrProfileMetadataEvent}
-						href=""
+						href={null}
 						layout={EntityLayout.Title}
 						open={false}
 					/>
@@ -88,7 +89,7 @@
 			<div>
 				<dt>Pubkey</dt>
 				<dd>
-					<TruncatedValue value={pendingEntity.pubkey} />
+					<TruncatedValue value={selection.entitySelector.pubkey} />
 				</dd>
 			</div>
 		</dl>
@@ -117,15 +118,15 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const nostrProfileNostrProfileMetadataEventsViewMetadataEventsResource = selection.$$metadataEvents}
+		{@const metadataEventsResource = selection.$$metadataEvents}
 		<ResourceBoundary
-			resource={nostrProfileNostrProfileMetadataEventsViewMetadataEventsResource}
+			resource={metadataEventsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<NostrProfileMetadataEventsView
-						selection={nostrProfileNostrProfileMetadataEventsViewMetadataEventsResource}
-						countResource={nostrProfileNostrProfileMetadataEventsViewMetadataEventsResource.count}
+						selection={metadataEventsResource}
+						countResource={metadataEventsResource.count}
 						title='Signed metadata history'
 						id='metadata-events'
 					/>

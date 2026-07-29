@@ -21,7 +21,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.AvalancheBlockchain> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const avalancheBlockchain = $derived(selection({
 		fields: {
 			chainName: true,
@@ -29,7 +28,7 @@
 			vmId: true,
 		},
 	}))
-	const titleFallback = $derived([(pendingEntity.chainName ?? ''), (pendingEntity.chainAlias ?? '')].filter(Boolean).join(' ') || (pendingEntity.blockchainId ?? '') || 'avalanche blockchain')
+	const titleFallback = $derived([(prefetched.chainName ?? ''), (prefetched.chainAlias ?? '')].filter(Boolean).join(' ') || selection.entitySelector.blockchainId || 'avalanche blockchain')
 
 
 	// Components
@@ -69,7 +68,7 @@
 			<div>
 				<dt>blockchain ID</dt>
 				<dd>
-					<TruncatedValue value={pendingEntity.blockchainId} />
+					<TruncatedValue value={selection.entitySelector.blockchainId} />
 				</dd>
 			</div>
 

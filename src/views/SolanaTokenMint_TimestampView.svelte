@@ -20,14 +20,12 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.SolanaTokenMint_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const solanaTokenMintTimestamp = $derived(selection({
 		fields: {
 			supply: true,
 			timestampMs: true,
 		},
 	}))
-	const titleFallback = $derived(String(pendingEntity.slot ?? '') || 'solana token mint timestamp')
 
 
 	// Components
@@ -41,24 +39,24 @@
 <EntityView
 	entityType={EntityType.SolanaTokenMint_Timestamp}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? String(selection.entitySelector.slot)}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
 		<NumberValue
-			value={pendingEntity.slot}
+			value={selection.entitySelector.slot}
 		/>
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={solanaTokenMintTimestamp}>
 			{#snippet children(entity)}
-				{@const supply0 = entity.supply}
-				{#if supply0 != null}
+				{@const supply = entity.supply}
+				{#if supply != null}
 					<NumberValue
-						value={supply0}
+						value={supply}
 					/>
 				{/if}
 			{/snippet}
@@ -68,10 +66,10 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={solanaTokenMintTimestamp}>
 			{#snippet children(entity)}
-				{@const timestampMs0 = entity.timestampMs}
-				{#if timestampMs0 != null}
+				{@const timestampMs = entity.timestampMs}
+				{#if timestampMs != null}
 					<span data-text="muted">
-						<Timestamp timestamp={Number(timestampMs0)} />
+						<Timestamp timestamp={timestampMs} />
 					</span>
 				{/if}
 			{/snippet}
@@ -94,7 +92,7 @@
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 
@@ -113,7 +111,7 @@
 						<div>
 							<dt>Decimals</dt>
 							<dd>
-								{String(decimals)}
+								{decimals}
 							</dd>
 						</div>
 					{/if}

@@ -4,8 +4,6 @@
 	// Types/constants
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { UrlString } from '$/schema/UrlString.ts'
-	import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -23,13 +21,12 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.Eip8004CrossRegistration> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Eip8004Scan_Rest,
 		],
 	}))
-	const titleFallback = $derived((pendingEntity.targetKind ?? '') || 'EIP-8004 cross registration')
+	const titleFallback = $derived(selection.entitySelector.targetKind || 'EIP-8004 cross registration')
 
 
 	// Components
@@ -48,16 +45,16 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{(pendingEntity.targetKind ?? '') || 'EIP-8004 cross registration'}
+		{selection.entitySelector.targetKind || 'EIP-8004 cross registration'}
 	{/snippet}
 
 	{#snippet Value()}
-		{String(pendingEntity.targetSelectorHash ?? '') || (pendingEntity.targetKind ?? '') || titleFallback}
+		{selection.entitySelector.targetSelectorHash || selection.entitySelector.targetKind || titleFallback}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
 		<span data-text="muted">
-			<TruncatedValue value={pendingEntity.targetSelectorHashAlgorithm} />
+			{selection.entitySelector.targetSelectorHashAlgorithm}
 		</span>
 	{/snippet}
 
@@ -77,21 +74,21 @@
 			<div>
 				<dt>Target kind</dt>
 				<dd>
-					{pendingEntity.targetKind}
+					{selection.entitySelector.targetKind}
 				</dd>
 			</div>
 
 			<div>
 				<dt>Target selector hash algorithm</dt>
 				<dd>
-					<TruncatedValue value={pendingEntity.targetSelectorHashAlgorithm} />
+					{selection.entitySelector.targetSelectorHashAlgorithm}
 				</dd>
 			</div>
 
 			<div>
 				<dt>Target selector hash</dt>
 				<dd>
-					<TruncatedValue value={String(pendingEntity.targetSelectorHash)} />
+					<TruncatedValue value={selection.entitySelector.targetSelectorHash} />
 				</dd>
 			</div>
 		</dl>
@@ -113,11 +110,11 @@
 							<dt>Evidence URI</dt>
 							<dd>
 								<a
-									href={String(evidenceUri)}
+									href={evidenceUri}
 									target="_blank"
 									rel="noreferrer noopener"
 								>
-									<TruncatedValue value={String(evidenceUri)} />
+									<TruncatedValue value={evidenceUri} />
 								</a>
 							</dd>
 						</div>

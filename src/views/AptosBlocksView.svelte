@@ -40,11 +40,11 @@
 			entitySelector={aptosBlockSelector}
 		>
 			{#snippet Title()}
-				{String(aptosBlockSelector.height) || 'aptos block'}
+				{aptosBlockSelector.height}
 			{/snippet}
 
 			{#snippet Value()}
-				{String(aptosBlock.timestampMs)}
+				{aptosBlock.timestampMs}
 			{/snippet}
 		</EntityView>
 	{/snippet}

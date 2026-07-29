@@ -1,4 +1,4 @@
-import { XmtpConversationConsentState } from '$/schema/XmtpConversation.ts'
+import { XmtpConversationConsentState } from '$/schema/XmtpConversationConsentState.ts'
 
 
 // Constants

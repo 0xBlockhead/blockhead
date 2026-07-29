@@ -1,15 +1,11 @@
 // Generated from APP.ts. Do not edit by hand.
 
 import { entity } from '$/schema/$schema.ts'
-import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
+import { EntityFieldCardinality } from '$/schema/EntityFieldCardinality.ts'
+import { EntityFieldType } from '$/schema/EntityFieldType.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { XmtpConversationConsentState } from '$/schema/XmtpConversationConsentState.ts'
 import { type } from 'arktype'
-
-export enum XmtpConversationConsentState {
-	Unknown = 'unknown',
-	Allowed = 'allowed',
-	Denied = 'denied',
-}
 
 export default entity({
 	entityType: EntityType.XmtpConversation,

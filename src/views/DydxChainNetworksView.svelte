@@ -41,7 +41,7 @@
 			entitySelector={dydxChainNetworkSelector}
 		>
 			{#snippet Title()}
-				{(dydxChainNetwork.$network.name || (dydxChainNetworkSelector.$network.caip2 == null ? '' : `${dydxChainNetworkSelector.$network.caip2.namespace}:${dydxChainNetworkSelector.$network.caip2.reference}`) || 'Network')}
+				{dydxChainNetwork.$network.name || (dydxChainNetworkSelector.$network.caip2 == null ? '' : `${dydxChainNetworkSelector.$network.caip2.namespace}:${dydxChainNetworkSelector.$network.caip2.reference}`) || 'Network'}
 			{/snippet}
 		</EntityView>
 	{/snippet}

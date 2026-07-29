@@ -21,13 +21,11 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.ElementsIssuance> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const elementsIssuance = $derived(selection({
 		fields: {
 			isReissuance: true,
 		},
 	}))
-	const titleFallback = $derived(String(pendingEntity.inputIndex ?? '') || 'Elements issuance')
 
 
 	// Components
@@ -42,14 +40,14 @@
 <EntityView
 	entityType={EntityType.ElementsIssuance}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? String(selection.entitySelector.inputIndex)}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
 		<NumberValue
-			value={pendingEntity.inputIndex}
+			value={selection.entitySelector.inputIndex}
 		/>
 	{/snippet}
 
@@ -62,7 +60,6 @@
 					<ElementsAssetView
 						selection={select(EntityType.ElementsAsset, elementsAsset[EntityMetaKey.Selector])}
 						prefetched={elementsAsset}
-						href=""
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -78,7 +75,6 @@
 					<ElementsAssetView
 						selection={select(EntityType.ElementsAsset, elementsAsset[EntityMetaKey.Selector])}
 						prefetched={elementsAsset}
-						href=""
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -90,10 +86,10 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={elementsIssuance}>
 			{#snippet children(entity)}
-				{@const isReissuance0 = entity.isReissuance}
-				{#if isReissuance0 != null}
+				{@const isReissuance = entity.isReissuance}
+				{#if isReissuance != null}
 					<span data-text="muted">
-						{isReissuance0 ? 'Yes' : 'No'}
+						{isReissuance ? 'Yes' : 'No'}
 					</span>
 				{/if}
 			{/snippet}
@@ -117,7 +113,7 @@
 				<dt>Input index</dt>
 				<dd>
 					<NumberValue
-						value={pendingEntity.inputIndex}
+						value={selection.entitySelector.inputIndex}
 					/>
 				</dd>
 			</div>

@@ -4,7 +4,6 @@
 	// Types/constants
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { UrlString } from '$/schema/UrlString.ts'
 
 
 	// Context
@@ -21,7 +20,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.A2aAgentService> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [],
 	}))
@@ -30,7 +28,7 @@
 			transportKind: true,
 		},
 	}))
-	const titleFallback = $derived(String(pendingEntity.endpointUrl ?? '') || 'A2A agent service')
+	const titleFallback = $derived(selection.entitySelector.endpointUrl || 'A2A agent service')
 
 
 	// Components
@@ -51,20 +49,20 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{String(pendingEntity.endpointUrl ?? '') || 'A2A agent service'}
+		{selection.entitySelector.endpointUrl || 'A2A agent service'}
 	{/snippet}
 
 	{#snippet Value()}
-		{(pendingEntity.protocolBinding ?? '') || String(pendingEntity.endpointUrl ?? '') || titleFallback}
+		{selection.entitySelector.protocolBinding || selection.entitySelector.endpointUrl || titleFallback}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={a2aAgentService}>
 			{#snippet children(entity)}
-				{@const transportKind0 = entity.transportKind}
-				{#if transportKind0 != null}
+				{@const transportKind = entity.transportKind}
+				{#if transportKind != null}
 					<span data-text="muted">
-						{transportKind0}
+						{transportKind}
 					</span>
 				{/if}
 			{/snippet}
@@ -87,7 +85,7 @@
 			<div>
 				<dt>protocol binding</dt>
 				<dd>
-					{pendingEntity.protocolBinding}
+					{selection.entitySelector.protocolBinding}
 				</dd>
 			</div>
 
@@ -95,11 +93,11 @@
 				<dt>endpoint URL</dt>
 				<dd>
 					<a
-						href={String(pendingEntity.endpointUrl)}
+						href={selection.entitySelector.endpointUrl}
 						target="_blank"
 						rel="noreferrer noopener"
 					>
-						<TruncatedValue value={String(pendingEntity.endpointUrl)} />
+						<TruncatedValue value={selection.entitySelector.endpointUrl} />
 					</a>
 				</dd>
 			</div>
@@ -145,30 +143,30 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const a2aAgentServiceA2aTasksViewTasksResource = selection.$$tasks}
+		{@const tasksResource = selection.$$tasks}
 		<ResourceBoundary
-			resource={a2aAgentServiceA2aTasksViewTasksResource}
+			resource={tasksResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<A2aTasksView
-						selection={a2aAgentServiceA2aTasksViewTasksResource}
-						countResource={a2aAgentServiceA2aTasksViewTasksResource.count}
+						selection={tasksResource}
+						countResource={tasksResource.count}
 						title='tasks'
 						id='tasks'
 					/>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>
-		{@const a2aAgentServiceA2aAgentServiceTimestampsViewTimestampsResource = selection.$$timestamps}
+		{@const timestampsResource = selection.$$timestamps}
 		<ResourceBoundary
-			resource={a2aAgentServiceA2aAgentServiceTimestampsViewTimestampsResource}
+			resource={timestampsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<A2aAgentService_TimestampsView
-						selection={a2aAgentServiceA2aAgentServiceTimestampsViewTimestampsResource}
-						countResource={a2aAgentServiceA2aAgentServiceTimestampsViewTimestampsResource.count}
+						selection={timestampsResource}
+						countResource={timestampsResource.count}
 						title='timestamps'
 						id='timestamps'
 					/>

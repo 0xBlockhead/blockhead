@@ -21,9 +21,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.TonJettonTransfer> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const titleFallback = 'TON jetton transfer'
-
 
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -40,7 +37,7 @@
 <EntityView
 	entityType={EntityType.TonJettonTransfer}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? 'TON jetton transfer'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -65,14 +62,14 @@
 			<div>
 				<dt>transfer ID</dt>
 				<dd>
-					{pendingEntity.transferId}
+					{selection.entitySelector.transferId}
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 
@@ -191,7 +188,7 @@
 						<div>
 							<dt>transaction lt</dt>
 							<dd>
-								{String(transactionLt)}
+								{transactionLt}
 							</dd>
 						</div>
 					{/if}
@@ -235,7 +232,7 @@
 						<div>
 							<dt>Timestamp</dt>
 							<dd>
-								<Timestamp timestamp={Number(timestampMs)} />
+								<Timestamp timestamp={timestampMs} />
 							</dd>
 						</div>
 					{/if}
@@ -257,7 +254,7 @@
 						<div>
 							<dt>amount nano</dt>
 							<dd>
-								{String(amountNano)}
+								{amountNano}
 							</dd>
 						</div>
 					{/if}
@@ -279,7 +276,7 @@
 						<div>
 							<dt>query ID</dt>
 							<dd>
-								{String(queryId)}
+								{queryId}
 							</dd>
 						</div>
 					{/if}
@@ -301,7 +298,7 @@
 						<div>
 							<dt>forward TON amount nano</dt>
 							<dd>
-								{String(forwardTonAmountNano)}
+								{forwardTonAmountNano}
 							</dd>
 						</div>
 					{/if}

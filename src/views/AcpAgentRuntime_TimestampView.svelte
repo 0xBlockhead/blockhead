@@ -21,7 +21,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.AcpAgentRuntime_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.AcpLocal_JsonRpc,
@@ -33,7 +32,6 @@
 			protocolVersion: true,
 		},
 	}))
-	const titleFallback = $derived(String(pendingEntity.timestampMs ?? '') || 'ACP agent runtime timestamp')
 
 
 	// Components
@@ -46,19 +44,19 @@
 <EntityView
 	entityType={EntityType.AcpAgentRuntime_Timestamp}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? String(selection.entitySelector.timestampMs)}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+		<Timestamp timestamp={selection.entitySelector.timestampMs} />
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={acpAgentRuntimeTimestamp}>
 			{#snippet children(entity)}
-				{(entity.health ?? '') || String(pendingEntity.timestampMs) || titleFallback}
+				{(entity.health ?? '') || String(selection.entitySelector.timestampMs)}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -66,10 +64,10 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={acpAgentRuntimeTimestamp}>
 			{#snippet children(entity)}
-				{@const protocolVersion0 = entity.protocolVersion}
-				{#if protocolVersion0 != null}
+				{@const protocolVersion = entity.protocolVersion}
+				{#if protocolVersion != null}
 					<span data-text="muted">
-						{protocolVersion0}
+						{protocolVersion}
 					</span>
 				{/if}
 			{/snippet}
@@ -92,14 +90,14 @@
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+					<Timestamp timestamp={selection.entitySelector.timestampMs} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 

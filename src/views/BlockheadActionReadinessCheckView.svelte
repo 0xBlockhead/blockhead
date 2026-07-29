@@ -5,7 +5,6 @@
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { EvmAddress } from '$/schema/ZeroExHex.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -23,7 +22,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.BlockheadActionReadinessCheck> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Local_Internal,
@@ -36,7 +34,7 @@
 			capabilityKey: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.checkKind ?? '') || 'blockhead action readiness check')
+	const titleFallback = $derived((prefetched.checkKind ?? '') || 'blockhead action readiness check')
 
 
 	// Components
@@ -77,7 +75,7 @@
 		<ResourceBoundary resource={blockheadActionReadinessCheck}>
 			{#snippet children(entity)}
 				<span data-text="muted">
-					<Timestamp timestamp={Number(entity.createdAt)} />
+					<Timestamp timestamp={entity.createdAt} />
 				</span>
 			{/snippet}
 		</ResourceBoundary>
@@ -106,7 +104,7 @@
 			<div>
 				<dt>check ID</dt>
 				<dd>
-					{pendingEntity.checkId}
+					{selection.entitySelector.checkId}
 				</dd>
 			</div>
 
@@ -230,7 +228,7 @@
 						<div>
 							<dt>account address</dt>
 							<dd>
-								<TruncatedValue value={String(accountAddress)} />
+								<TruncatedValue value={accountAddress} />
 							</dd>
 						</div>
 					{/if}
@@ -252,7 +250,7 @@
 						<div>
 							<dt>token address</dt>
 							<dd>
-								<TruncatedValue value={String(tokenAddress)} />
+								<TruncatedValue value={tokenAddress} />
 							</dd>
 						</div>
 					{/if}
@@ -274,7 +272,7 @@
 						<div>
 							<dt>spender address</dt>
 							<dd>
-								<TruncatedValue value={String(spenderAddress)} />
+								<TruncatedValue value={spenderAddress} />
 							</dd>
 						</div>
 					{/if}
@@ -328,7 +326,7 @@
 						resource={blockheadActionReadinessCheck}
 					>
 						{#snippet children(entity)}
-							<Timestamp timestamp={Number(entity.createdAt)} />
+							<Timestamp timestamp={entity.createdAt} />
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -337,15 +335,15 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const blockheadActionReadinessCheckBlockheadActionReadinessCheckTimestampsViewTimestampsResource = selection.$$timestamps}
+		{@const timestampsResource = selection.$$timestamps}
 		<ResourceBoundary
-			resource={blockheadActionReadinessCheckBlockheadActionReadinessCheckTimestampsViewTimestampsResource}
+			resource={timestampsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<BlockheadActionReadinessCheck_TimestampsView
-						selection={blockheadActionReadinessCheckBlockheadActionReadinessCheckTimestampsViewTimestampsResource}
-						countResource={blockheadActionReadinessCheckBlockheadActionReadinessCheckTimestampsViewTimestampsResource.count}
+						selection={timestampsResource}
+						countResource={timestampsResource.count}
 						title='timestamps'
 						id='timestamps'
 					/>

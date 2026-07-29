@@ -5,7 +5,8 @@ import { type as arktype } from 'arktype'
 
 import { EntityMetaKey, entityFieldAddressKey } from '$/schema/$schema.ts'
 import type { EntityDefinition, EntityDefinitionForEntityType, EntityFacetDefinition, EntityFacetPath, EntityFieldDefinition, EntityFieldDefinitionByName, EntityFieldName, EntityFieldSingleResolvedValueFromDefinition, EntityReferenceValue, EntitySelector, EntitySelectorForSelectorName, EntitySelectorName, EntityType, Schema } from '$/schema/$schema.ts'
-import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
+import { EntityFieldCardinality } from '$/schema/EntityFieldCardinality.ts'
+import { EntityFieldType } from '$/schema/EntityFieldType.ts'
 import type { SourcePublicEnv } from '$/sources/$sources.ts'
 
 export type ResolverValue =

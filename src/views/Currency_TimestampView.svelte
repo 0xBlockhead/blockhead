@@ -22,13 +22,11 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.Currency_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const currencyTimestamp = $derived(selection({
 		fields: {
 			marketCap: true,
 		},
 	}))
-	const titleFallback = 'currency timestamp'
 
 
 	// Components
@@ -42,15 +40,18 @@
 <EntityView
 	entityType={EntityType.Currency_Timestamp}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? 'currency timestamp'}
 	href={
-		href ?? resolve(
-			'/(assets)/(currencies)/currency/[iso4217=iso4217]/(currency)/observations/[timestampMs=nonNegativeInteger]',
-			{
-				iso4217: String(selection.entitySelector.$currency.iso4217),
-				timestampMs: String(selection.entitySelector.timestampMs),
-			}
-		)
+		href === undefined ?
+			resolve(
+				'/(assets)/(currencies)/currency/[iso4217=iso4217]/(currency)/observations/[timestampMs=nonNegativeInteger]',
+				{
+					iso4217: selection.entitySelector.$currency.iso4217,
+					timestampMs: String(selection.entitySelector.timestampMs),
+				}
+			)
+		:
+			href ?? undefined
 	}
 	{layout}
 	bind:open
@@ -59,7 +60,7 @@
 	{#snippet Title()}
 		<CurrencyView
 			selection={select(EntityType.Currency, selection.entitySelector.$currency)}
-			href=""
+			href={null}
 			layout={EntityLayout.Title}
 			open={false}
 		/>
@@ -68,10 +69,10 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={currencyTimestamp}>
 			{#snippet children(entity)}
-				{@const marketCap0 = entity.marketCap}
-				{#if marketCap0 != null}
+				{@const marketCap = entity.marketCap}
+				{#if marketCap != null}
 					<NumberValue
-						value={Number(marketCap0)}
+						value={Number(marketCap)}
 						formatValueOptions={{ currency: 'USD', showDecimalPlaces: 2, useGrouping: true }}
 					/>
 				{/if}
@@ -81,7 +82,7 @@
 
 	{#snippet HeadingAfter()}
 		<span data-text="muted">
-			<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+			<Timestamp timestamp={selection.entitySelector.timestampMs} />
 		</span>
 	{/snippet}
 
@@ -109,7 +110,7 @@
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+					<Timestamp timestamp={selection.entitySelector.timestampMs} />
 				</dd>
 			</div>
 

@@ -25,13 +25,12 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.EthereumNetworkUpgrade> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const viewSelection = $derived(selection({
+	const network = $derived(selection.entitySelector.$network)
+	const ethereumNetworkUpgrade = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Constants_Internal,
 		],
-	}))
-	const ethereumNetworkUpgrade = $derived(viewSelection({
+	})({
 		fields: {
 			name: true,
 			upgradeId: true,
@@ -40,7 +39,7 @@
 			activationTimestampMs: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.upgradeId ?? '') || (pendingEntity.name ?? '') || 'Ethereum network upgrade')
+	const titleFallback = $derived((prefetched.upgradeId ?? '') || (prefetched.name ?? '') || 'Ethereum network upgrade')
 
 
 	// Components
@@ -58,23 +57,26 @@
 	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
 	href={
-		href ?? (
-			'slug' in selection.entitySelector ?
-				resolve(
-					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(upgrades)/upgrade/[upgradeSlug=stringSegment]',
-					{
-						network: (
-							'caip2' in selection.entitySelector.$network ?
-								String(caip2StringFromValue(selection.entitySelector.$network.caip2))
-							:
-								String(selection.entitySelector.$network.slug)
-						),
-						upgradeSlug: String(selection.entitySelector.slug),
-					}
-				)
-			:
-				undefined
-		)
+		href === undefined ?
+			(
+				'slug' in selection.entitySelector ?
+					resolve(
+						'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(upgrades)/upgrade/[upgradeSlug=stringSegment]',
+						{
+							network: (
+								'caip2' in network ?
+									caip2StringFromValue(network.caip2)
+								:
+									network.slug
+							),
+							upgradeSlug: selection.entitySelector.slug,
+						}
+					)
+				:
+					undefined
+			)
+		:
+			href ?? undefined
 	}
 	{layout}
 	bind:open
@@ -143,7 +145,7 @@
 						<div>
 							<dt>Activation time</dt>
 							<dd>
-								<Timestamp timestamp={Number(activationTimestampMs)} />
+								<Timestamp timestamp={activationTimestampMs} />
 							</dd>
 						</div>
 					{/if}
@@ -195,20 +197,20 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const ethereumNetworkUpgradeSpecificationProposalsViewProposalsResource = selection
-		.$$proposals({
-			sources: [
-				Source.Constants_Internal,
-			],
-		})}
+		{@const proposalsResource = selection
+			.$$proposals({
+				sources: [
+					Source.Constants_Internal,
+				],
+			})}
 		<ResourceBoundary
-			resource={ethereumNetworkUpgradeSpecificationProposalsViewProposalsResource}
+			resource={proposalsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<SpecificationProposalsView
-						selection={ethereumNetworkUpgradeSpecificationProposalsViewProposalsResource}
-						countResource={ethereumNetworkUpgradeSpecificationProposalsViewProposalsResource.count}
+						selection={proposalsResource}
+						countResource={proposalsResource.count}
 						title='Specification proposals'
 						id='proposals'
 					/>

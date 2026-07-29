@@ -49,7 +49,7 @@
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{(quilibriumAccount.accountKind ?? '')}</span>
+				<span data-text="annotation">{quilibriumAccount.accountKind ?? ''}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

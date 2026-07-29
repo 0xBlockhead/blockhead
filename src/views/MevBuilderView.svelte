@@ -23,8 +23,7 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.MevBuilder> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const titleFallback = $derived((pendingEntity.builderPubkey ?? '') || 'MEV builder')
+	const network = $derived(selection.entitySelector.$network)
 
 
 	// Components
@@ -39,31 +38,34 @@
 <EntityView
 	entityType={EntityType.MevBuilder}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? (selection.entitySelector.builderPubkey || 'MEV builder')}
 	href={
-		href ?? resolve(
-			'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/mev/builder/[builderPubkey=stringSegment]',
-			{
-				network: (
-					'caip2' in selection.entitySelector.$network ?
-						String(caip2StringFromValue(selection.entitySelector.$network.caip2))
-					:
-						String(selection.entitySelector.$network.slug)
-				),
-				builderPubkey: String(selection.entitySelector.builderPubkey),
-			}
-		)
+		href === undefined ?
+			resolve(
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/mev/builder/[builderPubkey=stringSegment]',
+				{
+					network: (
+						'caip2' in network ?
+							caip2StringFromValue(network.caip2)
+						:
+							network.slug
+					),
+					builderPubkey: selection.entitySelector.builderPubkey,
+				}
+			)
+		:
+			href ?? undefined
 	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<TruncatedValue value={pendingEntity.builderPubkey} />
+		<TruncatedValue value={selection.entitySelector.builderPubkey} />
 	{/snippet}
 
 	{#snippet Value()}
-		<TruncatedValue value={pendingEntity.builderPubkey} />
+		<TruncatedValue value={selection.entitySelector.builderPubkey} />
 	{/snippet}
 
 	{#snippet HeadingAfter()}
@@ -81,7 +83,7 @@
 			<div>
 				<dt>Builder public key</dt>
 				<dd>
-					<TruncatedValue value={pendingEntity.builderPubkey} />
+					<TruncatedValue value={selection.entitySelector.builderPubkey} />
 				</dd>
 			</div>
 
@@ -99,30 +101,30 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const mevBuilderMevBuilderTimestampsViewTimestampsResource = selection.$$timestamps}
+		{@const timestampsResource = selection.$$timestamps}
 		<ResourceBoundary
-			resource={mevBuilderMevBuilderTimestampsViewTimestampsResource}
+			resource={timestampsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<MevBuilder_TimestampsView
-						selection={mevBuilderMevBuilderTimestampsViewTimestampsResource}
-						countResource={mevBuilderMevBuilderTimestampsViewTimestampsResource.count}
+						selection={timestampsResource}
+						countResource={timestampsResource.count}
 						title='Timestamps'
 						id='timestamps'
 					/>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>
-		{@const mevBuilderMevRelayProposerPayloadDeliveredsViewDeliveredPayloadsResource = selection.$$deliveredPayloads}
+		{@const deliveredPayloadsResource = selection.$$deliveredPayloads}
 		<ResourceBoundary
-			resource={mevBuilderMevRelayProposerPayloadDeliveredsViewDeliveredPayloadsResource}
+			resource={deliveredPayloadsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<MevRelay_ProposerPayloadDeliveredsView
-						selection={mevBuilderMevRelayProposerPayloadDeliveredsViewDeliveredPayloadsResource}
-						countResource={mevBuilderMevRelayProposerPayloadDeliveredsViewDeliveredPayloadsResource.count}
+						selection={deliveredPayloadsResource}
+						countResource={deliveredPayloadsResource.count}
 						title='Delivered payloads'
 						id='delivered-payloads'
 					/>

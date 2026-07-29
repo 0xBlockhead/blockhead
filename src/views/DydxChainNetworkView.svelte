@@ -21,7 +21,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.DydxChainNetwork> = $props()
 
-	const titleFallback = 'dydx chain network'
 	const viewDomId = $derived('dydx-chain-network-' + encodeURIComponent(stringify(selection.entitySelector)))
 
 
@@ -42,7 +41,7 @@
 	entityType={EntityType.DydxChainNetwork}
 	entitySelector={selection.entitySelector}
 	id={viewDomId}
-	title={title ?? titleFallback}
+	title={title ?? 'dydx chain network'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -50,7 +49,7 @@
 	{#snippet Title()}
 		<NetworkView
 			selection={select(EntityType.Network, selection.entitySelector.$network)}
-			href=""
+			href={null}
 			layout={EntityLayout.Title}
 			open={false}
 		/>

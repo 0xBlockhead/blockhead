@@ -18,7 +18,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType._GlobalSwarmAccess> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const titleFallback = 'global Swarm access'
 
 
@@ -33,7 +32,12 @@
 	entityType={EntityType._GlobalSwarmAccess}
 	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	href={href ?? resolve('/(swarm)/swarm/(swarmProtocol)/access')}
+	href={
+		href === undefined ?
+			resolve('/(swarm)/swarm/(swarmProtocol)/access')
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -51,37 +55,37 @@
 			<div>
 				<dt>Scope</dt>
 				<dd>
-					{pendingEntity.scope}
+					{selection.entitySelector.scope}
 				</dd>
 			</div>
 		</dl>
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const globalSwarmAccessSwarmResourcesViewObservedResourcesResource = selection.$$observedResources}
+		{@const observedResourcesResource = selection.$$observedResources}
 		<ResourceBoundary
-			resource={globalSwarmAccessSwarmResourcesViewObservedResourcesResource}
+			resource={observedResourcesResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<SwarmResourcesView
-						selection={globalSwarmAccessSwarmResourcesViewObservedResourcesResource}
-						countResource={globalSwarmAccessSwarmResourcesViewObservedResourcesResource.count}
+						selection={observedResourcesResource}
+						countResource={observedResourcesResource.count}
 						title='Observed resources'
 						id='observed-resources'
 					/>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>
-		{@const globalSwarmAccessGlobalSwarmAccessTimestampsViewTimestampsResource = selection.$$timestamps}
+		{@const timestampsResource = selection.$$timestamps}
 		<ResourceBoundary
-			resource={globalSwarmAccessGlobalSwarmAccessTimestampsViewTimestampsResource}
+			resource={timestampsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<GlobalSwarmAccess_TimestampsView
-						selection={globalSwarmAccessGlobalSwarmAccessTimestampsViewTimestampsResource}
-						countResource={globalSwarmAccessGlobalSwarmAccessTimestampsViewTimestampsResource.count}
+						selection={timestampsResource}
+						countResource={timestampsResource.count}
 						title='Observations'
 						id='timestamps'
 					/>

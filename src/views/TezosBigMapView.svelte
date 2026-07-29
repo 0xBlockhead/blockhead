@@ -21,8 +21,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.TezosBigMap> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const titleFallback = 'tezos big map'
 	const viewDomId = $derived('tezos-big-map-' + encodeURIComponent(stringify(selection.entitySelector)))
 
 
@@ -41,7 +39,7 @@
 	entityType={EntityType.TezosBigMap}
 	entitySelector={selection.entitySelector}
 	id={viewDomId}
-	title={title ?? titleFallback}
+	title={title ?? 'tezos big map'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -66,7 +64,7 @@
 			<div>
 				<dt>big map ID</dt>
 				<dd>
-					{String(pendingEntity.bigMapId)}
+					{selection.entitySelector.bigMapId}
 				</dd>
 			</div>
 

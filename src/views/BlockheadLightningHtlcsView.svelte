@@ -43,7 +43,7 @@
 			entitySelector={blockheadLightningHtlcSelector}
 		>
 			{#snippet Title()}
-				{(String(blockheadLightningHtlcSelector.htlcIndex) ? 'HTLC ' + String(blockheadLightningHtlcSelector.htlcIndex) : '') || 'blockhead Lightning htlc'}
+				{'HTLC ' + blockheadLightningHtlcSelector.htlcIndex}
 			{/snippet}
 
 			{#snippet Value()}
@@ -51,7 +51,7 @@
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{(blockheadLightningHtlc.direction ?? '')}</span>
+				<span data-text="annotation">{blockheadLightningHtlc.direction ?? ''}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

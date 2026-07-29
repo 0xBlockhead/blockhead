@@ -21,7 +21,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.BlockheadMoneroWalletState_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Local_Internal,
@@ -32,7 +31,6 @@
 			balanceAtomicUnits: true,
 		},
 	}))
-	const titleFallback = $derived(String(pendingEntity.timestampMs ?? '') || 'blockhead monero wallet state timestamp')
 
 
 	// Components
@@ -46,22 +44,22 @@
 <EntityView
 	entityType={EntityType.BlockheadMoneroWalletState_Timestamp}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? String(selection.entitySelector.timestampMs)}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+		<Timestamp timestamp={selection.entitySelector.timestampMs} />
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={blockheadMoneroWalletStateTimestamp}>
 			{#snippet children(entity)}
-				{@const balanceAtomicUnits0 = entity.balanceAtomicUnits}
-				{#if balanceAtomicUnits0 != null}
+				{@const balanceAtomicUnits = entity.balanceAtomicUnits}
+				{#if balanceAtomicUnits != null}
 					<NumberValue
-						value={balanceAtomicUnits0}
+						value={balanceAtomicUnits}
 					/>
 				{/if}
 			{/snippet}
@@ -70,7 +68,7 @@
 
 	{#snippet HeadingAfter()}
 		<span data-text="muted">
-			{pendingEntity.source}
+			{selection.entitySelector.source}
 		</span>
 	{/snippet}
 
@@ -90,14 +88,14 @@
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+					<Timestamp timestamp={selection.entitySelector.timestampMs} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 
@@ -208,7 +206,7 @@
 						<div>
 							<dt>outputs exported AT</dt>
 							<dd>
-								<Timestamp timestamp={Number(outputsExportedAt)} />
+								<Timestamp timestamp={outputsExportedAt} />
 							</dd>
 						</div>
 					{/if}
@@ -230,7 +228,7 @@
 						<div>
 							<dt>key images exported AT</dt>
 							<dd>
-								<Timestamp timestamp={Number(keyImagesExportedAt)} />
+								<Timestamp timestamp={keyImagesExportedAt} />
 							</dd>
 						</div>
 					{/if}
@@ -252,7 +250,7 @@
 						<div>
 							<dt>last synced AT</dt>
 							<dd>
-								<Timestamp timestamp={Number(lastSyncedAt)} />
+								<Timestamp timestamp={lastSyncedAt} />
 							</dd>
 						</div>
 					{/if}

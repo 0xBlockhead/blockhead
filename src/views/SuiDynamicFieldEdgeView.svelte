@@ -20,9 +20,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.SuiDynamicFieldEdge> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const titleFallback = 'Sui dynamic field edge'
-
 
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -34,7 +31,7 @@
 <EntityView
 	entityType={EntityType.SuiDynamicFieldEdge}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? 'Sui dynamic field edge'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -59,14 +56,14 @@
 			<div>
 				<dt>field name hash</dt>
 				<dd>
-					<TruncatedValue value={pendingEntity.fieldNameHash} />
+					<TruncatedValue value={selection.entitySelector.fieldNameHash} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>child object ID</dt>
 				<dd>
-					{pendingEntity.childObjectId}
+					{selection.entitySelector.childObjectId}
 				</dd>
 			</div>
 		</dl>

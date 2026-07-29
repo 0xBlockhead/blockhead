@@ -40,6 +40,7 @@
 >
 	{#snippet Item({ item: beaconWithdrawal })}
 		{@const beaconWithdrawalSelector = beaconWithdrawal[EntityMetaKey.Selector]}
+		{@const network = beaconWithdrawalSelector.$network}
 		<EntityView
 			entityType={EntityType.BeaconWithdrawal}
 			entitySelector={beaconWithdrawalSelector}
@@ -48,10 +49,10 @@
 					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/slot/[slot=nonNegativeInteger]/(beaconSlot)/withdrawal/[index=nonNegativeInteger]',
 					{
 						network: (
-							'caip2' in beaconWithdrawalSelector.$network ?
-								String(caip2StringFromValue(beaconWithdrawalSelector.$network.caip2))
+							'caip2' in network ?
+								caip2StringFromValue(network.caip2)
 							:
-								String(beaconWithdrawalSelector.$network.slug)
+								network.slug
 						),
 						slot: String(beaconWithdrawalSelector.slot),
 						index: String(beaconWithdrawalSelector.indexInSlot),
@@ -60,15 +61,15 @@
 			}
 		>
 			{#snippet Title()}
-				{(String(beaconWithdrawalSelector.indexInSlot ?? '') ? 'Withdrawal #' + String(beaconWithdrawalSelector.indexInSlot ?? '') : '') || 'beacon withdrawal'}
+				{`Withdrawal #${beaconWithdrawalSelector.indexInSlot}`}
 			{/snippet}
 
 			{#snippet Value()}
-				{(String(beaconWithdrawal.amountGwei ?? '') ? String(beaconWithdrawal.amountGwei ?? '') + ' gwei' : '')}
+				{beaconWithdrawal.amountGwei != null ? beaconWithdrawal.amountGwei + ' gwei' : ''}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{(String(beaconWithdrawalSelector.slot) ? 'Slot ' + String(beaconWithdrawalSelector.slot) : '')}</span>
+				<span data-text="annotation">{'Slot ' + beaconWithdrawalSelector.slot}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

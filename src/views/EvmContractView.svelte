@@ -7,7 +7,6 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
-	import { EvmAddress, ZeroExHex } from '$/schema/ZeroExHex.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -26,7 +25,7 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.EvmContract> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const network = $derived(selection.entitySelector.$network)
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Constants_Internal,
@@ -38,7 +37,7 @@
 			precompileName: true,
 		},
 	}))
-	const titleFallback = $derived([(pendingEntity.precompileName ?? ''), String(pendingEntity.address ?? '')].filter(Boolean).join(' ') || 'EVM contract')
+	const titleFallback = $derived([(prefetched.precompileName ?? ''), selection.entitySelector.address].filter(Boolean).join(' ') || 'EVM contract')
 
 
 	// Components
@@ -58,18 +57,21 @@
 	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
 	href={
-		href ?? resolve(
-			'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(contracts)/contract/[address=evmAddress]',
-			{
-				network: (
-					'caip2' in selection.entitySelector.$network ?
-						String(caip2StringFromValue(selection.entitySelector.$network.caip2))
-					:
-						String(selection.entitySelector.$network.slug)
-				),
-				address: String(selection.entitySelector.address),
-			}
-		)
+		href === undefined ?
+			resolve(
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(contracts)/contract/[address=evmAddress]',
+				{
+					network: (
+						'caip2' in network ?
+							caip2StringFromValue(network.caip2)
+						:
+							network.slug
+					),
+					address: selection.entitySelector.address,
+				}
+			)
+		:
+			href ?? undefined
 	}
 	{layout}
 	bind:open
@@ -78,7 +80,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={evmContract}>
 			{#snippet children(entity)}
-				{[(entity.precompileName ?? ''), String(pendingEntity.address)].filter(Boolean).join(' ') || title || titleFallback}
+				{[(entity.precompileName ?? ''), selection.entitySelector.address].filter(Boolean).join(' ') || title || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -86,7 +88,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={evmContract}>
 			{#snippet children(entity)}
-				{[(entity.precompileName ?? ''), String(pendingEntity.address)].filter(Boolean).join(' ') || titleFallback}
+				{[(entity.precompileName ?? ''), selection.entitySelector.address].filter(Boolean).join(' ') || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -128,7 +130,7 @@
 			<div>
 				<dt>Address</dt>
 				<dd>
-					<TruncatedValue value={String(pendingEntity.address)} />
+					<TruncatedValue value={selection.entitySelector.address} />
 				</dd>
 			</div>
 
@@ -242,7 +244,7 @@
 						<div>
 							<dt>Code hash</dt>
 							<dd>
-								<TruncatedValue value={String(codeHash)} />
+								<TruncatedValue value={codeHash} />
 							</dd>
 						</div>
 					{/if}
@@ -264,7 +266,7 @@
 						<div>
 							<dt>Code</dt>
 							<dd>
-								<TruncatedValue value={String(code)} />
+								<TruncatedValue value={code} />
 							</dd>
 						</div>
 					{/if}
@@ -274,15 +276,15 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const evmContractEvmStorageReadTimestampsViewStorageReadsResource = selection.$$storageReads}
+		{@const storageReadsResource = selection.$$storageReads}
 		<ResourceBoundary
-			resource={evmContractEvmStorageReadTimestampsViewStorageReadsResource}
+			resource={storageReadsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<EvmStorageRead_TimestampsView
-						selection={evmContractEvmStorageReadTimestampsViewStorageReadsResource}
-						countResource={evmContractEvmStorageReadTimestampsViewStorageReadsResource.count}
+						selection={storageReadsResource}
+						countResource={storageReadsResource.count}
 						title='Storage reads'
 						id='storage-reads'
 					/>

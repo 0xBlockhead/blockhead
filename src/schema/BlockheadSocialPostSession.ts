@@ -1,23 +1,12 @@
 // Generated from APP.ts. Do not edit by hand.
 
 import { entity } from '$/schema/$schema.ts'
-import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
+import { BlockheadSocialPostSessionStatus } from '$/schema/BlockheadSocialPostSessionStatus.ts'
+import { EntityFieldCardinality } from '$/schema/EntityFieldCardinality.ts'
+import { EntityFieldType } from '$/schema/EntityFieldType.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { SocialProtocol } from '$/schema/SocialProtocol.ts'
 import { type } from 'arktype'
-
-export enum BlockheadSocialPostSessionStatus {
-	Draft = 'Draft',
-	Submitted = 'Submitted',
-	Finalized = 'Finalized',
-}
-
-export enum SocialProtocol {
-	Farcaster = 'Farcaster',
-	Atproto = 'Atproto',
-	ActivityPub = 'ActivityPub',
-	Nostr = 'Nostr',
-	X = 'X',
-}
 
 export default entity({
 	entityType: EntityType.BlockheadSocialPostSession,

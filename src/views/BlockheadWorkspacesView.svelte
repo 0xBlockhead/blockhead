@@ -45,7 +45,7 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{String(blockheadWorkspace.updatedAt)}
+				{blockheadWorkspace.updatedAt}
 			{/snippet}
 		</EntityView>
 	{/snippet}

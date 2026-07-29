@@ -38,6 +38,7 @@
 >
 	{#snippet Item({ item: filecoinActorTimestamp })}
 		{@const filecoinActorTimestampSelector = filecoinActorTimestamp[EntityMetaKey.Selector]}
+		{@const actor = filecoinActorTimestampSelector.$actor}
 		<EntityView
 			entityType={EntityType.FilecoinActor_Timestamp}
 			entitySelector={filecoinActorTimestampSelector}
@@ -46,29 +47,29 @@
 					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/actor/[address=stringSegment]/(filecoinActor)/observations/[height=nonNegativeBigInt]/[tipsetKey=stringSegment]/[source=stringSegment]',
 					{
 						network: (
-							'caip2' in filecoinActorTimestampSelector.$actor.$network ?
-								String(caip2StringFromValue(filecoinActorTimestampSelector.$actor.$network.caip2))
+							'caip2' in actor.$network ?
+								caip2StringFromValue(actor.$network.caip2)
 							:
-								String(filecoinActorTimestampSelector.$actor.$network.slug)
+								actor.$network.slug
 						),
-						address: String(filecoinActorTimestampSelector.$actor.address),
+						address: actor.address,
 						height: String(filecoinActorTimestampSelector.height),
-						tipsetKey: String(filecoinActorTimestampSelector.tipsetKey),
-						source: String(filecoinActorTimestampSelector.source),
+						tipsetKey: filecoinActorTimestampSelector.tipsetKey,
+						source: filecoinActorTimestampSelector.source,
 					}
 				)
 			}
 		>
 			{#snippet Title()}
-				{String(filecoinActorTimestamp.timestampMs) || 'filecoin actor timestamp'}
+				{filecoinActorTimestamp.timestampMs}
 			{/snippet}
 
 			{#snippet Value()}
-				{String(filecoinActorTimestamp.balanceAttoFil ?? '')}
+				{filecoinActorTimestamp.balanceAttoFil ?? ''}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{String(filecoinActorTimestampSelector.height)}</span>
+				<span data-text="annotation">{filecoinActorTimestampSelector.height}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

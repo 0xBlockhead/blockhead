@@ -7,7 +7,6 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
-	import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -53,6 +52,7 @@
 >
 	{#snippet Item({ item: evmLog })}
 		{@const evmLogSelector = evmLog[EntityMetaKey.Selector]}
+		{@const transaction = evmLogSelector.$transaction}
 		<EntityView
 			entityType={EntityType.EvmLog}
 			entitySelector={evmLogSelector}
@@ -61,19 +61,19 @@
 					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(transactions)/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/(selection)/log/[indexInTransaction=nonNegativeInteger]',
 					{
 						network: (
-							'caip2' in evmLogSelector.$transaction.$network ?
-								String(caip2StringFromValue(evmLogSelector.$transaction.$network.caip2))
+							'caip2' in transaction.$network ?
+								caip2StringFromValue(transaction.$network.caip2)
 							:
-								String(evmLogSelector.$transaction.$network.slug)
+								transaction.$network.slug
 						),
-						transactionId: String(evmLogSelector.$transaction.txHash),
+						transactionId: transaction.txHash,
 						indexInTransaction: String(evmLogSelector.indexInTransaction),
 					}
 				)
 			}
 		>
 			{#snippet Title()}
-				{(String(evmLogSelector.indexInTransaction ?? '') ? 'Log #' + String(evmLogSelector.indexInTransaction ?? '') : '') || ([(String(evmLogSelector.indexInTransaction) ? 'Log #' + String(evmLogSelector.indexInTransaction) : ''), String(evmLog.data ?? '')].filter(Boolean).join(' ')) || (String(evmLogSelector.indexInTransaction) ? '#' + String(evmLogSelector.indexInTransaction) : '') || 'EVM log'}
+				{`Log #${evmLogSelector.indexInTransaction}`}
 			{/snippet}
 		</EntityView>
 	{/snippet}

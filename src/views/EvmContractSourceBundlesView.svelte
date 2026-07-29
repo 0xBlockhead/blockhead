@@ -41,11 +41,11 @@
 			entitySelector={evmContractSourceBundleSelector}
 		>
 			{#snippet Title()}
-				{[(evmContractSourceBundle.$contract.precompileName ?? ''), String(evmContractSourceBundleSelector.$contract.address)].filter(Boolean).join(' ') || 'EVM contract'}
+				{[(evmContractSourceBundle.$contract.precompileName ?? ''), evmContractSourceBundleSelector.$contract.address].filter(Boolean).join(' ') || 'EVM contract'}
 			{/snippet}
 
 			{#snippet Value()}
-				{[(evmContractSourceBundle.$contract.precompileName ?? ''), String(evmContractSourceBundleSelector.$contract.address)].filter(Boolean).join(' ') || 'EVM contract'}
+				{[(evmContractSourceBundle.$contract.precompileName ?? ''), evmContractSourceBundleSelector.$contract.address].filter(Boolean).join(' ') || 'EVM contract'}
 			{/snippet}
 		</EntityView>
 	{/snippet}

@@ -47,11 +47,11 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{String(blockheadZeroGStorageProof.verified)}
+				{blockheadZeroGStorageProof.verified}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{(blockheadZeroGStorageProof.proofKind ?? '')}</span>
+				<span data-text="annotation">{blockheadZeroGStorageProof.proofKind ?? ''}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

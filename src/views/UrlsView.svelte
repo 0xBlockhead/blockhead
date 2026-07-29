@@ -6,7 +6,6 @@
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { UrlString } from '$/schema/UrlString.ts'
 
 
 	// State
@@ -45,17 +44,17 @@
 				resolve(
 					'/(explore)/url/[url=absoluteUrl]',
 					{
-						url: encodeURIComponent(String(urlSelector.url)),
+						url: encodeURIComponent(urlSelector.url),
 					}
 				)
 			}
 		>
 			{#snippet Title()}
-				{String(urlSelector.url) || 'URL'}
+				{urlSelector.url || 'URL'}
 			{/snippet}
 
 			{#snippet Value()}
-				{String(urlSelector.url)}
+				{urlSelector.url}
 			{/snippet}
 		</EntityView>
 	{/snippet}

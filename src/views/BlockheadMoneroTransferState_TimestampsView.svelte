@@ -43,15 +43,15 @@
 			entitySelector={blockheadMoneroTransferStateTimestampSelector}
 		>
 			{#snippet Title()}
-				{String(blockheadMoneroTransferStateTimestampSelector.timestampMs) || 'blockhead monero transfer state timestamp'}
+				{blockheadMoneroTransferStateTimestampSelector.timestampMs}
 			{/snippet}
 
 			{#snippet Value()}
-				{String(blockheadMoneroTransferStateTimestamp.spent ?? '')}
+				{blockheadMoneroTransferStateTimestamp.spent ?? ''}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{String(blockheadMoneroTransferStateTimestamp.confirmations ?? '')}</span>
+				<span data-text="annotation">{blockheadMoneroTransferStateTimestamp.confirmations ?? ''}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

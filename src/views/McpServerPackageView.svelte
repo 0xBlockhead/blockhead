@@ -4,7 +4,6 @@
 	// Types/constants
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { UrlString } from '$/schema/UrlString.ts'
 
 
 	// State
@@ -17,7 +16,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.McpServerPackage> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const mcpServerPackage = $derived(selection({
 		fields: {
 			label: true,
@@ -25,7 +23,7 @@
 			repositoryUrl: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.label ?? '') || [(pendingEntity.registryServerName ?? ''), String(pendingEntity.repositoryUrl ?? '')].filter(Boolean).join(' ') || 'MCP server package')
+	const titleFallback = $derived((prefetched.label ?? '') || [(prefetched.registryServerName ?? ''), (prefetched.repositoryUrl ?? '')].filter(Boolean).join(' ') || 'MCP server package')
 
 
 	// Components
@@ -78,11 +76,11 @@
 							<dt>repository URL</dt>
 							<dd>
 								<a
-									href={String(repositoryUrl)}
+									href={repositoryUrl}
 									target="_blank"
 									rel="noreferrer noopener"
 								>
-									<TruncatedValue value={String(repositoryUrl)} />
+									<TruncatedValue value={repositoryUrl} />
 								</a>
 							</dd>
 						</div>

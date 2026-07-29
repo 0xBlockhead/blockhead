@@ -2,7 +2,8 @@
 
 import bindings from '$/sources/Lotus/bindings.ts'
 import { Source } from '$/sources/Source.ts'
-import { SourceProvider, type SourceProviderDefinition } from '$/sources/SourceProvider.ts'
+import { SourceProvider } from '$/sources/SourceProvider.ts'
+import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinition.ts'
 
 export default {
 	provider: SourceProvider.Lotus,
@@ -13,5 +14,5 @@ export default {
 			label: 'Lotus JSON-RPC',
 		},
 	],
-	bindings: bindings[Source.Lotus_JsonRpc],
+	bindings: Object.values(bindings).flat(),
 } satisfies SourceProviderDefinition

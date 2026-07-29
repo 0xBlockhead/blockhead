@@ -50,7 +50,7 @@
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{String(blockheadAgentProfile.updatedAt ?? '')}</span>
+				<span data-text="annotation">{blockheadAgentProfile.updatedAt ?? ''}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

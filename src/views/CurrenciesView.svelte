@@ -47,7 +47,7 @@
 				resolve(
 					'/(assets)/(currencies)/currency/[iso4217=iso4217]',
 					{
-						iso4217: String(currencySelector.iso4217),
+						iso4217: currencySelector.iso4217,
 					}
 				)
 			}

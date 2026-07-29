@@ -20,7 +20,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.A2aAgentSkill> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [],
 	}))
@@ -29,7 +28,7 @@
 			name: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.name ?? '') || (pendingEntity.skillId ?? '') || 'A2A agent skill')
+	const titleFallback = $derived((prefetched.name ?? '') || selection.entitySelector.skillId || 'A2A agent skill')
 
 
 	// Components
@@ -57,7 +56,6 @@
 	{#snippet Value()}
 		<A2aAgentCard_SnapshotView
 			selection={select(EntityType.A2aAgentCard_Snapshot, selection.entitySelector.$cardSnapshot)}
-			href=""
 			layout={EntityLayout.Value}
 			open={false}
 		/>
@@ -79,7 +77,7 @@
 			<div>
 				<dt>skill ID</dt>
 				<dd>
-					{pendingEntity.skillId}
+					{selection.entitySelector.skillId}
 				</dd>
 			</div>
 

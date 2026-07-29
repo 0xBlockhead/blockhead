@@ -21,13 +21,11 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.PolkadotValidator_Era> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const polkadotValidatorEra = $derived(selection({
 		fields: {
 			active: true,
 		},
 	}))
-	const titleFallback = $derived(String(pendingEntity.eraIndex ?? '') || 'polkadot validator era')
 
 
 	// Components
@@ -40,26 +38,26 @@
 <EntityView
 	entityType={EntityType.PolkadotValidator_Era}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? String(selection.entitySelector.eraIndex)}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{String(pendingEntity.eraIndex ?? '') || 'polkadot validator era'}
+		{String(selection.entitySelector.eraIndex)}
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={polkadotValidatorEra}>
 			{#snippet children(entity)}
-				{String(entity.active ?? '') || String(pendingEntity.eraIndex) || titleFallback}
+				{String(entity.active ?? '') || String(selection.entitySelector.eraIndex)}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
 		<span data-text="muted">
-			{pendingEntity.source}
+			{selection.entitySelector.source}
 		</span>
 	{/snippet}
 
@@ -79,14 +77,14 @@
 			<div>
 				<dt>era index</dt>
 				<dd>
-					{String(pendingEntity.eraIndex)}
+					{selection.entitySelector.eraIndex}
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 
@@ -165,7 +163,7 @@
 						<div>
 							<dt>commission per billion</dt>
 							<dd>
-								{String(commissionPerBillion)}
+								{commissionPerBillion}
 							</dd>
 						</div>
 					{/if}
@@ -187,7 +185,7 @@
 						<div>
 							<dt>total stake plancks</dt>
 							<dd>
-								{String(totalStakePlancks)}
+								{totalStakePlancks}
 							</dd>
 						</div>
 					{/if}
@@ -209,7 +207,7 @@
 						<div>
 							<dt>own stake plancks</dt>
 							<dd>
-								{String(ownStakePlancks)}
+								{ownStakePlancks}
 							</dd>
 						</div>
 					{/if}
@@ -231,7 +229,7 @@
 						<div>
 							<dt>nominator stake plancks</dt>
 							<dd>
-								{String(nominatorStakePlancks)}
+								{nominatorStakePlancks}
 							</dd>
 						</div>
 					{/if}
@@ -253,7 +251,7 @@
 						<div>
 							<dt>nominator count</dt>
 							<dd>
-								{String(nominatorCount)}
+								{nominatorCount}
 							</dd>
 						</div>
 					{/if}
@@ -275,7 +273,7 @@
 						<div>
 							<dt>reward points</dt>
 							<dd>
-								{String(rewardPoints)}
+								{rewardPoints}
 							</dd>
 						</div>
 					{/if}

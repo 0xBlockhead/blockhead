@@ -20,7 +20,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.CelestiaBlock> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const celestiaBlock = $derived(selection({
 		fields: {
 			height: true,
@@ -28,7 +27,6 @@
 			hash: true,
 		},
 	}))
-	const titleFallback = $derived(String(pendingEntity.height ?? '') || (pendingEntity.hash ?? '') || 'celestia block')
 
 
 	// Components
@@ -44,7 +42,7 @@
 <EntityView
 	entityType={EntityType.CelestiaBlock}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? (String(prefetched.height ?? '') || (prefetched.hash ?? '') || 'celestia block')}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -62,9 +60,9 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={celestiaBlock}>
 			{#snippet children(entity)}
-				{@const timestampMs0 = entity.timestampMs}
-				{#if timestampMs0 != null}
-					<Timestamp timestamp={Number(timestampMs0)} />
+				{@const timestampMs = entity.timestampMs}
+				{#if timestampMs != null}
+					<Timestamp timestamp={timestampMs} />
 				{/if}
 			{/snippet}
 		</ResourceBoundary>
@@ -188,7 +186,7 @@
 						<div>
 							<dt>Timestamp</dt>
 							<dd>
-								<Timestamp timestamp={Number(timestampMs)} />
+								<Timestamp timestamp={timestampMs} />
 							</dd>
 						</div>
 					{/if}
@@ -272,15 +270,15 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const celestiaBlockCelestiaBlobsViewBlobsResource = selection.$$blobs}
+		{@const blobsResource = selection.$$blobs}
 		<ResourceBoundary
-			resource={celestiaBlockCelestiaBlobsViewBlobsResource}
+			resource={blobsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<CelestiaBlobsView
-						selection={celestiaBlockCelestiaBlobsViewBlobsResource}
-						countResource={celestiaBlockCelestiaBlobsViewBlobsResource.count}
+						selection={blobsResource}
+						countResource={blobsResource.count}
 						title='blobs'
 						id='blobs'
 					/>

@@ -22,14 +22,12 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.ZeroGDaNode> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.ZeroGChainScan_Rest,
 			Source.ZeroGStorageNode_JsonRpc,
 		],
 	}))
-	const titleFallback = $derived((pendingEntity.nodeId ?? '') || 'zero g da node')
 
 
 	// Components
@@ -43,19 +41,19 @@
 <EntityView
 	entityType={EntityType.ZeroGDaNode}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? (selection.entitySelector.nodeId || 'zero g da node')}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{(pendingEntity.nodeId ?? '') || 'zero g da node'}
+		{selection.entitySelector.nodeId || 'zero g da node'}
 	{/snippet}
 
 	{#snippet Value()}
 		<NetworkView
 			selection={select(EntityType.Network, selection.entitySelector.$network)}
-			href=""
+			href={null}
 			layout={EntityLayout.Value}
 			open={false}
 		/>
@@ -96,7 +94,7 @@
 			<div>
 				<dt>node ID</dt>
 				<dd>
-					{pendingEntity.nodeId}
+					{selection.entitySelector.nodeId}
 				</dd>
 			</div>
 

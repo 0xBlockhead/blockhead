@@ -9,7 +9,8 @@ import { schema } from '$/schema/index.ts'
 import { type as arktype } from 'arktype'
 
 export const load: LayoutLoad = ({ params }) => {
-	if (!(matchStringSegment(params.did))) error(404, 'Route mapping not applicable')
+	if (!(matchStringSegment(params.did)))
+		error(404, 'Route mapping not applicable')
 
 	const atprotoActorDidSelector = parseEntitySelector(
 		schema,
@@ -18,7 +19,8 @@ export const load: LayoutLoad = ({ params }) => {
 			did: decodeURIComponent(params.did),
 		}
 	)
-	if (atprotoActorDidSelector instanceof arktype.errors) error(404, 'Invalid AtprotoActor selector')
+	if (atprotoActorDidSelector instanceof arktype.errors)
+		error(404, 'Invalid AtprotoActor selector')
 
 	return {
 		selector: atprotoActorDidSelector,

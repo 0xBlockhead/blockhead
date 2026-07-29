@@ -20,7 +20,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.CardanoAddress_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const cardanoAddressTimestamp = $derived(selection({
 		fields: {
 			timestampMs: true,
@@ -28,7 +27,7 @@
 			transactionCount: true,
 		},
 	}))
-	const titleFallback = $derived(String(pendingEntity.timestampMs ?? '') || String(pendingEntity.blockSlot ?? '') || 'Cardano address timestamp')
+	const titleFallback = $derived(String(prefetched.timestampMs ?? '') || String(selection.entitySelector.blockSlot) || 'Cardano address timestamp')
 
 
 	// Components
@@ -50,9 +49,9 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={cardanoAddressTimestamp}>
 			{#snippet children(entity)}
-				{@const timestampMs0 = entity.timestampMs}
-				{#if timestampMs0 != null}
-					<Timestamp timestamp={Number(timestampMs0)} />
+				{@const timestampMs = entity.timestampMs}
+				{#if timestampMs != null}
+					<Timestamp timestamp={timestampMs} />
 				{/if}
 			{/snippet}
 		</ResourceBoundary>
@@ -69,10 +68,10 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={cardanoAddressTimestamp}>
 			{#snippet children(entity)}
-				{@const transactionCount0 = entity.transactionCount}
-				{#if transactionCount0 != null}
+				{@const transactionCount = entity.transactionCount}
+				{#if transactionCount != null}
 					<span data-text="muted">
-						{String(transactionCount0)}
+						{transactionCount}
 					</span>
 				{/if}
 			{/snippet}
@@ -95,14 +94,14 @@
 			<div>
 				<dt>block slot</dt>
 				<dd>
-					{String(pendingEntity.blockSlot)}
+					{selection.entitySelector.blockSlot}
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 
@@ -115,7 +114,7 @@
 						<div>
 							<dt>Timestamp</dt>
 							<dd>
-								<Timestamp timestamp={Number(timestampMs)} />
+								<Timestamp timestamp={timestampMs} />
 							</dd>
 						</div>
 					{/if}
@@ -155,7 +154,7 @@
 						<div>
 							<dt>lovelace balance</dt>
 							<dd>
-								{String(lovelaceBalance)}
+								{lovelaceBalance}
 							</dd>
 						</div>
 					{/if}
@@ -177,7 +176,7 @@
 						<div>
 							<dt>native asset count</dt>
 							<dd>
-								{String(nativeAssetCount)}
+								{nativeAssetCount}
 							</dd>
 						</div>
 					{/if}
@@ -199,7 +198,7 @@
 						<div>
 							<dt>UTXO count</dt>
 							<dd>
-								{String(utxoCount)}
+								{utxoCount}
 							</dd>
 						</div>
 					{/if}
@@ -215,7 +214,7 @@
 						<div>
 							<dt>transaction count</dt>
 							<dd>
-								{String(transactionCount)}
+								{transactionCount}
 							</dd>
 						</div>
 					{/if}

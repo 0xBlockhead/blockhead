@@ -21,19 +21,16 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.BlockheadStateChannelTransfer> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const viewSelection = $derived(selection({
+	const blockheadStateChannelTransfer = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Local_Internal,
 		],
-	}))
-	const blockheadStateChannelTransfer = $derived(viewSelection({
+	})({
 		fields: {
 			timestamp: true,
 			status: true,
 		},
 	}))
-	const titleFallback = $derived(String(pendingEntity.amount ?? '') || 'blockhead state channel transfer')
 
 
 	// Components
@@ -47,19 +44,19 @@
 <EntityView
 	entityType={EntityType.BlockheadStateChannelTransfer}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? String(selection.entitySelector.amount)}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{String(pendingEntity.amount ?? '') || 'blockhead state channel transfer'}
+		{String(selection.entitySelector.amount)}
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={blockheadStateChannelTransfer}>
 			{#snippet children(entity)}
-				{entity.status || String(pendingEntity.amount) || titleFallback}
+				{entity.status || String(selection.entitySelector.amount)}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -68,7 +65,7 @@
 		<ResourceBoundary resource={blockheadStateChannelTransfer}>
 			{#snippet children(entity)}
 				<span data-text="muted">
-					<Timestamp timestamp={Number(entity.timestamp)} />
+					<Timestamp timestamp={entity.timestamp} />
 				</span>
 			{/snippet}
 		</ResourceBoundary>
@@ -90,7 +87,7 @@
 			<div>
 				<dt>turn num</dt>
 				<dd>
-					{String(pendingEntity.turnNum)}
+					{selection.entitySelector.turnNum}
 				</dd>
 			</div>
 
@@ -119,7 +116,7 @@
 			<div>
 				<dt>amount</dt>
 				<dd>
-					{String(pendingEntity.amount)}
+					{selection.entitySelector.amount}
 				</dd>
 			</div>
 
@@ -143,7 +140,7 @@
 						resource={blockheadStateChannelTransfer}
 					>
 						{#snippet children(entity)}
-							<Timestamp timestamp={Number(entity.timestamp)} />
+							<Timestamp timestamp={entity.timestamp} />
 						{/snippet}
 					</ResourceBoundary>
 				</dd>

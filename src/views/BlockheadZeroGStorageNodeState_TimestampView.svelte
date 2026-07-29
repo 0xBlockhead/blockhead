@@ -21,7 +21,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.BlockheadZeroGStorageNodeState_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Local_Internal,
@@ -33,7 +32,6 @@
 			localChunkCount: true,
 		},
 	}))
-	const titleFallback = $derived(String(pendingEntity.timestampMs ?? '') || 'blockhead zero g storage node state timestamp')
 
 
 	// Components
@@ -47,19 +45,18 @@
 <EntityView
 	entityType={EntityType.BlockheadZeroGStorageNodeState_Timestamp}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? String(selection.entitySelector.timestampMs)}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+		<Timestamp timestamp={selection.entitySelector.timestampMs} />
 	{/snippet}
 
 	{#snippet Value()}
 		<BlockheadZeroGStorageNodeStateView
 			selection={select(EntityType.BlockheadZeroGStorageNodeState, selection.entitySelector.$nodeState)}
-			href=""
 			layout={EntityLayout.Value}
 			open={false}
 		/>
@@ -68,11 +65,11 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={blockheadZeroGStorageNodeStateTimestamp}>
 			{#snippet children(entity)}
-				{@const localChunkCount0 = entity.localChunkCount}
-				{#if localChunkCount0 != null}
+				{@const localChunkCount = entity.localChunkCount}
+				{#if localChunkCount != null}
 					<span data-text="muted">
 						<NumberValue
-							value={localChunkCount0}
+							value={localChunkCount}
 						/>
 					</span>
 				{/if}
@@ -96,14 +93,14 @@
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+					<Timestamp timestamp={selection.entitySelector.timestampMs} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 
@@ -122,7 +119,7 @@
 						<div>
 							<dt>synced AT</dt>
 							<dd>
-								<Timestamp timestamp={Number(syncedAt)} />
+								<Timestamp timestamp={syncedAt} />
 							</dd>
 						</div>
 					{/if}

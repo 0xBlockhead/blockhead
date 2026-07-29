@@ -4,7 +4,6 @@
 	// Types/constants
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { UrlString } from '$/schema/UrlString.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -22,7 +21,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType._GlobalActivityPubNetwork_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Mastodon_Rest,
@@ -35,7 +33,7 @@
 			reachable: true,
 		},
 	}))
-	const titleFallback = $derived([(pendingEntity.instanceTitle ?? ''), String(pendingEntity.timestampMs ?? '')].filter(Boolean).join(' ') || 'global ActivityPub network timestamp')
+	const titleFallback = $derived([(prefetched.instanceTitle ?? ''), String(selection.entitySelector.timestampMs)].filter(Boolean).join(' ') || 'global ActivityPub network timestamp')
 
 
 	// Components
@@ -58,7 +56,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={globalActivityPubNetworkTimestamp}>
 			{#snippet children(entity)}
-				{[(entity.instanceTitle ?? ''), String(pendingEntity.timestampMs)].filter(Boolean).join(' ') || title || titleFallback}
+				{[(entity.instanceTitle ?? ''), String(selection.entitySelector.timestampMs)].filter(Boolean).join(' ') || title || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -66,7 +64,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={globalActivityPubNetworkTimestamp}>
 			{#snippet children(entity)}
-				{[String(entity.instanceOrigin ?? ''), pendingEntity.source].filter(Boolean).join(' ') || [(entity.instanceTitle ?? ''), String(pendingEntity.timestampMs)].filter(Boolean).join(' ') || titleFallback}
+				{[(entity.instanceOrigin ?? ''), selection.entitySelector.source].filter(Boolean).join(' ') || [(entity.instanceTitle ?? ''), String(selection.entitySelector.timestampMs)].filter(Boolean).join(' ') || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -74,10 +72,10 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={globalActivityPubNetworkTimestamp}>
 			{#snippet children(entity)}
-				{@const reachable0 = entity.reachable}
-				{#if reachable0 != null}
+				{@const reachable = entity.reachable}
+				{#if reachable != null}
 					<span data-text="muted">
-						{reachable0 ? 'Yes' : 'No'}
+						{reachable ? 'Yes' : 'No'}
 					</span>
 				{/if}
 			{/snippet}
@@ -100,14 +98,14 @@
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+					<Timestamp timestamp={selection.entitySelector.timestampMs} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 
@@ -121,11 +119,11 @@
 							<dt>Instance origin</dt>
 							<dd>
 								<a
-									href={String(instanceOrigin)}
+									href={instanceOrigin}
 									target="_blank"
 									rel="noreferrer noopener"
 								>
-									<TruncatedValue value={String(instanceOrigin)} />
+									<TruncatedValue value={instanceOrigin} />
 								</a>
 							</dd>
 						</div>

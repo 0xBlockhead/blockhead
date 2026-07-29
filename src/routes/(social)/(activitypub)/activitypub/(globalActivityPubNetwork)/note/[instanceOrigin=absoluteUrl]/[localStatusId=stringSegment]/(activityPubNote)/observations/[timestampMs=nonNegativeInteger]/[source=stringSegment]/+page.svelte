@@ -46,7 +46,7 @@
 
 
 <svelte:head>
-	<title>{('ActivityPub note observation')} • ActivityPub note observation • Blockhead</title>
+	<title>{'ActivityPub note observation'} • ActivityPub note observation • Blockhead</title>
 </svelte:head>
 
 

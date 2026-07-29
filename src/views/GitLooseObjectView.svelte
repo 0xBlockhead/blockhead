@@ -5,7 +5,6 @@
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 
 
 	// Context
@@ -22,8 +21,7 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.GitLooseObject> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const titleFallback = $derived(String(pendingEntity.objectId ?? '') || 'Git loose object')
+	const titleFallback = $derived(selection.entitySelector.objectId || 'Git loose object')
 
 
 	// Components
@@ -44,11 +42,11 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<TruncatedValue value={String(pendingEntity.objectId)} />
+		<TruncatedValue value={selection.entitySelector.objectId} />
 	{/snippet}
 
 	{#snippet Value()}
-		{(pendingEntity.byteSource ?? '') || String(pendingEntity.objectId ?? '') || titleFallback}
+		{selection.entitySelector.byteSource || selection.entitySelector.objectId || titleFallback}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -56,21 +54,21 @@
 			<div>
 				<dt>object ID</dt>
 				<dd>
-					<TruncatedValue value={String(pendingEntity.objectId)} />
+					<TruncatedValue value={selection.entitySelector.objectId} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>object format</dt>
 				<dd>
-					{pendingEntity.objectFormat}
+					{selection.entitySelector.objectFormat}
 				</dd>
 			</div>
 
 			<div>
 				<dt>byte source</dt>
 				<dd>
-					{pendingEntity.byteSource}
+					{selection.entitySelector.byteSource}
 				</dd>
 			</div>
 
@@ -135,7 +133,7 @@
 						<div>
 							<dt>observed AT ms</dt>
 							<dd>
-								<Timestamp timestamp={Number(observedAtMs)} />
+								<Timestamp timestamp={observedAtMs} />
 							</dd>
 						</div>
 					{/if}

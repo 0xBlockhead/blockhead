@@ -21,14 +21,13 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.Leverage> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const leverage = $derived(selection({
 		fields: {
 			liquidity: true,
 			origin: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.id ?? '') || 'leverage')
+	const titleFallback = $derived(selection.entitySelector.id || 'leverage')
 
 
 	// Components
@@ -49,13 +48,13 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{(pendingEntity.id ?? '') || 'leverage'}
+		{selection.entitySelector.id || 'leverage'}
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={leverage}>
 			{#snippet children(entity)}
-				{String(entity.liquidity) || pendingEntity.id || titleFallback}
+				{String(entity.liquidity) || selection.entitySelector.id || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -63,10 +62,10 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={leverage}>
 			{#snippet children(entity)}
-				{@const origin0 = entity.origin}
-				{#if origin0 != null}
+				{@const origin = entity.origin}
+				{#if origin != null}
 					<span data-text="muted">
-						{origin0}
+						{origin}
 					</span>
 				{/if}
 			{/snippet}
@@ -78,7 +77,7 @@
 			<div>
 				<dt>ID</dt>
 				<dd>
-					{pendingEntity.id}
+					{selection.entitySelector.id}
 				</dd>
 			</div>
 
@@ -113,7 +112,7 @@
 						<div>
 							<dt>Created at timestamp</dt>
 							<dd>
-								<Timestamp timestamp={Number(createdAtTimestamp)} />
+								<Timestamp timestamp={createdAtTimestamp} />
 							</dd>
 						</div>
 					{/if}
@@ -135,7 +134,7 @@
 						}
 					>
 						{#snippet children(entity)}
-							{String(entity.tickLower)}
+							{entity.tickLower}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -154,7 +153,7 @@
 						}
 					>
 						{#snippet children(entity)}
-							{String(entity.tickUpper)}
+							{entity.tickUpper}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -167,7 +166,7 @@
 						resource={leverage}
 					>
 						{#snippet children(entity)}
-							{String(entity.liquidity)}
+							{entity.liquidity}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -186,7 +185,7 @@
 						}
 					>
 						{#snippet children(entity)}
-							{String(entity.token0Owed)}
+							{entity.token0Owed}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -205,7 +204,7 @@
 						}
 					>
 						{#snippet children(entity)}
-							{String(entity.token1Owed)}
+							{entity.token1Owed}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -226,7 +225,7 @@
 						<div>
 							<dt>Token ID</dt>
 							<dd>
-								{String(tokenId)}
+								{tokenId}
 							</dd>
 						</div>
 					{/if}

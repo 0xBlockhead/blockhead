@@ -4,7 +4,6 @@
 	// Types/constants
 	import type { PageProps } from './$types.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { EvmInternalCallType } from '$/constants/Evm.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -43,7 +42,7 @@
 
 
 <svelte:head>
-	<title>{(data.title ?? (pageSelection.entity == null ? (String(pageSelection.entitySelector.indexInTransaction ?? '') ? 'Internal #' + String(pageSelection.entitySelector.indexInTransaction ?? '') : '') || 'EVM internal transfer' : (String(pageSelection.entitySelector.indexInTransaction ?? '') ? 'Internal #' + String(pageSelection.entitySelector.indexInTransaction ?? '') : '') || 'EVM internal transfer'))} • EVM internal transfer • Blockhead</title>
+	<title>{data.title ?? (pageSelection.entity == null ? `Internal #${pageSelection.entitySelector.indexInTransaction}` : (String(pageSelection.entitySelector.indexInTransaction ?? '') ? 'Internal #' + String(pageSelection.entitySelector.indexInTransaction ?? '') : '') || 'EVM internal transfer')} • EVM internal transfer • Blockhead</title>
 </svelte:head>
 
 

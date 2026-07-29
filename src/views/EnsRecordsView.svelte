@@ -43,8 +43,8 @@
 				resolve(
 					'/(explore)/(ens)/ens/(globalEnsNetwork)/name/[ensName=stringSegment]/(ensName)/record/[recordId=stringSegment]',
 					{
-						ensName: encodeURIComponent(String(ensRecordSelector.$name.name)),
-						recordId: encodeURIComponent(String(ensRecordSelector.recordKey)),
+						ensName: encodeURIComponent(ensRecordSelector.$name.name),
+						recordId: encodeURIComponent(ensRecordSelector.recordKey),
 					}
 				)
 			}

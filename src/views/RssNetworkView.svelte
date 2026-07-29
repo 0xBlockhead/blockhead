@@ -6,7 +6,6 @@
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { stringify } from 'devalue'
-	import { UrlString } from '$/schema/UrlString.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -21,13 +20,11 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.RssNetwork> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const viewSelection = $derived(selection({
+	const rssNetwork = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Constants_Internal,
 		],
-	}))
-	const rssNetwork = $derived(viewSelection({
+	})({
 		fields: {
 			protocolName: true,
 			homeUrl: true,
@@ -36,7 +33,7 @@
 			relationshipModel: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.protocolName ?? '') || 'RSS / Atom')
+	const titleFallback = $derived((prefetched.protocolName ?? '') || 'RSS / Atom')
 	const viewDomId = $derived('rss-network-' + encodeURIComponent(stringify(selection.entitySelector)))
 
 
@@ -55,12 +52,15 @@
 	id={viewDomId}
 	title={title ?? titleFallback}
 	href={
-		href ?? (
-			selection.entitySelector.scope === 'RssNetwork' ?
-				resolve('/(social)/(rss)/rss')
-			:
-				undefined
-		)
+		href === undefined ?
+			(
+				selection.entitySelector.scope === 'RssNetwork' ?
+					resolve('/(social)/(rss)/rss')
+				:
+					undefined
+			)
+		:
+			href ?? undefined
 	}
 	{layout}
 	bind:open
@@ -75,7 +75,7 @@
 	{/snippet}
 
 	{#snippet Value()}
-		{(pendingEntity.protocolName ?? '') || titleFallback}
+		{(prefetched.protocolName ?? '') || titleFallback}
 	{/snippet}
 
 	{#snippet TypeAnnotationTooltip()}
@@ -109,11 +109,11 @@
 					>
 						{#snippet children(entity)}
 							<a
-								href={String(entity.homeUrl)}
+								href={entity.homeUrl}
 								target="_blank"
 								rel="noreferrer noopener"
 							>
-								<TruncatedValue value={String(entity.homeUrl)} />
+								<TruncatedValue value={entity.homeUrl} />
 							</a>
 						{/snippet}
 					</ResourceBoundary>
@@ -132,11 +132,11 @@
 							<dt>Docs URL</dt>
 							<dd>
 								<a
-									href={String(docsUrl)}
+									href={docsUrl}
 									target="_blank"
 									rel="noreferrer noopener"
 								>
-									<TruncatedValue value={String(docsUrl)} />
+									<TruncatedValue value={docsUrl} />
 								</a>
 							</dd>
 						</div>

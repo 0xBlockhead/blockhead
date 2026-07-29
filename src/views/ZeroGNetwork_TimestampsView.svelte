@@ -50,11 +50,11 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{String(zeroGNetworkTimestampSelector.timestampMs)}
+				{zeroGNetworkTimestampSelector.timestampMs}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{String(zeroGNetworkTimestamp.storageTransactionCount ?? '')}</span>
+				<span data-text="annotation">{zeroGNetworkTimestamp.storageTransactionCount ?? ''}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

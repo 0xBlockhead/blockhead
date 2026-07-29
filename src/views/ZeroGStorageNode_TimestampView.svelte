@@ -21,13 +21,11 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.ZeroGStorageNode_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.ZeroGStorageScan_Rest,
 		],
 	}))
-	const titleFallback = 'zero g storage node timestamp'
 
 
 	// Components
@@ -41,7 +39,7 @@
 <EntityView
 	entityType={EntityType.ZeroGStorageNode_Timestamp}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? 'zero g storage node timestamp'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -49,14 +47,13 @@
 	{#snippet Title()}
 		<ZeroGStorageNodeView
 			selection={select(EntityType.ZeroGStorageNode, selection.entitySelector.$storageNode)}
-			href=""
 			layout={EntityLayout.Title}
 			open={false}
 		/>
 	{/snippet}
 
 	{#snippet Value()}
-		<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+		<Timestamp timestamp={selection.entitySelector.timestampMs} />
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -75,14 +72,14 @@
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+					<Timestamp timestamp={selection.entitySelector.timestampMs} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 		</dl>

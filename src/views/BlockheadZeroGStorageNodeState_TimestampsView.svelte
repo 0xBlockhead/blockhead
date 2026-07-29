@@ -52,15 +52,15 @@
 			entitySelector={blockheadZeroGStorageNodeStateTimestampSelector}
 		>
 			{#snippet Title()}
-				{String(blockheadZeroGStorageNodeStateTimestampSelector.timestampMs) || 'blockhead zero g storage node state timestamp'}
+				{blockheadZeroGStorageNodeStateTimestampSelector.timestampMs}
 			{/snippet}
 
 			{#snippet Value()}
-				{String(blockheadZeroGStorageNodeStateTimestampSelector.$nodeState.nodeId) || 'blockhead zero g storage node state'}
+				{blockheadZeroGStorageNodeStateTimestampSelector.$nodeState.nodeId || 'blockhead zero g storage node state'}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{String(blockheadZeroGStorageNodeStateTimestamp.localChunkCount ?? '')}</span>
+				<span data-text="annotation">{blockheadZeroGStorageNodeStateTimestamp.localChunkCount ?? ''}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

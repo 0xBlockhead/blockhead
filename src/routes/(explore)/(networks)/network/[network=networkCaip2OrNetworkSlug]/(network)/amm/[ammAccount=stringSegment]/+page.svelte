@@ -33,7 +33,7 @@
 
 
 <svelte:head>
-	<title>{(data.title ?? ('XRPL AMM'))} • XRPL AMM • Blockhead</title>
+	<title>{data.title ?? 'XRPL AMM'} • XRPL AMM • Blockhead</title>
 </svelte:head>
 
 

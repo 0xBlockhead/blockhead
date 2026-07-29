@@ -22,14 +22,12 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.ZeroGDaQuorum> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.ZeroGChainScan_Rest,
 			Source.ZeroGStorageNode_JsonRpc,
 		],
 	}))
-	const titleFallback = $derived((pendingEntity.quorumId ?? '') || 'zero g da quorum')
 
 
 	// Components
@@ -43,19 +41,19 @@
 <EntityView
 	entityType={EntityType.ZeroGDaQuorum}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? (selection.entitySelector.quorumId || 'zero g da quorum')}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{(pendingEntity.quorumId ?? '') || 'zero g da quorum'}
+		{selection.entitySelector.quorumId || 'zero g da quorum'}
 	{/snippet}
 
 	{#snippet Value()}
 		<NetworkView
 			selection={select(EntityType.Network, selection.entitySelector.$network)}
-			href=""
+			href={null}
 			layout={EntityLayout.Value}
 			open={false}
 		/>
@@ -96,7 +94,7 @@
 			<div>
 				<dt>quorum ID</dt>
 				<dd>
-					{pendingEntity.quorumId}
+					{selection.entitySelector.quorumId}
 				</dd>
 			</div>
 
@@ -145,15 +143,15 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const zeroGDaQuorumZeroGDaNodesViewDaNodesResource = selection.$$daNodes}
+		{@const daNodesResource = selection.$$daNodes}
 		<ResourceBoundary
-			resource={zeroGDaQuorumZeroGDaNodesViewDaNodesResource}
+			resource={daNodesResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<ZeroGDaNodesView
-						selection={zeroGDaQuorumZeroGDaNodesViewDaNodesResource}
-						countResource={zeroGDaQuorumZeroGDaNodesViewDaNodesResource.count}
+						selection={daNodesResource}
+						countResource={daNodesResource.count}
 						title='DA nodes'
 						id='da-nodes'
 					/>

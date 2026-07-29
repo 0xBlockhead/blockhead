@@ -3,8 +3,8 @@ import {
 	defineResolver,
 } from '$/resolvers/defineResolver.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import { AssetInstanceKind } from '$/schema/AssetInstance.ts'
-import { MediaType } from '$/schema/Media.ts'
+import { AssetInstanceKind } from '$/schema/AssetInstanceKind.ts'
+import { MediaType } from '$/schema/MediaType.ts'
 import { Source } from '$/sources/Source.ts'
 
 const trustWalletChainsByNetworkSlug = [

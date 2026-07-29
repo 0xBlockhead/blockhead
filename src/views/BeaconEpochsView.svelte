@@ -38,6 +38,7 @@
 >
 	{#snippet Item({ item: beaconEpoch })}
 		{@const beaconEpochSelector = beaconEpoch[EntityMetaKey.Selector]}
+		{@const network = beaconEpochSelector.$network}
 		<EntityView
 			entityType={EntityType.BeaconEpoch}
 			entitySelector={beaconEpochSelector}
@@ -46,10 +47,10 @@
 					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/epoch/[epoch=nonNegativeInteger]',
 					{
 						network: (
-							'caip2' in beaconEpochSelector.$network ?
-								String(caip2StringFromValue(beaconEpochSelector.$network.caip2))
+							'caip2' in network ?
+								caip2StringFromValue(network.caip2)
 							:
-								String(beaconEpochSelector.$network.slug)
+								network.slug
 						),
 						epoch: String(beaconEpochSelector.epoch),
 					}
@@ -57,7 +58,7 @@
 			}
 		>
 			{#snippet Title()}
-				{(String(beaconEpochSelector.epoch ?? '') ? 'Epoch #' + String(beaconEpochSelector.epoch ?? '') : '') || 'beacon epoch'}
+				{`Epoch #${beaconEpochSelector.epoch}`}
 			{/snippet}
 		</EntityView>
 	{/snippet}

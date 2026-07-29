@@ -5,8 +5,6 @@
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { UrlString } from '$/schema/UrlString.ts'
-	import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 
 
 	// State
@@ -46,7 +44,7 @@
 			entitySelector={blockheadLogosBlockchainWalletKeyStateSelector}
 		>
 			{#snippet Title()}
-				{String(blockheadLogosBlockchainWalletKeyStateSelector.publicKey) || 'blockhead Logos blockchain wallet key state'}
+				{blockheadLogosBlockchainWalletKeyStateSelector.publicKey || 'blockhead Logos blockchain wallet key state'}
 			{/snippet}
 
 			{#snippet Value()}

@@ -43,9 +43,9 @@
 				resolve(
 					'/(explore)/(ens)/ens/(globalEnsNetwork)/name/[ensName=stringSegment]/(ensName)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
 					{
-						ensName: encodeURIComponent(String(ensNameTimestampSelector.$name.name)),
+						ensName: encodeURIComponent(ensNameTimestampSelector.$name.name),
 						timestampMs: String(ensNameTimestampSelector.timestampMs),
-						source: String(ensNameTimestampSelector.source),
+						source: ensNameTimestampSelector.source,
 					}
 				)
 			}
@@ -55,7 +55,7 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{String(ensNameTimestampSelector.timestampMs)}
+				{ensNameTimestampSelector.timestampMs}
 			{/snippet}
 		</EntityView>
 	{/snippet}

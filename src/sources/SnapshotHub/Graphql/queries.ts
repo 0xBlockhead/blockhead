@@ -1,9 +1,6 @@
-import {
-	firstHttpUrlForBinding,
-	sourceFetch,
-} from '$/sources/_runtime/http.ts'
+import { firstHttpUrlForBinding } from '$/sources/_runtime/http.ts'
+import { graphql as queryGraphql } from '$/sources/_shared/wire/Graphql/client.ts'
 import type {
-	SnapshotHubGraphqlResponse,
 	SnapshotHubObservation,
 	SnapshotHubPage,
 	SnapshotHubProposal,
@@ -153,43 +150,6 @@ const assertPage = ({
 		throw new Error('SnapshotHub_Graphql: page offset must be from 0 through 1000000')
 }
 
-const readBoundedResponse = async (
-	response: Response
-) => {
-	const declaredLength = Number(response.headers.get('content-length'))
-	if (
-		Number.isFinite(declaredLength)
-		&& declaredLength > maximumSnapshotHubGraphqlResponseBytes
-	)
-		throw new Error('SnapshotHub_Graphql: response exceeds byte limit')
-	if (response.body == null)
-		throw new Error('SnapshotHub_Graphql: response body is missing')
-
-	const reader = response.body.getReader()
-	const chunks: Uint8Array[] = []
-	let byteLength = 0
-
-	for (;;) {
-		const { done, value } = await reader.read()
-		if (done)
-			break
-		byteLength += value.byteLength
-		if (byteLength > maximumSnapshotHubGraphqlResponseBytes) {
-			await reader.cancel()
-			throw new Error('SnapshotHub_Graphql: response exceeds byte limit')
-		}
-		chunks.push(value)
-	}
-
-	const bytes = new Uint8Array(byteLength)
-	let offset = 0
-	for (const chunk of chunks) {
-		bytes.set(chunk, offset)
-		offset += chunk.byteLength
-	}
-	return new TextDecoder().decode(bytes)
-}
-
 const graphql = async <_Data>({
 	binding,
 	query,
@@ -199,32 +159,16 @@ const graphql = async <_Data>({
 	query: string
 	variables: JsonValue
 }) => {
-	const response = await sourceFetch(
+	const data = await queryGraphql<_Data>({
 		binding,
-		firstHttpUrlForBinding(binding),
-		{
-			method: 'POST',
-			headers: {
-				accept: 'application/json',
-				'content-type': 'application/json',
-			},
-			body: JSON.stringify({
-				query,
-				variables,
-			}),
-		}
-	)
-	const responseText = await readBoundedResponse(response)
-	if (!response.ok)
-		throw new Error(`Snapshot Hub GraphQL: ${response.status} ${response.statusText}`)
-	const payload = JSON.parse(
-		responseText
-	) as SnapshotHubGraphqlResponse<_Data>
-	if (payload.errors?.[0]?.message != null)
-		throw new Error(`SnapshotHub_Graphql: ${payload.errors[0].message}`)
-	if (payload.data == null)
+		maximumResponseBytes: maximumSnapshotHubGraphqlResponseBytes,
+		query,
+		variables,
+	})
+	if (data == null)
 		throw new Error('SnapshotHub_Graphql: response is missing data')
-	return payload.data
+
+	return data
 }
 
 const observation = <_Value>(

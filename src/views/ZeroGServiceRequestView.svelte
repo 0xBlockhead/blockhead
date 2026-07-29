@@ -22,7 +22,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.ZeroGServiceRequest> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.ZeroGChain_JsonRpc,
@@ -30,7 +29,6 @@
 			Source.ZeroGStorageScan_Rest,
 		],
 	}))
-	const titleFallback = $derived((pendingEntity.requestId ?? '') || 'zero g service request')
 
 
 	// Components
@@ -45,19 +43,18 @@
 <EntityView
 	entityType={EntityType.ZeroGServiceRequest}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? (selection.entitySelector.requestId || 'zero g service request')}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{(pendingEntity.requestId ?? '') || 'zero g service request'}
+		{selection.entitySelector.requestId || 'zero g service request'}
 	{/snippet}
 
 	{#snippet Value()}
 		<ZeroGServiceProviderView
 			selection={select(EntityType.ZeroGServiceProvider, selection.entitySelector.$serviceProvider)}
-			href=""
 			layout={EntityLayout.Value}
 			open={false}
 		/>
@@ -98,7 +95,7 @@
 			<div>
 				<dt>request ID</dt>
 				<dd>
-					{pendingEntity.requestId}
+					{selection.entitySelector.requestId}
 				</dd>
 			</div>
 

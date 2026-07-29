@@ -44,7 +44,7 @@
 
 
 <svelte:head>
-	<title>{(data.title ?? (pageSelection.entity == null ? 'MEV builder timestamp' : ([(String(pageSelection.entity.deliveredPayloadCount ?? '') ? String(pageSelection.entity.deliveredPayloadCount ?? '') + ' payloads' : ''), (String(pageSelection.entity.deliveredValueWei ?? '') ? String(pageSelection.entity.deliveredValueWei ?? '') + ' wei' : '')].filter(Boolean).join(' ')) || 'MEV builder timestamp'))} • MEV builder timestamp • Blockhead</title>
+	<title>{data.title ?? (pageSelection.entity == null ? 'MEV builder timestamp' : [(pageSelection.entity.deliveredPayloadCount != null ? String(pageSelection.entity.deliveredPayloadCount) + ' payloads' : ''), (pageSelection.entity.deliveredValueWei != null ? String(pageSelection.entity.deliveredValueWei) + ' wei' : '')].filter(Boolean).join(' ') || 'MEV builder timestamp')} • MEV builder timestamp • Blockhead</title>
 </svelte:head>
 
 

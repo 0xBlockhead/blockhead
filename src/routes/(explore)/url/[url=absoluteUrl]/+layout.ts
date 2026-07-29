@@ -9,7 +9,8 @@ import UrlSchema from '$/schema/Url.ts'
 import { type as arktype } from 'arktype'
 
 export const load: LayoutLoad = ({ params }) => {
-	if (!(matchAbsoluteUrl(params.url))) error(404, 'Route mapping not applicable')
+	if (!(matchAbsoluteUrl(params.url)))
+		error(404, 'Route mapping not applicable')
 
 	const urlUrlSelector = parseEntitySelector(
 		schema,
@@ -18,7 +19,8 @@ export const load: LayoutLoad = ({ params }) => {
 			url: decodeURIComponent(params.url),
 		}
 	)
-	if (urlUrlSelector instanceof arktype.errors) error(404, 'Invalid Url selector')
+	if (urlUrlSelector instanceof arktype.errors)
+		error(404, 'Invalid Url selector')
 
 	return {
 		selector: urlUrlSelector,

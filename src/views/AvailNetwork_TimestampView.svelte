@@ -20,14 +20,12 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.AvailNetwork_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const availNetworkTimestamp = $derived(selection({
 		fields: {
 			latestBlockNumber: true,
 			health: true,
 		},
 	}))
-	const titleFallback = $derived(String(pendingEntity.timestampMs ?? '') || 'avail network timestamp')
 
 
 	// Components
@@ -42,22 +40,22 @@
 <EntityView
 	entityType={EntityType.AvailNetwork_Timestamp}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? String(selection.entitySelector.timestampMs)}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+		<Timestamp timestamp={selection.entitySelector.timestampMs} />
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={availNetworkTimestamp}>
 			{#snippet children(entity)}
-				{@const latestBlockNumber0 = entity.latestBlockNumber}
-				{#if latestBlockNumber0 != null}
+				{@const latestBlockNumber = entity.latestBlockNumber}
+				{#if latestBlockNumber != null}
 					<NumberValue
-						value={latestBlockNumber0}
+						value={latestBlockNumber}
 					/>
 				{/if}
 			{/snippet}
@@ -68,12 +66,12 @@
 		<ResourceBoundary resource={availNetworkTimestamp}>
 			{#snippet children(entity)}
 				<span data-text="muted">
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</span>
-				{@const health1 = entity.health}
-				{#if health1 != null}
+				{@const health = entity.health}
+				{#if health != null}
 					<span data-text="muted">
-						{health1}
+						{health}
 					</span>
 				{/if}
 			{/snippet}
@@ -96,14 +94,14 @@
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+					<Timestamp timestamp={selection.entitySelector.timestampMs} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 

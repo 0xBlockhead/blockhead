@@ -21,14 +21,12 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.BridgeRouteQuoteStep> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const bridgeRouteQuoteStep = $derived(selection({
 		fields: {
 			tool: true,
 			stepType: true,
 		},
 	}))
-	const titleFallback = $derived((String(pendingEntity.indexInQuote ?? '') ? 'Step #' + String(pendingEntity.indexInQuote ?? '') : '') || 'bridge route quote step')
 
 
 	// Components
@@ -43,8 +41,8 @@
 <EntityView
 	entityType={EntityType.BridgeRouteQuoteStep}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
-	idDragPlainText={String(pendingEntity.indexInQuote ?? '')}
+	title={title ?? `Step #${selection.entitySelector.indexInQuote}`}
+	idDragPlainText={String(selection.entitySelector.indexInQuote)}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -53,30 +51,30 @@
 		<span data-row="inline align-center gap-2 wrap">
 			<span>Step </span>
 			<span data-badge="small">
-				#{String(pendingEntity.indexInQuote)}
+				#{selection.entitySelector.indexInQuote}
 			</span>
 		</span>
 	{/snippet}
 
 	{#snippet Value()}
 		<span data-badge="small">
-			#{String(pendingEntity.indexInQuote)}
+			#{selection.entitySelector.indexInQuote}
 		</span>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={bridgeRouteQuoteStep}>
 			{#snippet children(entity)}
-				{@const tool0 = entity.tool}
-				{#if tool0 != null}
+				{@const tool = entity.tool}
+				{#if tool != null}
 					<span data-text="muted">
-						{tool0}
+						{tool}
 					</span>
 				{/if}
-				{@const stepType1 = entity.stepType}
-				{#if stepType1 != null}
+				{@const stepType = entity.stepType}
+				{#if stepType != null}
 					<span data-text="muted">
-						{stepType1}
+						{stepType}
 					</span>
 				{/if}
 			{/snippet}
@@ -88,7 +86,7 @@
 			<div>
 				<dt>index in quote</dt>
 				<dd>
-					{String(pendingEntity.indexInQuote)}
+					{selection.entitySelector.indexInQuote}
 				</dd>
 			</div>
 

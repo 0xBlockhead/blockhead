@@ -21,7 +21,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.DydxChainMarket_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.DydxIndexer_Rest,
@@ -33,7 +32,6 @@
 			status: true,
 		},
 	}))
-	const titleFallback = $derived(String(pendingEntity.timestampMs ?? '') || 'dydx chain market timestamp')
 
 
 	// Components
@@ -47,19 +45,19 @@
 <EntityView
 	entityType={EntityType.DydxChainMarket_Timestamp}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? String(selection.entitySelector.timestampMs)}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+		<Timestamp timestamp={selection.entitySelector.timestampMs} />
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={dydxChainMarketTimestamp}>
 			{#snippet children(entity)}
-				{(entity.status ?? '') || String(pendingEntity.timestampMs) || titleFallback}
+				{(entity.status ?? '') || String(selection.entitySelector.timestampMs)}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -80,14 +78,14 @@
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+					<Timestamp timestamp={selection.entitySelector.timestampMs} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 
@@ -124,7 +122,7 @@
 						<div>
 							<dt>oracle price</dt>
 							<dd>
-								{String(oraclePrice)}
+								{oraclePrice}
 							</dd>
 						</div>
 					{/if}
@@ -170,7 +168,7 @@
 						<div>
 							<dt>open interest</dt>
 							<dd>
-								{String(openInterest)}
+								{openInterest}
 							</dd>
 						</div>
 					{/if}
@@ -192,7 +190,7 @@
 						<div>
 							<dt>next funding at ms</dt>
 							<dd>
-								<Timestamp timestamp={Number(nextFundingAtMs)} />
+								<Timestamp timestamp={nextFundingAtMs} />
 							</dd>
 						</div>
 					{/if}

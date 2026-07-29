@@ -9,7 +9,8 @@ import { schema } from '$/schema/index.ts'
 import { type as arktype } from 'arktype'
 
 export const load: LayoutLoad = ({ params }) => {
-	if (!(matchFarcasterFid(params.userId))) error(404, 'Route mapping not applicable')
+	if (!(matchFarcasterFid(params.userId)))
+		error(404, 'Route mapping not applicable')
 
 	const farcasterUserFidSelector = parseEntitySelector(
 		schema,
@@ -18,7 +19,8 @@ export const load: LayoutLoad = ({ params }) => {
 			fid: Number(params.userId),
 		}
 	)
-	if (farcasterUserFidSelector instanceof arktype.errors) error(404, 'Invalid FarcasterUser selector')
+	if (farcasterUserFidSelector instanceof arktype.errors)
+		error(404, 'Invalid FarcasterUser selector')
 
 	return {
 		selector: farcasterUserFidSelector,

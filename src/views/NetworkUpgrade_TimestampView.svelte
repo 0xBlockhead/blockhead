@@ -20,14 +20,12 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.NetworkUpgrade_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const networkUpgradeTimestamp = $derived(selection({
 		fields: {
 			status: true,
 			activationHeight: true,
 		},
 	}))
-	const titleFallback = $derived(String(pendingEntity.timestampMs ?? '') || 'network upgrade observation')
 
 
 	// Components
@@ -41,19 +39,19 @@
 <EntityView
 	entityType={EntityType.NetworkUpgrade_Timestamp}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? String(selection.entitySelector.timestampMs)}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+		<Timestamp timestamp={selection.entitySelector.timestampMs} />
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={networkUpgradeTimestamp}>
 			{#snippet children(entity)}
-				{(entity.status ?? '') || String(pendingEntity.timestampMs) || titleFallback}
+				{(entity.status ?? '') || String(selection.entitySelector.timestampMs)}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -61,11 +59,11 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={networkUpgradeTimestamp}>
 			{#snippet children(entity)}
-				{@const activationHeight0 = entity.activationHeight}
-				{#if activationHeight0 != null}
+				{@const activationHeight = entity.activationHeight}
+				{#if activationHeight != null}
 					<span data-text="muted">
 						<NumberValue
-							value={activationHeight0}
+							value={activationHeight}
 						/>
 					</span>
 				{/if}
@@ -89,14 +87,14 @@
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+					<Timestamp timestamp={selection.entitySelector.timestampMs} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 
@@ -149,7 +147,7 @@
 						<div>
 							<dt>Activation timestamp</dt>
 							<dd>
-								<Timestamp timestamp={Number(activationTimestampMs)} />
+								<Timestamp timestamp={activationTimestampMs} />
 							</dd>
 						</div>
 					{/if}

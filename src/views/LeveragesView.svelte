@@ -47,11 +47,11 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{String(leverage.liquidity)}
+				{leverage.liquidity}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{(leverage.origin ?? '')}</span>
+				<span data-text="annotation">{leverage.origin ?? ''}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

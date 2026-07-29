@@ -1,16 +1,12 @@
 // Generated from APP.ts. Do not edit by hand.
 
 import { entity } from '$/schema/$schema.ts'
-import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
+import { EntityFieldCardinality } from '$/schema/EntityFieldCardinality.ts'
+import { EntityFieldType } from '$/schema/EntityFieldType.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { ZcashShieldedPoolKind } from '$/schema/ZcashShieldedPoolKind.ts'
 import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
-
-export enum ZcashShieldedPoolKind {
-	Sprout = 'sprout',
-	Sapling = 'sapling',
-	Orchard = 'orchard',
-}
 
 export default entity({
 	entityType: EntityType.ZcashShieldedPool,

@@ -21,8 +21,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.MoveModule> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const titleFallback = $derived((pendingEntity.moduleName ?? '') || 'move module')
 	const viewDomId = $derived('move-module-' + encodeURIComponent(stringify(selection.entitySelector)))
 
 
@@ -42,17 +40,17 @@
 	entityType={EntityType.MoveModule}
 	entitySelector={selection.entitySelector}
 	id={viewDomId}
-	title={title ?? titleFallback}
+	title={title ?? (selection.entitySelector.moduleName || 'move module')}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{(pendingEntity.moduleName ?? '') || 'move module'}
+		{selection.entitySelector.moduleName || 'move module'}
 	{/snippet}
 
 	{#snippet Value()}
-		<TruncatedValue value={pendingEntity.address} />
+		<TruncatedValue value={selection.entitySelector.address} />
 	{/snippet}
 
 	{#snippet HeadingAfter()}
@@ -81,14 +79,14 @@
 			<div>
 				<dt>Address</dt>
 				<dd>
-					<TruncatedValue value={pendingEntity.address} />
+					<TruncatedValue value={selection.entitySelector.address} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>module name</dt>
 				<dd>
-					{pendingEntity.moduleName}
+					{selection.entitySelector.moduleName}
 				</dd>
 			</div>
 		</dl>

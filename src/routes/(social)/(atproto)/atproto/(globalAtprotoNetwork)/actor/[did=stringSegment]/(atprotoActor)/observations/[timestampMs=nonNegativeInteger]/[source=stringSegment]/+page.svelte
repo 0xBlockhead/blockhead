@@ -50,7 +50,7 @@
 
 
 <svelte:head>
-	<title>{(pageSelection.entity == null ? String(pageSelection.entitySelector.timestampMs ?? '') || 'AT Protocol account observation' : [(pageSelection.entity.displayName ?? ''), pageSelection.entity.handle].filter(Boolean).join(' ') || String(pageSelection.entitySelector.timestampMs) || 'AT Protocol account observation')} • AT Protocol account observation • Blockhead</title>
+	<title>{pageSelection.entity == null ? String(pageSelection.entitySelector.timestampMs ?? '') || 'AT Protocol account observation' : [(pageSelection.entity.displayName ?? ''), pageSelection.entity.handle].filter(Boolean).join(' ') || String(pageSelection.entitySelector.timestampMs) || 'AT Protocol account observation'} • AT Protocol account observation • Blockhead</title>
 </svelte:head>
 
 

@@ -45,7 +45,7 @@
 				resolve(
 					'/(social)/(atproto)/atproto/(globalAtprotoNetwork)/actor/[did=stringSegment]',
 					{
-						did: encodeURIComponent(String(atprotoActor.did)),
+						did: encodeURIComponent(atprotoActor.did),
 					}
 				)
 			}

@@ -5,7 +5,6 @@
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { stringify } from 'devalue'
-	import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 
 
 	// Context
@@ -22,14 +21,13 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.AlgorandTealProgram> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const algorandTealProgram = $derived(selection({
 		fields: {
 			programKind: true,
 			tealVersion: true,
 		},
 	}))
-	const titleFallback = $derived(String(pendingEntity.programHash ?? '') || 'algorand teal program')
+	const titleFallback = $derived(selection.entitySelector.programHash || 'algorand teal program')
 	const viewDomId = $derived('algorand-teal-program-' + encodeURIComponent(stringify(selection.entitySelector)))
 
 
@@ -55,13 +53,13 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{String(pendingEntity.programHash ?? '') || 'algorand teal program'}
+		{selection.entitySelector.programHash || 'algorand teal program'}
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={algorandTealProgram}>
 			{#snippet children(entity)}
-				{(entity.programKind ?? '') || String(pendingEntity.programHash) || titleFallback}
+				{(entity.programKind ?? '') || selection.entitySelector.programHash || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -69,10 +67,10 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={algorandTealProgram}>
 			{#snippet children(entity)}
-				{@const tealVersion0 = entity.tealVersion}
-				{#if tealVersion0 != null}
+				{@const tealVersion = entity.tealVersion}
+				{#if tealVersion != null}
 					<span data-text="muted">
-						{String(tealVersion0)}
+						{tealVersion}
 					</span>
 				{/if}
 			{/snippet}
@@ -95,7 +93,7 @@
 			<div>
 				<dt>program hash</dt>
 				<dd>
-					<TruncatedValue value={String(pendingEntity.programHash)} />
+					<TruncatedValue value={selection.entitySelector.programHash} />
 				</dd>
 			</div>
 
@@ -124,7 +122,7 @@
 						<div>
 							<dt>teal version</dt>
 							<dd>
-								{String(tealVersion)}
+								{tealVersion}
 							</dd>
 						</div>
 					{/if}

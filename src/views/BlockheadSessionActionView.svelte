@@ -23,13 +23,11 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.BlockheadSessionAction> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const viewSelection = $derived(selection({
+	const blockheadSessionAction = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Local_Internal,
 		],
-	}))
-	const blockheadSessionAction = $derived(viewSelection({
+	})({
 		fields: {
 			indexInSequence: true,
 			actionType: true,
@@ -38,7 +36,7 @@
 			selectedProtocol: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.actionType ?? '') || 'blockhead session action')
+	const titleFallback = $derived((prefetched.actionType ?? '') || 'blockhead session action')
 	const viewDomId = $derived('blockhead-session-action-' + encodeURIComponent(stringify(selection.entitySelector)))
 
 
@@ -118,7 +116,7 @@
 			<div>
 				<dt>action ID</dt>
 				<dd>
-					{pendingEntity.actionId}
+					{selection.entitySelector.actionId}
 				</dd>
 			</div>
 
@@ -175,7 +173,7 @@
 						resource={blockheadSessionAction}
 					>
 						{#snippet children(entity)}
-							<Timestamp timestamp={Number(entity.createdAt)} />
+							<Timestamp timestamp={entity.createdAt} />
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -188,7 +186,7 @@
 						resource={blockheadSessionAction}
 					>
 						{#snippet children(entity)}
-							<Timestamp timestamp={Number(entity.updatedAt)} />
+							<Timestamp timestamp={entity.updatedAt} />
 						{/snippet}
 					</ResourceBoundary>
 				</dd>

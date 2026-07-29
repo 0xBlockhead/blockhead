@@ -49,7 +49,7 @@
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{String(xrplAccountTimestampSelector.ledgerIndex)}</span>
+				<span data-text="annotation">{xrplAccountTimestampSelector.ledgerIndex}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

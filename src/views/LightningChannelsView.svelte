@@ -38,6 +38,7 @@
 >
 	{#snippet Item({ item: lightningChannel })}
 		{@const lightningChannelSelector = lightningChannel[EntityMetaKey.Selector]}
+		{@const network = lightningChannelSelector.$network}
 		<EntityView
 			entityType={EntityType.LightningChannel}
 			entitySelector={lightningChannelSelector}
@@ -46,12 +47,12 @@
 					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/channels/[channelId=stringSegment]',
 					{
 						network: (
-							'caip2' in lightningChannelSelector.$network ?
-								String(caip2StringFromValue(lightningChannelSelector.$network.caip2))
+							'caip2' in network ?
+								caip2StringFromValue(network.caip2)
 							:
-								String(lightningChannelSelector.$network.slug)
+								network.slug
 						),
-						channelId: String(lightningChannelSelector.channelId),
+						channelId: lightningChannelSelector.channelId,
 					}
 				)
 			}

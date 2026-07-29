@@ -5,7 +5,6 @@
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 
 
 	// Context
@@ -22,14 +21,13 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.GitTag> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const gitTag = $derived(selection({
 		fields: {
 			tagName: true,
 			targetKind: true,
 		},
 	}))
-	const titleFallback = $derived([(pendingEntity.tagName ?? ''), String(pendingEntity.objectId ?? '')].filter(Boolean).join(' ') || 'Git tag')
+	const titleFallback = $derived([(prefetched.tagName ?? ''), selection.entitySelector.objectId].filter(Boolean).join(' ') || 'Git tag')
 
 
 	// Components
@@ -52,7 +50,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={gitTag}>
 			{#snippet children(entity)}
-				{[(entity.tagName ?? ''), String(pendingEntity.objectId)].filter(Boolean).join(' ') || title || titleFallback}
+				{[(entity.tagName ?? ''), selection.entitySelector.objectId].filter(Boolean).join(' ') || title || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -60,7 +58,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={gitTag}>
 			{#snippet children(entity)}
-				{(entity.targetKind ?? '') || [(entity.tagName ?? ''), String(pendingEntity.objectId)].filter(Boolean).join(' ') || titleFallback}
+				{(entity.targetKind ?? '') || [(entity.tagName ?? ''), selection.entitySelector.objectId].filter(Boolean).join(' ') || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -70,14 +68,14 @@
 			<div>
 				<dt>object ID</dt>
 				<dd>
-					<TruncatedValue value={String(pendingEntity.objectId)} />
+					<TruncatedValue value={selection.entitySelector.objectId} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>object format</dt>
 				<dd>
-					{pendingEntity.objectFormat}
+					{selection.entitySelector.objectFormat}
 				</dd>
 			</div>
 
@@ -112,7 +110,7 @@
 						}
 					>
 						{#snippet children(entity)}
-							<TruncatedValue value={String(entity.targetObjectId)} />
+							<TruncatedValue value={entity.targetObjectId} />
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -165,7 +163,7 @@
 						<div>
 							<dt>tagger timestamp ms</dt>
 							<dd>
-								<Timestamp timestamp={Number(taggerTimestampMs)} />
+								<Timestamp timestamp={taggerTimestampMs} />
 							</dd>
 						</div>
 					{/if}
@@ -192,15 +190,15 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const gitTagGitSignaturesViewSignaturesResource = selection.$$signatures}
+		{@const signaturesResource = selection.$$signatures}
 		<ResourceBoundary
-			resource={gitTagGitSignaturesViewSignaturesResource}
+			resource={signaturesResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<GitSignaturesView
-						selection={gitTagGitSignaturesViewSignaturesResource}
-						countResource={gitTagGitSignaturesViewSignaturesResource.count}
+						selection={signaturesResource}
+						countResource={signaturesResource.count}
 						title='signatures'
 						id='signatures'
 					/>

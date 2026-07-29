@@ -25,7 +25,7 @@
 
 
 <svelte:head>
-	<title>{(data.title ?? (pageSelection.entitySelector.builderPubkey || 'MEV builder'))} • MEV builder • Blockhead</title>
+	<title>{data.title ?? (pageSelection.entitySelector.builderPubkey || 'MEV builder')} • MEV builder • Blockhead</title>
 </svelte:head>
 
 

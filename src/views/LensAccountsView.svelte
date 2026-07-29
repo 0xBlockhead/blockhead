@@ -6,7 +6,6 @@
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { EvmAddress } from '$/schema/ZeroExHex.ts'
 
 
 	// State
@@ -48,21 +47,21 @@
 				resolve(
 					'/(social)/(lens)/lens/(lensNetwork)/account/[address=evmAddress]',
 					{
-						address: String(lensAccount.address),
+						address: lensAccount.address,
 					}
 				)
 			}
 		>
 			{#snippet Title()}
-				{[(lensAccount.displayName ?? ''), (lensAccountSelector.localName ?? ''), String(lensAccountSelector.address), (lensAccountSelector.legacyProfileId ?? '')].filter(Boolean).join(' ') || 'Lens account'}
+				{[(lensAccount.displayName ?? ''), (lensAccountSelector.localName ?? ''), lensAccountSelector.address, (lensAccountSelector.legacyProfileId ?? '')].filter(Boolean).join(' ') || 'Lens account'}
 			{/snippet}
 
 			{#snippet Value()}
-				{[(lensAccountSelector.localName ?? ''), String(lensAccountSelector.address), (lensAccountSelector.legacyProfileId ?? '')].filter(Boolean).join(' ')}
+				{[(lensAccountSelector.localName ?? ''), lensAccountSelector.address, (lensAccountSelector.legacyProfileId ?? '')].filter(Boolean).join(' ')}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{String(lensAccount.createdAt ?? '')}</span>
+				<span data-text="annotation">{lensAccount.createdAt ?? ''}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

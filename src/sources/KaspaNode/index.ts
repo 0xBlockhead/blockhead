@@ -2,7 +2,8 @@
 
 import bindings from '$/sources/KaspaNode/bindings.ts'
 import { Source } from '$/sources/Source.ts'
-import { SourceProvider, type SourceProviderDefinition } from '$/sources/SourceProvider.ts'
+import { SourceProvider } from '$/sources/SourceProvider.ts'
+import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinition.ts'
 
 export default {
 	provider: SourceProvider.KaspaNode,
@@ -21,9 +22,5 @@ export default {
 			label: 'Kaspa node wRPC',
 		},
 	],
-	bindings: [
-		bindings[Source.KaspaNode_Grpc],
-		bindings[Source.KaspaNode_Rest],
-		bindings[Source.KaspaNode_Wrpc],
-	],
+	bindings: Object.values(bindings).flat(),
 } satisfies SourceProviderDefinition

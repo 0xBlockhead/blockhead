@@ -1,7 +1,8 @@
 // Generated from APP.ts. Do not edit by hand.
 
 import { Source } from '$/sources/Source.ts'
-import { SourceProvider, type SourceProviderDefinition } from '$/sources/SourceProvider.ts'
+import { SourceProvider } from '$/sources/SourceProvider.ts'
+import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinition.ts'
 import bindings from '$/sources/ZeroG/bindings.ts'
 
 export default {
@@ -25,10 +26,5 @@ export default {
 			label: '0G StorageScan REST',
 		},
 	],
-	bindings: [
-		bindings[Source.ZeroGChain_JsonRpc],
-		bindings[Source.ZeroGStorageNode_JsonRpc],
-		bindings[Source.ZeroGChainScan_Rest],
-		bindings[Source.ZeroGStorageScan_Rest],
-	],
+	bindings: Object.values(bindings).flat(),
 } satisfies SourceProviderDefinition

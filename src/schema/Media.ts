@@ -1,24 +1,13 @@
 // Generated from APP.ts. Do not edit by hand.
 
 import { entity } from '$/schema/$schema.ts'
-import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
+import { EntityFieldCardinality } from '$/schema/EntityFieldCardinality.ts'
+import { EntityFieldType } from '$/schema/EntityFieldType.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { MediaTransport } from '$/schema/MediaTransport.ts'
+import { MediaType } from '$/schema/MediaType.ts'
 import { UrlString } from '$/schema/UrlString.ts'
 import { type } from 'arktype'
-
-export enum MediaType {
-	Image = 'Image',
-	Video = 'Video',
-	Audio = 'Audio',
-	Model = 'Model',
-	Other = 'Other',
-}
-
-export enum MediaTransport {
-	Http = 'Http',
-	Ipfs = 'Ipfs',
-	Arweave = 'Arweave',
-}
 
 export default entity({
 	entityType: EntityType.Media,

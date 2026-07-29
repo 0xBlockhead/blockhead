@@ -4,7 +4,6 @@
 	// Types/constants
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -22,7 +21,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.BlockheadKaspaNodeState_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Local_Internal,
@@ -35,7 +33,6 @@
 			peerCount: true,
 		},
 	}))
-	const titleFallback = $derived(String(pendingEntity.timestampMs ?? '') || 'blockhead kaspa node state timestamp')
 
 
 	// Components
@@ -50,19 +47,19 @@
 <EntityView
 	entityType={EntityType.BlockheadKaspaNodeState_Timestamp}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? String(selection.entitySelector.timestampMs)}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+		<Timestamp timestamp={selection.entitySelector.timestampMs} />
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={blockheadKaspaNodeStateTimestamp}>
 			{#snippet children(entity)}
-				{[String(entity.isSynced ?? ''), String(entity.hasUtxoIndex ?? '')].filter(Boolean).join(' ') || String(pendingEntity.timestampMs) || titleFallback}
+				{[String(entity.isSynced ?? ''), String(entity.hasUtxoIndex ?? '')].filter(Boolean).join(' ') || String(selection.entitySelector.timestampMs)}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -70,11 +67,11 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={blockheadKaspaNodeStateTimestamp}>
 			{#snippet children(entity)}
-				{@const peerCount0 = entity.peerCount}
-				{#if peerCount0 != null}
+				{@const peerCount = entity.peerCount}
+				{#if peerCount != null}
 					<span data-text="muted">
 						<NumberValue
-							value={peerCount0}
+							value={peerCount}
 						/>
 					</span>
 				{/if}
@@ -98,14 +95,14 @@
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+					<Timestamp timestamp={selection.entitySelector.timestampMs} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 
@@ -198,7 +195,7 @@
 						<div>
 							<dt>last synced AT</dt>
 							<dd>
-								<Timestamp timestamp={Number(lastSyncedAt)} />
+								<Timestamp timestamp={lastSyncedAt} />
 							</dd>
 						</div>
 					{/if}
@@ -246,7 +243,7 @@
 						<div>
 							<dt>virtual selected parent hash</dt>
 							<dd>
-								<TruncatedValue value={String(virtualSelectedParentHash)} />
+								<TruncatedValue value={virtualSelectedParentHash} />
 							</dd>
 						</div>
 					{/if}
@@ -268,7 +265,7 @@
 						<div>
 							<dt>pruning point hash</dt>
 							<dd>
-								<TruncatedValue value={String(pruningPointHash)} />
+								<TruncatedValue value={pruningPointHash} />
 							</dd>
 						</div>
 					{/if}

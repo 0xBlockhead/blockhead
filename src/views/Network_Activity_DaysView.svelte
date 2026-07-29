@@ -40,35 +40,34 @@
 >
 	{#snippet Item({ item: networkActivityDay })}
 		{@const networkActivityDaySelector = networkActivityDay[EntityMetaKey.Selector]}
+		{@const network = networkActivityDaySelector.$network}
 		<EntityView
 			entityType={EntityType.Network_Activity_Day}
 			entitySelector={networkActivityDaySelector}
 			href={
-				(
-					networkActivityDaySelector.source === 'SpaceAndTime_MakeInfinite' ?
-						resolve(
-							'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/activity/day/[dayStartTimestampMs=nonNegativeInteger]',
-							{
-								network: (
-									'caip2' in networkActivityDaySelector.$network ?
-										String(caip2StringFromValue(networkActivityDaySelector.$network.caip2))
-									:
-										String(networkActivityDaySelector.$network.slug)
-								),
-								dayStartTimestampMs: String(networkActivityDaySelector.dayStartTimestampMs),
-							}
-						)
-					:
-						undefined
-				)
+				networkActivityDaySelector.source === 'SpaceAndTime_MakeInfinite' ?
+					resolve(
+						'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/activity/day/[dayStartTimestampMs=nonNegativeInteger]',
+						{
+							network: (
+								'caip2' in network ?
+									caip2StringFromValue(network.caip2)
+								:
+									network.slug
+							),
+							dayStartTimestampMs: String(networkActivityDaySelector.dayStartTimestampMs),
+						}
+					)
+				:
+					undefined
 			}
 		>
 			{#snippet Title()}
-				{String(networkActivityDaySelector.dayStartTimestampMs) || 'network activity day'}
+				{networkActivityDaySelector.dayStartTimestampMs}
 			{/snippet}
 
 			{#snippet Value()}
-				{String(networkActivityDay.transactionCount)}
+				{networkActivityDay.transactionCount}
 			{/snippet}
 
 			{#snippet HeadingAfter()}

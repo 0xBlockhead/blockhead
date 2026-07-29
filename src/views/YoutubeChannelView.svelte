@@ -25,7 +25,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.YoutubeChannel> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Youtube_Rest,
@@ -38,7 +37,7 @@
 			title: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.title ?? '') || (pendingEntity.channelId ?? '') || 'YouTube channel')
+	const titleFallback = $derived((prefetched.title ?? '') || selection.entitySelector.channelId || 'YouTube channel')
 	const viewDomId = $derived('youtube-channel-' + encodeURIComponent(stringify(selection.entitySelector)))
 
 
@@ -61,12 +60,15 @@
 	id={viewDomId}
 	title={title ?? titleFallback}
 	href={
-		href ?? resolve(
-			'/(social)/(youtube)/youtube/(globalYoutubeNetwork)/channel/[channelId=stringSegment]',
-			{
-				channelId: encodeURIComponent(String(selection.entitySelector.channelId)),
-			}
-		)
+		href === undefined ?
+			resolve(
+				'/(social)/(youtube)/youtube/(globalYoutubeNetwork)/channel/[channelId=stringSegment]',
+				{
+					channelId: encodeURIComponent(selection.entitySelector.channelId),
+				}
+			)
+		:
+			href ?? undefined
 	}
 	{layout}
 	bind:open
@@ -77,7 +79,7 @@
 		<ResourceBoundary resource={youtubeChannel}>
 			{#snippet children(entity)}
 				{@const reference = entity.$icon}
-				{#if reference != null && reference[EntityMetaKey.Selector] !== undefined}
+				{#if reference != null}
 					<MediaView
 						selection={select(EntityType.Media, reference[EntityMetaKey.Selector])}
 						prefetched={reference}
@@ -126,7 +128,7 @@
 			<div>
 				<dt>Channel ID</dt>
 				<dd>
-					<TruncatedValue value={pendingEntity.channelId} />
+					<TruncatedValue value={selection.entitySelector.channelId} />
 				</dd>
 			</div>
 
@@ -170,7 +172,7 @@
 							<div>
 								<dt>Published</dt>
 								<dd>
-									<Timestamp timestamp={Number(publishedAtMs)} />
+									<Timestamp timestamp={publishedAtMs} />
 								</dd>
 							</div>
 						{/if}
@@ -212,7 +214,7 @@
 						resolve(
 							'/(social)/(youtube)/youtube/(globalYoutubeNetwork)/channel/[channelId=stringSegment]/(youtubeChannel)/videos',
 							{
-								channelId: encodeURIComponent(String(selection.entitySelector.channelId)),
+								channelId: encodeURIComponent(selection.entitySelector.channelId),
 							}
 						)
 					}
@@ -235,7 +237,7 @@
 						resolve(
 							'/(social)/(youtube)/youtube/(globalYoutubeNetwork)/channel/[channelId=stringSegment]/(youtubeChannel)/playlists',
 							{
-								channelId: encodeURIComponent(String(selection.entitySelector.channelId)),
+								channelId: encodeURIComponent(selection.entitySelector.channelId),
 							}
 						)
 					}

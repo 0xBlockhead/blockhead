@@ -21,8 +21,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.TezosAccount> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const titleFallback = 'tezos account'
 	const viewDomId = $derived('tezos-account-' + encodeURIComponent(stringify(selection.entitySelector)))
 
 
@@ -43,7 +41,7 @@
 	entityType={EntityType.TezosAccount}
 	entitySelector={selection.entitySelector}
 	id={viewDomId}
-	title={title ?? titleFallback}
+	title={title ?? 'tezos account'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -68,7 +66,7 @@
 			<div>
 				<dt>Address</dt>
 				<dd>
-					<TruncatedValue value={pendingEntity.address} />
+					<TruncatedValue value={selection.entitySelector.address} />
 				</dd>
 			</div>
 
@@ -85,7 +83,7 @@
 						}
 					>
 						{#snippet children(entity)}
-							<TruncatedValue value={entity.accountKind} />
+							{entity.accountKind}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>

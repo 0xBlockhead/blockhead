@@ -40,28 +40,28 @@
 >
 	{#snippet Item({ item: coinBridgeCapability })}
 		{@const coinBridgeCapabilitySelector = coinBridgeCapability[EntityMetaKey.Selector]}
+		{@const fromInstance = coinBridgeCapabilitySelector.$fromInstance}
+		{@const toInstance = coinBridgeCapabilitySelector.$toInstance}
 		<EntityView
 			entityType={EntityType.CoinBridgeCapability}
 			entitySelector={coinBridgeCapabilitySelector}
 			href={
-				(
-					'caip2' in coinBridgeCapabilitySelector.$fromInstance.$network
-					&& (coinBridgeCapabilitySelector.$fromInstance.type === 'NativeCurrency' ? true : '$contract' in coinBridgeCapabilitySelector.$fromInstance)
-					&& 'caip2' in coinBridgeCapabilitySelector.$toInstance.$network
-					&& (coinBridgeCapabilitySelector.$toInstance.type === 'NativeCurrency' ? true : '$contract' in coinBridgeCapabilitySelector.$toInstance) ?
-						resolve(
-							'/(assets)/bridge-capability/[fromChainId=eip155ChainId]/[fromCoinInstanceSlug=nativeCurrencySlugOrEvmAddress]/[toChainId=eip155ChainId]/[toCoinInstanceSlug=nativeCurrencySlugOrEvmAddress]/[toolKey=stringSegment]',
-							{
-								fromChainId: String(coinBridgeCapabilitySelector.$fromInstance.$network.caip2.reference),
-								fromCoinInstanceSlug: String((coinBridgeCapabilitySelector.$fromInstance.type === 'NativeCurrency' ? 'native' : coinBridgeCapabilitySelector.$fromInstance.$contract.address)),
-								toChainId: String(coinBridgeCapabilitySelector.$toInstance.$network.caip2.reference),
-								toCoinInstanceSlug: String((coinBridgeCapabilitySelector.$toInstance.type === 'NativeCurrency' ? 'native' : coinBridgeCapabilitySelector.$toInstance.$contract.address)),
-								toolKey: String(coinBridgeCapabilitySelector.toolKey),
-							}
-						)
-					:
-						undefined
-				)
+				'caip2' in fromInstance.$network
+				&& (coinBridgeCapabilitySelector.$fromInstance.type === 'NativeCurrency' || '$contract' in fromInstance)
+				&& 'caip2' in toInstance.$network
+				&& (coinBridgeCapabilitySelector.$toInstance.type === 'NativeCurrency' || '$contract' in toInstance) ?
+					resolve(
+						'/(assets)/bridge-capability/[fromChainId=eip155ChainId]/[fromCoinInstanceSlug=nativeCurrencySlugOrEvmAddress]/[toChainId=eip155ChainId]/[toCoinInstanceSlug=nativeCurrencySlugOrEvmAddress]/[toolKey=stringSegment]',
+						{
+							fromChainId: fromInstance.$network.caip2.reference,
+							fromCoinInstanceSlug: fromInstance.type === 'NativeCurrency' ? 'native' : fromInstance.$contract.address,
+							toChainId: toInstance.$network.caip2.reference,
+							toCoinInstanceSlug: toInstance.type === 'NativeCurrency' ? 'native' : toInstance.$contract.address,
+							toolKey: coinBridgeCapabilitySelector.toolKey,
+						}
+					)
+				:
+					undefined
 			}
 		>
 			{#snippet Title()}

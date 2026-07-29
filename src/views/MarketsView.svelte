@@ -51,10 +51,19 @@
 	bind:open
 	TypeAnnotationTooltip={ModelTypeAnnotationTooltip}
 	resource={selection()}
-	getResourceItems={(markets) => markets.values.filter((market) => (filterMarketVenueId == null || market[EntityMetaKey.Selector].$marketVenue.marketVenueId === filterMarketVenueId) && (filterMarketKind == null || market[EntityMetaKey.Selector].marketKind === filterMarketKind))}
+	getResourceItems={
+		(markets) => markets.values.filter(
+			(market) => (
+				(filterMarketVenueId == null || market[EntityMetaKey.Selector].$marketVenue.marketVenueId === filterMarketVenueId)
+				&& (filterMarketKind == null || market[EntityMetaKey.Selector].marketKind === filterMarketKind)
+			)
+		)
+	}
 >
 	{#snippet Item({ item: market })}
 		{@const marketSelector = market[EntityMetaKey.Selector]}
+		{@const base = marketSelector.$base}
+		{@const quote = marketSelector.$quote}
 		<EntityView
 			entityType={EntityType.Market}
 			entitySelector={marketSelector}
@@ -62,12 +71,12 @@
 				resolve(
 					'/(assets)/venue/[marketVenue=marketVenueId]/market/[baseKind=stringSegment]/[base=stringSegment]/[quoteKind=stringSegment]/[quote=stringSegment]/[marketKind=stringSegment]',
 					{
-						marketVenue: String(marketSelector.$marketVenue.marketVenueId),
-						baseKind: String(marketAssetRouteLabelByKind[String(marketSelector.$base.kind)]),
-						base: String(marketSelector.$base.assetKey),
-						quoteKind: String(marketAssetRouteLabelByKind[String(marketSelector.$quote.kind)]),
-						quote: String(marketSelector.$quote.assetKey),
-						marketKind: String(marketSelector.marketKind),
+						marketVenue: marketSelector.$marketVenue.marketVenueId,
+						baseKind: marketAssetRouteLabelByKind[base.kind],
+						base: base.assetKey,
+						quoteKind: marketAssetRouteLabelByKind[quote.kind],
+						quote: quote.assetKey,
+						marketKind: marketSelector.marketKind,
 					}
 				)
 			}

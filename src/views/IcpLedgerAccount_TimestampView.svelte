@@ -20,9 +20,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.IcpLedgerAccount_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const titleFallback = 'ICP ledger account timestamp'
-
 
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -35,7 +32,7 @@
 <EntityView
 	entityType={EntityType.IcpLedgerAccount_Timestamp}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? 'ICP ledger account timestamp'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -60,30 +57,28 @@
 			<div>
 				<dt>owner</dt>
 				<dd>
-					{pendingEntity.owner}
+					{selection.entitySelector.owner}
 				</dd>
 			</div>
 
 			<div>
 				<dt>subaccount</dt>
 				<dd>
-					{#if pendingEntity.subaccount != null}
-						<TruncatedValue value={pendingEntity.subaccount} />
-					{/if}
+					<TruncatedValue value={selection.entitySelector.subaccount} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+					<Timestamp timestamp={selection.entitySelector.timestampMs} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 
@@ -102,7 +97,7 @@
 						<div>
 							<dt>balance</dt>
 							<dd>
-								{String(balance)}
+								{balance}
 							</dd>
 						</div>
 					{/if}
@@ -124,7 +119,7 @@
 						<div>
 							<dt>allowance count</dt>
 							<dd>
-								{String(allowanceCount)}
+								{allowanceCount}
 							</dd>
 						</div>
 					{/if}

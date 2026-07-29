@@ -2,7 +2,7 @@ import { beforeEach, expect, it, vi } from 'vitest'
 
 import { filecoinNetworkBySlug } from '$/constants/FilecoinNetwork.ts'
 import { indexResolvers } from '$/resolvers/$resolvers.ts'
-import { loadAllResolvers } from '$/resolvers/index.ts'
+import { loadResolvers } from '$/resolvers/index.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { schema } from '$/schema/index.ts'
 import { Source } from '$/sources/Source.ts'
@@ -33,7 +33,7 @@ const actorSelector = {
 	$network: network,
 	address: 'f01234',
 }
-const resolverModules = await loadAllResolvers()
+const resolverModules = await loadResolvers()
 const indexed = indexResolvers(
 	schema,
 	resolverModules,

@@ -45,7 +45,7 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{(String(assetSupplyLedgerCoordinate.totalSupply ?? '') ? String(assetSupplyLedgerCoordinate.totalSupply ?? '') + assetSupplyLedgerCoordinateSelector.$assetInstance.symbol : '')}
+				{assetSupplyLedgerCoordinate.totalSupply != null ? assetSupplyLedgerCoordinate.totalSupply + assetSupplyLedgerCoordinateSelector.$assetInstance.symbol : ''}
 			{/snippet}
 
 			{#snippet HeadingAfter()}

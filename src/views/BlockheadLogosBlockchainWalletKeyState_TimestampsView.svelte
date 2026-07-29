@@ -41,11 +41,11 @@
 			entitySelector={blockheadLogosBlockchainWalletKeyStateTimestampSelector}
 		>
 			{#snippet Title()}
-				{String(blockheadLogosBlockchainWalletKeyStateTimestampSelector.timestampMs) || 'blockhead Logos blockchain wallet key state timestamp'}
+				{blockheadLogosBlockchainWalletKeyStateTimestampSelector.timestampMs}
 			{/snippet}
 
 			{#snippet Value()}
-				{String(blockheadLogosBlockchainWalletKeyStateTimestamp.balance ?? '')}
+				{blockheadLogosBlockchainWalletKeyStateTimestamp.balance ?? ''}
 			{/snippet}
 
 			{#snippet HeadingAfter()}

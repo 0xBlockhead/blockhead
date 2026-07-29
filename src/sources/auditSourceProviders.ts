@@ -1,5 +1,5 @@
 import { Source } from '$/sources/Source.ts'
-import type { SourceProviderDefinition } from '$/sources/SourceProvider.ts'
+import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinition.ts'
 
 export const auditSourceProviders = (
 	sourceProviders: readonly SourceProviderDefinition[]

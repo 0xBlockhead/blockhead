@@ -39,6 +39,7 @@
 >
 	{#snippet Item({ item: beaconSlot })}
 		{@const beaconSlotSelector = beaconSlot[EntityMetaKey.Selector]}
+		{@const network = beaconSlotSelector.$network}
 		<EntityView
 			entityType={EntityType.BeaconSlot}
 			entitySelector={beaconSlotSelector}
@@ -47,10 +48,10 @@
 					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/slot/[slot=nonNegativeInteger]',
 					{
 						network: (
-							'caip2' in beaconSlotSelector.$network ?
-								String(caip2StringFromValue(beaconSlotSelector.$network.caip2))
+							'caip2' in network ?
+								caip2StringFromValue(network.caip2)
 							:
-								String(beaconSlotSelector.$network.slug)
+								network.slug
 						),
 						slot: String(beaconSlotSelector.slot),
 					}
@@ -58,11 +59,11 @@
 			}
 		>
 			{#snippet Title()}
-				{(String(beaconSlotSelector.slot ?? '') ? 'Slot #' + String(beaconSlotSelector.slot ?? '') : '') || 'beacon slot'}
+				{`Slot #${beaconSlotSelector.slot}`}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{(String(beaconSlot.$epoch.epoch ?? '') ? 'Epoch #' + String(beaconSlot.$epoch.epoch ?? '') : '') || 'beacon epoch'}</span>
+				<span data-text="annotation">{`Epoch #${beaconSlot.$epoch.epoch}`}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

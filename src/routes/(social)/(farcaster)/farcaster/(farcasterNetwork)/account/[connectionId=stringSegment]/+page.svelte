@@ -41,7 +41,7 @@
 
 
 <svelte:head>
-	<title>{('Blockhead Farcaster account connection')} • Blockhead Farcaster account connection • Blockhead</title>
+	<title>{'Blockhead Farcaster account connection'} • Blockhead Farcaster account connection • Blockhead</title>
 </svelte:head>
 
 

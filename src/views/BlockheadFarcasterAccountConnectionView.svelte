@@ -35,7 +35,6 @@
 			selected: true,
 		},
 	}))
-	const titleFallback = 'Blockhead Farcaster account connection'
 
 
 	// Components
@@ -49,14 +48,17 @@
 <EntityView
 	entityType={EntityType.BlockheadFarcasterAccountConnection}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? 'Blockhead Farcaster account connection'}
 	href={
-		href ?? resolve(
-			'/(social)/(farcaster)/farcaster/(farcasterNetwork)/account/[connectionId=stringSegment]',
-			{
-				connectionId: String(selection.entitySelector.connectionId),
-			}
-		)
+		href === undefined ?
+			resolve(
+				'/(social)/(farcaster)/farcaster/(farcasterNetwork)/account/[connectionId=stringSegment]',
+				{
+					connectionId: selection.entitySelector.connectionId,
+				}
+			)
+		:
+			href ?? undefined
 	}
 	{layout}
 	bind:open
@@ -74,7 +76,7 @@
 				<FarcasterUserView
 					selection={select(EntityType.FarcasterUser, farcasterUser[EntityMetaKey.Selector])}
 					prefetched={farcasterUser}
-					href=""
+					href={null}
 					layout={EntityLayout.Value}
 					open={false}
 				/>
@@ -85,10 +87,10 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={blockheadFarcasterAccountConnection}>
 			{#snippet children(entity)}
-				{@const authMethod0 = entity.authMethod}
-				{#if authMethod0 != null}
+				{@const authMethod = entity.authMethod}
+				{#if authMethod != null}
 					<span data-text="muted">
-						{authMethod0}
+						{authMethod}
 					</span>
 				{/if}
 			{/snippet}
@@ -169,7 +171,7 @@
 						}
 					>
 						{#snippet children(entity)}
-							<Timestamp timestamp={Number(entity.verifiedAt)} />
+							<Timestamp timestamp={entity.verifiedAt} />
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -188,7 +190,7 @@
 						}
 					>
 						{#snippet children(entity)}
-							<Timestamp timestamp={Number(entity.expiresAt)} />
+							<Timestamp timestamp={entity.expiresAt} />
 						{/snippet}
 					</ResourceBoundary>
 				</dd>

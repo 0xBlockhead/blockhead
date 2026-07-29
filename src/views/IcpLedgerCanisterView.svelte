@@ -21,7 +21,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.IcpLedgerCanister> = $props()
 
-	const titleFallback = 'ICP ledger canister'
 	const viewDomId = $derived('icp-ledger-canister-' + encodeURIComponent(stringify(selection.entitySelector)))
 
 
@@ -41,7 +40,7 @@
 	entityType={EntityType.IcpLedgerCanister}
 	entitySelector={selection.entitySelector}
 	id={viewDomId}
-	title={title ?? titleFallback}
+	title={title ?? 'ICP ledger canister'}
 	{layout}
 	bind:open
 	{...EntityViewProps}

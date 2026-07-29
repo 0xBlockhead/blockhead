@@ -5,7 +5,6 @@
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -23,7 +22,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.BlockheadAgentProviderCall> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Local_Internal,
@@ -34,7 +32,7 @@
 			status: true,
 		},
 	}))
-	const titleFallback = $derived((String(pendingEntity.indexInTurn ?? '') ? 'Call #' + String(pendingEntity.indexInTurn ?? '') : '') || 'blockhead agent provider call')
+	const titleFallback = $derived(`Call #${selection.entitySelector.indexInTurn}`)
 
 
 	// Components
@@ -58,7 +56,7 @@
 	entityType={EntityType.BlockheadAgentProviderCall}
 	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	idDragPlainText={String(pendingEntity.indexInTurn ?? '')}
+	idDragPlainText={String(selection.entitySelector.indexInTurn)}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -67,7 +65,7 @@
 		<span data-row="inline align-center gap-2 wrap">
 			<span>Call </span>
 			<span data-badge="small">
-				#{String(pendingEntity.indexInTurn)}
+				#{selection.entitySelector.indexInTurn}
 			</span>
 		</span>
 	{/snippet}
@@ -97,7 +95,7 @@
 				<dt>index in turn</dt>
 				<dd>
 					<NumberValue
-						value={pendingEntity.indexInTurn}
+						value={selection.entitySelector.indexInTurn}
 					/>
 				</dd>
 			</div>
@@ -365,7 +363,7 @@
 						<div>
 							<dt>started AT</dt>
 							<dd>
-								<Timestamp timestamp={Number(startedAt)} />
+								<Timestamp timestamp={startedAt} />
 							</dd>
 						</div>
 					{/if}
@@ -387,7 +385,7 @@
 						<div>
 							<dt>completed AT</dt>
 							<dd>
-								<Timestamp timestamp={Number(completedAt)} />
+								<Timestamp timestamp={completedAt} />
 							</dd>
 						</div>
 					{/if}
@@ -435,7 +433,7 @@
 						<div>
 							<dt>request hash algorithm</dt>
 							<dd>
-								<TruncatedValue value={requestHashAlgorithm} />
+								{requestHashAlgorithm}
 							</dd>
 						</div>
 					{/if}
@@ -457,7 +455,7 @@
 						<div>
 							<dt>request hash</dt>
 							<dd>
-								<TruncatedValue value={String(requestHash)} />
+								<TruncatedValue value={requestHash} />
 							</dd>
 						</div>
 					{/if}
@@ -479,7 +477,7 @@
 						<div>
 							<dt>response hash algorithm</dt>
 							<dd>
-								<TruncatedValue value={responseHashAlgorithm} />
+								{responseHashAlgorithm}
 							</dd>
 						</div>
 					{/if}
@@ -501,7 +499,7 @@
 						<div>
 							<dt>response hash</dt>
 							<dd>
-								<TruncatedValue value={String(responseHash)} />
+								<TruncatedValue value={responseHash} />
 							</dd>
 						</div>
 					{/if}

@@ -16,8 +16,7 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.CctpFee> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const titleFallback = $derived((pendingEntity.apiHost ?? '') || 'CCTP fee')
+	const titleFallback = $derived(selection.entitySelector.apiHost || 'CCTP fee')
 
 
 	// Components
@@ -34,11 +33,11 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{(pendingEntity.apiHost ?? '') || 'CCTP fee'}
+		{selection.entitySelector.apiHost || 'CCTP fee'}
 	{/snippet}
 
 	{#snippet Value()}
-		{[String(pendingEntity.fromDomain ?? ''), String(pendingEntity.toDomain ?? '')].filter(Boolean).join(' ') || (pendingEntity.apiHost ?? '') || titleFallback}
+		{[String(selection.entitySelector.fromDomain), String(selection.entitySelector.toDomain)].filter(Boolean).join(' ') || selection.entitySelector.apiHost || titleFallback}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -46,21 +45,21 @@
 			<div>
 				<dt>API host</dt>
 				<dd>
-					{pendingEntity.apiHost}
+					{selection.entitySelector.apiHost}
 				</dd>
 			</div>
 
 			<div>
 				<dt>From domain</dt>
 				<dd>
-					{String(pendingEntity.fromDomain)}
+					{selection.entitySelector.fromDomain}
 				</dd>
 			</div>
 
 			<div>
 				<dt>To domain</dt>
 				<dd>
-					{String(pendingEntity.toDomain)}
+					{selection.entitySelector.toDomain}
 				</dd>
 			</div>
 		</dl>

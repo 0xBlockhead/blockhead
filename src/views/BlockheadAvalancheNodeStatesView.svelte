@@ -51,7 +51,7 @@
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{(blockheadAvalancheNodeState.nodeIp ?? '')}</span>
+				<span data-text="annotation">{blockheadAvalancheNodeState.nodeIp ?? ''}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

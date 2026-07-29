@@ -37,6 +37,7 @@
 >
 	{#snippet Item({ item: youtubeCommentTimestamp })}
 		{@const youtubeCommentTimestampSelector = youtubeCommentTimestamp[EntityMetaKey.Selector]}
+		{@const comment = youtubeCommentTimestampSelector.$comment}
 		<EntityView
 			entityType={EntityType.YoutubeComment_Timestamp}
 			entitySelector={youtubeCommentTimestampSelector}
@@ -44,10 +45,10 @@
 				resolve(
 					'/(social)/(youtube)/youtube/(globalYoutubeNetwork)/comment/[videoId=stringSegment]/[commentId=stringSegment]/(youtubeComment)/observations/[timestampMs=nonNegativeInteger]-[source=stringSegment]',
 					{
-						videoId: encodeURIComponent(String(youtubeCommentTimestampSelector.$comment.videoId)),
-						commentId: encodeURIComponent(String(youtubeCommentTimestampSelector.$comment.commentId)),
+						videoId: encodeURIComponent(comment.videoId),
+						commentId: encodeURIComponent(comment.commentId),
 						timestampMs: String(youtubeCommentTimestampSelector.timestampMs),
-						source: String(youtubeCommentTimestampSelector.source),
+						source: youtubeCommentTimestampSelector.source,
 					}
 				)
 			}

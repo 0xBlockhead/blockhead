@@ -46,7 +46,7 @@
 			entitySelector={moneroBlockSelector}
 		>
 			{#snippet Title()}
-				{String(moneroBlockSelector.height) || 'monero block'}
+				{moneroBlockSelector.height}
 			{/snippet}
 
 			{#snippet Value()}
@@ -54,7 +54,7 @@
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{String(moneroBlock.timestampMs ?? '')}</span>
+				<span data-text="annotation">{moneroBlock.timestampMs ?? ''}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

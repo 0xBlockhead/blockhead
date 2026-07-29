@@ -43,7 +43,7 @@
 			entitySelector={payjoinEndpointTimestampSelector}
 		>
 			{#snippet Title()}
-				{String(payjoinEndpointTimestampSelector.timestampMs) || 'payjoin endpoint timestamp'}
+				{payjoinEndpointTimestampSelector.timestampMs}
 			{/snippet}
 
 			{#snippet Value()}

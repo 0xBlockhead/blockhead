@@ -5,7 +5,6 @@
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { UrlString } from '$/schema/UrlString.ts'
 
 
 	// State
@@ -40,7 +39,7 @@
 			entitySelector={a2aAgentCardSelector}
 		>
 			{#snippet Title()}
-				{String(a2aAgentCardSelector.agentCardUrl) || 'A2A agent card'}
+				{a2aAgentCardSelector.agentCardUrl || 'A2A agent card'}
 			{/snippet}
 		</EntityView>
 	{/snippet}

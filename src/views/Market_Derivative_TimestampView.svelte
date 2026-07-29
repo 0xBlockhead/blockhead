@@ -24,7 +24,7 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.Market_Derivative_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const market = $derived(selection.entitySelector.$market)
 	const marketDerivativeTimestamp = $derived(selection({
 		fields: {
 			markPrice: true,
@@ -32,7 +32,7 @@
 			fundingRate: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.feedKey ?? '') || 'market derivative timestamp')
+	const titleFallback = $derived(selection.entitySelector.feedKey || 'market derivative timestamp')
 
 
 	// Components
@@ -48,32 +48,35 @@
 	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
 	href={
-		href ?? resolve(
-			'/(assets)/venue/[marketVenue=marketVenueId]/market/[baseKind=stringSegment]/[base=stringSegment]/[quoteKind=stringSegment]/[quote=stringSegment]/[marketKind=stringSegment]/(market)/derivatives/[timestampMs=nonNegativeInteger]/[feedKey=stringSegment]',
-			{
-				marketVenue: String(selection.entitySelector.$market.$marketVenue.marketVenueId),
-				baseKind: String(marketAssetRouteLabelByKind[String(selection.entitySelector.$market.$base.kind)]),
-				base: String(selection.entitySelector.$market.$base.assetKey),
-				quoteKind: String(marketAssetRouteLabelByKind[String(selection.entitySelector.$market.$quote.kind)]),
-				quote: String(selection.entitySelector.$market.$quote.assetKey),
-				marketKind: String(selection.entitySelector.$market.marketKind),
-				timestampMs: String(selection.entitySelector.timestampMs),
-				feedKey: encodeURIComponent(String(selection.entitySelector.feedKey)),
-			}
-		)
+		href === undefined ?
+			resolve(
+				'/(assets)/venue/[marketVenue=marketVenueId]/market/[baseKind=stringSegment]/[base=stringSegment]/[quoteKind=stringSegment]/[quote=stringSegment]/[marketKind=stringSegment]/(market)/derivatives/[timestampMs=nonNegativeInteger]/[feedKey=stringSegment]',
+				{
+					marketVenue: market.$marketVenue.marketVenueId,
+					baseKind: marketAssetRouteLabelByKind[market.$base.kind],
+					base: market.$base.assetKey,
+					quoteKind: marketAssetRouteLabelByKind[market.$quote.kind],
+					quote: market.$quote.assetKey,
+					marketKind: market.marketKind,
+					timestampMs: String(selection.entitySelector.timestampMs),
+					feedKey: encodeURIComponent(selection.entitySelector.feedKey),
+				}
+			)
+		:
+			href ?? undefined
 	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{(pendingEntity.feedKey ?? '') || 'market derivative timestamp'}
+		{selection.entitySelector.feedKey || 'market derivative timestamp'}
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={marketDerivativeTimestamp}>
 			{#snippet children(entity)}
-				{[String(entity.markPrice ?? ''), String(entity.indexPrice ?? '')].filter(Boolean).join(' ') || pendingEntity.feedKey || titleFallback}
+				{[String(entity.markPrice ?? ''), String(entity.indexPrice ?? '')].filter(Boolean).join(' ') || selection.entitySelector.feedKey || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -81,10 +84,10 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={marketDerivativeTimestamp}>
 			{#snippet children(entity)}
-				{@const fundingRate0 = entity.fundingRate}
-				{#if fundingRate0 != null}
+				{@const fundingRate = entity.fundingRate}
+				{#if fundingRate != null}
 					<span data-text="muted">
-						{String(fundingRate0)}
+						{fundingRate}
 						<span>%</span>
 					</span>
 				{/if}
@@ -97,14 +100,14 @@
 			<div>
 				<dt>Feed key</dt>
 				<dd>
-					{pendingEntity.feedKey}
+					{selection.entitySelector.feedKey}
 				</dd>
 			</div>
 
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+					<Timestamp timestamp={selection.entitySelector.timestampMs} />
 				</dd>
 			</div>
 
@@ -117,7 +120,7 @@
 						<div>
 							<dt>Funding rate</dt>
 							<dd>
-								{String(fundingRate)}
+								{fundingRate}
 								<span>%</span>
 							</dd>
 						</div>
@@ -165,7 +168,7 @@
 						<div>
 							<dt>Index basis percent</dt>
 							<dd>
-								{String(indexBasisPercent)}
+								{indexBasisPercent}
 								<span>%</span>
 							</dd>
 						</div>
@@ -228,7 +231,7 @@
 						<div>
 							<dt>Expired at</dt>
 							<dd>
-								{String(expiredAtMs)}
+								{expiredAtMs}
 							</dd>
 						</div>
 					{/if}
@@ -250,7 +253,7 @@
 						<div>
 							<dt>Last traded at</dt>
 							<dd>
-								{String(lastTradedAtMs)}
+								{lastTradedAtMs}
 							</dd>
 						</div>
 					{/if}

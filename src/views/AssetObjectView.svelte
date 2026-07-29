@@ -21,14 +21,13 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.AssetObject> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const assetObject = $derived(selection({
 		fields: {
 			objectKind: true,
 			tokenId: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.objectKey ?? '') || 'asset object')
+	const titleFallback = $derived(selection.entitySelector.objectKey || 'asset object')
 
 
 	// Components
@@ -49,13 +48,13 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{(pendingEntity.objectKey ?? '') || 'asset object'}
+		{selection.entitySelector.objectKey || 'asset object'}
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={assetObject}>
 			{#snippet children(entity)}
-				{[entity.objectKind, (entity.tokenId ?? '')].filter(Boolean).join(' ') || pendingEntity.objectKey || titleFallback}
+				{[entity.objectKind, (entity.tokenId ?? '')].filter(Boolean).join(' ') || selection.entitySelector.objectKey || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -92,7 +91,7 @@
 			<div>
 				<dt>object key</dt>
 				<dd>
-					{pendingEntity.objectKey}
+					{selection.entitySelector.objectKey}
 				</dd>
 			</div>
 
@@ -185,11 +184,11 @@
 							<dt>metadata URI</dt>
 							<dd>
 								<a
-									href={String(metadataUri)}
+									href={metadataUri}
 									target="_blank"
 									rel="noreferrer noopener"
 								>
-									<TruncatedValue value={String(metadataUri)} />
+									<TruncatedValue value={metadataUri} />
 								</a>
 							</dd>
 						</div>
@@ -200,15 +199,15 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const assetObjectUsageRightTimestampsViewUsageRightsResource = selection.$$usageRights}
+		{@const usageRightsResource = selection.$$usageRights}
 		<ResourceBoundary
-			resource={assetObjectUsageRightTimestampsViewUsageRightsResource}
+			resource={usageRightsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<UsageRight_TimestampsView
-						selection={assetObjectUsageRightTimestampsViewUsageRightsResource}
-						countResource={assetObjectUsageRightTimestampsViewUsageRightsResource.count}
+						selection={usageRightsResource}
+						countResource={usageRightsResource.count}
 						title='usage rights'
 						id='usage-rights'
 					/>

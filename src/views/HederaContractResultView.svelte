@@ -21,8 +21,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.HederaContractResult> = $props()
 
-	const titleFallback = 'hedera contract result'
-
 
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -35,7 +33,7 @@
 <EntityView
 	entityType={EntityType.HederaContractResult}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? 'hedera contract result'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -114,7 +112,7 @@
 						<div>
 							<dt>EVM address</dt>
 							<dd>
-								<TruncatedValue value={String(evmAddress)} />
+								<TruncatedValue value={evmAddress} />
 							</dd>
 						</div>
 					{/if}
@@ -180,7 +178,7 @@
 						<div>
 							<dt>gas limit</dt>
 							<dd>
-								{String(gasLimit)}
+								{gasLimit}
 							</dd>
 						</div>
 					{/if}
@@ -202,7 +200,7 @@
 						<div>
 							<dt>gas used</dt>
 							<dd>
-								{String(gasUsed)}
+								{gasUsed}
 							</dd>
 						</div>
 					{/if}
@@ -224,7 +222,7 @@
 						<div>
 							<dt>amount tinybar</dt>
 							<dd>
-								{String(amountTinybar)}
+								{amountTinybar}
 							</dd>
 						</div>
 					{/if}

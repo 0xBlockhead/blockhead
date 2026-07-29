@@ -38,7 +38,7 @@
 
 
 <svelte:head>
-	<title>{(data.title ?? (pageSelection.entity == null ? String(pageSelection.entitySelector.fid ?? '') || 'Farcaster user' : [(pageSelection.entity.displayName ?? ''), (pageSelection.entity.username ?? ''), String(pageSelection.entitySelector.fid)].filter(Boolean).join(' ') || 'Farcaster user'))} • Farcaster user • Blockhead</title>
+	<title>{data.title ?? (pageSelection.entity == null ? String(pageSelection.entitySelector.fid ?? '') || 'Farcaster user' : [(pageSelection.entity.displayName ?? ''), (pageSelection.entity.username ?? ''), String(pageSelection.entitySelector.fid)].filter(Boolean).join(' ') || 'Farcaster user')} • Farcaster user • Blockhead</title>
 </svelte:head>
 
 

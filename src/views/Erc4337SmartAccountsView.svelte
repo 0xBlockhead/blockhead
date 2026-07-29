@@ -7,7 +7,6 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
-	import { EvmAddress } from '$/schema/ZeroExHex.ts'
 
 
 	// State
@@ -38,6 +37,7 @@
 >
 	{#snippet Item({ item: erc4337SmartAccount })}
 		{@const erc4337SmartAccountSelector = erc4337SmartAccount[EntityMetaKey.Selector]}
+		{@const network = erc4337SmartAccountSelector.$network}
 		<EntityView
 			entityType={EntityType.Erc4337SmartAccount}
 			entitySelector={erc4337SmartAccountSelector}
@@ -46,22 +46,22 @@
 					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/erc-4337/smart-account/[address=evmAddress]',
 					{
 						network: (
-							'caip2' in erc4337SmartAccountSelector.$network ?
-								String(caip2StringFromValue(erc4337SmartAccountSelector.$network.caip2))
+							'caip2' in network ?
+								caip2StringFromValue(network.caip2)
 							:
-								String(erc4337SmartAccountSelector.$network.slug)
+								network.slug
 						),
-						address: String(erc4337SmartAccountSelector.address),
+						address: erc4337SmartAccountSelector.address,
 					}
 				)
 			}
 		>
 			{#snippet Title()}
-				{String(erc4337SmartAccountSelector.address) || 'ERC-4337 smart account'}
+				{erc4337SmartAccountSelector.address || 'ERC-4337 smart account'}
 			{/snippet}
 
 			{#snippet Value()}
-				{String(erc4337SmartAccountSelector.address)}
+				{erc4337SmartAccountSelector.address}
 			{/snippet}
 
 			{#snippet HeadingAfter()}

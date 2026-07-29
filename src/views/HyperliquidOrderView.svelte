@@ -20,8 +20,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.HyperliquidOrder> = $props()
 
-	const titleFallback = 'hyperliquid order'
-
 
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -33,7 +31,7 @@
 <EntityView
 	entityType={EntityType.HyperliquidOrder}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? 'hyperliquid order'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -68,7 +66,7 @@
 						}
 					>
 						{#snippet children(entity)}
-							{String(entity.oid)}
+							{entity.oid}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -262,7 +260,7 @@
 						<div>
 							<dt>reduce only</dt>
 							<dd>
-								{String(reduceOnly)}
+								{reduceOnly}
 							</dd>
 						</div>
 					{/if}
@@ -306,7 +304,7 @@
 						<div>
 							<dt>is trigger</dt>
 							<dd>
-								{String(isTrigger)}
+								{isTrigger}
 							</dd>
 						</div>
 					{/if}
@@ -328,7 +326,7 @@
 						<div>
 							<dt>is position tpsl</dt>
 							<dd>
-								{String(isPositionTpsl)}
+								{isPositionTpsl}
 							</dd>
 						</div>
 					{/if}

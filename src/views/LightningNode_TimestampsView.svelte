@@ -45,7 +45,7 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{String(lightningNodeTimestamp.capacitySats ?? '')}
+				{lightningNodeTimestamp.capacitySats ?? ''}
 			{/snippet}
 		</EntityView>
 	{/snippet}

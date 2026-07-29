@@ -5,8 +5,6 @@
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { UrlString } from '$/schema/UrlString.ts'
-	import { EvmAddress, ZeroExHex } from '$/schema/ZeroExHex.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -24,7 +22,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.Eip8004Validation_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Eip8004Scan_Rest,
@@ -37,7 +34,7 @@
 			validatorAddress: true,
 		},
 	}))
-	const titleFallback = $derived(String(pendingEntity.requestHash ?? '') || 'EIP-8004 validation timestamp')
+	const titleFallback = $derived(selection.entitySelector.requestHash || 'EIP-8004 validation timestamp')
 
 
 	// Components
@@ -58,13 +55,13 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{String(pendingEntity.requestHash ?? '') || 'EIP-8004 validation timestamp'}
+		{selection.entitySelector.requestHash || 'EIP-8004 validation timestamp'}
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={eip8004ValidationTimestamp}>
 			{#snippet children(entity)}
-				{String(entity.response ?? '') || String(pendingEntity.requestHash) || titleFallback}
+				{String(entity.response ?? '') || selection.entitySelector.requestHash || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -72,10 +69,10 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={eip8004ValidationTimestamp}>
 			{#snippet children(entity)}
-				{@const validatorAddress0 = entity.validatorAddress}
-				{#if validatorAddress0 != null}
+				{@const validatorAddress = entity.validatorAddress}
+				{#if validatorAddress != null}
 					<span data-text="muted">
-						<TruncatedValue value={String(validatorAddress0)} />
+						<TruncatedValue value={validatorAddress} />
 					</span>
 				{/if}
 			{/snippet}
@@ -87,14 +84,14 @@
 			<div>
 				<dt>Request hash algorithm</dt>
 				<dd>
-					<TruncatedValue value={pendingEntity.requestHashAlgorithm} />
+					{selection.entitySelector.requestHashAlgorithm}
 				</dd>
 			</div>
 
 			<div>
 				<dt>Request hash</dt>
 				<dd>
-					<TruncatedValue value={String(pendingEntity.requestHash)} />
+					<TruncatedValue value={selection.entitySelector.requestHash} />
 				</dd>
 			</div>
 
@@ -127,7 +124,7 @@
 						<div>
 							<dt>Validator address</dt>
 							<dd>
-								<TruncatedValue value={String(validatorAddress)} />
+								<TruncatedValue value={validatorAddress} />
 							</dd>
 						</div>
 					{/if}
@@ -170,11 +167,11 @@
 							<dt>Request URI</dt>
 							<dd>
 								<a
-									href={String(requestUri)}
+									href={requestUri}
 									target="_blank"
 									rel="noreferrer noopener"
 								>
-									<TruncatedValue value={String(requestUri)} />
+									<TruncatedValue value={requestUri} />
 								</a>
 							</dd>
 						</div>
@@ -198,11 +195,11 @@
 							<dt>Response URI</dt>
 							<dd>
 								<a
-									href={String(responseUri)}
+									href={responseUri}
 									target="_blank"
 									rel="noreferrer noopener"
 								>
-									<TruncatedValue value={String(responseUri)} />
+									<TruncatedValue value={responseUri} />
 								</a>
 							</dd>
 						</div>
@@ -225,7 +222,7 @@
 						<div>
 							<dt>Response hash algorithm</dt>
 							<dd>
-								<TruncatedValue value={responseHashAlgorithm} />
+								{responseHashAlgorithm}
 							</dd>
 						</div>
 					{/if}
@@ -247,7 +244,7 @@
 						<div>
 							<dt>Response hash</dt>
 							<dd>
-								<TruncatedValue value={String(responseHash)} />
+								<TruncatedValue value={responseHash} />
 							</dd>
 						</div>
 					{/if}
@@ -293,7 +290,7 @@
 						<div>
 							<dt>Last update</dt>
 							<dd>
-								<Timestamp timestamp={Number(lastUpdate)} />
+								<Timestamp timestamp={lastUpdate} />
 							</dd>
 						</div>
 					{/if}
@@ -339,7 +336,7 @@
 						<div>
 							<dt>Transaction hash</dt>
 							<dd>
-								<TruncatedValue value={String(transactionHash)} />
+								<TruncatedValue value={transactionHash} />
 							</dd>
 						</div>
 					{/if}

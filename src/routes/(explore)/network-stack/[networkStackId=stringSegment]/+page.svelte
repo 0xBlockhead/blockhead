@@ -35,7 +35,7 @@
 
 
 <svelte:head>
-	<title>{(pageSelection.entity == null ? (pageSelection.entitySelector.networkStackId ?? '') || 'network stack' : pageSelection.entity.label || pageSelection.entitySelector.networkStackId || 'network stack')} • network stack • Blockhead</title>
+	<title>{pageSelection.entity == null ? (pageSelection.entitySelector.networkStackId ?? '') || 'network stack' : pageSelection.entity.label || pageSelection.entitySelector.networkStackId || 'network stack'} • network stack • Blockhead</title>
 </svelte:head>
 
 

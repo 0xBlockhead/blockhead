@@ -6,7 +6,6 @@
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 
 
 	// State
@@ -43,41 +42,39 @@
 			entityType={EntityType.FarcasterCast}
 			entitySelector={farcasterCastSelector}
 			href={
-				(
-					'fid' in farcasterCastSelector
-					&& 'hash' in farcasterCastSelector ?
+				'fid' in farcasterCastSelector
+				&& 'hash' in farcasterCastSelector ?
+					resolve(
+						'/(social)/(farcaster)/farcaster/(farcasterNetwork)/cast/[fid=farcasterFid]/[hash=zeroExHex]',
+						{
+							fid: String(farcasterCastSelector.fid),
+							hash: farcasterCastSelector.hash,
+						}
+					)
+				:
+					'username' in farcasterCastSelector
+					&& 'hashPrefix' in farcasterCastSelector ?
 						resolve(
-							'/(social)/(farcaster)/farcaster/(farcasterNetwork)/cast/[fid=farcasterFid]/[hash=zeroExHex]',
+							'/(social)/(farcaster)/farcaster/(farcasterNetwork)/c/[fname=stringSegment]/[hash=zeroExHex]',
 							{
-								fid: String(farcasterCastSelector.fid),
-								hash: String(farcasterCastSelector.hash),
+								fname: farcasterCastSelector.username,
+								hash: farcasterCastSelector.hashPrefix,
 							}
 						)
 					:
-						'username' in farcasterCastSelector
-						&& 'hashPrefix' in farcasterCastSelector ?
-							resolve(
-								'/(social)/(farcaster)/farcaster/(farcasterNetwork)/c/[fname=stringSegment]/[hash=zeroExHex]',
-								{
-									fname: String(farcasterCastSelector.username),
-									hash: String(farcasterCastSelector.hashPrefix),
-								}
-							)
-						:
-							undefined
-				)
+						undefined
 			}
 		>
 			{#snippet Title()}
-				{[(farcasterCast.text ?? ''), String(farcasterCastSelector.hash)].filter(Boolean).join(' ') || 'Farcaster cast'}
+				{[(farcasterCast.text ?? ''), farcasterCastSelector.hash].filter(Boolean).join(' ') || 'Farcaster cast'}
 			{/snippet}
 
 			{#snippet Value()}
-				{[String(farcasterCastSelector.fid), String(farcasterCastSelector.hash)].filter(Boolean).join(' ')}
+				{[String(farcasterCastSelector.fid), farcasterCastSelector.hash].filter(Boolean).join(' ')}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{String(farcasterCast.timestamp ?? '')}</span>
+				<span data-text="annotation">{farcasterCast.timestamp ?? ''}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

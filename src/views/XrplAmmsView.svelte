@@ -30,6 +30,7 @@
 >
 	{#snippet Item({ item: xrplAmm })}
 		{@const xrplAmmSelector = xrplAmm[EntityMetaKey.Selector]}
+		{@const network = xrplAmmSelector.$network}
 		<EntityView
 			entityType={EntityType.XrplAmm}
 			entitySelector={xrplAmmSelector}
@@ -38,12 +39,12 @@
 					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/amm/[ammAccount=stringSegment]',
 					{
 						network: (
-							'caip2' in xrplAmmSelector.$network ?
-								String(caip2StringFromValue(xrplAmmSelector.$network.caip2))
+							'caip2' in network ?
+								caip2StringFromValue(network.caip2)
 							:
-								String(xrplAmmSelector.$network.slug)
+								network.slug
 						),
-						ammAccount: String(xrplAmmSelector.ammAccount),
+						ammAccount: xrplAmmSelector.ammAccount,
 					}
 				)
 			}

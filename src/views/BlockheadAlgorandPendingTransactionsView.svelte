@@ -47,11 +47,11 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{(blockheadAlgorandPendingTransaction.transactionType ?? '')}
+				{blockheadAlgorandPendingTransaction.transactionType ?? ''}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{String(blockheadAlgorandPendingTransactionSelector.observedAtMs)}</span>
+				<span data-text="annotation">{blockheadAlgorandPendingTransactionSelector.observedAtMs}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

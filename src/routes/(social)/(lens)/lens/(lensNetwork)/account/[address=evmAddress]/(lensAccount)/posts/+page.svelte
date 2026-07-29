@@ -42,7 +42,7 @@
 			resolve(
 				'/(social)/(lens)/lens/(lensNetwork)/account/[address=evmAddress]/(lensAccount)/posts',
 				{
-					address: String(params.address),
+					address: params.address,
 				}
 			)
 		}

@@ -25,14 +25,12 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.YoutubeComment> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const viewSelection = $derived(selection({
+	const youtubeComment = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Youtube_Rest,
 			Source.Piped_Rest,
 		],
-	}))
-	const youtubeComment = $derived(viewSelection({
+	})({
 		fields: {
 			text: true,
 			authorDisplayName: true,
@@ -40,7 +38,6 @@
 			publishedAtMs: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.text ?? '') || 'YouTube comment')
 
 
 	// Components
@@ -57,15 +54,18 @@
 <EntityView
 	entityType={EntityType.YoutubeComment}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? ((prefetched.text ?? '') || 'YouTube comment')}
 	href={
-		href ?? resolve(
-			'/(social)/(youtube)/youtube/(globalYoutubeNetwork)/comment/[videoId=stringSegment]/[commentId=stringSegment]',
-			{
-				videoId: encodeURIComponent(String(selection.entitySelector.videoId)),
-				commentId: encodeURIComponent(String(selection.entitySelector.commentId)),
-			}
-		)
+		href === undefined ?
+			resolve(
+				'/(social)/(youtube)/youtube/(globalYoutubeNetwork)/comment/[videoId=stringSegment]/[commentId=stringSegment]',
+				{
+					videoId: encodeURIComponent(selection.entitySelector.videoId),
+					commentId: encodeURIComponent(selection.entitySelector.commentId),
+				}
+			)
+		:
+			href ?? undefined
 	}
 	{layout}
 	bind:open
@@ -78,14 +78,14 @@
 		>
 			{#snippet Pending()}
 				<TruncatedValue
-					value={String(selection.entitySelector.commentId ?? '')}
+					value={selection.entitySelector.commentId}
 					format={TruncatedValueFormat.Visual}
 				/>
 			{/snippet}
 
 			{#snippet children(entity)}
 				<TruncatedValue
-					value={String(entity.text ?? '').replaceAll('\n', ' ') || String(selection.entitySelector.commentId ?? '')}
+					value={(entity.text ?? '').replaceAll('\n', ' ') || selection.entitySelector.commentId}
 					startLength={64}
 					endLength={16}
 					format={TruncatedValueFormat.Visual}
@@ -97,7 +97,7 @@
 	{#snippet Value()}
 		<span>
 			<TruncatedValue
-				value={String(selection.entitySelector.commentId ?? '')}
+				value={selection.entitySelector.commentId}
 				format={TruncatedValueFormat.Visual}
 			/>
 		</span>
@@ -106,10 +106,10 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={youtubeComment}>
 			{#snippet children(entity)}
-				{@const publishedAtMs0 = entity.publishedAtMs}
-				{#if publishedAtMs0 != null}
+				{@const publishedAtMs = entity.publishedAtMs}
+				{#if publishedAtMs != null}
 					<span data-text="muted">
-						<Timestamp timestamp={Number(publishedAtMs0)} />
+						<Timestamp timestamp={publishedAtMs} />
 					</span>
 				{/if}
 			{/snippet}
@@ -131,7 +131,7 @@
 			<div>
 				<dt>Comment ID</dt>
 				<dd>
-					<TruncatedValue value={pendingEntity.commentId} />
+					<TruncatedValue value={selection.entitySelector.commentId} />
 				</dd>
 			</div>
 
@@ -161,7 +161,7 @@
 							<div>
 								<dt>Published</dt>
 								<dd>
-									<Timestamp timestamp={Number(publishedAtMs)} />
+									<Timestamp timestamp={publishedAtMs} />
 								</dd>
 							</div>
 						{/if}
@@ -251,43 +251,43 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const youtubeCommentYoutubeCommentsViewRepliesResource = selection
-		.$$replies({
-			sources: [
-				Source.Youtube_Rest,
-			],
-			limit: 50,
-		})}
+		{@const repliesResource = selection
+			.$$replies({
+				sources: [
+					Source.Youtube_Rest,
+				],
+				limit: 50,
+			})}
 		<ResourceBoundary
-			resource={youtubeCommentYoutubeCommentsViewRepliesResource}
+			resource={repliesResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<YoutubeCommentsView
-						selection={youtubeCommentYoutubeCommentsViewRepliesResource}
-						countResource={youtubeCommentYoutubeCommentsViewRepliesResource.count}
+						selection={repliesResource}
+						countResource={repliesResource.count}
 						title='Replies'
 						id='replies'
 					/>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>
-		{@const youtubeCommentYoutubeCommentTimestampsViewTimestampsResource = selection
-		.$$timestamps({
-			sources: [
-				Source.Youtube_Rest,
-				Source.Piped_Rest,
-			],
-			limit: 50,
-		})}
+		{@const timestampsResource = selection
+			.$$timestamps({
+				sources: [
+					Source.Youtube_Rest,
+					Source.Piped_Rest,
+				],
+				limit: 50,
+			})}
 		<ResourceBoundary
-			resource={youtubeCommentYoutubeCommentTimestampsViewTimestampsResource}
+			resource={timestampsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<YoutubeComment_TimestampsView
-						selection={youtubeCommentYoutubeCommentTimestampsViewTimestampsResource}
-						countResource={youtubeCommentYoutubeCommentTimestampsViewTimestampsResource.count}
+						selection={timestampsResource}
+						countResource={timestampsResource.count}
 						title='Metric snapshots'
 						id='timestamps'
 					/>

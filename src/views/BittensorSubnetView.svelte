@@ -21,7 +21,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.BittensorSubnet> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Constants_Internal,
@@ -33,7 +32,7 @@
 			name: true,
 		},
 	}))
-	const titleFallback = $derived([(pendingEntity.name ?? ''), String(pendingEntity.netuid ?? '')].filter(Boolean).join(' ') || 'Bittensor subnet')
+	const titleFallback = $derived([(prefetched.name ?? ''), String(selection.entitySelector.netuid)].filter(Boolean).join(' ') || 'Bittensor subnet')
 
 
 	// Components
@@ -56,13 +55,13 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={bittensorSubnet}>
 			{#snippet children(entity)}
-				{[(entity.name ?? ''), String(pendingEntity.netuid)].filter(Boolean).join(' ') || title || titleFallback}
+				{[(entity.name ?? ''), String(selection.entitySelector.netuid)].filter(Boolean).join(' ') || title || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Value()}
-		{String(pendingEntity.netuid ?? '') || [(pendingEntity.name ?? ''), String(pendingEntity.netuid ?? '')].filter(Boolean).join(' ') || titleFallback}
+		{String(selection.entitySelector.netuid) || [(prefetched.name ?? ''), String(selection.entitySelector.netuid)].filter(Boolean).join(' ') || titleFallback}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -82,7 +81,7 @@
 				<dt>Netuid</dt>
 				<dd>
 					<NumberValue
-						value={pendingEntity.netuid}
+						value={selection.entitySelector.netuid}
 					/>
 				</dd>
 			</div>
@@ -178,30 +177,30 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const bittensorSubnetBittensorMetagraphTimestampsViewMetagraphTimestampsResource = selection.$$metagraphTimestamps}
+		{@const metagraphTimestampsResource = selection.$$metagraphTimestamps}
 		<ResourceBoundary
-			resource={bittensorSubnetBittensorMetagraphTimestampsViewMetagraphTimestampsResource}
+			resource={metagraphTimestampsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<BittensorMetagraph_TimestampsView
-						selection={bittensorSubnetBittensorMetagraphTimestampsViewMetagraphTimestampsResource}
-						countResource={bittensorSubnetBittensorMetagraphTimestampsViewMetagraphTimestampsResource.count}
+						selection={metagraphTimestampsResource}
+						countResource={metagraphTimestampsResource.count}
 						title='Metagraph observations'
 						id='metagraph-timestamps'
 					/>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>
-		{@const bittensorSubnetBittensorNeuronsViewNeuronsResource = selection.$$neurons}
+		{@const neuronsResource = selection.$$neurons}
 		<ResourceBoundary
-			resource={bittensorSubnetBittensorNeuronsViewNeuronsResource}
+			resource={neuronsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<BittensorNeuronsView
-						selection={bittensorSubnetBittensorNeuronsViewNeuronsResource}
-						countResource={bittensorSubnetBittensorNeuronsViewNeuronsResource.count}
+						selection={neuronsResource}
+						countResource={neuronsResource.count}
 						title='Neurons'
 						id='neurons'
 					/>

@@ -40,11 +40,11 @@
 			entitySelector={blockheadAgentProviderCallSelector}
 		>
 			{#snippet Title()}
-				{(String(blockheadAgentProviderCallSelector.indexInTurn ?? '') ? 'Call #' + String(blockheadAgentProviderCallSelector.indexInTurn ?? '') : '') || 'blockhead agent provider call'}
+				{`Call #${blockheadAgentProviderCallSelector.indexInTurn}`}
 			{/snippet}
 
 			{#snippet Value()}
-				{(blockheadAgentProviderCall.status ?? '')}
+				{blockheadAgentProviderCall.status ?? ''}
 			{/snippet}
 		</EntityView>
 	{/snippet}

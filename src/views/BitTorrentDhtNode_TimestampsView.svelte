@@ -45,11 +45,11 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{String(bitTorrentDhtNodeTimestamp.reachable ?? '')}
+				{bitTorrentDhtNodeTimestamp.reachable ?? ''}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{String(bitTorrentDhtNodeTimestampSelector.timestampMs)}</span>
+				<span data-text="annotation">{bitTorrentDhtNodeTimestampSelector.timestampMs}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

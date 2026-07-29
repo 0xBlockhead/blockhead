@@ -5,7 +5,6 @@
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -23,7 +22,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.BlockheadAvalancheNodeState> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Local_Internal,
@@ -34,7 +32,6 @@
 			nodeIp: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.nodeId ?? '') || 'blockhead avalanche node state')
 
 
 	// Components
@@ -47,13 +44,13 @@
 <EntityView
 	entityType={EntityType.BlockheadAvalancheNodeState}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? (selection.entitySelector.nodeId || 'blockhead avalanche node state')}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{(pendingEntity.nodeId ?? '') || 'blockhead avalanche node state'}
+		{selection.entitySelector.nodeId || 'blockhead avalanche node state'}
 	{/snippet}
 
 	{#snippet Value()}
@@ -65,7 +62,7 @@
 					<NetworkView
 						selection={select(EntityType.Network, network[EntityMetaKey.Selector])}
 						prefetched={network}
-						href=""
+						href={null}
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -77,10 +74,10 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={blockheadAvalancheNodeState}>
 			{#snippet children(entity)}
-				{@const nodeIp0 = entity.nodeIp}
-				{#if nodeIp0 != null}
+				{@const nodeIp = entity.nodeIp}
+				{#if nodeIp != null}
 					<span data-text="muted">
-						{nodeIp0}
+						{nodeIp}
 					</span>
 				{/if}
 			{/snippet}
@@ -92,7 +89,7 @@
 			<div>
 				<dt>node ID</dt>
 				<dd>
-					{pendingEntity.nodeId}
+					{selection.entitySelector.nodeId}
 				</dd>
 			</div>
 
@@ -147,7 +144,7 @@
 						<div>
 							<dt>node PoP public key</dt>
 							<dd>
-								{String(nodePopPublicKey)}
+								{nodePopPublicKey}
 							</dd>
 						</div>
 					{/if}
@@ -169,7 +166,7 @@
 						<div>
 							<dt>node PoP proof of possession</dt>
 							<dd>
-								{String(nodePopProofOfPossession)}
+								{nodePopProofOfPossession}
 							</dd>
 						</div>
 					{/if}
@@ -179,15 +176,15 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const blockheadAvalancheNodeStateBlockheadAvalancheNodeStateTimestampsViewTimestampsResource = selection.$$timestamps}
+		{@const timestampsResource = selection.$$timestamps}
 		<ResourceBoundary
-			resource={blockheadAvalancheNodeStateBlockheadAvalancheNodeStateTimestampsViewTimestampsResource}
+			resource={timestampsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<BlockheadAvalancheNodeState_TimestampsView
-						selection={blockheadAvalancheNodeStateBlockheadAvalancheNodeStateTimestampsViewTimestampsResource}
-						countResource={blockheadAvalancheNodeStateBlockheadAvalancheNodeStateTimestampsViewTimestampsResource.count}
+						selection={timestampsResource}
+						countResource={timestampsResource.count}
 						title='timestamps'
 						id='timestamps'
 					/>

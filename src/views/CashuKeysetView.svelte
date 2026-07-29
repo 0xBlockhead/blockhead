@@ -22,7 +22,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.CashuKeyset> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.CashuMint_Rest,
@@ -33,7 +32,7 @@
 			unit: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.keysetId ?? '') || 'Cashu keyset')
+	const titleFallback = $derived(selection.entitySelector.keysetId || 'Cashu keyset')
 	const viewDomId = $derived('cashu-keyset-' + encodeURIComponent(stringify(selection.entitySelector)))
 
 
@@ -57,13 +56,13 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<TruncatedValue value={pendingEntity.keysetId} />
+		<TruncatedValue value={selection.entitySelector.keysetId} />
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={cashuKeyset}>
 			{#snippet children(entity)}
-				{(entity.unit ?? '') || pendingEntity.keysetId || titleFallback}
+				{(entity.unit ?? '') || selection.entitySelector.keysetId || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -94,7 +93,7 @@
 			<div>
 				<dt>keyset ID</dt>
 				<dd>
-					<TruncatedValue value={pendingEntity.keysetId} />
+					<TruncatedValue value={selection.entitySelector.keysetId} />
 				</dd>
 			</div>
 

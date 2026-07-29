@@ -21,9 +21,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.TezosOperation> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const titleFallback = 'tezos operation'
-
 
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -36,7 +33,7 @@
 <EntityView
 	entityType={EntityType.TezosOperation}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? 'tezos operation'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -61,7 +58,7 @@
 			<div>
 				<dt>content index</dt>
 				<dd>
-					{String(pendingEntity.contentIndex)}
+					{selection.entitySelector.contentIndex}
 				</dd>
 			</div>
 
@@ -187,7 +184,7 @@
 						<div>
 							<dt>counter</dt>
 							<dd>
-								{String(counter)}
+								{counter}
 							</dd>
 						</div>
 					{/if}
@@ -209,7 +206,7 @@
 						<div>
 							<dt>fee mutez</dt>
 							<dd>
-								{String(feeMutez)}
+								{feeMutez}
 							</dd>
 						</div>
 					{/if}
@@ -231,7 +228,7 @@
 						<div>
 							<dt>gas limit</dt>
 							<dd>
-								{String(gasLimit)}
+								{gasLimit}
 							</dd>
 						</div>
 					{/if}
@@ -253,7 +250,7 @@
 						<div>
 							<dt>storage limit</dt>
 							<dd>
-								{String(storageLimit)}
+								{storageLimit}
 							</dd>
 						</div>
 					{/if}
@@ -275,7 +272,7 @@
 						<div>
 							<dt>amount mutez</dt>
 							<dd>
-								{String(amountMutez)}
+								{amountMutez}
 							</dd>
 						</div>
 					{/if}
@@ -319,7 +316,7 @@
 						<div>
 							<dt>consumed gas</dt>
 							<dd>
-								{String(consumedGas)}
+								{consumedGas}
 							</dd>
 						</div>
 					{/if}
@@ -341,7 +338,7 @@
 						<div>
 							<dt>storage size</dt>
 							<dd>
-								{String(storageSize)}
+								{storageSize}
 							</dd>
 						</div>
 					{/if}
@@ -363,7 +360,7 @@
 						<div>
 							<dt>paid storage size diff</dt>
 							<dd>
-								{String(paidStorageSizeDiff)}
+								{paidStorageSizeDiff}
 							</dd>
 						</div>
 					{/if}
@@ -383,7 +380,7 @@
 						}
 					>
 						{#snippet children(entity)}
-							<TruncatedValue value={entity.originatedContractAddresses.values.join(', ')} />
+							{entity.originatedContractAddresses.values.join(', ')}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>

@@ -22,7 +22,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.BlockheadAlgorandParticipationKey> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Local_Internal,
@@ -33,7 +32,7 @@
 			firstValidRound: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.participationId ?? '') || 'blockhead algorand participation key')
+	const titleFallback = $derived(selection.entitySelector.participationId || 'blockhead algorand participation key')
 
 
 	// Components
@@ -55,21 +54,21 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{(pendingEntity.participationId ?? '') || 'blockhead algorand participation key'}
+		{selection.entitySelector.participationId || 'blockhead algorand participation key'}
 	{/snippet}
 
 	{#snippet Value()}
-		{(pendingEntity.nodeId ?? '') || (pendingEntity.participationId ?? '') || titleFallback}
+		{selection.entitySelector.nodeId || selection.entitySelector.participationId || titleFallback}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={blockheadAlgorandParticipationKey}>
 			{#snippet children(entity)}
-				{@const firstValidRound0 = entity.firstValidRound}
-				{#if firstValidRound0 != null}
+				{@const firstValidRound = entity.firstValidRound}
+				{#if firstValidRound != null}
 					<span data-text="muted">
 						<NumberValue
-							value={firstValidRound0}
+							value={firstValidRound}
 						/>
 					</span>
 				{/if}
@@ -82,14 +81,14 @@
 			<div>
 				<dt>node ID</dt>
 				<dd>
-					{pendingEntity.nodeId}
+					{selection.entitySelector.nodeId}
 				</dd>
 			</div>
 
 			<div>
 				<dt>participation ID</dt>
 				<dd>
-					{pendingEntity.participationId}
+					{selection.entitySelector.participationId}
 				</dd>
 			</div>
 
@@ -334,7 +333,7 @@
 						<div>
 							<dt>last synced AT</dt>
 							<dd>
-								<Timestamp timestamp={Number(lastSyncedAt)} />
+								<Timestamp timestamp={lastSyncedAt} />
 							</dd>
 						</div>
 					{/if}

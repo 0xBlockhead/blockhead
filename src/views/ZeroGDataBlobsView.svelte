@@ -49,7 +49,7 @@
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{String(zeroGDataBlob.sizeBytes ?? '')}</span>
+				<span data-text="annotation">{zeroGDataBlob.sizeBytes ?? ''}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

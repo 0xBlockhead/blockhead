@@ -2,7 +2,8 @@
 
 import bindings from '$/sources/Radicle/bindings.ts'
 import { Source } from '$/sources/Source.ts'
-import { SourceProvider, type SourceProviderDefinition } from '$/sources/SourceProvider.ts'
+import { SourceProvider } from '$/sources/SourceProvider.ts'
+import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinition.ts'
 
 export default {
 	provider: SourceProvider.Radicle,
@@ -17,8 +18,5 @@ export default {
 			label: 'Radicle remote repository',
 		},
 	],
-	bindings: [
-		bindings[Source.Radicle_Local],
-		bindings[Source.Radicle_Remote],
-	],
+	bindings: Object.values(bindings).flat(),
 } satisfies SourceProviderDefinition

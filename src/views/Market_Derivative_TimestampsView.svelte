@@ -41,6 +41,7 @@
 >
 	{#snippet Item({ item: marketDerivativeTimestamp })}
 		{@const marketDerivativeTimestampSelector = marketDerivativeTimestamp[EntityMetaKey.Selector]}
+		{@const market = marketDerivativeTimestampSelector.$market}
 		<EntityView
 			entityType={EntityType.Market_Derivative_Timestamp}
 			entitySelector={marketDerivativeTimestampSelector}
@@ -48,14 +49,14 @@
 				resolve(
 					'/(assets)/venue/[marketVenue=marketVenueId]/market/[baseKind=stringSegment]/[base=stringSegment]/[quoteKind=stringSegment]/[quote=stringSegment]/[marketKind=stringSegment]/(market)/derivatives/[timestampMs=nonNegativeInteger]/[feedKey=stringSegment]',
 					{
-						marketVenue: String(marketDerivativeTimestampSelector.$market.$marketVenue.marketVenueId),
-						baseKind: String(marketAssetRouteLabelByKind[String(marketDerivativeTimestampSelector.$market.$base.kind)]),
-						base: String(marketDerivativeTimestampSelector.$market.$base.assetKey),
-						quoteKind: String(marketAssetRouteLabelByKind[String(marketDerivativeTimestampSelector.$market.$quote.kind)]),
-						quote: String(marketDerivativeTimestampSelector.$market.$quote.assetKey),
-						marketKind: String(marketDerivativeTimestampSelector.$market.marketKind),
+						marketVenue: market.$marketVenue.marketVenueId,
+						baseKind: marketAssetRouteLabelByKind[market.$base.kind],
+						base: market.$base.assetKey,
+						quoteKind: marketAssetRouteLabelByKind[market.$quote.kind],
+						quote: market.$quote.assetKey,
+						marketKind: market.marketKind,
 						timestampMs: String(marketDerivativeTimestampSelector.timestampMs),
-						feedKey: encodeURIComponent(String(marketDerivativeTimestampSelector.feedKey)),
+						feedKey: encodeURIComponent(marketDerivativeTimestampSelector.feedKey),
 					}
 				)
 			}
@@ -69,7 +70,7 @@
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{(String(marketDerivativeTimestamp.fundingRate ?? '') ? String(marketDerivativeTimestamp.fundingRate ?? '') + '%' : '')}</span>
+				<span data-text="annotation">{marketDerivativeTimestamp.fundingRate != null ? marketDerivativeTimestamp.fundingRate + '%' : ''}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

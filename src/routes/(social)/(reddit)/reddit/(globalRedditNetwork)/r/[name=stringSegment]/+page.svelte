@@ -37,7 +37,7 @@
 
 
 <svelte:head>
-	<title>{(data.title ?? (pageSelection.entity == null ? ((pageSelection.entitySelector.name ?? '') ? 'r/' + (pageSelection.entitySelector.name ?? '') : '') || 'Reddit subreddit' : (pageSelection.entity.title ?? '') || (pageSelection.entitySelector.name ? 'r/' + pageSelection.entitySelector.name : '') || 'Reddit subreddit'))} • Reddit subreddit • Blockhead</title>
+	<title>{data.title ?? (pageSelection.entity == null ? 'r/' + (pageSelection.entitySelector.name ?? '') : (pageSelection.entity.title ?? '') || 'r/' + pageSelection.entitySelector.name)} • Reddit subreddit • Blockhead</title>
 </svelte:head>
 
 

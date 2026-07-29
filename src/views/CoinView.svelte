@@ -7,7 +7,6 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { stringify } from 'devalue'
-	import { CoinId } from '$/constants/Coin.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -26,19 +25,17 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.Coin> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const viewSelection = $derived(selection({
+	const coin = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Constants_Internal,
 		],
-	}))
-	const coin = $derived(viewSelection({
+	})({
 		fields: {
 			symbol: true,
 			name: true,
 		},
 	}))
-	const titleFallback = $derived([(pendingEntity.symbol ?? ''), (pendingEntity.name ?? '')].filter(Boolean).join(' ') || 'Coin')
+	const titleFallback = $derived([(prefetched.symbol ?? ''), (prefetched.name ?? '')].filter(Boolean).join(' ') || 'Coin')
 	const viewDomId = $derived('coin-' + encodeURIComponent(stringify(selection.entitySelector)))
 
 
@@ -60,12 +57,15 @@
 	id={viewDomId}
 	title={title ?? titleFallback}
 	href={
-		href ?? resolve(
-			'/(assets)/coin/[coinId=stringSegment]',
-			{
-				coinId: String(selection.entitySelector.coinId),
-			}
-		)
+		href === undefined ?
+			resolve(
+				'/(assets)/coin/[coinId=stringSegment]',
+				{
+					coinId: selection.entitySelector.coinId,
+				}
+			)
+		:
+			href ?? undefined
 	}
 	{layout}
 	bind:open
@@ -76,7 +76,7 @@
 		<ResourceBoundary resource={coin}>
 			{#snippet children(entity)}
 				{@const reference = entity.$logo}
-				{#if reference != null && reference[EntityMetaKey.Selector] !== undefined}
+				{#if reference != null}
 					<MediaView
 						selection={select(EntityType.Media, reference[EntityMetaKey.Selector])}
 						prefetched={reference}
@@ -91,18 +91,18 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={coin}>
 			{#snippet Pending()}
-				{String(selection.entitySelector.coinId ?? '')}
+				{selection.entitySelector.coinId}
 			{/snippet}
 
 			{#snippet children(entity)}
-				{String(entity.name ?? '') && String(entity.symbol ?? '') && String(entity.name ?? '') !== String(entity.symbol ?? '') ? `${String(entity.name ?? '')} (${String(entity.symbol ?? '')})` : String(entity.symbol ?? '') || String(entity.name ?? '') || titleFallback}
+				{entity.name && entity.symbol && entity.name !== entity.symbol ? `${entity.name} (${entity.symbol})` : entity.symbol || entity.name || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Value()}
 		<span>
-			{String(selection.entitySelector.coinId ?? '')}
+			{selection.entitySelector.coinId}
 		</span>
 	{/snippet}
 
@@ -125,26 +125,26 @@
 					<ResourceBoundary
 						resource={
 							selection
-								.$$timestamps({
-									sources: [
-										Source.Constants_Internal,
-										Source.Coingecko_Rest,
-										Source.CoinMarketCap_Rest,
-										Source.Coinpaprika_OpenApi,
-									],
-									fields: {
-										marketCapRank: true,
-										marketCapUsd: true,
-										marketCap: true,
-										change24hPercent: true,
-										timestampMs: true,
-										source: true,
-									},
-									limit: 1,
-									orderBy: [
-										[({ fieldRow }) => fieldRow[EntityMetaKey.Value][EntityMetaKey.Selector].timestampMs ?? Number.NEGATIVE_INFINITY, 'desc'],
-									],
-								})
+							.$$timestamps({
+								sources: [
+									Source.Constants_Internal,
+									Source.Coingecko_Rest,
+									Source.CoinMarketCap_Rest,
+									Source.Coinpaprika_OpenApi,
+								],
+								fields: {
+									marketCapRank: true,
+									marketCapUsd: true,
+									marketCap: true,
+									change24hPercent: true,
+									timestampMs: true,
+									source: true,
+								},
+								limit: 1,
+								orderBy: [
+									[({ fieldRow }) => fieldRow[EntityMetaKey.Value][EntityMetaKey.Selector].timestampMs ?? Number.NEGATIVE_INFINITY, 'desc'],
+								],
+							})
 						}
 					>
 						{#snippet children(coinTimestamps)}
@@ -180,7 +180,7 @@
 				<div>
 					<dt>Coin ID</dt>
 					<dd>
-						{pendingEntity.coinId}
+						{selection.entitySelector.coinId}
 					</dd>
 				</div>
 			{/if}
@@ -272,12 +272,12 @@
 				<MarketsView
 					selection={
 						selection
-							.$$marketsWithCoinAsBase({
-								sources: [
-									Source.Constants_Internal,
-								],
-								limit: 1,
-							})
+						.$$marketsWithCoinAsBase({
+							sources: [
+								Source.Constants_Internal,
+							],
+							limit: 1,
+						})
 					}
 					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
@@ -294,9 +294,9 @@
 				<MarketsView
 					selection={
 						selection
-							.$$marketsWithCoinAsBase({
-								limit: 16,
-							})
+						.$$marketsWithCoinAsBase({
+							limit: 16,
+						})
 					}
 					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}
@@ -313,9 +313,9 @@
 				<MarketsView
 					selection={
 						selection
-							.$$marketsWithCoinAsQuote({
-								limit: 16,
-							})
+						.$$marketsWithCoinAsQuote({
+							limit: 16,
+						})
 					}
 					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}

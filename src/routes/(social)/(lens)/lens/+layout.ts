@@ -15,7 +15,8 @@ export const load: LayoutLoad = ({ params }) => {
 			scope: 'LensNetwork',
 		}
 	)
-	if (lensNetworkScopeSelector instanceof arktype.errors) error(404, 'Invalid LensNetwork selector')
+	if (lensNetworkScopeSelector instanceof arktype.errors)
+		error(404, 'Invalid LensNetwork selector')
 
 	return {
 		selector: lensNetworkScopeSelector,

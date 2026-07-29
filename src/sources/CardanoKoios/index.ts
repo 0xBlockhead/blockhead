@@ -2,7 +2,8 @@
 
 import bindings from '$/sources/CardanoKoios/bindings.ts'
 import { Source } from '$/sources/Source.ts'
-import { SourceProvider, type SourceProviderDefinition } from '$/sources/SourceProvider.ts'
+import { SourceProvider } from '$/sources/SourceProvider.ts'
+import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinition.ts'
 
 export default {
 	provider: SourceProvider.CardanoKoios,
@@ -13,5 +14,5 @@ export default {
 			label: 'Cardano Koios REST',
 		},
 	],
-	bindings: [bindings[Source.CardanoKoios_Rest]],
+	bindings: Object.values(bindings).flat(),
 } satisfies SourceProviderDefinition

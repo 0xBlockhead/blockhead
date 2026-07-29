@@ -5,7 +5,6 @@
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { EvmAddress } from '$/schema/ZeroExHex.ts'
 
 
 	// Context
@@ -22,8 +21,7 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.Eip8004AgentRegistration> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const titleFallback = $derived((pendingEntity.agentId ?? '') || 'EIP-8004 agent registration')
+	const titleFallback = $derived(selection.entitySelector.agentId || 'EIP-8004 agent registration')
 
 
 	// Components
@@ -44,16 +42,16 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{(pendingEntity.agentId ?? '') || 'EIP-8004 agent registration'}
+		{selection.entitySelector.agentId || 'EIP-8004 agent registration'}
 	{/snippet}
 
 	{#snippet Value()}
-		{(pendingEntity.namespace ?? '') || (pendingEntity.agentId ?? '') || titleFallback}
+		{selection.entitySelector.namespace || selection.entitySelector.agentId || titleFallback}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
 		<span data-text="muted">
-			{String(pendingEntity.chainId)}
+			{selection.entitySelector.chainId}
 		</span>
 	{/snippet}
 
@@ -62,7 +60,7 @@
 			<div>
 				<dt>Namespace</dt>
 				<dd>
-					{pendingEntity.namespace}
+					{selection.entitySelector.namespace}
 				</dd>
 			</div>
 
@@ -70,7 +68,7 @@
 				<dt>Chain ID</dt>
 				<dd>
 					<NumberValue
-						value={pendingEntity.chainId}
+						value={selection.entitySelector.chainId}
 					/>
 				</dd>
 			</div>
@@ -78,14 +76,14 @@
 			<div>
 				<dt>Identity registry</dt>
 				<dd>
-					{String(pendingEntity.identityRegistry)}
+					{selection.entitySelector.identityRegistry}
 				</dd>
 			</div>
 
 			<div>
 				<dt>Agent ID</dt>
 				<dd>
-					{pendingEntity.agentId}
+					{selection.entitySelector.agentId}
 				</dd>
 			</div>
 		</dl>
@@ -114,30 +112,30 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const eip8004AgentRegistrationEip8004AgentRegistrationTimestampsViewTimestampsResource = selection.$$timestamps}
+		{@const timestampsResource = selection.$$timestamps}
 		<ResourceBoundary
-			resource={eip8004AgentRegistrationEip8004AgentRegistrationTimestampsViewTimestampsResource}
+			resource={timestampsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<Eip8004AgentRegistration_TimestampsView
-						selection={eip8004AgentRegistrationEip8004AgentRegistrationTimestampsViewTimestampsResource}
-						countResource={eip8004AgentRegistrationEip8004AgentRegistrationTimestampsViewTimestampsResource.count}
+						selection={timestampsResource}
+						countResource={timestampsResource.count}
 						title='Timestamps'
 						id='timestamps'
 					/>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>
-		{@const eip8004AgentRegistrationEip8004AgentRegistrationFilesViewFilesResource = selection.$$files}
+		{@const filesResource = selection.$$files}
 		<ResourceBoundary
-			resource={eip8004AgentRegistrationEip8004AgentRegistrationFilesViewFilesResource}
+			resource={filesResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<Eip8004AgentRegistrationFilesView
-						selection={eip8004AgentRegistrationEip8004AgentRegistrationFilesViewFilesResource}
-						countResource={eip8004AgentRegistrationEip8004AgentRegistrationFilesViewFilesResource.count}
+						selection={filesResource}
+						countResource={filesResource.count}
 						title='Files'
 						id='files'
 					/>

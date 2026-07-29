@@ -47,11 +47,11 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{(blockheadKaspaNodeState.$network.$network.name || (blockheadKaspaNodeStateSelector.$network.$network.caip2 == null ? '' : `${blockheadKaspaNodeStateSelector.$network.$network.caip2.namespace}:${blockheadKaspaNodeStateSelector.$network.$network.caip2.reference}`) || 'Network')}
+				{blockheadKaspaNodeState.$network.$network.name || (blockheadKaspaNodeStateSelector.$network.$network.caip2 == null ? '' : `${blockheadKaspaNodeStateSelector.$network.$network.caip2.namespace}:${blockheadKaspaNodeStateSelector.$network.$network.caip2.reference}`) || 'Network'}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{(blockheadKaspaNodeState.networkId ?? '')}</span>
+				<span data-text="annotation">{blockheadKaspaNodeState.networkId ?? ''}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

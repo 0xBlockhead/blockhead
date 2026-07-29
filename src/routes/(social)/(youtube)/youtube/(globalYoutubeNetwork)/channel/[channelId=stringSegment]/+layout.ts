@@ -9,7 +9,8 @@ import YoutubeChannelSchema from '$/schema/YoutubeChannel.ts'
 import { type as arktype } from 'arktype'
 
 export const load: LayoutLoad = ({ params }) => {
-	if (!(matchStringSegment(params.channelId))) error(404, 'Route mapping not applicable')
+	if (!(matchStringSegment(params.channelId)))
+		error(404, 'Route mapping not applicable')
 
 	const youtubeChannelChannelIdSelector = parseEntitySelector(
 		schema,
@@ -18,7 +19,8 @@ export const load: LayoutLoad = ({ params }) => {
 			channelId: decodeURIComponent(params.channelId),
 		}
 	)
-	if (youtubeChannelChannelIdSelector instanceof arktype.errors) error(404, 'Invalid YoutubeChannel selector')
+	if (youtubeChannelChannelIdSelector instanceof arktype.errors)
+		error(404, 'Invalid YoutubeChannel selector')
 
 	return {
 		selector: youtubeChannelChannelIdSelector,

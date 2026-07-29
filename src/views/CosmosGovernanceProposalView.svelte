@@ -20,13 +20,12 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.CosmosGovernanceProposal> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const cosmosGovernanceProposal = $derived(selection({
 		fields: {
 			title: true,
 		},
 	}))
-	const titleFallback = $derived(([(pendingEntity.title ?? ''), ((pendingEntity.proposalId ?? '') ? 'Proposal ' + (pendingEntity.proposalId ?? '') : '')].filter(Boolean).join(' ')) || 'Cosmos governance proposal')
+	const titleFallback = $derived([(prefetched.title ?? ''), 'Proposal ' + selection.entitySelector.proposalId].filter(Boolean).join(' ') || 'Cosmos governance proposal')
 
 
 	// Components
@@ -47,13 +46,13 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={cosmosGovernanceProposal}>
 			{#snippet children(entity)}
-				{([(entity.title ?? ''), (pendingEntity.proposalId ? 'Proposal ' + pendingEntity.proposalId : '')].filter(Boolean).join(' ')) || title || titleFallback}
+				{[(entity.title ?? ''), 'Proposal ' + selection.entitySelector.proposalId].filter(Boolean).join(' ') || title || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Value()}
-		{((pendingEntity.proposalId ?? '') ? 'Proposal ' + (pendingEntity.proposalId ?? '') : '') || ([(pendingEntity.title ?? ''), ((pendingEntity.proposalId ?? '') ? 'Proposal ' + (pendingEntity.proposalId ?? '') : '')].filter(Boolean).join(' ')) || titleFallback}
+		{'Proposal ' + selection.entitySelector.proposalId}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
@@ -71,7 +70,7 @@
 			<div>
 				<dt>Proposal ID</dt>
 				<dd>
-					{pendingEntity.proposalId}
+					{selection.entitySelector.proposalId}
 				</dd>
 			</div>
 
@@ -146,15 +145,15 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const cosmosGovernanceProposalCosmosGovernanceProposalTimestampsViewTimestampsResource = selection.$$timestamps}
+		{@const timestampsResource = selection.$$timestamps}
 		<ResourceBoundary
-			resource={cosmosGovernanceProposalCosmosGovernanceProposalTimestampsViewTimestampsResource}
+			resource={timestampsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<CosmosGovernanceProposal_TimestampsView
-						selection={cosmosGovernanceProposalCosmosGovernanceProposalTimestampsViewTimestampsResource}
-						countResource={cosmosGovernanceProposalCosmosGovernanceProposalTimestampsViewTimestampsResource.count}
+						selection={timestampsResource}
+						countResource={timestampsResource.count}
 						title='Lifecycle snapshots'
 						id='timestamps'
 					/>

@@ -46,7 +46,7 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{String(tronAccountTimestamp.balanceSun ?? '')}
+				{tronAccountTimestamp.balanceSun ?? ''}
 			{/snippet}
 
 			{#snippet HeadingAfter()}

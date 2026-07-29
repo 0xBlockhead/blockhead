@@ -21,17 +21,15 @@
 	}: EntitySelectionViewProps<EntityType.AtprotoActor> = $props()
 
 	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const viewSelection = $derived(selection({
+	const atprotoActor = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Atproto_Xrpc,
 		],
-	}))
-	const atprotoActor = $derived(viewSelection({
+	})({
 		fields: {
 			did: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.did ?? '') || 'AT Protocol account')
 
 
 	// Components
@@ -45,19 +43,22 @@
 <EntityView
 	entityType={EntityType.AtprotoActor}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? ((prefetched.did ?? '') || 'AT Protocol account')}
 	href={
-		href ?? (
-			'did' in selection.entitySelector ?
-				resolve(
-					'/(social)/(atproto)/atproto/(globalAtprotoNetwork)/actor/[did=stringSegment]',
-					{
-						did: encodeURIComponent(String(selection.entitySelector.did)),
-					}
-				)
-			:
-				undefined
-		)
+		href === undefined ?
+			(
+				'did' in selection.entitySelector ?
+					resolve(
+						'/(social)/(atproto)/atproto/(globalAtprotoNetwork)/actor/[did=stringSegment]',
+						{
+							did: encodeURIComponent(selection.entitySelector.did),
+						}
+					)
+				:
+					undefined
+			)
+		:
+			href ?? undefined
 	}
 	{layout}
 	bind:open
@@ -84,17 +85,17 @@
 			}
 		>
 			{#snippet Pending()}
-				<TruncatedValue value={String(pendingEntity.did ?? '')} />
+				<TruncatedValue value={pendingEntity.did ?? ''} />
 			{/snippet}
 
 			{#snippet children(observations)}
 				{@const observation = observations.values[0]}
 				{#if observation?.displayName}
-					{String(observation.displayName)}
+					{observation.displayName}
 				{:else if observation?.handle}
-					@{String(observation.handle)}
+					@{observation.handle}
 				{:else}
-					<TruncatedValue value={String(pendingEntity.did ?? '')} />
+					<TruncatedValue value={pendingEntity.did ?? ''} />
 				{/if}
 			{/snippet}
 		</ResourceBoundary>
@@ -124,9 +125,9 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const atprotoActorAtprotoPostsViewPostsResource = selection.$$posts}
+		{@const postsResource = selection.$$posts}
 		<ResourceBoundary
-			resource={atprotoActorAtprotoPostsViewPostsResource}
+			resource={postsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
@@ -141,16 +142,16 @@
 					>
 						{#snippet children(entity)}
 							<AtprotoPostsView
-								selection={atprotoActorAtprotoPostsViewPostsResource}
-								countResource={atprotoActorAtprotoPostsViewPostsResource.count}
+								selection={postsResource}
+								countResource={postsResource.count}
 								title='Posts'
 								href={
-									(entity.did != null ? resolve(
+									entity.did != null ? resolve(
 										'/(social)/(atproto)/atproto/(globalAtprotoNetwork)/actor/[did=stringSegment]/(atprotoActor)/posts',
 										{
-											did: encodeURIComponent(String(entity.did)),
+											did: encodeURIComponent(entity.did),
 										}
-									) : undefined)
+									) : undefined
 								}
 								id='posts'
 							/>
@@ -159,9 +160,9 @@
 				{/if}
 			{/snippet}
 		</ResourceBoundary>
-		{@const atprotoActorAtprotoActorTimestampsViewTimestampsResource = selection.$$timestamps}
+		{@const timestampsResource = selection.$$timestamps}
 		<ResourceBoundary
-			resource={atprotoActorAtprotoActorTimestampsViewTimestampsResource}
+			resource={timestampsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
@@ -176,16 +177,16 @@
 					>
 						{#snippet children(entity)}
 							<AtprotoActor_TimestampsView
-								selection={atprotoActorAtprotoActorTimestampsViewTimestampsResource}
-								countResource={atprotoActorAtprotoActorTimestampsViewTimestampsResource.count}
+								selection={timestampsResource}
+								countResource={timestampsResource.count}
 								title='Metric observations'
 								href={
-									(entity.did != null ? resolve(
+									entity.did != null ? resolve(
 										'/(social)/(atproto)/atproto/(globalAtprotoNetwork)/actor/[did=stringSegment]/(atprotoActor)/observations',
 										{
-											did: encodeURIComponent(String(entity.did)),
+											did: encodeURIComponent(entity.did),
 										}
-									) : undefined)
+									) : undefined
 								}
 								id='timestamps'
 							/>

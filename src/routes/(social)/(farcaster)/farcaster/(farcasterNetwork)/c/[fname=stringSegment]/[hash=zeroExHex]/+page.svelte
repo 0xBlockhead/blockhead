@@ -4,7 +4,6 @@
 	// Types/constants
 	import type { PageProps } from './$types.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -49,7 +48,7 @@
 
 
 <svelte:head>
-	<title>{(pageSelection.entity == null ? 'Farcaster cast' : [(pageSelection.entity.text ?? ''), String(pageSelection.entity.hash)].filter(Boolean).join(' ') || 'Farcaster cast')} • Farcaster cast • Blockhead</title>
+	<title>{pageSelection.entity == null ? 'Farcaster cast' : [(pageSelection.entity.text ?? ''), pageSelection.entity.hash].filter(Boolean).join(' ') || 'Farcaster cast'} • Farcaster cast • Blockhead</title>
 </svelte:head>
 
 

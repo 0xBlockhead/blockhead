@@ -24,7 +24,7 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.CardanoStakePool> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const network = $derived(selection.entitySelector.$network)
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Blockfrost_Rest,
@@ -36,7 +36,7 @@
 			vrfKeyHash: true,
 		},
 	}))
-	const titleFallback = $derived([(pendingEntity.ticker ?? ''), (pendingEntity.poolId ?? '')].filter(Boolean).join(' ') || 'Cardano stake pool')
+	const titleFallback = $derived([(prefetched.ticker ?? ''), selection.entitySelector.poolId].filter(Boolean).join(' ') || 'Cardano stake pool')
 
 
 	// Components
@@ -51,18 +51,21 @@
 	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
 	href={
-		href ?? resolve(
-			'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/stake-pool/[poolId=stringSegment]',
-			{
-				network: (
-					'caip2' in selection.entitySelector.$network ?
-						String(caip2StringFromValue(selection.entitySelector.$network.caip2))
-					:
-						String(selection.entitySelector.$network.slug)
-				),
-				poolId: String(selection.entitySelector.poolId),
-			}
-		)
+		href === undefined ?
+			resolve(
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/stake-pool/[poolId=stringSegment]',
+				{
+					network: (
+						'caip2' in network ?
+							caip2StringFromValue(network.caip2)
+						:
+							network.slug
+					),
+					poolId: selection.entitySelector.poolId,
+				}
+			)
+		:
+			href ?? undefined
 	}
 	{layout}
 	bind:open
@@ -71,7 +74,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={cardanoStakePool}>
 			{#snippet children(entity)}
-				{[(entity.ticker ?? ''), pendingEntity.poolId].filter(Boolean).join(' ') || title || titleFallback}
+				{[(entity.ticker ?? ''), selection.entitySelector.poolId].filter(Boolean).join(' ') || title || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -79,7 +82,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={cardanoStakePool}>
 			{#snippet children(entity)}
-				{(entity.vrfKeyHash ?? '') || [(entity.ticker ?? ''), pendingEntity.poolId].filter(Boolean).join(' ') || titleFallback}
+				{(entity.vrfKeyHash ?? '') || [(entity.ticker ?? ''), selection.entitySelector.poolId].filter(Boolean).join(' ') || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -100,7 +103,7 @@
 			<div>
 				<dt>pool ID</dt>
 				<dd>
-					{pendingEntity.poolId}
+					{selection.entitySelector.poolId}
 				</dd>
 			</div>
 

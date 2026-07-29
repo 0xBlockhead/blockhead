@@ -51,7 +51,7 @@
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{String(lensUsername.timestamp ?? '')}</span>
+				<span data-text="annotation">{lensUsername.timestamp ?? ''}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

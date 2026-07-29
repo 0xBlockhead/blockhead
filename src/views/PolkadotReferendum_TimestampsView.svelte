@@ -47,7 +47,7 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{String(polkadotReferendumTimestampSelector.timestampMs)}
+				{polkadotReferendumTimestampSelector.timestampMs}
 			{/snippet}
 
 			{#snippet HeadingAfter()}

@@ -39,6 +39,7 @@
 >
 	{#snippet Item({ item: polkadotPallet })}
 		{@const polkadotPalletSelector = polkadotPallet[EntityMetaKey.Selector]}
+		{@const network = polkadotPalletSelector.$network}
 		<EntityView
 			entityType={EntityType.PolkadotPallet}
 			entitySelector={polkadotPalletSelector}
@@ -47,12 +48,12 @@
 					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/pallet/[palletName=stringSegment]',
 					{
 						network: (
-							'caip2' in polkadotPalletSelector.$network ?
-								String(caip2StringFromValue(polkadotPalletSelector.$network.caip2))
+							'caip2' in network ?
+								caip2StringFromValue(network.caip2)
 							:
-								String(polkadotPalletSelector.$network.slug)
+								network.slug
 						),
-						palletName: String(polkadotPalletSelector.palletName),
+						palletName: polkadotPalletSelector.palletName,
 					}
 				)
 			}
@@ -66,7 +67,7 @@
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{String(polkadotPallet.index ?? '')}</span>
+				<span data-text="annotation">{polkadotPallet.index ?? ''}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

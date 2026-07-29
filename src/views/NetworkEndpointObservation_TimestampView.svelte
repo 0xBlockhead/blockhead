@@ -20,14 +20,12 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.NetworkEndpointObservation_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const networkEndpointObservationTimestamp = $derived(selection({
 		fields: {
 			health: true,
 			latencyMs: true,
 		},
 	}))
-	const titleFallback = $derived(String(pendingEntity.timestampMs ?? '') || 'network endpoint observation timestamp')
 
 
 	// Components
@@ -42,30 +40,30 @@
 <EntityView
 	entityType={EntityType.NetworkEndpointObservation_Timestamp}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? String(selection.entitySelector.timestampMs)}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+		<Timestamp timestamp={selection.entitySelector.timestampMs} />
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={networkEndpointObservationTimestamp}>
 			{#snippet children(entity)}
-				{[(entity.health ?? ''), String(entity.latencyMs ?? '')].filter(Boolean).join(' ') || String(pendingEntity.timestampMs) || titleFallback}
+				{[(entity.health ?? ''), String(entity.latencyMs ?? '')].filter(Boolean).join(' ') || String(selection.entitySelector.timestampMs)}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
 		<span data-text="muted">
-			{pendingEntity.endpointKind}
+			{selection.entitySelector.endpointKind}
 		</span>
 
 		<span data-text="muted">
-			{pendingEntity.source}
+			{selection.entitySelector.source}
 		</span>
 	{/snippet}
 
@@ -86,11 +84,11 @@
 				<dt>endpoint URL</dt>
 				<dd>
 					<a
-						href={String(pendingEntity.endpointUrl)}
+						href={selection.entitySelector.endpointUrl}
 						target="_blank"
 						rel="noreferrer noopener"
 					>
-						<TruncatedValue value={String(pendingEntity.endpointUrl)} />
+						<TruncatedValue value={selection.entitySelector.endpointUrl} />
 					</a>
 				</dd>
 			</div>
@@ -98,7 +96,7 @@
 			<div>
 				<dt>endpoint kind</dt>
 				<dd>
-					{pendingEntity.endpointKind}
+					{selection.entitySelector.endpointKind}
 				</dd>
 			</div>
 		</dl>
@@ -107,14 +105,14 @@
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+					<Timestamp timestamp={selection.entitySelector.timestampMs} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 

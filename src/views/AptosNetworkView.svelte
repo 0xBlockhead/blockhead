@@ -22,7 +22,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.AptosNetwork> = $props()
 
-	const titleFallback = 'aptos network'
 	const viewDomId = $derived('aptos-network-' + encodeURIComponent(stringify(selection.entitySelector)))
 
 
@@ -44,7 +43,7 @@
 	entityType={EntityType.AptosNetwork}
 	entitySelector={selection.entitySelector}
 	id={viewDomId}
-	title={title ?? titleFallback}
+	title={title ?? 'aptos network'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -52,7 +51,7 @@
 	{#snippet Title()}
 		<NetworkView
 			selection={select(EntityType.Network, selection.entitySelector.$network)}
-			href=""
+			href={null}
 			layout={EntityLayout.Title}
 			open={false}
 		/>

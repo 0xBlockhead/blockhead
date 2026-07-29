@@ -44,7 +44,7 @@
 				resolve(
 					'/(social)/(lens)/lens/(lensNetwork)/post/[postId=stringSegment]',
 					{
-						postId: String(lensPostSelector.id),
+						postId: lensPostSelector.id,
 					}
 				)
 			}

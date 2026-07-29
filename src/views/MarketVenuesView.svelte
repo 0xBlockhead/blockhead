@@ -6,7 +6,6 @@
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { MarketVenueId } from '$/constants/MarketVenue.ts'
 
 
 	// State
@@ -55,7 +54,7 @@
 				resolve(
 					'/(assets)/(marketVenues)/market-venue/[marketVenueId=marketVenueId]',
 					{
-						marketVenueId: String(marketVenueSelector.marketVenueId),
+						marketVenueId: marketVenueSelector.marketVenueId,
 					}
 				)
 			}

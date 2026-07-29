@@ -19,13 +19,11 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.XmtpNetwork> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const viewSelection = $derived(selection({
+	const xmtpNetwork = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Constants_Internal,
 		],
-	}))
-	const xmtpNetwork = $derived(viewSelection({
+	})({
 		fields: {
 			protocolName: true,
 			homeUrl: true,
@@ -34,7 +32,7 @@
 			relationshipModel: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.protocolName ?? '') || 'XMTP')
+	const titleFallback = $derived((prefetched.protocolName ?? '') || 'XMTP')
 
 
 	// Components
@@ -49,12 +47,15 @@
 	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
 	href={
-		href ?? (
-			selection.entitySelector.scope === 'XmtpNetwork' ?
-				resolve('/(social)/(xmtp)/xmtp')
-			:
-				undefined
-		)
+		href === undefined ?
+			(
+				selection.entitySelector.scope === 'XmtpNetwork' ?
+					resolve('/(social)/(xmtp)/xmtp')
+				:
+					undefined
+			)
+		:
+			href ?? undefined
 	}
 	{layout}
 	bind:open
@@ -69,7 +70,7 @@
 	{/snippet}
 
 	{#snippet Value()}
-		{(pendingEntity.protocolName ?? '') || titleFallback}
+		{(prefetched.protocolName ?? '') || titleFallback}
 	{/snippet}
 
 	{#snippet TypeAnnotationTooltip()}
@@ -139,11 +140,11 @@
 					>
 						{#snippet children(entity)}
 							<a
-								href={String(entity.homeUrl)}
+								href={entity.homeUrl}
 								target="_blank"
 								rel="noreferrer noopener"
 							>
-								<TruncatedValue value={String(entity.homeUrl)} />
+								<TruncatedValue value={entity.homeUrl} />
 							</a>
 						{/snippet}
 					</ResourceBoundary>
@@ -162,11 +163,11 @@
 							<dt>Docs URL</dt>
 							<dd>
 								<a
-									href={String(docsUrl)}
+									href={docsUrl}
 									target="_blank"
 									rel="noreferrer noopener"
 								>
-									<TruncatedValue value={String(docsUrl)} />
+									<TruncatedValue value={docsUrl} />
 								</a>
 							</dd>
 						</div>
@@ -177,15 +178,15 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const xmtpNetworkXmtpConversationsViewXmtpConversationsResource = selection.$$xmtpConversations}
+		{@const xmtpConversationsResource = selection.$$xmtpConversations}
 		<ResourceBoundary
-			resource={xmtpNetworkXmtpConversationsViewXmtpConversationsResource}
+			resource={xmtpConversationsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<XmtpConversationsView
-						selection={xmtpNetworkXmtpConversationsViewXmtpConversationsResource}
-						countResource={xmtpNetworkXmtpConversationsViewXmtpConversationsResource.count}
+						selection={xmtpConversationsResource}
+						countResource={xmtpConversationsResource.count}
 						title='Conversations'
 						href={resolve('/(social)/(xmtp)/xmtp/(xmtpNetwork)/conversations')}
 						id='xmtp-conversations'

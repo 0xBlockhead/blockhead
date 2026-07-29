@@ -24,14 +24,13 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.UtxoBlock> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const network = $derived(selection.entitySelector.$network)
 	const utxoBlock = $derived(selection({
 		fields: {
 			hash: true,
 			transactionCount: true,
 		},
 	}))
-	const titleFallback = $derived((String(pendingEntity.height ?? '') ? 'Block #' + String(pendingEntity.height ?? '') : '') || (pendingEntity.hash ?? '') || 'UTXO block')
 
 
 	// Components
@@ -48,27 +47,30 @@
 <EntityView
 	entityType={EntityType.UtxoBlock}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
-	idDragPlainText={String(pendingEntity.height ?? '')}
+	title={title ?? `Block #${selection.entitySelector.height}`}
+	idDragPlainText={String(selection.entitySelector.height)}
 	href={
-		href ?? (
-			'hash' in selection.entitySelector ?
-				resolve(
-					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(blocks)/block/[blockNumber=nonNegativeBigInt]/(selection)/[hash=stringSegment]',
-					{
-						network: (
-							'caip2' in selection.entitySelector.$network ?
-								String(caip2StringFromValue(selection.entitySelector.$network.caip2))
-							:
-								String(selection.entitySelector.$network.slug)
-						),
-						blockNumber: String(selection.entitySelector.height),
-						hash: String(selection.entitySelector.hash),
-					}
-				)
-			:
-				undefined
-		)
+		href === undefined ?
+			(
+				'hash' in selection.entitySelector ?
+					resolve(
+						'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(blocks)/block/[blockNumber=nonNegativeBigInt]/(selection)/[hash=stringSegment]',
+						{
+							network: (
+								'caip2' in network ?
+									caip2StringFromValue(network.caip2)
+								:
+									network.slug
+							),
+							blockNumber: String(selection.entitySelector.height),
+							hash: selection.entitySelector.hash,
+						}
+					)
+				:
+					undefined
+			)
+		:
+			href ?? undefined
 	}
 	{layout}
 	bind:open
@@ -78,24 +80,24 @@
 		<span data-row="inline align-center gap-2 wrap">
 			<span>Block </span>
 			<span data-badge="small">
-				#{String(pendingEntity.height)}
+				#{selection.entitySelector.height}
 			</span>
 		</span>
 	{/snippet}
 
 	{#snippet Value()}
 		<span data-badge="small">
-			#{String(pendingEntity.height)}
+			#{selection.entitySelector.height}
 		</span>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={utxoBlock}>
 			{#snippet children(entity)}
-				{@const transactionCount0 = entity.transactionCount}
-				{#if transactionCount0 != null}
+				{@const transactionCount = entity.transactionCount}
+				{#if transactionCount != null}
 					<span data-text="muted">
-						{String(transactionCount0)}
+						{transactionCount}
 					</span>
 				{/if}
 			{/snippet}
@@ -108,7 +110,7 @@
 				<dt>Height</dt>
 				<dd>
 					<NumberValue
-						value={pendingEntity.height}
+						value={selection.entitySelector.height}
 					/>
 				</dd>
 			</div>
@@ -141,7 +143,7 @@
 						<div>
 							<dt>Timestamp</dt>
 							<dd>
-								<Timestamp timestamp={Number(timestampMs)} />
+								<Timestamp timestamp={timestampMs} />
 							</dd>
 						</div>
 					{/if}
@@ -157,7 +159,7 @@
 						<div>
 							<dt>Transaction count</dt>
 							<dd>
-								{String(transactionCount)}
+								{transactionCount}
 							</dd>
 						</div>
 					{/if}
@@ -203,7 +205,7 @@
 						<div>
 							<dt>Nonce</dt>
 							<dd>
-								{String(nonce)}
+								{nonce}
 							</dd>
 						</div>
 					{/if}
@@ -225,7 +227,7 @@
 						<div>
 							<dt>Difficulty</dt>
 							<dd>
-								{String(difficulty)}
+								{difficulty}
 							</dd>
 						</div>
 					{/if}
@@ -247,7 +249,7 @@
 						<div>
 							<dt>Size</dt>
 							<dd>
-								{String(sizeBytes)}
+								{sizeBytes}
 							</dd>
 						</div>
 					{/if}
@@ -269,7 +271,7 @@
 						<div>
 							<dt>Weight</dt>
 							<dd>
-								{String(weightUnits)}
+								{weightUnits}
 							</dd>
 						</div>
 					{/if}
@@ -310,15 +312,15 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const utxoBlockUtxoTransactionsViewTransactionsResource = selection.$$transactions}
+		{@const transactionsResource = selection.$$transactions}
 		<ResourceBoundary
-			resource={utxoBlockUtxoTransactionsViewTransactionsResource}
+			resource={transactionsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<UtxoTransactionsView
-						selection={utxoBlockUtxoTransactionsViewTransactionsResource}
-						countResource={utxoBlockUtxoTransactionsViewTransactionsResource.count}
+						selection={transactionsResource}
+						countResource={transactionsResource.count}
 						title='Transactions'
 						id='transactions'
 					/>

@@ -11,6 +11,7 @@ import {
 } from '../../../../../tests/e2e/_routeViewDiagnostics.ts'
 import bindings from '$/sources/Mastodon/bindings.ts'
 import { Source } from '$/sources/Source.ts'
+import { sourceBindingId } from '$/sources/SourceBinding.ts'
 
 
 const instanceOrigin = 'https://mastodon.social'
@@ -21,7 +22,7 @@ const actorNotesPath = `${actorPath}/notes`
 const notePath = `/activitypub/note/${encodeURIComponent(instanceOrigin)}/${localStatusId}`
 const profileUrl = `${instanceOrigin}/@protocolgardener`
 const activityStreamsUri = `${instanceOrigin}/users/protocolgardener`
-const mastodonSocialProxyRoute = new RegExp(`/api-proxy/${encodeURIComponent(bindings[Source.Mastodon_Rest][0].proxyId)}/0/`)
+const mastodonSocialProxyRoute = new RegExp(`/api-proxy/${encodeURIComponent(sourceBindingId(bindings[Source.Mastodon_Rest][0]))}/0/`)
 
 const account = {
 	id: localAccountId,

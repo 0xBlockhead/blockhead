@@ -20,9 +20,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.HyperliquidNetwork_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const titleFallback = 'hyperliquid network timestamp'
-
 
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -34,7 +31,7 @@
 <EntityView
 	entityType={EntityType.HyperliquidNetwork_Timestamp}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? 'hyperliquid network timestamp'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -59,14 +56,14 @@
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+					<Timestamp timestamp={selection.entitySelector.timestampMs} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 
@@ -85,7 +82,7 @@
 						<div>
 							<dt>perp market count</dt>
 							<dd>
-								{String(perpMarketCount)}
+								{perpMarketCount}
 							</dd>
 						</div>
 					{/if}
@@ -107,7 +104,7 @@
 						<div>
 							<dt>spot asset count</dt>
 							<dd>
-								{String(spotAssetCount)}
+								{spotAssetCount}
 							</dd>
 						</div>
 					{/if}
@@ -129,7 +126,7 @@
 						<div>
 							<dt>spot pair count</dt>
 							<dd>
-								{String(spotPairCount)}
+								{spotPairCount}
 							</dd>
 						</div>
 					{/if}
@@ -151,7 +148,7 @@
 						<div>
 							<dt>validator count</dt>
 							<dd>
-								{String(validatorCount)}
+								{validatorCount}
 							</dd>
 						</div>
 					{/if}
@@ -173,7 +170,7 @@
 						<div>
 							<dt>active validator count</dt>
 							<dd>
-								{String(activeValidatorCount)}
+								{activeValidatorCount}
 							</dd>
 						</div>
 					{/if}
@@ -195,7 +192,7 @@
 						<div>
 							<dt>jailed validator count</dt>
 							<dd>
-								{String(jailedValidatorCount)}
+								{jailedValidatorCount}
 							</dd>
 						</div>
 					{/if}
@@ -217,7 +214,7 @@
 						<div>
 							<dt>total stake</dt>
 							<dd>
-								{String(totalStake)}
+								{totalStake}
 							</dd>
 						</div>
 					{/if}
@@ -239,7 +236,7 @@
 						<div>
 							<dt>borrow lend reserve count</dt>
 							<dd>
-								{String(borrowLendReserveCount)}
+								{borrowLendReserveCount}
 							</dd>
 						</div>
 					{/if}
@@ -261,7 +258,7 @@
 						<div>
 							<dt>vault count</dt>
 							<dd>
-								{String(vaultCount)}
+								{vaultCount}
 							</dd>
 						</div>
 					{/if}

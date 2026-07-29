@@ -22,7 +22,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.FilecoinSector_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Lotus_JsonRpc,
@@ -33,7 +32,6 @@
 			height: true,
 		},
 	}))
-	const titleFallback = $derived(String(pendingEntity.timestampMs ?? '') || 'filecoin sector timestamp')
 
 
 	// Components
@@ -48,19 +46,18 @@
 <EntityView
 	entityType={EntityType.FilecoinSector_Timestamp}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? String(selection.entitySelector.timestampMs)}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+		<Timestamp timestamp={selection.entitySelector.timestampMs} />
 	{/snippet}
 
 	{#snippet Value()}
 		<FilecoinSectorView
 			selection={select(EntityType.FilecoinSector, selection.entitySelector.$sector)}
-			href=""
 			layout={EntityLayout.Value}
 			open={false}
 		/>
@@ -69,11 +66,11 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={filecoinSectorTimestamp}>
 			{#snippet children(entity)}
-				{@const height0 = entity.height}
-				{#if height0 != null}
+				{@const height = entity.height}
+				{#if height != null}
 					<span data-text="muted">
 						<NumberValue
-							value={height0}
+							value={height}
 						/>
 					</span>
 				{/if}
@@ -97,14 +94,14 @@
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+					<Timestamp timestamp={selection.entitySelector.timestampMs} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 

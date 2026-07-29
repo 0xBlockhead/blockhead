@@ -21,19 +21,16 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.AiProviderCatalogEntry_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const viewSelection = $derived(selection({
+	const aiProviderCatalogEntryTimestamp = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Anthropic_Rest,
 			Source.OpenAI_Rest,
 		],
-	}))
-	const aiProviderCatalogEntryTimestamp = $derived(viewSelection({
+	})({
 		fields: {
 			availabilityStatus: true,
 		},
 	}))
-	const titleFallback = 'AI provider catalog entry timestamp'
 
 
 	// Components
@@ -46,7 +43,7 @@
 <EntityView
 	entityType={EntityType.AiProviderCatalogEntry_Timestamp}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? 'AI provider catalog entry timestamp'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -54,23 +51,22 @@
 	{#snippet Title()}
 		<AiProviderCatalogEntryView
 			selection={select(EntityType.AiProviderCatalogEntry, selection.entitySelector.$entry)}
-			href=""
 			layout={EntityLayout.Title}
 			open={false}
 		/>
 	{/snippet}
 
 	{#snippet Value()}
-		<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+		<Timestamp timestamp={selection.entitySelector.timestampMs} />
 	{/snippet}
 
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={aiProviderCatalogEntryTimestamp}>
 			{#snippet children(entity)}
-				{@const availabilityStatus0 = entity.availabilityStatus}
-				{#if availabilityStatus0 != null}
+				{@const availabilityStatus = entity.availabilityStatus}
+				{#if availabilityStatus != null}
 					<span data-text="muted">
-						{availabilityStatus0}
+						{availabilityStatus}
 					</span>
 				{/if}
 			{/snippet}
@@ -93,14 +89,14 @@
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+					<Timestamp timestamp={selection.entitySelector.timestampMs} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 

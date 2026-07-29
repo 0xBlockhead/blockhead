@@ -21,7 +21,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.EigenLayerAllocation_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.EigenExplorer_Rest,
@@ -31,7 +30,6 @@
 			Source.Voltaire_JsonRpc,
 		],
 	}))
-	const titleFallback = 'eigen layer allocation timestamp'
 
 
 	// Components
@@ -47,7 +45,7 @@
 <EntityView
 	entityType={EntityType.EigenLayerAllocation_Timestamp}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? 'eigen layer allocation timestamp'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -55,7 +53,6 @@
 	{#snippet Title()}
 		<EigenLayerOperatorView
 			selection={select(EntityType.EigenLayerOperator, selection.entitySelector.$operator)}
-			href=""
 			layout={EntityLayout.Title}
 			open={false}
 		/>
@@ -64,7 +61,6 @@
 	{#snippet Value()}
 		<EigenLayerAvsView
 			selection={select(EntityType.EigenLayerAvs, selection.entitySelector.$avs)}
-			href=""
 			layout={EntityLayout.Value}
 			open={false}
 		/>
@@ -118,14 +114,14 @@
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+					<Timestamp timestamp={selection.entitySelector.timestampMs} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 
@@ -235,7 +231,7 @@
 						<div>
 							<dt>slashable until ms</dt>
 							<dd>
-								<Timestamp timestamp={Number(slashableUntilMs)} />
+								<Timestamp timestamp={slashableUntilMs} />
 							</dd>
 						</div>
 					{/if}

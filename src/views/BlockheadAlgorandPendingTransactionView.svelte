@@ -22,7 +22,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.BlockheadAlgorandPendingTransaction> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Local_Internal,
@@ -33,7 +32,7 @@
 			transactionType: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.txId ?? '') || 'blockhead algorand pending transaction')
+	const titleFallback = $derived(selection.entitySelector.txId || 'blockhead algorand pending transaction')
 
 
 	// Components
@@ -53,20 +52,20 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{(pendingEntity.txId ?? '') || 'blockhead algorand pending transaction'}
+		{selection.entitySelector.txId || 'blockhead algorand pending transaction'}
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={blockheadAlgorandPendingTransaction}>
 			{#snippet children(entity)}
-				{(entity.transactionType ?? '') || pendingEntity.txId || titleFallback}
+				{(entity.transactionType ?? '') || selection.entitySelector.txId || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
 		<span data-text="muted">
-			<Timestamp timestamp={Number(pendingEntity.observedAtMs)} />
+			<Timestamp timestamp={selection.entitySelector.observedAtMs} />
 		</span>
 	{/snippet}
 
@@ -75,21 +74,21 @@
 			<div>
 				<dt>node ID</dt>
 				<dd>
-					{pendingEntity.nodeId}
+					{selection.entitySelector.nodeId}
 				</dd>
 			</div>
 
 			<div>
 				<dt>transaction ID</dt>
 				<dd>
-					{pendingEntity.txId}
+					{selection.entitySelector.txId}
 				</dd>
 			</div>
 
 			<div>
 				<dt>observed AT ms</dt>
 				<dd>
-					<Timestamp timestamp={Number(pendingEntity.observedAtMs)} />
+					<Timestamp timestamp={selection.entitySelector.observedAtMs} />
 				</dd>
 			</div>
 

@@ -2,7 +2,8 @@
 
 import bindings from '$/sources/EigenLayerSubgraph/bindings.ts'
 import { Source } from '$/sources/Source.ts'
-import { SourceProvider, type SourceProviderDefinition } from '$/sources/SourceProvider.ts'
+import { SourceProvider } from '$/sources/SourceProvider.ts'
+import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinition.ts'
 
 export default {
 	provider: SourceProvider.EigenLayerSubgraph,
@@ -13,5 +14,5 @@ export default {
 			label: 'EigenLayer subgraph GraphQL',
 		},
 	],
-	bindings: [bindings[Source.EigenLayerSubgraph_Graphql]],
+	bindings: Object.values(bindings).flat(),
 } satisfies SourceProviderDefinition

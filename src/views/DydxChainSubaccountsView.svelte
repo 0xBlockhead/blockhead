@@ -46,7 +46,7 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{String(dydxChainSubaccountSelector.subaccountNumber)}
+				{dydxChainSubaccountSelector.subaccountNumber}
 			{/snippet}
 		</EntityView>
 	{/snippet}

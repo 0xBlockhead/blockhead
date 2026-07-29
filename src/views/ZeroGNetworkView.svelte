@@ -23,13 +23,11 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.ZeroGNetwork> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const viewSelection = $derived(selection({
+	const zeroGNetwork = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Constants_Internal,
 		],
-	}))
-	const zeroGNetwork = $derived(viewSelection({
+	})({
 		fields: {
 			name: true,
 			namespace: true,
@@ -37,7 +35,7 @@
 			chainId: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.name ?? '') || 'zero g network')
+	const titleFallback = $derived((prefetched.name ?? '') || 'zero g network')
 	const viewDomId = $derived('zero-gnetwork-' + encodeURIComponent(stringify(selection.entitySelector)))
 
 
@@ -76,7 +74,7 @@
 	{/snippet}
 
 	{#snippet Value()}
-		{(pendingEntity.slug ?? '') || (pendingEntity.name ?? '') || titleFallback}
+		{selection.entitySelector.slug || (prefetched.name ?? '') || titleFallback}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
@@ -94,7 +92,7 @@
 			<div>
 				<dt>Slug</dt>
 				<dd>
-					{pendingEntity.slug}
+					{selection.entitySelector.slug}
 				</dd>
 			</div>
 

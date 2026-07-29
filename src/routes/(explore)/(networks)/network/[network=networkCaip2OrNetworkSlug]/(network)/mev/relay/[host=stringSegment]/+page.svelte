@@ -4,7 +4,6 @@
 	// Types/constants
 	import type { PageProps } from './$types.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { UrlString } from '$/schema/UrlString.ts'
 
 
 	// Context
@@ -30,7 +29,7 @@
 
 
 <svelte:head>
-	<title>{(data.title ?? (pageSelection.entitySelector.host || 'MEV relay'))} • MEV relay • Blockhead</title>
+	<title>{data.title ?? (pageSelection.entitySelector.host || 'MEV relay')} • MEV relay • Blockhead</title>
 </svelte:head>
 
 

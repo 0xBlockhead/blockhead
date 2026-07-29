@@ -3,7 +3,6 @@
 <script lang="ts">
 	// Types/constants
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { UrlString } from '$/schema/UrlString.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -31,7 +30,7 @@
 
 
 <svelte:head>
-	<title>{(pageSelection.entity == null ? 'YouTube Data API' : pageSelection.entity.protocolName || 'YouTube Data API')} • YouTube Data API • Blockhead</title>
+	<title>{pageSelection.entity == null ? 'YouTube Data API' : pageSelection.entity.protocolName || 'YouTube Data API'} • YouTube Data API • Blockhead</title>
 </svelte:head>
 
 

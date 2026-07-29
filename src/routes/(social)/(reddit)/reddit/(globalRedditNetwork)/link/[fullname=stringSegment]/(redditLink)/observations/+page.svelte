@@ -36,7 +36,7 @@
 			resolve(
 				'/(social)/(reddit)/reddit/(globalRedditNetwork)/link/[fullname=stringSegment]/(redditLink)/observations',
 				{
-					fullname: String(params.fullname),
+					fullname: params.fullname,
 				}
 			)
 		}

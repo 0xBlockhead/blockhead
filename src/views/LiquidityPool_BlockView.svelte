@@ -24,7 +24,7 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.LiquidityPool_Block> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const liquidityPool = $derived(selection.entitySelector.$liquidityPool)
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Dexscreener_OpenApi,
@@ -35,7 +35,6 @@
 			tick: true,
 		},
 	}))
-	const titleFallback = $derived(String(pendingEntity.blockNumber ?? '') || 'liquidity pool block')
 
 
 	// Components
@@ -48,21 +47,24 @@
 <EntityView
 	entityType={EntityType.LiquidityPool_Block}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? String(selection.entitySelector.blockNumber)}
 	href={
-		href ?? (
-			'caip2' in selection.entitySelector.$liquidityPool.$network ?
-				resolve(
-					'/(assets)/pool/[chainId=eip155ChainId]/[poolId=stringSegment]/(liquidityPool)/block/[blockNumber=nonNegativeBigInt]',
-					{
-						chainId: String(selection.entitySelector.$liquidityPool.$network.caip2.reference),
-						poolId: String(selection.entitySelector.$liquidityPool.id),
-						blockNumber: String(selection.entitySelector.blockNumber),
-					}
-				)
-			:
-				undefined
-		)
+		href === undefined ?
+			(
+				'caip2' in liquidityPool.$network ?
+					resolve(
+						'/(assets)/pool/[chainId=eip155ChainId]/[poolId=stringSegment]/(liquidityPool)/block/[blockNumber=nonNegativeBigInt]',
+						{
+							chainId: liquidityPool.$network.caip2.reference,
+							poolId: liquidityPool.id,
+							blockNumber: String(selection.entitySelector.blockNumber),
+						}
+					)
+				:
+					undefined
+			)
+		:
+			href ?? undefined
 	}
 	{layout}
 	bind:open
@@ -70,17 +72,17 @@
 >
 	{#snippet Title()}
 		<NumberValue
-			value={pendingEntity.blockNumber}
+			value={selection.entitySelector.blockNumber}
 		/>
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={liquidityPoolBlock}>
 			{#snippet children(entity)}
-				{@const tick0 = entity.tick}
-				{#if tick0 != null}
+				{@const tick = entity.tick}
+				{#if tick != null}
 					<NumberValue
-						value={tick0}
+						value={tick}
 					/>
 				{/if}
 			{/snippet}
@@ -114,7 +116,7 @@
 				<dt>Block number</dt>
 				<dd>
 					<NumberValue
-						value={pendingEntity.blockNumber}
+						value={selection.entitySelector.blockNumber}
 					/>
 				</dd>
 			</div>

@@ -7,6 +7,7 @@ import {
 	SourceEndpointKind,
 	SourceOperationGroup,
 	SourceTargetKind,
+	sourceBindingId,
 } from '$/sources/SourceBinding.ts'
 import { Source } from '$/sources/Source.ts'
 
@@ -38,7 +39,7 @@ describe('NostrBand REST client delivery', () => {
 		expect(binding.endpoints).toHaveLength(1)
 		expect(binding.endpoints[0].endpointKind).toBe(SourceEndpointKind.HttpUrl)
 		expect(fetchMock).toHaveBeenCalledWith(
-			`/api-proxy/${encodeURIComponent(binding.proxyId)}/0/${encodeURIComponent('https://api.nostr.band/v0/stats/profile/list?limit=20')}`,
+			`/api-proxy/${encodeURIComponent(sourceBindingId(binding))}/0/${encodeURIComponent('https://api.nostr.band/v0/stats/profile/list?limit=20')}`,
 			expect.objectContaining({
 				signal: expect.any(AbortSignal),
 			})

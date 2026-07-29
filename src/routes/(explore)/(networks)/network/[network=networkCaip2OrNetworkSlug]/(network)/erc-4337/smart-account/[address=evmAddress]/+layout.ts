@@ -2,7 +2,6 @@
 
 import type { LayoutLoad } from './$types'
 import { error } from '@sveltejs/kit'
-import { networkByCaip2, networkBySlug } from '$/constants/Network.ts'
 import { match as matchEvmAddress } from '$/params/evmAddress.ts'
 import { parseEntitySelector } from '$/schema/$schema.ts'
 import Erc4337SmartAccountSchema from '$/schema/Erc4337SmartAccount.ts'
@@ -13,10 +12,14 @@ import { type as arktype } from 'arktype'
 export const load: LayoutLoad = async ({ params, parent }) => {
 	const parentData = await parent()
 
-	const projectionNetwork = (Object.getOwnPropertyDescriptor(networkByCaip2, decodeURIComponent(params.network))?.value ?? Object.getOwnPropertyDescriptor(networkBySlug, params.network)?.value)
-	if (projectionNetwork == null) error(404, 'Network projection context not found')
-
-	if (!((projectionNetwork.executionModels !== undefined && projectionNetwork.executionModels.some((value: string | number | boolean | null) => value === 'Evm')) && matchEvmAddress(params.address))) error(404, 'Route mapping not applicable')
+	if (!(
+		(
+			parentData.projectionNetwork.executionModels !== undefined
+			&& parentData.projectionNetwork.executionModels.some((value: string | number | boolean | null) => value === 'Evm')
+		)
+		&& matchEvmAddress(params.address)
+	))
+		error(404, 'Route mapping not applicable')
 
 	const erc4337SmartAccountEvmNetworkAddressSelector = parseEntitySelector(
 		schema,
@@ -26,7 +29,8 @@ export const load: LayoutLoad = async ({ params, parent }) => {
 			address: params.address,
 		}
 	)
-	if (erc4337SmartAccountEvmNetworkAddressSelector instanceof arktype.errors) error(404, 'Invalid Erc4337SmartAccount selector')
+	if (erc4337SmartAccountEvmNetworkAddressSelector instanceof arktype.errors)
+		error(404, 'Invalid Erc4337SmartAccount selector')
 
 	return {
 		selector: erc4337SmartAccountEvmNetworkAddressSelector,

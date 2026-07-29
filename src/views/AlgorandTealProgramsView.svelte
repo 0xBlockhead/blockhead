@@ -5,7 +5,6 @@
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 
 
 	// State
@@ -44,15 +43,15 @@
 			entitySelector={algorandTealProgramSelector}
 		>
 			{#snippet Title()}
-				{String(algorandTealProgramSelector.programHash) || 'algorand teal program'}
+				{algorandTealProgramSelector.programHash || 'algorand teal program'}
 			{/snippet}
 
 			{#snippet Value()}
-				{(algorandTealProgram.programKind ?? '')}
+				{algorandTealProgram.programKind ?? ''}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{String(algorandTealProgram.tealVersion ?? '')}</span>
+				<span data-text="annotation">{algorandTealProgram.tealVersion ?? ''}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

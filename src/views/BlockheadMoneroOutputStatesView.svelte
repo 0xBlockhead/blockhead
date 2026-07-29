@@ -47,11 +47,11 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{String(blockheadMoneroOutputStateSelector.outputIndex)}
+				{blockheadMoneroOutputStateSelector.outputIndex}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{String(blockheadMoneroOutputState.amountAtomicUnits ?? '')}</span>
+				<span data-text="annotation">{blockheadMoneroOutputState.amountAtomicUnits ?? ''}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

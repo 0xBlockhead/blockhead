@@ -4,9 +4,7 @@
 
 import { CoinInstanceRepresentation } from '$/constants/Bridge.ts'
 import { CoinId } from '$/constants/Coin.ts'
-import {
-	CoinInstanceType,
-} from '$/schema/EvmCoinInstance.ts'
+import { CoinInstanceType } from '$/schema/CoinInstanceType.ts'
 import { EvmAddress } from '$/schema/ZeroExHex.ts'
 import { EntityMetaKey } from '$/schema/$schema.ts'
 import type { EntitySelector } from '$/schema/$schema.ts'

@@ -22,19 +22,17 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.BlockheadMoneroSubaddressState> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const viewSelection = $derived(selection({
+	const blockheadMoneroSubaddressState = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Local_Internal,
 		],
-	}))
-	const blockheadMoneroSubaddressState = $derived(viewSelection({
+	})({
 		fields: {
 			address: true,
 			label: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.address ?? '') || (pendingEntity.walletId ?? '') || 'blockhead monero subaddress state')
+	const titleFallback = $derived((prefetched.address ?? '') || selection.entitySelector.walletId || 'blockhead monero subaddress state')
 
 
 	// Components
@@ -64,16 +62,16 @@
 	{/snippet}
 
 	{#snippet Value()}
-		{[String(pendingEntity.accountIndex ?? ''), String(pendingEntity.addressIndex ?? '')].filter(Boolean).join(' ') || (pendingEntity.address ?? '') || titleFallback}
+		{[String(selection.entitySelector.accountIndex), String(selection.entitySelector.addressIndex)].filter(Boolean).join(' ') || (prefetched.address ?? '') || titleFallback}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={blockheadMoneroSubaddressState}>
 			{#snippet children(entity)}
-				{@const label0 = entity.label}
-				{#if label0 != null}
+				{@const label = entity.label}
+				{#if label != null}
 					<span data-text="muted">
-						{label0}
+						{label}
 					</span>
 				{/if}
 			{/snippet}
@@ -85,7 +83,7 @@
 			<div>
 				<dt>wallet ID</dt>
 				<dd>
-					{pendingEntity.walletId}
+					{selection.entitySelector.walletId}
 				</dd>
 			</div>
 
@@ -131,7 +129,7 @@
 				<dt>account index</dt>
 				<dd>
 					<NumberValue
-						value={pendingEntity.accountIndex}
+						value={selection.entitySelector.accountIndex}
 					/>
 				</dd>
 			</div>
@@ -140,7 +138,7 @@
 				<dt>address index</dt>
 				<dd>
 					<NumberValue
-						value={pendingEntity.addressIndex}
+						value={selection.entitySelector.addressIndex}
 					/>
 				</dd>
 			</div>
@@ -180,15 +178,15 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const blockheadMoneroSubaddressStateBlockheadMoneroSubaddressStateTimestampsViewTimestampsResource = selection.$$timestamps}
+		{@const timestampsResource = selection.$$timestamps}
 		<ResourceBoundary
-			resource={blockheadMoneroSubaddressStateBlockheadMoneroSubaddressStateTimestampsViewTimestampsResource}
+			resource={timestampsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<BlockheadMoneroSubaddressState_TimestampsView
-						selection={blockheadMoneroSubaddressStateBlockheadMoneroSubaddressStateTimestampsViewTimestampsResource}
-						countResource={blockheadMoneroSubaddressStateBlockheadMoneroSubaddressStateTimestampsViewTimestampsResource.count}
+						selection={timestampsResource}
+						countResource={timestampsResource.count}
 						title='timestamps'
 						id='timestamps'
 					/>

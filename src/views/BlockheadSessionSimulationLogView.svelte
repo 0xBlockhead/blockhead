@@ -5,7 +5,6 @@
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { EvmAddress, ZeroExHex } from '$/schema/ZeroExHex.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -23,7 +22,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.BlockheadSessionSimulationLog> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Local_Internal,
@@ -35,7 +33,6 @@
 			callPath: true,
 		},
 	}))
-	const titleFallback = $derived(String(pendingEntity.logIndex ?? '') || 'blockhead session simulation log')
 
 
 	// Components
@@ -49,21 +46,21 @@
 <EntityView
 	entityType={EntityType.BlockheadSessionSimulationLog}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? String(selection.entitySelector.logIndex)}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
 		<NumberValue
-			value={pendingEntity.logIndex}
+			value={selection.entitySelector.logIndex}
 		/>
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={blockheadSessionSimulationLog}>
 			{#snippet children(entity)}
-				{String(entity.address ?? '') || String(pendingEntity.logIndex) || titleFallback}
+				{(entity.address ?? '') || String(selection.entitySelector.logIndex)}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -71,10 +68,10 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={blockheadSessionSimulationLog}>
 			{#snippet children(entity)}
-				{@const callPath0 = entity.callPath}
-				{#if callPath0 != null}
+				{@const callPath = entity.callPath}
+				{#if callPath != null}
 					<span data-text="muted">
-						{callPath0}
+						{callPath}
 					</span>
 				{/if}
 			{/snippet}
@@ -105,7 +102,7 @@
 				<dt>log index</dt>
 				<dd>
 					<NumberValue
-						value={pendingEntity.logIndex}
+						value={selection.entitySelector.logIndex}
 					/>
 				</dd>
 			</div>
@@ -135,7 +132,7 @@
 						<div>
 							<dt>Address</dt>
 							<dd>
-								<TruncatedValue value={String(address)} />
+								<TruncatedValue value={address} />
 							</dd>
 						</div>
 					{/if}
@@ -157,7 +154,7 @@
 						<div>
 							<dt>topic0</dt>
 							<dd>
-								{String(topic0)}
+								{topic0}
 							</dd>
 						</div>
 					{/if}
@@ -200,7 +197,7 @@
 						<div>
 							<dt>data hash</dt>
 							<dd>
-								<TruncatedValue value={String(dataHash)} />
+								<TruncatedValue value={dataHash} />
 							</dd>
 						</div>
 					{/if}

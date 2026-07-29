@@ -41,6 +41,7 @@
 >
 	{#snippet Item({ item: rssItemTimestamp })}
 		{@const rssItemTimestampSelector = rssItemTimestamp[EntityMetaKey.Selector]}
+		{@const item = rssItemTimestampSelector.$item}
 		<EntityView
 			entityType={EntityType.RssItem_Timestamp}
 			entitySelector={rssItemTimestampSelector}
@@ -48,11 +49,11 @@
 				resolve(
 					'/(social)/(rss)/rss/(rssNetwork)/feed/[feedUrl=absoluteUrl]/(rssFeed)/item/[itemIdentityKind=rssItemIdentityKind]/[itemIdentity=stringSegment]/(rssItem)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
 					{
-						feedUrl: encodeURIComponent(String(rssItemTimestampSelector.$item.$feed.feedUrl)),
-						itemIdentityKind: String(rssItemTimestampSelector.$item.itemIdentityKind),
-						itemIdentity: encodeURIComponent(String(rssItemTimestampSelector.$item.itemIdentity)),
+						feedUrl: encodeURIComponent(item.$feed.feedUrl),
+						itemIdentityKind: item.itemIdentityKind,
+						itemIdentity: encodeURIComponent(item.itemIdentity),
 						timestampMs: String(rssItemTimestampSelector.timestampMs),
-						source: String(rssItemTimestampSelector.source),
+						source: rssItemTimestampSelector.source,
 					}
 				)
 			}
@@ -62,7 +63,7 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{String(rssItemTimestampSelector.timestampMs)}
+				{rssItemTimestampSelector.timestampMs}
 			{/snippet}
 		</EntityView>
 	{/snippet}

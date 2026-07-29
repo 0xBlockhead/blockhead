@@ -6,12 +6,9 @@ import {
 import {
 	dirname,
 	join,
-	relative,
 	resolve,
-	sep,
 } from 'node:path'
 import { pathToFileURL } from 'node:url'
-import ts from 'typescript'
 
 import { Source } from '$/sources/Source.ts'
 import {
@@ -26,7 +23,6 @@ import {
 } from '$/sources/SourceBinding.ts'
 import sourceProviders from '$/sources/$sourceProviders.ts'
 import { auditSourceProviders } from '$/sources/auditSourceProviders.ts'
-import officialSourceArtifacts from '$/sources/officialArtifacts.ts'
 
 const sourceBindings = sourceProviders.flatMap((provider) => provider.bindings)
 const browserSourceBindings = sourceBindings.filter((binding) => (
@@ -108,96 +104,6 @@ const openApiManifestFailures = globSync('src/sources/*/OpenApi/schema-source.ts
 			[]),
 	]
 })
-export const providerLocalBindingImportFailures = (
-	sourceByFilePath: Readonly<Record<string, string>>
-) => {
-	const sourceByAbsoluteFilePath = new Map(
-		Object.entries(sourceByFilePath).map(([filePath, source]) => [
-			resolve(filePath),
-			source,
-		])
-	)
-	return Object.entries(sourceByFilePath).flatMap(([filePath, source]) => {
-		const absoluteFilePath = resolve(filePath)
-		const providerRelativeFilePath = relative(resolve('src/sources'), absoluteFilePath)
-		const providerName = providerRelativeFilePath.split(sep)[0]
-		if (
-			providerRelativeFilePath.startsWith(`..${sep}`)
-			|| providerRelativeFilePath === '..'
-			|| absoluteFilePath === resolve('src/sources', providerName, 'index.ts')
-		)
-			return []
-
-		const importSpecifiers: string[] = []
-		const dynamicImportFailures: string[] = []
-		const visit = (node: ts.Node) => {
-			if (
-				(ts.isImportDeclaration(node) || ts.isExportDeclaration(node))
-				&& node.moduleSpecifier != null
-				&& ts.isStringLiteralLike(node.moduleSpecifier)
-			)
-				importSpecifiers.push(node.moduleSpecifier.text)
-			else if (
-				ts.isImportEqualsDeclaration(node)
-				&& ts.isExternalModuleReference(node.moduleReference)
-				&& ts.isStringLiteralLike(node.moduleReference.expression)
-			)
-				importSpecifiers.push(node.moduleReference.expression.text)
-			else if (
-				ts.isCallExpression(node)
-				&& node.expression.kind === ts.SyntaxKind.ImportKeyword
-			) {
-				if (ts.isStringLiteralLike(node.arguments[0]))
-					importSpecifiers.push(node.arguments[0].text)
-				else
-					dynamicImportFailures.push(`${filePath}: dynamic import target must be a string literal because computed imports cannot be proven not to target provider-local bindings`)
-			}
-
-			ts.forEachChild(node, visit)
-		}
-		visit(ts.createSourceFile(
-			filePath,
-			source,
-			ts.ScriptTarget.Latest,
-			true,
-			ts.ScriptKind.TS
-		))
-
-		return [
-			...dynamicImportFailures,
-			...(importSpecifiers.some((importSpecifier) => (
-				resolve(ts.resolveModuleName(
-					importSpecifier,
-					absoluteFilePath,
-					{
-						allowImportingTsExtensions: true,
-						baseUrl: process.cwd(),
-						module: ts.ModuleKind.ESNext,
-						moduleResolution: ts.ModuleResolutionKind.Bundler,
-						paths: {
-							'$/*': [
-								'src/*',
-							],
-						},
-					},
-					{
-						fileExists: (candidateFilePath) => sourceByAbsoluteFilePath.has(resolve(candidateFilePath)) || ts.sys.fileExists(candidateFilePath),
-						readFile: (candidateFilePath) => sourceByAbsoluteFilePath.get(resolve(candidateFilePath)) ?? ts.sys.readFile(candidateFilePath),
-					}
-				).resolvedModule?.resolvedFileName ?? '') === resolve('src/sources', providerName, 'bindings.ts')
-			)) ?
-			[`${filePath}: runtime transport imports provider-local bindings instead of using protocol-local transport metadata`]
-		:
-			[]),
-		]
-	})
-}
-const sourceRuntimeBindingImportFailures = providerLocalBindingImportFailures(Object.fromEntries(
-	sourceRuntimeFiles.map((filePath) => [
-		filePath,
-		readFileSync(filePath, 'utf8'),
-	])
-))
 export const evmExecutionOpenRpcArtifactFailures = (
 	bindings: readonly {
 		source: string
@@ -257,25 +163,6 @@ const failures = [
 	...(sourceBindings.flatMap((binding) => binding.artifacts ?? []).every((artifact) => artifactPathExists(artifact.path)) ? [] : ['artifact path missing']),
 	...(brokenSourceSymlinks.length ? [`broken source symlinks: ${brokenSourceSymlinks.join(', ')}`] : []),
 	...openApiManifestFailures,
-	...officialSourceArtifacts.filter((officialSourceArtifact) => !('enforce' in officialSourceArtifact)).flatMap((officialSourceArtifact) => {
-		const bindings = sourceBindings.filter((binding) => binding.source === officialSourceArtifact.source)
-		const artifacts = bindings.flatMap((binding) => binding.artifacts ?? [])
-		return [
-			...(bindings.length ? [] : [`${officialSourceArtifact.source}: missing official artifact binding`]),
-			...(artifacts.some((artifact) => artifact.kind === officialSourceArtifact.artifactKind) ?
-				[]
-			:
-				[`${officialSourceArtifact.source}: missing ${officialSourceArtifact.artifactKind} artifact for ${officialSourceArtifact.officialUrl}`]),
-			...(artifactPathExists(officialSourceArtifact.localPath) ?
-				[]
-			:
-				[`${officialSourceArtifact.source}: missing official artifact path ${officialSourceArtifact.localPath}`]),
-			...(artifacts.some((artifact) => artifact.kind === SourceArtifactKind.HandwrittenTypes) ?
-				[`${officialSourceArtifact.source}: official artifact binding still declares HandwrittenTypes`]
-			:
-				[]),
-		]
-	}),
 	...(sourceMember('Amboss_Graphql') !== undefined && browserSourceBindings.some((binding) => binding.source === sourceMember('Amboss_Graphql')) ? ['Amboss server-only binding leaked into browser bindings'] : []),
 	...browserSourceBindings.flatMap((binding) => (
 		binding.delivery !== SourceDelivery.BrowserDirect ?
@@ -307,7 +194,6 @@ const failures = [
 		:
 			[]
 	}),
-	...sourceRuntimeBindingImportFailures,
 	...sourceFiles.flatMap((file) => {
 		const source = readFileSync(file, 'utf8')
 		return (

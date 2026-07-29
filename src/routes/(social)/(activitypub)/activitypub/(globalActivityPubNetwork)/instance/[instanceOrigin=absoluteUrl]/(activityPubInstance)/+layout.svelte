@@ -33,7 +33,7 @@
 			resolve(
 				'/(social)/(activitypub)/activitypub/(globalActivityPubNetwork)/instance/[instanceOrigin=absoluteUrl]',
 				{
-					instanceOrigin: String(params.instanceOrigin),
+					instanceOrigin: params.instanceOrigin,
 				}
 			)
 		}
@@ -49,7 +49,7 @@
 					resolve(
 						'/(social)/(activitypub)/activitypub/(globalActivityPubNetwork)/instance/[instanceOrigin=absoluteUrl]',
 						{
-							instanceOrigin: String(params.instanceOrigin),
+							instanceOrigin: params.instanceOrigin,
 						}
 					)
 				}

@@ -20,14 +20,13 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.IbcChannel> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const ibcChannel = $derived(selection({
 		fields: {
 			state: true,
 			counterpartyChainId: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.channelId ?? '') || 'IBC channel')
+	const titleFallback = $derived(selection.entitySelector.channelId || 'IBC channel')
 
 
 	// Components
@@ -46,13 +45,13 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{(pendingEntity.channelId ?? '') || 'IBC channel'}
+		{selection.entitySelector.channelId || 'IBC channel'}
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={ibcChannel}>
 			{#snippet children(entity)}
-				{[(entity.state ?? ''), pendingEntity.channelId].filter(Boolean).join(' ') || pendingEntity.channelId || titleFallback}
+				{[(entity.state ?? ''), selection.entitySelector.channelId].filter(Boolean).join(' ') || selection.entitySelector.channelId || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -61,12 +60,12 @@
 		<ResourceBoundary resource={ibcChannel}>
 			{#snippet children(entity)}
 				<span data-text="muted">
-					{pendingEntity.portId}
+					{selection.entitySelector.portId}
 				</span>
-				{@const counterpartyChainId1 = entity.counterpartyChainId}
-				{#if counterpartyChainId1 != null}
+				{@const counterpartyChainId = entity.counterpartyChainId}
+				{#if counterpartyChainId != null}
 					<span data-text="muted">
-						{counterpartyChainId1}
+						{counterpartyChainId}
 					</span>
 				{/if}
 			{/snippet}
@@ -78,14 +77,14 @@
 			<div>
 				<dt>Port ID</dt>
 				<dd>
-					{pendingEntity.portId}
+					{selection.entitySelector.portId}
 				</dd>
 			</div>
 
 			<div>
 				<dt>Channel ID</dt>
 				<dd>
-					{pendingEntity.channelId}
+					{selection.entitySelector.channelId}
 				</dd>
 			</div>
 
@@ -228,7 +227,7 @@
 						<div>
 							<dt>Next sequence send</dt>
 							<dd>
-								{String(nextSequenceSend)}
+								{nextSequenceSend}
 							</dd>
 						</div>
 					{/if}
@@ -250,7 +249,7 @@
 						<div>
 							<dt>Next sequence receive</dt>
 							<dd>
-								{String(nextSequenceReceive)}
+								{nextSequenceReceive}
 							</dd>
 						</div>
 					{/if}
@@ -271,15 +270,15 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const ibcChannelIbcPacketsViewPacketsResource = selection.$$packets}
+		{@const packetsResource = selection.$$packets}
 		<ResourceBoundary
-			resource={ibcChannelIbcPacketsViewPacketsResource}
+			resource={packetsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<IbcPacketsView
-						selection={ibcChannelIbcPacketsViewPacketsResource}
-						countResource={ibcChannelIbcPacketsViewPacketsResource.count}
+						selection={packetsResource}
+						countResource={packetsResource.count}
 						title='Packets'
 						id='packets'
 					/>

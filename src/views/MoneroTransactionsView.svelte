@@ -49,7 +49,7 @@
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{String(moneroTransaction.feeAtomicUnits ?? '')}</span>
+				<span data-text="annotation">{moneroTransaction.feeAtomicUnits ?? ''}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

@@ -2,7 +2,8 @@
 
 import bindings from '$/sources/Coingecko/bindings.ts'
 import { Source } from '$/sources/Source.ts'
-import { SourceProvider, type SourceProviderDefinition } from '$/sources/SourceProvider.ts'
+import { SourceProvider } from '$/sources/SourceProvider.ts'
+import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinition.ts'
 
 export default {
 	provider: SourceProvider.Coingecko,
@@ -17,8 +18,5 @@ export default {
 			label: 'Coingecko REST',
 		},
 	],
-	bindings: [
-		...bindings[Source.Coingecko_OpenApi],
-		...bindings[Source.Coingecko_Rest],
-	],
+	bindings: Object.values(bindings).flat(),
 } satisfies SourceProviderDefinition

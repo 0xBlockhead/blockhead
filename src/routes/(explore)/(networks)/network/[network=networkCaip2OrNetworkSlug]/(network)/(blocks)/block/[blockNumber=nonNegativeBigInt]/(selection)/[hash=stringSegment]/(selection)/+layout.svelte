@@ -33,9 +33,9 @@
 			resolve(
 				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(blocks)/block/[blockNumber=nonNegativeBigInt]/(selection)/[hash=stringSegment]',
 				{
-					network: String(params.network),
-					blockNumber: String(params.blockNumber),
-					hash: String(params.hash),
+					network: params.network,
+					blockNumber: params.blockNumber,
+					hash: params.hash,
 				}
 			)
 		}
@@ -49,9 +49,9 @@
 					resolve(
 						'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(blocks)/block/[blockNumber=nonNegativeBigInt]/(selection)/[hash=stringSegment]',
 						{
-							network: String(params.network),
-							blockNumber: String(params.blockNumber),
-							hash: String(params.hash),
+							network: params.network,
+							blockNumber: params.blockNumber,
+							hash: params.hash,
 						}
 					)
 				}

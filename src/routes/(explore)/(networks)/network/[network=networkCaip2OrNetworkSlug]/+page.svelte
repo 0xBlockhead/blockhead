@@ -5,7 +5,6 @@
 	import type { PageProps } from './$types.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { consensusProtocolByProtocol } from '$/constants/EvmNetwork.ts'
-	import { NetworkExecutionModel, NetworkLedgerModel, NetworkNamespace } from '$/constants/Network.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -114,9 +113,9 @@
 	const pageTitle = $derived(
 		(
 			data.entityType === EntityType.Network && data.selectorName === 'Caip2' ?
-				(pageSelection.entity == null ? (data.selector.caip2 == null ? '' : `${data.selector.caip2.namespace}:${data.selector.caip2.reference}`) || 'Network' : (pageSelection.entity.name || (data.selector.caip2 == null ? '' : `${data.selector.caip2.namespace}:${data.selector.caip2.reference}`)) || 'Network')
+				pageSelection.entity == null ? (data.selector.caip2 == null ? '' : `${data.selector.caip2.namespace}:${data.selector.caip2.reference}`) || 'Network' : pageSelection.entity.name || (data.selector.caip2 == null ? '' : `${data.selector.caip2.namespace}:${data.selector.caip2.reference}`) || 'Network'
 			:
-				(pageSelection.entity == null ? 'Network' : (pageSelection.entity.name || (pageSelection.entity.caip2 == null ? '' : `${pageSelection.entity.caip2.namespace}:${pageSelection.entity.caip2.reference}`)) || 'Network')
+				pageSelection.entity == null ? 'Network' : pageSelection.entity.name || (pageSelection.entity.caip2 == null ? '' : `${pageSelection.entity.caip2.namespace}:${pageSelection.entity.caip2.reference}`) || 'Network'
 		)
 	)
 

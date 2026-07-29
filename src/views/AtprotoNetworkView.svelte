@@ -17,13 +17,11 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.AtprotoNetwork> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const viewSelection = $derived(selection({
+	const atprotoNetwork = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Constants_Internal,
 		],
-	}))
-	const atprotoNetwork = $derived(viewSelection({
+	})({
 		fields: {
 			protocolName: true,
 			homeUrl: true,
@@ -32,7 +30,7 @@
 			relationshipModel: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.protocolName ?? '') || 'AT Protocol')
+	const titleFallback = $derived((prefetched.protocolName ?? '') || 'AT Protocol')
 
 
 	// Components
@@ -58,7 +56,7 @@
 	{/snippet}
 
 	{#snippet Value()}
-		{(pendingEntity.protocolName ?? '') || titleFallback}
+		{(prefetched.protocolName ?? '') || titleFallback}
 	{/snippet}
 
 	{#snippet TypeAnnotationTooltip()}
@@ -92,11 +90,11 @@
 					>
 						{#snippet children(entity)}
 							<a
-								href={String(entity.homeUrl)}
+								href={entity.homeUrl}
 								target="_blank"
 								rel="noreferrer noopener"
 							>
-								<TruncatedValue value={String(entity.homeUrl)} />
+								<TruncatedValue value={entity.homeUrl} />
 							</a>
 						{/snippet}
 					</ResourceBoundary>
@@ -115,11 +113,11 @@
 							<dt>Docs URL</dt>
 							<dd>
 								<a
-									href={String(docsUrl)}
+									href={docsUrl}
 									target="_blank"
 									rel="noreferrer noopener"
 								>
-									<TruncatedValue value={String(docsUrl)} />
+									<TruncatedValue value={docsUrl} />
 								</a>
 							</dd>
 						</div>

@@ -20,7 +20,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.EvmNetworkActorCoinBalance_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const evmNetworkActorCoinBalanceTimestamp = $derived(selection({
 		fields: {
 			balance: true,
@@ -34,7 +33,6 @@
 			blockNumber: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.source ?? '') || 'EVM network actor coin balance timestamp')
 
 
 	// Components
@@ -48,30 +46,30 @@
 <EntityView
 	entityType={EntityType.EvmNetworkActorCoinBalance_Timestamp}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? (selection.entitySelector.source || 'EVM network actor coin balance timestamp')}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{(pendingEntity.source ?? '') || 'EVM network actor coin balance timestamp'}
+		{selection.entitySelector.source || 'EVM network actor coin balance timestamp'}
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={evmNetworkActorCoinBalanceTimestamp}>
 			{#snippet children(entity)}
-				{@const balance0 = entity.balance}
-				{#if balance0 != null}
+				{@const balance = entity.balance}
+				{#if balance != null}
 					<NumberValue
-						value={balance0}
-						decimalPlaces={pendingEntity.$actorCoin.decimals}
+						value={balance}
+						decimalPlaces={selection.entitySelector.$actorCoin.decimals}
 					/>
 
-					<span>{pendingEntity.$actorCoin.symbol == null ? '' : ` ${String(pendingEntity.$actorCoin.symbol)}`}</span>
+					<span>{selection.entitySelector.$actorCoin.symbol == null ? '' : ` ${selection.entitySelector.$actorCoin.symbol}`}</span>
 				{/if}
-				{@const usdValue1 = entity.usdValue}
-				{#if usdValue1 != null}
-					{String(usdValue1)}
+				{@const usdValue = entity.usdValue}
+				{#if usdValue != null}
+					{usdValue}
 				{/if}
 			{/snippet}
 		</ResourceBoundary>
@@ -80,10 +78,10 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={evmNetworkActorCoinBalanceTimestamp}>
 			{#snippet children(entity)}
-				{@const blockNumber0 = entity.blockNumber}
-				{#if blockNumber0 != null}
+				{@const blockNumber = entity.blockNumber}
+				{#if blockNumber != null}
 					<span data-text="muted">
-						{String(blockNumber0)}
+						{blockNumber}
 					</span>
 				{/if}
 			{/snippet}
@@ -95,14 +93,14 @@
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+					<Timestamp timestamp={selection.entitySelector.timestampMs} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 
@@ -115,7 +113,7 @@
 						<div>
 							<dt>Block number</dt>
 							<dd>
-								{String(blockNumber)}
+								{blockNumber}
 							</dd>
 						</div>
 					{/if}
@@ -133,10 +131,10 @@
 							<dd>
 								<NumberValue
 									value={balance}
-									decimalPlaces={pendingEntity.$actorCoin.decimals}
+									decimalPlaces={selection.entitySelector.$actorCoin.decimals}
 								/>
 
-								<span>{pendingEntity.$actorCoin.symbol == null ? '' : ` ${String(pendingEntity.$actorCoin.symbol)}`}</span>
+								<span>{selection.entitySelector.$actorCoin.symbol == null ? '' : ` ${selection.entitySelector.$actorCoin.symbol}`}</span>
 							</dd>
 						</div>
 					{/if}
@@ -154,7 +152,7 @@
 						<div>
 							<dt>USD value</dt>
 							<dd>
-								{String(usdValue)}
+								{usdValue}
 							</dd>
 						</div>
 					{/if}
@@ -176,7 +174,7 @@
 						<div>
 							<dt>Price USD</dt>
 							<dd>
-								{String(priceUsd)}
+								{priceUsd}
 							</dd>
 						</div>
 					{/if}

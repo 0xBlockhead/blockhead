@@ -2,7 +2,8 @@
 
 import bindings from '$/sources/AptosAip62/bindings.ts'
 import { Source } from '$/sources/Source.ts'
-import { SourceProvider, type SourceProviderDefinition } from '$/sources/SourceProvider.ts'
+import { SourceProvider } from '$/sources/SourceProvider.ts'
+import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinition.ts'
 
 export default {
 	provider: SourceProvider.AptosAip62,
@@ -13,5 +14,5 @@ export default {
 			label: 'Aptos AIP-62 wallet API',
 		},
 	],
-	bindings: [bindings[Source.AptosAip62_WalletApi]],
+	bindings: Object.values(bindings).flat(),
 } satisfies SourceProviderDefinition

@@ -47,11 +47,11 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{String(blockheadQuilibriumPendingTransaction.amount ?? '')}
+				{blockheadQuilibriumPendingTransaction.amount ?? ''}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{(blockheadQuilibriumPendingTransaction.deliveryType ?? '')}</span>
+				<span data-text="annotation">{blockheadQuilibriumPendingTransaction.deliveryType ?? ''}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

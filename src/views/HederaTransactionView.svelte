@@ -22,7 +22,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.HederaTransaction> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const hederaTransaction = $derived(selection({
 		fields: {
 			transactionType: true,
@@ -31,7 +30,7 @@
 			consensusTimestamp: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.transactionType ?? '') || (pendingEntity.transactionId ?? '') || 'hedera transaction')
+	const titleFallback = $derived((prefetched.transactionType ?? '') || (prefetched.transactionId ?? '') || 'hedera transaction')
 	const viewDomId = $derived('hedera-transaction-' + encodeURIComponent(stringify(selection.entitySelector)))
 
 

@@ -20,7 +20,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.EvmContractCompilation> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const evmContractCompilation = $derived(selection({
 		fields: {
 			name: true,
@@ -30,7 +29,7 @@
 			language: true,
 		},
 	}))
-	const titleFallback = $derived([(pendingEntity.name ?? ''), (pendingEntity.fullyQualifiedName ?? ''), (pendingEntity.compiler ?? '')].filter(Boolean).join(' ') || 'EVM contract compilation')
+	const titleFallback = $derived([(prefetched.name ?? ''), (prefetched.fullyQualifiedName ?? ''), (prefetched.compiler ?? '')].filter(Boolean).join(' ') || 'EVM contract compilation')
 
 
 	// Components

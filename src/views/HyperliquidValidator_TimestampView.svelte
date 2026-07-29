@@ -21,9 +21,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.HyperliquidValidator_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const titleFallback = 'hyperliquid validator timestamp'
-
 
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -37,7 +34,7 @@
 <EntityView
 	entityType={EntityType.HyperliquidValidator_Timestamp}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? 'hyperliquid validator timestamp'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -62,14 +59,14 @@
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+					<Timestamp timestamp={selection.entitySelector.timestampMs} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 
@@ -110,7 +107,7 @@
 						<div>
 							<dt>recent block count</dt>
 							<dd>
-								{String(recentBlockCount)}
+								{recentBlockCount}
 							</dd>
 						</div>
 					{/if}
@@ -132,7 +129,7 @@
 						<div>
 							<dt>is active</dt>
 							<dd>
-								{String(isActive)}
+								{isActive}
 							</dd>
 						</div>
 					{/if}
@@ -154,7 +151,7 @@
 						<div>
 							<dt>stake</dt>
 							<dd>
-								{String(stake)}
+								{stake}
 							</dd>
 						</div>
 					{/if}
@@ -176,7 +173,7 @@
 						<div>
 							<dt>is jailed</dt>
 							<dd>
-								{String(isJailed)}
+								{isJailed}
 							</dd>
 						</div>
 					{/if}

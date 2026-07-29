@@ -1,7 +1,8 @@
 // Generated from APP.ts. Do not edit by hand.
 
 import { entity } from '$/schema/$schema.ts'
-import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
+import { EntityFieldCardinality } from '$/schema/EntityFieldCardinality.ts'
+import { EntityFieldType } from '$/schema/EntityFieldType.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { EvmAddress, ZeroExHex } from '$/schema/ZeroExHex.ts'
 import { type } from 'arktype'
@@ -72,7 +73,10 @@ export default entity({
 	storageSlotReads: {
 		label: 'Storage slot reads',
 		type: EntityFieldType.Primitive,
-		primitiveType: type({ 'slot': type('string'), 'value': type('string') }),
+		primitiveType: type({
+			slot: type('string'),
+			value: type('string'),
+		}),
 		cardinality: EntityFieldCardinality.Many,
 	},
 	$$storageReads: {

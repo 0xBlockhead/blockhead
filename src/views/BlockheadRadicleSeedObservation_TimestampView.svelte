@@ -22,13 +22,11 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.BlockheadRadicleSeedObservation_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Local_Internal,
 		],
 	}))
-	const titleFallback = $derived((pendingEntity.nodeId ?? '') || 'blockhead radicle seed observation timestamp')
 
 
 	// Components
@@ -43,17 +41,17 @@
 <EntityView
 	entityType={EntityType.BlockheadRadicleSeedObservation_Timestamp}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? (selection.entitySelector.nodeId || 'blockhead radicle seed observation timestamp')}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{(pendingEntity.nodeId ?? '') || 'blockhead radicle seed observation timestamp'}
+		{selection.entitySelector.nodeId || 'blockhead radicle seed observation timestamp'}
 	{/snippet}
 
 	{#snippet Value()}
-		<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+		<Timestamp timestamp={selection.entitySelector.timestampMs} />
 	{/snippet}
 
 	{#snippet HeadingAfter()}
@@ -82,7 +80,7 @@
 			<div>
 				<dt>node ID</dt>
 				<dd>
-					{pendingEntity.nodeId}
+					{selection.entitySelector.nodeId}
 				</dd>
 			</div>
 
@@ -109,14 +107,14 @@
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+					<Timestamp timestamp={selection.entitySelector.timestampMs} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 		</dl>

@@ -47,7 +47,7 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{(polkadotReferendum.track ?? '')}
+				{polkadotReferendum.track ?? ''}
 			{/snippet}
 
 			{#snippet HeadingAfter()}

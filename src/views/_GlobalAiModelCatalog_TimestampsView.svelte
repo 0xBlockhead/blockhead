@@ -45,11 +45,11 @@
 			entitySelector={globalAiModelCatalogTimestampSelector}
 		>
 			{#snippet Title()}
-				{String(globalAiModelCatalogTimestampSelector.timestampMs) || 'global AI model catalog timestamp'}
+				{globalAiModelCatalogTimestampSelector.timestampMs}
 			{/snippet}
 
 			{#snippet Value()}
-				{(globalAiModelCatalogTimestamp.status ?? '')}
+				{globalAiModelCatalogTimestamp.status ?? ''}
 			{/snippet}
 
 			{#snippet HeadingAfter()}

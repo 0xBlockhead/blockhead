@@ -4,7 +4,6 @@
 	// Types/constants
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -22,7 +21,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.AcpToolCall> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.AcpLocal_JsonRpc,
@@ -34,7 +32,7 @@
 			serverName: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.toolCallId ?? '') || 'ACP tool call')
+	const titleFallback = $derived(selection.entitySelector.toolCallId || 'ACP tool call')
 
 
 	// Components
@@ -55,13 +53,13 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{(pendingEntity.toolCallId ?? '') || 'ACP tool call'}
+		{selection.entitySelector.toolCallId || 'ACP tool call'}
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={acpToolCall}>
 			{#snippet children(entity)}
-				{(entity.toolName ?? '') || pendingEntity.toolCallId || titleFallback}
+				{(entity.toolName ?? '') || selection.entitySelector.toolCallId || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -69,10 +67,10 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={acpToolCall}>
 			{#snippet children(entity)}
-				{@const serverName0 = entity.serverName}
-				{#if serverName0 != null}
+				{@const serverName = entity.serverName}
+				{#if serverName != null}
 					<span data-text="muted">
-						{serverName0}
+						{serverName}
 					</span>
 				{/if}
 			{/snippet}
@@ -95,7 +93,7 @@
 			<div>
 				<dt>tool call ID</dt>
 				<dd>
-					{pendingEntity.toolCallId}
+					{selection.entitySelector.toolCallId}
 				</dd>
 			</div>
 
@@ -148,7 +146,7 @@
 						<div>
 							<dt>started AT</dt>
 							<dd>
-								<Timestamp timestamp={Number(startedAt)} />
+								<Timestamp timestamp={startedAt} />
 							</dd>
 						</div>
 					{/if}
@@ -170,7 +168,7 @@
 						<div>
 							<dt>completed AT</dt>
 							<dd>
-								<Timestamp timestamp={Number(completedAt)} />
+								<Timestamp timestamp={completedAt} />
 							</dd>
 						</div>
 					{/if}
@@ -194,7 +192,7 @@
 						<div>
 							<dt>input hash algorithm</dt>
 							<dd>
-								<TruncatedValue value={inputHashAlgorithm} />
+								{inputHashAlgorithm}
 							</dd>
 						</div>
 					{/if}
@@ -216,7 +214,7 @@
 						<div>
 							<dt>input hash</dt>
 							<dd>
-								<TruncatedValue value={String(inputHash)} />
+								<TruncatedValue value={inputHash} />
 							</dd>
 						</div>
 					{/if}
@@ -238,7 +236,7 @@
 						<div>
 							<dt>output hash algorithm</dt>
 							<dd>
-								<TruncatedValue value={outputHashAlgorithm} />
+								{outputHashAlgorithm}
 							</dd>
 						</div>
 					{/if}
@@ -260,7 +258,7 @@
 						<div>
 							<dt>output hash</dt>
 							<dd>
-								<TruncatedValue value={String(outputHash)} />
+								<TruncatedValue value={outputHash} />
 							</dd>
 						</div>
 					{/if}
@@ -270,15 +268,15 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const acpToolCallAcpToolCallTimestampsViewTimestampsResource = selection.$$timestamps}
+		{@const timestampsResource = selection.$$timestamps}
 		<ResourceBoundary
-			resource={acpToolCallAcpToolCallTimestampsViewTimestampsResource}
+			resource={timestampsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<AcpToolCall_TimestampsView
-						selection={acpToolCallAcpToolCallTimestampsViewTimestampsResource}
-						countResource={acpToolCallAcpToolCallTimestampsViewTimestampsResource.count}
+						selection={timestampsResource}
+						countResource={timestampsResource.count}
 						title='timestamps'
 						id='timestamps'
 					/>

@@ -21,9 +21,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.TransferRestriction> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const titleFallback = 'transfer restriction'
-
 
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -36,7 +33,7 @@
 <EntityView
 	entityType={EntityType.TransferRestriction}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? 'transfer restriction'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -61,14 +58,14 @@
 			<div>
 				<dt>restriction key</dt>
 				<dd>
-					{pendingEntity.restrictionKey}
+					{selection.entitySelector.restrictionKey}
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 
@@ -138,15 +135,15 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const transferRestrictionTransferRestrictionCheckTimestampsViewChecksResource = selection.$$checks}
+		{@const checksResource = selection.$$checks}
 		<ResourceBoundary
-			resource={transferRestrictionTransferRestrictionCheckTimestampsViewChecksResource}
+			resource={checksResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<TransferRestrictionCheck_TimestampsView
-						selection={transferRestrictionTransferRestrictionCheckTimestampsViewChecksResource}
-						countResource={transferRestrictionTransferRestrictionCheckTimestampsViewChecksResource.count}
+						selection={checksResource}
+						countResource={checksResource.count}
 						title='checks'
 						id='checks'
 					/>

@@ -47,12 +47,12 @@
 					{
 						fromChainId: String(bridgeRouteSelector.fromChainId),
 						toChainId: String(bridgeRouteSelector.toChainId),
-						fromToken: String(bridgeRouteSelector.fromToken),
-						toToken: String(bridgeRouteSelector.toToken),
+						fromToken: bridgeRouteSelector.fromToken,
+						toToken: bridgeRouteSelector.toToken,
 						fromAmount: String(bridgeRouteSelector.fromAmount),
-						fromAddress: String(bridgeRouteSelector.fromAddress),
+						fromAddress: bridgeRouteSelector.fromAddress,
 						slippage: String(bridgeRouteSelector.slippage),
-						toAddress: String(bridgeRouteSelector.toAddress),
+						toAddress: bridgeRouteSelector.toAddress,
 					}
 				)
 			}

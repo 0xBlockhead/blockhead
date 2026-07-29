@@ -5,7 +5,6 @@
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 
 
 	// Context
@@ -22,14 +21,13 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.GitRefUpdate> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const gitRefUpdate = $derived(selection({
 		fields: {
 			updateKind: true,
 			timestampMs: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.refName ?? '') || 'Git ref update')
+	const titleFallback = $derived(selection.entitySelector.refName || 'Git ref update')
 
 
 	// Components
@@ -50,13 +48,13 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{(pendingEntity.refName ?? '') || 'Git ref update'}
+		{selection.entitySelector.refName || 'Git ref update'}
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={gitRefUpdate}>
 			{#snippet children(entity)}
-				{entity.updateKind || pendingEntity.refName || titleFallback}
+				{entity.updateKind || selection.entitySelector.refName || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -64,10 +62,10 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={gitRefUpdate}>
 			{#snippet children(entity)}
-				{@const timestampMs0 = entity.timestampMs}
-				{#if timestampMs0 != null}
+				{@const timestampMs = entity.timestampMs}
+				{#if timestampMs != null}
 					<span data-text="muted">
-						<Timestamp timestamp={Number(timestampMs0)} />
+						<Timestamp timestamp={timestampMs} />
 					</span>
 				{/if}
 			{/snippet}
@@ -90,21 +88,21 @@
 			<div>
 				<dt>ref name</dt>
 				<dd>
-					{pendingEntity.refName}
+					{selection.entitySelector.refName}
 				</dd>
 			</div>
 
 			<div>
 				<dt>old object ID</dt>
 				<dd>
-					<TruncatedValue value={String(pendingEntity.oldObjectId)} />
+					<TruncatedValue value={selection.entitySelector.oldObjectId} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>new object ID</dt>
 				<dd>
-					<TruncatedValue value={String(pendingEntity.newObjectId)} />
+					<TruncatedValue value={selection.entitySelector.newObjectId} />
 				</dd>
 			</div>
 
@@ -130,7 +128,7 @@
 						<div>
 							<dt>Timestamp</dt>
 							<dd>
-								<Timestamp timestamp={Number(timestampMs)} />
+								<Timestamp timestamp={timestampMs} />
 							</dd>
 						</div>
 					{/if}

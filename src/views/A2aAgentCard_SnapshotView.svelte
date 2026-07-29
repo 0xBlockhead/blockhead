@@ -4,8 +4,6 @@
 	// Types/constants
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { UrlString } from '$/schema/UrlString.ts'
-	import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 
 
 	// Context
@@ -22,7 +20,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.A2aAgentCard_Snapshot> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [],
 	}))
@@ -33,7 +30,7 @@
 			protocolVersion: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.name ?? '') || String(pendingEntity.contentHash ?? '') || 'A2A agent card snapshot')
+	const titleFallback = $derived((prefetched.name ?? '') || selection.entitySelector.contentHash || 'A2A agent card snapshot')
 
 
 	// Components
@@ -74,10 +71,10 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={a2aAgentCardSnapshot}>
 			{#snippet children(entity)}
-				{@const protocolVersion0 = entity.protocolVersion}
-				{#if protocolVersion0 != null}
+				{@const protocolVersion = entity.protocolVersion}
+				{#if protocolVersion != null}
 					<span data-text="muted">
-						{protocolVersion0}
+						{protocolVersion}
 					</span>
 				{/if}
 			{/snippet}
@@ -100,14 +97,14 @@
 			<div>
 				<dt>content hash algorithm</dt>
 				<dd>
-					<TruncatedValue value={pendingEntity.contentHashAlgorithm} />
+					{selection.entitySelector.contentHashAlgorithm}
 				</dd>
 			</div>
 
 			<div>
 				<dt>content hash</dt>
 				<dd>
-					<TruncatedValue value={String(pendingEntity.contentHash)} />
+					<TruncatedValue value={selection.entitySelector.contentHash} />
 				</dd>
 			</div>
 
@@ -126,7 +123,7 @@
 						<div>
 							<dt>fetched AT</dt>
 							<dd>
-								<Timestamp timestamp={Number(fetchedAt)} />
+								<Timestamp timestamp={fetchedAt} />
 							</dd>
 						</div>
 					{/if}
@@ -265,11 +262,11 @@
 							<dt>provider URL</dt>
 							<dd>
 								<a
-									href={String(providerUrl)}
+									href={providerUrl}
 									target="_blank"
 									rel="noreferrer noopener"
 								>
-									<TruncatedValue value={String(providerUrl)} />
+									<TruncatedValue value={providerUrl} />
 								</a>
 							</dd>
 						</div>
@@ -302,45 +299,45 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const a2aAgentCardSnapshotA2aAgentInterfacesViewInterfacesResource = selection.$$interfaces}
+		{@const interfacesResource = selection.$$interfaces}
 		<ResourceBoundary
-			resource={a2aAgentCardSnapshotA2aAgentInterfacesViewInterfacesResource}
+			resource={interfacesResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<A2aAgentInterfacesView
-						selection={a2aAgentCardSnapshotA2aAgentInterfacesViewInterfacesResource}
-						countResource={a2aAgentCardSnapshotA2aAgentInterfacesViewInterfacesResource.count}
+						selection={interfacesResource}
+						countResource={interfacesResource.count}
 						title='interfaces'
 						id='interfaces'
 					/>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>
-		{@const a2aAgentCardSnapshotA2aAgentServicesViewServicesResource = selection.$$services}
+		{@const servicesResource = selection.$$services}
 		<ResourceBoundary
-			resource={a2aAgentCardSnapshotA2aAgentServicesViewServicesResource}
+			resource={servicesResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<A2aAgentServicesView
-						selection={a2aAgentCardSnapshotA2aAgentServicesViewServicesResource}
-						countResource={a2aAgentCardSnapshotA2aAgentServicesViewServicesResource.count}
+						selection={servicesResource}
+						countResource={servicesResource.count}
 						title='services'
 						id='services'
 					/>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>
-		{@const a2aAgentCardSnapshotA2aAgentSkillsViewSkillsResource = selection.$$skills}
+		{@const skillsResource = selection.$$skills}
 		<ResourceBoundary
-			resource={a2aAgentCardSnapshotA2aAgentSkillsViewSkillsResource}
+			resource={skillsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<A2aAgentSkillsView
-						selection={a2aAgentCardSnapshotA2aAgentSkillsViewSkillsResource}
-						countResource={a2aAgentCardSnapshotA2aAgentSkillsViewSkillsResource.count}
+						selection={skillsResource}
+						countResource={skillsResource.count}
 						title='skills'
 						id='skills'
 					/>

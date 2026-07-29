@@ -7,7 +7,6 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
-	import { EvmAddress } from '$/schema/ZeroExHex.ts'
 
 
 	// State
@@ -41,6 +40,7 @@
 >
 	{#snippet Item({ item: evmContract })}
 		{@const evmContractSelector = evmContract[EntityMetaKey.Selector]}
+		{@const network = evmContractSelector.$network}
 		<EntityView
 			entityType={EntityType.EvmContract}
 			entitySelector={evmContractSelector}
@@ -49,22 +49,22 @@
 					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(contracts)/contract/[address=evmAddress]',
 					{
 						network: (
-							'caip2' in evmContractSelector.$network ?
-								String(caip2StringFromValue(evmContractSelector.$network.caip2))
+							'caip2' in network ?
+								caip2StringFromValue(network.caip2)
 							:
-								String(evmContractSelector.$network.slug)
+								network.slug
 						),
-						address: String(evmContractSelector.address),
+						address: evmContractSelector.address,
 					}
 				)
 			}
 		>
 			{#snippet Title()}
-				{[(evmContract.precompileName ?? ''), String(evmContractSelector.address)].filter(Boolean).join(' ') || 'EVM contract'}
+				{[(evmContract.precompileName ?? ''), evmContractSelector.address].filter(Boolean).join(' ') || 'EVM contract'}
 			{/snippet}
 
 			{#snippet Value()}
-				{[(evmContract.precompileName ?? ''), String(evmContractSelector.address)].filter(Boolean).join(' ')}
+				{[(evmContract.precompileName ?? ''), evmContractSelector.address].filter(Boolean).join(' ')}
 			{/snippet}
 
 			{#snippet HeadingAfter()}

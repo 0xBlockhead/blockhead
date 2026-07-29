@@ -21,7 +21,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.BittensorNetwork_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Bittensor_JsonRpc,
@@ -33,7 +32,6 @@
 			runtimeSpecName: true,
 		},
 	}))
-	const titleFallback = $derived(String(pendingEntity.timestampMs ?? '') || 'Bittensor network observation')
 
 
 	// Components
@@ -48,22 +46,22 @@
 <EntityView
 	entityType={EntityType.BittensorNetwork_Timestamp}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? String(selection.entitySelector.timestampMs)}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+		<Timestamp timestamp={selection.entitySelector.timestampMs} />
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={bittensorNetworkTimestamp}>
 			{#snippet children(entity)}
-				{@const finalizedBlockNumber0 = entity.finalizedBlockNumber}
-				{#if finalizedBlockNumber0 != null}
+				{@const finalizedBlockNumber = entity.finalizedBlockNumber}
+				{#if finalizedBlockNumber != null}
 					<NumberValue
-						value={finalizedBlockNumber0}
+						value={finalizedBlockNumber}
 					/>
 				{/if}
 			{/snippet}
@@ -73,10 +71,10 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={bittensorNetworkTimestamp}>
 			{#snippet children(entity)}
-				{@const runtimeSpecName0 = entity.runtimeSpecName}
-				{#if runtimeSpecName0 != null}
+				{@const runtimeSpecName = entity.runtimeSpecName}
+				{#if runtimeSpecName != null}
 					<span data-text="muted">
-						{runtimeSpecName0}
+						{runtimeSpecName}
 					</span>
 				{/if}
 			{/snippet}
@@ -105,14 +103,14 @@
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+					<Timestamp timestamp={selection.entitySelector.timestampMs} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 

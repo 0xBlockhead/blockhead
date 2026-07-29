@@ -41,7 +41,7 @@
 			entitySelector={quilibriumFrameSelector}
 		>
 			{#snippet Title()}
-				{String(quilibriumFrameSelector.frameNumber) || 'quilibrium frame'}
+				{quilibriumFrameSelector.frameNumber}
 			{/snippet}
 
 			{#snippet Value()}
@@ -49,7 +49,7 @@
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{(quilibriumFrame.frameHash ?? '')}</span>
+				<span data-text="annotation">{quilibriumFrame.frameHash ?? ''}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

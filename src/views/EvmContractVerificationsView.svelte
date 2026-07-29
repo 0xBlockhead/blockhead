@@ -38,6 +38,7 @@
 >
 	{#snippet Item({ item: evmContractVerification })}
 		{@const evmContractVerificationSelector = evmContractVerification[EntityMetaKey.Selector]}
+		{@const contract = evmContractVerificationSelector.$contract}
 		<EntityView
 			entityType={EntityType.EvmContractVerification}
 			entitySelector={evmContractVerificationSelector}
@@ -46,12 +47,12 @@
 					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(contracts)/contract/[address=evmAddress]/(evmContract)/verification',
 					{
 						network: (
-							'caip2' in evmContractVerificationSelector.$contract.$network ?
-								String(caip2StringFromValue(evmContractVerificationSelector.$contract.$network.caip2))
+							'caip2' in contract.$network ?
+								caip2StringFromValue(contract.$network.caip2)
 							:
-								String(evmContractVerificationSelector.$contract.$network.slug)
+								contract.$network.slug
 						),
-						address: String(evmContractVerificationSelector.$contract.address),
+						address: contract.address,
 					}
 				)
 			}
@@ -61,11 +62,11 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{(evmContractVerification.match ?? '')}
+				{evmContractVerification.match ?? ''}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{[(evmContractVerification.$contract.precompileName ?? ''), String(evmContractVerificationSelector.$contract.address)].filter(Boolean).join(' ') || 'EVM contract'}</span>
+				<span data-text="annotation">{[(evmContractVerification.$contract.precompileName ?? ''), evmContractVerificationSelector.$contract.address].filter(Boolean).join(' ') || 'EVM contract'}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

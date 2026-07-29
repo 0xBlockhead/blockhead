@@ -22,14 +22,12 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.RedditSubreddit_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const redditSubredditTimestamp = $derived(selection({
 		fields: {
 			subscriberCount: true,
 			activeUserCount: true,
 		},
 	}))
-	const titleFallback = $derived(String(pendingEntity.timestampMs ?? '') || 'Reddit subreddit timestamp')
 
 
 	// Components
@@ -43,32 +41,35 @@
 <EntityView
 	entityType={EntityType.RedditSubreddit_Timestamp}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? String(selection.entitySelector.timestampMs)}
 	href={
-		href ?? resolve(
-			'/(social)/(reddit)/reddit/(globalRedditNetwork)/r/[name=stringSegment]/(redditSubreddit)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
-			{
-				name: encodeURIComponent(String(selection.entitySelector.$subreddit.name)),
-				timestampMs: String(selection.entitySelector.timestampMs),
-				source: String(selection.entitySelector.source),
-			}
-		)
+		href === undefined ?
+			resolve(
+				'/(social)/(reddit)/reddit/(globalRedditNetwork)/r/[name=stringSegment]/(redditSubreddit)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
+				{
+					name: encodeURIComponent(selection.entitySelector.$subreddit.name),
+					timestampMs: String(selection.entitySelector.timestampMs),
+					source: selection.entitySelector.source,
+				}
+			)
+		:
+			href ?? undefined
 	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+		<Timestamp timestamp={selection.entitySelector.timestampMs} />
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={redditSubredditTimestamp}>
 			{#snippet children(entity)}
-				{@const subscriberCount0 = entity.subscriberCount}
-				{#if subscriberCount0 != null}
+				{@const subscriberCount = entity.subscriberCount}
+				{#if subscriberCount != null}
 					<NumberValue
-						value={subscriberCount0}
+						value={subscriberCount}
 					/>
 				{/if}
 			{/snippet}
@@ -79,13 +80,13 @@
 		<ResourceBoundary resource={redditSubredditTimestamp}>
 			{#snippet children(entity)}
 				<span data-text="muted">
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</span>
-				{@const activeUserCount1 = entity.activeUserCount}
-				{#if activeUserCount1 != null}
+				{@const activeUserCount = entity.activeUserCount}
+				{#if activeUserCount != null}
 					<span data-text="muted">
 						<NumberValue
-							value={activeUserCount1}
+							value={activeUserCount}
 						/>
 
 						<span> active</span>
@@ -100,14 +101,14 @@
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+					<Timestamp timestamp={selection.entitySelector.timestampMs} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 

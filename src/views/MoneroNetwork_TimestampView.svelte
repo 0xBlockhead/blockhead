@@ -21,7 +21,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.MoneroNetwork_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.MoneroDaemonRpc_JsonRpc,
@@ -34,7 +33,6 @@
 			synchronized: true,
 		},
 	}))
-	const titleFallback = $derived(String(pendingEntity.timestampMs ?? '') || 'monero network timestamp')
 
 
 	// Components
@@ -49,22 +47,22 @@
 <EntityView
 	entityType={EntityType.MoneroNetwork_Timestamp}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? String(selection.entitySelector.timestampMs)}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+		<Timestamp timestamp={selection.entitySelector.timestampMs} />
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={moneroNetworkTimestamp}>
 			{#snippet children(entity)}
-				{@const height0 = entity.height}
-				{#if height0 != null}
+				{@const height = entity.height}
+				{#if height != null}
 					<NumberValue
-						value={height0}
+						value={height}
 					/>
 				{/if}
 			{/snippet}
@@ -74,16 +72,16 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={moneroNetworkTimestamp}>
 			{#snippet children(entity)}
-				{@const status0 = entity.status}
-				{#if status0 != null}
+				{@const status = entity.status}
+				{#if status != null}
 					<span data-text="muted">
-						{status0}
+						{status}
 					</span>
 				{/if}
-				{@const synchronized1 = entity.synchronized}
-				{#if synchronized1 != null}
+				{@const synchronized = entity.synchronized}
+				{#if synchronized != null}
 					<span data-text="muted">
-						{synchronized1 ? 'Yes' : 'No'}
+						{synchronized ? 'Yes' : 'No'}
 					</span>
 				{/if}
 			{/snippet}
@@ -106,14 +104,14 @@
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+					<Timestamp timestamp={selection.entitySelector.timestampMs} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 

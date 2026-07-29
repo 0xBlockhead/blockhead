@@ -5,6 +5,7 @@ import {
 	SourceEndpointKind,
 	SourceOperationGroup,
 	SourceTargetKind,
+	sourceBindingId,
 } from '$/sources/SourceBinding.ts'
 
 const sourceGetJson = vi.hoisted(() => vi.fn())
@@ -57,7 +58,7 @@ it('uses the registered HTTP proxy binding for all seven XRPC operations', async
 		})
 		expect(binding.operationGroups).toContain(SourceOperationGroup.GenericRead)
 		expect(binding.delivery).toBe(SourceDelivery.HttpProxy)
-		expect(binding.proxyId).toBeTypeOf('string')
+		expect(sourceBindingId(binding)).toBeTypeOf('string')
 		expect(binding.endpoints).toHaveLength(1)
 		expect(binding.endpoints[0].endpointKind).toBe(SourceEndpointKind.HttpUrl)
 		expect(binding.endpoints[0].corsEnabled).toBe(false)

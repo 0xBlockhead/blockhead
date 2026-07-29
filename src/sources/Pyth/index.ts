@@ -2,7 +2,8 @@
 
 import bindings from '$/sources/Pyth/bindings.ts'
 import { Source } from '$/sources/Source.ts'
-import { SourceProvider, type SourceProviderDefinition } from '$/sources/SourceProvider.ts'
+import { SourceProvider } from '$/sources/SourceProvider.ts'
+import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinition.ts'
 
 export default {
 	provider: SourceProvider.Pyth,
@@ -29,11 +30,5 @@ export default {
 			label: 'Pyth price feeds catalog REST',
 		},
 	],
-	bindings: [
-		bindings[Source.Pyth_EvmContract],
-		bindings[Source.Pyth_SolanaProgram],
-		bindings[Source.PythHermes_Rest],
-		bindings[Source.PythBenchmarks_Rest],
-		bindings[Source.PythPriceFeedsCatalog_Rest],
-	],
+	bindings: Object.values(bindings).flat(),
 } satisfies SourceProviderDefinition

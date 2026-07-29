@@ -46,7 +46,7 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{[(String(assetSupplyTimestamp.totalSupply ?? '') ? String(assetSupplyTimestamp.totalSupply ?? '') + assetSupplyTimestampSelector.$assetInstance.symbol : ''), (String(assetSupplyTimestamp.circulatingSupply ?? '') ? String(assetSupplyTimestamp.circulatingSupply ?? '') + assetSupplyTimestampSelector.$assetInstance.symbol : '')].filter(Boolean).join(' ')}
+				{[(assetSupplyTimestamp.totalSupply != null ? String(assetSupplyTimestamp.totalSupply) + assetSupplyTimestampSelector.$assetInstance.symbol : ''), (assetSupplyTimestamp.circulatingSupply != null ? String(assetSupplyTimestamp.circulatingSupply) + assetSupplyTimestampSelector.$assetInstance.symbol : '')].filter(Boolean).join(' ')}
 			{/snippet}
 
 			{#snippet HeadingAfter()}

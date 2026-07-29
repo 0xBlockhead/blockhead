@@ -1,8 +1,9 @@
 // Generated from APP.ts. Do not edit by hand.
 
 import { entity } from '$/schema/$schema.ts'
-import { BridgeRouteTag } from '$/schema/BridgeRoute.ts'
-import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
+import { BridgeRouteTag } from '$/schema/BridgeRouteTag.ts'
+import { EntityFieldCardinality } from '$/schema/EntityFieldCardinality.ts'
+import { EntityFieldType } from '$/schema/EntityFieldType.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { EvmAddress, ZeroExHex } from '$/schema/ZeroExHex.ts'
 import { type } from 'arktype'

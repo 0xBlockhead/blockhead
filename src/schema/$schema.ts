@@ -1,10 +1,8 @@
 import { type as arktype } from 'arktype'
 import { stringify } from 'devalue'
 
-import {
-	EntityFieldCardinality,
-	EntityFieldType,
-} from '$/schema/EntityField.ts'
+import { EntityFieldCardinality } from '$/schema/EntityFieldCardinality.ts'
+import { EntityFieldType } from '$/schema/EntityFieldType.ts'
 
 export enum EntityMetaKey {
 	ParentSelector = '__parentSelector',
@@ -1579,10 +1577,7 @@ export type EntitySelectorDefinitionByEntityTypeAndName<_Schema extends Schema> 
 	}
 }
 
-export const indexSchema = <const _Schema extends Schema>(
-	schema: _Schema,
-	generatedConditionPlanByEntityTypeAndPath?: Readonly<Record<string, EntityFacetConditionPlan | undefined>>
-) => {
+export const indexSchema = <const _Schema extends Schema>(schema: _Schema) => {
 	const conditionLeaves = (
 		entityType: string,
 		condition: EntityFacetCondition | undefined
@@ -1647,13 +1642,7 @@ export const indexSchema = <const _Schema extends Schema>(
 			facetDefinition.name,
 		]
 		const directDependencies = conditionPlan(entityType, [facetDefinition.condition]).dependencies
-		const generatedConditionPlan = generatedConditionPlanByEntityTypeAndPath?.[
-			entityFieldAddressKey(entityType, facetPath, '')
-		]
-		if (generatedConditionPlanByEntityTypeAndPath != null && generatedConditionPlan == null)
-			throw new Error(`${entityType}.${facetPath.join('.')} is missing its generated condition plan`)
-
-		const projectionConditionPlan = generatedConditionPlan ?? conditionPlan(entityType, [
+		const projectionConditionPlan = conditionPlan(entityType, [
 			...ancestorConditions,
 			facetDefinition.condition,
 		])

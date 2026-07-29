@@ -21,13 +21,12 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.RegulatedAssetProfile> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const regulatedAssetProfile = $derived(selection({
 		fields: {
 			standard: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.standard ?? '') || 'regulated asset profile')
+	const titleFallback = $derived((prefetched.standard ?? '') || 'regulated asset profile')
 	const viewDomId = $derived('regulated-asset-profile-' + encodeURIComponent(stringify(selection.entitySelector)))
 
 
@@ -35,7 +34,6 @@
 	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import TruncatedValue from '$/components/TruncatedValue.svelte'
 	import AssetInstanceView from '$/views/AssetInstanceView.svelte'
 	import ClaimTopicRequirementsView from '$/views/ClaimTopicRequirementsView.svelte'
 	import TrustedIssuersView from '$/views/TrustedIssuersView.svelte'
@@ -66,7 +64,7 @@
 	{#snippet Value()}
 		<AssetInstanceView
 			selection={select(EntityType.AssetInstance, selection.entitySelector.$assetInstance)}
-			href=""
+			href={null}
 			layout={EntityLayout.Value}
 			open={false}
 		/>

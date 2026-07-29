@@ -23,13 +23,12 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.Erc4337SmartAccount_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const account = $derived(selection.entitySelector.$account)
 	const erc4337SmartAccountTimestamp = $derived(selection({
 		fields: {
 			userOperationsCount: true,
 		},
 	}))
-	const titleFallback = $derived(String(pendingEntity.timestampMs ?? '') || 'ERC-4337 smart account timestamp')
 
 
 	// Components
@@ -44,38 +43,41 @@
 <EntityView
 	entityType={EntityType.Erc4337SmartAccount_Timestamp}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? String(selection.entitySelector.timestampMs)}
 	href={
-		href ?? resolve(
-			'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/erc-4337/smart-account/[address=evmAddress]/(erc4337SmartAccount)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
-			{
-				network: (
-					'caip2' in selection.entitySelector.$account.$network ?
-						String(caip2StringFromValue(selection.entitySelector.$account.$network.caip2))
-					:
-						String(selection.entitySelector.$account.$network.slug)
-				),
-				address: String(selection.entitySelector.$account.address),
-				timestampMs: String(selection.entitySelector.timestampMs),
-				source: String(selection.entitySelector.source),
-			}
-		)
+		href === undefined ?
+			resolve(
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/erc-4337/smart-account/[address=evmAddress]/(erc4337SmartAccount)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
+				{
+					network: (
+						'caip2' in account.$network ?
+							caip2StringFromValue(account.$network.caip2)
+						:
+							account.$network.slug
+					),
+					address: account.address,
+					timestampMs: String(selection.entitySelector.timestampMs),
+					source: selection.entitySelector.source,
+				}
+			)
+		:
+			href ?? undefined
 	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+		<Timestamp timestamp={selection.entitySelector.timestampMs} />
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={erc4337SmartAccountTimestamp}>
 			{#snippet children(entity)}
-				{@const userOperationsCount0 = entity.userOperationsCount}
-				{#if userOperationsCount0 != null}
+				{@const userOperationsCount = entity.userOperationsCount}
+				{#if userOperationsCount != null}
 					<NumberValue
-						value={userOperationsCount0}
+						value={userOperationsCount}
 					/>
 				{/if}
 			{/snippet}
@@ -84,7 +86,7 @@
 
 	{#snippet HeadingAfter()}
 		<span data-text="muted">
-			{pendingEntity.source}
+			{selection.entitySelector.source}
 		</span>
 	{/snippet}
 
@@ -93,14 +95,14 @@
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+					<Timestamp timestamp={selection.entitySelector.timestampMs} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 

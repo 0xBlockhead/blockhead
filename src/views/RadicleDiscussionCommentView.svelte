@@ -21,9 +21,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.RadicleDiscussionComment> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const titleFallback = 'radicle discussion comment'
-
 
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -34,7 +31,7 @@
 <EntityView
 	entityType={EntityType.RadicleDiscussionComment}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? 'radicle discussion comment'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -48,7 +45,7 @@
 			<div>
 				<dt>comment ID</dt>
 				<dd>
-					{pendingEntity.commentId}
+					{selection.entitySelector.commentId}
 				</dd>
 			</div>
 
@@ -133,7 +130,7 @@
 						<div>
 							<dt>Created</dt>
 							<dd>
-								{String(createdAt)}
+								{createdAt}
 							</dd>
 						</div>
 					{/if}
@@ -155,7 +152,7 @@
 						<div>
 							<dt>Updated</dt>
 							<dd>
-								{String(updatedAt)}
+								{updatedAt}
 							</dd>
 						</div>
 					{/if}

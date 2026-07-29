@@ -21,9 +21,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.IcpRequestStatus> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const titleFallback = 'ICP request status'
-
 
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -35,7 +32,7 @@
 <EntityView
 	entityType={EntityType.IcpRequestStatus}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? 'ICP request status'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -60,7 +57,7 @@
 			<div>
 				<dt>request ID</dt>
 				<dd>
-					{pendingEntity.requestId}
+					{selection.entitySelector.requestId}
 				</dd>
 			</div>
 
@@ -165,7 +162,7 @@
 						<div>
 							<dt>ingress expiry ns</dt>
 							<dd>
-								{String(ingressExpiryNs)}
+								{ingressExpiryNs}
 							</dd>
 						</div>
 					{/if}

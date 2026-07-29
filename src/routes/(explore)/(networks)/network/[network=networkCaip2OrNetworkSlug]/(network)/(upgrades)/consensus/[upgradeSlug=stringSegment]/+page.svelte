@@ -4,7 +4,6 @@
 	// Types/constants
 	import type { PageProps } from './$types.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { ConsensusProtocol } from '$/schema/NetworkUpgradeProtocols.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -41,7 +40,7 @@
 
 
 <svelte:head>
-	<title>{(data.title ?? (pageSelection.entity == null ? 'Ethereum consensus upgrade' : pageSelection.entity.upgradeId || pageSelection.entity.name || 'Ethereum consensus upgrade'))} • Ethereum consensus upgrade • Blockhead</title>
+	<title>{data.title ?? (pageSelection.entity == null ? 'Ethereum consensus upgrade' : pageSelection.entity.upgradeId || pageSelection.entity.name || 'Ethereum consensus upgrade')} • Ethereum consensus upgrade • Blockhead</title>
 </svelte:head>
 
 

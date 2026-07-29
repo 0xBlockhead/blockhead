@@ -33,7 +33,7 @@
 			resolve(
 				'/(social)/(reddit)/reddit/(globalRedditNetwork)/comment/[fullname=stringSegment]',
 				{
-					fullname: String(params.fullname),
+					fullname: params.fullname,
 				}
 			)
 		}
@@ -49,7 +49,7 @@
 					resolve(
 						'/(social)/(reddit)/reddit/(globalRedditNetwork)/comment/[fullname=stringSegment]',
 						{
-							fullname: String(params.fullname),
+							fullname: params.fullname,
 						}
 					)
 				}

@@ -45,7 +45,7 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{String(blockheadActionOutcomeTimestampSelector.timestampMs)}
+				{blockheadActionOutcomeTimestampSelector.timestampMs}
 			{/snippet}
 
 			{#snippet HeadingAfter()}

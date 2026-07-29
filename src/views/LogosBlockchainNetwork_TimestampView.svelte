@@ -4,7 +4,6 @@
 	// Types/constants
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 
 
 	// Context
@@ -21,14 +20,12 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.LogosBlockchainNetwork_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const logosBlockchainNetworkTimestamp = $derived(selection({
 		fields: {
 			height: true,
 			mode: true,
 		},
 	}))
-	const titleFallback = $derived(String(pendingEntity.timestampMs ?? '') || 'Logos blockchain network timestamp')
 
 
 	// Components
@@ -42,22 +39,22 @@
 <EntityView
 	entityType={EntityType.LogosBlockchainNetwork_Timestamp}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? String(selection.entitySelector.timestampMs)}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+		<Timestamp timestamp={selection.entitySelector.timestampMs} />
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={logosBlockchainNetworkTimestamp}>
 			{#snippet children(entity)}
-				{@const height0 = entity.height}
-				{#if height0 != null}
+				{@const height = entity.height}
+				{#if height != null}
 					<NumberValue
-						value={height0}
+						value={height}
 					/>
 				{/if}
 			{/snippet}
@@ -67,10 +64,10 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={logosBlockchainNetworkTimestamp}>
 			{#snippet children(entity)}
-				{@const mode0 = entity.mode}
-				{#if mode0 != null}
+				{@const mode = entity.mode}
+				{#if mode != null}
 					<span data-text="muted">
-						{mode0}
+						{mode}
 					</span>
 				{/if}
 			{/snippet}
@@ -93,14 +90,14 @@
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+					<Timestamp timestamp={selection.entitySelector.timestampMs} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 
@@ -205,7 +202,7 @@
 						<div>
 							<dt>Tip</dt>
 							<dd>
-								{String(tip)}
+								{tip}
 							</dd>
 						</div>
 					{/if}
@@ -227,7 +224,7 @@
 						<div>
 							<dt>LIB</dt>
 							<dd>
-								{String(lib)}
+								{lib}
 							</dd>
 						</div>
 					{/if}

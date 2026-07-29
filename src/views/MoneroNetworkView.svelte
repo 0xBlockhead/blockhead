@@ -48,7 +48,7 @@
 	{#snippet Title()}
 		<NetworkView
 			selection={select(EntityType.Network, selection.entitySelector.$network)}
-			href=""
+			href={null}
 			layout={EntityLayout.Title}
 			open={false}
 		/>
@@ -99,30 +99,30 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const moneroNetworkMoneroNetworkTimestampsViewTimestampsResource = selection.$$timestamps}
+		{@const timestampsResource = selection.$$timestamps}
 		<ResourceBoundary
-			resource={moneroNetworkMoneroNetworkTimestampsViewTimestampsResource}
+			resource={timestampsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<MoneroNetwork_TimestampsView
-						selection={moneroNetworkMoneroNetworkTimestampsViewTimestampsResource}
-						countResource={moneroNetworkMoneroNetworkTimestampsViewTimestampsResource.count}
+						selection={timestampsResource}
+						countResource={timestampsResource.count}
 						title='Observations'
 						id='timestamps'
 					/>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>
-		{@const moneroNetworkMoneroBlocksViewBlocksResource = selection.$$blocks}
+		{@const blocksResource = selection.$$blocks}
 		<ResourceBoundary
-			resource={moneroNetworkMoneroBlocksViewBlocksResource}
+			resource={blocksResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<MoneroBlocksView
-						selection={moneroNetworkMoneroBlocksViewBlocksResource}
-						countResource={moneroNetworkMoneroBlocksViewBlocksResource.count}
+						selection={blocksResource}
+						countResource={blocksResource.count}
 						title='Blocks'
 						id='blocks'
 					/>

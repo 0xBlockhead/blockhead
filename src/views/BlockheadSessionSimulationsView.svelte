@@ -50,7 +50,7 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{String(blockheadSessionSimulation.createdAt)}
+				{blockheadSessionSimulation.createdAt}
 			{/snippet}
 
 			{#snippet HeadingAfter()}

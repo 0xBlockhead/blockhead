@@ -44,7 +44,7 @@
 			entitySelector={mcpResourceContentTimestampSelector}
 		>
 			{#snippet Title()}
-				{String(mcpResourceContentTimestampSelector.timestampMs) || 'mcp resource content timestamp'}
+				{mcpResourceContentTimestampSelector.timestampMs}
 			{/snippet}
 
 			{#snippet Value()}
@@ -52,7 +52,7 @@
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{(mcpResourceContentTimestamp.error ?? '')}</span>
+				<span data-text="annotation">{mcpResourceContentTimestamp.error ?? ''}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

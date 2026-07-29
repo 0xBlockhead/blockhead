@@ -5,7 +5,6 @@
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { EvmAddress } from '$/schema/ZeroExHex.ts'
 
 
 	// State
@@ -41,11 +40,11 @@
 			entitySelector={blockheadWalletRequestCallSelector}
 		>
 			{#snippet Title()}
-				{(String(blockheadWalletRequestCallSelector.callIndex ?? '') ? 'Call #' + String(blockheadWalletRequestCallSelector.callIndex ?? '') : '') || 'blockhead wallet request call'}
+				{`Call #${blockheadWalletRequestCallSelector.callIndex}`}
 			{/snippet}
 
 			{#snippet Value()}
-				{String(blockheadWalletRequestCall.toAddress ?? '')}
+				{blockheadWalletRequestCall.toAddress ?? ''}
 			{/snippet}
 		</EntityView>
 	{/snippet}

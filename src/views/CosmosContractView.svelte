@@ -21,13 +21,11 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.CosmosContract> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const cosmosContract = $derived(selection({
 		fields: {
 			codeId: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.address ?? '') || 'Cosmos contract')
 
 
 	// Components
@@ -41,26 +39,26 @@
 <EntityView
 	entityType={EntityType.CosmosContract}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? (selection.entitySelector.address || 'Cosmos contract')}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<TruncatedValue value={pendingEntity.address} />
+		<TruncatedValue value={selection.entitySelector.address} />
 	{/snippet}
 
 	{#snippet Value()}
-		<TruncatedValue value={pendingEntity.address} />
+		<TruncatedValue value={selection.entitySelector.address} />
 	{/snippet}
 
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={cosmosContract}>
 			{#snippet children(entity)}
-				{@const codeId0 = entity.codeId}
-				{#if codeId0 != null}
+				{@const codeId = entity.codeId}
+				{#if codeId != null}
 					<span data-text="muted">
-						{String(codeId0)}
+						{codeId}
 					</span>
 				{/if}
 			{/snippet}
@@ -72,7 +70,7 @@
 			<div>
 				<dt>Address</dt>
 				<dd>
-					<TruncatedValue value={pendingEntity.address} />
+					<TruncatedValue value={selection.entitySelector.address} />
 				</dd>
 			</div>
 
@@ -85,7 +83,7 @@
 						<div>
 							<dt>Code ID</dt>
 							<dd>
-								{String(codeId)}
+								{codeId}
 							</dd>
 						</div>
 					{/if}

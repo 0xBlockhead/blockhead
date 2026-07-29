@@ -23,14 +23,12 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.FarcasterUser_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Snapchain_Rest,
 			Source.Neynar_Rest,
 		],
 	}))
-	const titleFallback = 'Farcaster user observation'
 
 
 	// Components
@@ -44,15 +42,18 @@
 <EntityView
 	entityType={EntityType.FarcasterUser_Timestamp}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? 'Farcaster user observation'}
 	href={
-		href ?? resolve(
-			'/(social)/(farcaster)/farcaster/(farcasterNetwork)/user/[userId=farcasterFid]/(farcasterUser)/observations/[timestampMs=nonNegativeInteger]',
-			{
-				userId: String(selection.entitySelector.$user.fid),
-				timestampMs: String(selection.entitySelector.timestampMs),
-			}
-		)
+		href === undefined ?
+			resolve(
+				'/(social)/(farcaster)/farcaster/(farcasterNetwork)/user/[userId=farcasterFid]/(farcasterUser)/observations/[timestampMs=nonNegativeInteger]',
+				{
+					userId: String(selection.entitySelector.$user.fid),
+					timestampMs: String(selection.entitySelector.timestampMs),
+				}
+			)
+		:
+			href ?? undefined
 	}
 	{layout}
 	bind:open
@@ -61,14 +62,14 @@
 	{#snippet Title()}
 		<FarcasterUserView
 			selection={select(EntityType.FarcasterUser, selection.entitySelector.$user)}
-			href=""
+			href={null}
 			layout={EntityLayout.Title}
 			open={false}
 		/>
 	{/snippet}
 
 	{#snippet Value()}
-		<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+		<Timestamp timestamp={selection.entitySelector.timestampMs} />
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -89,7 +90,7 @@
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+					<Timestamp timestamp={selection.entitySelector.timestampMs} />
 				</dd>
 			</div>
 		</dl>

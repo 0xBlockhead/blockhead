@@ -43,11 +43,11 @@
 			entitySelector={cardanoScriptWitnessSelector}
 		>
 			{#snippet Title()}
-				{([cardanoScriptWitness.scriptKind, (String(cardanoScriptWitnessSelector.witnessIndex) ? 'Script #' + String(cardanoScriptWitnessSelector.witnessIndex) : '')].filter(Boolean).join(' ')) || 'Cardano script witness'}
+				{[cardanoScriptWitness.scriptKind, 'Script #' + String(cardanoScriptWitnessSelector.witnessIndex)].filter(Boolean).join(' ') || 'Cardano script witness'}
 			{/snippet}
 
 			{#snippet Value()}
-				{(cardanoScriptWitness.scriptHash ?? '')}
+				{cardanoScriptWitness.scriptHash ?? ''}
 			{/snippet}
 		</EntityView>
 	{/snippet}

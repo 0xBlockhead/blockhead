@@ -22,7 +22,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.MoneroBlock> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.MoneroDaemonRpc_JsonRpc,
@@ -35,7 +34,6 @@
 			timestampMs: true,
 		},
 	}))
-	const titleFallback = $derived(String(pendingEntity.height ?? '') || 'monero block')
 
 
 	// Components
@@ -52,14 +50,14 @@
 <EntityView
 	entityType={EntityType.MoneroBlock}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? String(selection.entitySelector.height)}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
 		<NumberValue
-			value={pendingEntity.height}
+			value={selection.entitySelector.height}
 		/>
 	{/snippet}
 
@@ -74,10 +72,10 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={moneroBlock}>
 			{#snippet children(entity)}
-				{@const timestampMs0 = entity.timestampMs}
-				{#if timestampMs0 != null}
+				{@const timestampMs = entity.timestampMs}
+				{#if timestampMs != null}
 					<span data-text="muted">
-						<Timestamp timestamp={Number(timestampMs0)} />
+						<Timestamp timestamp={timestampMs} />
 					</span>
 				{/if}
 			{/snippet}
@@ -101,7 +99,7 @@
 				<dt>Height</dt>
 				<dd>
 					<NumberValue
-						value={pendingEntity.height}
+						value={selection.entitySelector.height}
 					/>
 				</dd>
 			</div>
@@ -148,7 +146,7 @@
 						<div>
 							<dt>Timestamp</dt>
 							<dd>
-								<Timestamp timestamp={Number(timestampMs)} />
+								<Timestamp timestamp={timestampMs} />
 							</dd>
 						</div>
 					{/if}
@@ -206,15 +204,15 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const moneroBlockMoneroTransactionsViewTransactionsResource = selection.$$transactions}
+		{@const transactionsResource = selection.$$transactions}
 		<ResourceBoundary
-			resource={moneroBlockMoneroTransactionsViewTransactionsResource}
+			resource={transactionsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<MoneroTransactionsView
-						selection={moneroBlockMoneroTransactionsViewTransactionsResource}
-						countResource={moneroBlockMoneroTransactionsViewTransactionsResource.count}
+						selection={transactionsResource}
+						countResource={transactionsResource.count}
 						title='Transactions'
 						id='transactions'
 					/>

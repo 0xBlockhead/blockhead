@@ -46,7 +46,7 @@
 				resolve(
 					'/(assets)/coin/[coinId=stringSegment]',
 					{
-						coinId: String(coinSelector.coinId),
+						coinId: coinSelector.coinId,
 					}
 				)
 			}

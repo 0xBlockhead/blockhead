@@ -20,14 +20,12 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.SolanaValidator_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const solanaValidatorTimestamp = $derived(selection({
 		fields: {
 			delinquent: true,
 			timestampMs: true,
 		},
 	}))
-	const titleFallback = $derived(String(pendingEntity.slot ?? '') || 'solana validator timestamp')
 
 
 	// Components
@@ -41,21 +39,21 @@
 <EntityView
 	entityType={EntityType.SolanaValidator_Timestamp}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? String(selection.entitySelector.slot)}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
 		<NumberValue
-			value={pendingEntity.slot}
+			value={selection.entitySelector.slot}
 		/>
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={solanaValidatorTimestamp}>
 			{#snippet children(entity)}
-				{String(entity.delinquent ?? '') || String(pendingEntity.slot) || titleFallback}
+				{String(entity.delinquent ?? '') || String(selection.entitySelector.slot)}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -63,10 +61,10 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={solanaValidatorTimestamp}>
 			{#snippet children(entity)}
-				{@const timestampMs0 = entity.timestampMs}
-				{#if timestampMs0 != null}
+				{@const timestampMs = entity.timestampMs}
+				{#if timestampMs != null}
 					<span data-text="muted">
-						<Timestamp timestamp={Number(timestampMs0)} />
+						<Timestamp timestamp={timestampMs} />
 					</span>
 				{/if}
 			{/snippet}
@@ -89,7 +87,7 @@
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 
@@ -130,7 +128,7 @@
 						<div>
 							<dt>Activated stake</dt>
 							<dd>
-								{String(activatedStakeLamports)}
+								{activatedStakeLamports}
 							</dd>
 						</div>
 					{/if}
@@ -152,7 +150,7 @@
 						<div>
 							<dt>Commission</dt>
 							<dd>
-								{String(commission)}
+								{commission}
 							</dd>
 						</div>
 					{/if}
@@ -174,7 +172,7 @@
 						<div>
 							<dt>Last vote slot</dt>
 							<dd>
-								{String(lastVoteSlot)}
+								{lastVoteSlot}
 							</dd>
 						</div>
 					{/if}
@@ -196,7 +194,7 @@
 						<div>
 							<dt>Root slot</dt>
 							<dd>
-								{String(rootSlot)}
+								{rootSlot}
 							</dd>
 						</div>
 					{/if}

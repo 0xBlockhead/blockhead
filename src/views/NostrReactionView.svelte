@@ -25,14 +25,12 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.NostrReaction> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const viewSelection = $derived(selection({
+	const nostrReaction = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Primal_Rest,
 			Source.NostrBand_Rest,
 		],
-	}))
-	const nostrReaction = $derived(viewSelection({
+	})({
 		fields: {
 			kind: true,
 			pubkey: true,
@@ -40,7 +38,6 @@
 			content: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.content ?? '') || (pendingEntity.eventId ?? '') || 'Nostr reaction')
 
 
 	// Components
@@ -55,14 +52,17 @@
 <EntityView
 	entityType={EntityType.NostrReaction}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? ((prefetched.content ?? '') || selection.entitySelector.eventId || 'Nostr reaction')}
 	href={
-		href ?? resolve(
-			'/(social)/(nostr)/nostr/(globalNostrNetwork)/reaction/[eventId=stringSegment]',
-			{
-				eventId: String(selection.entitySelector.eventId),
-			}
-		)
+		href === undefined ?
+			resolve(
+				'/(social)/(nostr)/nostr/(globalNostrNetwork)/reaction/[eventId=stringSegment]',
+				{
+					eventId: selection.entitySelector.eventId,
+				}
+			)
+		:
+			href ?? undefined
 	}
 	{layout}
 	bind:open
@@ -75,20 +75,20 @@
 		>
 			{#snippet Pending()}
 				<TruncatedValue
-					value={String(selection.entitySelector.eventId ?? '')}
+					value={selection.entitySelector.eventId}
 					format={TruncatedValueFormat.Visual}
 				/>
 			{/snippet}
 
 			{#snippet children(entity)}
-				{String(entity.content ?? '') || '+'}
+				{entity.content || '+'}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Value()}
 		<TruncatedValue
-			value={String(selection.entitySelector.eventId ?? '')}
+			value={selection.entitySelector.eventId}
 			format={TruncatedValueFormat.Visual}
 		/>
 	{/snippet}
@@ -96,10 +96,10 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={nostrReaction}>
 			{#snippet children(entity)}
-				{@const createdAt0 = entity.createdAt}
-				{#if createdAt0 != null}
+				{@const createdAt = entity.createdAt}
+				{#if createdAt != null}
 					<span data-text="muted">
-						<Timestamp timestamp={Number(createdAt0)} />
+						<Timestamp timestamp={createdAt} />
 					</span>
 				{/if}
 			{/snippet}
@@ -117,7 +117,7 @@
 			<div>
 				<dt>Event ID</dt>
 				<dd>
-					<TruncatedValue value={pendingEntity.eventId} />
+					<TruncatedValue value={selection.entitySelector.eventId} />
 				</dd>
 			</div>
 
@@ -130,7 +130,7 @@
 						<div>
 							<dt>Created</dt>
 							<dd>
-								<Timestamp timestamp={Number(createdAt)} />
+								<Timestamp timestamp={createdAt} />
 							</dd>
 						</div>
 					{/if}
@@ -145,7 +145,7 @@
 							resource={nostrReaction}
 						>
 							{#snippet children(entity)}
-								{String(entity.kind)}
+								{entity.kind}
 							{/snippet}
 						</ResourceBoundary>
 					</dd>

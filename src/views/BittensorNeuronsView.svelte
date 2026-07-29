@@ -44,7 +44,7 @@
 			entitySelector={bittensorNeuronSelector}
 		>
 			{#snippet Title()}
-				{String(bittensorNeuronSelector.uid) || 'Bittensor neuron'}
+				{bittensorNeuronSelector.uid}
 			{/snippet}
 
 			{#snippet Value()}

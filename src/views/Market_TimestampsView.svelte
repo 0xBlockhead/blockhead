@@ -42,6 +42,7 @@
 >
 	{#snippet Item({ item: marketTimestamp })}
 		{@const marketTimestampSelector = marketTimestamp[EntityMetaKey.Selector]}
+		{@const market = marketTimestampSelector.$market}
 		<EntityView
 			entityType={EntityType.Market_Timestamp}
 			entitySelector={marketTimestampSelector}
@@ -49,14 +50,14 @@
 				resolve(
 					'/(assets)/venue/[marketVenue=marketVenueId]/market/[baseKind=stringSegment]/[base=stringSegment]/[quoteKind=stringSegment]/[quote=stringSegment]/[marketKind=stringSegment]/(market)/price/(marketPrice)/quotes/[timestampMs=nonNegativeInteger]/[feedKey=stringSegment]',
 					{
-						marketVenue: String(marketTimestampSelector.$market.$marketVenue.marketVenueId),
-						baseKind: String(marketAssetRouteLabelByKind[String(marketTimestampSelector.$market.$base.kind)]),
-						base: String(marketTimestampSelector.$market.$base.assetKey),
-						quoteKind: String(marketAssetRouteLabelByKind[String(marketTimestampSelector.$market.$quote.kind)]),
-						quote: String(marketTimestampSelector.$market.$quote.assetKey),
-						marketKind: String(marketTimestampSelector.$market.marketKind),
+						marketVenue: market.$marketVenue.marketVenueId,
+						baseKind: marketAssetRouteLabelByKind[market.$base.kind],
+						base: market.$base.assetKey,
+						quoteKind: marketAssetRouteLabelByKind[market.$quote.kind],
+						quote: market.$quote.assetKey,
+						marketKind: market.marketKind,
 						timestampMs: String(marketTimestampSelector.timestampMs),
-						feedKey: encodeURIComponent(String(marketTimestampSelector.feedKey)),
+						feedKey: encodeURIComponent(marketTimestampSelector.feedKey),
 					}
 				)
 			}
@@ -66,11 +67,11 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{String(marketTimestamp.price)}
+				{marketTimestamp.price}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{String(marketTimestampSelector.timestampMs)}</span>
+				<span data-text="annotation">{marketTimestampSelector.timestampMs}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

@@ -42,7 +42,7 @@
 			entitySelector={aptosTransactionTimestampSelector}
 		>
 			{#snippet Title()}
-				{String(aptosTransactionTimestampSelector.ledgerVersion) || 'aptos transaction timestamp'}
+				{aptosTransactionTimestampSelector.ledgerVersion}
 			{/snippet}
 
 			{#snippet Value()}
@@ -50,7 +50,7 @@
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{String(aptosTransactionTimestamp.timestampMs ?? '')}</span>
+				<span data-text="annotation">{aptosTransactionTimestamp.timestampMs ?? ''}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

@@ -42,11 +42,11 @@
 			entitySelector={dydxChainOrderTimestampSelector}
 		>
 			{#snippet Title()}
-				{String(dydxChainOrderTimestampSelector.timestampMs) || 'dydx chain order timestamp'}
+				{dydxChainOrderTimestampSelector.timestampMs}
 			{/snippet}
 
 			{#snippet Value()}
-				{(dydxChainOrderTimestamp.status ?? '')}
+				{dydxChainOrderTimestamp.status ?? ''}
 			{/snippet}
 		</EntityView>
 	{/snippet}

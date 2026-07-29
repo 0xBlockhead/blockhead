@@ -4,7 +4,6 @@
 	// Types/constants
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { UrlString } from '$/schema/UrlString.ts'
 
 
 	// Context
@@ -21,7 +20,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.A2aAgentInterface> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [],
 	}))
@@ -30,7 +28,7 @@
 			transportKind: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.protocolBinding ?? '') || 'A2A agent interface')
+	const titleFallback = $derived(selection.entitySelector.protocolBinding || 'A2A agent interface')
 
 
 	// Components
@@ -49,20 +47,20 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{(pendingEntity.protocolBinding ?? '') || 'A2A agent interface'}
+		{selection.entitySelector.protocolBinding || 'A2A agent interface'}
 	{/snippet}
 
 	{#snippet Value()}
-		{String(pendingEntity.url ?? '') || (pendingEntity.protocolBinding ?? '') || titleFallback}
+		{selection.entitySelector.url || selection.entitySelector.protocolBinding || titleFallback}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={a2aAgentInterface}>
 			{#snippet children(entity)}
-				{@const transportKind0 = entity.transportKind}
-				{#if transportKind0 != null}
+				{@const transportKind = entity.transportKind}
+				{#if transportKind != null}
 					<span data-text="muted">
-						{transportKind0}
+						{transportKind}
 					</span>
 				{/if}
 			{/snippet}
@@ -85,7 +83,7 @@
 			<div>
 				<dt>protocol binding</dt>
 				<dd>
-					{pendingEntity.protocolBinding}
+					{selection.entitySelector.protocolBinding}
 				</dd>
 			</div>
 
@@ -93,11 +91,11 @@
 				<dt>URL</dt>
 				<dd>
 					<a
-						href={String(pendingEntity.url)}
+						href={selection.entitySelector.url}
 						target="_blank"
 						rel="noreferrer noopener"
 					>
-						<TruncatedValue value={String(pendingEntity.url)} />
+						<TruncatedValue value={selection.entitySelector.url} />
 					</a>
 				</dd>
 			</div>

@@ -43,15 +43,15 @@
 			entitySelector={blockheadQuilibriumNodeStateTimestampSelector}
 		>
 			{#snippet Title()}
-				{String(blockheadQuilibriumNodeStateTimestampSelector.timestampMs) || 'blockhead quilibrium node state timestamp'}
+				{blockheadQuilibriumNodeStateTimestampSelector.timestampMs}
 			{/snippet}
 
 			{#snippet Value()}
-				{(blockheadQuilibriumNodeStateTimestamp.engineState ?? '')}
+				{blockheadQuilibriumNodeStateTimestamp.engineState ?? ''}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{String(blockheadQuilibriumNodeStateTimestamp.latestFrameNumber ?? '')}</span>
+				<span data-text="annotation">{blockheadQuilibriumNodeStateTimestamp.latestFrameNumber ?? ''}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

@@ -21,7 +21,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.ElementsAsset_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Esplora_Rest,
@@ -32,7 +31,6 @@
 			issuedAmount: true,
 		},
 	}))
-	const titleFallback = $derived(String(pendingEntity.timestampMs ?? '') || 'Elements asset observation')
 
 
 	// Components
@@ -46,22 +44,22 @@
 <EntityView
 	entityType={EntityType.ElementsAsset_Timestamp}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? String(selection.entitySelector.timestampMs)}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+		<Timestamp timestamp={selection.entitySelector.timestampMs} />
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={elementsAssetTimestamp}>
 			{#snippet children(entity)}
-				{@const issuedAmount0 = entity.issuedAmount}
-				{#if issuedAmount0 != null}
+				{@const issuedAmount = entity.issuedAmount}
+				{#if issuedAmount != null}
 					<NumberValue
-						value={issuedAmount0}
+						value={issuedAmount}
 					/>
 				{/if}
 			{/snippet}
@@ -84,14 +82,14 @@
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+					<Timestamp timestamp={selection.entitySelector.timestampMs} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 

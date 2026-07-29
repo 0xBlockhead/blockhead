@@ -20,9 +20,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.IcpSubnetCanisterRange_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const titleFallback = 'ICP subnet canister range timestamp'
-
 
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -34,7 +31,7 @@
 <EntityView
 	entityType={EntityType.IcpSubnetCanisterRange_Timestamp}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? 'ICP subnet canister range timestamp'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -59,28 +56,28 @@
 			<div>
 				<dt>range start</dt>
 				<dd>
-					{pendingEntity.rangeStart}
+					{selection.entitySelector.rangeStart}
 				</dd>
 			</div>
 
 			<div>
 				<dt>range end</dt>
 				<dd>
-					{pendingEntity.rangeEnd}
+					{selection.entitySelector.rangeEnd}
 				</dd>
 			</div>
 
 			<div>
 				<dt>registry version</dt>
 				<dd>
-					{String(pendingEntity.registryVersion)}
+					{selection.entitySelector.registryVersion}
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 
@@ -99,7 +96,7 @@
 						<div>
 							<dt>Timestamp</dt>
 							<dd>
-								<Timestamp timestamp={Number(timestampMs)} />
+								<Timestamp timestamp={timestampMs} />
 							</dd>
 						</div>
 					{/if}

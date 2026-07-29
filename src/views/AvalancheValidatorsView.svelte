@@ -45,11 +45,11 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{String(avalancheValidator.stakeAmountNavax ?? '')}
+				{avalancheValidator.stakeAmountNavax ?? ''}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{String(avalancheValidatorSelector.startTimeMs)}</span>
+				<span data-text="annotation">{avalancheValidatorSelector.startTimeMs}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

@@ -21,7 +21,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.AptosTransaction> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const aptosTransaction = $derived(selection({
 		fields: {
 			hash: true,
@@ -30,7 +29,7 @@
 			sender: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.hash ?? '') || String(pendingEntity.version ?? '') || 'aptos transaction')
+	const titleFallback = $derived((prefetched.hash ?? '') || String(prefetched.version ?? '') || 'aptos transaction')
 	const viewDomId = $derived('aptos-transaction-' + encodeURIComponent(stringify(selection.entitySelector)))
 
 
@@ -75,10 +74,10 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={aptosTransaction}>
 			{#snippet children(entity)}
-				{@const sender0 = entity.sender}
-				{#if sender0 != null}
+				{@const sender = entity.sender}
+				{#if sender != null}
 					<span data-text="muted">
-						{sender0}
+						{sender}
 					</span>
 				{/if}
 			{/snippet}

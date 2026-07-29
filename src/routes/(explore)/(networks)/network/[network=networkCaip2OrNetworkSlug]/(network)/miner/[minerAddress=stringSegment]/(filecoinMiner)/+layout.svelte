@@ -33,8 +33,8 @@
 			resolve(
 				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/miner/[minerAddress=stringSegment]',
 				{
-					network: String(params.network),
-					minerAddress: String(params.minerAddress),
+					network: params.network,
+					minerAddress: params.minerAddress,
 				}
 			)
 		}
@@ -50,8 +50,8 @@
 					resolve(
 						'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/miner/[minerAddress=stringSegment]',
 						{
-							network: String(params.network),
-							minerAddress: String(params.minerAddress),
+							network: params.network,
+							minerAddress: params.minerAddress,
 						}
 					)
 				}

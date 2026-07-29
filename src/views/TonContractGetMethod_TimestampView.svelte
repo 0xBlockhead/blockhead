@@ -20,9 +20,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.TonContractGetMethod_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const titleFallback = 'TON contract get method timestamp'
-
 
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -35,7 +32,7 @@
 <EntityView
 	entityType={EntityType.TonContractGetMethod_Timestamp}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? 'TON contract get method timestamp'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -60,14 +57,14 @@
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+					<Timestamp timestamp={selection.entitySelector.timestampMs} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 
@@ -86,7 +83,7 @@
 						<div>
 							<dt>method ID</dt>
 							<dd>
-								{String(methodId)}
+								{methodId}
 							</dd>
 						</div>
 					{/if}
@@ -108,7 +105,7 @@
 						<div>
 							<dt>exit code</dt>
 							<dd>
-								{String(exitCode)}
+								{exitCode}
 							</dd>
 						</div>
 					{/if}
@@ -130,7 +127,7 @@
 						<div>
 							<dt>gas used</dt>
 							<dd>
-								{String(gasUsed)}
+								{gasUsed}
 							</dd>
 						</div>
 					{/if}
@@ -174,7 +171,7 @@
 						<div>
 							<dt>block seqno</dt>
 							<dd>
-								{String(blockSeqno)}
+								{blockSeqno}
 							</dd>
 						</div>
 					{/if}
@@ -196,7 +193,7 @@
 						<div>
 							<dt>last transaction lt</dt>
 							<dd>
-								{String(lastTransactionLt)}
+								{lastTransactionLt}
 							</dd>
 						</div>
 					{/if}

@@ -20,7 +20,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.PolkadotAsset_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const polkadotAssetTimestamp = $derived(selection({
 		fields: {
 			symbol: true,
@@ -28,7 +27,7 @@
 			status: true,
 		},
 	}))
-	const titleFallback = $derived([(pendingEntity.symbol ?? ''), (pendingEntity.name ?? '')].filter(Boolean).join(' ') || 'Polkadot asset timestamp')
+	const titleFallback = $derived([(prefetched.symbol ?? ''), (prefetched.name ?? '')].filter(Boolean).join(' ') || 'Polkadot asset timestamp')
 
 
 	// Components
@@ -66,7 +65,7 @@
 
 	{#snippet HeadingAfter()}
 		<span data-text="muted">
-			<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+			<Timestamp timestamp={selection.entitySelector.timestampMs} />
 		</span>
 	{/snippet}
 
@@ -86,14 +85,14 @@
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+					<Timestamp timestamp={selection.entitySelector.timestampMs} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 

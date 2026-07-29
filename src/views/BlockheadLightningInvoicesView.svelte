@@ -38,6 +38,7 @@
 >
 	{#snippet Item({ item: blockheadLightningInvoice })}
 		{@const blockheadLightningInvoiceSelector = blockheadLightningInvoice[EntityMetaKey.Selector]}
+		{@const network = blockheadLightningInvoiceSelector.$network}
 		<EntityView
 			entityType={EntityType.BlockheadLightningInvoice}
 			entitySelector={blockheadLightningInvoiceSelector}
@@ -46,12 +47,12 @@
 					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/invoices/[paymentHash=stringSegment]',
 					{
 						network: (
-							'caip2' in blockheadLightningInvoiceSelector.$network ?
-								String(caip2StringFromValue(blockheadLightningInvoiceSelector.$network.caip2))
+							'caip2' in network ?
+								caip2StringFromValue(network.caip2)
 							:
-								String(blockheadLightningInvoiceSelector.$network.slug)
+								network.slug
 						),
-						paymentHash: String(blockheadLightningInvoiceSelector.paymentHash),
+						paymentHash: blockheadLightningInvoiceSelector.paymentHash,
 					}
 				)
 			}
@@ -61,7 +62,7 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{String(blockheadLightningInvoice.valueMsat ?? '')}
+				{blockheadLightningInvoice.valueMsat ?? ''}
 			{/snippet}
 		</EntityView>
 	{/snippet}

@@ -41,11 +41,11 @@
 			entitySelector={eip8004AgentRegistrationTimestampSelector}
 		>
 			{#snippet Title()}
-				{String(eip8004AgentRegistrationTimestampSelector.timestampMs) || 'EIP-8004 agent registration timestamp'}
+				{eip8004AgentRegistrationTimestampSelector.timestampMs}
 			{/snippet}
 
 			{#snippet Value()}
-				{String(eip8004AgentRegistrationTimestamp.active ?? '')}
+				{eip8004AgentRegistrationTimestamp.active ?? ''}
 			{/snippet}
 
 			{#snippet HeadingAfter()}

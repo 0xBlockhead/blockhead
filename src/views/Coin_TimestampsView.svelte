@@ -45,9 +45,9 @@
 				resolve(
 					'/(assets)/coin/[coinId=stringSegment]/(coin)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
 					{
-						coinId: String(coinTimestampSelector.$coin.coinId),
+						coinId: coinTimestampSelector.$coin.coinId,
 						timestampMs: String(coinTimestampSelector.timestampMs),
-						source: String(coinTimestampSelector.source),
+						source: coinTimestampSelector.source,
 					}
 				)
 			}
@@ -61,7 +61,7 @@
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{(String(coinTimestamp.change24hPercent ?? '') ? String(coinTimestamp.change24hPercent ?? '') + '%' : '')}</span>
+				<span data-text="annotation">{coinTimestamp.change24hPercent != null ? coinTimestamp.change24hPercent + '%' : ''}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

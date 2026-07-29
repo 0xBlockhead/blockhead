@@ -33,7 +33,7 @@
 			resolve(
 				'/(social)/(youtube)/youtube/(globalYoutubeNetwork)/playlist/[playlistId=stringSegment]',
 				{
-					playlistId: String(params.playlistId),
+					playlistId: params.playlistId,
 				}
 			)
 		}
@@ -51,7 +51,7 @@
 					resolve(
 						'/(social)/(youtube)/youtube/(globalYoutubeNetwork)/playlist/[playlistId=stringSegment]',
 						{
-							playlistId: String(params.playlistId),
+							playlistId: params.playlistId,
 						}
 					)
 				}

@@ -36,7 +36,7 @@
 			resolve(
 				'/(social)/(youtube)/youtube/(globalYoutubeNetwork)/channel/[channelId=stringSegment]/(youtubeChannel)/videos',
 				{
-					channelId: String(params.channelId),
+					channelId: params.channelId,
 				}
 			)
 		}

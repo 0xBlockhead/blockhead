@@ -31,7 +31,7 @@
 
 
 <svelte:head>
-	<title>{(data.title ?? (pageSelection.entitySelector.publicKey || 'Lightning node'))} • Lightning node • Blockhead</title>
+	<title>{data.title ?? (pageSelection.entitySelector.publicKey || 'Lightning node')} • Lightning node • Blockhead</title>
 </svelte:head>
 
 

@@ -48,7 +48,7 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{(mcpResourceTemplate.mimeType ?? '')}
+				{mcpResourceTemplate.mimeType ?? ''}
 			{/snippet}
 		</EntityView>
 	{/snippet}

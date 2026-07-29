@@ -42,7 +42,7 @@
 			entitySelector={arweaveResourceTimestampSelector}
 		>
 			{#snippet Title()}
-				{String(arweaveResourceTimestampSelector.timestampMs) || 'arweave resource timestamp'}
+				{arweaveResourceTimestampSelector.timestampMs}
 			{/snippet}
 
 			{#snippet Value()}
@@ -50,7 +50,7 @@
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{String(arweaveResourceTimestamp.reachable ?? '')}</span>
+				<span data-text="annotation">{arweaveResourceTimestamp.reachable ?? ''}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

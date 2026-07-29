@@ -48,7 +48,7 @@
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{(String(bitcoinCashCashTokenCommitmentSelector.$output.indexInTransaction ?? '') ? 'Output #' + String(bitcoinCashCashTokenCommitmentSelector.$output.indexInTransaction ?? '') : '') || 'UTXO output'}</span>
+				<span data-text="annotation">{`Output #${bitcoinCashCashTokenCommitmentSelector.$output.indexInTransaction}`}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

@@ -20,8 +20,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.NftCollection> = $props()
 
-	const titleFallback = 'NFT collection'
-
 
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -34,7 +32,7 @@
 <EntityView
 	entityType={EntityType.NftCollection}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? 'NFT collection'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -59,30 +57,30 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const nftCollectionNftTokensViewTokensResource = selection.$$tokens}
+		{@const tokensResource = selection.$$tokens}
 		<ResourceBoundary
-			resource={nftCollectionNftTokensViewTokensResource}
+			resource={tokensResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<NftTokensView
-						selection={nftCollectionNftTokensViewTokensResource}
-						countResource={nftCollectionNftTokensViewTokensResource.count}
+						selection={tokensResource}
+						countResource={tokensResource.count}
 						title='tokens'
 						id='tokens'
 					/>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>
-		{@const nftCollectionRoyaltyRightTimestampsViewRoyaltyTimestampsResource = selection.$$royaltyTimestamps}
+		{@const royaltyTimestampsResource = selection.$$royaltyTimestamps}
 		<ResourceBoundary
-			resource={nftCollectionRoyaltyRightTimestampsViewRoyaltyTimestampsResource}
+			resource={royaltyTimestampsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<RoyaltyRight_TimestampsView
-						selection={nftCollectionRoyaltyRightTimestampsViewRoyaltyTimestampsResource}
-						countResource={nftCollectionRoyaltyRightTimestampsViewRoyaltyTimestampsResource.count}
+						selection={royaltyTimestampsResource}
+						countResource={royaltyTimestampsResource.count}
 						title='royalty timestamps'
 						id='royalty-timestamps'
 					/>

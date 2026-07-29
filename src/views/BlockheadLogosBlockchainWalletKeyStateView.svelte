@@ -4,7 +4,6 @@
 	// Types/constants
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 
 
 	// Context
@@ -21,9 +20,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.BlockheadLogosBlockchainWalletKeyState> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const titleFallback = $derived(String(pendingEntity.publicKey ?? '') || 'blockhead Logos blockchain wallet key state')
-
 
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -35,19 +31,18 @@
 <EntityView
 	entityType={EntityType.BlockheadLogosBlockchainWalletKeyState}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? (selection.entitySelector.publicKey || 'blockhead Logos blockchain wallet key state')}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{String(pendingEntity.publicKey ?? '') || 'blockhead Logos blockchain wallet key state'}
+		{selection.entitySelector.publicKey || 'blockhead Logos blockchain wallet key state'}
 	{/snippet}
 
 	{#snippet Value()}
 		<BlockheadLogosBlockchainNodeStateView
 			selection={select(EntityType.BlockheadLogosBlockchainNodeState, selection.entitySelector.$nodeState)}
-			href=""
 			layout={EntityLayout.Value}
 			open={false}
 		/>
@@ -69,22 +64,22 @@
 			<div>
 				<dt>public key</dt>
 				<dd>
-					{String(pendingEntity.publicKey)}
+					{selection.entitySelector.publicKey}
 				</dd>
 			</div>
 		</dl>
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const blockheadLogosBlockchainWalletKeyStateBlockheadLogosBlockchainWalletKeyStateTimestampsViewTimestampsResource = selection.$$timestamps}
+		{@const timestampsResource = selection.$$timestamps}
 		<ResourceBoundary
-			resource={blockheadLogosBlockchainWalletKeyStateBlockheadLogosBlockchainWalletKeyStateTimestampsViewTimestampsResource}
+			resource={timestampsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<BlockheadLogosBlockchainWalletKeyState_TimestampsView
-						selection={blockheadLogosBlockchainWalletKeyStateBlockheadLogosBlockchainWalletKeyStateTimestampsViewTimestampsResource}
-						countResource={blockheadLogosBlockchainWalletKeyStateBlockheadLogosBlockchainWalletKeyStateTimestampsViewTimestampsResource.count}
+						selection={timestampsResource}
+						countResource={timestampsResource.count}
 						title='timestamps'
 						id='timestamps'
 					/>

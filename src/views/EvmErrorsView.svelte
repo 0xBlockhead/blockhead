@@ -43,7 +43,7 @@
 				resolve(
 					'/(explore)/(protocols)/evm/(evmProtocol)/(errors)/error/[hex=zeroExHex]',
 					{
-						hex: String(evmErrorSelector.hex),
+						hex: evmErrorSelector.hex,
 					}
 				)
 			}

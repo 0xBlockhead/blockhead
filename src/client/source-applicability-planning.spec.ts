@@ -43,10 +43,8 @@ import {
 	facet,
 	indexSchema,
 } from '$/schema/$schema.ts'
-import {
-	EntityFieldCardinality,
-	EntityFieldType,
-} from '$/schema/EntityField.ts'
+import { EntityFieldCardinality } from '$/schema/EntityFieldCardinality.ts'
+import { EntityFieldType } from '$/schema/EntityFieldType.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { schema } from '$/schema/index.ts'
 import { Source } from '$/sources/Source.ts'

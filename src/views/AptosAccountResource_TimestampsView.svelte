@@ -41,11 +41,11 @@
 			entitySelector={aptosAccountResourceTimestampSelector}
 		>
 			{#snippet Title()}
-				{String(aptosAccountResourceTimestampSelector.ledgerVersion) || 'aptos account resource timestamp'}
+				{aptosAccountResourceTimestampSelector.ledgerVersion}
 			{/snippet}
 
 			{#snippet Value()}
-				{String(aptosAccountResourceTimestamp.timestampMs ?? '')}
+				{aptosAccountResourceTimestamp.timestampMs ?? ''}
 			{/snippet}
 
 			{#snippet HeadingAfter()}

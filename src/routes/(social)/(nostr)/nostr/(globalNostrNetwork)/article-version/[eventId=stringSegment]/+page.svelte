@@ -38,7 +38,7 @@
 
 
 <svelte:head>
-	<title>{(pageSelection.entity == null ? (pageSelection.entitySelector.eventId ?? '') || 'Nostr article event' : [(pageSelection.entity.title ?? ''), pageSelection.entity.identifier].filter(Boolean).join(' ') || pageSelection.entitySelector.eventId || 'Nostr article event')} • Nostr article event • Blockhead</title>
+	<title>{pageSelection.entity == null ? (pageSelection.entitySelector.eventId ?? '') || 'Nostr article event' : [(pageSelection.entity.title ?? ''), pageSelection.entity.identifier].filter(Boolean).join(' ') || pageSelection.entitySelector.eventId || 'Nostr article event'} • Nostr article event • Blockhead</title>
 </svelte:head>
 
 

@@ -11,6 +11,7 @@ import {
 } from '../../../../../tests/e2e/_routeViewDiagnostics.ts'
 import bindings from '$/sources/AtprotoBsky/bindings.ts'
 import { Source } from '$/sources/Source.ts'
+import { sourceBindingId } from '$/sources/SourceBinding.ts'
 
 
 const postUri = 'at://did:plc:journeyfixture/app.bsky.feed.post/3fixture'
@@ -18,7 +19,7 @@ const parentPostUri = 'at://did:plc:journeyfixture/app.bsky.feed.post/2parent'
 const replyPostUri = 'at://did:plc:journeyfixture/app.bsky.feed.post/4reply'
 const postPath = `/atproto/post/${encodeURIComponent(postUri)}`
 const actorPath = `/atproto/actor/${encodeURIComponent('did:plc:journeyfixture')}`
-const atprotoBskyProxyRoute = new RegExp(`/api-proxy/${encodeURIComponent(bindings[Source.Atproto_Xrpc].proxyId)}/0/`)
+const atprotoBskyProxyRoute = new RegExp(`/api-proxy/${encodeURIComponent(sourceBindingId(bindings[Source.Atproto_Xrpc]))}/0/`)
 const postView = {
 	author: {
 		did: 'did:plc:journeyfixture',

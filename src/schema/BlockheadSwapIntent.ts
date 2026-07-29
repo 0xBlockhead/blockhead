@@ -1,7 +1,8 @@
 // Generated from APP.ts. Do not edit by hand.
 
 import { entity } from '$/schema/$schema.ts'
-import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
+import { EntityFieldCardinality } from '$/schema/EntityFieldCardinality.ts'
+import { EntityFieldType } from '$/schema/EntityFieldType.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { EvmAddress } from '$/schema/ZeroExHex.ts'
 import { type } from 'arktype'
@@ -34,7 +35,10 @@ export default entity({
 	networkCaip2: {
 		label: 'network CAIP-2',
 		type: EntityFieldType.Primitive,
-		primitiveType: type({ 'namespace': type('string'), 'reference': type('string') }),
+		primitiveType: type({
+			namespace: type('string'),
+			reference: type('string'),
+		}),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	assetInCaip19: {

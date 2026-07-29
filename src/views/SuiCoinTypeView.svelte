@@ -22,8 +22,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.SuiCoinType> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const titleFallback = 'Sui coin type'
 	const viewDomId = $derived('sui-coin-type-' + encodeURIComponent(stringify(selection.entitySelector)))
 
 
@@ -46,7 +44,7 @@
 	entityType={EntityType.SuiCoinType}
 	entitySelector={selection.entitySelector}
 	id={viewDomId}
-	title={title ?? titleFallback}
+	title={title ?? 'Sui coin type'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -71,7 +69,7 @@
 			<div>
 				<dt>coin type</dt>
 				<dd>
-					{pendingEntity.coinType}
+					{selection.entitySelector.coinType}
 				</dd>
 			</div>
 
@@ -150,7 +148,7 @@
 						<div>
 							<dt>Decimals</dt>
 							<dd>
-								{String(decimals)}
+								{decimals}
 							</dd>
 						</div>
 					{/if}
@@ -239,11 +237,11 @@
 							<dt>icon URL</dt>
 							<dd>
 								<a
-									href={String(iconUrl)}
+									href={iconUrl}
 									target="_blank"
 									rel="noreferrer noopener"
 								>
-									<TruncatedValue value={String(iconUrl)} />
+									<TruncatedValue value={iconUrl} />
 								</a>
 							</dd>
 						</div>

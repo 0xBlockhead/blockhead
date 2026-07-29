@@ -5,7 +5,6 @@
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { UrlString } from '$/schema/UrlString.ts'
 
 
 	// State
@@ -46,11 +45,11 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{(a2aPushNotificationConfig.status ?? '')}
+				{a2aPushNotificationConfig.status ?? ''}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{String(a2aPushNotificationConfig.url ?? '')}</span>
+				<span data-text="annotation">{a2aPushNotificationConfig.url ?? ''}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

@@ -21,7 +21,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.McpResourceTemplate> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.McpDeclared_Protocol,
@@ -34,12 +33,11 @@
 			name: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.title ?? '') || [(pendingEntity.name ?? ''), (pendingEntity.uriTemplate ?? '')].filter(Boolean).join(' ') || 'mcp resource template')
+	const titleFallback = $derived((prefetched.title ?? '') || [(prefetched.name ?? ''), selection.entitySelector.uriTemplate].filter(Boolean).join(' ') || 'mcp resource template')
 
 
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import TruncatedValue from '$/components/TruncatedValue.svelte'
 	import McpServerView from '$/views/McpServerView.svelte'
 </script>
 
@@ -84,13 +82,7 @@
 			<div>
 				<dt>URI template</dt>
 				<dd>
-					<a
-						href={String(pendingEntity.uriTemplate)}
-						target="_blank"
-						rel="noreferrer noopener"
-					>
-						<TruncatedValue value={String(pendingEntity.uriTemplate)} />
-					</a>
+					{selection.entitySelector.uriTemplate}
 				</dd>
 			</div>
 

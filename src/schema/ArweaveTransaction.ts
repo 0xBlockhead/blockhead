@@ -1,7 +1,8 @@
 // Generated from APP.ts. Do not edit by hand.
 
 import { entity } from '$/schema/$schema.ts'
-import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
+import { EntityFieldCardinality } from '$/schema/EntityFieldCardinality.ts'
+import { EntityFieldType } from '$/schema/EntityFieldType.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { type } from 'arktype'
 
@@ -81,7 +82,10 @@ export default entity({
 	tags: {
 		label: 'tags',
 		type: EntityFieldType.Primitive,
-		primitiveType: type({ 'name': type('string'), 'value': type('string') }),
+		primitiveType: type({
+			name: type('string'),
+			value: type('string'),
+		}),
 		cardinality: EntityFieldCardinality.Many,
 	},
 	format: {

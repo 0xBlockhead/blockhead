@@ -33,8 +33,8 @@
 			resolve(
 				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/validator/[validatorId=nonNegativeIntegerOrSolanaPubkey]',
 				{
-					network: String(params.network),
-					validatorId: String(params.validatorId),
+					network: params.network,
+					validatorId: params.validatorId,
 				}
 			)
 		}
@@ -48,8 +48,8 @@
 					resolve(
 						'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/validator/[validatorId=nonNegativeIntegerOrSolanaPubkey]',
 						{
-							network: String(params.network),
-							validatorId: String(params.validatorId),
+							network: params.network,
+							validatorId: params.validatorId,
 						}
 					)
 				}

@@ -5,7 +5,6 @@
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 
 
 	// Context
@@ -22,13 +21,12 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.GitPackfile> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const gitPackfile = $derived(selection({
 		fields: {
 			objectFormat: true,
 		},
 	}))
-	const titleFallback = $derived(String(pendingEntity.packHash ?? '') || 'Git packfile')
+	const titleFallback = $derived(selection.entitySelector.packHash || 'Git packfile')
 
 
 	// Components
@@ -48,13 +46,13 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<TruncatedValue value={String(pendingEntity.packHash)} />
+		<TruncatedValue value={selection.entitySelector.packHash} />
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={gitPackfile}>
 			{#snippet children(entity)}
-				{entity.objectFormat || String(pendingEntity.packHash) || titleFallback}
+				{entity.objectFormat || selection.entitySelector.packHash || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -64,7 +62,7 @@
 			<div>
 				<dt>pack hash</dt>
 				<dd>
-					<TruncatedValue value={String(pendingEntity.packHash)} />
+					<TruncatedValue value={selection.entitySelector.packHash} />
 				</dd>
 			</div>
 
@@ -144,7 +142,7 @@
 						<div>
 							<dt>index hash</dt>
 							<dd>
-								<TruncatedValue value={String(indexHash)} />
+								<TruncatedValue value={indexHash} />
 							</dd>
 						</div>
 					{/if}

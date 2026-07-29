@@ -5,7 +5,6 @@
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { EvmAddress } from '$/schema/ZeroExHex.ts'
 
 
 	// State
@@ -44,11 +43,11 @@
 			entitySelector={eigenLayerStrategySelector}
 		>
 			{#snippet Title()}
-				{String(eigenLayerStrategySelector.strategyAddress) || 'eigen layer strategy'}
+				{eigenLayerStrategySelector.strategyAddress || 'eigen layer strategy'}
 			{/snippet}
 
 			{#snippet Value()}
-				{String(eigenLayerStrategy.underlyingToken ?? '')}
+				{eigenLayerStrategy.underlyingToken ?? ''}
 			{/snippet}
 
 			{#snippet HeadingAfter()}

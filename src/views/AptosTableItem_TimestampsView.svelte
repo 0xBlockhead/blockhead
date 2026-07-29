@@ -41,11 +41,11 @@
 			entitySelector={aptosTableItemTimestampSelector}
 		>
 			{#snippet Title()}
-				{String(aptosTableItemTimestampSelector.ledgerVersion) || 'aptos table item timestamp'}
+				{aptosTableItemTimestampSelector.ledgerVersion}
 			{/snippet}
 
 			{#snippet Value()}
-				{String(aptosTableItemTimestamp.timestampMs ?? '')}
+				{aptosTableItemTimestamp.timestampMs ?? ''}
 			{/snippet}
 
 			{#snippet HeadingAfter()}

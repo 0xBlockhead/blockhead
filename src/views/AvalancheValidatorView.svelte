@@ -21,13 +21,11 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.AvalancheValidator> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const avalancheValidator = $derived(selection({
 		fields: {
 			stakeAmountNavax: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.nodeId ?? '') || 'avalanche validator')
 
 
 	// Components
@@ -44,22 +42,22 @@
 <EntityView
 	entityType={EntityType.AvalancheValidator}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? (selection.entitySelector.nodeId || 'avalanche validator')}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{(pendingEntity.nodeId ?? '') || 'avalanche validator'}
+		{selection.entitySelector.nodeId || 'avalanche validator'}
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={avalancheValidator}>
 			{#snippet children(entity)}
-				{@const stakeAmountNavax0 = entity.stakeAmountNavax}
-				{#if stakeAmountNavax0 != null}
+				{@const stakeAmountNavax = entity.stakeAmountNavax}
+				{#if stakeAmountNavax != null}
 					<NumberValue
-						value={stakeAmountNavax0}
+						value={stakeAmountNavax}
 					/>
 				{/if}
 			{/snippet}
@@ -68,7 +66,7 @@
 
 	{#snippet HeadingAfter()}
 		<span data-text="muted">
-			<Timestamp timestamp={Number(pendingEntity.startTimeMs)} />
+			<Timestamp timestamp={selection.entitySelector.startTimeMs} />
 		</span>
 	{/snippet}
 
@@ -77,14 +75,14 @@
 			<div>
 				<dt>node ID</dt>
 				<dd>
-					{pendingEntity.nodeId}
+					{selection.entitySelector.nodeId}
 				</dd>
 			</div>
 
 			<div>
 				<dt>subnet ID</dt>
 				<dd>
-					{pendingEntity.subnetId}
+					{selection.entitySelector.subnetId}
 				</dd>
 			</div>
 
@@ -133,7 +131,7 @@
 			<div>
 				<dt>start time ms</dt>
 				<dd>
-					<Timestamp timestamp={Number(pendingEntity.startTimeMs)} />
+					<Timestamp timestamp={selection.entitySelector.startTimeMs} />
 				</dd>
 			</div>
 
@@ -152,7 +150,7 @@
 						<div>
 							<dt>end time ms</dt>
 							<dd>
-								<Timestamp timestamp={Number(endTimeMs)} />
+								<Timestamp timestamp={endTimeMs} />
 							</dd>
 						</div>
 					{/if}
@@ -252,15 +250,15 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const avalancheValidatorAvalancheValidatorTimestampsViewTimestampsResource = selection.$$timestamps}
+		{@const timestampsResource = selection.$$timestamps}
 		<ResourceBoundary
-			resource={avalancheValidatorAvalancheValidatorTimestampsViewTimestampsResource}
+			resource={timestampsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<AvalancheValidator_TimestampsView
-						selection={avalancheValidatorAvalancheValidatorTimestampsViewTimestampsResource}
-						countResource={avalancheValidatorAvalancheValidatorTimestampsViewTimestampsResource.count}
+						selection={timestampsResource}
+						countResource={timestampsResource.count}
 						title='timestamps'
 						id='timestamps'
 					/>

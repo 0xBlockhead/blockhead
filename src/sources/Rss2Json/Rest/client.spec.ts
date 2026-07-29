@@ -60,7 +60,6 @@ test('uses the registered HttpProxy binding', async () => {
 					scope: SourceCredentialScope.None,
 				},
 			],
-			proxyId: expect.any(String),
 		}),
 		'https://api.rss2json.com/v1/api.json?rss_url=fixture'
 	)

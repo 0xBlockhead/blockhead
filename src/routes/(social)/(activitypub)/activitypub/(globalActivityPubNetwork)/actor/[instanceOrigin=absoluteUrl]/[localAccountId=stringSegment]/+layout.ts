@@ -10,7 +10,8 @@ import { schema } from '$/schema/index.ts'
 import { type as arktype } from 'arktype'
 
 export const load: LayoutLoad = ({ params }) => {
-	if (!(matchAbsoluteUrl(params.instanceOrigin) && matchStringSegment(params.localAccountId))) error(404, 'Route mapping not applicable')
+	if (!(matchAbsoluteUrl(params.instanceOrigin) && matchStringSegment(params.localAccountId)))
+		error(404, 'Route mapping not applicable')
 
 	const activityPubActorLocalAccountIdSelector = parseEntitySelector(
 		schema,
@@ -20,7 +21,8 @@ export const load: LayoutLoad = ({ params }) => {
 			localAccountId: params.localAccountId,
 		}
 	)
-	if (activityPubActorLocalAccountIdSelector instanceof arktype.errors) error(404, 'Invalid ActivityPubActor selector')
+	if (activityPubActorLocalAccountIdSelector instanceof arktype.errors)
+		error(404, 'Invalid ActivityPubActor selector')
 
 	return {
 		selector: activityPubActorLocalAccountIdSelector,

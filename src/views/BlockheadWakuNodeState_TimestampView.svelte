@@ -21,7 +21,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.BlockheadWakuNodeState_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Local_Internal,
@@ -33,7 +32,6 @@
 			peerCount: true,
 		},
 	}))
-	const titleFallback = $derived(String(pendingEntity.timestampMs ?? '') || 'blockhead waku node state timestamp')
 
 
 	// Components
@@ -48,19 +46,19 @@
 <EntityView
 	entityType={EntityType.BlockheadWakuNodeState_Timestamp}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? String(selection.entitySelector.timestampMs)}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+		<Timestamp timestamp={selection.entitySelector.timestampMs} />
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={blockheadWakuNodeStateTimestamp}>
 			{#snippet children(entity)}
-				{(entity.health ?? '') || String(pendingEntity.timestampMs) || titleFallback}
+				{(entity.health ?? '') || String(selection.entitySelector.timestampMs)}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -68,11 +66,11 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={blockheadWakuNodeStateTimestamp}>
 			{#snippet children(entity)}
-				{@const peerCount0 = entity.peerCount}
-				{#if peerCount0 != null}
+				{@const peerCount = entity.peerCount}
+				{#if peerCount != null}
 					<span data-text="muted">
 						<NumberValue
-							value={peerCount0}
+							value={peerCount}
 						/>
 					</span>
 				{/if}
@@ -96,14 +94,14 @@
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+					<Timestamp timestamp={selection.entitySelector.timestampMs} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 
@@ -178,7 +176,7 @@
 						}
 					>
 						{#snippet children(entity)}
-							<TruncatedValue value={entity.listenAddresses.values.join(', ')} />
+							{entity.listenAddresses.values.join(', ')}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -200,11 +198,11 @@
 							<dt>ENR URI</dt>
 							<dd>
 								<a
-									href={String(enrUri)}
+									href={enrUri}
 									target="_blank"
 									rel="noreferrer noopener"
 								>
-									<TruncatedValue value={String(enrUri)} />
+									<TruncatedValue value={enrUri} />
 								</a>
 							</dd>
 						</div>

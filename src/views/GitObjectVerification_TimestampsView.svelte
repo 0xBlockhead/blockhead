@@ -5,7 +5,6 @@
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 
 
 	// State
@@ -42,7 +41,7 @@
 			entitySelector={gitObjectVerificationTimestampSelector}
 		>
 			{#snippet Title()}
-				{String(gitObjectVerificationTimestampSelector.objectId) || 'Git object verification timestamp'}
+				{gitObjectVerificationTimestampSelector.objectId || 'Git object verification timestamp'}
 			{/snippet}
 
 			{#snippet Value()}
@@ -50,7 +49,7 @@
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{String(gitObjectVerificationTimestampSelector.timestampMs)}</span>
+				<span data-text="annotation">{gitObjectVerificationTimestampSelector.timestampMs}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

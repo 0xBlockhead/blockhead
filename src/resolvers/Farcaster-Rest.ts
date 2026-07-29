@@ -13,7 +13,7 @@ import {
 import { EvmAddress } from '$/schema/ZeroExHex.ts'
 import type { Entity } from '$/schema/$schema.ts'
 import { schema } from '$/schema/index.ts'
-import { MediaType } from '$/schema/Media.ts'
+import { MediaType } from '$/schema/MediaType.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 

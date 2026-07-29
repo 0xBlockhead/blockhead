@@ -22,7 +22,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.BlockheadQuilibriumAccountState> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Local_Internal,
@@ -34,7 +33,6 @@
 			accountKind: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.accountAddress ?? '') || 'blockhead quilibrium account state')
 
 
 	// Components
@@ -51,19 +49,19 @@
 <EntityView
 	entityType={EntityType.BlockheadQuilibriumAccountState}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? (selection.entitySelector.accountAddress || 'blockhead quilibrium account state')}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{(pendingEntity.accountAddress ?? '') || 'blockhead quilibrium account state'}
+		{selection.entitySelector.accountAddress || 'blockhead quilibrium account state'}
 	{/snippet}
 
 	{#snippet Value()}
 		<NetworkView
 			selection={select(EntityType.Network, selection.entitySelector.$network)}
-			href=""
+			href={null}
 			layout={EntityLayout.Value}
 			open={false}
 		/>
@@ -72,10 +70,10 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={blockheadQuilibriumAccountState}>
 			{#snippet children(entity)}
-				{@const accountKind0 = entity.accountKind}
-				{#if accountKind0 != null}
+				{@const accountKind = entity.accountKind}
+				{#if accountKind != null}
 					<span data-text="muted">
-						<TruncatedValue value={accountKind0} />
+						{accountKind}
 					</span>
 				{/if}
 			{/snippet}
@@ -87,7 +85,7 @@
 			<div>
 				<dt>connection ID</dt>
 				<dd>
-					{pendingEntity.connectionId}
+					{selection.entitySelector.connectionId}
 				</dd>
 			</div>
 
@@ -123,7 +121,7 @@
 			<div>
 				<dt>account address</dt>
 				<dd>
-					<TruncatedValue value={pendingEntity.accountAddress} />
+					<TruncatedValue value={selection.entitySelector.accountAddress} />
 				</dd>
 			</div>
 
@@ -136,7 +134,7 @@
 						<div>
 							<dt>account kind</dt>
 							<dd>
-								<TruncatedValue value={accountKind} />
+								{accountKind}
 							</dd>
 						</div>
 					{/if}
@@ -216,30 +214,30 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const blockheadQuilibriumAccountStateBlockheadQuilibriumAccountStateTimestampsViewTimestampsResource = selection.$$timestamps}
+		{@const timestampsResource = selection.$$timestamps}
 		<ResourceBoundary
-			resource={blockheadQuilibriumAccountStateBlockheadQuilibriumAccountStateTimestampsViewTimestampsResource}
+			resource={timestampsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<BlockheadQuilibriumAccountState_TimestampsView
-						selection={blockheadQuilibriumAccountStateBlockheadQuilibriumAccountStateTimestampsViewTimestampsResource}
-						countResource={blockheadQuilibriumAccountStateBlockheadQuilibriumAccountStateTimestampsViewTimestampsResource.count}
+						selection={timestampsResource}
+						countResource={timestampsResource.count}
 						title='timestamps'
 						id='timestamps'
 					/>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>
-		{@const blockheadQuilibriumAccountStateBlockheadQuilibriumPendingTransactionsViewPendingTransactionsResource = selection.$$pendingTransactions}
+		{@const pendingTransactionsResource = selection.$$pendingTransactions}
 		<ResourceBoundary
-			resource={blockheadQuilibriumAccountStateBlockheadQuilibriumPendingTransactionsViewPendingTransactionsResource}
+			resource={pendingTransactionsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<BlockheadQuilibriumPendingTransactionsView
-						selection={blockheadQuilibriumAccountStateBlockheadQuilibriumPendingTransactionsViewPendingTransactionsResource}
-						countResource={blockheadQuilibriumAccountStateBlockheadQuilibriumPendingTransactionsViewPendingTransactionsResource.count}
+						selection={pendingTransactionsResource}
+						countResource={pendingTransactionsResource.count}
 						title='pending transactions'
 						id='pending-transactions'
 					/>

@@ -8,7 +8,7 @@ import {
 import { EntityType } from '$/schema/EntityType.ts'
 import type { EntitySelector } from '$/schema/$schema.ts'
 import { EvmAddress, ZeroExHex } from '$/schema/ZeroExHex.ts'
-import { BlockheadConnectionStatus } from '$/schema/BlockheadWalletConnection.ts'
+import { BlockheadConnectionStatus } from '$/schema/BlockheadConnectionStatus.ts'
 import { schema } from '$/schema/index.ts'
 import { Source } from '$/sources/Source.ts'
 import { walletConnectionMethodById } from '$/constants/Wallet.ts'

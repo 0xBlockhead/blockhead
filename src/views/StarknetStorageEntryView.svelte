@@ -20,9 +20,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.StarknetStorageEntry> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const titleFallback = $derived((pendingEntity.storageKey ?? '') || 'starknet storage entry')
-
 
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -34,19 +31,18 @@
 <EntityView
 	entityType={EntityType.StarknetStorageEntry}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? (selection.entitySelector.storageKey || 'starknet storage entry')}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{(pendingEntity.storageKey ?? '') || 'starknet storage entry'}
+		{selection.entitySelector.storageKey || 'starknet storage entry'}
 	{/snippet}
 
 	{#snippet Value()}
 		<StarknetContractView
 			selection={select(EntityType.StarknetContract, selection.entitySelector.$contract)}
-			href=""
 			layout={EntityLayout.Value}
 			open={false}
 		/>
@@ -68,22 +64,22 @@
 			<div>
 				<dt>storage key</dt>
 				<dd>
-					{pendingEntity.storageKey}
+					{selection.entitySelector.storageKey}
 				</dd>
 			</div>
 		</dl>
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const starknetStorageEntryStarknetStorageEntryTimestampsViewTimestampsResource = selection.$$timestamps}
+		{@const timestampsResource = selection.$$timestamps}
 		<ResourceBoundary
-			resource={starknetStorageEntryStarknetStorageEntryTimestampsViewTimestampsResource}
+			resource={timestampsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<StarknetStorageEntry_TimestampsView
-						selection={starknetStorageEntryStarknetStorageEntryTimestampsViewTimestampsResource}
-						countResource={starknetStorageEntryStarknetStorageEntryTimestampsViewTimestampsResource.count}
+						selection={timestampsResource}
+						countResource={timestampsResource.count}
 						title='timestamps'
 						id='timestamps'
 					/>

@@ -20,7 +20,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.EvmNetworkActorCoinBalance_EvmBlock> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const evmNetworkActorCoinBalanceEvmBlock = $derived(selection({
 		fields: {
 			balance: true,
@@ -33,7 +32,6 @@
 			usdValue: true,
 		},
 	}))
-	const titleFallback = 'EVM network actor coin balance EVM block'
 
 
 	// Components
@@ -47,7 +45,7 @@
 <EntityView
 	entityType={EntityType.EvmNetworkActorCoinBalance_EvmBlock}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? 'EVM network actor coin balance EVM block'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -55,7 +53,7 @@
 	{#snippet Title()}
 		<EvmBlockView
 			selection={select(EntityType.EvmBlock, selection.entitySelector.$block)}
-			href=""
+			href={null}
 			layout={EntityLayout.Title}
 			open={false}
 		/>
@@ -66,13 +64,13 @@
 			{#snippet children(entity)}
 				<NumberValue
 					value={entity.balance}
-					decimalPlaces={pendingEntity.$actorCoin.decimals}
+					decimalPlaces={selection.entitySelector.$actorCoin.decimals}
 				/>
 
-				<span>{pendingEntity.$actorCoin.symbol == null ? '' : ` ${String(pendingEntity.$actorCoin.symbol)}`}</span>
-				{@const usdValue1 = entity.usdValue}
-				{#if usdValue1 != null}
-					{String(usdValue1)}
+				<span>{selection.entitySelector.$actorCoin.symbol == null ? '' : ` ${selection.entitySelector.$actorCoin.symbol}`}</span>
+				{@const usdValue = entity.usdValue}
+				{#if usdValue != null}
+					{usdValue}
 				{/if}
 			{/snippet}
 		</ResourceBoundary>
@@ -121,10 +119,10 @@
 						{#snippet children(entity)}
 							<NumberValue
 								value={entity.balance}
-								decimalPlaces={pendingEntity.$actorCoin.decimals}
+								decimalPlaces={selection.entitySelector.$actorCoin.decimals}
 							/>
 
-							<span>{pendingEntity.$actorCoin.symbol == null ? '' : ` ${String(pendingEntity.$actorCoin.symbol)}`}</span>
+							<span>{selection.entitySelector.$actorCoin.symbol == null ? '' : ` ${selection.entitySelector.$actorCoin.symbol}`}</span>
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -139,7 +137,7 @@
 						<div>
 							<dt>USD value</dt>
 							<dd>
-								{String(usdValue)}
+								{usdValue}
 							</dd>
 						</div>
 					{/if}

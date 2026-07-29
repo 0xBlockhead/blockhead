@@ -2,16 +2,11 @@
 
 import { CoinId } from '$/constants/Coin.ts'
 import { entity } from '$/schema/$schema.ts'
-import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
+import { AssetInstanceKind } from '$/schema/AssetInstanceKind.ts'
+import { EntityFieldCardinality } from '$/schema/EntityFieldCardinality.ts'
+import { EntityFieldType } from '$/schema/EntityFieldType.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { type } from 'arktype'
-
-export enum AssetInstanceKind {
-	Native = 'Native',
-	Token = 'Token',
-	Denom = 'Denom',
-	Mint = 'Mint',
-}
 
 export default entity({
 	entityType: EntityType.AssetInstance,

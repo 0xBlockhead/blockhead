@@ -30,6 +30,7 @@
 >
 	{#snippet Item({ item: xrplTransaction })}
 		{@const xrplTransactionSelector = xrplTransaction[EntityMetaKey.Selector]}
+		{@const network = xrplTransactionSelector.$network}
 		<EntityView
 			entityType={EntityType.XrplTransaction}
 			entitySelector={xrplTransactionSelector}
@@ -38,12 +39,12 @@
 					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/transaction/[hash=stringSegment]',
 					{
 						network: (
-							'caip2' in xrplTransactionSelector.$network ?
-								String(caip2StringFromValue(xrplTransactionSelector.$network.caip2))
+							'caip2' in network ?
+								caip2StringFromValue(network.caip2)
 							:
-								String(xrplTransactionSelector.$network.slug)
+								network.slug
 						),
-						hash: String(xrplTransactionSelector.hash),
+						hash: xrplTransactionSelector.hash,
 					}
 				)
 			}

@@ -25,7 +25,7 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.FilecoinMiner_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const miner = $derived(selection.entitySelector.$miner)
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Lotus_JsonRpc,
@@ -37,7 +37,6 @@
 			qualityAdjustedPower: true,
 		},
 	}))
-	const titleFallback = $derived(String(pendingEntity.timestampMs ?? '') || 'filecoin miner timestamp')
 
 
 	// Components
@@ -53,23 +52,26 @@
 <EntityView
 	entityType={EntityType.FilecoinMiner_Timestamp}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? (String(prefetched.timestampMs ?? '') || 'filecoin miner timestamp')}
 	href={
-		href ?? resolve(
-			'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/miner/[minerAddress=stringSegment]/(filecoinMiner)/observations/[height=nonNegativeBigInt]/[tipsetKey=stringSegment]/[source=stringSegment]',
-			{
-				network: (
-					'caip2' in selection.entitySelector.$miner.$network ?
-						String(caip2StringFromValue(selection.entitySelector.$miner.$network.caip2))
-					:
-						String(selection.entitySelector.$miner.$network.slug)
-				),
-				minerAddress: String(selection.entitySelector.$miner.minerAddress),
-				height: String(selection.entitySelector.height),
-				tipsetKey: String(selection.entitySelector.tipsetKey),
-				source: String(selection.entitySelector.source),
-			}
-		)
+		href === undefined ?
+			resolve(
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/miner/[minerAddress=stringSegment]/(filecoinMiner)/observations/[height=nonNegativeBigInt]/[tipsetKey=stringSegment]/[source=stringSegment]',
+				{
+					network: (
+						'caip2' in miner.$network ?
+							caip2StringFromValue(miner.$network.caip2)
+						:
+							miner.$network.slug
+					),
+					minerAddress: miner.minerAddress,
+					height: String(selection.entitySelector.height),
+					tipsetKey: selection.entitySelector.tipsetKey,
+					source: selection.entitySelector.source,
+				}
+			)
+		:
+			href ?? undefined
 	}
 	{layout}
 	bind:open
@@ -78,7 +80,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={filecoinMinerTimestamp}>
 			{#snippet children(entity)}
-				<Timestamp timestamp={Number(entity.timestampMs)} />
+				<Timestamp timestamp={entity.timestampMs} />
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -86,10 +88,10 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={filecoinMinerTimestamp}>
 			{#snippet children(entity)}
-				{@const qualityAdjustedPower0 = entity.qualityAdjustedPower}
-				{#if qualityAdjustedPower0 != null}
+				{@const qualityAdjustedPower = entity.qualityAdjustedPower}
+				{#if qualityAdjustedPower != null}
 					<NumberValue
-						value={qualityAdjustedPower0}
+						value={qualityAdjustedPower}
 					/>
 				{/if}
 			{/snippet}
@@ -99,7 +101,7 @@
 	{#snippet HeadingAfter()}
 		<span data-text="muted">
 			<NumberValue
-				value={pendingEntity.height}
+				value={selection.entitySelector.height}
 			/>
 		</span>
 	{/snippet}
@@ -124,7 +126,7 @@
 						resource={filecoinMinerTimestamp}
 					>
 						{#snippet children(entity)}
-							<Timestamp timestamp={Number(entity.timestampMs)} />
+							<Timestamp timestamp={entity.timestampMs} />
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -133,7 +135,7 @@
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 
@@ -141,7 +143,7 @@
 				<dt>Height</dt>
 				<dd>
 					<NumberValue
-						value={pendingEntity.height}
+						value={selection.entitySelector.height}
 					/>
 				</dd>
 			</div>
@@ -149,7 +151,7 @@
 			<div>
 				<dt>Tipset key</dt>
 				<dd>
-					{pendingEntity.tipsetKey}
+					{selection.entitySelector.tipsetKey}
 				</dd>
 			</div>
 

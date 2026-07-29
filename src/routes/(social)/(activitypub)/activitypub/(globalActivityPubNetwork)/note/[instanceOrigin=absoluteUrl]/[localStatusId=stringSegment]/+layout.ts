@@ -10,7 +10,8 @@ import { schema } from '$/schema/index.ts'
 import { type as arktype } from 'arktype'
 
 export const load: LayoutLoad = ({ params }) => {
-	if (!(matchAbsoluteUrl(params.instanceOrigin) && matchStringSegment(params.localStatusId))) error(404, 'Route mapping not applicable')
+	if (!(matchAbsoluteUrl(params.instanceOrigin) && matchStringSegment(params.localStatusId)))
+		error(404, 'Route mapping not applicable')
 
 	const activityPubNoteInstanceOriginLocalStatusIdSelector = parseEntitySelector(
 		schema,
@@ -20,7 +21,8 @@ export const load: LayoutLoad = ({ params }) => {
 			localStatusId: params.localStatusId,
 		}
 	)
-	if (activityPubNoteInstanceOriginLocalStatusIdSelector instanceof arktype.errors) error(404, 'Invalid ActivityPubNote selector')
+	if (activityPubNoteInstanceOriginLocalStatusIdSelector instanceof arktype.errors)
+		error(404, 'Invalid ActivityPubNote selector')
 
 	return {
 		selector: activityPubNoteInstanceOriginLocalStatusIdSelector,

@@ -21,9 +21,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.HyperliquidTransaction> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const titleFallback = 'hyperliquid transaction'
-
 
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -37,7 +34,7 @@
 <EntityView
 	entityType={EntityType.HyperliquidTransaction}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? 'hyperliquid transaction'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -62,7 +59,7 @@
 			<div>
 				<dt>Transaction hash</dt>
 				<dd>
-					<TruncatedValue value={pendingEntity.txHash} />
+					<TruncatedValue value={selection.entitySelector.txHash} />
 				</dd>
 			</div>
 

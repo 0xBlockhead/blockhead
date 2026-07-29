@@ -46,11 +46,11 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{String(blockheadIntentQuoteTimestampSelector.timestampMs)}
+				{blockheadIntentQuoteTimestampSelector.timestampMs}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{(blockheadIntentQuoteTimestamp.solverId ?? '')}</span>
+				<span data-text="annotation">{blockheadIntentQuoteTimestamp.solverId ?? ''}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

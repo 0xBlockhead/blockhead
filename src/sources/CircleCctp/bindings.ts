@@ -1,10 +1,10 @@
 // Generated from APP.ts. Do not edit by hand.
 
 import { Source } from '$/sources/Source.ts'
-import { ApiFamily, SourceCredentialScope, SourceDelivery, SourceEndpointKind, SourceOperationGroup, SourceTargetKind, WireProtocol, type SourceBindingIndex } from '$/sources/SourceBinding.ts'
+import { ApiFamily, indexSourceBindings, SourceCredentialScope, SourceDelivery, SourceEndpointKind, SourceOperationGroup, SourceTargetKind, WireProtocol, type SourceBinding } from '$/sources/SourceBinding.ts'
 
-export default {
-	[Source.CircleCctp_IrisApi]: {
+const bindings = [
+	{
 		source: Source.CircleCctp_IrisApi,
 		target: {
 			kind: SourceTargetKind.Global,
@@ -30,7 +30,7 @@ export default {
 			},
 		],
 	},
-	[Source.CircleCctpContracts_Evm]: {
+	{
 		source: Source.CircleCctpContracts_Evm,
 		target: {
 			kind: SourceTargetKind.Global,
@@ -54,7 +54,7 @@ export default {
 			},
 		],
 	},
-	[Source.CircleCctpContracts_Solana]: {
+	{
 		source: Source.CircleCctpContracts_Solana,
 		target: {
 			kind: SourceTargetKind.Caip2Network,
@@ -78,7 +78,7 @@ export default {
 			},
 		],
 	},
-	[Source.CircleCctpContracts_Stellar]: {
+	{
 		source: Source.CircleCctpContracts_Stellar,
 		target: {
 			kind: SourceTargetKind.NetworkSlug,
@@ -102,4 +102,11 @@ export default {
 			},
 		],
 	},
-} as const satisfies SourceBindingIndex
+] as const satisfies readonly SourceBinding[]
+
+export default indexSourceBindings<{
+	readonly [Source.CircleCctp_IrisApi]: typeof bindings[0]
+	readonly [Source.CircleCctpContracts_Evm]: typeof bindings[1]
+	readonly [Source.CircleCctpContracts_Solana]: typeof bindings[2]
+	readonly [Source.CircleCctpContracts_Stellar]: typeof bindings[3]
+}>(bindings)

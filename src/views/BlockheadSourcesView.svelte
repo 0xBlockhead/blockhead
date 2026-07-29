@@ -48,7 +48,7 @@
 				resolve(
 					'/~/manage/source/[sourceId=stringSegment]',
 					{
-						sourceId: String(blockheadSourceSelector.id),
+						sourceId: blockheadSourceSelector.id,
 					}
 				)
 			}
@@ -58,7 +58,7 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{(blockheadSource.source ?? '')}
+				{blockheadSource.source ?? ''}
 			{/snippet}
 		</EntityView>
 	{/snippet}

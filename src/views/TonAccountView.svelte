@@ -25,8 +25,7 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.TonAccount> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const titleFallback = 'TON account'
+	const network = $derived(selection.entitySelector.$network)
 	const viewDomId = $derived('ton-account-' + encodeURIComponent(stringify(selection.entitySelector)))
 
 
@@ -44,20 +43,23 @@
 	entityType={EntityType.TonAccount}
 	entitySelector={selection.entitySelector}
 	id={viewDomId}
-	title={title ?? titleFallback}
+	title={title ?? 'TON account'}
 	href={
-		href ?? resolve(
-			'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(accounts)/account/[accountId=polkadotAccountIdOrStringSegmentOrEvmAddressOrSolanaPubkey]',
-			{
-				network: (
-					'caip2' in selection.entitySelector.$network ?
-						String(caip2StringFromValue(selection.entitySelector.$network.caip2))
-					:
-						String(selection.entitySelector.$network.slug)
-				),
-				accountId: String(selection.entitySelector.address),
-			}
-		)
+		href === undefined ?
+			resolve(
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(accounts)/account/[accountId=polkadotAccountIdOrStringSegmentOrEvmAddressOrSolanaPubkey]',
+				{
+					network: (
+						'caip2' in network ?
+							caip2StringFromValue(network.caip2)
+						:
+							network.slug
+					),
+					accountId: selection.entitySelector.address,
+				}
+			)
+		:
+			href ?? undefined
 	}
 	{layout}
 	bind:open
@@ -83,7 +85,7 @@
 			<div>
 				<dt>Address</dt>
 				<dd>
-					<TruncatedValue value={pendingEntity.address} />
+					<TruncatedValue value={selection.entitySelector.address} />
 				</dd>
 			</div>
 
@@ -102,7 +104,7 @@
 						<div>
 							<dt>workchain</dt>
 							<dd>
-								{String(workchain)}
+								{workchain}
 							</dd>
 						</div>
 					{/if}
@@ -158,12 +160,12 @@
 				<TonAccount_TimestampsView
 					selection={
 						selection
-							.$$timestamps({
-								sources: [
-									Source.TonApi_Rest,
-								],
-								limit: 16,
-							})
+						.$$timestamps({
+							sources: [
+								Source.TonApi_Rest,
+							],
+							limit: 16,
+						})
 					}
 					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}

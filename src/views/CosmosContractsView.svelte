@@ -50,7 +50,7 @@
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{String(cosmosContract.codeId ?? '')}</span>
+				<span data-text="annotation">{cosmosContract.codeId ?? ''}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

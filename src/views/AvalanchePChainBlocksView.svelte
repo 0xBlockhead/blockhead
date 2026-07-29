@@ -41,11 +41,11 @@
 			entitySelector={avalanchePChainBlockSelector}
 		>
 			{#snippet Title()}
-				{String(avalanchePChainBlockSelector.height) || avalanchePChainBlockSelector.blockId || 'avalanche p chain block'}
+				{avalanchePChainBlockSelector.height}
 			{/snippet}
 
 			{#snippet Value()}
-				{String(avalanchePChainBlock.timestampMs ?? '')}
+				{avalanchePChainBlock.timestampMs ?? ''}
 			{/snippet}
 		</EntityView>
 	{/snippet}

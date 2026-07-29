@@ -43,7 +43,7 @@
 				resolve(
 					'/(explore)/(protocols)/evm/(evmProtocol)/(topics)/topic/[hex=evmTopicHash]',
 					{
-						hex: String(evmTopicSelector.hex),
+						hex: evmTopicSelector.hex,
 					}
 				)
 			}

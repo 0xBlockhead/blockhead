@@ -20,9 +20,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.TezosMichelsonScript> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const titleFallback = 'tezos michelson script'
-
 
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -34,7 +31,7 @@
 <EntityView
 	entityType={EntityType.TezosMichelsonScript}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? 'tezos michelson script'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -59,7 +56,7 @@
 			<div>
 				<dt>script hash</dt>
 				<dd>
-					<TruncatedValue value={pendingEntity.scriptHash} />
+					<TruncatedValue value={selection.entitySelector.scriptHash} />
 				</dd>
 			</div>
 
@@ -123,11 +120,11 @@
 							<dt>tzip16 metadata URI</dt>
 							<dd>
 								<a
-									href={String(tzip16MetadataUri)}
+									href={tzip16MetadataUri}
 									target="_blank"
 									rel="noreferrer noopener"
 								>
-									<TruncatedValue value={String(tzip16MetadataUri)} />
+									<TruncatedValue value={tzip16MetadataUri} />
 								</a>
 							</dd>
 						</div>

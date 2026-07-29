@@ -43,8 +43,8 @@
 			resolve(
 				'/(social)/(activitypub)/activitypub/(globalActivityPubNetwork)/note/[instanceOrigin=absoluteUrl]/[localStatusId=stringSegment]/(activityPubNote)/thread',
 				{
-					instanceOrigin: String(params.instanceOrigin),
-					localStatusId: String(params.localStatusId),
+					instanceOrigin: params.instanceOrigin,
+					localStatusId: params.localStatusId,
 				}
 			)
 		}

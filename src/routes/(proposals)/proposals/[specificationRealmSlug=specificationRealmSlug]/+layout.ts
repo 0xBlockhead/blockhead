@@ -10,7 +10,8 @@ import SpecificationRealmSchema from '$/schema/SpecificationRealm.ts'
 import { type as arktype } from 'arktype'
 
 export const load: LayoutLoad = ({ params }) => {
-	if (!(matchSpecificationRealmSlug(params.specificationRealmSlug))) error(404, 'Route mapping not applicable')
+	if (!(matchSpecificationRealmSlug(params.specificationRealmSlug)))
+		error(404, 'Route mapping not applicable')
 
 	const specificationRealmRealmSelector = parseEntitySelector(
 		schema,
@@ -19,7 +20,8 @@ export const load: LayoutLoad = ({ params }) => {
 			realm: specificationRealmBySlug[params.specificationRealmSlug].id,
 		}
 	)
-	if (specificationRealmRealmSelector instanceof arktype.errors) error(404, 'Invalid SpecificationRealm selector')
+	if (specificationRealmRealmSelector instanceof arktype.errors)
+		error(404, 'Invalid SpecificationRealm selector')
 
 	return {
 		selector: specificationRealmRealmSelector,

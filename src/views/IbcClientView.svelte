@@ -20,14 +20,13 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.IbcClient> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const ibcClient = $derived(selection({
 		fields: {
 			clientType: true,
 			counterpartyChainId: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.clientId ?? '') || 'IBC client')
+	const titleFallback = $derived(selection.entitySelector.clientId || 'IBC client')
 
 
 	// Components
@@ -47,13 +46,13 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{(pendingEntity.clientId ?? '') || 'IBC client'}
+		{selection.entitySelector.clientId || 'IBC client'}
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={ibcClient}>
 			{#snippet children(entity)}
-				{[(entity.clientType ?? ''), pendingEntity.clientId].filter(Boolean).join(' ') || pendingEntity.clientId || titleFallback}
+				{[(entity.clientType ?? ''), selection.entitySelector.clientId].filter(Boolean).join(' ') || selection.entitySelector.clientId || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -61,10 +60,10 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={ibcClient}>
 			{#snippet children(entity)}
-				{@const counterpartyChainId0 = entity.counterpartyChainId}
-				{#if counterpartyChainId0 != null}
+				{@const counterpartyChainId = entity.counterpartyChainId}
+				{#if counterpartyChainId != null}
 					<span data-text="muted">
-						{counterpartyChainId0}
+						{counterpartyChainId}
 					</span>
 				{/if}
 			{/snippet}
@@ -76,7 +75,7 @@
 			<div>
 				<dt>Client ID</dt>
 				<dd>
-					{pendingEntity.clientId}
+					{selection.entitySelector.clientId}
 				</dd>
 			</div>
 
@@ -151,7 +150,7 @@
 						<div>
 							<dt>Trusting period ns</dt>
 							<dd>
-								{String(trustingPeriodNs)}
+								{trustingPeriodNs}
 							</dd>
 						</div>
 					{/if}
@@ -173,7 +172,7 @@
 						<div>
 							<dt>Unbonding period ns</dt>
 							<dd>
-								{String(unbondingPeriodNs)}
+								{unbondingPeriodNs}
 							</dd>
 						</div>
 					{/if}
@@ -195,7 +194,7 @@
 						<div>
 							<dt>Max clock drift ns</dt>
 							<dd>
-								{String(maxClockDriftNs)}
+								{maxClockDriftNs}
 							</dd>
 						</div>
 					{/if}
@@ -216,30 +215,30 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const ibcClientIbcConnectionsViewConnectionsResource = selection.$$connections}
+		{@const connectionsResource = selection.$$connections}
 		<ResourceBoundary
-			resource={ibcClientIbcConnectionsViewConnectionsResource}
+			resource={connectionsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<IbcConnectionsView
-						selection={ibcClientIbcConnectionsViewConnectionsResource}
-						countResource={ibcClientIbcConnectionsViewConnectionsResource.count}
+						selection={connectionsResource}
+						countResource={connectionsResource.count}
 						title='Connections'
 						id='connections'
 					/>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>
-		{@const ibcClientIbcChannelsViewChannelsResource = selection.$$channels}
+		{@const channelsResource = selection.$$channels}
 		<ResourceBoundary
-			resource={ibcClientIbcChannelsViewChannelsResource}
+			resource={channelsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<IbcChannelsView
-						selection={ibcClientIbcChannelsViewChannelsResource}
-						countResource={ibcClientIbcChannelsViewChannelsResource.count}
+						selection={channelsResource}
+						countResource={channelsResource.count}
 						title='Channels'
 						id='channels'
 					/>

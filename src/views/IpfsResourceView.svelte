@@ -6,7 +6,6 @@
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { UrlString } from '$/schema/UrlString.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -25,7 +24,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.IpfsResource> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Ipfs_Rest,
@@ -44,7 +42,7 @@
 			isContentTypeInferred: true,
 		},
 	}))
-	const titleFallback = $derived(String(pendingEntity.canonicalUri ?? '') || 'IPFS resource')
+	const titleFallback = $derived((prefetched.canonicalUri ?? '') || 'IPFS resource')
 
 
 	// Components
@@ -60,25 +58,28 @@
 	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
 	href={
-		href ?? (
-			selection.entitySelector.contentPath === '' ?
-				resolve(
-					'/(explore)/(ipfs)/[namespace=ipfsNamespace]/[target=stringSegment]',
-					{
-						namespace: String(selection.entitySelector.namespace),
-						target: String(selection.entitySelector.target),
-					}
-				)
-			:
-				resolve(
-					'/(explore)/(ipfs)/[namespace=ipfsNamespace]/[target=stringSegment]/path/[...contentPath=stringSegment]',
-					{
-						namespace: String(selection.entitySelector.namespace),
-						target: String(selection.entitySelector.target),
-						contentPath: String(selection.entitySelector.contentPath),
-					}
-				)
-		)
+		href === undefined ?
+			(
+				selection.entitySelector.contentPath === '' ?
+					resolve(
+						'/(explore)/(ipfs)/[namespace=ipfsNamespace]/[target=stringSegment]',
+						{
+							namespace: selection.entitySelector.namespace,
+							target: selection.entitySelector.target,
+						}
+					)
+				:
+					resolve(
+						'/(explore)/(ipfs)/[namespace=ipfsNamespace]/[target=stringSegment]/path/[...contentPath=stringSegment]',
+						{
+							namespace: selection.entitySelector.namespace,
+							target: selection.entitySelector.target,
+							contentPath: selection.entitySelector.contentPath,
+						}
+					)
+			)
+		:
+			href ?? undefined
 	}
 	{layout}
 	bind:open
@@ -87,7 +88,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={ipfsResource}>
 			{#snippet children(entity)}
-				<TruncatedValue value={String(entity.canonicalUri)} />
+				<TruncatedValue value={entity.canonicalUri} />
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -95,7 +96,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={ipfsResource}>
 			{#snippet children(entity)}
-				{[(entity.contentType ?? ''), entity.displayType].filter(Boolean).join(' ') || String(entity.canonicalUri) || titleFallback}
+				{[(entity.contentType ?? ''), entity.displayType].filter(Boolean).join(' ') || entity.canonicalUri || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -105,21 +106,21 @@
 			<div>
 				<dt>Namespace</dt>
 				<dd>
-					{String(pendingEntity.namespace)}
+					{selection.entitySelector.namespace}
 				</dd>
 			</div>
 
 			<div>
 				<dt>Target</dt>
 				<dd>
-					<TruncatedValue value={pendingEntity.target} />
+					<TruncatedValue value={selection.entitySelector.target} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Content path</dt>
 				<dd>
-					{pendingEntity.contentPath}
+					{selection.entitySelector.contentPath}
 				</dd>
 			</div>
 
@@ -131,11 +132,11 @@
 					>
 						{#snippet children(entity)}
 							<a
-								href={String(entity.canonicalUri)}
+								href={entity.canonicalUri}
 								target="_blank"
 								rel="noreferrer noopener"
 							>
-								<TruncatedValue value={String(entity.canonicalUri)} />
+								<TruncatedValue value={entity.canonicalUri} />
 							</a>
 						{/snippet}
 					</ResourceBoundary>
@@ -150,11 +151,11 @@
 					>
 						{#snippet children(entity)}
 							<a
-								href={String(entity.gatewayUrl)}
+								href={entity.gatewayUrl}
 								target="_blank"
 								rel="noreferrer noopener"
 							>
-								<TruncatedValue value={String(entity.gatewayUrl)} />
+								<TruncatedValue value={entity.gatewayUrl} />
 							</a>
 						{/snippet}
 					</ResourceBoundary>
@@ -170,7 +171,7 @@
 						resource={ipfsResource}
 					>
 						{#snippet children(entity)}
-							{String(entity.gatewayOrigin)}
+							{entity.gatewayOrigin}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>

@@ -57,11 +57,11 @@
 			entitySelector={litecoinMwebOutputSelector}
 		>
 			{#snippet Title()}
-				{(litecoinMwebOutput.commitment ?? '') || ((String(litecoinMwebOutputSelector.$transaction.$mwebBlock.$block.height ?? '') ? 'Block #' + String(litecoinMwebOutputSelector.$transaction.$mwebBlock.$block.height ?? '') : '') || (litecoinMwebOutputSelector.$transaction.$mwebBlock.$block.hash ?? '') || 'UTXO block')}
+				{(litecoinMwebOutput.commitment ?? '') || `Block #${litecoinMwebOutputSelector.$transaction.$mwebBlock.$block.height}`}
 			{/snippet}
 
 			{#snippet Value()}
-				{String(litecoinMwebOutputSelector.outputIndex)}
+				{litecoinMwebOutputSelector.outputIndex}
 			{/snippet}
 		</EntityView>
 	{/snippet}

@@ -22,7 +22,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.ZeroGServiceProvider> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.ZeroGStorageNode_JsonRpc,
@@ -34,7 +33,7 @@
 			serviceKind: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.providerId ?? '') || 'zero g service provider')
+	const titleFallback = $derived(selection.entitySelector.providerId || 'zero g service provider')
 
 
 	// Components
@@ -54,13 +53,13 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{(pendingEntity.providerId ?? '') || 'zero g service provider'}
+		{selection.entitySelector.providerId || 'zero g service provider'}
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={zeroGServiceProvider}>
 			{#snippet children(entity)}
-				{(entity.serviceKind ?? '') || pendingEntity.providerId || titleFallback}
+				{(entity.serviceKind ?? '') || selection.entitySelector.providerId || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -91,7 +90,7 @@
 			<div>
 				<dt>provider ID</dt>
 				<dd>
-					{pendingEntity.providerId}
+					{selection.entitySelector.providerId}
 				</dd>
 			</div>
 
@@ -156,15 +155,15 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const zeroGServiceProviderZeroGServiceRequestsViewRequestsResource = selection.$$requests}
+		{@const requestsResource = selection.$$requests}
 		<ResourceBoundary
-			resource={zeroGServiceProviderZeroGServiceRequestsViewRequestsResource}
+			resource={requestsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<ZeroGServiceRequestsView
-						selection={zeroGServiceProviderZeroGServiceRequestsViewRequestsResource}
-						countResource={zeroGServiceProviderZeroGServiceRequestsViewRequestsResource.count}
+						selection={requestsResource}
+						countResource={requestsResource.count}
 						title='requests'
 						id='requests'
 					/>

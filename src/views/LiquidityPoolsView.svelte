@@ -48,22 +48,21 @@
 >
 	{#snippet Item({ item: liquidityPool })}
 		{@const liquidityPoolSelector = liquidityPool[EntityMetaKey.Selector]}
+		{@const network = liquidityPoolSelector.$network}
 		<EntityView
 			entityType={EntityType.LiquidityPool}
 			entitySelector={liquidityPoolSelector}
 			href={
-				(
-					'caip2' in liquidityPoolSelector.$network ?
-						resolve(
-							'/(assets)/pool/[chainId=eip155ChainId]/[poolId=stringSegment]',
-							{
-								chainId: String(liquidityPoolSelector.$network.caip2.reference),
-								poolId: String(liquidityPoolSelector.id),
-							}
-						)
-					:
-						undefined
-				)
+				'caip2' in network ?
+					resolve(
+						'/(assets)/pool/[chainId=eip155ChainId]/[poolId=stringSegment]',
+						{
+							chainId: network.caip2.reference,
+							poolId: liquidityPoolSelector.id,
+						}
+					)
+				:
+					undefined
 			}
 		>
 			{#snippet Title()}

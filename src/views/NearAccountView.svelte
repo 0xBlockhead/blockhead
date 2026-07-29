@@ -22,7 +22,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.NearAccount> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.NearRpc_JsonRpc,
@@ -34,7 +33,6 @@
 			amountYoctoNear: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.accountId ?? '') || 'near account')
 
 
 	// Components
@@ -50,22 +48,22 @@
 <EntityView
 	entityType={EntityType.NearAccount}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? (selection.entitySelector.accountId || 'near account')}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{(pendingEntity.accountId ?? '') || 'near account'}
+		{selection.entitySelector.accountId || 'near account'}
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={nearAccount}>
 			{#snippet children(entity)}
-				{@const amountYoctoNear0 = entity.amountYoctoNear}
-				{#if amountYoctoNear0 != null}
+				{@const amountYoctoNear = entity.amountYoctoNear}
+				{#if amountYoctoNear != null}
 					<NumberValue
-						value={amountYoctoNear0}
+						value={amountYoctoNear}
 					/>
 				{/if}
 			{/snippet}
@@ -98,7 +96,7 @@
 			<div>
 				<dt>Account ID</dt>
 				<dd>
-					<TruncatedValue value={pendingEntity.accountId} />
+					<TruncatedValue value={selection.entitySelector.accountId} />
 				</dd>
 			</div>
 
@@ -167,15 +165,15 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const nearAccountNearAccessKeysViewAccessKeysResource = selection.$$accessKeys}
+		{@const accessKeysResource = selection.$$accessKeys}
 		<ResourceBoundary
-			resource={nearAccountNearAccessKeysViewAccessKeysResource}
+			resource={accessKeysResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<NearAccessKeysView
-						selection={nearAccountNearAccessKeysViewAccessKeysResource}
-						countResource={nearAccountNearAccessKeysViewAccessKeysResource.count}
+						selection={accessKeysResource}
+						countResource={accessKeysResource.count}
 						title='Access keys'
 						id='access-keys'
 					/>

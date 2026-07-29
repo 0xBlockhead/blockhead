@@ -6,7 +6,6 @@
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { UrlString } from '$/schema/UrlString.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -25,7 +24,7 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.LiquidityPool_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const liquidityPool = $derived(selection.entitySelector.$liquidityPool)
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Dexscreener_OpenApi,
@@ -39,7 +38,7 @@
 			liquidityUsd: true,
 		},
 	}))
-	const titleFallback = $derived([(pendingEntity.baseTokenSymbol ?? ''), (pendingEntity.quoteTokenSymbol ?? '')].filter(Boolean).join(' ') || 'liquidity pool timestamp')
+	const titleFallback = $derived([(prefetched.baseTokenSymbol ?? ''), (prefetched.quoteTokenSymbol ?? '')].filter(Boolean).join(' ') || 'liquidity pool timestamp')
 
 
 	// Components
@@ -56,20 +55,23 @@
 	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
 	href={
-		href ?? (
-			'caip2' in selection.entitySelector.$liquidityPool.$network ?
-				resolve(
-					'/(assets)/pool/[chainId=eip155ChainId]/[poolId=stringSegment]/(liquidityPool)/observations/[timestampMs=nonNegativeInteger]/[feedKey=stringSegment]',
-					{
-						chainId: String(selection.entitySelector.$liquidityPool.$network.caip2.reference),
-						poolId: String(selection.entitySelector.$liquidityPool.id),
-						timestampMs: String(selection.entitySelector.timestampMs),
-						feedKey: encodeURIComponent(String(selection.entitySelector.feedKey)),
-					}
-				)
-			:
-				undefined
-		)
+		href === undefined ?
+			(
+				'caip2' in liquidityPool.$network ?
+					resolve(
+						'/(assets)/pool/[chainId=eip155ChainId]/[poolId=stringSegment]/(liquidityPool)/observations/[timestampMs=nonNegativeInteger]/[feedKey=stringSegment]',
+						{
+							chainId: liquidityPool.$network.caip2.reference,
+							poolId: liquidityPool.id,
+							timestampMs: String(selection.entitySelector.timestampMs),
+							feedKey: encodeURIComponent(selection.entitySelector.feedKey),
+						}
+					)
+				:
+					undefined
+			)
+		:
+			href ?? undefined
 	}
 	{layout}
 	bind:open
@@ -93,7 +95,7 @@
 
 	{#snippet HeadingAfter()}
 		<span data-text="muted">
-			<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+			<Timestamp timestamp={selection.entitySelector.timestampMs} />
 		</span>
 	{/snippet}
 
@@ -113,14 +115,14 @@
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+					<Timestamp timestamp={selection.entitySelector.timestampMs} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Feed key</dt>
 				<dd>
-					{pendingEntity.feedKey}
+					{selection.entitySelector.feedKey}
 				</dd>
 			</div>
 
@@ -243,7 +245,7 @@
 						<div>
 							<dt>Pair created</dt>
 							<dd>
-								<Timestamp timestamp={Number(pairCreatedAtMs)} />
+								<Timestamp timestamp={pairCreatedAtMs} />
 							</dd>
 						</div>
 					{/if}
@@ -288,11 +290,11 @@
 							<dt>Dexscreener</dt>
 							<dd>
 								<a
-									href={String(dexscreenerPairUrl)}
+									href={dexscreenerPairUrl}
 									target="_blank"
 									rel="noreferrer noopener"
 								>
-									<TruncatedValue value={String(dexscreenerPairUrl)} />
+									<TruncatedValue value={dexscreenerPairUrl} />
 								</a>
 							</dd>
 						</div>

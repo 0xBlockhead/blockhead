@@ -9,7 +9,8 @@ import { schema } from '$/schema/index.ts'
 import { type as arktype } from 'arktype'
 
 export const load: LayoutLoad = ({ params }) => {
-	if (!(matchAbsoluteUrl(params.instanceOrigin))) error(404, 'Route mapping not applicable')
+	if (!(matchAbsoluteUrl(params.instanceOrigin)))
+		error(404, 'Route mapping not applicable')
 
 	const activityPubInstanceInstanceOriginSelector = parseEntitySelector(
 		schema,
@@ -18,7 +19,8 @@ export const load: LayoutLoad = ({ params }) => {
 			instanceOrigin: decodeURIComponent(params.instanceOrigin),
 		}
 	)
-	if (activityPubInstanceInstanceOriginSelector instanceof arktype.errors) error(404, 'Invalid ActivityPubInstance selector')
+	if (activityPubInstanceInstanceOriginSelector instanceof arktype.errors)
+		error(404, 'Invalid ActivityPubInstance selector')
 
 	return {
 		selector: activityPubInstanceInstanceOriginSelector,

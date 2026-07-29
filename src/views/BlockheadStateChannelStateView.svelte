@@ -21,13 +21,11 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.BlockheadStateChannelState> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const viewSelection = $derived(selection({
+	const blockheadStateChannelState = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Local_Internal,
 		],
-	}))
-	const blockheadStateChannelState = $derived(viewSelection({
+	})({
 		fields: {
 			intent: true,
 			allocations: true,
@@ -36,13 +34,11 @@
 			timestamp: true,
 		},
 	}))
-	const titleFallback = $derived(String(pendingEntity.version ?? '') || 'blockhead state channel state')
 
 
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
-	import TruncatedValue from '$/components/TruncatedValue.svelte'
 	import BlockheadStateChannelView from '$/views/BlockheadStateChannelView.svelte'
 </script>
 
@@ -50,19 +46,19 @@
 <EntityView
 	entityType={EntityType.BlockheadStateChannelState}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? String(selection.entitySelector.version)}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{String(pendingEntity.version ?? '') || 'blockhead state channel state'}
+		{String(selection.entitySelector.version)}
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={blockheadStateChannelState}>
 			{#snippet children(entity)}
-				{String(entity.isFinal) || String(pendingEntity.version) || titleFallback}
+				{String(entity.isFinal) || String(selection.entitySelector.version)}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -71,7 +67,7 @@
 		<ResourceBoundary resource={blockheadStateChannelState}>
 			{#snippet children(entity)}
 				<span data-text="muted">
-					<Timestamp timestamp={Number(entity.timestamp)} />
+					<Timestamp timestamp={entity.timestamp} />
 				</span>
 			{/snippet}
 		</ResourceBoundary>
@@ -93,14 +89,14 @@
 			<div>
 				<dt>version</dt>
 				<dd>
-					{String(pendingEntity.version)}
+					{selection.entitySelector.version}
 				</dd>
 			</div>
 
 			<div>
 				<dt>state data</dt>
 				<dd>
-					{pendingEntity.stateData}
+					{selection.entitySelector.stateData}
 				</dd>
 			</div>
 
@@ -111,7 +107,7 @@
 						resource={blockheadStateChannelState}
 					>
 						{#snippet children(entity)}
-							{String(entity.intent)}
+							{entity.intent}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -137,7 +133,7 @@
 						resource={blockheadStateChannelState}
 					>
 						{#snippet children(entity)}
-							<TruncatedValue value={entity.signatures.join(', ')} />
+							{entity.signatures.join(', ')}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -163,7 +159,7 @@
 						resource={blockheadStateChannelState}
 					>
 						{#snippet children(entity)}
-							<Timestamp timestamp={Number(entity.timestamp)} />
+							<Timestamp timestamp={entity.timestamp} />
 						{/snippet}
 					</ResourceBoundary>
 				</dd>

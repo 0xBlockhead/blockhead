@@ -38,6 +38,7 @@
 >
 	{#snippet Item({ item: cardanoTxOutput })}
 		{@const cardanoTxOutputSelector = cardanoTxOutput[EntityMetaKey.Selector]}
+		{@const transaction = cardanoTxOutputSelector.$transaction}
 		<EntityView
 			entityType={EntityType.CardanoTxOutput}
 			entitySelector={cardanoTxOutputSelector}
@@ -46,27 +47,27 @@
 					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(transactions)/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/(selection)/output/[outputIndex=nonNegativeInteger]',
 					{
 						network: (
-							'caip2' in cardanoTxOutputSelector.$transaction.$network ?
-								String(caip2StringFromValue(cardanoTxOutputSelector.$transaction.$network.caip2))
+							'caip2' in transaction.$network ?
+								caip2StringFromValue(transaction.$network.caip2)
 							:
-								String(cardanoTxOutputSelector.$transaction.$network.slug)
+								transaction.$network.slug
 						),
-						transactionId: String(cardanoTxOutputSelector.$transaction.hash),
+						transactionId: transaction.hash,
 						outputIndex: String(cardanoTxOutputSelector.outputIndex),
 					}
 				)
 			}
 		>
 			{#snippet Title()}
-				{String(cardanoTxOutputSelector.outputIndex) || 'Cardano transaction output'}
+				{cardanoTxOutputSelector.outputIndex}
 			{/snippet}
 
 			{#snippet Value()}
-				{String(cardanoTxOutput.lovelace ?? '')}
+				{cardanoTxOutput.lovelace ?? ''}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{(cardanoTxOutput.address ?? '')}</span>
+				<span data-text="annotation">{cardanoTxOutput.address ?? ''}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

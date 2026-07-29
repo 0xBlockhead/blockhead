@@ -23,13 +23,12 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.Market_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const market = $derived(selection.entitySelector.$market)
 	const marketTimestamp = $derived(selection({
 		fields: {
 			price: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.feedKey ?? '') || 'market timestamp')
 
 
 	// Components
@@ -43,28 +42,31 @@
 <EntityView
 	entityType={EntityType.Market_Timestamp}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? (selection.entitySelector.feedKey || 'market timestamp')}
 	href={
-		href ?? resolve(
-			'/(assets)/venue/[marketVenue=marketVenueId]/market/[baseKind=stringSegment]/[base=stringSegment]/[quoteKind=stringSegment]/[quote=stringSegment]/[marketKind=stringSegment]/(market)/price/(marketPrice)/quotes/[timestampMs=nonNegativeInteger]/[feedKey=stringSegment]',
-			{
-				marketVenue: String(selection.entitySelector.$market.$marketVenue.marketVenueId),
-				baseKind: String(marketAssetRouteLabelByKind[String(selection.entitySelector.$market.$base.kind)]),
-				base: String(selection.entitySelector.$market.$base.assetKey),
-				quoteKind: String(marketAssetRouteLabelByKind[String(selection.entitySelector.$market.$quote.kind)]),
-				quote: String(selection.entitySelector.$market.$quote.assetKey),
-				marketKind: String(selection.entitySelector.$market.marketKind),
-				timestampMs: String(selection.entitySelector.timestampMs),
-				feedKey: encodeURIComponent(String(selection.entitySelector.feedKey)),
-			}
-		)
+		href === undefined ?
+			resolve(
+				'/(assets)/venue/[marketVenue=marketVenueId]/market/[baseKind=stringSegment]/[base=stringSegment]/[quoteKind=stringSegment]/[quote=stringSegment]/[marketKind=stringSegment]/(market)/price/(marketPrice)/quotes/[timestampMs=nonNegativeInteger]/[feedKey=stringSegment]',
+				{
+					marketVenue: market.$marketVenue.marketVenueId,
+					baseKind: marketAssetRouteLabelByKind[market.$base.kind],
+					base: market.$base.assetKey,
+					quoteKind: marketAssetRouteLabelByKind[market.$quote.kind],
+					quote: market.$quote.assetKey,
+					marketKind: market.marketKind,
+					timestampMs: String(selection.entitySelector.timestampMs),
+					feedKey: encodeURIComponent(selection.entitySelector.feedKey),
+				}
+			)
+		:
+			href ?? undefined
 	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{(pendingEntity.feedKey ?? '') || 'market timestamp'}
+		{selection.entitySelector.feedKey || 'market timestamp'}
 	{/snippet}
 
 	{#snippet Value()}
@@ -80,7 +82,7 @@
 
 	{#snippet HeadingAfter()}
 		<span data-text="muted">
-			<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+			<Timestamp timestamp={selection.entitySelector.timestampMs} />
 		</span>
 	{/snippet}
 
@@ -111,14 +113,14 @@
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+					<Timestamp timestamp={selection.entitySelector.timestampMs} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Feed key</dt>
 				<dd>
-					{pendingEntity.feedKey}
+					{selection.entitySelector.feedKey}
 				</dd>
 			</div>
 		</dl>

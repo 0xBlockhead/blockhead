@@ -24,8 +24,7 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.UtxoInput> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const titleFallback = $derived((String(pendingEntity.indexInTransaction ?? '') ? 'Input #' + String(pendingEntity.indexInTransaction ?? '') : '') || 'UTXO input')
+	const transaction = $derived(selection.entitySelector.$transaction)
 
 
 	// Components
@@ -39,22 +38,25 @@
 <EntityView
 	entityType={EntityType.UtxoInput}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
-	idDragPlainText={String(pendingEntity.indexInTransaction ?? '')}
+	title={title ?? `Input #${selection.entitySelector.indexInTransaction}`}
+	idDragPlainText={String(selection.entitySelector.indexInTransaction)}
 	href={
-		href ?? resolve(
-			'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(transactions)/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/(selection)/input/[inputIndex=nonNegativeInteger]',
-			{
-				network: (
-					'caip2' in selection.entitySelector.$transaction.$network ?
-						String(caip2StringFromValue(selection.entitySelector.$transaction.$network.caip2))
-					:
-						String(selection.entitySelector.$transaction.$network.slug)
-				),
-				transactionId: String(selection.entitySelector.$transaction.txId),
-				inputIndex: String(selection.entitySelector.indexInTransaction),
-			}
-		)
+		href === undefined ?
+			resolve(
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(transactions)/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/(selection)/input/[inputIndex=nonNegativeInteger]',
+				{
+					network: (
+						'caip2' in transaction.$network ?
+							caip2StringFromValue(transaction.$network.caip2)
+						:
+							transaction.$network.slug
+					),
+					transactionId: transaction.txId,
+					inputIndex: String(selection.entitySelector.indexInTransaction),
+				}
+			)
+		:
+			href ?? undefined
 	}
 	{layout}
 	bind:open
@@ -64,14 +66,14 @@
 		<span data-row="inline align-center gap-2 wrap">
 			<span>Input </span>
 			<span data-badge="small">
-				#{String(pendingEntity.indexInTransaction)}
+				#{selection.entitySelector.indexInTransaction}
 			</span>
 		</span>
 	{/snippet}
 
 	{#snippet Value()}
 		<span data-badge="small">
-			#{String(pendingEntity.indexInTransaction)}
+			#{selection.entitySelector.indexInTransaction}
 		</span>
 	{/snippet}
 
@@ -100,7 +102,7 @@
 				<dt>Index in transaction</dt>
 				<dd>
 					<NumberValue
-						value={pendingEntity.indexInTransaction}
+						value={selection.entitySelector.indexInTransaction}
 					/>
 				</dd>
 			</div>
@@ -197,7 +199,7 @@
 						<div>
 							<dt>Sequence</dt>
 							<dd>
-								{String(sequence)}
+								{sequence}
 							</dd>
 						</div>
 					{/if}

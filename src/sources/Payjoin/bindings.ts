@@ -1,10 +1,10 @@
 // Generated from APP.ts. Do not edit by hand.
 
 import { Source } from '$/sources/Source.ts'
-import { ApiFamily, SourceArtifactKind, SourceCredentialScope, SourceDelivery, SourceEndpointKind, SourceOperationGroup, SourceTargetKind, WireProtocol, type SourceBindingIndex } from '$/sources/SourceBinding.ts'
+import { ApiFamily, indexSourceBindings, SourceArtifactKind, SourceCredentialScope, SourceDelivery, SourceEndpointKind, SourceOperationGroup, SourceTargetKind, WireProtocol, type SourceBinding } from '$/sources/SourceBinding.ts'
 
-export default {
-	[Source.PayjoinOhttpRelay_Http]: {
+const bindings = [
+	{
 		source: Source.PayjoinOhttpRelay_Http,
 		target: {
 			kind: SourceTargetKind.Global,
@@ -30,7 +30,7 @@ export default {
 			},
 		],
 	},
-	[Source.PayjoinReceiver_Http]: {
+	{
 		source: Source.PayjoinReceiver_Http,
 		target: {
 			kind: SourceTargetKind.Global,
@@ -56,7 +56,7 @@ export default {
 			},
 		],
 	},
-	[Source.PayjoinDirectory_Rest]: {
+	{
 		source: Source.PayjoinDirectory_Rest,
 		target: {
 			kind: SourceTargetKind.Global,
@@ -93,7 +93,6 @@ export default {
 				scope: SourceCredentialScope.None,
 			},
 		],
-		proxyId: '["PayjoinDirectory_Rest","Global","directory","HttpProxy","RestJson"]',
 		artifacts: [
 			{
 				kind: SourceArtifactKind.HandwrittenTypes,
@@ -102,4 +101,10 @@ export default {
 			},
 		],
 	},
-} as const satisfies SourceBindingIndex
+] as const satisfies readonly SourceBinding[]
+
+export default indexSourceBindings<{
+	readonly [Source.PayjoinOhttpRelay_Http]: typeof bindings[0]
+	readonly [Source.PayjoinReceiver_Http]: typeof bindings[1]
+	readonly [Source.PayjoinDirectory_Rest]: typeof bindings[2]
+}>(bindings)

@@ -8,8 +8,6 @@
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { stringify } from 'devalue'
 	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
-	import { UrlString } from '$/schema/UrlString.ts'
-	import { EvmAddress } from '$/schema/ZeroExHex.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -28,14 +26,12 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.EvmAccount> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Constants_Internal,
 		],
 	}))
 	const evmAccount = $derived(viewSelection)
-	const titleFallback = $derived(String(pendingEntity.address ?? '') || 'EVM account')
 	const viewDomId = $derived('evm-account-' + encodeURIComponent(stringify(selection.entitySelector)))
 
 
@@ -53,21 +49,24 @@
 	entityType={EntityType.EvmAccount}
 	entitySelector={selection.entitySelector}
 	id={viewDomId}
-	title={title ?? titleFallback}
+	title={title ?? (selection.entitySelector.address || 'EVM account')}
 	href={
-		href ?? resolve(
-			'/(explore)/account/[address=evmAddress]',
-			{
-				address: String(selection.entitySelector.address),
-			}
-		)
+		href === undefined ?
+			resolve(
+				'/(explore)/account/[address=evmAddress]',
+				{
+					address: selection.entitySelector.address,
+				}
+			)
+		:
+			href ?? undefined
 	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<TruncatedValue value={String(pendingEntity.address)} />
+		<TruncatedValue value={selection.entitySelector.address} />
 	{/snippet}
 
 	{#snippet Value()}
@@ -75,7 +74,7 @@
 			{#snippet Pending()}
 				<TruncatedValue
 					format={TruncatedValueFormat.Visual}
-					value={String(selection.entitySelector.address)}
+					value={selection.entitySelector.address}
 				/>
 			{/snippet}
 
@@ -83,17 +82,17 @@
 				{#if entity.$primaryName != null}
 					{@const primaryName = entity.$primaryName[EntityMetaKey.Selector].name ?? entity.$primaryName.name}
 					{#if primaryName}
-						{String(primaryName ?? '')}
+						{primaryName}
 					{:else}
 						<TruncatedValue
 							format={TruncatedValueFormat.Visual}
-							value={String(selection.entitySelector.address)}
+							value={selection.entitySelector.address}
 						/>
 					{/if}
 				{:else}
 					<TruncatedValue
 						format={TruncatedValueFormat.Visual}
-						value={String(selection.entitySelector.address)}
+						value={selection.entitySelector.address}
 					/>
 				{/if}
 			{/snippet}
@@ -111,7 +110,7 @@
 			<div>
 				<dt>Address</dt>
 				<dd>
-					<TruncatedValue value={String(pendingEntity.address)} />
+					<TruncatedValue value={selection.entitySelector.address} />
 				</dd>
 			</div>
 
@@ -153,11 +152,11 @@
 							<dt>Avatar URL</dt>
 							<dd>
 								<a
-									href={String(avatarUrl)}
+									href={avatarUrl}
 									target="_blank"
 									rel="noreferrer noopener"
 								>
-									<TruncatedValue value={String(avatarUrl)} />
+									<TruncatedValue value={avatarUrl} />
 								</a>
 							</dd>
 						</div>

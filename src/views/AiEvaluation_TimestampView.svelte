@@ -5,7 +5,6 @@
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { UrlString } from '$/schema/UrlString.ts'
 
 
 	// Context
@@ -22,14 +21,13 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.AiEvaluation_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const aiEvaluationTimestamp = $derived(selection({
 		fields: {
 			value: true,
 			unit: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.metricName ?? '') || 'AI evaluation timestamp')
+	const titleFallback = $derived(selection.entitySelector.metricName || 'AI evaluation timestamp')
 
 
 	// Components
@@ -54,20 +52,20 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{(pendingEntity.metricName ?? '') || 'AI evaluation timestamp'}
+		{selection.entitySelector.metricName || 'AI evaluation timestamp'}
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={aiEvaluationTimestamp}>
 			{#snippet children(entity)}
-				{[String(entity.value ?? ''), (entity.unit ?? '')].filter(Boolean).join(' ') || pendingEntity.metricName || titleFallback}
+				{[String(entity.value ?? ''), (entity.unit ?? '')].filter(Boolean).join(' ') || selection.entitySelector.metricName || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
 		<span data-text="muted">
-			{pendingEntity.subjectKind}
+			{selection.entitySelector.subjectKind}
 		</span>
 	{/snippet}
 
@@ -76,7 +74,7 @@
 			<div>
 				<dt>subject kind</dt>
 				<dd>
-					{pendingEntity.subjectKind}
+					{selection.entitySelector.subjectKind}
 				</dd>
 			</div>
 
@@ -94,7 +92,7 @@
 			<div>
 				<dt>metric name</dt>
 				<dd>
-					{pendingEntity.metricName}
+					{selection.entitySelector.metricName}
 				</dd>
 			</div>
 
@@ -129,7 +127,7 @@
 						<div>
 							<dt>Value</dt>
 							<dd>
-								{String(value)}
+								{value}
 							</dd>
 						</div>
 					{/if}
@@ -157,14 +155,14 @@
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+					<Timestamp timestamp={selection.entitySelector.timestampMs} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 
@@ -329,7 +327,7 @@
 						<div>
 							<dt>step</dt>
 							<dd>
-								{String(step)}
+								{step}
 							</dd>
 						</div>
 					{/if}
@@ -552,11 +550,11 @@
 							<dt>source URL</dt>
 							<dd>
 								<a
-									href={String(sourceUrl)}
+									href={sourceUrl}
 									target="_blank"
 									rel="noreferrer noopener"
 								>
-									<TruncatedValue value={String(sourceUrl)} />
+									<TruncatedValue value={sourceUrl} />
 								</a>
 							</dd>
 						</div>

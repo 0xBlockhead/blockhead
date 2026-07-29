@@ -20,14 +20,12 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType._GlobalNostrNetwork_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const globalNostrNetworkTimestamp = $derived(selection({
 		fields: {
 			reachable: true,
 			observedNoteCount: true,
 		},
 	}))
-	const titleFallback = $derived(String(pendingEntity.timestampMs ?? '') || 'global Nostr network timestamp')
 
 
 	// Components
@@ -40,19 +38,19 @@
 <EntityView
 	entityType={EntityType._GlobalNostrNetwork_Timestamp}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? String(selection.entitySelector.timestampMs)}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+		<Timestamp timestamp={selection.entitySelector.timestampMs} />
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={globalNostrNetworkTimestamp}>
 			{#snippet children(entity)}
-				{[pendingEntity.source, String(entity.reachable ?? '')].filter(Boolean).join(' ') || String(pendingEntity.timestampMs) || titleFallback}
+				{[selection.entitySelector.source, String(entity.reachable ?? '')].filter(Boolean).join(' ') || String(selection.entitySelector.timestampMs)}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -60,10 +58,10 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={globalNostrNetworkTimestamp}>
 			{#snippet children(entity)}
-				{@const observedNoteCount0 = entity.observedNoteCount}
-				{#if observedNoteCount0 != null}
+				{@const observedNoteCount = entity.observedNoteCount}
+				{#if observedNoteCount != null}
 					<span data-text="muted">
-						{String(observedNoteCount0)}
+						{observedNoteCount}
 					</span>
 				{/if}
 			{/snippet}
@@ -75,14 +73,14 @@
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+					<Timestamp timestamp={selection.entitySelector.timestampMs} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 
@@ -117,7 +115,7 @@
 						<div>
 							<dt>Filter kind</dt>
 							<dd>
-								{String(filterKind)}
+								{filterKind}
 							</dd>
 						</div>
 					{/if}
@@ -141,7 +139,7 @@
 						<div>
 							<dt>Declared relay count</dt>
 							<dd>
-								{String(declaredRelayCount)}
+								{declaredRelayCount}
 							</dd>
 						</div>
 					{/if}
@@ -163,7 +161,7 @@
 						<div>
 							<dt>Reachable relay count</dt>
 							<dd>
-								{String(reachableRelayCount)}
+								{reachableRelayCount}
 							</dd>
 						</div>
 					{/if}
@@ -185,7 +183,7 @@
 						<div>
 							<dt>Seeded relay count</dt>
 							<dd>
-								{String(seededRelayCount)}
+								{seededRelayCount}
 							</dd>
 						</div>
 					{/if}
@@ -209,7 +207,7 @@
 						<div>
 							<dt>Observed profile count</dt>
 							<dd>
-								{String(observedProfileCount)}
+								{observedProfileCount}
 							</dd>
 						</div>
 					{/if}
@@ -225,7 +223,7 @@
 						<div>
 							<dt>Observed note count</dt>
 							<dd>
-								{String(observedNoteCount)}
+								{observedNoteCount}
 							</dd>
 						</div>
 					{/if}
@@ -247,7 +245,7 @@
 						<div>
 							<dt>Observed relay count</dt>
 							<dd>
-								{String(observedRelayCount)}
+								{observedRelayCount}
 							</dd>
 						</div>
 					{/if}
@@ -269,7 +267,7 @@
 						<div>
 							<dt>Observed repost count</dt>
 							<dd>
-								{String(observedRepostCount)}
+								{observedRepostCount}
 							</dd>
 						</div>
 					{/if}
@@ -291,7 +289,7 @@
 						<div>
 							<dt>Observed article count</dt>
 							<dd>
-								{String(observedArticleCount)}
+								{observedArticleCount}
 							</dd>
 						</div>
 					{/if}

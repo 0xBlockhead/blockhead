@@ -24,14 +24,14 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.EvmContractVerification> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const contract = $derived(selection.entitySelector.$contract)
 	const evmContractVerification = $derived(selection({
 		fields: {
 			match: true,
 			runtimeMatch: true,
 		},
 	}))
-	const titleFallback = $derived([(pendingEntity.match ?? ''), (pendingEntity.runtimeMatch ?? '')].filter(Boolean).join(' ') || 'EVM contract verification')
+	const titleFallback = $derived([(prefetched.match ?? ''), (prefetched.runtimeMatch ?? '')].filter(Boolean).join(' ') || 'EVM contract verification')
 
 
 	// Components
@@ -48,18 +48,21 @@
 	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
 	href={
-		href ?? resolve(
-			'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(contracts)/contract/[address=evmAddress]/(evmContract)/verification',
-			{
-				network: (
-					'caip2' in selection.entitySelector.$contract.$network ?
-						String(caip2StringFromValue(selection.entitySelector.$contract.$network.caip2))
-					:
-						String(selection.entitySelector.$contract.$network.slug)
-				),
-				address: String(selection.entitySelector.$contract.address),
-			}
-		)
+		href === undefined ?
+			resolve(
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(contracts)/contract/[address=evmAddress]/(evmContract)/verification',
+				{
+					network: (
+						'caip2' in contract.$network ?
+							caip2StringFromValue(contract.$network.caip2)
+						:
+							contract.$network.slug
+					),
+					address: contract.address,
+				}
+			)
+		:
+			href ?? undefined
 	}
 	{layout}
 	bind:open
@@ -162,7 +165,7 @@
 						<div>
 							<dt>Verified at</dt>
 							<dd>
-								<Timestamp timestamp={Number(verifiedAtMs)} />
+								<Timestamp timestamp={verifiedAtMs} />
 							</dd>
 						</div>
 					{/if}

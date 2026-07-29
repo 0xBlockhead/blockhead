@@ -21,9 +21,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.MoneroKeyImage> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const titleFallback = $derived((pendingEntity.keyImage ?? '') || 'monero key image')
-
 
 	// Components
 	import NumberValue from '$/components/NumberValue.svelte'
@@ -37,18 +34,18 @@
 <EntityView
 	entityType={EntityType.MoneroKeyImage}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? (selection.entitySelector.keyImage || 'monero key image')}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<TruncatedValue value={pendingEntity.keyImage} />
+		<TruncatedValue value={selection.entitySelector.keyImage} />
 	{/snippet}
 
 	{#snippet Value()}
 		<NumberValue
-			value={pendingEntity.inputIndex}
+			value={selection.entitySelector.inputIndex}
 		/>
 	{/snippet}
 
@@ -88,7 +85,7 @@
 				<dt>Input index</dt>
 				<dd>
 					<NumberValue
-						value={pendingEntity.inputIndex}
+						value={selection.entitySelector.inputIndex}
 					/>
 				</dd>
 			</div>
@@ -96,7 +93,7 @@
 			<div>
 				<dt>Key image</dt>
 				<dd>
-					<TruncatedValue value={pendingEntity.keyImage} />
+					<TruncatedValue value={selection.entitySelector.keyImage} />
 				</dd>
 			</div>
 

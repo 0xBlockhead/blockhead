@@ -21,7 +21,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.KaspaBlock> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.KaspaExplorer_Rest,
@@ -30,7 +29,6 @@
 			Source.KaspaNode_Wrpc,
 		],
 	}))
-	const titleFallback = 'kaspa block'
 
 
 	// Components
@@ -46,7 +44,7 @@
 <EntityView
 	entityType={EntityType.KaspaBlock}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? 'kaspa block'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -71,7 +69,7 @@
 			<div>
 				<dt>Block hash</dt>
 				<dd>
-					<TruncatedValue value={pendingEntity.blockHash} />
+					<TruncatedValue value={selection.entitySelector.blockHash} />
 				</dd>
 			</div>
 
@@ -90,7 +88,7 @@
 						<div>
 							<dt>Timestamp</dt>
 							<dd>
-								<Timestamp timestamp={Number(timestampMs)} />
+								<Timestamp timestamp={timestampMs} />
 							</dd>
 						</div>
 					{/if}
@@ -182,7 +180,7 @@
 						}
 					>
 						{#snippet children(entity)}
-							<TruncatedValue value={entity.parentHashes.values.join(', ')} />
+							{entity.parentHashes.values.join(', ')}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -213,15 +211,15 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const kaspaBlockKaspaAcceptedTransactionsViewAcceptedTransactionsResource = selection.$$acceptedTransactions}
+		{@const acceptedTransactionsResource = selection.$$acceptedTransactions}
 		<ResourceBoundary
-			resource={kaspaBlockKaspaAcceptedTransactionsViewAcceptedTransactionsResource}
+			resource={acceptedTransactionsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<KaspaAcceptedTransactionsView
-						selection={kaspaBlockKaspaAcceptedTransactionsViewAcceptedTransactionsResource}
-						countResource={kaspaBlockKaspaAcceptedTransactionsViewAcceptedTransactionsResource.count}
+						selection={acceptedTransactionsResource}
+						countResource={acceptedTransactionsResource.count}
 						title='accepted transactions'
 						id='accepted-transactions'
 					/>

@@ -41,7 +41,7 @@
 			entitySelector={bittensorNetworkSelector}
 		>
 			{#snippet Title()}
-				{(bittensorNetwork.$network.name || (bittensorNetworkSelector.$network.caip2 == null ? '' : `${bittensorNetworkSelector.$network.caip2.namespace}:${bittensorNetworkSelector.$network.caip2.reference}`) || 'Network')}
+				{bittensorNetwork.$network.name || (bittensorNetworkSelector.$network.caip2 == null ? '' : `${bittensorNetworkSelector.$network.caip2.namespace}:${bittensorNetworkSelector.$network.caip2.reference}`) || 'Network'}
 			{/snippet}
 		</EntityView>
 	{/snippet}

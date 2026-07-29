@@ -24,8 +24,7 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.SolanaValidator> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const titleFallback = $derived((pendingEntity.votePubkey ?? '') || 'solana validator')
+	const network = $derived(selection.entitySelector.$network)
 	const viewDomId = $derived('solana-validator-' + encodeURIComponent(stringify(selection.entitySelector)))
 
 
@@ -43,31 +42,34 @@
 	entityType={EntityType.SolanaValidator}
 	entitySelector={selection.entitySelector}
 	id={viewDomId}
-	title={title ?? titleFallback}
+	title={title ?? (selection.entitySelector.votePubkey || 'solana validator')}
 	href={
-		href ?? resolve(
-			'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/validator/[validatorId=nonNegativeIntegerOrSolanaPubkey]',
-			{
-				network: (
-					'caip2' in selection.entitySelector.$network ?
-						String(caip2StringFromValue(selection.entitySelector.$network.caip2))
-					:
-						String(selection.entitySelector.$network.slug)
-				),
-				validatorId: String(selection.entitySelector.votePubkey),
-			}
-		)
+		href === undefined ?
+			resolve(
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/validator/[validatorId=nonNegativeIntegerOrSolanaPubkey]',
+				{
+					network: (
+						'caip2' in network ?
+							caip2StringFromValue(network.caip2)
+						:
+							network.slug
+					),
+					validatorId: selection.entitySelector.votePubkey,
+				}
+			)
+		:
+			href ?? undefined
 	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<TruncatedValue value={pendingEntity.votePubkey} />
+		<TruncatedValue value={selection.entitySelector.votePubkey} />
 	{/snippet}
 
 	{#snippet Value()}
-		<TruncatedValue value={pendingEntity.votePubkey} />
+		<TruncatedValue value={selection.entitySelector.votePubkey} />
 	{/snippet}
 
 	{#snippet HeadingAfter()}
@@ -85,7 +87,7 @@
 			<div>
 				<dt>Vote public key</dt>
 				<dd>
-					<TruncatedValue value={pendingEntity.votePubkey} />
+					<TruncatedValue value={selection.entitySelector.votePubkey} />
 				</dd>
 			</div>
 

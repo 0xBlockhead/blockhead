@@ -43,33 +43,32 @@
 >
 	{#snippet Item({ item: activityPubNoteTimestamp })}
 		{@const activityPubNoteTimestampSelector = activityPubNoteTimestamp[EntityMetaKey.Selector]}
+		{@const note = activityPubNoteTimestampSelector.$note}
 		<EntityView
 			entityType={EntityType.ActivityPubNote_Timestamp}
 			entitySelector={activityPubNoteTimestampSelector}
 			href={
-				(
-					'instanceOrigin' in activityPubNoteTimestampSelector.$note
-					&& 'localStatusId' in activityPubNoteTimestampSelector.$note ?
-						resolve(
-							'/(social)/(activitypub)/activitypub/(globalActivityPubNetwork)/note/[instanceOrigin=absoluteUrl]/[localStatusId=stringSegment]/(activityPubNote)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
-							{
-								instanceOrigin: encodeURIComponent(String(activityPubNoteTimestampSelector.$note.instanceOrigin)),
-								localStatusId: String(activityPubNoteTimestampSelector.$note.localStatusId),
-								timestampMs: String(activityPubNoteTimestampSelector.timestampMs),
-								source: String(activityPubNoteTimestampSelector.source),
-							}
-						)
-					:
-						undefined
-				)
+				'instanceOrigin' in note
+				&& 'localStatusId' in note ?
+					resolve(
+						'/(social)/(activitypub)/activitypub/(globalActivityPubNetwork)/note/[instanceOrigin=absoluteUrl]/[localStatusId=stringSegment]/(activityPubNote)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
+						{
+							instanceOrigin: encodeURIComponent(note.instanceOrigin),
+							localStatusId: note.localStatusId,
+							timestampMs: String(activityPubNoteTimestampSelector.timestampMs),
+							source: activityPubNoteTimestampSelector.source,
+						}
+					)
+				:
+					undefined
 			}
 		>
 			{#snippet Title()}
-				{(([activityPubNoteTimestamp.$note.content == null ? '' : String((htmlToPlainText(activityPubNoteTimestamp.$note.content)) ?? ''), activityPubNoteTimestampSelector.$note.localStatusId].filter(Boolean).join(' ')) || 'ActivityPub note')}
+				{[activityPubNoteTimestamp.$note.content == null ? '' : htmlToPlainText(activityPubNoteTimestamp.$note.content), activityPubNoteTimestampSelector.$note.localStatusId].filter(Boolean).join(' ') || 'ActivityPub note'}
 			{/snippet}
 
 			{#snippet Value()}
-				{String(activityPubNoteTimestampSelector.timestampMs)}
+				{activityPubNoteTimestampSelector.timestampMs}
 			{/snippet}
 		</EntityView>
 	{/snippet}

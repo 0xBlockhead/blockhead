@@ -39,6 +39,7 @@
 >
 	{#snippet Item({ item: solanaTokenMint })}
 		{@const solanaTokenMintSelector = solanaTokenMint[EntityMetaKey.Selector]}
+		{@const network = solanaTokenMintSelector.$network}
 		<EntityView
 			entityType={EntityType.SolanaTokenMint}
 			entitySelector={solanaTokenMintSelector}
@@ -47,12 +48,12 @@
 					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/token-mint/[mintAddress=stringSegment]',
 					{
 						network: (
-							'caip2' in solanaTokenMintSelector.$network ?
-								String(caip2StringFromValue(solanaTokenMintSelector.$network.caip2))
+							'caip2' in network ?
+								caip2StringFromValue(network.caip2)
 							:
-								String(solanaTokenMintSelector.$network.slug)
+								network.slug
 						),
-						mintAddress: String(solanaTokenMintSelector.mintAddress),
+						mintAddress: solanaTokenMintSelector.mintAddress,
 					}
 				)
 			}

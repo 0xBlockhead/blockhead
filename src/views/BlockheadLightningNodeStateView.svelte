@@ -23,7 +23,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.BlockheadLightningNodeState> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.LightningLnd_Grpc,
@@ -36,7 +35,7 @@
 			alias: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.alias ?? '') || (pendingEntity.connectionId ?? '') || 'blockhead Lightning node state')
+	const titleFallback = $derived((prefetched.alias ?? '') || selection.entitySelector.connectionId || 'blockhead Lightning node state')
 	const viewDomId = $derived('blockhead-lightning-node-state-' + encodeURIComponent(stringify(selection.entitySelector)))
 
 
@@ -74,7 +73,6 @@
 	{#snippet Value()}
 		<LightningNetworkView
 			selection={select(EntityType.LightningNetwork, selection.entitySelector.$network)}
-			href=""
 			layout={EntityLayout.Value}
 			open={false}
 		/>
@@ -104,7 +102,7 @@
 			<div>
 				<dt>connection ID</dt>
 				<dd>
-					{pendingEntity.connectionId}
+					{selection.entitySelector.connectionId}
 				</dd>
 			</div>
 

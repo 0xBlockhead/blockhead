@@ -19,7 +19,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType._GlobalYoutubeNetwork> = $props()
 
-	const titleFallback = 'YouTube'
 	const viewDomId = $derived('-global-youtube-network-' + encodeURIComponent(stringify(selection.entitySelector)))
 
 
@@ -37,8 +36,13 @@
 	entityType={EntityType._GlobalYoutubeNetwork}
 	entitySelector={selection.entitySelector}
 	id={viewDomId}
-	title={title ?? titleFallback}
-	href={href ?? resolve('/(social)/(youtube)/youtube')}
+	title={title ?? 'YouTube'}
+	href={
+		href === undefined ?
+			resolve('/(social)/(youtube)/youtube')
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}

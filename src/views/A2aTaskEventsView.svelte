@@ -41,7 +41,7 @@
 			entitySelector={a2aTaskEventSelector}
 		>
 			{#snippet Title()}
-				{String(a2aTaskEventSelector.sequence) || 'A2A task event'}
+				{a2aTaskEventSelector.sequence}
 			{/snippet}
 
 			{#snippet Value()}
@@ -49,7 +49,7 @@
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{String(a2aTaskEvent.timestampMs ?? '')}</span>
+				<span data-text="annotation">{a2aTaskEvent.timestampMs ?? ''}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

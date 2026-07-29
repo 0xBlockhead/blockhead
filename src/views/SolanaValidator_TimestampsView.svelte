@@ -41,15 +41,15 @@
 			entitySelector={solanaValidatorTimestampSelector}
 		>
 			{#snippet Title()}
-				{String(solanaValidatorTimestampSelector.slot) || 'solana validator timestamp'}
+				{solanaValidatorTimestampSelector.slot}
 			{/snippet}
 
 			{#snippet Value()}
-				{String(solanaValidatorTimestamp.delinquent ?? '')}
+				{solanaValidatorTimestamp.delinquent ?? ''}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{String(solanaValidatorTimestamp.timestampMs ?? '')}</span>
+				<span data-text="annotation">{solanaValidatorTimestamp.timestampMs ?? ''}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

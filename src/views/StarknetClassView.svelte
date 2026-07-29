@@ -4,7 +4,6 @@
 	// Types/constants
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -22,7 +21,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.StarknetClass> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Juno_JsonRpc,
@@ -38,7 +36,7 @@
 			declaredAtBlockNumber: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.classHash ?? '') || 'starknet class')
+	const titleFallback = $derived(selection.entitySelector.classHash || 'starknet class')
 
 
 	// Components
@@ -59,13 +57,13 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{(pendingEntity.classHash ?? '') || 'starknet class'}
+		{selection.entitySelector.classHash || 'starknet class'}
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={starknetClass}>
 			{#snippet children(entity)}
-				{(entity.contractClassVersion ?? '') || pendingEntity.classHash || titleFallback}
+				{(entity.contractClassVersion ?? '') || selection.entitySelector.classHash || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -73,11 +71,11 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={starknetClass}>
 			{#snippet children(entity)}
-				{@const declaredAtBlockNumber0 = entity.declaredAtBlockNumber}
-				{#if declaredAtBlockNumber0 != null}
+				{@const declaredAtBlockNumber = entity.declaredAtBlockNumber}
+				{#if declaredAtBlockNumber != null}
 					<span data-text="muted">
 						<NumberValue
-							value={declaredAtBlockNumber0}
+							value={declaredAtBlockNumber}
 						/>
 					</span>
 				{/if}
@@ -101,7 +99,7 @@
 			<div>
 				<dt>class hash</dt>
 				<dd>
-					<TruncatedValue value={pendingEntity.classHash} />
+					<TruncatedValue value={selection.entitySelector.classHash} />
 				</dd>
 			</div>
 
@@ -182,7 +180,7 @@
 						<div>
 							<dt>ABI hash</dt>
 							<dd>
-								<TruncatedValue value={String(abiHash)} />
+								<TruncatedValue value={abiHash} />
 							</dd>
 						</div>
 					{/if}
@@ -232,15 +230,15 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const starknetClassStarknetContractsViewContractsResource = selection.$$contracts}
+		{@const contractsResource = selection.$$contracts}
 		<ResourceBoundary
-			resource={starknetClassStarknetContractsViewContractsResource}
+			resource={contractsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<StarknetContractsView
-						selection={starknetClassStarknetContractsViewContractsResource}
-						countResource={starknetClassStarknetContractsViewContractsResource.count}
+						selection={contractsResource}
+						countResource={contractsResource.count}
 						title='contracts'
 						id='contracts'
 					/>

@@ -35,7 +35,6 @@ const resolverBinding = vi.hoisted(() => ({
 	operationGroups: ['GenericRead'],
 	delivery: 'HttpProxy',
 	credentials: [{ scope: 'None' }],
-	proxyId: 'SqdPortal_RawHttp-284',
 	artifacts: [{
 		kind: 'HandwrittenTypes',
 		path: 'src/sources/Sqd/Portal/types.ts',

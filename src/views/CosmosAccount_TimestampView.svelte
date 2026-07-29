@@ -20,14 +20,13 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.CosmosAccount_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const cosmosAccountTimestamp = $derived(selection({
 		fields: {
 			accountNumber: true,
 			sequence: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.source ?? '') || 'Cosmos account timestamp')
+	const titleFallback = $derived(selection.entitySelector.source || 'Cosmos account timestamp')
 
 
 	// Components
@@ -47,20 +46,20 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{(pendingEntity.source ?? '') || 'Cosmos account timestamp'}
+		{selection.entitySelector.source || 'Cosmos account timestamp'}
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={cosmosAccountTimestamp}>
 			{#snippet children(entity)}
-				{[String(entity.accountNumber ?? ''), String(entity.sequence ?? '')].filter(Boolean).join(' ') || pendingEntity.source || titleFallback}
+				{[String(entity.accountNumber ?? ''), String(entity.sequence ?? '')].filter(Boolean).join(' ') || selection.entitySelector.source || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
 		<span data-text="muted">
-			<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+			<Timestamp timestamp={selection.entitySelector.timestampMs} />
 		</span>
 	{/snippet}
 
@@ -69,14 +68,14 @@
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+					<Timestamp timestamp={selection.entitySelector.timestampMs} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 
@@ -89,7 +88,7 @@
 						<div>
 							<dt>Account number</dt>
 							<dd>
-								<TruncatedValue value={String(accountNumber)} />
+								{accountNumber}
 							</dd>
 						</div>
 					{/if}
@@ -105,7 +104,7 @@
 						<div>
 							<dt>Sequence</dt>
 							<dd>
-								{String(sequence)}
+								{sequence}
 							</dd>
 						</div>
 					{/if}

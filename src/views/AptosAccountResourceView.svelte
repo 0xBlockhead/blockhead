@@ -20,9 +20,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.AptosAccountResource> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const titleFallback = $derived((pendingEntity.resourceType ?? '') || 'aptos account resource')
-
 
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -35,19 +32,18 @@
 <EntityView
 	entityType={EntityType.AptosAccountResource}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? (selection.entitySelector.resourceType || 'aptos account resource')}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{(pendingEntity.resourceType ?? '') || 'aptos account resource'}
+		{selection.entitySelector.resourceType || 'aptos account resource'}
 	{/snippet}
 
 	{#snippet Value()}
 		<AptosAccountView
 			selection={select(EntityType.AptosAccount, selection.entitySelector.$account)}
-			href=""
 			layout={EntityLayout.Value}
 			open={false}
 		/>
@@ -69,22 +65,22 @@
 			<div>
 				<dt>resource type</dt>
 				<dd>
-					{pendingEntity.resourceType}
+					{selection.entitySelector.resourceType}
 				</dd>
 			</div>
 		</dl>
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const aptosAccountResourceAptosAccountResourceTimestampsViewTimestampsResource = selection.$$timestamps}
+		{@const timestampsResource = selection.$$timestamps}
 		<ResourceBoundary
-			resource={aptosAccountResourceAptosAccountResourceTimestampsViewTimestampsResource}
+			resource={timestampsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<AptosAccountResource_TimestampsView
-						selection={aptosAccountResourceAptosAccountResourceTimestampsViewTimestampsResource}
-						countResource={aptosAccountResourceAptosAccountResourceTimestampsViewTimestampsResource.count}
+						selection={timestampsResource}
+						countResource={timestampsResource.count}
 						title='timestamps'
 						id='timestamps'
 					/>

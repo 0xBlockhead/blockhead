@@ -44,7 +44,7 @@
 			entitySelector={blockheadAvalancheNodeStateTimestampSelector}
 		>
 			{#snippet Title()}
-				{String(blockheadAvalancheNodeStateTimestampSelector.timestampMs) || 'blockhead avalanche node state timestamp'}
+				{blockheadAvalancheNodeStateTimestampSelector.timestampMs}
 			{/snippet}
 
 			{#snippet Value()}
@@ -52,7 +52,7 @@
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{String(blockheadAvalancheNodeStateTimestamp.connectedPeerCount ?? '')}</span>
+				<span data-text="annotation">{blockheadAvalancheNodeStateTimestamp.connectedPeerCount ?? ''}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

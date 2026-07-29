@@ -241,8 +241,10 @@ describe('client resolver architecture', () => {
 			for (const match of source.matchAll(/from ['"]([^'"]+)['"]/g)) {
 				if (match[1].startsWith('$/sources/'))
 					expect([
-						'$/sources/SourceProvider.ts',
-						...(relativePath === 'lib/http.ts' ? ['$/sources/SourceBinding.ts'] : []),
+						...(relativePath === 'lib/http.ts' ? [
+							'$/sources/SourceBinding.ts',
+							'$/sources/SourceProviderDefinition.ts',
+						] : []),
 					], `${relativePath}: ${match[1]}`).toContain(match[1])
 				if (relativePath !== 'lib/media.ts' || match[1] !== '$/constants/IpfsProtocol.ts')
 					expect(match[1], relativePath).not.toMatch(/\$\/constants\//)

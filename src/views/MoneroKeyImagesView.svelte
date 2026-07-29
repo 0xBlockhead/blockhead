@@ -45,7 +45,7 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{String(moneroKeyImageSelector.inputIndex)}
+				{moneroKeyImageSelector.inputIndex}
 			{/snippet}
 
 			{#snippet HeadingAfter()}

@@ -21,18 +21,15 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.MoneroRingMember> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const viewSelection = $derived(selection({
+	const moneroRingMember = $derived(selection({
 		sources: selection.sources ?? [
 			Source.MoneroDaemonRpc_JsonRpc,
 		],
-	}))
-	const moneroRingMember = $derived(viewSelection({
+	})({
 		fields: {
 			globalOutputIndex: true,
 		},
 	}))
-	const titleFallback = $derived(String(pendingEntity.memberIndex ?? '') || 'monero ring member')
 
 
 	// Components
@@ -45,24 +42,24 @@
 <EntityView
 	entityType={EntityType.MoneroRingMember}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? String(selection.entitySelector.memberIndex)}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
 		<NumberValue
-			value={pendingEntity.memberIndex}
+			value={selection.entitySelector.memberIndex}
 		/>
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={moneroRingMember}>
 			{#snippet children(entity)}
-				{@const globalOutputIndex0 = entity.globalOutputIndex}
-				{#if globalOutputIndex0 != null}
+				{@const globalOutputIndex = entity.globalOutputIndex}
+				{#if globalOutputIndex != null}
 					<NumberValue
-						value={globalOutputIndex0}
+						value={globalOutputIndex}
 					/>
 				{/if}
 			{/snippet}
@@ -86,7 +83,7 @@
 				<dt>Member index</dt>
 				<dd>
 					<NumberValue
-						value={pendingEntity.memberIndex}
+						value={selection.entitySelector.memberIndex}
 					/>
 				</dd>
 			</div>

@@ -21,7 +21,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.XrplAccount_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Xrpl_Rippled,
@@ -32,7 +31,7 @@
 			balanceDrops: true,
 		},
 	}))
-	const titleFallback = $derived(String(pendingEntity.balanceDrops ?? '') || 'XRPL account timestamp')
+	const titleFallback = $derived(String(prefetched.balanceDrops ?? '') || 'XRPL account timestamp')
 
 
 	// Components
@@ -55,10 +54,10 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={xrplAccountTimestamp}>
 			{#snippet children(entity)}
-				{@const balanceDrops0 = entity.balanceDrops}
-				{#if balanceDrops0 != null}
+				{@const balanceDrops = entity.balanceDrops}
+				{#if balanceDrops != null}
 					<NumberValue
-						value={balanceDrops0}
+						value={balanceDrops}
 					/>
 				{/if}
 			{/snippet}
@@ -66,13 +65,13 @@
 	{/snippet}
 
 	{#snippet Value()}
-		{(pendingEntity.source ?? '') || String(pendingEntity.balanceDrops ?? '') || titleFallback}
+		{selection.entitySelector.source || String(prefetched.balanceDrops ?? '') || titleFallback}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
 		<span data-text="muted">
 			<NumberValue
-				value={pendingEntity.ledgerIndex}
+				value={selection.entitySelector.ledgerIndex}
 			/>
 		</span>
 	{/snippet}
@@ -94,7 +93,7 @@
 				<dt>ledger index</dt>
 				<dd>
 					<NumberValue
-						value={pendingEntity.ledgerIndex}
+						value={selection.entitySelector.ledgerIndex}
 					/>
 				</dd>
 			</div>
@@ -102,7 +101,7 @@
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 		</dl>
@@ -123,7 +122,7 @@
 						<div>
 							<dt>Timestamp</dt>
 							<dd>
-								<Timestamp timestamp={Number(timestampMs)} />
+								<Timestamp timestamp={timestampMs} />
 							</dd>
 						</div>
 					{/if}
@@ -139,7 +138,7 @@
 						<div>
 							<dt>balance drops</dt>
 							<dd>
-								{String(balanceDrops)}
+								{balanceDrops}
 							</dd>
 						</div>
 					{/if}
@@ -161,7 +160,7 @@
 						<div>
 							<dt>owner count</dt>
 							<dd>
-								{String(ownerCount)}
+								{ownerCount}
 							</dd>
 						</div>
 					{/if}
@@ -183,7 +182,7 @@
 						<div>
 							<dt>sequence</dt>
 							<dd>
-								{String(sequence)}
+								{sequence}
 							</dd>
 						</div>
 					{/if}
@@ -205,7 +204,7 @@
 						<div>
 							<dt>flags</dt>
 							<dd>
-								{String(flags)}
+								{flags}
 							</dd>
 						</div>
 					{/if}

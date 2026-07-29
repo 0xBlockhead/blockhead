@@ -20,14 +20,12 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.ArweaveNetwork_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const arweaveNetworkTimestamp = $derived(selection({
 		fields: {
 			latestHeight: true,
 			reachable: true,
 		},
 	}))
-	const titleFallback = $derived(String(pendingEntity.timestampMs ?? '') || 'arweave network timestamp')
 
 
 	// Components
@@ -42,22 +40,22 @@
 <EntityView
 	entityType={EntityType.ArweaveNetwork_Timestamp}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? String(selection.entitySelector.timestampMs)}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+		<Timestamp timestamp={selection.entitySelector.timestampMs} />
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={arweaveNetworkTimestamp}>
 			{#snippet children(entity)}
-				{@const latestHeight0 = entity.latestHeight}
-				{#if latestHeight0 != null}
+				{@const latestHeight = entity.latestHeight}
+				{#if latestHeight != null}
 					<NumberValue
-						value={latestHeight0}
+						value={latestHeight}
 					/>
 				{/if}
 			{/snippet}
@@ -68,12 +66,12 @@
 		<ResourceBoundary resource={arweaveNetworkTimestamp}>
 			{#snippet children(entity)}
 				<span data-text="muted">
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</span>
-				{@const reachable1 = entity.reachable}
-				{#if reachable1 != null}
+				{@const reachable = entity.reachable}
+				{#if reachable != null}
 					<span data-text="muted">
-						{reachable1 ? 'Yes' : 'No'}
+						{reachable ? 'Yes' : 'No'}
 					</span>
 				{/if}
 			{/snippet}
@@ -96,14 +94,14 @@
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+					<Timestamp timestamp={selection.entitySelector.timestampMs} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 		</dl>

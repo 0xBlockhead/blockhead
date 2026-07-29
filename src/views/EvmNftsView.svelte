@@ -45,23 +45,22 @@
 >
 	{#snippet Item({ item: evmNft })}
 		{@const evmNftSelector = evmNft[EntityMetaKey.Selector]}
+		{@const contract = evmNftSelector.$contract}
 		<EntityView
 			entityType={EntityType.EvmNft}
 			entitySelector={evmNftSelector}
 			href={
-				(
-					'caip2' in evmNftSelector.$contract.$network ?
-						resolve(
-							'/services/agent/[chainId=eip155ChainId]/[contractAddress=evmAddress]/[tokenId=stringSegment]',
-							{
-								chainId: String(evmNftSelector.$contract.$network.caip2.reference),
-								contractAddress: String(evmNftSelector.$contract.address),
-								tokenId: String(evmNftSelector.tokenId),
-							}
-						)
-					:
-						undefined
-				)
+				'caip2' in contract.$network ?
+					resolve(
+						'/services/agent/[chainId=eip155ChainId]/[contractAddress=evmAddress]/[tokenId=stringSegment]',
+						{
+							chainId: contract.$network.caip2.reference,
+							contractAddress: contract.address,
+							tokenId: evmNftSelector.tokenId,
+						}
+					)
+				:
+					undefined
 			}
 		>
 			{#snippet Title()}

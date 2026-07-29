@@ -23,13 +23,12 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.Erc4337Bundler_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const bundler = $derived(selection.entitySelector.$bundler)
 	const erc4337BundlerTimestamp = $derived(selection({
 		fields: {
 			userOperationsCount: true,
 		},
 	}))
-	const titleFallback = $derived(String(pendingEntity.timestampMs ?? '') || 'ERC-4337 bundler timestamp')
 
 
 	// Components
@@ -43,38 +42,41 @@
 <EntityView
 	entityType={EntityType.Erc4337Bundler_Timestamp}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? String(selection.entitySelector.timestampMs)}
 	href={
-		href ?? resolve(
-			'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/erc-4337/bundler/[address=evmAddress]/(erc4337Bundler)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
-			{
-				network: (
-					'caip2' in selection.entitySelector.$bundler.$network ?
-						String(caip2StringFromValue(selection.entitySelector.$bundler.$network.caip2))
-					:
-						String(selection.entitySelector.$bundler.$network.slug)
-				),
-				address: String(selection.entitySelector.$bundler.address),
-				timestampMs: String(selection.entitySelector.timestampMs),
-				source: String(selection.entitySelector.source),
-			}
-		)
+		href === undefined ?
+			resolve(
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/erc-4337/bundler/[address=evmAddress]/(erc4337Bundler)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
+				{
+					network: (
+						'caip2' in bundler.$network ?
+							caip2StringFromValue(bundler.$network.caip2)
+						:
+							bundler.$network.slug
+					),
+					address: bundler.address,
+					timestampMs: String(selection.entitySelector.timestampMs),
+					source: selection.entitySelector.source,
+				}
+			)
+		:
+			href ?? undefined
 	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+		<Timestamp timestamp={selection.entitySelector.timestampMs} />
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={erc4337BundlerTimestamp}>
 			{#snippet children(entity)}
-				{@const userOperationsCount0 = entity.userOperationsCount}
-				{#if userOperationsCount0 != null}
+				{@const userOperationsCount = entity.userOperationsCount}
+				{#if userOperationsCount != null}
 					<NumberValue
-						value={userOperationsCount0}
+						value={userOperationsCount}
 					/>
 				{/if}
 			{/snippet}
@@ -83,7 +85,7 @@
 
 	{#snippet HeadingAfter()}
 		<span data-text="muted">
-			{pendingEntity.source}
+			{selection.entitySelector.source}
 		</span>
 	{/snippet}
 
@@ -92,14 +94,14 @@
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+					<Timestamp timestamp={selection.entitySelector.timestampMs} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 

@@ -23,8 +23,7 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.PolkadotAccount> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const titleFallback = $derived((pendingEntity.accountId ?? '') || 'Polkadot account')
+	const network = $derived(selection.entitySelector.$network)
 
 
 	// Components
@@ -39,31 +38,34 @@
 <EntityView
 	entityType={EntityType.PolkadotAccount}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? (selection.entitySelector.accountId || 'Polkadot account')}
 	href={
-		href ?? resolve(
-			'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(accounts)/account/[accountId=polkadotAccountIdOrStringSegmentOrEvmAddressOrSolanaPubkey]',
-			{
-				network: (
-					'caip2' in selection.entitySelector.$network ?
-						String(caip2StringFromValue(selection.entitySelector.$network.caip2))
-					:
-						String(selection.entitySelector.$network.slug)
-				),
-				accountId: String(selection.entitySelector.accountId),
-			}
-		)
+		href === undefined ?
+			resolve(
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(accounts)/account/[accountId=polkadotAccountIdOrStringSegmentOrEvmAddressOrSolanaPubkey]',
+				{
+					network: (
+						'caip2' in network ?
+							caip2StringFromValue(network.caip2)
+						:
+							network.slug
+					),
+					accountId: selection.entitySelector.accountId,
+				}
+			)
+		:
+			href ?? undefined
 	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<TruncatedValue value={pendingEntity.accountId} />
+		<TruncatedValue value={selection.entitySelector.accountId} />
 	{/snippet}
 
 	{#snippet Value()}
-		<TruncatedValue value={pendingEntity.accountId} />
+		<TruncatedValue value={selection.entitySelector.accountId} />
 	{/snippet}
 
 	{#snippet HeadingAfter()}
@@ -81,7 +83,7 @@
 			<div>
 				<dt>Account ID</dt>
 				<dd>
-					<TruncatedValue value={pendingEntity.accountId} />
+					<TruncatedValue value={selection.entitySelector.accountId} />
 				</dd>
 			</div>
 
@@ -99,30 +101,30 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const polkadotAccountPolkadotAccountTimestampsViewTimestampsResource = selection.$$timestamps}
+		{@const timestampsResource = selection.$$timestamps}
 		<ResourceBoundary
-			resource={polkadotAccountPolkadotAccountTimestampsViewTimestampsResource}
+			resource={timestampsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<PolkadotAccount_TimestampsView
-						selection={polkadotAccountPolkadotAccountTimestampsViewTimestampsResource}
-						countResource={polkadotAccountPolkadotAccountTimestampsViewTimestampsResource.count}
+						selection={timestampsResource}
+						countResource={timestampsResource.count}
 						title='Account snapshots'
 						id='timestamps'
 					/>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>
-		{@const polkadotAccountPolkadotAssetBalanceTimestampsViewAssetBalanceTimestampsResource = selection.$$assetBalanceTimestamps}
+		{@const assetBalanceTimestampsResource = selection.$$assetBalanceTimestamps}
 		<ResourceBoundary
-			resource={polkadotAccountPolkadotAssetBalanceTimestampsViewAssetBalanceTimestampsResource}
+			resource={assetBalanceTimestampsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<PolkadotAssetBalance_TimestampsView
-						selection={polkadotAccountPolkadotAssetBalanceTimestampsViewAssetBalanceTimestampsResource}
-						countResource={polkadotAccountPolkadotAssetBalanceTimestampsViewAssetBalanceTimestampsResource.count}
+						selection={assetBalanceTimestampsResource}
+						countResource={assetBalanceTimestampsResource.count}
 						title='Asset balances'
 						id='asset-balance-timestamps'
 					/>

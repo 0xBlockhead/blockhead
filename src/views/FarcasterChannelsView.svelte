@@ -45,7 +45,7 @@
 				resolve(
 					'/(social)/(farcaster)/farcaster/(farcasterNetwork)/channel/[channelId=stringSegment]',
 					{
-						channelId: String(farcasterChannelSelector.id),
+						channelId: farcasterChannelSelector.id,
 					}
 				)
 			}
@@ -59,7 +59,7 @@
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{String(farcasterChannel.createdAt ?? '')}</span>
+				<span data-text="annotation">{farcasterChannel.createdAt ?? ''}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

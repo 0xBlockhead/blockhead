@@ -20,13 +20,11 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.IbcPacket> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const ibcPacket = $derived(selection({
 		fields: {
 			status: true,
 		},
 	}))
-	const titleFallback = $derived((String(pendingEntity.sequence ?? '') ? 'Packet #' + String(pendingEntity.sequence ?? '') : '') || 'IBC packet')
 
 
 	// Components
@@ -40,8 +38,8 @@
 <EntityView
 	entityType={EntityType.IbcPacket}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
-	idDragPlainText={String(pendingEntity.sequence ?? '')}
+	title={title ?? `Packet #${selection.entitySelector.sequence}`}
+	idDragPlainText={String(selection.entitySelector.sequence)}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -50,14 +48,14 @@
 		<span data-row="inline align-center gap-2 wrap">
 			<span>Packet </span>
 			<span data-badge="small">
-				#{String(pendingEntity.sequence)}
+				#{selection.entitySelector.sequence}
 			</span>
 		</span>
 	{/snippet}
 
 	{#snippet Value()}
 		<span data-badge="small">
-			#{String(pendingEntity.sequence)}
+			#{selection.entitySelector.sequence}
 		</span>
 	{/snippet}
 
@@ -65,12 +63,12 @@
 		<ResourceBoundary resource={ibcPacket}>
 			{#snippet children(entity)}
 				<span data-text="muted">
-					{pendingEntity.direction}
+					{selection.entitySelector.direction}
 				</span>
-				{@const status1 = entity.status}
-				{#if status1 != null}
+				{@const status = entity.status}
+				{#if status != null}
 					<span data-text="muted">
-						{status1}
+						{status}
 					</span>
 				{/if}
 			{/snippet}
@@ -82,14 +80,14 @@
 			<div>
 				<dt>Sequence</dt>
 				<dd>
-					{String(pendingEntity.sequence)}
+					{selection.entitySelector.sequence}
 				</dd>
 			</div>
 
 			<div>
 				<dt>Direction</dt>
 				<dd>
-					{pendingEntity.direction}
+					{selection.entitySelector.direction}
 				</dd>
 			</div>
 
@@ -146,7 +144,7 @@
 						<div>
 							<dt>Timeout timestamp ns</dt>
 							<dd>
-								{String(timeoutTimestampNs)}
+								{timeoutTimestampNs}
 							</dd>
 						</div>
 					{/if}

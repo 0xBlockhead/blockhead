@@ -21,14 +21,12 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.OracleFeed_Round> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const oracleFeedRound = $derived(selection({
 		fields: {
 			answer: true,
 			updatedAtMs: true,
 		},
 	}))
-	const titleFallback = $derived(String(pendingEntity.roundId ?? '') || 'oracle feed round')
 
 
 	// Components
@@ -44,24 +42,24 @@
 <EntityView
 	entityType={EntityType.OracleFeed_Round}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? String(selection.entitySelector.roundId)}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
 		<NumberValue
-			value={pendingEntity.roundId}
+			value={selection.entitySelector.roundId}
 		/>
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={oracleFeedRound}>
 			{#snippet children(entity)}
-				{@const answer0 = entity.answer}
-				{#if answer0 != null}
+				{@const answer = entity.answer}
+				{#if answer != null}
 					<NumberValue
-						value={answer0}
+						value={answer}
 					/>
 				{/if}
 			{/snippet}
@@ -71,10 +69,10 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={oracleFeedRound}>
 			{#snippet children(entity)}
-				{@const updatedAtMs0 = entity.updatedAtMs}
-				{#if updatedAtMs0 != null}
+				{@const updatedAtMs = entity.updatedAtMs}
+				{#if updatedAtMs != null}
 					<span data-text="muted">
-						<Timestamp timestamp={Number(updatedAtMs0)} />
+						<Timestamp timestamp={updatedAtMs} />
 					</span>
 				{/if}
 			{/snippet}
@@ -116,7 +114,7 @@
 				<dt>round ID</dt>
 				<dd>
 					<NumberValue
-						value={pendingEntity.roundId}
+						value={selection.entitySelector.roundId}
 					/>
 				</dd>
 			</div>
@@ -156,7 +154,7 @@
 						<div>
 							<dt>started AT ms</dt>
 							<dd>
-								<Timestamp timestamp={Number(startedAtMs)} />
+								<Timestamp timestamp={startedAtMs} />
 							</dd>
 						</div>
 					{/if}
@@ -172,7 +170,7 @@
 						<div>
 							<dt>updated AT ms</dt>
 							<dd>
-								<Timestamp timestamp={Number(updatedAtMs)} />
+								<Timestamp timestamp={updatedAtMs} />
 							</dd>
 						</div>
 					{/if}

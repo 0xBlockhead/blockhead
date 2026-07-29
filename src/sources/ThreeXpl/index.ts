@@ -1,7 +1,8 @@
 // Generated from APP.ts. Do not edit by hand.
 
 import { Source } from '$/sources/Source.ts'
-import { SourceProvider, type SourceProviderDefinition } from '$/sources/SourceProvider.ts'
+import { SourceProvider } from '$/sources/SourceProvider.ts'
+import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinition.ts'
 import bindings from '$/sources/ThreeXpl/bindings.ts'
 
 export default {
@@ -13,5 +14,5 @@ export default {
 			label: '3xpl REST',
 		},
 	],
-	bindings: [bindings[Source.ThreeXpl_Rest]],
+	bindings: Object.values(bindings).flat(),
 } satisfies SourceProviderDefinition

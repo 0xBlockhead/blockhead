@@ -20,21 +20,19 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.LightningNode_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const lightningNodeTimestamp = $derived(selection({
 		fields: {
 			alias: true,
 			capacitySats: true,
 		},
 	}))
-	const titleFallback = $derived([(pendingEntity.alias ?? ''), String(pendingEntity.timestampMs ?? '')].filter(Boolean).join(' ') || 'Lightning node timestamp')
+	const titleFallback = $derived([(prefetched.alias ?? ''), String(selection.entitySelector.timestampMs)].filter(Boolean).join(' ') || 'Lightning node timestamp')
 
 
 	// Components
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
-	import TruncatedValue from '$/components/TruncatedValue.svelte'
 	import LightningNodeView from '$/views/LightningNodeView.svelte'
 </script>
 
@@ -50,7 +48,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={lightningNodeTimestamp}>
 			{#snippet children(entity)}
-				{[(entity.alias ?? ''), String(pendingEntity.timestampMs)].filter(Boolean).join(' ') || title || titleFallback}
+				{[(entity.alias ?? ''), String(selection.entitySelector.timestampMs)].filter(Boolean).join(' ') || title || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -58,10 +56,10 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={lightningNodeTimestamp}>
 			{#snippet children(entity)}
-				{@const capacitySats0 = entity.capacitySats}
-				{#if capacitySats0 != null}
+				{@const capacitySats = entity.capacitySats}
+				{#if capacitySats != null}
 					<NumberValue
-						value={capacitySats0}
+						value={capacitySats}
 					/>
 				{/if}
 			{/snippet}
@@ -84,7 +82,7 @@
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 
@@ -125,7 +123,7 @@
 						<div>
 							<dt>Channels</dt>
 							<dd>
-								{String(channelCount)}
+								{channelCount}
 							</dd>
 						</div>
 					{/if}
@@ -147,7 +145,7 @@
 						<div>
 							<dt>First seen</dt>
 							<dd>
-								{String(firstSeenMs)}
+								{firstSeenMs}
 							</dd>
 						</div>
 					{/if}
@@ -169,7 +167,7 @@
 						<div>
 							<dt>Updated</dt>
 							<dd>
-								{String(updatedAtMs)}
+								{updatedAtMs}
 							</dd>
 						</div>
 					{/if}
@@ -233,7 +231,7 @@
 						}
 					>
 						{#snippet children(entity)}
-							<TruncatedValue value={entity.networkAddresses.values.join(', ')} />
+							{entity.networkAddresses.values.join(', ')}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>

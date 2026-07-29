@@ -5,7 +5,6 @@
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { UrlString } from '$/schema/UrlString.ts'
 
 
 	// Context
@@ -22,7 +21,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.AiDataset> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const aiDataset = $derived(selection({
 		fields: {
 			label: true,
@@ -33,7 +31,7 @@
 			license: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.label ?? '') || [String(pendingEntity.datasetUri ?? ''), (pendingEntity.datasetName ?? ''), (pendingEntity.huggingFaceDatasetId ?? '')].filter(Boolean).join(' ') || 'AI dataset')
+	const titleFallback = $derived((prefetched.label ?? '') || [(prefetched.datasetUri ?? ''), (prefetched.datasetName ?? ''), (prefetched.huggingFaceDatasetId ?? '')].filter(Boolean).join(' ') || 'AI dataset')
 
 
 	// Components
@@ -71,10 +69,10 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={aiDataset}>
 			{#snippet children(entity)}
-				{@const license0 = entity.license}
-				{#if license0 != null}
+				{@const license = entity.license}
+				{#if license != null}
 					<span data-text="muted">
-						{license0}
+						{license}
 					</span>
 				{/if}
 			{/snippet}
@@ -93,11 +91,11 @@
 							<dt>dataset URI</dt>
 							<dd>
 								<a
-									href={String(datasetUri)}
+									href={datasetUri}
 									target="_blank"
 									rel="noreferrer noopener"
 								>
-									<TruncatedValue value={String(datasetUri)} />
+									<TruncatedValue value={datasetUri} />
 								</a>
 							</dd>
 						</div>
@@ -320,15 +318,15 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const aiDatasetAiDocumentsViewDocumentsResource = selection.$$documents}
+		{@const documentsResource = selection.$$documents}
 		<ResourceBoundary
-			resource={aiDatasetAiDocumentsViewDocumentsResource}
+			resource={documentsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<AiDocumentsView
-						selection={aiDatasetAiDocumentsViewDocumentsResource}
-						countResource={aiDatasetAiDocumentsViewDocumentsResource.count}
+						selection={documentsResource}
+						countResource={documentsResource.count}
 						title='documents'
 						id='documents'
 					/>

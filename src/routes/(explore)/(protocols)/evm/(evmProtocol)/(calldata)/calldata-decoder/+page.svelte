@@ -3,7 +3,6 @@
 <script lang="ts">
 	// Types/constants
 	import type { PageProps } from './$types.ts'
-	import { resolve } from '$app/paths'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { calldataExamples, type CalldataExample } from '$/constants/calldata-examples.ts'
 	import { decodeCalldataWithSignature, decodeEventDataWithSignature, formatDecodedParamValue } from '$/lib/calldata-decode.ts'
@@ -279,7 +278,7 @@
 										resolve(
 											'/(explore)/(protocols)/evm/(evmProtocol)/(selectors)/selector/[hex=zeroExHex]',
 											{
-												hex: String(normalizedSelector),
+												hex: normalizedSelector,
 											}
 										)
 									}
@@ -304,7 +303,7 @@
 															resolve(
 																'/(explore)/(protocols)/evm/(evmProtocol)/(selectors)/selector/[hex=zeroExHex]',
 																{
-																	hex: String(normalizedSelector),
+																	hex: normalizedSelector,
 																}
 															)
 														}
@@ -392,7 +391,7 @@
 										resolve(
 											'/(explore)/(protocols)/evm/(evmProtocol)/(topics)/topic/[hex=evmTopicHash]',
 											{
-												hex: String(normalizedTopic),
+												hex: normalizedTopic,
 											}
 										)
 									}
@@ -417,7 +416,7 @@
 															resolve(
 																'/(explore)/(protocols)/evm/(evmProtocol)/(topics)/topic/[hex=evmTopicHash]',
 																{
-																	hex: String(normalizedTopic),
+																	hex: normalizedTopic,
 																}
 															)
 														}

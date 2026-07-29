@@ -17,13 +17,12 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.BitTorrentMetainfo> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const bitTorrentMetainfo = $derived(selection({
 		fields: {
 			name: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.name ?? '') || (pendingEntity.infoHash ?? '') || 'bit torrent metainfo')
+	const titleFallback = $derived((prefetched.name ?? '') || selection.entitySelector.infoHash || 'bit torrent metainfo')
 	const viewDomId = $derived('bit-torrent-metainfo-' + encodeURIComponent(stringify(selection.entitySelector)))
 
 
@@ -61,7 +60,7 @@
 	{/snippet}
 
 	{#snippet Value()}
-		{(pendingEntity.hashVersion ?? '') || (pendingEntity.name ?? '') || titleFallback}
+		{selection.entitySelector.hashVersion || (prefetched.name ?? '') || titleFallback}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -85,14 +84,14 @@
 			<div>
 				<dt>info hash</dt>
 				<dd>
-					<TruncatedValue value={pendingEntity.infoHash} />
+					<TruncatedValue value={selection.entitySelector.infoHash} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>hash version</dt>
 				<dd>
-					<TruncatedValue value={pendingEntity.hashVersion} />
+					{selection.entitySelector.hashVersion}
 				</dd>
 			</div>
 
@@ -137,7 +136,7 @@
 						<div>
 							<dt>info hash v1</dt>
 							<dd>
-								<TruncatedValue value={infoHashV1} />
+								{infoHashV1}
 							</dd>
 						</div>
 					{/if}
@@ -159,7 +158,7 @@
 						<div>
 							<dt>info hash v2</dt>
 							<dd>
-								<TruncatedValue value={infoHashV2} />
+								{infoHashV2}
 							</dd>
 						</div>
 					{/if}

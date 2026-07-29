@@ -22,7 +22,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.BlockheadMoneroTransferState> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Local_Internal,
@@ -34,7 +33,7 @@
 			amountAtomicUnits: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.txHash ?? '') || 'blockhead monero transfer state')
+	const titleFallback = $derived(selection.entitySelector.txHash || 'blockhead monero transfer state')
 
 
 	// Components
@@ -58,13 +57,13 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{(pendingEntity.txHash ?? '') || 'blockhead monero transfer state'}
+		{selection.entitySelector.txHash || 'blockhead monero transfer state'}
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={blockheadMoneroTransferState}>
 			{#snippet children(entity)}
-				{entity.direction || pendingEntity.txHash || titleFallback}
+				{entity.direction || selection.entitySelector.txHash || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -72,11 +71,11 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={blockheadMoneroTransferState}>
 			{#snippet children(entity)}
-				{@const amountAtomicUnits0 = entity.amountAtomicUnits}
-				{#if amountAtomicUnits0 != null}
+				{@const amountAtomicUnits = entity.amountAtomicUnits}
+				{#if amountAtomicUnits != null}
 					<span data-text="muted">
 						<NumberValue
-							value={amountAtomicUnits0}
+							value={amountAtomicUnits}
 						/>
 					</span>
 				{/if}
@@ -89,7 +88,7 @@
 			<div>
 				<dt>wallet ID</dt>
 				<dd>
-					{pendingEntity.walletId}
+					{selection.entitySelector.walletId}
 				</dd>
 			</div>
 
@@ -156,7 +155,7 @@
 			<div>
 				<dt>Transaction hash</dt>
 				<dd>
-					<TruncatedValue value={pendingEntity.txHash} />
+					<TruncatedValue value={selection.entitySelector.txHash} />
 				</dd>
 			</div>
 
@@ -164,7 +163,7 @@
 				<dt>transfer index</dt>
 				<dd>
 					<NumberValue
-						value={pendingEntity.transferIndex}
+						value={selection.entitySelector.transferIndex}
 					/>
 				</dd>
 			</div>
@@ -355,7 +354,7 @@
 						<div>
 							<dt>Timestamp</dt>
 							<dd>
-								<Timestamp timestamp={Number(timestampMs)} />
+								<Timestamp timestamp={timestampMs} />
 							</dd>
 						</div>
 					{/if}
@@ -365,15 +364,15 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const blockheadMoneroTransferStateBlockheadMoneroTransferStateTimestampsViewTimestampsResource = selection.$$timestamps}
+		{@const timestampsResource = selection.$$timestamps}
 		<ResourceBoundary
-			resource={blockheadMoneroTransferStateBlockheadMoneroTransferStateTimestampsViewTimestampsResource}
+			resource={timestampsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<BlockheadMoneroTransferState_TimestampsView
-						selection={blockheadMoneroTransferStateBlockheadMoneroTransferStateTimestampsViewTimestampsResource}
-						countResource={blockheadMoneroTransferStateBlockheadMoneroTransferStateTimestampsViewTimestampsResource.count}
+						selection={timestampsResource}
+						countResource={timestampsResource.count}
 						title='timestamps'
 						id='timestamps'
 					/>

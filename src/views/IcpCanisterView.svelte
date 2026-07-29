@@ -21,8 +21,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.IcpCanister> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const titleFallback = 'ICP canister'
 	const viewDomId = $derived('icp-canister-' + encodeURIComponent(stringify(selection.entitySelector)))
 
 
@@ -44,7 +42,7 @@
 	entityType={EntityType.IcpCanister}
 	entitySelector={selection.entitySelector}
 	id={viewDomId}
-	title={title ?? titleFallback}
+	title={title ?? 'ICP canister'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -69,7 +67,7 @@
 			<div>
 				<dt>canister ID</dt>
 				<dd>
-					{pendingEntity.canisterId}
+					{selection.entitySelector.canisterId}
 				</dd>
 			</div>
 		</dl>

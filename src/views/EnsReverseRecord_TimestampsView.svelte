@@ -41,11 +41,11 @@
 			entitySelector={ensReverseRecordTimestampSelector}
 		>
 			{#snippet Title()}
-				{String(ensReverseRecordTimestampSelector.timestampMs) || 'ENS reverse record timestamp'}
+				{ensReverseRecordTimestampSelector.timestampMs}
 			{/snippet}
 
 			{#snippet Value()}
-				{String(ensReverseRecordTimestamp.verified ?? '')}
+				{ensReverseRecordTimestamp.verified ?? ''}
 			{/snippet}
 
 			{#snippet HeadingAfter()}

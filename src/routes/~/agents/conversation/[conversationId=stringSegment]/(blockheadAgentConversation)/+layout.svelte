@@ -33,7 +33,7 @@
 			resolve(
 				'/~/agents/conversation/[conversationId=stringSegment]',
 				{
-					conversationId: String(params.conversationId),
+					conversationId: params.conversationId,
 				}
 			)
 		}
@@ -49,7 +49,7 @@
 					resolve(
 						'/~/agents/conversation/[conversationId=stringSegment]',
 						{
-							conversationId: String(params.conversationId),
+							conversationId: params.conversationId,
 						}
 					)
 				}

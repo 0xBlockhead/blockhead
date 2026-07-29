@@ -35,8 +35,8 @@
 			resolve(
 				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(transactions)/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/(selection)/shielded-actions',
 				{
-					network: String(params.network),
-					transactionId: String(params.transactionId),
+					network: params.network,
+					transactionId: params.transactionId,
 				}
 			)
 		}

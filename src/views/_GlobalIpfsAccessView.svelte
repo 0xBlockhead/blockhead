@@ -18,7 +18,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType._GlobalIpfsAccess> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const titleFallback = 'global IPFS access'
 
 
@@ -32,7 +31,12 @@
 	entityType={EntityType._GlobalIpfsAccess}
 	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	href={href ?? resolve('/(explore)/(ipfs)/ipfs/(ipfsProtocol)/access')}
+	href={
+		href === undefined ?
+			resolve('/(explore)/(ipfs)/ipfs/(ipfsProtocol)/access')
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -50,22 +54,22 @@
 			<div>
 				<dt>Scope</dt>
 				<dd>
-					{pendingEntity.scope}
+					{selection.entitySelector.scope}
 				</dd>
 			</div>
 		</dl>
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const globalIpfsAccessIpfsResourcesViewObservedResourcesResource = selection.$$observedResources}
+		{@const observedResourcesResource = selection.$$observedResources}
 		<ResourceBoundary
-			resource={globalIpfsAccessIpfsResourcesViewObservedResourcesResource}
+			resource={observedResourcesResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<IpfsResourcesView
-						selection={globalIpfsAccessIpfsResourcesViewObservedResourcesResource}
-						countResource={globalIpfsAccessIpfsResourcesViewObservedResourcesResource.count}
+						selection={observedResourcesResource}
+						countResource={observedResourcesResource.count}
 						title='Observed resources'
 						id='observed-resources'
 					/>

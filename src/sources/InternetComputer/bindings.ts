@@ -1,10 +1,10 @@
 // Generated from APP.ts. Do not edit by hand.
 
 import { Source } from '$/sources/Source.ts'
-import { ApiFamily, SourceCredentialScope, SourceDelivery, SourceEndpointKind, SourceOperationGroup, SourceTargetKind, WireProtocol, type SourceBindingIndex } from '$/sources/SourceBinding.ts'
+import { ApiFamily, indexSourceBindings, SourceCredentialScope, SourceDelivery, SourceEndpointKind, SourceOperationGroup, SourceTargetKind, WireProtocol, type SourceBinding } from '$/sources/SourceBinding.ts'
 
-export default {
-	[Source.IcDashboard_Canister]: {
+const bindings = [
+	{
 		source: Source.IcDashboard_Canister,
 		target: {
 			kind: SourceTargetKind.Canister,
@@ -28,7 +28,7 @@ export default {
 			},
 		],
 	},
-	[Source.InternetComputer_Canister]: {
+	{
 		source: Source.InternetComputer_Canister,
 		target: {
 			kind: SourceTargetKind.Canister,
@@ -52,7 +52,7 @@ export default {
 			},
 		],
 	},
-	[Source.InternetComputer_Http]: {
+	{
 		source: Source.InternetComputer_Http,
 		target: {
 			kind: SourceTargetKind.Global,
@@ -77,7 +77,7 @@ export default {
 			},
 		],
 	},
-	[Source.InternetComputer_RosettaApi]: {
+	{
 		source: Source.InternetComputer_RosettaApi,
 		target: {
 			kind: SourceTargetKind.NetworkSlug,
@@ -102,7 +102,7 @@ export default {
 			},
 		],
 	},
-	[Source.InternetComputer_WalletApi]: {
+	{
 		source: Source.InternetComputer_WalletApi,
 		target: {
 			kind: SourceTargetKind.LocalDevice,
@@ -127,4 +127,12 @@ export default {
 			},
 		],
 	},
-} as const satisfies SourceBindingIndex
+] as const satisfies readonly SourceBinding[]
+
+export default indexSourceBindings<{
+	readonly [Source.IcDashboard_Canister]: typeof bindings[0]
+	readonly [Source.InternetComputer_Canister]: typeof bindings[1]
+	readonly [Source.InternetComputer_Http]: typeof bindings[2]
+	readonly [Source.InternetComputer_RosettaApi]: typeof bindings[3]
+	readonly [Source.InternetComputer_WalletApi]: typeof bindings[4]
+}>(bindings)

@@ -5,7 +5,6 @@
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { UrlString } from '$/schema/UrlString.ts'
 
 
 	// State
@@ -42,7 +41,7 @@
 			entitySelector={a2aAgentServiceSelector}
 		>
 			{#snippet Title()}
-				{String(a2aAgentServiceSelector.endpointUrl) || 'A2A agent service'}
+				{a2aAgentServiceSelector.endpointUrl || 'A2A agent service'}
 			{/snippet}
 
 			{#snippet Value()}
@@ -50,7 +49,7 @@
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{(a2aAgentService.transportKind ?? '')}</span>
+				<span data-text="annotation">{a2aAgentService.transportKind ?? ''}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

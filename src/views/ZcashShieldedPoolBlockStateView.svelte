@@ -47,7 +47,7 @@
 	{#snippet Title()}
 		<ZcashShieldedPoolView
 			selection={select(EntityType.ZcashShieldedPool, selection.entitySelector.$pool)}
-			href=""
+			href={null}
 			layout={EntityLayout.Title}
 			open={false}
 		/>
@@ -56,7 +56,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={zcashShieldedPoolBlockState}>
 			{#snippet children(entity)}
-				{([entity.saplingTree == null ? '' : `${entity.saplingTree.finalRoot} / ${entity.saplingTree.finalState}`, entity.orchardTree == null ? '' : `${entity.orchardTree.finalRoot} / ${entity.orchardTree.finalState}`].filter(Boolean).join(' ')) || titleFallback}
+				{[entity.saplingTree == null ? '' : `${entity.saplingTree.finalRoot} / ${entity.saplingTree.finalState}`, entity.orchardTree == null ? '' : `${entity.orchardTree.finalRoot} / ${entity.orchardTree.finalState}`].filter(Boolean).join(' ') || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}

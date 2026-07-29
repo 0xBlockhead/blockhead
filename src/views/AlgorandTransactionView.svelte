@@ -5,7 +5,6 @@
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 
 
 	// Context
@@ -22,14 +21,13 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.AlgorandTransaction> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const algorandTransaction = $derived(selection({
 		fields: {
 			transactionType: true,
 			sender: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.txId ?? '') || 'algorand transaction')
+	const titleFallback = $derived(selection.entitySelector.txId || 'algorand transaction')
 
 
 	// Components
@@ -49,13 +47,13 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{(pendingEntity.txId ?? '') || 'algorand transaction'}
+		{selection.entitySelector.txId || 'algorand transaction'}
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={algorandTransaction}>
 			{#snippet children(entity)}
-				{entity.transactionType || pendingEntity.txId || titleFallback}
+				{entity.transactionType || selection.entitySelector.txId || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -86,7 +84,7 @@
 			<div>
 				<dt>transaction ID</dt>
 				<dd>
-					{pendingEntity.txId}
+					{selection.entitySelector.txId}
 				</dd>
 			</div>
 
@@ -105,7 +103,7 @@
 						<div>
 							<dt>round</dt>
 							<dd>
-								{String(round)}
+								{round}
 							</dd>
 						</div>
 					{/if}
@@ -155,7 +153,7 @@
 						<div>
 							<dt>fee</dt>
 							<dd>
-								{String(fee)}
+								{fee}
 							</dd>
 						</div>
 					{/if}
@@ -177,7 +175,7 @@
 						<div>
 							<dt>group</dt>
 							<dd>
-								{String(group)}
+								{group}
 							</dd>
 						</div>
 					{/if}
@@ -241,7 +239,7 @@
 						<div>
 							<dt>inner transaction index</dt>
 							<dd>
-								{String(innerTransactionIndex)}
+								{innerTransactionIndex}
 							</dd>
 						</div>
 					{/if}
@@ -272,15 +270,15 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const algorandTransactionAlgorandTransactionProofsViewProofsResource = selection.$$proofs}
+		{@const proofsResource = selection.$$proofs}
 		<ResourceBoundary
-			resource={algorandTransactionAlgorandTransactionProofsViewProofsResource}
+			resource={proofsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<AlgorandTransactionProofsView
-						selection={algorandTransactionAlgorandTransactionProofsViewProofsResource}
-						countResource={algorandTransactionAlgorandTransactionProofsViewProofsResource.count}
+						selection={proofsResource}
+						countResource={proofsResource.count}
 						title='proofs'
 						id='proofs'
 					/>

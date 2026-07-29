@@ -21,13 +21,12 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.PayjoinEndpoint> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const payjoinEndpoint = $derived(selection({
 		fields: {
 			protocolVersion: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.endpointUrl ?? '') || 'payjoin endpoint')
+	const titleFallback = $derived(selection.entitySelector.endpointUrl || 'payjoin endpoint')
 
 
 	// Components
@@ -48,13 +47,13 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{(pendingEntity.endpointUrl ?? '') || 'payjoin endpoint'}
+		{selection.entitySelector.endpointUrl || 'payjoin endpoint'}
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={payjoinEndpoint}>
 			{#snippet children(entity)}
-				{(entity.protocolVersion ?? '') || pendingEntity.endpointUrl || titleFallback}
+				{(entity.protocolVersion ?? '') || selection.entitySelector.endpointUrl || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -84,11 +83,11 @@
 				<dt>endpoint URL</dt>
 				<dd>
 					<a
-						href={String(pendingEntity.endpointUrl)}
+						href={selection.entitySelector.endpointUrl}
 						target="_blank"
 						rel="noreferrer noopener"
 					>
-						<TruncatedValue value={String(pendingEntity.endpointUrl)} />
+						<TruncatedValue value={selection.entitySelector.endpointUrl} />
 					</a>
 				</dd>
 			</div>
@@ -132,30 +131,30 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const payjoinEndpointPayjoinEndpointTimestampsViewTimestampsResource = selection.$$timestamps}
+		{@const timestampsResource = selection.$$timestamps}
 		<ResourceBoundary
-			resource={payjoinEndpointPayjoinEndpointTimestampsViewTimestampsResource}
+			resource={timestampsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<PayjoinEndpoint_TimestampsView
-						selection={payjoinEndpointPayjoinEndpointTimestampsViewTimestampsResource}
-						countResource={payjoinEndpointPayjoinEndpointTimestampsViewTimestampsResource.count}
+						selection={timestampsResource}
+						countResource={timestampsResource.count}
 						title='timestamps'
 						id='timestamps'
 					/>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>
-		{@const payjoinEndpointBlockheadPayjoinSessionsViewBlockheadSessionsResource = selection.$$blockheadSessions}
+		{@const blockheadSessionsResource = selection.$$blockheadSessions}
 		<ResourceBoundary
-			resource={payjoinEndpointBlockheadPayjoinSessionsViewBlockheadSessionsResource}
+			resource={blockheadSessionsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<BlockheadPayjoinSessionsView
-						selection={payjoinEndpointBlockheadPayjoinSessionsViewBlockheadSessionsResource}
-						countResource={payjoinEndpointBlockheadPayjoinSessionsViewBlockheadSessionsResource.count}
+						selection={blockheadSessionsResource}
+						countResource={blockheadSessionsResource.count}
 						title='blockhead sessions'
 						id='blockhead-sessions'
 					/>

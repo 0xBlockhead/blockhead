@@ -5,7 +5,6 @@
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { UrlString } from '$/schema/UrlString.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -23,7 +22,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.BlockheadAgentConnection> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Local_Internal,
@@ -35,7 +33,7 @@
 			enabled: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.connectionId ?? '') || 'blockhead agent connection')
+	const titleFallback = $derived(selection.entitySelector.connectionId || 'blockhead agent connection')
 
 
 	// Components
@@ -56,13 +54,13 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{(pendingEntity.connectionId ?? '') || 'blockhead agent connection'}
+		{selection.entitySelector.connectionId || 'blockhead agent connection'}
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={blockheadAgentConnection}>
 			{#snippet children(entity)}
-				{(entity.connectionKind ?? '') || pendingEntity.connectionId || titleFallback}
+				{(entity.connectionKind ?? '') || selection.entitySelector.connectionId || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -70,10 +68,10 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={blockheadAgentConnection}>
 			{#snippet children(entity)}
-				{@const enabled0 = entity.enabled}
-				{#if enabled0 != null}
+				{@const enabled = entity.enabled}
+				{#if enabled != null}
 					<span data-text="muted">
-						{enabled0 ? 'Yes' : 'No'}
+						{enabled ? 'Yes' : 'No'}
 					</span>
 				{/if}
 			{/snippet}
@@ -85,7 +83,7 @@
 			<div>
 				<dt>connection ID</dt>
 				<dd>
-					{pendingEntity.connectionId}
+					{selection.entitySelector.connectionId}
 				</dd>
 			</div>
 
@@ -163,11 +161,11 @@
 							<dt>endpoint URL</dt>
 							<dd>
 								<a
-									href={String(endpointUrl)}
+									href={endpointUrl}
 									target="_blank"
 									rel="noreferrer noopener"
 								>
-									<TruncatedValue value={String(endpointUrl)} />
+									<TruncatedValue value={endpointUrl} />
 								</a>
 							</dd>
 						</div>
@@ -216,15 +214,15 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const blockheadAgentConnectionBlockheadAgentConnectionTimestampsViewTimestampsResource = selection.$$timestamps}
+		{@const timestampsResource = selection.$$timestamps}
 		<ResourceBoundary
-			resource={blockheadAgentConnectionBlockheadAgentConnectionTimestampsViewTimestampsResource}
+			resource={timestampsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<BlockheadAgentConnection_TimestampsView
-						selection={blockheadAgentConnectionBlockheadAgentConnectionTimestampsViewTimestampsResource}
-						countResource={blockheadAgentConnectionBlockheadAgentConnectionTimestampsViewTimestampsResource.count}
+						selection={timestampsResource}
+						countResource={timestampsResource.count}
 						title='timestamps'
 						id='timestamps'
 					/>

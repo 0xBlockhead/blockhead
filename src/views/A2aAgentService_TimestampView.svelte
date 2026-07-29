@@ -20,7 +20,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.A2aAgentService_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [],
 	}))
@@ -30,7 +29,6 @@
 			reachable: true,
 		},
 	}))
-	const titleFallback = $derived(String(pendingEntity.timestampMs ?? '') || 'A2A agent service timestamp')
 
 
 	// Components
@@ -44,19 +42,19 @@
 <EntityView
 	entityType={EntityType.A2aAgentService_Timestamp}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? String(selection.entitySelector.timestampMs)}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+		<Timestamp timestamp={selection.entitySelector.timestampMs} />
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={a2aAgentServiceTimestamp}>
 			{#snippet children(entity)}
-				{(entity.health ?? '') || String(pendingEntity.timestampMs) || titleFallback}
+				{(entity.health ?? '') || String(selection.entitySelector.timestampMs)}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -64,10 +62,10 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={a2aAgentServiceTimestamp}>
 			{#snippet children(entity)}
-				{@const reachable0 = entity.reachable}
-				{#if reachable0 != null}
+				{@const reachable = entity.reachable}
+				{#if reachable != null}
 					<span data-text="muted">
-						{reachable0 ? 'Yes' : 'No'}
+						{reachable ? 'Yes' : 'No'}
 					</span>
 				{/if}
 			{/snippet}
@@ -90,14 +88,14 @@
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+					<Timestamp timestamp={selection.entitySelector.timestampMs} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 

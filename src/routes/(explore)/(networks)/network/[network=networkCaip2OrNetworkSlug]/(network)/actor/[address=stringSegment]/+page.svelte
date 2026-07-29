@@ -30,7 +30,7 @@
 
 
 <svelte:head>
-	<title>{(data.title ?? (pageSelection.entitySelector.address || 'filecoin actor'))} • filecoin actor • Blockhead</title>
+	<title>{data.title ?? (pageSelection.entitySelector.address || 'filecoin actor')} • filecoin actor • Blockhead</title>
 </svelte:head>
 
 

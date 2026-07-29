@@ -9,18 +9,15 @@ import farcasterBindings from '$/sources/Farcaster/bindings.ts'
 import neynarBindings from '$/sources/Neynar/bindings.ts'
 import snapchainBindings from '$/sources/Snapchain/bindings.ts'
 import { Source } from '$/sources/Source.ts'
-import type { SourceBinding } from '$/sources/SourceBinding.ts'
+import {
+	sourceBindingId,
+	type SourceBinding,
+} from '$/sources/SourceBinding.ts'
 
 
 const castHash = '0x1111111111111111111111111111111111111111'
 const replyHash = '0x2222222222222222222222222222222222222222'
-const proxyPath = (binding: SourceBinding) => {
-	const proxyId = binding.proxyId
-	if (proxyId == null)
-		throw new Error('Farcaster reading fixture requires a proxied source binding')
-
-	return `/api-proxy/${proxyId}/`
-}
+const proxyPath = (binding: SourceBinding) => `/api-proxy/${sourceBindingId(binding)}/`
 
 const author = {
 	fid: 101,

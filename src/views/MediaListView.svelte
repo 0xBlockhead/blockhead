@@ -6,7 +6,6 @@
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { UrlString } from '$/schema/UrlString.ts'
 
 
 	// State
@@ -45,17 +44,17 @@
 				resolve(
 					'/(explore)/media/[url=absoluteUrl]',
 					{
-						url: encodeURIComponent(String(mediaSelector.url)),
+						url: encodeURIComponent(mediaSelector.url),
 					}
 				)
 			}
 		>
 			{#snippet Title()}
-				{String(mediaSelector.url) || 'Media'}
+				{mediaSelector.url || 'Media'}
 			{/snippet}
 
 			{#snippet Value()}
-				{String(mediaSelector.url)}
+				{mediaSelector.url}
 			{/snippet}
 		</EntityView>
 	{/snippet}

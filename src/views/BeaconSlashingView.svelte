@@ -23,8 +23,8 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.BeaconSlashing> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const titleFallback = $derived((String(pendingEntity.indexInSlot ?? '') ? 'Slashing #' + String(pendingEntity.indexInSlot ?? '') : '') || 'beacon slashing')
+	const network = $derived(selection.entitySelector.$network)
+	const titleFallback = $derived(`Slashing #${selection.entitySelector.indexInSlot}`)
 
 
 	// Components
@@ -38,40 +38,43 @@
 	entityType={EntityType.BeaconSlashing}
 	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	idDragPlainText={String(pendingEntity.indexInSlot ?? '')}
+	idDragPlainText={String(selection.entitySelector.indexInSlot)}
 	href={
-		href ?? resolve(
-			'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/slot/[slot=nonNegativeInteger]/(beaconSlot)/slashing/[kind=stringSegment]/[index=nonNegativeInteger]',
-			{
-				network: (
-					'caip2' in selection.entitySelector.$network ?
-						String(caip2StringFromValue(selection.entitySelector.$network.caip2))
-					:
-						String(selection.entitySelector.$network.slug)
-				),
-				slot: String(selection.entitySelector.slot),
-				kind: String(selection.entitySelector.kind),
-				index: String(selection.entitySelector.indexInSlot),
-			}
-		)
+		href === undefined ?
+			resolve(
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/slot/[slot=nonNegativeInteger]/(beaconSlot)/slashing/[kind=stringSegment]/[index=nonNegativeInteger]',
+				{
+					network: (
+						'caip2' in network ?
+							caip2StringFromValue(network.caip2)
+						:
+							network.slug
+					),
+					slot: String(selection.entitySelector.slot),
+					kind: selection.entitySelector.kind,
+					index: String(selection.entitySelector.indexInSlot),
+				}
+			)
+		:
+			href ?? undefined
 	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{(String(pendingEntity.indexInSlot ?? '') ? 'Slashing #' + String(pendingEntity.indexInSlot ?? '') : '') || 'beacon slashing'}
+		{`Slashing #${selection.entitySelector.indexInSlot}`}
 	{/snippet}
 
 	{#snippet Value()}
-		{(pendingEntity.kind ?? '') || ([(pendingEntity.kind ?? ''), (String(pendingEntity.indexInSlot ?? '') ? ' #' + String(pendingEntity.indexInSlot ?? '') : '')].filter(Boolean).join(' ')) || titleFallback}
+		{selection.entitySelector.kind || [selection.entitySelector.kind, ' #' + String(selection.entitySelector.indexInSlot)].filter(Boolean).join(' ') || titleFallback}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
 		<span data-text="muted">
 			<span>Slot </span>
 			<NumberValue
-				value={pendingEntity.slot}
+				value={selection.entitySelector.slot}
 			/>
 		</span>
 	{/snippet}
@@ -81,7 +84,7 @@
 			<div>
 				<dt>Kind</dt>
 				<dd>
-					{pendingEntity.kind}
+					{selection.entitySelector.kind}
 				</dd>
 			</div>
 
@@ -89,7 +92,7 @@
 				<dt>Index in slot</dt>
 				<dd>
 					<NumberValue
-						value={pendingEntity.indexInSlot}
+						value={selection.entitySelector.indexInSlot}
 					/>
 				</dd>
 			</div>
@@ -98,7 +101,7 @@
 				<dt>Slot</dt>
 				<dd>
 					<NumberValue
-						value={pendingEntity.slot}
+						value={selection.entitySelector.slot}
 					/>
 				</dd>
 			</div>

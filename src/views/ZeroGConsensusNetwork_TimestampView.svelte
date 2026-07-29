@@ -4,7 +4,6 @@
 	// Types/constants
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { UrlString } from '$/schema/UrlString.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -22,13 +21,11 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.ZeroGConsensusNetwork_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.ZeroGChainScan_Rest,
 		],
 	}))
-	const titleFallback = 'zero g consensus network timestamp'
 
 
 	// Components
@@ -42,7 +39,7 @@
 <EntityView
 	entityType={EntityType.ZeroGConsensusNetwork_Timestamp}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? 'zero g consensus network timestamp'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -50,14 +47,13 @@
 	{#snippet Title()}
 		<ZeroGConsensusNetworkView
 			selection={select(EntityType.ZeroGConsensusNetwork, selection.entitySelector.$consensusNetwork)}
-			href=""
 			layout={EntityLayout.Title}
 			open={false}
 		/>
 	{/snippet}
 
 	{#snippet Value()}
-		<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+		<Timestamp timestamp={selection.entitySelector.timestampMs} />
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -76,14 +72,14 @@
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+					<Timestamp timestamp={selection.entitySelector.timestampMs} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 
@@ -103,11 +99,11 @@
 							<dt>shared staking status source</dt>
 							<dd>
 								<a
-									href={String(sharedStakingStatusSource)}
+									href={sharedStakingStatusSource}
 									target="_blank"
 									rel="noreferrer noopener"
 								>
-									<TruncatedValue value={String(sharedStakingStatusSource)} />
+									<TruncatedValue value={sharedStakingStatusSource} />
 								</a>
 							</dd>
 						</div>

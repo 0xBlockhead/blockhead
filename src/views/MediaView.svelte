@@ -5,8 +5,6 @@
 	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { MediaTransport, MediaType } from '$/schema/Media.ts'
-	import { UrlString } from '$/schema/UrlString.ts'
 
 
 	// State
@@ -20,9 +18,7 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.Media> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const media = $derived(selection)
-	const titleFallback = $derived(String(pendingEntity.url ?? '') || 'Media')
 
 
 	// Components
@@ -34,14 +30,17 @@
 <EntityView
 	entityType={EntityType.Media}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? (selection.entitySelector.url || 'Media')}
 	href={
-		href ?? resolve(
-			'/(explore)/media/[url=absoluteUrl]',
-			{
-				url: encodeURIComponent(String(selection.entitySelector.url)),
-			}
-		)
+		href === undefined ?
+			resolve(
+				'/(explore)/media/[url=absoluteUrl]',
+				{
+					url: encodeURIComponent(selection.entitySelector.url),
+				}
+			)
+		:
+			href ?? undefined
 	}
 	{layout}
 	bind:open
@@ -54,7 +53,7 @@
 				{@const url = prefetched.url ?? selection.entitySelector.url}
 				{#if url != null}
 					<img
-						src={String(url)}
+						src={url}
 						alt=""
 						width={20}
 						height={20}
@@ -67,10 +66,10 @@
 
 			{#snippet children(entity)}
 				{@const url = entity.url ?? selection.entitySelector.url ?? prefetched.url}
-				{@const type = String(entity.type ?? '')}
+				{@const type = entity.type ?? ''}
 				{#if url != null && type === 'Image'}
 					<img
-						src={String(url)}
+						src={url}
 						alt=""
 						width={20}
 						height={20}
@@ -80,7 +79,7 @@
 					/>
 				{:else if url != null && type === 'Video'}
 					<video
-						src={String(url)}
+						src={url}
 						width={20}
 						height={20}
 						preload="metadata"
@@ -88,7 +87,7 @@
 					></video>
 				{:else if url != null && type === 'Audio'}
 					<audio
-						src={String(url)}
+						src={url}
 						preload="metadata"
 					></audio>
 				{/if}
@@ -98,11 +97,11 @@
 
 	{#snippet Title()}
 		<a
-			href={String(pendingEntity.url)}
+			href={selection.entitySelector.url}
 			target="_blank"
 			rel="noreferrer noopener"
 		>
-			<TruncatedValue value={String(pendingEntity.url)} />
+			<TruncatedValue value={selection.entitySelector.url} />
 		</a>
 	{/snippet}
 
@@ -112,7 +111,7 @@
 				{@const url = prefetched.url ?? selection.entitySelector.url}
 				{#if url != null}
 					<img
-						src={String(url)}
+						src={url}
 						alt=""
 						loading="lazy"
 						decoding="async"
@@ -123,10 +122,10 @@
 
 			{#snippet children(entity)}
 				{@const url = entity.url ?? selection.entitySelector.url ?? prefetched.url}
-				{@const type = String(entity.type ?? '')}
+				{@const type = entity.type ?? ''}
 				{#if url != null && type === 'Image'}
 					<img
-						src={String(url)}
+						src={url}
 						alt=""
 						loading="lazy"
 						decoding="async"
@@ -135,13 +134,13 @@
 				{:else if url != null && type === 'Video'}
 					<!-- svelte-ignore a11y_media_has_caption -->
 					<video
-						src={String(url)}
+						src={url}
 						controls
 						preload="metadata"
 					></video>
 				{:else if url != null && type === 'Audio'}
 					<audio
-						src={String(url)}
+						src={url}
 						controls
 						preload="metadata"
 					></audio>
@@ -156,11 +155,11 @@
 				<dt>URL</dt>
 				<dd>
 					<a
-						href={String(pendingEntity.url)}
+						href={selection.entitySelector.url}
 						target="_blank"
 						rel="noreferrer noopener"
 					>
-						<TruncatedValue value={String(pendingEntity.url)} />
+						<TruncatedValue value={selection.entitySelector.url} />
 					</a>
 				</dd>
 			</div>
@@ -241,19 +240,19 @@
 					{#if entity.type === 'Video'}
 						<!-- svelte-ignore a11y_media_has_caption -->
 						<video
-							src={String(url)}
+							src={url}
 							controls
 							preload="metadata"
 						></video>
 					{:else if entity.type === 'Audio'}
 						<audio
-							src={String(url)}
+							src={url}
 							controls
 							preload="metadata"
 						></audio>
 					{:else}
 						<img
-							src={String(url)}
+							src={url}
 							alt=""
 							loading="lazy"
 							decoding="async"

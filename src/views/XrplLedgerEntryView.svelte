@@ -20,9 +20,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.XrplLedgerEntry> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const titleFallback = 'XRPL ledger entry'
-
 
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -34,7 +31,7 @@
 <EntityView
 	entityType={EntityType.XrplLedgerEntry}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? 'XRPL ledger entry'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -59,7 +56,7 @@
 			<div>
 				<dt>entry hash</dt>
 				<dd>
-					<TruncatedValue value={pendingEntity.entryHash} />
+					<TruncatedValue value={selection.entitySelector.entryHash} />
 				</dd>
 			</div>
 
@@ -141,7 +138,7 @@
 						<div>
 							<dt>previous transaction ledger index</dt>
 							<dd>
-								{String(previousTransactionLedgerIndex)}
+								{previousTransactionLedgerIndex}
 							</dd>
 						</div>
 					{/if}

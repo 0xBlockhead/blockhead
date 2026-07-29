@@ -21,13 +21,11 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.FilecoinDeal> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const filecoinDeal = $derived(selection({
 		fields: {
 			verifiedDeal: true,
 		},
 	}))
-	const titleFallback = $derived(String(pendingEntity.dealId ?? '') || 'filecoin deal')
 
 
 	// Components
@@ -44,14 +42,14 @@
 <EntityView
 	entityType={EntityType.FilecoinDeal}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? String(selection.entitySelector.dealId)}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
 		<NumberValue
-			value={pendingEntity.dealId}
+			value={selection.entitySelector.dealId}
 		/>
 	{/snippet}
 
@@ -64,7 +62,7 @@
 					<FilecoinMinerView
 						selection={select(EntityType.FilecoinMiner, filecoinMiner[EntityMetaKey.Selector])}
 						prefetched={filecoinMiner}
-						href=""
+						href={null}
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -80,7 +78,7 @@
 					<FilecoinActorView
 						selection={select(EntityType.FilecoinActor, filecoinActor[EntityMetaKey.Selector])}
 						prefetched={filecoinActor}
-						href=""
+						href={null}
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -92,10 +90,10 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={filecoinDeal}>
 			{#snippet children(entity)}
-				{@const verifiedDeal0 = entity.verifiedDeal}
-				{#if verifiedDeal0 != null}
+				{@const verifiedDeal = entity.verifiedDeal}
+				{#if verifiedDeal != null}
 					<span data-text="muted">
-						{verifiedDeal0 ? 'Yes' : 'No'}
+						{verifiedDeal ? 'Yes' : 'No'}
 					</span>
 				{/if}
 			{/snippet}
@@ -119,7 +117,7 @@
 				<dt>Deal ID</dt>
 				<dd>
 					<NumberValue
-						value={pendingEntity.dealId}
+						value={selection.entitySelector.dealId}
 					/>
 				</dd>
 			</div>
@@ -373,15 +371,15 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const filecoinDealFilecoinDealTimestampsViewTimestampsResource = selection.$$timestamps}
+		{@const timestampsResource = selection.$$timestamps}
 		<ResourceBoundary
-			resource={filecoinDealFilecoinDealTimestampsViewTimestampsResource}
+			resource={timestampsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<FilecoinDeal_TimestampsView
-						selection={filecoinDealFilecoinDealTimestampsViewTimestampsResource}
-						countResource={filecoinDealFilecoinDealTimestampsViewTimestampsResource.count}
+						selection={timestampsResource}
+						countResource={timestampsResource.count}
 						title='Observations'
 						id='timestamps'
 					/>

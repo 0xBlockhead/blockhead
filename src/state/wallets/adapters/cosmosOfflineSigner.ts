@@ -1,5 +1,5 @@
 import { WalletCapability, WalletDiscoveryKind, WalletProtocol, WalletTransportKind } from '$/constants/Wallet.ts'
-import { BlockheadConnectionStatus } from '$/schema/BlockheadWalletConnection.ts'
+import { BlockheadConnectionStatus } from '$/schema/BlockheadConnectionStatus.ts'
 import { getWallet as getKeplrWallet } from '$/sources/Keplr/WalletApi/queries.ts'
 import type { KeplrWallet } from '$/sources/Keplr/WalletApi/types.ts'
 import { getWallet as getLeapWallet } from '$/sources/Leap/WalletApi/queries.ts'

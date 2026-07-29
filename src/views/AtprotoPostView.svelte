@@ -24,7 +24,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.AtprotoPost> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Atproto_Xrpc,
@@ -36,7 +35,6 @@
 			createdAt: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.text ?? '') || (pendingEntity.uri ?? '') || 'AT Protocol post')
 
 
 	// Components
@@ -53,14 +51,17 @@
 <EntityView
 	entityType={EntityType.AtprotoPost}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? ((prefetched.text ?? '') || selection.entitySelector.uri || 'AT Protocol post')}
 	href={
-		href ?? resolve(
-			'/(social)/(atproto)/atproto/(globalAtprotoNetwork)/post/[...uri=stringSegment]',
-			{
-				uri: encodeURIComponent(String(selection.entitySelector.uri)),
-			}
-		)
+		href === undefined ?
+			resolve(
+				'/(social)/(atproto)/atproto/(globalAtprotoNetwork)/post/[...uri=stringSegment]',
+				{
+					uri: encodeURIComponent(selection.entitySelector.uri),
+				}
+			)
+		:
+			href ?? undefined
 	}
 	{layout}
 	bind:open
@@ -69,9 +70,9 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={atprotoPost}>
 			{#snippet children(entity)}
-				{@const text0 = entity.text}
-				{#if text0 != null}
-					<span data-text="long-text">{text0}</span>
+				{@const text = entity.text}
+				{#if text != null}
+					<span data-text="long-text">{text}</span>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>
@@ -80,10 +81,10 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={atprotoPost}>
 			{#snippet children(entity)}
-				{@const createdAt0 = entity.createdAt}
-				{#if createdAt0 != null}
+				{@const createdAt = entity.createdAt}
+				{#if createdAt != null}
 					<span data-text="muted">
-						<Timestamp timestamp={Number(createdAt0)} />
+						<Timestamp timestamp={createdAt} />
 					</span>
 				{/if}
 			{/snippet}
@@ -101,7 +102,7 @@
 			<div>
 				<dt>AT URI</dt>
 				<dd>
-					<TruncatedValue value={pendingEntity.uri} />
+					<TruncatedValue value={selection.entitySelector.uri} />
 				</dd>
 			</div>
 
@@ -181,7 +182,7 @@
 							<div>
 								<dt>Created</dt>
 								<dd>
-									<Timestamp timestamp={Number(createdAt)} />
+									<Timestamp timestamp={createdAt} />
 								</dd>
 							</div>
 						{/if}
@@ -205,7 +206,7 @@
 							<div>
 								<dt>Indexed</dt>
 								<dd>
-									<Timestamp timestamp={Number(indexedAt)} />
+									<Timestamp timestamp={indexedAt} />
 								</dd>
 							</div>
 						{/if}
@@ -275,21 +276,21 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const atprotoPostAtprotoPostsViewThreadResource = selection.$$thread}
+		{@const threadResource = selection.$$thread}
 		<ResourceBoundary
-			resource={atprotoPostAtprotoPostsViewThreadResource}
+			resource={threadResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<AtprotoPostsView
-						selection={atprotoPostAtprotoPostsViewThreadResource}
-						countResource={atprotoPostAtprotoPostsViewThreadResource.count}
+						selection={threadResource}
+						countResource={threadResource.count}
 						title='Thread posts'
 						href={
 							resolve(
 								'/(social)/(atproto)/atproto/(globalAtprotoNetwork)/post/[...uri=stringSegment]/(atprotoPost)/thread',
 								{
-									uri: encodeURIComponent(String(selection.entitySelector.uri)),
+									uri: encodeURIComponent(selection.entitySelector.uri),
 								}
 							)
 						}
@@ -298,21 +299,21 @@
 				{/if}
 			{/snippet}
 		</ResourceBoundary>
-		{@const atprotoPostAtprotoPostTimestampsViewTimestampsResource = selection.$$timestamps}
+		{@const timestampsResource = selection.$$timestamps}
 		<ResourceBoundary
-			resource={atprotoPostAtprotoPostTimestampsViewTimestampsResource}
+			resource={timestampsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<AtprotoPost_TimestampsView
-						selection={atprotoPostAtprotoPostTimestampsViewTimestampsResource}
-						countResource={atprotoPostAtprotoPostTimestampsViewTimestampsResource.count}
+						selection={timestampsResource}
+						countResource={timestampsResource.count}
 						title='Metric observations'
 						href={
 							resolve(
 								'/(social)/(atproto)/atproto/(globalAtprotoNetwork)/post/[...uri=stringSegment]/(atprotoPost)/observations',
 								{
-									uri: encodeURIComponent(String(selection.entitySelector.uri)),
+									uri: encodeURIComponent(selection.entitySelector.uri),
 								}
 							)
 						}

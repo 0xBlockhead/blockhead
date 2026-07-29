@@ -20,13 +20,9 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.TonWorkchain> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const titleFallback = 'TON workchain'
-
 
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import TruncatedValue from '$/components/TruncatedValue.svelte'
 	import NetworkView from '$/views/NetworkView.svelte'
 </script>
 
@@ -34,7 +30,7 @@
 <EntityView
 	entityType={EntityType.TonWorkchain}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? 'TON workchain'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -59,7 +55,7 @@
 			<div>
 				<dt>workchain</dt>
 				<dd>
-					{String(pendingEntity.workchain)}
+					{selection.entitySelector.workchain}
 				</dd>
 			</div>
 
@@ -100,7 +96,7 @@
 						<div>
 							<dt>address format</dt>
 							<dd>
-								<TruncatedValue value={addressFormat} />
+								{addressFormat}
 							</dd>
 						</div>
 					{/if}

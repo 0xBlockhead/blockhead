@@ -22,7 +22,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.KaspaTransaction> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.KaspaExplorer_Rest,
@@ -31,7 +30,6 @@
 			Source.KaspaNode_Wrpc,
 		],
 	}))
-	const titleFallback = 'kaspa transaction'
 	const viewDomId = $derived('kaspa-transaction-' + encodeURIComponent(stringify(selection.entitySelector)))
 
 
@@ -40,7 +38,6 @@
 	import HeadingComponent from '$/components/Heading.svelte'
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import TruncatedValue from '$/components/TruncatedValue.svelte'
 	import KaspaNetworkView from '$/views/KaspaNetworkView.svelte'
 	import UtxoInputsView from '$/views/UtxoInputsView.svelte'
 	import UtxoOutputsView from '$/views/UtxoOutputsView.svelte'
@@ -52,7 +49,7 @@
 	entityType={EntityType.KaspaTransaction}
 	entitySelector={selection.entitySelector}
 	id={viewDomId}
-	title={title ?? titleFallback}
+	title={title ?? 'kaspa transaction'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -77,7 +74,7 @@
 			<div>
 				<dt>transaction ID</dt>
 				<dd>
-					{pendingEntity.transactionId}
+					{selection.entitySelector.transactionId}
 				</dd>
 			</div>
 
@@ -96,7 +93,7 @@
 						<div>
 							<dt>version</dt>
 							<dd>
-								{String(version)}
+								{version}
 							</dd>
 						</div>
 					{/if}
@@ -166,7 +163,7 @@
 						<div>
 							<dt>payload length</dt>
 							<dd>
-								{String(payloadLength)}
+								{payloadLength}
 							</dd>
 						</div>
 					{/if}
@@ -186,7 +183,7 @@
 						}
 					>
 						{#snippet children(entity)}
-							<TruncatedValue value={entity.blockHashes.values.join(', ')} />
+							{entity.blockHashes.values.join(', ')}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>

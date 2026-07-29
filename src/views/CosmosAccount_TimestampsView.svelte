@@ -52,7 +52,7 @@
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{String(cosmosAccountTimestampSelector.timestampMs)}</span>
+				<span data-text="annotation">{cosmosAccountTimestampSelector.timestampMs}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

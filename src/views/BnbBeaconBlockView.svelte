@@ -20,7 +20,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.BnbBeaconBlock> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const bnbBeaconBlock = $derived(selection({
 		fields: {
 			height: true,
@@ -28,7 +27,6 @@
 			hash: true,
 		},
 	}))
-	const titleFallback = $derived(String(pendingEntity.height ?? '') || (pendingEntity.hash ?? '') || 'bnb beacon block')
 
 
 	// Components
@@ -44,7 +42,7 @@
 <EntityView
 	entityType={EntityType.BnbBeaconBlock}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? (String(prefetched.height ?? '') || (prefetched.hash ?? '') || 'bnb beacon block')}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -62,9 +60,9 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={bnbBeaconBlock}>
 			{#snippet children(entity)}
-				{@const timestampMs0 = entity.timestampMs}
-				{#if timestampMs0 != null}
-					<Timestamp timestamp={Number(timestampMs0)} />
+				{@const timestampMs = entity.timestampMs}
+				{#if timestampMs != null}
+					<Timestamp timestamp={timestampMs} />
 				{/if}
 			{/snippet}
 		</ResourceBoundary>
@@ -120,7 +118,7 @@
 						<div>
 							<dt>Timestamp</dt>
 							<dd>
-								<Timestamp timestamp={Number(timestampMs)} />
+								<Timestamp timestamp={timestampMs} />
 							</dd>
 						</div>
 					{/if}
@@ -312,15 +310,15 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const bnbBeaconBlockBnbBeaconTransactionsViewTransactionsResource = selection.$$transactions}
+		{@const transactionsResource = selection.$$transactions}
 		<ResourceBoundary
-			resource={bnbBeaconBlockBnbBeaconTransactionsViewTransactionsResource}
+			resource={transactionsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<BnbBeaconTransactionsView
-						selection={bnbBeaconBlockBnbBeaconTransactionsViewTransactionsResource}
-						countResource={bnbBeaconBlockBnbBeaconTransactionsViewTransactionsResource.count}
+						selection={transactionsResource}
+						countResource={transactionsResource.count}
 						title='transactions'
 						id='transactions'
 					/>

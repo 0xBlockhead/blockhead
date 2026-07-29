@@ -6,8 +6,6 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { bridgeRouteTagByTag } from '$/constants/Bridge.ts'
-	import { BridgeRouteTag } from '$/schema/BridgeRoute.ts'
-	import { EvmAddress, ZeroExHex } from '$/schema/ZeroExHex.ts'
 
 
 	// Context
@@ -24,7 +22,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.BridgeRouteQuote_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const bridgeRouteQuoteTimestamp = $derived(selection({
 		fields: {
 			fromChainId: true,
@@ -33,7 +30,7 @@
 			estimatedDurationSeconds: true,
 		},
 	}))
-	const titleFallback = $derived([String(pendingEntity.fromChainId ?? ''), 'to', String(pendingEntity.toChainId ?? '')].filter(Boolean).join(' ') || 'bridge route quote timestamp')
+	const titleFallback = $derived([String(prefetched.fromChainId ?? ''), 'to', String(prefetched.toChainId ?? '')].filter(Boolean).join(' ') || 'bridge route quote timestamp')
 
 
 	// Components
@@ -63,25 +60,25 @@
 	{/snippet}
 
 	{#snippet Value()}
-		<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+		<Timestamp timestamp={selection.entitySelector.timestampMs} />
 	{/snippet}
 
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={bridgeRouteQuoteTimestamp}>
 			{#snippet children(entity)}
 				<span data-text="muted">
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</span>
-				{@const estimatedCostUsd1 = entity.estimatedCostUsd}
-				{#if estimatedCostUsd1 != null}
+				{@const estimatedCostUsd = entity.estimatedCostUsd}
+				{#if estimatedCostUsd != null}
 					<span data-text="muted">
-						{String(estimatedCostUsd1)}
+						{estimatedCostUsd}
 					</span>
 				{/if}
-				{@const estimatedDurationSeconds2 = entity.estimatedDurationSeconds}
-				{#if estimatedDurationSeconds2 != null}
+				{@const estimatedDurationSeconds = entity.estimatedDurationSeconds}
+				{#if estimatedDurationSeconds != null}
 					<span data-text="muted">
-						{String(estimatedDurationSeconds2)}
+						{estimatedDurationSeconds}
 					</span>
 				{/if}
 			{/snippet}
@@ -93,14 +90,14 @@
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+					<Timestamp timestamp={selection.entitySelector.timestampMs} />
 				</dd>
 			</div>
 
@@ -193,7 +190,7 @@
 						}
 					>
 						{#snippet children(entity)}
-							<TruncatedValue value={String(entity.fromAddress)} />
+							<TruncatedValue value={entity.fromAddress} />
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -212,7 +209,7 @@
 						}
 					>
 						{#snippet children(entity)}
-							<TruncatedValue value={String(entity.toAddress)} />
+							<TruncatedValue value={entity.toAddress} />
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -300,7 +297,7 @@
 						}
 					>
 						{#snippet children(entity)}
-							{String(entity.slippage)}
+							{entity.slippage}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -315,7 +312,7 @@
 						<div>
 							<dt>estimated cost usd</dt>
 							<dd>
-								{String(estimatedCostUsd)}
+								{estimatedCostUsd}
 							</dd>
 						</div>
 					{/if}
@@ -331,7 +328,7 @@
 						<div>
 							<dt>estimated duration seconds</dt>
 							<dd>
-								{String(estimatedDurationSeconds)}
+								{estimatedDurationSeconds}
 							</dd>
 						</div>
 					{/if}
@@ -365,7 +362,7 @@
 			<div>
 				<dt>quote request hash</dt>
 				<dd>
-					<TruncatedValue value={String(pendingEntity.quoteRequestHash)} />
+					<TruncatedValue value={selection.entitySelector.quoteRequestHash} />
 				</dd>
 			</div>
 
@@ -384,7 +381,7 @@
 						<div>
 							<dt>approval address</dt>
 							<dd>
-								<TruncatedValue value={String(approvalAddress)} />
+								<TruncatedValue value={approvalAddress} />
 							</dd>
 						</div>
 					{/if}
@@ -406,7 +403,7 @@
 						<div>
 							<dt>transaction to</dt>
 							<dd>
-								{String(transactionTo)}
+								{transactionTo}
 							</dd>
 						</div>
 					{/if}
@@ -428,7 +425,7 @@
 						<div>
 							<dt>transaction data hash</dt>
 							<dd>
-								<TruncatedValue value={String(transactionDataHash)} />
+								<TruncatedValue value={transactionDataHash} />
 							</dd>
 						</div>
 					{/if}
@@ -457,15 +454,15 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const bridgeRouteQuoteTimestampBridgeRouteQuoteStepsViewStepsResource = selection.$$steps}
+		{@const stepsResource = selection.$$steps}
 		<ResourceBoundary
-			resource={bridgeRouteQuoteTimestampBridgeRouteQuoteStepsViewStepsResource}
+			resource={stepsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<BridgeRouteQuoteStepsView
-						selection={bridgeRouteQuoteTimestampBridgeRouteQuoteStepsViewStepsResource}
-						countResource={bridgeRouteQuoteTimestampBridgeRouteQuoteStepsViewStepsResource.count}
+						selection={stepsResource}
+						countResource={stepsResource.count}
 						title='Steps'
 						id='steps'
 					/>

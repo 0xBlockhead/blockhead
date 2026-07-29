@@ -6,7 +6,6 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { stringify } from 'devalue'
-	import { EvmAddress } from '$/schema/ZeroExHex.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -24,7 +23,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.EigenLayerStrategy> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.EigenExplorer_Rest,
@@ -39,7 +37,7 @@
 			underlyingToken: true,
 		},
 	}))
-	const titleFallback = $derived(String(pendingEntity.strategyAddress ?? '') || 'eigen layer strategy')
+	const titleFallback = $derived(selection.entitySelector.strategyAddress || 'eigen layer strategy')
 	const viewDomId = $derived('eigen-layer-strategy-' + encodeURIComponent(stringify(selection.entitySelector)))
 
 
@@ -67,13 +65,13 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{String(pendingEntity.strategyAddress ?? '') || 'eigen layer strategy'}
+		{selection.entitySelector.strategyAddress || 'eigen layer strategy'}
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={eigenLayerStrategy}>
 			{#snippet children(entity)}
-				{String(entity.underlyingToken ?? '') || String(pendingEntity.strategyAddress) || titleFallback}
+				{(entity.underlyingToken ?? '') || selection.entitySelector.strategyAddress || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -93,7 +91,7 @@
 			<div>
 				<dt>strategy address</dt>
 				<dd>
-					<TruncatedValue value={String(pendingEntity.strategyAddress)} />
+					<TruncatedValue value={selection.entitySelector.strategyAddress} />
 				</dd>
 			</div>
 
@@ -106,7 +104,7 @@
 						<div>
 							<dt>underlying token</dt>
 							<dd>
-								{String(underlyingToken)}
+								{underlyingToken}
 							</dd>
 						</div>
 					{/if}

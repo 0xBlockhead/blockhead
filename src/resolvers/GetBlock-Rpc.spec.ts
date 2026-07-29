@@ -45,8 +45,6 @@ const resolverBinding = vi.hoisted(() => ({
 	credentials: [{
 		scope: 'RuntimeSecret',
 	}],
-	proxyId: 'GetBlockRpc_JsonRpc-143',
-	serverCredentialId: 'GetBlockRpc_JsonRpc-143',
 	artifacts: [
 		{
 			kind: 'OpenRpcSpec',

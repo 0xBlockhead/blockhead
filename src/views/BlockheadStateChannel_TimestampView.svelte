@@ -21,13 +21,11 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.BlockheadStateChannel_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const viewSelection = $derived(selection({
+	const blockheadStateChannelTimestamp = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Local_Internal,
 		],
-	}))
-	const blockheadStateChannelTimestamp = $derived(viewSelection({
+	})({
 		fields: {
 			totalDeposited: true,
 			balance0: true,
@@ -36,7 +34,6 @@
 			status: true,
 		},
 	}))
-	const titleFallback = $derived(String(pendingEntity.timestampMs ?? '') || 'blockhead state channel timestamp')
 
 
 	// Components
@@ -49,26 +46,26 @@
 <EntityView
 	entityType={EntityType.BlockheadStateChannel_Timestamp}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? String(selection.entitySelector.timestampMs)}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+		<Timestamp timestamp={selection.entitySelector.timestampMs} />
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={blockheadStateChannelTimestamp}>
 			{#snippet children(entity)}
-				{entity.status || String(pendingEntity.timestampMs) || titleFallback}
+				{entity.status || String(selection.entitySelector.timestampMs)}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
 		<span data-text="muted">
-			{pendingEntity.source}
+			{selection.entitySelector.source}
 		</span>
 	{/snippet}
 
@@ -88,14 +85,14 @@
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+					<Timestamp timestamp={selection.entitySelector.timestampMs} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 
@@ -121,7 +118,7 @@
 						resource={blockheadStateChannelTimestamp}
 					>
 						{#snippet children(entity)}
-							{String(entity.totalDeposited)}
+							{entity.totalDeposited}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -134,7 +131,7 @@
 						resource={blockheadStateChannelTimestamp}
 					>
 						{#snippet children(entity)}
-							{String(entity.balance0)}
+							{entity.balance0}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -147,7 +144,7 @@
 						resource={blockheadStateChannelTimestamp}
 					>
 						{#snippet children(entity)}
-							{String(entity.balance1)}
+							{entity.balance1}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -160,7 +157,7 @@
 						resource={blockheadStateChannelTimestamp}
 					>
 						{#snippet children(entity)}
-							{String(entity.turnNum)}
+							{entity.turnNum}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>

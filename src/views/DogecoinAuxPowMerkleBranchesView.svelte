@@ -46,7 +46,7 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{((String(dogecoinAuxPowMerkleBranchSelector.$auxPow.$block.height ?? '') ? 'Block #' + String(dogecoinAuxPowMerkleBranchSelector.$auxPow.$block.height ?? '') : '') || (dogecoinAuxPowMerkleBranchSelector.$auxPow.$block.hash ?? '') || 'UTXO block')}
+				{`Block #${dogecoinAuxPowMerkleBranchSelector.$auxPow.$block.height}`}
 			{/snippet}
 		</EntityView>
 	{/snippet}

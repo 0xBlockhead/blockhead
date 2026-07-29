@@ -35,7 +35,7 @@
 			resolve(
 				'/(social)/(nostr)/nostr/(globalNostrNetwork)/profile/[pubkey=stringSegment]/(nostrProfile)/notes',
 				{
-					pubkey: String(params.pubkey),
+					pubkey: params.pubkey,
 				}
 			)
 		}

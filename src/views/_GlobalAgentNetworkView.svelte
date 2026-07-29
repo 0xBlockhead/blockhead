@@ -17,8 +17,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType._GlobalAgentNetwork> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const titleFallback = 'global agent network'
 	const viewDomId = $derived('-global-agent-network-' + encodeURIComponent(stringify(selection.entitySelector)))
 
 
@@ -39,7 +37,7 @@
 	entityType={EntityType._GlobalAgentNetwork}
 	entitySelector={selection.entitySelector}
 	id={viewDomId}
-	title={title ?? titleFallback}
+	title={title ?? 'global agent network'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -53,7 +51,7 @@
 			<div>
 				<dt>network ID</dt>
 				<dd>
-					{pendingEntity.networkId}
+					{selection.entitySelector.networkId}
 				</dd>
 			</div>
 

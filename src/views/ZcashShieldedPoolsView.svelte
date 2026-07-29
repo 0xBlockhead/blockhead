@@ -7,7 +7,6 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
-	import { ZcashShieldedPoolKind } from '$/schema/ZcashShieldedPool.ts'
 
 
 	// State
@@ -39,6 +38,7 @@
 >
 	{#snippet Item({ item: zcashShieldedPool })}
 		{@const zcashShieldedPoolSelector = zcashShieldedPool[EntityMetaKey.Selector]}
+		{@const network = zcashShieldedPoolSelector.$network}
 		<EntityView
 			entityType={EntityType.ZcashShieldedPool}
 			entitySelector={zcashShieldedPoolSelector}
@@ -47,12 +47,12 @@
 					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/shielded-pool/[pool=stringSegment]',
 					{
 						network: (
-							'caip2' in zcashShieldedPoolSelector.$network ?
-								String(caip2StringFromValue(zcashShieldedPoolSelector.$network.caip2))
+							'caip2' in network ?
+								caip2StringFromValue(network.caip2)
 							:
-								String(zcashShieldedPoolSelector.$network.slug)
+								network.slug
 						),
-						pool: String(zcashShieldedPoolSelector.pool),
+						pool: zcashShieldedPoolSelector.pool,
 					}
 				)
 			}

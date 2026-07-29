@@ -39,7 +39,7 @@
 			entitySelector={suiNetworkSelector}
 		>
 			{#snippet Title()}
-				{(suiNetwork.$network.name || (suiNetworkSelector.$network.caip2 == null ? '' : `${suiNetworkSelector.$network.caip2.namespace}:${suiNetworkSelector.$network.caip2.reference}`) || 'Network')}
+				{suiNetwork.$network.name || (suiNetworkSelector.$network.caip2 == null ? '' : `${suiNetworkSelector.$network.caip2.namespace}:${suiNetworkSelector.$network.caip2.reference}`) || 'Network'}
 			{/snippet}
 		</EntityView>
 	{/snippet}

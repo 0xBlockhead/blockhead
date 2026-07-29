@@ -1,10 +1,10 @@
 // Generated from APP.ts. Do not edit by hand.
 
 import { Source } from '$/sources/Source.ts'
-import { ApiFamily, SourceArtifactKind, SourceCredentialScope, SourceDelivery, SourceEndpointKind, SourceOperationGroup, SourceTargetKind, WireProtocol, type SourceBindingIndex } from '$/sources/SourceBinding.ts'
+import { ApiFamily, indexSourceBindings, SourceArtifactKind, SourceCredentialScope, SourceDelivery, SourceEndpointKind, SourceOperationGroup, SourceTargetKind, WireProtocol, type SourceBinding } from '$/sources/SourceBinding.ts'
 
-export default {
-	[Source.AptosFullnode_Rest]: {
+const bindings = [
+	{
 		source: Source.AptosFullnode_Rest,
 		target: {
 			kind: SourceTargetKind.Caip2Network,
@@ -29,7 +29,6 @@ export default {
 				scope: SourceCredentialScope.None,
 			},
 		],
-		proxyId: '["AptosFullnode_Rest","Caip2Network","aptos:1","HttpProxy","OpenApiHttp"]',
 		artifacts: [
 			{
 				kind: SourceArtifactKind.OpenApiSpec,
@@ -48,4 +47,6 @@ export default {
 			},
 		],
 	},
-} as const satisfies SourceBindingIndex
+] as const satisfies readonly SourceBinding[]
+
+export default indexSourceBindings<{ readonly [Source.AptosFullnode_Rest]: typeof bindings[0] }>(bindings)

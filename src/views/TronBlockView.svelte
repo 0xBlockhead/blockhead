@@ -21,9 +21,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.TronBlock> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const titleFallback = 'tron block'
-
 
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -38,7 +35,7 @@
 <EntityView
 	entityType={EntityType.TronBlock}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? 'tron block'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -63,7 +60,7 @@
 			<div>
 				<dt>Height</dt>
 				<dd>
-					{String(pendingEntity.height)}
+					{selection.entitySelector.height}
 				</dd>
 			</div>
 
@@ -143,7 +140,7 @@
 						<div>
 							<dt>Timestamp</dt>
 							<dd>
-								<Timestamp timestamp={Number(timestampMs)} />
+								<Timestamp timestamp={timestampMs} />
 							</dd>
 						</div>
 					{/if}
@@ -207,7 +204,7 @@
 						<div>
 							<dt>Version</dt>
 							<dd>
-								{String(version)}
+								{version}
 							</dd>
 						</div>
 					{/if}
@@ -229,7 +226,7 @@
 						<div>
 							<dt>Transaction count</dt>
 							<dd>
-								{String(transactionCount)}
+								{transactionCount}
 							</dd>
 						</div>
 					{/if}

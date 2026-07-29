@@ -22,8 +22,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.TonTrace> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const titleFallback = 'TON trace'
 	const viewDomId = $derived('ton-trace-' + encodeURIComponent(stringify(selection.entitySelector)))
 
 
@@ -43,7 +41,7 @@
 	entityType={EntityType.TonTrace}
 	entitySelector={selection.entitySelector}
 	id={viewDomId}
-	title={title ?? titleFallback}
+	title={title ?? 'TON trace'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -112,7 +110,7 @@
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 
@@ -131,7 +129,7 @@
 						<div>
 							<dt>started AT ms</dt>
 							<dd>
-								{String(startedAtMs)}
+								{startedAtMs}
 							</dd>
 						</div>
 					{/if}

@@ -21,7 +21,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.NearValidator> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.NearRpc_JsonRpc,
@@ -33,7 +32,6 @@
 			isSlashed: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.accountId ?? '') || 'near validator')
 
 
 	// Components
@@ -47,22 +45,22 @@
 <EntityView
 	entityType={EntityType.NearValidator}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? (selection.entitySelector.accountId || 'near validator')}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{(pendingEntity.accountId ?? '') || 'near validator'}
+		{selection.entitySelector.accountId || 'near validator'}
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={nearValidator}>
 			{#snippet children(entity)}
-				{@const stakeYoctoNear0 = entity.stakeYoctoNear}
-				{#if stakeYoctoNear0 != null}
+				{@const stakeYoctoNear = entity.stakeYoctoNear}
+				{#if stakeYoctoNear != null}
 					<NumberValue
-						value={stakeYoctoNear0}
+						value={stakeYoctoNear}
 					/>
 				{/if}
 			{/snippet}
@@ -72,10 +70,10 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={nearValidator}>
 			{#snippet children(entity)}
-				{@const isSlashed0 = entity.isSlashed}
-				{#if isSlashed0 != null}
+				{@const isSlashed = entity.isSlashed}
+				{#if isSlashed != null}
 					<span data-text="muted">
-						{isSlashed0 ? 'Yes' : 'No'}
+						{isSlashed ? 'Yes' : 'No'}
 					</span>
 				{/if}
 			{/snippet}
@@ -98,7 +96,7 @@
 			<div>
 				<dt>Account ID</dt>
 				<dd>
-					<TruncatedValue value={pendingEntity.accountId} />
+					<TruncatedValue value={selection.entitySelector.accountId} />
 				</dd>
 			</div>
 

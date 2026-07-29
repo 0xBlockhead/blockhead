@@ -1,10 +1,10 @@
 // Generated from APP.ts. Do not edit by hand.
 
 import { Source } from '$/sources/Source.ts'
-import { ApiFamily, SourceCredentialScope, SourceDelivery, SourceEndpointKind, SourceOperationGroup, SourceTargetKind, WireProtocol, type SourceBindingIndex } from '$/sources/SourceBinding.ts'
+import { ApiFamily, indexSourceBindings, SourceCredentialScope, SourceDelivery, SourceEndpointKind, SourceOperationGroup, SourceTargetKind, WireProtocol, type SourceBinding } from '$/sources/SourceBinding.ts'
 
-export default {
-	[Source.Nitro_ClientStore]: {
+const bindings = [
+	{
 		source: Source.Nitro_ClientStore,
 		target: {
 			kind: SourceTargetKind.LocalDevice,
@@ -28,7 +28,7 @@ export default {
 			},
 		],
 	},
-	[Source.Nitro_NodeRpc]: {
+	{
 		source: Source.Nitro_NodeRpc,
 		target: {
 			kind: SourceTargetKind.LocalDevice,
@@ -53,4 +53,9 @@ export default {
 			},
 		],
 	},
-} as const satisfies SourceBindingIndex
+] as const satisfies readonly SourceBinding[]
+
+export default indexSourceBindings<{
+	readonly [Source.Nitro_ClientStore]: typeof bindings[0]
+	readonly [Source.Nitro_NodeRpc]: typeof bindings[1]
+}>(bindings)

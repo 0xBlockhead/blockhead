@@ -39,6 +39,7 @@
 >
 	{#snippet Item({ item: solanaBlock })}
 		{@const solanaBlockSelector = solanaBlock[EntityMetaKey.Selector]}
+		{@const network = solanaBlockSelector.$network}
 		<EntityView
 			entityType={EntityType.SolanaBlock}
 			entitySelector={solanaBlockSelector}
@@ -47,10 +48,10 @@
 					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(blocks)/block/[blockNumber=nonNegativeBigInt]',
 					{
 						network: (
-							'caip2' in solanaBlockSelector.$network ?
-								String(caip2StringFromValue(solanaBlockSelector.$network.caip2))
+							'caip2' in network ?
+								caip2StringFromValue(network.caip2)
 							:
-								String(solanaBlockSelector.$network.slug)
+								network.slug
 						),
 						blockNumber: String(solanaBlockSelector.slot),
 					}
@@ -58,11 +59,11 @@
 			}
 		>
 			{#snippet Title()}
-				{(String(solanaBlockSelector.slot ?? '') ? 'Slot #' + String(solanaBlockSelector.slot ?? '') : '') || 'solana block'}
+				{`Slot #${solanaBlockSelector.slot}`}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{String(solanaBlock.blockHeight ?? '')}</span>
+				<span data-text="annotation">{solanaBlock.blockHeight ?? ''}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

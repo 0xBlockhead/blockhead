@@ -55,7 +55,7 @@
 
 
 <svelte:head>
-	<title>{(data.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.source ?? '') || 'Nostr relay timestamp' : [(pageSelection.entity.name ?? ''), pageSelection.entitySelector.source].filter(Boolean).join(' ') || 'Nostr relay timestamp'))} • Nostr relay timestamp • Blockhead</title>
+	<title>{data.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.source ?? '') || 'Nostr relay timestamp' : [(pageSelection.entity.name ?? ''), pageSelection.entitySelector.source].filter(Boolean).join(' ') || 'Nostr relay timestamp')} • Nostr relay timestamp • Blockhead</title>
 </svelte:head>
 
 

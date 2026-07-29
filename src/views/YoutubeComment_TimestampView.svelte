@@ -22,8 +22,7 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.YoutubeComment_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const titleFallback = $derived([String(pendingEntity.timestampMs ?? ''), (pendingEntity.source ?? '')].filter(Boolean).join(' ') || 'YouTube comment observation')
+	const comment = $derived(selection.entitySelector.$comment)
 
 
 	// Components
@@ -36,17 +35,20 @@
 <EntityView
 	entityType={EntityType.YoutubeComment_Timestamp}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? ([String(selection.entitySelector.timestampMs), selection.entitySelector.source].filter(Boolean).join(' ') || 'YouTube comment observation')}
 	href={
-		href ?? resolve(
-			'/(social)/(youtube)/youtube/(globalYoutubeNetwork)/comment/[videoId=stringSegment]/[commentId=stringSegment]/(youtubeComment)/observations/[timestampMs=nonNegativeInteger]-[source=stringSegment]',
-			{
-				videoId: encodeURIComponent(String(selection.entitySelector.$comment.videoId)),
-				commentId: encodeURIComponent(String(selection.entitySelector.$comment.commentId)),
-				timestampMs: String(selection.entitySelector.timestampMs),
-				source: String(selection.entitySelector.source),
-			}
-		)
+		href === undefined ?
+			resolve(
+				'/(social)/(youtube)/youtube/(globalYoutubeNetwork)/comment/[videoId=stringSegment]/[commentId=stringSegment]/(youtubeComment)/observations/[timestampMs=nonNegativeInteger]-[source=stringSegment]',
+				{
+					videoId: encodeURIComponent(comment.videoId),
+					commentId: encodeURIComponent(comment.commentId),
+					timestampMs: String(selection.entitySelector.timestampMs),
+					source: selection.entitySelector.source,
+				}
+			)
+		:
+			href ?? undefined
 	}
 	{layout}
 	bind:open
@@ -55,13 +57,13 @@
 	{#snippet Title()}
 		<YoutubeCommentView
 			selection={select(EntityType.YoutubeComment, selection.entitySelector.$comment)}
-			href=""
+			href={null}
 			layout={EntityLayout.Title}
 			open={false}
 		/>
 
-		<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
-		{pendingEntity.source}
+		<Timestamp timestamp={selection.entitySelector.timestampMs} />
+		{selection.entitySelector.source}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -69,14 +71,14 @@
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+					<Timestamp timestamp={selection.entitySelector.timestampMs} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 		</dl>

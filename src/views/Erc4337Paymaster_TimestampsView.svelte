@@ -38,6 +38,7 @@
 >
 	{#snippet Item({ item: erc4337PaymasterTimestamp })}
 		{@const erc4337PaymasterTimestampSelector = erc4337PaymasterTimestamp[EntityMetaKey.Selector]}
+		{@const paymaster = erc4337PaymasterTimestampSelector.$paymaster}
 		<EntityView
 			entityType={EntityType.Erc4337Paymaster_Timestamp}
 			entitySelector={erc4337PaymasterTimestampSelector}
@@ -46,24 +47,24 @@
 					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/erc-4337/paymaster/[address=evmAddress]/(erc4337Paymaster)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
 					{
 						network: (
-							'caip2' in erc4337PaymasterTimestampSelector.$paymaster.$network ?
-								String(caip2StringFromValue(erc4337PaymasterTimestampSelector.$paymaster.$network.caip2))
+							'caip2' in paymaster.$network ?
+								caip2StringFromValue(paymaster.$network.caip2)
 							:
-								String(erc4337PaymasterTimestampSelector.$paymaster.$network.slug)
+								paymaster.$network.slug
 						),
-						address: String(erc4337PaymasterTimestampSelector.$paymaster.address),
+						address: paymaster.address,
 						timestampMs: String(erc4337PaymasterTimestampSelector.timestampMs),
-						source: String(erc4337PaymasterTimestampSelector.source),
+						source: erc4337PaymasterTimestampSelector.source,
 					}
 				)
 			}
 		>
 			{#snippet Title()}
-				{String(erc4337PaymasterTimestampSelector.timestampMs) || 'ERC-4337 paymaster timestamp'}
+				{erc4337PaymasterTimestampSelector.timestampMs}
 			{/snippet}
 
 			{#snippet Value()}
-				{String(erc4337PaymasterTimestamp.userOperationsCount ?? '')}
+				{erc4337PaymasterTimestamp.userOperationsCount ?? ''}
 			{/snippet}
 
 			{#snippet HeadingAfter()}

@@ -45,7 +45,7 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{String(starknetAccountTimestampSelector.blockNumber)}
+				{starknetAccountTimestampSelector.blockNumber}
 			{/snippet}
 
 			{#snippet HeadingAfter()}

@@ -8,7 +8,7 @@ import {
 	entityFieldAddressKey,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import { LightningChannelStatus } from '$/schema/LightningChannel.ts'
+import { LightningChannelStatus } from '$/schema/LightningChannelStatus.ts'
 import { Source } from '$/sources/Source.ts'
 import type {
 	MempoolSpaceLightningChannel,

@@ -20,14 +20,13 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.AptosTableItem> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const aptosTableItem = $derived(selection({
 		fields: {
 			keyType: true,
 			valueType: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.keyHash ?? '') || 'aptos table item')
+	const titleFallback = $derived(selection.entitySelector.keyHash || 'aptos table item')
 
 
 	// Components
@@ -47,13 +46,13 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<TruncatedValue value={pendingEntity.keyHash} />
+		<TruncatedValue value={selection.entitySelector.keyHash} />
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={aptosTableItem}>
 			{#snippet children(entity)}
-				{[(entity.keyType ?? ''), (entity.valueType ?? '')].filter(Boolean).join(' ') || pendingEntity.keyHash || titleFallback}
+				{[(entity.keyType ?? ''), (entity.valueType ?? '')].filter(Boolean).join(' ') || selection.entitySelector.keyHash || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -74,14 +73,14 @@
 			<div>
 				<dt>table handle</dt>
 				<dd>
-					{pendingEntity.tableHandle}
+					{selection.entitySelector.tableHandle}
 				</dd>
 			</div>
 
 			<div>
 				<dt>key hash</dt>
 				<dd>
-					<TruncatedValue value={pendingEntity.keyHash} />
+					<TruncatedValue value={selection.entitySelector.keyHash} />
 				</dd>
 			</div>
 		</dl>
@@ -122,15 +121,15 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const aptosTableItemAptosTableItemTimestampsViewTimestampsResource = selection.$$timestamps}
+		{@const timestampsResource = selection.$$timestamps}
 		<ResourceBoundary
-			resource={aptosTableItemAptosTableItemTimestampsViewTimestampsResource}
+			resource={timestampsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<AptosTableItem_TimestampsView
-						selection={aptosTableItemAptosTableItemTimestampsViewTimestampsResource}
-						countResource={aptosTableItemAptosTableItemTimestampsViewTimestampsResource.count}
+						selection={timestampsResource}
+						countResource={timestampsResource.count}
 						title='timestamps'
 						id='timestamps'
 					/>

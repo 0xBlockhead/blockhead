@@ -52,7 +52,7 @@
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{(aiProviderCatalogEntry.subjectKind ?? '')}</span>
+				<span data-text="annotation">{aiProviderCatalogEntry.subjectKind ?? ''}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

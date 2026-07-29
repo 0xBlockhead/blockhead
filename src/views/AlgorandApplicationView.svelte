@@ -21,13 +21,11 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.AlgorandApplication> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const algorandApplication = $derived(selection({
 		fields: {
 			creator: true,
 		},
 	}))
-	const titleFallback = $derived(String(pendingEntity.applicationId ?? '') || 'algorand application')
 	const viewDomId = $derived('algorand-application-' + encodeURIComponent(stringify(selection.entitySelector)))
 
 
@@ -46,19 +44,18 @@
 	entityType={EntityType.AlgorandApplication}
 	entitySelector={selection.entitySelector}
 	id={viewDomId}
-	title={title ?? titleFallback}
+	title={title ?? String(selection.entitySelector.applicationId)}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{String(pendingEntity.applicationId ?? '') || 'algorand application'}
+		{String(selection.entitySelector.applicationId)}
 	{/snippet}
 
 	{#snippet Value()}
 		<AlgorandNetworkView
 			selection={select(EntityType.AlgorandNetwork, selection.entitySelector.$network)}
-			href=""
 			layout={EntityLayout.Value}
 			open={false}
 		/>
@@ -67,10 +64,10 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={algorandApplication}>
 			{#snippet children(entity)}
-				{@const creator0 = entity.creator}
-				{#if creator0 != null}
+				{@const creator = entity.creator}
+				{#if creator != null}
 					<span data-text="muted">
-						{creator0}
+						{creator}
 					</span>
 				{/if}
 			{/snippet}
@@ -93,7 +90,7 @@
 			<div>
 				<dt>application ID</dt>
 				<dd>
-					{String(pendingEntity.applicationId)}
+					{selection.entitySelector.applicationId}
 				</dd>
 			</div>
 

@@ -41,11 +41,11 @@
 			entitySelector={cctpAttestationTimestampSelector}
 		>
 			{#snippet Title()}
-				{String(cctpAttestationTimestampSelector.timestampMs) || 'CCTP attestation timestamp'}
+				{cctpAttestationTimestampSelector.timestampMs}
 			{/snippet}
 
 			{#snippet Value()}
-				{(cctpAttestationTimestamp.status ?? '')}
+				{cctpAttestationTimestamp.status ?? ''}
 			{/snippet}
 
 			{#snippet HeadingAfter()}

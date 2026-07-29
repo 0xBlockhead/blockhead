@@ -9,7 +9,7 @@ import {
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 import type { HeliusEnhancedTransaction } from '$/sources/Helius/Rest/types.ts'
-import { SolanaInstructionKind } from '$/schema/SolanaInstruction.ts'
+import { SolanaInstructionKind } from '$/schema/SolanaInstructionKind.ts'
 
 const assertSolanaMainnet = (network: { caip2: { namespace: string; reference: string } } | { slug: string }) => {
 	if (

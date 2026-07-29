@@ -40,21 +40,19 @@
 			entityType={EntityType.LightningNetwork}
 			entitySelector={lightningNetworkSelector}
 			href={
-				(
-					'slug' in lightningNetworkSelector.$network ?
+				'slug' in lightningNetworkSelector.$network ?
 						resolve(
 					'/(explore)/(networks)/network/[network]',
 					{
-						network: String(lightningNetworkSelector.$network.slug),
+						network: lightningNetworkSelector.$network.slug,
 					}
 				)
 					:
 						undefined
-				)
 			}
 		>
 			{#snippet Title()}
-				{(lightningNetwork.name ?? '') || (lightningNetwork.$network.name || (lightningNetworkSelector.$network.caip2 == null ? '' : `${lightningNetworkSelector.$network.caip2.namespace}:${lightningNetworkSelector.$network.caip2.reference}`) || 'Network')}
+				{(lightningNetwork.name ?? '') || lightningNetwork.$network.name || (lightningNetworkSelector.$network.caip2 == null ? '' : `${lightningNetworkSelector.$network.caip2.namespace}:${lightningNetworkSelector.$network.caip2.reference}`) || 'Network'}
 			{/snippet}
 
 			{#snippet Value()}

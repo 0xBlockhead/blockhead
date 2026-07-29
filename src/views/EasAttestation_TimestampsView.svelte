@@ -41,15 +41,15 @@
 			entitySelector={easAttestationTimestampSelector}
 		>
 			{#snippet Title()}
-				{String(easAttestationTimestampSelector.timestampMs) || 'EAS attestation timestamp'}
+				{easAttestationTimestampSelector.timestampMs}
 			{/snippet}
 
 			{#snippet Value()}
-				{String(easAttestationTimestamp.valid ?? '')}
+				{easAttestationTimestamp.valid ?? ''}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{String(easAttestationTimestamp.revoked ?? '')}</span>
+				<span data-text="annotation">{easAttestationTimestamp.revoked ?? ''}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

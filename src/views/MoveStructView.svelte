@@ -20,14 +20,13 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.MoveStruct> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const moveStruct = $derived(selection({
 		fields: {
 			isEvent: true,
 			isNative: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.structName ?? '') || 'move struct')
+	const titleFallback = $derived(selection.entitySelector.structName || 'move struct')
 
 
 	// Components
@@ -45,13 +44,13 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{(pendingEntity.structName ?? '') || 'move struct'}
+		{selection.entitySelector.structName || 'move struct'}
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={moveStruct}>
 			{#snippet children(entity)}
-				{[String(entity.isEvent ?? ''), String(entity.isNative ?? '')].filter(Boolean).join(' ') || pendingEntity.structName || titleFallback}
+				{[String(entity.isEvent ?? ''), String(entity.isNative ?? '')].filter(Boolean).join(' ') || selection.entitySelector.structName || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -82,7 +81,7 @@
 			<div>
 				<dt>struct name</dt>
 				<dd>
-					{pendingEntity.structName}
+					{selection.entitySelector.structName}
 				</dd>
 			</div>
 

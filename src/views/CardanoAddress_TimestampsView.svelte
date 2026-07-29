@@ -46,11 +46,11 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{String(cardanoAddressTimestamp.lovelaceBalance ?? '')}
+				{cardanoAddressTimestamp.lovelaceBalance ?? ''}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{String(cardanoAddressTimestamp.transactionCount ?? '')}</span>
+				<span data-text="annotation">{cardanoAddressTimestamp.transactionCount ?? ''}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

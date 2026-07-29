@@ -7,7 +7,6 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
-	import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 
 
 	// Context
@@ -25,13 +24,13 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.MevRelay_ProposerPayloadDelivered> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const network = $derived(selection.entitySelector.$network)
 	const mevRelayProposerPayloadDelivered = $derived(selection({
 		fields: {
 			value: true,
 		},
 	}))
-	const titleFallback = $derived(([(String(pendingEntity.slot ?? '') ? 'Slot ' + String(pendingEntity.slot ?? '') : ''), (String(pendingEntity.value ?? '') ? String(pendingEntity.value ?? '') + ' wei' : '')].filter(Boolean).join(' ')) || 'MEV relay proposer payload delivered')
+	const titleFallback = $derived(['Slot ' + String(selection.entitySelector.slot), (prefetched.value != null ? String(prefetched.value) + ' wei' : '')].filter(Boolean).join(' ') || 'MEV relay proposer payload delivered')
 
 
 	// Components
@@ -49,20 +48,23 @@
 	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
 	href={
-		href ?? resolve(
-			'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/mev/payload/[relayHost=stringSegment]/[slot=nonNegativeInteger]/[blockHash=zeroExHex]',
-			{
-				network: (
-					'caip2' in selection.entitySelector.$network ?
-						String(caip2StringFromValue(selection.entitySelector.$network.caip2))
-					:
-						String(selection.entitySelector.$network.slug)
-				),
-				relayHost: String(selection.entitySelector.relayHost),
-				slot: String(selection.entitySelector.slot),
-				blockHash: String(selection.entitySelector.blockHash),
-			}
-		)
+		href === undefined ?
+			resolve(
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/mev/payload/[relayHost=stringSegment]/[slot=nonNegativeInteger]/[blockHash=zeroExHex]',
+				{
+					network: (
+						'caip2' in network ?
+							caip2StringFromValue(network.caip2)
+						:
+							network.slug
+					),
+					relayHost: selection.entitySelector.relayHost,
+					slot: String(selection.entitySelector.slot),
+					blockHash: selection.entitySelector.blockHash,
+				}
+			)
+		:
+			href ?? undefined
 	}
 	{layout}
 	bind:open
@@ -71,7 +73,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={mevRelayProposerPayloadDelivered}>
 			{#snippet children(entity)}
-				{([(String(pendingEntity.slot) ? 'Slot ' + String(pendingEntity.slot) : ''), (String(entity.value ?? '') ? String(entity.value ?? '') + ' wei' : '')].filter(Boolean).join(' ')) || title || titleFallback}
+				{['Slot ' + String(selection.entitySelector.slot), (entity.value != null ? String(entity.value) + ' wei' : '')].filter(Boolean).join(' ') || title || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -79,10 +81,10 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={mevRelayProposerPayloadDelivered}>
 			{#snippet children(entity)}
-				{@const value0 = entity.value}
-				{#if value0 != null}
+				{@const value = entity.value}
+				{#if value != null}
 					<NumberValue
-						value={value0}
+						value={value}
 					/>
 
 					<span> wei</span>
@@ -115,7 +117,7 @@
 			<div>
 				<dt>Relay host</dt>
 				<dd>
-					{pendingEntity.relayHost}
+					{selection.entitySelector.relayHost}
 				</dd>
 			</div>
 
@@ -123,7 +125,7 @@
 				<dt>Slot</dt>
 				<dd>
 					<NumberValue
-						value={pendingEntity.slot}
+						value={selection.entitySelector.slot}
 					/>
 				</dd>
 			</div>
@@ -131,7 +133,7 @@
 			<div>
 				<dt>Block hash</dt>
 				<dd>
-					<TruncatedValue value={String(pendingEntity.blockHash)} />
+					<TruncatedValue value={selection.entitySelector.blockHash} />
 				</dd>
 			</div>
 

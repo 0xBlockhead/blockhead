@@ -42,7 +42,7 @@
 			resolve(
 				'/(social)/(farcaster)/farcaster/(farcasterNetwork)/user/[userId=farcasterFid]/(farcasterUser)/casts',
 				{
-					userId: String(params.userId),
+					userId: params.userId,
 				}
 			)
 		}

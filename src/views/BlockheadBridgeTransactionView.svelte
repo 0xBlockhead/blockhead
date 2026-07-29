@@ -23,8 +23,7 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.BlockheadBridgeTransaction> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const titleFallback = $derived(String(pendingEntity.createdAt ?? '') || 'bridge transaction')
+	const sourceTx = $derived(selection.entitySelector.$sourceTx)
 
 
 	// Components
@@ -40,35 +39,38 @@
 <EntityView
 	entityType={EntityType.BlockheadBridgeTransaction}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? String(selection.entitySelector.createdAt)}
 	href={
-		href ?? (
-			'caip2' in selection.entitySelector.$sourceTx.$network ?
-				resolve(
-					'/~/accounts/transaction/[chainId=eip155ChainId]/[address=evmAddress]/[sourceTxHash=stringSegment]/[createdAt=nonNegativeInteger]',
-					{
-						chainId: String(selection.entitySelector.$sourceTx.$network.caip2.reference),
-						address: String(selection.entitySelector.$account.address),
-						sourceTxHash: encodeURIComponent(String(selection.entitySelector.$sourceTx.txHash)),
-						createdAt: String(selection.entitySelector.createdAt),
-					}
-				)
-			:
-				undefined
-		)
+		href === undefined ?
+			(
+				'caip2' in sourceTx.$network ?
+					resolve(
+						'/~/accounts/transaction/[chainId=eip155ChainId]/[address=evmAddress]/[sourceTxHash=stringSegment]/[createdAt=nonNegativeInteger]',
+						{
+							chainId: sourceTx.$network.caip2.reference,
+							address: selection.entitySelector.$account.address,
+							sourceTxHash: encodeURIComponent(sourceTx.txHash),
+							createdAt: String(selection.entitySelector.createdAt),
+						}
+					)
+				:
+					undefined
+			)
+		:
+			href ?? undefined
 	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<Timestamp timestamp={Number(pendingEntity.createdAt)} />
+		<Timestamp timestamp={selection.entitySelector.createdAt} />
 	{/snippet}
 
 	{#snippet Value()}
 		<EvmTransactionView
 			selection={select(EntityType.EvmTransaction, selection.entitySelector.$sourceTx)}
-			href=""
+			href={null}
 			layout={EntityLayout.Value}
 			open={false}
 		/>
@@ -111,7 +113,7 @@
 			<div>
 				<dt>Created</dt>
 				<dd>
-					<Timestamp timestamp={Number(pendingEntity.createdAt)} />
+					<Timestamp timestamp={selection.entitySelector.createdAt} />
 				</dd>
 			</div>
 		</dl>

@@ -45,11 +45,11 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{(blockheadAgentProgramInstall.command ?? '')}
+				{blockheadAgentProgramInstall.command ?? ''}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{String(blockheadAgentProgramInstall.updatedAt ?? '')}</span>
+				<span data-text="annotation">{blockheadAgentProgramInstall.updatedAt ?? ''}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

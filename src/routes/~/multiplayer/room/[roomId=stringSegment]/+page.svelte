@@ -37,7 +37,7 @@
 
 
 <svelte:head>
-	<title>{(pageSelection.entity == null ? (pageSelection.entitySelector.id ?? '') || 'room' : (pageSelection.entity.name ?? '') || pageSelection.entitySelector.id || 'room')} • room • Blockhead</title>
+	<title>{pageSelection.entity == null ? (pageSelection.entitySelector.id ?? '') || 'room' : (pageSelection.entity.name ?? '') || pageSelection.entitySelector.id || 'room'} • room • Blockhead</title>
 </svelte:head>
 
 

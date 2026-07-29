@@ -43,11 +43,11 @@
 			entitySelector={polkadotValidatorEraSelector}
 		>
 			{#snippet Title()}
-				{String(polkadotValidatorEraSelector.eraIndex) || 'polkadot validator era'}
+				{polkadotValidatorEraSelector.eraIndex}
 			{/snippet}
 
 			{#snippet Value()}
-				{String(polkadotValidatorEra.active ?? '')}
+				{polkadotValidatorEra.active ?? ''}
 			{/snippet}
 
 			{#snippet HeadingAfter()}

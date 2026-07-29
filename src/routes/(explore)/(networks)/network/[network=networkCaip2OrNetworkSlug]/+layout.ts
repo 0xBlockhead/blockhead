@@ -2,6 +2,7 @@
 
 import type { LayoutLoad } from './$types'
 import { error } from '@sveltejs/kit'
+import { networkByCaip2, networkBySlug } from '$/constants/Network.ts'
 import { caip2SelectorValueFromString } from '$/lib/caip2.ts'
 import { match as matchNetworkCaip2 } from '$/params/networkCaip2.ts'
 import { match as matchNetworkSlug } from '$/params/networkSlug.ts'
@@ -42,7 +43,11 @@ export const load: LayoutLoad = ({ params }) => {
 			}
 		)
 		if (!(networkCaip2Selector instanceof arktype.errors) && 'caip2' in networkCaip2Selector)
-			routeCandidates.push({ entityType: EntityType.Network, selectorName: 'Caip2', selector: networkCaip2Selector })
+			routeCandidates.push({
+				entityType: EntityType.Network,
+				selectorName: 'Caip2',
+				selector: networkCaip2Selector,
+			})
 	}
 
 	if (matchNetworkSlug(params.network)) {
@@ -54,11 +59,25 @@ export const load: LayoutLoad = ({ params }) => {
 			}
 		)
 		if (!(networkSlugSelector instanceof arktype.errors) && 'slug' in networkSlugSelector)
-			routeCandidates.push({ entityType: EntityType.Network, selectorName: 'Slug', selector: networkSlugSelector })
+			routeCandidates.push({
+				entityType: EntityType.Network,
+				selectorName: 'Slug',
+				selector: networkSlugSelector,
+			})
 	}
 
-	if (routeCandidates.length === 0) error(404, 'Route selector not applicable')
-	if (routeCandidates.length > 1) error(500, 'Route selector is ambiguous')
+	if (routeCandidates.length === 0)
+		error(404, 'Route selector not applicable')
 
-	return routeCandidates[0]
+	if (routeCandidates.length > 1)
+		error(500, 'Route selector is ambiguous')
+
+	const projectionNetwork = (
+		Object.getOwnPropertyDescriptor(networkByCaip2, decodeURIComponent(params.network))?.value
+		?? Object.getOwnPropertyDescriptor(networkBySlug, params.network)?.value
+	)
+	if (projectionNetwork == null)
+		error(404, 'Network projection context not found')
+
+	return { ...routeCandidates[0], projectionNetwork }
 }

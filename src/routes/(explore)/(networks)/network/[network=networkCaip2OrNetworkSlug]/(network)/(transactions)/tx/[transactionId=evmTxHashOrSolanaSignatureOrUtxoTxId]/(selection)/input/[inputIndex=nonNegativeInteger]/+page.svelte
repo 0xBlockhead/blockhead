@@ -4,6 +4,7 @@
 	// Types/constants
 	import type { PageProps } from './$types.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { entityDefinitionByType } from '$/schema/index.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -46,20 +47,14 @@
 	const pageTitle = $derived(
 		(
 			data.entityType === EntityType.CardanoTxInput && data.selectorName === 'TransactionInputIndex' ?
-				((String(data.selector.inputIndex) ? 'Input ' + String(data.selector.inputIndex) : '') || 'Cardano transaction input')
+				'Input ' + String(data.selector.inputIndex)
 			:
-				((String(data.selector.indexInTransaction ?? '') ? 'Input #' + String(data.selector.indexInTransaction ?? '') : '') || 'UTXO input')
+				(String(data.selector.indexInTransaction ?? '') ? 'Input #' + String(data.selector.indexInTransaction ?? '') : '') || 'UTXO input'
 		)
 	)
 	const entityViewByType = {
-		[EntityType.CardanoTxInput]: {
-			Component: CardanoTxInputView,
-			label: 'Cardano transaction input',
-		},
-		[EntityType.UtxoInput]: {
-			Component: UtxoInputView,
-			label: 'UTXO input',
-		},
+		[EntityType.CardanoTxInput]: CardanoTxInputView,
+		[EntityType.UtxoInput]: UtxoInputView,
 	}
 
 	// Components
@@ -70,12 +65,12 @@
 
 
 <svelte:head>
-	<title>{pageTitle} • {entityViewByType[data.entityType].label} • Blockhead</title>
+	<title>{pageTitle} • {entityDefinitionByType[data.entityType].labels.singular} • Blockhead</title>
 </svelte:head>
 
 
 <Page>
-	{@const EntityView = entityViewByType[data.entityType].Component}
+	{@const EntityView = entityViewByType[data.entityType]}
 
 	<EntityView
 		selection={pageSelection}

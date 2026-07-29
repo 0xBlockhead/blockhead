@@ -45,7 +45,7 @@
 
 
 <svelte:head>
-	<title>{('X user observation')} • X user observation • Blockhead</title>
+	<title>{'X user observation'} • X user observation • Blockhead</title>
 </svelte:head>
 
 

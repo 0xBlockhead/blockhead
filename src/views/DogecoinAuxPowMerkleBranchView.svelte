@@ -21,19 +21,16 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.DogecoinAuxPowMerkleBranch> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.DogecoinCore_JsonRpc,
 		],
 	}))
-	const titleFallback = $derived((pendingEntity.branchKind ?? '') || 'dogecoin aux pow merkle branch')
 
 
 	// Components
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import TruncatedValue from '$/components/TruncatedValue.svelte'
 	import DogecoinBlockAuxPowView from '$/views/DogecoinBlockAuxPowView.svelte'
 </script>
 
@@ -41,19 +38,18 @@
 <EntityView
 	entityType={EntityType.DogecoinAuxPowMerkleBranch}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? (selection.entitySelector.branchKind || 'dogecoin aux pow merkle branch')}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{(pendingEntity.branchKind ?? '') || 'dogecoin aux pow merkle branch'}
+		{selection.entitySelector.branchKind || 'dogecoin aux pow merkle branch'}
 	{/snippet}
 
 	{#snippet Value()}
 		<DogecoinBlockAuxPowView
 			selection={select(EntityType.DogecoinBlockAuxPow, selection.entitySelector.$auxPow)}
-			href=""
 			layout={EntityLayout.Value}
 			open={false}
 		/>
@@ -75,7 +71,7 @@
 			<div>
 				<dt>Branch kind</dt>
 				<dd>
-					{pendingEntity.branchKind}
+					{selection.entitySelector.branchKind}
 				</dd>
 			</div>
 
@@ -92,7 +88,7 @@
 						}
 					>
 						{#snippet children(entity)}
-							<TruncatedValue value={entity.branchHashes.values.join(', ')} />
+							{entity.branchHashes.values.join(', ')}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>

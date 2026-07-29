@@ -2421,7 +2421,7 @@ export type _ViewListSection<
 	titleField?: _FieldReference
 	field?: _EntityFieldReference
 	component?: string
-	href?: string
+	href?: `/(${string}`
 	props?: {
 		name: string
 		value: _Expression
@@ -3823,7 +3823,7 @@ export const schema = {
 				id: "BridgeRouteTagArray",
 				imports: [
 					{
-						from: "$/schema/BridgeRoute.ts",
+						from: "$/schema/BridgeRouteTag.ts",
 						names: ["BridgeRouteTag"],
 					},
 				],
@@ -4132,7 +4132,7 @@ export const schema = {
 				id: "CoinInstanceType",
 				imports: [
 					{
-						from: "$/schema/EvmCoinInstance.ts",
+						from: "$/schema/CoinInstanceType.ts",
 						names: ["CoinInstanceType"],
 					},
 				],
@@ -4149,7 +4149,7 @@ export const schema = {
 				id: "MediaType",
 				imports: [
 					{
-						from: "$/schema/Media.ts",
+						from: "$/schema/MediaType.ts",
 						names: ["MediaType"],
 					},
 				],
@@ -4159,7 +4159,7 @@ export const schema = {
 				id: "MediaTransport",
 				imports: [
 					{
-						from: "$/schema/Media.ts",
+						from: "$/schema/MediaTransport.ts",
 						names: ["MediaTransport"],
 					},
 				],
@@ -4172,7 +4172,7 @@ export const schema = {
 				},
 				imports: [
 					{
-						from: "$/schema/AssetInstance.ts",
+						from: "$/schema/AssetInstanceKind.ts",
 						names: ["AssetInstanceKind"],
 					},
 				],
@@ -4215,7 +4215,7 @@ export const schema = {
 				},
 				imports: [
 					{
-						from: "$/schema/ZcashShieldedPool.ts",
+						from: "$/schema/ZcashShieldedPoolKind.ts",
 						names: ["ZcashShieldedPoolKind"],
 					},
 				],
@@ -4228,7 +4228,7 @@ export const schema = {
 				},
 				imports: [
 					{
-						from: "$/schema/ZcashShieldedAction.ts",
+						from: "$/schema/ZcashShieldedActionKind.ts",
 						names: ["ZcashShieldedActionKind"],
 					},
 				],
@@ -10879,16 +10879,16 @@ export const schema = {
 									}
 								>
 									{#snippet Pending()}
-										<TruncatedValue value={String(pendingEntity.did ?? '')} />
+										<TruncatedValue value={pendingEntity.did ?? ''} />
 									{/snippet}
 									{#snippet children(observations)}
 										{@const observation = observations.values[0]}
 										{#if observation?.displayName}
-											{String(observation.displayName)}
+											{observation.displayName}
 										{:else if observation?.handle}
-											@{String(observation.handle)}
+											@{observation.handle}
 										{:else}
-											<TruncatedValue value={String(pendingEntity.did ?? '')} />
+											<TruncatedValue value={pendingEntity.did ?? ''} />
 										{/if}
 									{/snippet}
 								</ResourceBoundary>
@@ -23994,17 +23994,17 @@ export const schema = {
 							Title: dedent `
 																										<ResourceBoundary resource={coin}>
 																											{#snippet Pending()}
-																												{String(selection.entitySelector.coinId ?? '')}
+																												{selection.entitySelector.coinId}
 																											{/snippet}
 																											{#snippet children(entity)}
-																												{String(entity.name ?? '') && String(entity.symbol ?? '') && String(entity.name ?? '') !== String(entity.symbol ?? '') ? \`\${String(entity.name ?? '')} (\${String(entity.symbol ?? '')})\` : String(entity.symbol ?? '') || String(entity.name ?? '') || titleFallback}
+																												{entity.name && entity.symbol && entity.name !== entity.symbol ? \`\${entity.name} (\${entity.symbol})\` : entity.symbol || entity.name || titleFallback}
 																											{/snippet}
 																										</ResourceBoundary>
 																									`,
 							value: ["symbol"],
 							Value: dedent `
 																										<span>
-																											{String(selection.entitySelector.coinId ?? '')}
+																											{selection.entitySelector.coinId}
 																										</span>
 																									`,
 						},
@@ -28300,7 +28300,7 @@ export const schema = {
 																											{#snippet Pending()}
 																												<TruncatedValue
 																													format={TruncatedValueFormat.Visual}
-																													value={String(selection.entitySelector.address)}
+																													value={selection.entitySelector.address}
 																												/>
 																											{/snippet}
 
@@ -28308,17 +28308,17 @@ export const schema = {
 																												{#if entity.$primaryName != null}
 																													{@const primaryName = entity.$primaryName[EntityMetaKey.Selector].name ?? entity.$primaryName.name}
 																													{#if primaryName}
-																														{String(primaryName ?? '')}
+																														{primaryName}
 																													{:else}
 																														<TruncatedValue
 																															format={TruncatedValueFormat.Visual}
-																															value={String(selection.entitySelector.address)}
+																															value={selection.entitySelector.address}
 																														/>
 																													{/if}
 																												{:else}
 																													<TruncatedValue
 																														format={TruncatedValueFormat.Visual}
-																														value={String(selection.entitySelector.address)}
+																														value={selection.entitySelector.address}
 																													/>
 																												{/if}
 																											{/snippet}
@@ -30634,8 +30634,8 @@ export const schema = {
 																											{@const image = entity.image}
 																											{#if image}
 																												<IconComponent
-																													src={String(image)}
-																													alt={String(entity.name ?? selection.entitySelector.tokenId ?? '')}
+																													src={image}
+																													alt={entity.name ?? selection.entitySelector.tokenId}
 																												/>
 																											{/if}
 																										{/snippet}
@@ -30644,7 +30644,7 @@ export const schema = {
 							value: [{ field: "tokenId", format: "truncated" }],
 							Value: dedent `
 																									<span data-text="font-monospace">
-																										{String(selection.entitySelector.tokenId ?? '')}
+																										{selection.entitySelector.tokenId}
 																									</span>
 																								`,
 							title: ["name"],
@@ -43556,7 +43556,7 @@ export const schema = {
 							Title: dedent `
 	{selection.entitySelector.$marketVenue.marketVenueId}:{selection.entitySelector.$base.assetKey}-{selection.entitySelector.$quote.assetKey}
 	{#if selection.entitySelector.marketKind !== MarketKind.Spot}
-		{String(marketKindByMarketKind[String(selection.entitySelector.marketKind)].label)}
+		{marketKindByMarketKind[selection.entitySelector.marketKind].label}
 	{/if}
 	`,
 						},
@@ -43571,7 +43571,7 @@ export const schema = {
 		<div>
 			<dt>Kind</dt>
 			<dd>
-				{String(marketKindByMarketKind[String(selection.entitySelector.marketKind)].label)}
+				{marketKindByMarketKind[selection.entitySelector.marketKind].label}
 			</dd>
 		</div>
 
@@ -44775,7 +44775,7 @@ export const schema = {
 																												{@const url = prefetched.url ?? selection.entitySelector.url}
 																												{#if url != null}
 																													<img
-																														src={String(url)}
+																														src={url}
 																														alt=""
 																														width={20}
 																														height={20}
@@ -44787,10 +44787,10 @@ export const schema = {
 																											{/snippet}
 																											{#snippet children(entity)}
 																												{@const url = entity.url ?? selection.entitySelector.url ?? prefetched.url}
-																												{@const type = String(entity.type ?? '')}
+																												{@const type = entity.type ?? ''}
 																												{#if url != null && type === 'Image'}
 																													<img
-																														src={String(url)}
+																														src={url}
 																														alt=""
 																														width={20}
 																														height={20}
@@ -44800,7 +44800,7 @@ export const schema = {
 																													/>
 																												{:else if url != null && type === 'Video'}
 																													<video
-																														src={String(url)}
+																														src={url}
 																														width={20}
 																														height={20}
 																														preload="metadata"
@@ -44808,7 +44808,7 @@ export const schema = {
 																													></video>
 																												{:else if url != null && type === 'Audio'}
 																													<audio
-																														src={String(url)}
+																														src={url}
 																														preload="metadata"
 																													></audio>
 																												{/if}
@@ -44823,7 +44823,7 @@ export const schema = {
 																												{@const url = prefetched.url ?? selection.entitySelector.url}
 																												{#if url != null}
 																													<img
-																														src={String(url)}
+																														src={url}
 																														alt=""
 																														loading="lazy"
 																														decoding="async"
@@ -44833,10 +44833,10 @@ export const schema = {
 																											{/snippet}
 																											{#snippet children(entity)}
 																												{@const url = entity.url ?? selection.entitySelector.url ?? prefetched.url}
-																												{@const type = String(entity.type ?? '')}
+																												{@const type = entity.type ?? ''}
 																												{#if url != null && type === 'Image'}
 																													<img
-																														src={String(url)}
+																														src={url}
 																														alt=""
 																														loading="lazy"
 																														decoding="async"
@@ -44845,13 +44845,13 @@ export const schema = {
 																												{:else if url != null && type === 'Video'}
 																													<!-- svelte-ignore a11y_media_has_caption -->
 																													<video
-																														src={String(url)}
+																														src={url}
 																														controls
 																														preload="metadata"
 																													></video>
 																												{:else if url != null && type === 'Audio'}
 																													<audio
-																														src={String(url)}
+																														src={url}
 																														controls
 																														preload="metadata"
 																													></audio>
@@ -44881,19 +44881,19 @@ export const schema = {
 																													{#if entity.type === 'Video'}
 																														<!-- svelte-ignore a11y_media_has_caption -->
 																														<video
-																															src={String(url)}
+																															src={url}
 																															controls
 																															preload="metadata"
 																														></video>
 																													{:else if entity.type === 'Audio'}
 																														<audio
-																															src={String(url)}
+																															src={url}
 																															controls
 																															preload="metadata"
 																														></audio>
 																													{:else}
 																														<img
-																															src={String(url)}
+																															src={url}
 																															alt=""
 																															loading="lazy"
 																															decoding="async"
@@ -49115,12 +49115,12 @@ export const schema = {
 																									>
 																										{#snippet Pending()}
 																											<TruncatedValue
-																												value={String(selection.entitySelector.eventId ?? '')}
+																												value={selection.entitySelector.eventId}
 																												format={TruncatedValueFormat.Visual}
 																											/>
 																										{/snippet}
 																										{#snippet children(entity)}
-																											{String(entity.content ?? '') || '+'}
+																											{entity.content || '+'}
 																										{/snippet}
 																									</ResourceBoundary>
 																								`,
@@ -49128,7 +49128,7 @@ export const schema = {
 							value: [{ field: "eventId", format: "truncated" }],
 							Value: dedent `
 																									<TruncatedValue
-																										value={String(selection.entitySelector.eventId ?? '')}
+																										value={selection.entitySelector.eventId}
 																										format={TruncatedValueFormat.Visual}
 																									/>
 																								`,
@@ -49550,7 +49550,7 @@ export const schema = {
 							value: [{ field: "eventId", format: "truncated" }],
 							Value: dedent `
 																									<TruncatedValue
-																										value={String(selection.entitySelector.eventId ?? '')}
+																										value={selection.entitySelector.eventId}
 																										format={TruncatedValueFormat.Visual}
 																									/>
 																								`,
@@ -53805,20 +53805,20 @@ export const schema = {
 																									<ResourceBoundary resource={specificationProposal}>
 																										{#snippet children(entity)}
 																											<span>
-																												{\`\${String(entity.categoryLabel ?? proposalCategoryById[String(selection.entitySelector.category)].label ?? selection.entitySelector.category ?? '')}-\${String(selection.entitySelector.number ?? '')}\`}
+																												{\`\${entity.categoryLabel ?? proposalCategoryById[selection.entitySelector.category].label ?? selection.entitySelector.category}-\${selection.entitySelector.number}\`}
 																											</span>
 																										{/snippet}
 																									</ResourceBoundary>
 																								`,
 							Title: dedent `
 																									{#if layout === EntityLayout.SummaryInline}
-																										{\`\${String(proposalCategoryById[String(selection.entitySelector.category)].label ?? selection.entitySelector.category ?? '')}-\${String(selection.entitySelector.number ?? '')}\`}
+																										{\`\${proposalCategoryById[selection.entitySelector.category].label ?? selection.entitySelector.category}-\${selection.entitySelector.number}\`}
 																									{:else}
 																										<ResourceBoundary resource={specificationProposal}>
 																											{#snippet children(entity)}
-																												{@const proposalIdentifier = \`\${String(entity.categoryLabel ?? proposalCategoryById[String(selection.entitySelector.category)].label ?? selection.entitySelector.category ?? '')}-\${String(selection.entitySelector.number ?? '')}\`}
-																												{@const documentTitle = String(entity.documentTitle ?? '').trim()}
-																												{@const heading = documentTitle !== '' ? documentTitle : String(selection.entitySelector.category) === 'Ensip' ? (String(entity.documentBody ?? '').match(/#\\s*(ENSIP-\\d+:\\s*.+)/)?.[1] ?? '').trim() : ''}
+																												{@const proposalIdentifier = \`\${entity.categoryLabel ?? proposalCategoryById[selection.entitySelector.category].label ?? selection.entitySelector.category}-\${selection.entitySelector.number}\`}
+																												{@const documentTitle = (entity.documentTitle ?? '').trim()}
+																												{@const heading = documentTitle !== '' ? documentTitle : selection.entitySelector.category === 'Ensip' ? ((entity.documentBody ?? '').match(/#\\s*(ENSIP-\\d+:\\s*.+)/)?.[1] ?? '').trim() : ''}
 																												{#if heading === ''}
 																													{proposalIdentifier}
 																												{:else if heading.toLowerCase().startsWith(\`\${proposalIdentifier.toLowerCase()}:\`)}
@@ -54173,7 +54173,7 @@ export const schema = {
 								field: "$$proposalKinds",
 								component: "SpecificationProposalKindsView",
 								label: "Proposal kinds",
-								href: "/proposals",
+								href: "/(proposals)/proposals",
 								emptyText: "No proposal kinds for this realm.",
 							},
 						],
@@ -65263,13 +65263,13 @@ export const schema = {
 																									>
 																										{#snippet Pending()}
 																											<TruncatedValue
-																												value={String(selection.entitySelector.commentId ?? '')}
+																												value={selection.entitySelector.commentId}
 																												format={TruncatedValueFormat.Visual}
 																											/>
 																										{/snippet}
 																										{#snippet children(entity)}
 																											<TruncatedValue
-																												value={String(entity.text ?? '').replaceAll('\\n', ' ') || String(selection.entitySelector.commentId ?? '')}
+																												value={(entity.text ?? '').replaceAll('\\n', ' ') || selection.entitySelector.commentId}
 																												startLength={64}
 																												endLength={16}
 																												format={TruncatedValueFormat.Visual}
@@ -65281,7 +65281,7 @@ export const schema = {
 							Value: dedent `
 																									<span>
 																										<TruncatedValue
-																											value={String(selection.entitySelector.commentId ?? '')}
+																											value={selection.entitySelector.commentId}
 																											format={TruncatedValueFormat.Visual}
 																										/>
 																									</span>
@@ -74582,7 +74582,7 @@ export const routes = defineRoutes(schema)({
 																								resolve(
 																									'/(explore)/(protocols)/evm/(evmProtocol)/(selectors)/selector/[hex=zeroExHex]',
 																									{
-																										hex: String(normalizedSelector),
+																										hex: normalizedSelector,
 																									}
 																								)
 																							}
@@ -74607,7 +74607,7 @@ export const routes = defineRoutes(schema)({
 																													resolve(
 																														'/(explore)/(protocols)/evm/(evmProtocol)/(selectors)/selector/[hex=zeroExHex]',
 																														{
-																															hex: String(normalizedSelector),
+																															hex: normalizedSelector,
 																														}
 																													)
 																												}
@@ -74695,7 +74695,7 @@ export const routes = defineRoutes(schema)({
 																								resolve(
 																									'/(explore)/(protocols)/evm/(evmProtocol)/(topics)/topic/[hex=evmTopicHash]',
 																									{
-																										hex: String(normalizedTopic),
+																										hex: normalizedTopic,
 																									}
 																								)
 																							}
@@ -74720,7 +74720,7 @@ export const routes = defineRoutes(schema)({
 																													resolve(
 																														'/(explore)/(protocols)/evm/(evmProtocol)/(topics)/topic/[hex=evmTopicHash]',
 																														{
-																															hex: String(normalizedTopic),
+																															hex: normalizedTopic,
 																														}
 																													)
 																												}

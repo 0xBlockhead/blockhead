@@ -21,9 +21,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.SorobanContract_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const titleFallback = 'soroban contract timestamp'
-
 
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -36,7 +33,7 @@
 <EntityView
 	entityType={EntityType.SorobanContract_Timestamp}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? 'soroban contract timestamp'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -61,14 +58,14 @@
 			<div>
 				<dt>ledger sequence</dt>
 				<dd>
-					{String(pendingEntity.ledgerSequence)}
+					{selection.entitySelector.ledgerSequence}
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 
@@ -87,7 +84,7 @@
 						<div>
 							<dt>observed AT ms</dt>
 							<dd>
-								{String(observedAtMs)}
+								{observedAtMs}
 							</dd>
 						</div>
 					{/if}
@@ -173,7 +170,7 @@
 						<div>
 							<dt>last modified ledger</dt>
 							<dd>
-								{String(lastModifiedLedger)}
+								{lastModifiedLedger}
 							</dd>
 						</div>
 					{/if}
@@ -195,7 +192,7 @@
 						<div>
 							<dt>live until ledger</dt>
 							<dd>
-								{String(liveUntilLedger)}
+								{liveUntilLedger}
 							</dd>
 						</div>
 					{/if}

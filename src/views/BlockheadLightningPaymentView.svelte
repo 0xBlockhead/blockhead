@@ -25,7 +25,7 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.BlockheadLightningPayment> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const network = $derived(selection.entitySelector.$network)
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.LightningLnd_Rest,
@@ -37,7 +37,6 @@
 			paymentRequest: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.paymentHash ?? '') || 'Lightning payment')
 
 
 	// Components
@@ -55,36 +54,39 @@
 <EntityView
 	entityType={EntityType.BlockheadLightningPayment}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? (selection.entitySelector.paymentHash || 'Lightning payment')}
 	href={
-		href ?? resolve(
-			'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/payments/[paymentHash=stringSegment]',
-			{
-				network: (
-					'caip2' in selection.entitySelector.$network ?
-						String(caip2StringFromValue(selection.entitySelector.$network.caip2))
-					:
-						String(selection.entitySelector.$network.slug)
-				),
-				paymentHash: String(selection.entitySelector.paymentHash),
-			}
-		)
+		href === undefined ?
+			resolve(
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/payments/[paymentHash=stringSegment]',
+				{
+					network: (
+						'caip2' in network ?
+							caip2StringFromValue(network.caip2)
+						:
+							network.slug
+					),
+					paymentHash: selection.entitySelector.paymentHash,
+				}
+			)
+		:
+			href ?? undefined
 	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<TruncatedValue value={pendingEntity.paymentHash} />
+		<TruncatedValue value={selection.entitySelector.paymentHash} />
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={blockheadLightningPayment}>
 			{#snippet children(entity)}
-				{@const valueMsat0 = entity.valueMsat}
-				{#if valueMsat0 != null}
+				{@const valueMsat = entity.valueMsat}
+				{#if valueMsat != null}
 					<NumberValue
-						value={valueMsat0}
+						value={valueMsat}
 					/>
 				{/if}
 			{/snippet}
@@ -96,7 +98,7 @@
 			<div>
 				<dt>Payment hash</dt>
 				<dd>
-					<TruncatedValue value={pendingEntity.paymentHash} />
+					<TruncatedValue value={selection.entitySelector.paymentHash} />
 				</dd>
 			</div>
 
@@ -146,7 +148,7 @@
 						<div>
 							<dt>Created</dt>
 							<dd>
-								<Timestamp timestamp={Number(createdAtMs)} />
+								<Timestamp timestamp={createdAtMs} />
 							</dd>
 						</div>
 					{/if}
@@ -238,15 +240,15 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const blockheadLightningPaymentBlockheadLightningPaymentTimestampsViewTimestampsResource = selection.$$timestamps}
+		{@const timestampsResource = selection.$$timestamps}
 		<ResourceBoundary
-			resource={blockheadLightningPaymentBlockheadLightningPaymentTimestampsViewTimestampsResource}
+			resource={timestampsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<BlockheadLightningPayment_TimestampsView
-						selection={blockheadLightningPaymentBlockheadLightningPaymentTimestampsViewTimestampsResource}
-						countResource={blockheadLightningPaymentBlockheadLightningPaymentTimestampsViewTimestampsResource.count}
+						selection={timestampsResource}
+						countResource={timestampsResource.count}
 						title='Observations'
 						id='timestamps'
 					/>

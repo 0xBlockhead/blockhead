@@ -4,7 +4,6 @@
 	// Types/constants
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -22,7 +21,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.BlockheadWalletRequest_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Local_Internal,
@@ -33,7 +31,7 @@
 			status: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.status ?? '') || 'blockhead wallet request timestamp')
+	const titleFallback = $derived((prefetched.status ?? '') || 'blockhead wallet request timestamp')
 
 
 	// Components
@@ -62,12 +60,12 @@
 	{/snippet}
 
 	{#snippet Value()}
-		<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+		<Timestamp timestamp={selection.entitySelector.timestampMs} />
 	{/snippet}
 
 	{#snippet HeadingAfter()}
 		<span data-text="muted">
-			{pendingEntity.source}
+			{selection.entitySelector.source}
 		</span>
 	{/snippet}
 
@@ -87,14 +85,14 @@
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+					<Timestamp timestamp={selection.entitySelector.timestampMs} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 
@@ -220,7 +218,7 @@
 						<div>
 							<dt>transaction hash</dt>
 							<dd>
-								<TruncatedValue value={String(transactionHash)} />
+								<TruncatedValue value={transactionHash} />
 							</dd>
 						</div>
 					{/if}
@@ -264,7 +262,7 @@
 						<div>
 							<dt>signature hash</dt>
 							<dd>
-								<TruncatedValue value={String(signatureHash)} />
+								<TruncatedValue value={signatureHash} />
 							</dd>
 						</div>
 					{/if}
@@ -286,7 +284,7 @@
 						<div>
 							<dt>status payload hash</dt>
 							<dd>
-								<TruncatedValue value={String(statusPayloadHash)} />
+								<TruncatedValue value={statusPayloadHash} />
 							</dd>
 						</div>
 					{/if}

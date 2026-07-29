@@ -2,7 +2,8 @@
 
 import bindings from '$/sources/Git/bindings.ts'
 import { Source } from '$/sources/Source.ts'
-import { SourceProvider, type SourceProviderDefinition } from '$/sources/SourceProvider.ts'
+import { SourceProvider } from '$/sources/SourceProvider.ts'
+import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinition.ts'
 
 export default {
 	provider: SourceProvider.Git,
@@ -17,8 +18,5 @@ export default {
 			label: 'Remote Git repository',
 		},
 	],
-	bindings: [
-		bindings[Source.Git_Local],
-		bindings[Source.Git_Remote],
-	],
+	bindings: Object.values(bindings).flat(),
 } satisfies SourceProviderDefinition

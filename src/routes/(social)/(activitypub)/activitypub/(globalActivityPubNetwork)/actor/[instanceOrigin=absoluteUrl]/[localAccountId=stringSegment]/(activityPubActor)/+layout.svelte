@@ -33,8 +33,8 @@
 			resolve(
 				'/(social)/(activitypub)/activitypub/(globalActivityPubNetwork)/actor/[instanceOrigin=absoluteUrl]/[localAccountId=stringSegment]',
 				{
-					instanceOrigin: String(params.instanceOrigin),
-					localAccountId: String(params.localAccountId),
+					instanceOrigin: params.instanceOrigin,
+					localAccountId: params.localAccountId,
 				}
 			)
 		}
@@ -50,8 +50,8 @@
 					resolve(
 						'/(social)/(activitypub)/activitypub/(globalActivityPubNetwork)/actor/[instanceOrigin=absoluteUrl]/[localAccountId=stringSegment]',
 						{
-							instanceOrigin: String(params.instanceOrigin),
-							localAccountId: String(params.localAccountId),
+							instanceOrigin: params.instanceOrigin,
+							localAccountId: params.localAccountId,
 						}
 					)
 				}

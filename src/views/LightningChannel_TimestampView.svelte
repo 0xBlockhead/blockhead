@@ -20,14 +20,12 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.LightningChannel_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const lightningChannelTimestamp = $derived(selection({
 		fields: {
 			status: true,
 			capacitySats: true,
 		},
 	}))
-	const titleFallback = $derived(String(pendingEntity.timestampMs ?? '') || 'Lightning channel timestamp')
 
 
 	// Components
@@ -41,19 +39,19 @@
 <EntityView
 	entityType={EntityType.LightningChannel_Timestamp}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? String(selection.entitySelector.timestampMs)}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+		<Timestamp timestamp={selection.entitySelector.timestampMs} />
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={lightningChannelTimestamp}>
 			{#snippet children(entity)}
-				{[(entity.status ?? ''), String(entity.capacitySats ?? '')].filter(Boolean).join(' ') || String(pendingEntity.timestampMs) || titleFallback}
+				{[(entity.status ?? ''), String(entity.capacitySats ?? '')].filter(Boolean).join(' ') || String(selection.entitySelector.timestampMs)}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -74,7 +72,7 @@
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 
@@ -93,7 +91,7 @@
 						<div>
 							<dt>Fee rate ppm</dt>
 							<dd>
-								{String(feeRatePpm)}
+								{feeRatePpm}
 							</dd>
 						</div>
 					{/if}
@@ -115,7 +113,7 @@
 						<div>
 							<dt>Updated</dt>
 							<dd>
-								{String(updatedAtMs)}
+								{updatedAtMs}
 							</dd>
 						</div>
 					{/if}
@@ -159,7 +157,7 @@
 						<div>
 							<dt>Closing fee sats</dt>
 							<dd>
-								{String(closingFeeSats)}
+								{closingFeeSats}
 							</dd>
 						</div>
 					{/if}
@@ -203,7 +201,7 @@
 						<div>
 							<dt>Closed</dt>
 							<dd>
-								{String(closedAtMs)}
+								{closedAtMs}
 							</dd>
 						</div>
 					{/if}

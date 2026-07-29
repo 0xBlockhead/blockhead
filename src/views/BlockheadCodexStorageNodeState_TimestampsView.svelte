@@ -43,15 +43,15 @@
 			entitySelector={blockheadCodexStorageNodeStateTimestampSelector}
 		>
 			{#snippet Title()}
-				{String(blockheadCodexStorageNodeStateTimestampSelector.timestampMs) || 'blockhead codex storage node state timestamp'}
+				{blockheadCodexStorageNodeStateTimestampSelector.timestampMs}
 			{/snippet}
 
 			{#snippet Value()}
-				{(blockheadCodexStorageNodeStateTimestamp.version ?? '')}
+				{blockheadCodexStorageNodeStateTimestamp.version ?? ''}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{String(blockheadCodexStorageNodeStateTimestamp.peerCount ?? '')}</span>
+				<span data-text="annotation">{blockheadCodexStorageNodeStateTimestamp.peerCount ?? ''}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

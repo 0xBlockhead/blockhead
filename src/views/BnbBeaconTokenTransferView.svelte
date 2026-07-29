@@ -20,14 +20,13 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.BnbBeaconTokenTransfer> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const bnbBeaconTokenTransfer = $derived(selection({
 		fields: {
 			symbol: true,
 			amount: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.symbol ?? '') || 'bnb beacon token transfer')
+	const titleFallback = $derived((prefetched.symbol ?? '') || 'bnb beacon token transfer')
 
 
 	// Components
@@ -91,7 +90,7 @@
 				<dt>transfer index</dt>
 				<dd>
 					<NumberValue
-						value={pendingEntity.transferIndex}
+						value={selection.entitySelector.transferIndex}
 					/>
 				</dd>
 			</div>

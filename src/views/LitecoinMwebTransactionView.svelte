@@ -22,18 +22,15 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.LitecoinMwebTransaction> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const viewSelection = $derived(selection({
+	const litecoinMwebTransaction = $derived(selection({
 		sources: selection.sources ?? [
 			Source.LitecoinCore_JsonRpc,
 		],
-	}))
-	const litecoinMwebTransaction = $derived(viewSelection({
+	})({
 		fields: {
 			kernelOffset: true,
 		},
 	}))
-	const titleFallback = 'litecoin MWEB transaction'
 	const viewDomId = $derived('litecoin-mweb-transaction-' + encodeURIComponent(stringify(selection.entitySelector)))
 
 
@@ -53,7 +50,7 @@
 	entityType={EntityType.LitecoinMwebTransaction}
 	entitySelector={selection.entitySelector}
 	id={viewDomId}
-	title={title ?? titleFallback}
+	title={title ?? 'litecoin MWEB transaction'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -61,7 +58,6 @@
 	{#snippet Title()}
 		<LitecoinMwebBlockView
 			selection={select(EntityType.LitecoinMwebBlock, selection.entitySelector.$mwebBlock)}
-			href=""
 			layout={EntityLayout.Title}
 			open={false}
 		/>
@@ -69,17 +65,17 @@
 
 	{#snippet Value()}
 		<NumberValue
-			value={pendingEntity.transactionIndex}
+			value={selection.entitySelector.transactionIndex}
 		/>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={litecoinMwebTransaction}>
 			{#snippet children(entity)}
-				{@const kernelOffset0 = entity.kernelOffset}
-				{#if kernelOffset0 != null}
+				{@const kernelOffset = entity.kernelOffset}
+				{#if kernelOffset != null}
 					<span data-text="muted">
-						{kernelOffset0}
+						{kernelOffset}
 					</span>
 				{/if}
 			{/snippet}
@@ -103,7 +99,7 @@
 				<dt>transaction index</dt>
 				<dd>
 					<NumberValue
-						value={pendingEntity.transactionIndex}
+						value={selection.entitySelector.transactionIndex}
 					/>
 				</dd>
 			</div>

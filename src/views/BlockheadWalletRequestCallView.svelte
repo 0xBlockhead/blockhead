@@ -4,7 +4,6 @@
 	// Types/constants
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { EvmAddress, ZeroExHex } from '$/schema/ZeroExHex.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -22,7 +21,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.BlockheadWalletRequestCall> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Local_Internal,
@@ -33,7 +31,7 @@
 			toAddress: true,
 		},
 	}))
-	const titleFallback = $derived((String(pendingEntity.callIndex ?? '') ? 'Call #' + String(pendingEntity.callIndex ?? '') : '') || 'blockhead wallet request call')
+	const titleFallback = $derived(`Call #${selection.entitySelector.callIndex}`)
 
 
 	// Components
@@ -48,7 +46,7 @@
 	entityType={EntityType.BlockheadWalletRequestCall}
 	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	idDragPlainText={String(pendingEntity.callIndex ?? '')}
+	idDragPlainText={String(selection.entitySelector.callIndex)}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -57,7 +55,7 @@
 		<span data-row="inline align-center gap-2 wrap">
 			<span>Call </span>
 			<span data-badge="small">
-				#{String(pendingEntity.callIndex)}
+				#{selection.entitySelector.callIndex}
 			</span>
 		</span>
 	{/snippet}
@@ -65,7 +63,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={blockheadWalletRequestCall}>
 			{#snippet children(entity)}
-				{String(entity.toAddress ?? '') || titleFallback}
+				{(entity.toAddress ?? '') || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -87,7 +85,7 @@
 				<dt>call index</dt>
 				<dd>
 					<NumberValue
-						value={pendingEntity.callIndex}
+						value={selection.entitySelector.callIndex}
 					/>
 				</dd>
 			</div>
@@ -123,7 +121,7 @@
 						<div>
 							<dt>to address</dt>
 							<dd>
-								<TruncatedValue value={String(toAddress)} />
+								<TruncatedValue value={toAddress} />
 							</dd>
 						</div>
 					{/if}
@@ -169,7 +167,7 @@
 						<div>
 							<dt>input data hash</dt>
 							<dd>
-								<TruncatedValue value={String(inputDataHash)} />
+								<TruncatedValue value={inputDataHash} />
 							</dd>
 						</div>
 					{/if}

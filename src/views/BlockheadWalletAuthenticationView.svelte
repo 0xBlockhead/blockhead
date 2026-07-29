@@ -22,7 +22,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.BlockheadWalletAuthentication> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Local_Internal,
@@ -34,7 +33,7 @@
 			verified: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.authenticationId ?? '') || 'blockhead wallet authentication')
+	const titleFallback = $derived(selection.entitySelector.authenticationId || 'blockhead wallet authentication')
 
 
 	// Components
@@ -55,13 +54,13 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{(pendingEntity.authenticationId ?? '') || 'blockhead wallet authentication'}
+		{selection.entitySelector.authenticationId || 'blockhead wallet authentication'}
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={blockheadWalletAuthentication}>
 			{#snippet children(entity)}
-				{[entity.protocol, String(entity.verified)].filter(Boolean).join(' ') || pendingEntity.authenticationId || titleFallback}
+				{[entity.protocol, String(entity.verified)].filter(Boolean).join(' ') || selection.entitySelector.authenticationId || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -71,7 +70,7 @@
 			<div>
 				<dt>authentication ID</dt>
 				<dd>
-					{pendingEntity.authenticationId}
+					{selection.entitySelector.authenticationId}
 				</dd>
 			</div>
 
@@ -225,11 +224,11 @@
 							<dt>URI</dt>
 							<dd>
 								<a
-									href={String(uri)}
+									href={uri}
 									target="_blank"
 									rel="noreferrer noopener"
 								>
-									<TruncatedValue value={String(uri)} />
+									<TruncatedValue value={uri} />
 								</a>
 							</dd>
 						</div>
@@ -320,7 +319,7 @@
 						<div>
 							<dt>issued AT</dt>
 							<dd>
-								<Timestamp timestamp={Number(issuedAt)} />
+								<Timestamp timestamp={issuedAt} />
 							</dd>
 						</div>
 					{/if}
@@ -342,7 +341,7 @@
 						<div>
 							<dt>expiration time</dt>
 							<dd>
-								<Timestamp timestamp={Number(expirationTime)} />
+								<Timestamp timestamp={expirationTime} />
 							</dd>
 						</div>
 					{/if}
@@ -364,7 +363,7 @@
 						<div>
 							<dt>not before</dt>
 							<dd>
-								<Timestamp timestamp={Number(notBefore)} />
+								<Timestamp timestamp={notBefore} />
 							</dd>
 						</div>
 					{/if}
@@ -386,7 +385,7 @@
 						<div>
 							<dt>verified AT</dt>
 							<dd>
-								<Timestamp timestamp={Number(verifiedAt)} />
+								<Timestamp timestamp={verifiedAt} />
 							</dd>
 						</div>
 					{/if}

@@ -22,7 +22,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.BlockheadWalletCapabilityGrant> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Local_Internal,
@@ -35,7 +34,7 @@
 			audience: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.grantId ?? '') || 'blockhead wallet capability grant')
+	const titleFallback = $derived(selection.entitySelector.grantId || 'blockhead wallet capability grant')
 
 
 	// Components
@@ -56,13 +55,13 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{(pendingEntity.grantId ?? '') || 'blockhead wallet capability grant'}
+		{selection.entitySelector.grantId || 'blockhead wallet capability grant'}
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={blockheadWalletCapabilityGrant}>
 			{#snippet children(entity)}
-				{entity.authorizationKind || pendingEntity.grantId || titleFallback}
+				{entity.authorizationKind || selection.entitySelector.grantId || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -72,7 +71,7 @@
 			<div>
 				<dt>grant ID</dt>
 				<dd>
-					{pendingEntity.grantId}
+					{selection.entitySelector.grantId}
 				</dd>
 			</div>
 
@@ -284,7 +283,7 @@
 						<div>
 							<dt>issued AT</dt>
 							<dd>
-								<Timestamp timestamp={Number(issuedAt)} />
+								<Timestamp timestamp={issuedAt} />
 							</dd>
 						</div>
 					{/if}
@@ -306,7 +305,7 @@
 						<div>
 							<dt>not before</dt>
 							<dd>
-								<Timestamp timestamp={Number(notBefore)} />
+								<Timestamp timestamp={notBefore} />
 							</dd>
 						</div>
 					{/if}
@@ -328,7 +327,7 @@
 						<div>
 							<dt>expires AT</dt>
 							<dd>
-								<Timestamp timestamp={Number(expiresAt)} />
+								<Timestamp timestamp={expiresAt} />
 							</dd>
 						</div>
 					{/if}
@@ -350,7 +349,7 @@
 						<div>
 							<dt>revoked AT</dt>
 							<dd>
-								<Timestamp timestamp={Number(revokedAt)} />
+								<Timestamp timestamp={revokedAt} />
 							</dd>
 						</div>
 					{/if}

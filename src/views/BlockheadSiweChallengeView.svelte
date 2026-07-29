@@ -5,8 +5,6 @@
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { UrlString } from '$/schema/UrlString.ts'
-	import { EvmAddress } from '$/schema/ZeroExHex.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -24,7 +22,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.BlockheadSiweChallenge> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Local_Internal,
@@ -37,7 +34,7 @@
 			issuedAt: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.domain ?? '') || 'blockhead siwe challenge')
+	const titleFallback = $derived((prefetched.domain ?? '') || 'blockhead siwe challenge')
 
 
 	// Components
@@ -78,7 +75,7 @@
 		<ResourceBoundary resource={blockheadSiweChallenge}>
 			{#snippet children(entity)}
 				<span data-text="muted">
-					<Timestamp timestamp={Number(entity.issuedAt)} />
+					<Timestamp timestamp={entity.issuedAt} />
 				</span>
 			{/snippet}
 		</ResourceBoundary>
@@ -89,7 +86,7 @@
 			<div>
 				<dt>ID</dt>
 				<dd>
-					{pendingEntity.id}
+					{selection.entitySelector.id}
 				</dd>
 			</div>
 
@@ -198,7 +195,7 @@
 						}
 					>
 						{#snippet children(entity)}
-							<TruncatedValue value={String(entity.address)} />
+							<TruncatedValue value={entity.address} />
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -268,11 +265,11 @@
 					>
 						{#snippet children(entity)}
 							<a
-								href={String(entity.uri)}
+								href={entity.uri}
 								target="_blank"
 								rel="noreferrer noopener"
 							>
-								<TruncatedValue value={String(entity.uri)} />
+								<TruncatedValue value={entity.uri} />
 							</a>
 						{/snippet}
 					</ResourceBoundary>
@@ -311,7 +308,7 @@
 						}
 					>
 						{#snippet children(entity)}
-							{String(entity.chainId)}
+							{entity.chainId}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -460,7 +457,7 @@
 						<div>
 							<dt>signature kind</dt>
 							<dd>
-								<TruncatedValue value={signatureKind} />
+								{signatureKind}
 							</dd>
 						</div>
 					{/if}
@@ -520,7 +517,7 @@
 						resource={blockheadSiweChallenge}
 					>
 						{#snippet children(entity)}
-							<Timestamp timestamp={Number(entity.issuedAt)} />
+							<Timestamp timestamp={entity.issuedAt} />
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -541,7 +538,7 @@
 						<div>
 							<dt>expires AT</dt>
 							<dd>
-								<Timestamp timestamp={Number(expiresAt)} />
+								<Timestamp timestamp={expiresAt} />
 							</dd>
 						</div>
 					{/if}
@@ -563,7 +560,7 @@
 						<div>
 							<dt>not before</dt>
 							<dd>
-								<Timestamp timestamp={Number(notBefore)} />
+								<Timestamp timestamp={notBefore} />
 							</dd>
 						</div>
 					{/if}
@@ -585,7 +582,7 @@
 						<div>
 							<dt>verified AT</dt>
 							<dd>
-								<Timestamp timestamp={Number(verifiedAt)} />
+								<Timestamp timestamp={verifiedAt} />
 							</dd>
 						</div>
 					{/if}

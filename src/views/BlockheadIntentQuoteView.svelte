@@ -5,7 +5,6 @@
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -23,7 +22,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.BlockheadIntentQuote> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Local_Internal,
@@ -37,7 +35,7 @@
 			requestedAt: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.providerProtocol ?? '') || 'blockhead intent quote')
+	const titleFallback = $derived((prefetched.providerProtocol ?? '') || 'blockhead intent quote')
 
 
 	// Components
@@ -77,7 +75,7 @@
 		<ResourceBoundary resource={blockheadIntentQuote}>
 			{#snippet children(entity)}
 				<span data-text="muted">
-					<Timestamp timestamp={Number(entity.requestedAt)} />
+					<Timestamp timestamp={entity.requestedAt} />
 				</span>
 			{/snippet}
 		</ResourceBoundary>
@@ -88,7 +86,7 @@
 			<div>
 				<dt>ID</dt>
 				<dd>
-					{pendingEntity.id}
+					{selection.entitySelector.id}
 				</dd>
 			</div>
 
@@ -112,7 +110,7 @@
 						resource={blockheadIntentQuote}
 					>
 						{#snippet children(entity)}
-							<TruncatedValue value={String(entity.quoteRequestHash)} />
+							<TruncatedValue value={entity.quoteRequestHash} />
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -190,7 +188,7 @@
 						<div>
 							<dt>user interop address</dt>
 							<dd>
-								<TruncatedValue value={String(userInteropAddress)} />
+								<TruncatedValue value={userInteropAddress} />
 							</dd>
 						</div>
 					{/if}
@@ -212,7 +210,7 @@
 						<div>
 							<dt>request payload hash</dt>
 							<dd>
-								<TruncatedValue value={String(requestPayloadHash)} />
+								<TruncatedValue value={requestPayloadHash} />
 							</dd>
 						</div>
 					{/if}
@@ -226,7 +224,7 @@
 						resource={blockheadIntentQuote}
 					>
 						{#snippet children(entity)}
-							<Timestamp timestamp={Number(entity.requestedAt)} />
+							<Timestamp timestamp={entity.requestedAt} />
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -235,15 +233,15 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const blockheadIntentQuoteBlockheadIntentQuoteTimestampsViewTimestampsResource = selection.$$timestamps}
+		{@const timestampsResource = selection.$$timestamps}
 		<ResourceBoundary
-			resource={blockheadIntentQuoteBlockheadIntentQuoteTimestampsViewTimestampsResource}
+			resource={timestampsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<BlockheadIntentQuote_TimestampsView
-						selection={blockheadIntentQuoteBlockheadIntentQuoteTimestampsViewTimestampsResource}
-						countResource={blockheadIntentQuoteBlockheadIntentQuoteTimestampsViewTimestampsResource.count}
+						selection={timestampsResource}
+						countResource={timestampsResource.count}
 						title='timestamps'
 						id='timestamps'
 					/>

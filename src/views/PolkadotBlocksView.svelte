@@ -39,43 +39,42 @@
 >
 	{#snippet Item({ item: polkadotBlock })}
 		{@const polkadotBlockSelector = polkadotBlock[EntityMetaKey.Selector]}
+		{@const network = polkadotBlockSelector.$network}
 		<EntityView
 			entityType={EntityType.PolkadotBlock}
 			entitySelector={polkadotBlockSelector}
 			href={
-				(
-					'hash' in polkadotBlockSelector ?
-						resolve(
-							'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(blocks)/block/[blockNumber=nonNegativeBigInt]/(selection)/[hash=stringSegment]',
-							{
-								network: (
-									'caip2' in polkadotBlockSelector.$network ?
-										String(caip2StringFromValue(polkadotBlockSelector.$network.caip2))
-									:
-										String(polkadotBlockSelector.$network.slug)
-								),
-								blockNumber: String(polkadotBlockSelector.blockNumber),
-								hash: String(polkadotBlockSelector.hash),
-							}
-						)
-					:
-						resolve(
-							'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(blocks)/block/[blockNumber=nonNegativeBigInt]',
-							{
-								network: (
-									'caip2' in polkadotBlockSelector.$network ?
-										String(caip2StringFromValue(polkadotBlockSelector.$network.caip2))
-									:
-										String(polkadotBlockSelector.$network.slug)
-								),
-								blockNumber: String(polkadotBlockSelector.blockNumber),
-							}
-						)
-				)
+				'hash' in polkadotBlockSelector ?
+					resolve(
+						'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(blocks)/block/[blockNumber=nonNegativeBigInt]/(selection)/[hash=stringSegment]',
+						{
+							network: (
+								'caip2' in network ?
+									caip2StringFromValue(network.caip2)
+								:
+									network.slug
+							),
+							blockNumber: String(polkadotBlockSelector.blockNumber),
+							hash: polkadotBlockSelector.hash,
+						}
+					)
+				:
+					resolve(
+						'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(blocks)/block/[blockNumber=nonNegativeBigInt]',
+						{
+							network: (
+								'caip2' in network ?
+									caip2StringFromValue(network.caip2)
+								:
+									network.slug
+							),
+							blockNumber: String(polkadotBlockSelector.blockNumber),
+						}
+					)
 			}
 		>
 			{#snippet Title()}
-				{(String(polkadotBlockSelector.blockNumber ?? '') ? 'Block #' + String(polkadotBlockSelector.blockNumber ?? '') : '') || (polkadotBlockSelector.hash ?? '') || 'Polkadot block'}
+				{`Block #${polkadotBlockSelector.blockNumber}`}
 			{/snippet}
 
 			{#snippet HeadingAfter()}

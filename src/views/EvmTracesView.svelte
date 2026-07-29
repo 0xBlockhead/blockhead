@@ -5,7 +5,6 @@
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { EvmInternalCallType } from '$/constants/Evm.ts'
 
 
 	// State
@@ -39,13 +38,12 @@
 	}
 >
 	{#snippet Item({ item: evmTrace })}
-		{@const evmTraceSelector = evmTrace[EntityMetaKey.Selector]}
 		<EntityView
 			entityType={EntityType.EvmTrace}
-			entitySelector={evmTraceSelector}
+			entitySelector={evmTrace[EntityMetaKey.Selector]}
 		>
 			{#snippet Title()}
-				{(String(evmTrace.index ?? '') ? 'Trace #' + String(evmTrace.index ?? '') : '') || (evmTraceSelector.traceAddress ?? '') || 'EVM trace'}
+				{`Trace #${evmTrace.index}`}
 			{/snippet}
 
 			{#snippet HeadingAfter()}

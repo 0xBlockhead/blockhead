@@ -48,7 +48,7 @@
 				resolve(
 					'/(social)/(nostr)/nostr/(globalNostrNetwork)/relay/[relayKey=stringSegment]',
 					{
-						relayKey: encodeURIComponent(String(nostrRelaySelector.relayUrl)),
+						relayKey: encodeURIComponent(nostrRelaySelector.relayUrl),
 					}
 				)
 			}

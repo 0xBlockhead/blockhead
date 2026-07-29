@@ -4,7 +4,6 @@
 	// Types/constants
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 
 
 	// Context
@@ -21,14 +20,13 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.GitForgePullRequest> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const gitForgePullRequest = $derived(selection({
 		fields: {
 			title: true,
 			state: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.title ?? '') || String(pendingEntity.pullRequestNumber ?? '') || 'Git forge pull request')
+	const titleFallback = $derived((prefetched.title ?? '') || String(selection.entitySelector.pullRequestNumber) || 'Git forge pull request')
 
 
 	// Components
@@ -81,7 +79,7 @@
 				<dt>pull request number</dt>
 				<dd>
 					<NumberValue
-						value={pendingEntity.pullRequestNumber}
+						value={selection.entitySelector.pullRequestNumber}
 					/>
 				</dd>
 			</div>
@@ -174,7 +172,7 @@
 						<div>
 							<dt>head object ID</dt>
 							<dd>
-								<TruncatedValue value={String(headObjectId)} />
+								<TruncatedValue value={headObjectId} />
 							</dd>
 						</div>
 					{/if}
@@ -198,7 +196,7 @@
 						<div>
 							<dt>Created</dt>
 							<dd>
-								<Timestamp timestamp={Number(createdAt)} />
+								<Timestamp timestamp={createdAt} />
 							</dd>
 						</div>
 					{/if}
@@ -220,7 +218,7 @@
 						<div>
 							<dt>Updated</dt>
 							<dd>
-								<Timestamp timestamp={Number(updatedAt)} />
+								<Timestamp timestamp={updatedAt} />
 							</dd>
 						</div>
 					{/if}
@@ -242,7 +240,7 @@
 						<div>
 							<dt>merged AT</dt>
 							<dd>
-								<Timestamp timestamp={Number(mergedAt)} />
+								<Timestamp timestamp={mergedAt} />
 							</dd>
 						</div>
 					{/if}

@@ -21,20 +21,18 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.AiProviderCatalogEntry> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const viewSelection = $derived(selection({
+	const aiProviderCatalogEntry = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Anthropic_Rest,
 			Source.OpenAI_Rest,
 		],
-	}))
-	const aiProviderCatalogEntry = $derived(viewSelection({
+	})({
 		fields: {
 			entryLabel: true,
 			subjectKind: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.entryLabel ?? '') || (pendingEntity.providerEntryId ?? '') || 'AI provider catalog entry')
+	const titleFallback = $derived((prefetched.entryLabel ?? '') || selection.entitySelector.providerEntryId || 'AI provider catalog entry')
 
 
 	// Components
@@ -61,16 +59,16 @@
 	{/snippet}
 
 	{#snippet Value()}
-		{(pendingEntity.catalogKind ?? '') || (pendingEntity.entryLabel ?? '') || titleFallback}
+		{selection.entitySelector.catalogKind || (prefetched.entryLabel ?? '') || titleFallback}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={aiProviderCatalogEntry}>
 			{#snippet children(entity)}
-				{@const subjectKind0 = entity.subjectKind}
-				{#if subjectKind0 != null}
+				{@const subjectKind = entity.subjectKind}
+				{#if subjectKind != null}
 					<span data-text="muted">
-						{subjectKind0}
+						{subjectKind}
 					</span>
 				{/if}
 			{/snippet}
@@ -93,14 +91,14 @@
 			<div>
 				<dt>catalog kind</dt>
 				<dd>
-					{pendingEntity.catalogKind}
+					{selection.entitySelector.catalogKind}
 				</dd>
 			</div>
 
 			<div>
 				<dt>provider entry ID</dt>
 				<dd>
-					{pendingEntity.providerEntryId}
+					{selection.entitySelector.providerEntryId}
 				</dd>
 			</div>
 
@@ -139,15 +137,15 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const aiProviderCatalogEntryAiProviderCatalogEntryTimestampsViewTimestampsResource = selection.$$timestamps}
+		{@const timestampsResource = selection.$$timestamps}
 		<ResourceBoundary
-			resource={aiProviderCatalogEntryAiProviderCatalogEntryTimestampsViewTimestampsResource}
+			resource={timestampsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<AiProviderCatalogEntry_TimestampsView
-						selection={aiProviderCatalogEntryAiProviderCatalogEntryTimestampsViewTimestampsResource}
-						countResource={aiProviderCatalogEntryAiProviderCatalogEntryTimestampsViewTimestampsResource.count}
+						selection={timestampsResource}
+						countResource={timestampsResource.count}
 						title='timestamps'
 						id='timestamps'
 					/>

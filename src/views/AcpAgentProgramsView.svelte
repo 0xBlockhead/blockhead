@@ -5,7 +5,6 @@
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { UrlString } from '$/schema/UrlString.ts'
 
 
 	// State
@@ -43,11 +42,11 @@
 			entitySelector={acpAgentProgramSelector}
 		>
 			{#snippet Title()}
-				{(acpAgentProgram.label ?? '') || [(acpAgentProgramSelector.registryAgentId ?? ''), (acpAgentProgramSelector.packageName ?? ''), String(acpAgentProgramSelector.repositoryUrl ?? '')].filter(Boolean).join(' ') || 'ACP agent program'}
+				{(acpAgentProgram.label ?? '') || [(acpAgentProgramSelector.registryAgentId ?? ''), (acpAgentProgramSelector.packageName ?? ''), (acpAgentProgramSelector.repositoryUrl ?? '')].filter(Boolean).join(' ') || 'ACP agent program'}
 			{/snippet}
 
 			{#snippet Value()}
-				{(acpAgentProgramSelector.packageName ?? '')}
+				{acpAgentProgramSelector.packageName ?? ''}
 			{/snippet}
 		</EntityView>
 	{/snippet}

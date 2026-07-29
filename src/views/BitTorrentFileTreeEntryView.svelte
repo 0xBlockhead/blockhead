@@ -21,13 +21,12 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.BitTorrentFileTreeEntry> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const bitTorrentFileTreeEntry = $derived(selection({
 		fields: {
 			entryKind: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.path ?? '') || 'bit torrent file tree entry')
+	const titleFallback = $derived(selection.entitySelector.path || 'bit torrent file tree entry')
 
 
 	// Components
@@ -47,13 +46,13 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{(pendingEntity.path ?? '') || 'bit torrent file tree entry'}
+		{selection.entitySelector.path || 'bit torrent file tree entry'}
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={bitTorrentFileTreeEntry}>
 			{#snippet children(entity)}
-				{entity.entryKind || pendingEntity.path || titleFallback}
+				{entity.entryKind || selection.entitySelector.path || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -74,7 +73,7 @@
 			<div>
 				<dt>path</dt>
 				<dd>
-					{pendingEntity.path}
+					{selection.entitySelector.path}
 				</dd>
 			</div>
 

@@ -23,19 +23,17 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.LightningNetwork> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const viewSelection = $derived(selection({
+	const lightningNetwork = $derived(selection({
 		sources: selection.sources ?? [
 			Source.LightningMempoolSpace_Rest,
 			Source.LightningLnd_Rest,
 		],
-	}))
-	const lightningNetwork = $derived(viewSelection({
+	})({
 		fields: {
 			name: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.name ?? '') || 'Lightning network')
+	const titleFallback = $derived((prefetched.name ?? '') || 'Lightning network')
 	const viewDomId = $derived('lightning-network-' + encodeURIComponent(stringify(selection.entitySelector)))
 
 

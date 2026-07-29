@@ -49,7 +49,7 @@
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{String(acpMessage.createdAt ?? '')}</span>
+				<span data-text="annotation">{acpMessage.createdAt ?? ''}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

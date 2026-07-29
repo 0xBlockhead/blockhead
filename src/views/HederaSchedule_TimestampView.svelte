@@ -21,14 +21,10 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.HederaSchedule_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const titleFallback = 'hedera schedule timestamp'
-
 
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
-	import TruncatedValue from '$/components/TruncatedValue.svelte'
 	import HederaScheduleView from '$/views/HederaScheduleView.svelte'
 	import HederaTransactionView from '$/views/HederaTransactionView.svelte'
 </script>
@@ -37,7 +33,7 @@
 <EntityView
 	entityType={EntityType.HederaSchedule_Timestamp}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? 'hedera schedule timestamp'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -62,14 +58,14 @@
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+					<Timestamp timestamp={selection.entitySelector.timestampMs} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 
@@ -176,7 +172,7 @@
 						<div>
 							<dt>signature count</dt>
 							<dd>
-								<TruncatedValue value={String(signatureCount)} />
+								{signatureCount}
 							</dd>
 						</div>
 					{/if}

@@ -33,8 +33,8 @@
 			resolve(
 				'/(assets)/pool/[chainId=eip155ChainId]/[poolId=stringSegment]',
 				{
-					chainId: String(params.chainId),
-					poolId: String(params.poolId),
+					chainId: params.chainId,
+					poolId: params.poolId,
 				}
 			)
 		}
@@ -50,8 +50,8 @@
 					resolve(
 						'/(assets)/pool/[chainId=eip155ChainId]/[poolId=stringSegment]',
 						{
-							chainId: String(params.chainId),
-							poolId: String(params.poolId),
+							chainId: params.chainId,
+							poolId: params.poolId,
 						}
 					)
 				}

@@ -47,11 +47,11 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{(String(aptosCoinBalanceTimestamp.amount) ? String(aptosCoinBalanceTimestamp.amount) + aptosCoinBalanceTimestamp.unit : '')}
+				{aptosCoinBalanceTimestamp.amount + aptosCoinBalanceTimestamp.unit}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{String(aptosCoinBalanceTimestampSelector.ledgerVersion)}</span>
+				<span data-text="annotation">{aptosCoinBalanceTimestampSelector.ledgerVersion}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

@@ -23,9 +23,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.NostrArticle> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const titleFallback = $derived((pendingEntity.identifier ?? '') || 'Nostr article')
-
 
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -38,20 +35,23 @@
 <EntityView
 	entityType={EntityType.NostrArticle}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? (selection.entitySelector.identifier || 'Nostr article')}
 	href={
-		href ?? (
-			selection.entitySelector.kind === 30023 ?
-				resolve(
-					'/(social)/(nostr)/nostr/(globalNostrNetwork)/article/[pubkey=stringSegment]/[identifier=stringSegment]',
-					{
-						pubkey: String(selection.entitySelector.pubkey),
-						identifier: String(selection.entitySelector.identifier),
-					}
-				)
-			:
-				undefined
-		)
+		href === undefined ?
+			(
+				selection.entitySelector.kind === 30023 ?
+					resolve(
+						'/(social)/(nostr)/nostr/(globalNostrNetwork)/article/[pubkey=stringSegment]/[identifier=stringSegment]',
+						{
+							pubkey: selection.entitySelector.pubkey,
+							identifier: selection.entitySelector.identifier,
+						}
+					)
+				:
+					undefined
+			)
+		:
+			href ?? undefined
 	}
 	{layout}
 	bind:open
@@ -66,24 +66,24 @@
 					<NostrArticleEventView
 						selection={select(EntityType.NostrArticleEvent, nostrArticleEvent[EntityMetaKey.Selector])}
 						prefetched={nostrArticleEvent}
-						href=""
+						href={null}
 						layout={EntityLayout.Title}
 						open={false}
 					/>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>
-		{pendingEntity.identifier}
+		{selection.entitySelector.identifier}
 	{/snippet}
 
 	{#snippet Value()}
-		<TruncatedValue value={pendingEntity.pubkey} />
+		<TruncatedValue value={selection.entitySelector.pubkey} />
 	{/snippet}
 
 	{#snippet HeadingAfter()}
 		<span data-text="muted">
 			<span>kind </span>
-			{String(pendingEntity.kind)}
+			{selection.entitySelector.kind}
 		</span>
 	{/snippet}
 
@@ -98,14 +98,14 @@
 			<div>
 				<dt>Identifier</dt>
 				<dd>
-					{pendingEntity.identifier}
+					{selection.entitySelector.identifier}
 				</dd>
 			</div>
 
 			<div>
 				<dt>Author pubkey</dt>
 				<dd>
-					<TruncatedValue value={pendingEntity.pubkey} />
+					<TruncatedValue value={selection.entitySelector.pubkey} />
 				</dd>
 			</div>
 
@@ -113,7 +113,7 @@
 				<dt>Kind</dt>
 				<dd>
 					<span>kind </span>
-					{String(pendingEntity.kind)}
+					{selection.entitySelector.kind}
 				</dd>
 			</div>
 		</dl>
@@ -142,15 +142,15 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const nostrArticleNostrArticleEventsViewEventsResource = selection.$$events}
+		{@const eventsResource = selection.$$events}
 		<ResourceBoundary
-			resource={nostrArticleNostrArticleEventsViewEventsResource}
+			resource={eventsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<NostrArticleEventsView
-						selection={nostrArticleNostrArticleEventsViewEventsResource}
-						countResource={nostrArticleNostrArticleEventsViewEventsResource.count}
+						selection={eventsResource}
+						countResource={eventsResource.count}
 						title='Signed version history'
 						id='events'
 					/>

@@ -21,7 +21,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.NearAction> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.NearRpc_JsonRpc,
@@ -33,7 +32,7 @@
 			methodName: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.actionKind ?? '') || 'near action')
+	const titleFallback = $derived((prefetched.actionKind ?? '') || 'near action')
 
 
 	// Components
@@ -70,7 +69,7 @@
 	{#snippet HeadingAfter()}
 		<span data-text="muted">
 			<NumberValue
-				value={pendingEntity.actionIndex}
+				value={selection.entitySelector.actionIndex}
 			/>
 		</span>
 	{/snippet}
@@ -92,7 +91,7 @@
 				<dt>Action index</dt>
 				<dd>
 					<NumberValue
-						value={pendingEntity.actionIndex}
+						value={selection.entitySelector.actionIndex}
 					/>
 				</dd>
 			</div>

@@ -1,7 +1,8 @@
 // Generated from APP.ts. Do not edit by hand.
 
 import { Source } from '$/sources/Source.ts'
-import { SourceProvider, type SourceProviderDefinition } from '$/sources/SourceProvider.ts'
+import { SourceProvider } from '$/sources/SourceProvider.ts'
+import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinition.ts'
 import bindings from '$/sources/TonCenter/bindings.ts'
 
 export default {
@@ -17,8 +18,5 @@ export default {
 			label: 'TON Center v3 REST',
 		},
 	],
-	bindings: [
-		bindings[Source.TonCenter_V2_Rest],
-		bindings[Source.TonCenter_V3_Rest],
-	],
+	bindings: Object.values(bindings).flat(),
 } satisfies SourceProviderDefinition

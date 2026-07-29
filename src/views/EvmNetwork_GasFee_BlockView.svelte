@@ -23,13 +23,13 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.EvmNetwork_GasFee_Block> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const network = $derived(selection.entitySelector.$network)
 	const evmNetworkGasFeeBlock = $derived(selection({
 		fields: {
 			baseFeePerGas: true,
 		},
 	}))
-	const titleFallback = $derived(([(String(pendingEntity.blockNumber ?? '') ? 'Block ' + String(pendingEntity.blockNumber ?? '') : ''), (String(pendingEntity.baseFeePerGas ?? '') ? String(pendingEntity.baseFeePerGas ?? '') + ' wei' : '')].filter(Boolean).join(' ')) || 'EVM network gas fee block')
+	const titleFallback = $derived(['Block ' + String(selection.entitySelector.blockNumber), (prefetched.baseFeePerGas != null ? String(prefetched.baseFeePerGas) + ' wei' : '')].filter(Boolean).join(' ') || 'EVM network gas fee block')
 
 
 	// Components
@@ -44,18 +44,21 @@
 	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
 	href={
-		href ?? resolve(
-			'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/fee-market/block/[blockNumber=nonNegativeBigInt]',
-			{
-				network: (
-					'caip2' in selection.entitySelector.$network ?
-						String(caip2StringFromValue(selection.entitySelector.$network.caip2))
-					:
-						String(selection.entitySelector.$network.slug)
-				),
-				blockNumber: String(selection.entitySelector.blockNumber),
-			}
-		)
+		href === undefined ?
+			resolve(
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/fee-market/block/[blockNumber=nonNegativeBigInt]',
+				{
+					network: (
+						'caip2' in network ?
+							caip2StringFromValue(network.caip2)
+						:
+							network.slug
+					),
+					blockNumber: String(selection.entitySelector.blockNumber),
+				}
+			)
+		:
+			href ?? undefined
 	}
 	{layout}
 	bind:open
@@ -64,7 +67,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={evmNetworkGasFeeBlock}>
 			{#snippet children(entity)}
-				{([(String(pendingEntity.blockNumber) ? 'Block ' + String(pendingEntity.blockNumber) : ''), (String(entity.baseFeePerGas ?? '') ? String(entity.baseFeePerGas ?? '') + ' wei' : '')].filter(Boolean).join(' ')) || title || titleFallback}
+				{['Block ' + String(selection.entitySelector.blockNumber), (entity.baseFeePerGas != null ? String(entity.baseFeePerGas) + ' wei' : '')].filter(Boolean).join(' ') || title || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -72,10 +75,10 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={evmNetworkGasFeeBlock}>
 			{#snippet children(entity)}
-				{@const baseFeePerGas0 = entity.baseFeePerGas}
-				{#if baseFeePerGas0 != null}
+				{@const baseFeePerGas = entity.baseFeePerGas}
+				{#if baseFeePerGas != null}
 					<NumberValue
-						value={baseFeePerGas0}
+						value={baseFeePerGas}
 					/>
 
 					<span> wei</span>
@@ -100,7 +103,7 @@
 				<dt>Block number</dt>
 				<dd>
 					<NumberValue
-						value={pendingEntity.blockNumber}
+						value={selection.entitySelector.blockNumber}
 					/>
 				</dd>
 			</div>

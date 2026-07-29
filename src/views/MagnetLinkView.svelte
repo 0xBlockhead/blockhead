@@ -21,14 +21,13 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.MagnetLink> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const magnetLink = $derived(selection({
 		fields: {
 			displayName: true,
 			infoHash: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.displayName ?? '') || (pendingEntity.magnetUri ?? '') || 'magnet link')
+	const titleFallback = $derived((prefetched.displayName ?? '') || selection.entitySelector.magnetUri || 'magnet link')
 
 
 	// Components
@@ -59,9 +58,9 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={magnetLink}>
 			{#snippet children(entity)}
-				{@const infoHash0 = entity.infoHash}
-				{#if infoHash0 != null}
-					<TruncatedValue value={infoHash0} />
+				{@const infoHash = entity.infoHash}
+				{#if infoHash != null}
+					<TruncatedValue value={infoHash} />
 				{/if}
 			{/snippet}
 		</ResourceBoundary>
@@ -72,7 +71,7 @@
 			<div>
 				<dt>magnet URI</dt>
 				<dd>
-					<TruncatedValue value={pendingEntity.magnetUri} />
+					<TruncatedValue value={selection.entitySelector.magnetUri} />
 				</dd>
 			</div>
 
@@ -214,15 +213,15 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const magnetLinkMagnetResolutionTimestampsViewResolutionTimestampsResource = selection.$$resolutionTimestamps}
+		{@const resolutionTimestampsResource = selection.$$resolutionTimestamps}
 		<ResourceBoundary
-			resource={magnetLinkMagnetResolutionTimestampsViewResolutionTimestampsResource}
+			resource={resolutionTimestampsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<MagnetResolution_TimestampsView
-						selection={magnetLinkMagnetResolutionTimestampsViewResolutionTimestampsResource}
-						countResource={magnetLinkMagnetResolutionTimestampsViewResolutionTimestampsResource.count}
+						selection={resolutionTimestampsResource}
+						countResource={resolutionTimestampsResource.count}
 						title='resolution timestamps'
 						id='resolution-timestamps'
 					/>

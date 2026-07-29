@@ -2,7 +2,8 @@
 
 import bindings from '$/sources/KaspaWalletCli/bindings.ts'
 import { Source } from '$/sources/Source.ts'
-import { SourceProvider, type SourceProviderDefinition } from '$/sources/SourceProvider.ts'
+import { SourceProvider } from '$/sources/SourceProvider.ts'
+import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinition.ts'
 
 export default {
 	provider: SourceProvider.KaspaWalletCli,
@@ -13,5 +14,5 @@ export default {
 			label: 'Kaspa wallet CLI API',
 		},
 	],
-	bindings: [bindings[Source.KaspaWalletCli_WalletApi]],
+	bindings: Object.values(bindings).flat(),
 } satisfies SourceProviderDefinition

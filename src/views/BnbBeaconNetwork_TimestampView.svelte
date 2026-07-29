@@ -20,14 +20,12 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.BnbBeaconNetwork_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const bnbBeaconNetworkTimestamp = $derived(selection({
 		fields: {
 			latestArchivedHeight: true,
 			archiveCoverageStatus: true,
 		},
 	}))
-	const titleFallback = $derived(String(pendingEntity.timestampMs ?? '') || 'bnb beacon network timestamp')
 
 
 	// Components
@@ -41,26 +39,26 @@
 <EntityView
 	entityType={EntityType.BnbBeaconNetwork_Timestamp}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? String(selection.entitySelector.timestampMs)}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+		<Timestamp timestamp={selection.entitySelector.timestampMs} />
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={bnbBeaconNetworkTimestamp}>
 			{#snippet children(entity)}
-				{[String(entity.latestArchivedHeight ?? ''), (entity.archiveCoverageStatus ?? '')].filter(Boolean).join(' ') || String(pendingEntity.timestampMs) || titleFallback}
+				{[String(entity.latestArchivedHeight ?? ''), (entity.archiveCoverageStatus ?? '')].filter(Boolean).join(' ') || String(selection.entitySelector.timestampMs)}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
 		<span data-text="muted">
-			{pendingEntity.source}
+			{selection.entitySelector.source}
 		</span>
 	{/snippet}
 
@@ -80,14 +78,14 @@
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+					<Timestamp timestamp={selection.entitySelector.timestampMs} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 
@@ -142,7 +140,7 @@
 						<div>
 							<dt>latest archived block time ms</dt>
 							<dd>
-								<Timestamp timestamp={Number(latestArchivedBlockTimeMs)} />
+								<Timestamp timestamp={latestArchivedBlockTimeMs} />
 							</dd>
 						</div>
 					{/if}

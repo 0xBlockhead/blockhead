@@ -1,10 +1,10 @@
 // Generated from APP.ts. Do not edit by hand.
 
 import { Source } from '$/sources/Source.ts'
-import { ApiFamily, SourceArtifactKind, SourceCredentialScope, SourceDelivery, SourceEndpointKind, SourceOperationGroup, SourceTargetKind, WireProtocol, type SourceBindingIndex } from '$/sources/SourceBinding.ts'
+import { ApiFamily, indexSourceBindings, SourceArtifactKind, SourceCredentialScope, SourceDelivery, SourceEndpointKind, SourceOperationGroup, SourceTargetKind, WireProtocol, type SourceBinding } from '$/sources/SourceBinding.ts'
 
-export default {
-	[Source.AcpLocal_JsonRpc]: {
+const bindings = [
+	{
 		source: Source.AcpLocal_JsonRpc,
 		target: {
 			kind: SourceTargetKind.LocalDevice,
@@ -29,7 +29,7 @@ export default {
 			},
 		],
 	},
-	[Source.AcpRegistry_Rest]: {
+	{
 		source: Source.AcpRegistry_Rest,
 		target: {
 			kind: SourceTargetKind.Global,
@@ -64,4 +64,9 @@ export default {
 			},
 		],
 	},
-} as const satisfies SourceBindingIndex
+] as const satisfies readonly SourceBinding[]
+
+export default indexSourceBindings<{
+	readonly [Source.AcpLocal_JsonRpc]: typeof bindings[0]
+	readonly [Source.AcpRegistry_Rest]: typeof bindings[1]
+}>(bindings)

@@ -7,7 +7,6 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
-	import { EvmAddress } from '$/schema/ZeroExHex.ts'
 
 
 	// State
@@ -38,6 +37,7 @@
 >
 	{#snippet Item({ item: erc4337Paymaster })}
 		{@const erc4337PaymasterSelector = erc4337Paymaster[EntityMetaKey.Selector]}
+		{@const network = erc4337PaymasterSelector.$network}
 		<EntityView
 			entityType={EntityType.Erc4337Paymaster}
 			entitySelector={erc4337PaymasterSelector}
@@ -46,22 +46,22 @@
 					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/erc-4337/paymaster/[address=evmAddress]',
 					{
 						network: (
-							'caip2' in erc4337PaymasterSelector.$network ?
-								String(caip2StringFromValue(erc4337PaymasterSelector.$network.caip2))
+							'caip2' in network ?
+								caip2StringFromValue(network.caip2)
 							:
-								String(erc4337PaymasterSelector.$network.slug)
+								network.slug
 						),
-						address: String(erc4337PaymasterSelector.address),
+						address: erc4337PaymasterSelector.address,
 					}
 				)
 			}
 		>
 			{#snippet Title()}
-				{String(erc4337PaymasterSelector.address) || 'ERC-4337 paymaster'}
+				{erc4337PaymasterSelector.address || 'ERC-4337 paymaster'}
 			{/snippet}
 
 			{#snippet Value()}
-				{String(erc4337PaymasterSelector.address)}
+				{erc4337PaymasterSelector.address}
 			{/snippet}
 
 			{#snippet HeadingAfter()}

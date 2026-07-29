@@ -45,7 +45,7 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{String(blockheadLocalMediaIngestTimestampSelector.timestampMs)}
+				{blockheadLocalMediaIngestTimestampSelector.timestampMs}
 			{/snippet}
 
 			{#snippet HeadingAfter()}

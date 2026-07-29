@@ -21,7 +21,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.BlockheadCashuToken> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const blockheadCashuToken = $derived(selection({
 		fields: {
 			status: true,
@@ -29,7 +28,6 @@
 			unit: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.id ?? '') || 'blockhead Cashu token')
 
 
 	// Components
@@ -45,26 +43,26 @@
 <EntityView
 	entityType={EntityType.BlockheadCashuToken}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? (selection.entitySelector.id || 'blockhead Cashu token')}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{(pendingEntity.id ?? '') || 'blockhead Cashu token'}
+		{selection.entitySelector.id || 'blockhead Cashu token'}
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={blockheadCashuToken}>
 			{#snippet children(entity)}
 				{entity.status}
-				{@const totalAmount1 = entity.totalAmount}
-				{#if totalAmount1 != null}
+				{@const totalAmount = entity.totalAmount}
+				{#if totalAmount != null}
 					<NumberValue
-						value={totalAmount1}
+						value={totalAmount}
 					/>
 
-					<span>{entity.unit == null ? '' : ` ${String(entity.unit)}`}</span>
+					<span>{entity.unit == null ? '' : ` ${entity.unit}`}</span>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>
@@ -75,7 +73,7 @@
 			<div>
 				<dt>ID</dt>
 				<dd>
-					{pendingEntity.id}
+					{selection.entitySelector.id}
 				</dd>
 			</div>
 
@@ -167,11 +165,11 @@
 							<dt>mint URL</dt>
 							<dd>
 								<a
-									href={String(mintUrl)}
+									href={mintUrl}
 									target="_blank"
 									rel="noreferrer noopener"
 								>
-									<TruncatedValue value={String(mintUrl)} />
+									<TruncatedValue value={mintUrl} />
 								</a>
 							</dd>
 						</div>
@@ -236,7 +234,7 @@
 									value={totalAmount}
 								/>
 
-								<span>{entity.unit == null ? '' : ` ${String(entity.unit)}`}</span>
+								<span>{entity.unit == null ? '' : ` ${entity.unit}`}</span>
 							</dd>
 						</div>
 					{/if}
@@ -258,7 +256,7 @@
 						}
 					>
 						{#snippet children(entity)}
-							<Timestamp timestamp={Number(entity.importedAt)} />
+							<Timestamp timestamp={entity.importedAt} />
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -279,7 +277,7 @@
 						<div>
 							<dt>redeemed AT</dt>
 							<dd>
-								<Timestamp timestamp={Number(redeemedAt)} />
+								<Timestamp timestamp={redeemedAt} />
 							</dd>
 						</div>
 					{/if}
@@ -308,15 +306,15 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const blockheadCashuTokenBlockheadCashuProofsViewProofsResource = selection.$$proofs}
+		{@const proofsResource = selection.$$proofs}
 		<ResourceBoundary
-			resource={blockheadCashuTokenBlockheadCashuProofsViewProofsResource}
+			resource={proofsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<BlockheadCashuProofsView
-						selection={blockheadCashuTokenBlockheadCashuProofsViewProofsResource}
-						countResource={blockheadCashuTokenBlockheadCashuProofsViewProofsResource.count}
+						selection={proofsResource}
+						countResource={proofsResource.count}
 						title='proofs'
 						id='proofs'
 					/>

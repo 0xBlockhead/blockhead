@@ -20,14 +20,12 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.SolanaTokenAccount_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const solanaTokenAccountTimestamp = $derived(selection({
 		fields: {
 			amount: true,
 			timestampMs: true,
 		},
 	}))
-	const titleFallback = $derived(String(pendingEntity.slot ?? '') || 'solana token account timestamp')
 
 
 	// Components
@@ -42,24 +40,24 @@
 <EntityView
 	entityType={EntityType.SolanaTokenAccount_Timestamp}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? String(selection.entitySelector.slot)}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
 		<NumberValue
-			value={pendingEntity.slot}
+			value={selection.entitySelector.slot}
 		/>
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={solanaTokenAccountTimestamp}>
 			{#snippet children(entity)}
-				{@const amount0 = entity.amount}
-				{#if amount0 != null}
+				{@const amount = entity.amount}
+				{#if amount != null}
 					<NumberValue
-						value={amount0}
+						value={amount}
 					/>
 				{/if}
 			{/snippet}
@@ -69,10 +67,10 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={solanaTokenAccountTimestamp}>
 			{#snippet children(entity)}
-				{@const timestampMs0 = entity.timestampMs}
-				{#if timestampMs0 != null}
+				{@const timestampMs = entity.timestampMs}
+				{#if timestampMs != null}
 					<span data-text="muted">
-						<Timestamp timestamp={Number(timestampMs0)} />
+						<Timestamp timestamp={timestampMs} />
 					</span>
 				{/if}
 			{/snippet}
@@ -95,7 +93,7 @@
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 
@@ -114,7 +112,7 @@
 						<div>
 							<dt>Decimals</dt>
 							<dd>
-								{String(decimals)}
+								{decimals}
 							</dd>
 						</div>
 					{/if}
@@ -202,7 +200,7 @@
 						<div>
 							<dt>Delegated amount</dt>
 							<dd>
-								{String(delegatedAmount)}
+								{delegatedAmount}
 							</dd>
 						</div>
 					{/if}
@@ -224,7 +222,7 @@
 						<div>
 							<dt>Rent exempt reserve</dt>
 							<dd>
-								{String(rentExemptReserveLamports)}
+								{rentExemptReserveLamports}
 							</dd>
 						</div>
 					{/if}

@@ -5,7 +5,6 @@
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { UrlString } from '$/schema/UrlString.ts'
 
 
 	// State
@@ -52,11 +51,11 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{[String(globalActivityPubNetworkTimestamp.instanceOrigin ?? ''), globalActivityPubNetworkTimestampSelector.source].filter(Boolean).join(' ')}
+				{[(globalActivityPubNetworkTimestamp.instanceOrigin ?? ''), globalActivityPubNetworkTimestampSelector.source].filter(Boolean).join(' ')}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{String(globalActivityPubNetworkTimestamp.reachable ?? '')}</span>
+				<span data-text="annotation">{globalActivityPubNetworkTimestamp.reachable ?? ''}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

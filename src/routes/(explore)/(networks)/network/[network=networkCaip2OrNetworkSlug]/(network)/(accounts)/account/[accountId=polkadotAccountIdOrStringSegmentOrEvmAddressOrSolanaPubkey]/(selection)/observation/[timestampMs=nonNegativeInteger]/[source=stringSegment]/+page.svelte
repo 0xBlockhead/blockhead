@@ -40,7 +40,7 @@
 
 
 <svelte:head>
-	<title>{(data.title ?? (pageSelection.entitySelector.source || 'Polkadot account timestamp'))} • Polkadot account timestamp • Blockhead</title>
+	<title>{data.title ?? (pageSelection.entitySelector.source || 'Polkadot account timestamp')} • Polkadot account timestamp • Blockhead</title>
 </svelte:head>
 
 

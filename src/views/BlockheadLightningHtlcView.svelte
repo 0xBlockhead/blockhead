@@ -22,7 +22,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.BlockheadLightningHtlc> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.LightningLnd_Grpc,
@@ -35,13 +34,11 @@
 			direction: true,
 		},
 	}))
-	const titleFallback = $derived((String(pendingEntity.htlcIndex ?? '') ? 'HTLC ' + String(pendingEntity.htlcIndex ?? '') : '') || 'blockhead Lightning htlc')
 
 
 	// Components
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import TruncatedValue from '$/components/TruncatedValue.svelte'
 	import BlockheadLightningChannelStateView from '$/views/BlockheadLightningChannelStateView.svelte'
 	import LightningChannelView from '$/views/LightningChannelView.svelte'
 </script>
@@ -50,13 +47,13 @@
 <EntityView
 	entityType={EntityType.BlockheadLightningHtlc}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? 'HTLC ' + String(selection.entitySelector.htlcIndex)}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{(String(pendingEntity.htlcIndex ?? '') ? 'HTLC ' + String(pendingEntity.htlcIndex ?? '') : '') || 'blockhead Lightning htlc'}
+		{'HTLC ' + String(selection.entitySelector.htlcIndex)}
 	{/snippet}
 
 	{#snippet Value()}
@@ -67,7 +64,7 @@
 				<LightningChannelView
 					selection={select(EntityType.LightningChannel, lightningChannel[EntityMetaKey.Selector])}
 					prefetched={lightningChannel}
-					href=""
+					href={null}
 					layout={EntityLayout.Value}
 					open={false}
 				/>
@@ -78,10 +75,10 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={blockheadLightningHtlc}>
 			{#snippet children(entity)}
-				{@const direction0 = entity.direction}
-				{#if direction0 != null}
+				{@const direction = entity.direction}
+				{#if direction != null}
 					<span data-text="muted">
-						{direction0}
+						{direction}
 					</span>
 				{/if}
 			{/snippet}
@@ -123,7 +120,7 @@
 				<dt>htlc index</dt>
 				<dd>
 					<NumberValue
-						value={pendingEntity.htlcIndex}
+						value={selection.entitySelector.htlcIndex}
 					/>
 				</dd>
 			</div>
@@ -209,7 +206,7 @@
 						<div>
 							<dt>hash lock</dt>
 							<dd>
-								<TruncatedValue value={hashLock} />
+								{hashLock}
 							</dd>
 						</div>
 					{/if}

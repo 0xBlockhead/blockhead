@@ -45,7 +45,12 @@
 			localStatusId: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.sensitive === true || String(pendingEntity.spoilerText ?? '').trim() !== '' ? [String(pendingEntity.spoilerText ?? '').trim() || 'Sensitive content', (pendingEntity.activityStreamsUri ?? '')].filter(Boolean).join(' ') : ([pendingEntity.content == null ? '' : String((htmlToPlainText(pendingEntity.content)) ?? ''), (pendingEntity.localStatusId ?? '')].filter(Boolean).join(' ')) || 'ActivityPub note'))
+	const titleFallback = $derived((
+		pendingEntity.sensitive === true || (pendingEntity.spoilerText ?? '').trim() !== '' ?
+			[(pendingEntity.spoilerText ?? '').trim() || 'Sensitive content', (pendingEntity.activityStreamsUri ?? '')].filter(Boolean).join(' ')
+		:
+			[prefetched.content == null ? '' : htmlToPlainText(prefetched.content), (prefetched.localStatusId ?? '')].filter(Boolean).join(' ') || 'ActivityPub note'
+	))
 	const viewDomId = $derived('activity-pub-note-' + encodeURIComponent(stringify(selection.entitySelector)))
 
 
@@ -70,19 +75,22 @@
 	id={viewDomId}
 	title={title ?? titleFallback}
 	href={
-		href ?? (
-			'instanceOrigin' in selection.entitySelector
-			&& 'localStatusId' in selection.entitySelector ?
-				resolve(
-					'/(social)/(activitypub)/activitypub/(globalActivityPubNetwork)/note/[instanceOrigin=absoluteUrl]/[localStatusId=stringSegment]',
-					{
-						instanceOrigin: encodeURIComponent(String(selection.entitySelector.instanceOrigin)),
-						localStatusId: String(selection.entitySelector.localStatusId),
-					}
-				)
-			:
-				undefined
-		)
+		href === undefined ?
+			(
+				'instanceOrigin' in selection.entitySelector
+				&& 'localStatusId' in selection.entitySelector ?
+					resolve(
+						'/(social)/(activitypub)/activitypub/(globalActivityPubNetwork)/note/[instanceOrigin=absoluteUrl]/[localStatusId=stringSegment]',
+						{
+							instanceOrigin: encodeURIComponent(selection.entitySelector.instanceOrigin),
+							localStatusId: selection.entitySelector.localStatusId,
+						}
+					)
+				:
+					undefined
+			)
+		:
+			href ?? undefined
 	}
 	{layout}
 	bind:open
@@ -91,7 +99,12 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={activityPubNote}>
 			{#snippet children(entity)}
-				{(entity.sensitive === true || String(entity.spoilerText ?? '').trim() !== '' ? [String(entity.spoilerText ?? '').trim() || 'Sensitive content', (pendingEntity.activityStreamsUri ?? '')].filter(Boolean).join(' ') : ([entity.content == null ? '' : String((htmlToPlainText(entity.content)) ?? ''), entity.localStatusId].filter(Boolean).join(' ')) || title || titleFallback)}
+				{
+					entity.sensitive === true || (entity.spoilerText ?? '').trim() !== '' ?
+							[(entity.spoilerText ?? '').trim() || 'Sensitive content', (pendingEntity.activityStreamsUri ?? '')].filter(Boolean).join(' ')
+						:
+							[entity.content == null ? '' : htmlToPlainText(entity.content), entity.localStatusId].filter(Boolean).join(' ') || title || titleFallback
+				}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -99,14 +112,19 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={activityPubNote}>
 			{#snippet children(entity)}
-				{(entity.sensitive === true || String(entity.spoilerText ?? '').trim() !== '' ? [String(entity.spoilerText ?? '').trim() || 'Sensitive content', (pendingEntity.activityStreamsUri ?? '')].filter(Boolean).join(' ') : [String(entity.createdAt ?? ''), entity.localStatusId].filter(Boolean).join(' ') || ([entity.content == null ? '' : String((htmlToPlainText(entity.content)) ?? ''), entity.localStatusId].filter(Boolean).join(' ')) || titleFallback)}
+				{
+					entity.sensitive === true || (entity.spoilerText ?? '').trim() !== '' ?
+							[(entity.spoilerText ?? '').trim() || 'Sensitive content', (pendingEntity.activityStreamsUri ?? '')].filter(Boolean).join(' ')
+						:
+							[String(entity.createdAt ?? ''), entity.localStatusId].filter(Boolean).join(' ') || [entity.content == null ? '' : htmlToPlainText(entity.content), entity.localStatusId].filter(Boolean).join(' ') || titleFallback
+				}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet ContentWarningContent(content)}
 		{#if content != null && content !== ''}
-			<Markdown content={String(content)} mode="syndication" />
+			<Markdown content={htmlToPlainText(content)} mode="syndication" />
 		{/if}
 
 		<CollapsibleTabs
@@ -180,7 +198,7 @@
 						<div>
 							<dt>Created</dt>
 							<dd>
-								<Timestamp timestamp={Number(createdAt)} />
+								<Timestamp timestamp={createdAt} />
 							</dd>
 						</div>
 					{/if}
@@ -199,11 +217,11 @@
 							<dt>Status URL</dt>
 							<dd>
 								<a
-									href={String(statusUrl)}
+									href={statusUrl}
 									target="_blank"
 									rel="noreferrer noopener"
 								>
-									<TruncatedValue value={String(statusUrl)} />
+									<TruncatedValue value={statusUrl} />
 								</a>
 							</dd>
 						</div>
@@ -221,11 +239,11 @@
 					>
 						{#snippet children(entity)}
 							<a
-								href={String(entity.activityStreamsUri)}
+								href={entity.activityStreamsUri}
 								target="_blank"
 								rel="noreferrer noopener"
 							>
-								<TruncatedValue value={String(entity.activityStreamsUri)} />
+								<TruncatedValue value={entity.activityStreamsUri} />
 							</a>
 						{/snippet}
 					</ResourceBoundary>
@@ -246,7 +264,7 @@
 		>
 			{#snippet children(entity)}
 				{@const content = entity.content}
-				{@const contentWarningText = String(entity.spoilerText ?? '').trim()}
+				{@const contentWarningText = (entity.spoilerText ?? '').trim()}
 				{#if entity.sensitive === true || contentWarningText !== ''}
 					<Collapsible
 						open={revealedContentWarningSelectorKey === contentWarningSelectorKey}
@@ -297,13 +315,13 @@
 				<ActivityPubNotesView
 					selection={selection.$$thread}
 					href={
-						(selection.entitySelector.instanceOrigin != null && selection.entitySelector.localStatusId != null ? resolve(
+						selection.entitySelector.instanceOrigin != null && selection.entitySelector.localStatusId != null ? resolve(
 							'/(social)/(activitypub)/activitypub/(globalActivityPubNetwork)/note/[instanceOrigin=absoluteUrl]/[localStatusId=stringSegment]/(activityPubNote)/thread',
 							{
-								instanceOrigin: encodeURIComponent(String(selection.entitySelector.instanceOrigin)),
-								localStatusId: String(selection.entitySelector.localStatusId),
+								instanceOrigin: encodeURIComponent(selection.entitySelector.instanceOrigin),
+								localStatusId: selection.entitySelector.localStatusId,
 							}
-						) : undefined)
+						) : undefined
 					}
 					CollapsibleProps={{ canToggle: false }}
 					collapsible={false}

@@ -38,6 +38,7 @@
 >
 	{#snippet Item({ item: mevBuilderTimestamp })}
 		{@const mevBuilderTimestampSelector = mevBuilderTimestamp[EntityMetaKey.Selector]}
+		{@const builder = mevBuilderTimestampSelector.$builder}
 		<EntityView
 			entityType={EntityType.MevBuilder_Timestamp}
 			entitySelector={mevBuilderTimestampSelector}
@@ -46,24 +47,24 @@
 					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/mev/builder/[builderPubkey=stringSegment]/(mevBuilder)/timestamp/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
 					{
 						network: (
-							'caip2' in mevBuilderTimestampSelector.$builder.$network ?
-								String(caip2StringFromValue(mevBuilderTimestampSelector.$builder.$network.caip2))
+							'caip2' in builder.$network ?
+								caip2StringFromValue(builder.$network.caip2)
 							:
-								String(mevBuilderTimestampSelector.$builder.$network.slug)
+								builder.$network.slug
 						),
-						builderPubkey: String(mevBuilderTimestampSelector.$builder.builderPubkey),
+						builderPubkey: builder.builderPubkey,
 						timestampMs: String(mevBuilderTimestampSelector.timestampMs),
-						source: String(mevBuilderTimestampSelector.source),
+						source: mevBuilderTimestampSelector.source,
 					}
 				)
 			}
 		>
 			{#snippet Title()}
-				{([(String(mevBuilderTimestamp.deliveredPayloadCount ?? '') ? String(mevBuilderTimestamp.deliveredPayloadCount ?? '') + ' payloads' : ''), (String(mevBuilderTimestamp.deliveredValueWei ?? '') ? String(mevBuilderTimestamp.deliveredValueWei ?? '') + ' wei' : '')].filter(Boolean).join(' ')) || 'MEV builder timestamp'}
+				{[(mevBuilderTimestamp.deliveredPayloadCount != null ? String(mevBuilderTimestamp.deliveredPayloadCount) + ' payloads' : ''), (mevBuilderTimestamp.deliveredValueWei != null ? String(mevBuilderTimestamp.deliveredValueWei) + ' wei' : '')].filter(Boolean).join(' ') || 'MEV builder timestamp'}
 			{/snippet}
 
 			{#snippet Value()}
-				{(String(mevBuilderTimestamp.deliveredPayloadCount ?? '') ? String(mevBuilderTimestamp.deliveredPayloadCount ?? '') + ' payloads' : '')}
+				{mevBuilderTimestamp.deliveredPayloadCount != null ? mevBuilderTimestamp.deliveredPayloadCount + ' payloads' : ''}
 			{/snippet}
 
 			{#snippet HeadingAfter()}

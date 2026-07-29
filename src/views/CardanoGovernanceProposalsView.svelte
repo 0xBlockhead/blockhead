@@ -39,6 +39,7 @@
 >
 	{#snippet Item({ item: cardanoGovernanceProposal })}
 		{@const cardanoGovernanceProposalSelector = cardanoGovernanceProposal[EntityMetaKey.Selector]}
+		{@const network = cardanoGovernanceProposalSelector.$network}
 		<EntityView
 			entityType={EntityType.CardanoGovernanceProposal}
 			entitySelector={cardanoGovernanceProposalSelector}
@@ -47,12 +48,12 @@
 					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/governance/proposal/[proposalTxHash=stringSegment]/[proposalIndex=nonNegativeInteger]',
 					{
 						network: (
-							'caip2' in cardanoGovernanceProposalSelector.$network ?
-								String(caip2StringFromValue(cardanoGovernanceProposalSelector.$network.caip2))
+							'caip2' in network ?
+								caip2StringFromValue(network.caip2)
 							:
-								String(cardanoGovernanceProposalSelector.$network.slug)
+								network.slug
 						),
-						proposalTxHash: String(cardanoGovernanceProposalSelector.proposalTxHash),
+						proposalTxHash: cardanoGovernanceProposalSelector.proposalTxHash,
 						proposalIndex: String(cardanoGovernanceProposalSelector.proposalIndex),
 					}
 				)
@@ -63,7 +64,7 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{[(cardanoGovernanceProposalSelector.proposalTxHash ? 'Proposal ' + cardanoGovernanceProposalSelector.proposalTxHash : ''), (String(cardanoGovernanceProposalSelector.proposalIndex) ? '#' + String(cardanoGovernanceProposalSelector.proposalIndex) : '')].filter(Boolean).join(' ')}
+				{['Proposal ' + cardanoGovernanceProposalSelector.proposalTxHash, '#' + String(cardanoGovernanceProposalSelector.proposalIndex)].filter(Boolean).join(' ')}
 			{/snippet}
 		</EntityView>
 	{/snippet}

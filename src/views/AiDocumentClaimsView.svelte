@@ -49,7 +49,7 @@
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{String(aiDocumentClaim.confidence ?? '')}</span>
+				<span data-text="annotation">{aiDocumentClaim.confidence ?? ''}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

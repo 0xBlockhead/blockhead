@@ -23,13 +23,13 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.EvmRollup_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const rollup = $derived(selection.entitySelector.$rollup)
 	const evmRollupTimestamp = $derived(selection({
 		fields: {
 			listingStage: true,
 		},
 	}))
-	const titleFallback = $derived([(pendingEntity.listingStage ?? ''), String(pendingEntity.timestampMs ?? '')].filter(Boolean).join(' ') || 'EVM rollup timestamp')
+	const titleFallback = $derived([(prefetched.listingStage ?? ''), String(selection.entitySelector.timestampMs)].filter(Boolean).join(' ') || 'EVM rollup timestamp')
 
 
 	// Components
@@ -44,20 +44,23 @@
 	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
 	href={
-		href ?? resolve(
-			'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/rollup/[projectId=stringSegment]/(evmRollup)/timestamp/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
-			{
-				network: (
-					'caip2' in selection.entitySelector.$rollup.$network ?
-						String(caip2StringFromValue(selection.entitySelector.$rollup.$network.caip2))
-					:
-						String(selection.entitySelector.$rollup.$network.slug)
-				),
-				projectId: String(selection.entitySelector.$rollup.projectId),
-				timestampMs: String(selection.entitySelector.timestampMs),
-				source: String(selection.entitySelector.source),
-			}
-		)
+		href === undefined ?
+			resolve(
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/rollup/[projectId=stringSegment]/(evmRollup)/timestamp/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
+				{
+					network: (
+						'caip2' in rollup.$network ?
+							caip2StringFromValue(rollup.$network.caip2)
+						:
+							rollup.$network.slug
+					),
+					projectId: rollup.projectId,
+					timestampMs: String(selection.entitySelector.timestampMs),
+					source: selection.entitySelector.source,
+				}
+			)
+		:
+			href ?? undefined
 	}
 	{layout}
 	bind:open
@@ -66,7 +69,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={evmRollupTimestamp}>
 			{#snippet children(entity)}
-				{[(entity.listingStage ?? ''), String(pendingEntity.timestampMs)].filter(Boolean).join(' ') || title || titleFallback}
+				{[(entity.listingStage ?? ''), String(selection.entitySelector.timestampMs)].filter(Boolean).join(' ') || title || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -74,7 +77,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={evmRollupTimestamp}>
 			{#snippet children(entity)}
-				{(entity.listingStage ?? '') || [(entity.listingStage ?? ''), String(pendingEntity.timestampMs)].filter(Boolean).join(' ') || titleFallback}
+				{(entity.listingStage ?? '') || [(entity.listingStage ?? ''), String(selection.entitySelector.timestampMs)].filter(Boolean).join(' ') || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -178,7 +181,7 @@
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+					<Timestamp timestamp={selection.entitySelector.timestampMs} />
 				</dd>
 			</div>
 
@@ -197,7 +200,7 @@
 						<div>
 							<dt>Source updated at</dt>
 							<dd>
-								<Timestamp timestamp={Number(sourceUpdatedAt)} />
+								<Timestamp timestamp={sourceUpdatedAt} />
 							</dd>
 						</div>
 					{/if}
@@ -207,7 +210,7 @@
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 		</dl>

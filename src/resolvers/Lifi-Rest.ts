@@ -20,14 +20,14 @@ import type { Entity } from '$/schema/$schema.ts'
 import type { EntitySelector } from '$/schema/$schema.ts'
 import { UrlString } from '$/schema/UrlString.ts'
 import { entityDefinitionByType, schema } from '$/schema/index.ts'
-import { MediaType } from '$/schema/Media.ts'
+import { MediaType } from '$/schema/MediaType.ts'
 import { Source } from '$/sources/Source.ts'
 import type {
 	LifiBlockExplorerUrlLike,
 	LifiChain,
 } from '$/sources/Lifi/Rest/types.ts'
 import type { BridgeRouteStepFields } from '$/resolvers/Lifi/Rest/routes.ts'
-import { CoinInstanceType } from '$/schema/EvmCoinInstance.ts'
+import { CoinInstanceType } from '$/schema/CoinInstanceType.ts'
 
 const canonicalPublicHttpUrlFromCatalogString = (raw: string): string => {
 	const trimmed = raw.trim()

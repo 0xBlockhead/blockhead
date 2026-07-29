@@ -3,7 +3,7 @@ import {
 	personalSign,
 } from './eip1193.ts'
 import { WalletCapability, WalletDiscoveryKind, WalletProtocol, WalletTransportKind } from '$/constants/Wallet.ts'
-import { BlockheadConnectionStatus } from '$/schema/BlockheadWalletConnection.ts'
+import { BlockheadConnectionStatus } from '$/schema/BlockheadConnectionStatus.ts'
 import { EvmAddress } from '$/schema/ZeroExHex.ts'
 import type { JsonValue } from '$/typescript/JsonValue.ts'
 import { SvelteMap } from 'svelte/reactivity'

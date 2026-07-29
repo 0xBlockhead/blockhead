@@ -21,7 +21,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.NearValidator_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.NearRpc_JsonRpc,
@@ -33,7 +32,7 @@
 			timestampMs: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.epochId ?? '') || 'near validator timestamp')
+	const titleFallback = $derived(selection.entitySelector.epochId || 'near validator timestamp')
 
 
 	// Components
@@ -54,13 +53,13 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{(pendingEntity.epochId ?? '') || 'near validator timestamp'}
+		{selection.entitySelector.epochId || 'near validator timestamp'}
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={nearValidatorTimestamp}>
 			{#snippet children(entity)}
-				{(entity.validatorSetRole ?? '') || pendingEntity.epochId || titleFallback}
+				{(entity.validatorSetRole ?? '') || selection.entitySelector.epochId || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -68,10 +67,10 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={nearValidatorTimestamp}>
 			{#snippet children(entity)}
-				{@const timestampMs0 = entity.timestampMs}
-				{#if timestampMs0 != null}
+				{@const timestampMs = entity.timestampMs}
+				{#if timestampMs != null}
 					<span data-text="muted">
-						<Timestamp timestamp={Number(timestampMs0)} />
+						<Timestamp timestamp={timestampMs} />
 					</span>
 				{/if}
 			{/snippet}
@@ -94,14 +93,14 @@
 			<div>
 				<dt>Epoch ID</dt>
 				<dd>
-					{pendingEntity.epochId}
+					{selection.entitySelector.epochId}
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 
@@ -114,7 +113,7 @@
 						<div>
 							<dt>Timestamp</dt>
 							<dd>
-								<Timestamp timestamp={Number(timestampMs)} />
+								<Timestamp timestamp={timestampMs} />
 							</dd>
 						</div>
 					{/if}

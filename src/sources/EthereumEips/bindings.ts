@@ -1,7 +1,7 @@
 // Generated from APP.ts. Do not edit by hand.
 
 import { Source } from '$/sources/Source.ts'
-import { ApiFamily, SourceCredentialScope, SourceDelivery, SourceEndpointKind, SourceOperationGroup, SourceTargetKind, WireProtocol, type SourceBindingIndex } from '$/sources/SourceBinding.ts'
+import { ApiFamily, indexSourceBindings, SourceCredentialScope, SourceDelivery, SourceEndpointKind, SourceOperationGroup, SourceTargetKind, WireProtocol, type SourceBinding } from '$/sources/SourceBinding.ts'
 
 const ethereumEipsGithubGitRepositoryEthereumEIPsMasterEIPSEndpoints = [
 	{
@@ -26,35 +26,33 @@ const ethereumEipsGithubCredentials = [
 	},
 ] as const
 
-export default {
-	[Source.EthereumEips_Github]: [
-		{
-			source: Source.EthereumEips_Github,
-			target: {
-				kind: SourceTargetKind.GitRepository,
-				key: 'ethereum/EIPs@master:EIPS',
-			},
-			endpoints: ethereumEipsGithubGitRepositoryEthereumEIPsMasterEIPSEndpoints,
-			wireProtocol: WireProtocol.HttpRest,
-			apiFamily: ApiFamily.GithubContentsApi,
-			operationGroups: ethereumEipsGithubGithubRepositoryContentsOperationGroups,
-			delivery: SourceDelivery.HttpProxy,
-			credentials: ethereumEipsGithubCredentials,
-			proxyId: '["EthereumEips_Github","GitRepository","ethereum/EIPs@master:EIPS","HttpProxy","GithubContentsApi"]',
+const bindings = [
+	{
+		source: Source.EthereumEips_Github,
+		target: {
+			kind: SourceTargetKind.GitRepository,
+			key: 'ethereum/EIPs@master:EIPS',
 		},
-		{
-			source: Source.EthereumEips_Github,
-			target: {
-				kind: SourceTargetKind.GitRepository,
-				key: 'ethereum/ercs@master:ERCS',
-			},
-			endpoints: ethereumEipsGithubGitRepositoryEthereumEIPsMasterEIPSEndpoints,
-			wireProtocol: WireProtocol.HttpRest,
-			apiFamily: ApiFamily.GithubContentsApi,
-			operationGroups: ethereumEipsGithubGithubRepositoryContentsOperationGroups,
-			delivery: SourceDelivery.HttpProxy,
-			credentials: ethereumEipsGithubCredentials,
-			proxyId: '["EthereumEips_Github","GitRepository","ethereum/ercs@master:ERCS","HttpProxy","GithubContentsApi"]',
+		endpoints: ethereumEipsGithubGitRepositoryEthereumEIPsMasterEIPSEndpoints,
+		wireProtocol: WireProtocol.HttpRest,
+		apiFamily: ApiFamily.GithubContentsApi,
+		operationGroups: ethereumEipsGithubGithubRepositoryContentsOperationGroups,
+		delivery: SourceDelivery.HttpProxy,
+		credentials: ethereumEipsGithubCredentials,
+	},
+	{
+		source: Source.EthereumEips_Github,
+		target: {
+			kind: SourceTargetKind.GitRepository,
+			key: 'ethereum/ercs@master:ERCS',
 		},
-	],
-} as const satisfies SourceBindingIndex
+		endpoints: ethereumEipsGithubGitRepositoryEthereumEIPsMasterEIPSEndpoints,
+		wireProtocol: WireProtocol.HttpRest,
+		apiFamily: ApiFamily.GithubContentsApi,
+		operationGroups: ethereumEipsGithubGithubRepositoryContentsOperationGroups,
+		delivery: SourceDelivery.HttpProxy,
+		credentials: ethereumEipsGithubCredentials,
+	},
+] as const satisfies readonly SourceBinding[]
+
+export default indexSourceBindings<{ readonly [Source.EthereumEips_Github]: readonly [typeof bindings[0], typeof bindings[1]] }>(bindings)

@@ -22,7 +22,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.BittensorBlock> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Bittensor_JsonRpc,
@@ -33,7 +32,6 @@
 			extrinsicCount: true,
 		},
 	}))
-	const titleFallback = $derived(String(pendingEntity.blockNumber ?? '') || 'Bittensor block')
 
 
 	// Components
@@ -48,29 +46,29 @@
 <EntityView
 	entityType={EntityType.BittensorBlock}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? String(selection.entitySelector.blockNumber)}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
 		<NumberValue
-			value={pendingEntity.blockNumber}
+			value={selection.entitySelector.blockNumber}
 		/>
 	{/snippet}
 
 	{#snippet Value()}
-		<TruncatedValue value={pendingEntity.hash} />
+		<TruncatedValue value={selection.entitySelector.hash} />
 	{/snippet}
 
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={bittensorBlock}>
 			{#snippet children(entity)}
-				{@const extrinsicCount0 = entity.extrinsicCount}
-				{#if extrinsicCount0 != null}
+				{@const extrinsicCount = entity.extrinsicCount}
+				{#if extrinsicCount != null}
 					<span data-text="muted">
 						<NumberValue
-							value={extrinsicCount0}
+							value={extrinsicCount}
 						/>
 
 						<span> extrinsics</span>
@@ -97,7 +95,7 @@
 				<dt>Block number</dt>
 				<dd>
 					<NumberValue
-						value={pendingEntity.blockNumber}
+						value={selection.entitySelector.blockNumber}
 					/>
 				</dd>
 			</div>
@@ -105,7 +103,7 @@
 			<div>
 				<dt>Hash</dt>
 				<dd>
-					<TruncatedValue value={pendingEntity.hash} />
+					<TruncatedValue value={selection.entitySelector.hash} />
 				</dd>
 			</div>
 

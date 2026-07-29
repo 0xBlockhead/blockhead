@@ -21,13 +21,11 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.ElementsPeg> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const elementsPeg = $derived(selection({
 		fields: {
 			amountSats: true,
 		},
 	}))
-	const titleFallback = $derived([(pendingEntity.direction ?? ''), (pendingEntity.pegTransactionId ?? '')].filter(Boolean).join(' ') || 'Elements peg')
 
 
 	// Components
@@ -43,22 +41,22 @@
 <EntityView
 	entityType={EntityType.ElementsPeg}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? ([selection.entitySelector.direction, selection.entitySelector.pegTransactionId].filter(Boolean).join(' ') || 'Elements peg')}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{[(pendingEntity.direction ?? ''), (pendingEntity.pegTransactionId ?? '')].filter(Boolean).join(' ') || 'Elements peg'}
+		{[selection.entitySelector.direction, selection.entitySelector.pegTransactionId].filter(Boolean).join(' ') || 'Elements peg'}
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={elementsPeg}>
 			{#snippet children(entity)}
-				{@const amountSats0 = entity.amountSats}
-				{#if amountSats0 != null}
+				{@const amountSats = entity.amountSats}
+				{#if amountSats != null}
 					<NumberValue
-						value={amountSats0}
+						value={amountSats}
 					/>
 				{/if}
 			{/snippet}
@@ -81,14 +79,14 @@
 			<div>
 				<dt>Direction</dt>
 				<dd>
-					{pendingEntity.direction}
+					{selection.entitySelector.direction}
 				</dd>
 			</div>
 
 			<div>
 				<dt>Peg transaction ID</dt>
 				<dd>
-					<TruncatedValue value={pendingEntity.pegTransactionId} />
+					<TruncatedValue value={selection.entitySelector.pegTransactionId} />
 				</dd>
 			</div>
 
@@ -199,15 +197,15 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const elementsPegElementsPegTimestampsViewTimestampsResource = selection.$$timestamps}
+		{@const timestampsResource = selection.$$timestamps}
 		<ResourceBoundary
-			resource={elementsPegElementsPegTimestampsViewTimestampsResource}
+			resource={timestampsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<ElementsPeg_TimestampsView
-						selection={elementsPegElementsPegTimestampsViewTimestampsResource}
-						countResource={elementsPegElementsPegTimestampsViewTimestampsResource.count}
+						selection={timestampsResource}
+						countResource={timestampsResource.count}
 						title='Observations'
 						id='timestamps'
 					/>

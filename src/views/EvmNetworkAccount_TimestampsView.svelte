@@ -41,15 +41,15 @@
 			entitySelector={evmNetworkAccountTimestampSelector}
 		>
 			{#snippet Title()}
-				{String(evmNetworkAccountTimestampSelector.$account.$actor.address) || 'EVM account'}
+				{evmNetworkAccountTimestampSelector.$account.$actor.address || 'EVM account'}
 			{/snippet}
 
 			{#snippet Value()}
-				{String(evmNetworkAccountTimestamp.transactionCount ?? '')}
+				{evmNetworkAccountTimestamp.transactionCount ?? ''}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{String(evmNetworkAccountTimestampSelector.timestampMs)}</span>
+				<span data-text="annotation">{evmNetworkAccountTimestampSelector.timestampMs}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

@@ -18,7 +18,7 @@ import type {
 	SolanaRpcTransactionWithMeta,
 	SolanaRpcVoteAccounts,
 } from '$/sources/Solana/JsonRpc/types.ts'
-import { SolanaInstructionKind } from '$/schema/SolanaInstruction.ts'
+import { SolanaInstructionKind } from '$/schema/SolanaInstructionKind.ts'
 import type { Entity } from '$/schema/$schema.ts'
 import { schema } from '$/schema/index.ts'
 

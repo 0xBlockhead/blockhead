@@ -4,6 +4,7 @@
 	// Types/constants
 	import type { PageProps } from './$types.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { entityDefinitionByType } from '$/schema/index.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -74,62 +75,38 @@
 	const pageTitle = $derived(
 		(
 			data.entityType === EntityType.PolkadotAccount && data.selectorName === 'NetworkAccountId' ?
-				(data.selector.accountId || 'Polkadot account')
+				data.selector.accountId || 'Polkadot account'
 			:
 			data.entityType === EntityType.CosmosAccount && data.selectorName === 'NetworkAddress' ?
-				(data.selector.address || 'Cosmos account')
+				data.selector.address || 'Cosmos account'
 			:
 			data.entityType === EntityType.HederaAccount && data.selectorName === 'NetworkAccountId' ?
-				(data.selector.accountId || 'hedera account')
+				data.selector.accountId || 'hedera account'
 			:
 			data.entityType === EntityType.CardanoAddress && data.selectorName === 'NetworkAddress' ?
-				(data.selector.address || 'Cardano address')
+				data.selector.address || 'Cardano address'
 			:
 			data.entityType === EntityType.EvmNetworkAccount && data.selectorName === 'EvmNetworkEvmAccount' ?
-				('EVM network account')
+				'EVM network account'
 			:
 			data.entityType === EntityType.SolanaAccount && data.selectorName === 'NetworkPubkey' ?
-				(data.selector.pubkey || 'solana account')
+				data.selector.pubkey || 'solana account'
 			:
 			data.entityType === EntityType.TonAccount && data.selectorName === 'NetworkAddress' ?
-				('TON account')
+				'TON account'
 			:
-				(data.selector.account || 'XRPL account')
+				data.selector.account || 'XRPL account'
 		)
 	)
 	const entityViewByType = {
-		[EntityType.PolkadotAccount]: {
-			Component: PolkadotAccountView,
-			label: 'Polkadot account',
-		},
-		[EntityType.CosmosAccount]: {
-			Component: CosmosAccountView,
-			label: 'Cosmos account',
-		},
-		[EntityType.HederaAccount]: {
-			Component: HederaAccountView,
-			label: 'hedera account',
-		},
-		[EntityType.CardanoAddress]: {
-			Component: CardanoAddressView,
-			label: 'Cardano address',
-		},
-		[EntityType.EvmNetworkAccount]: {
-			Component: EvmNetworkAccountView,
-			label: 'EVM network account',
-		},
-		[EntityType.SolanaAccount]: {
-			Component: SolanaAccountView,
-			label: 'solana account',
-		},
-		[EntityType.TonAccount]: {
-			Component: TonAccountView,
-			label: 'TON account',
-		},
-		[EntityType.XrplAccount]: {
-			Component: XrplAccountView,
-			label: 'XRPL account',
-		},
+		[EntityType.PolkadotAccount]: PolkadotAccountView,
+		[EntityType.CosmosAccount]: CosmosAccountView,
+		[EntityType.HederaAccount]: HederaAccountView,
+		[EntityType.CardanoAddress]: CardanoAddressView,
+		[EntityType.EvmNetworkAccount]: EvmNetworkAccountView,
+		[EntityType.SolanaAccount]: SolanaAccountView,
+		[EntityType.TonAccount]: TonAccountView,
+		[EntityType.XrplAccount]: XrplAccountView,
 	}
 
 	// Components
@@ -146,12 +123,12 @@
 
 
 <svelte:head>
-	<title>{pageTitle} • {entityViewByType[data.entityType].label} • Blockhead</title>
+	<title>{pageTitle} • {entityDefinitionByType[data.entityType].labels.singular} • Blockhead</title>
 </svelte:head>
 
 
 <Page>
-	{@const EntityView = entityViewByType[data.entityType].Component}
+	{@const EntityView = entityViewByType[data.entityType]}
 
 	<EntityView
 		selection={pageSelection}

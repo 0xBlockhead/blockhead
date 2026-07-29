@@ -5,7 +5,6 @@
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 
 
 	// Context
@@ -22,13 +21,12 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.GitBlob> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const gitBlob = $derived(selection({
 		fields: {
 			mime: true,
 		},
 	}))
-	const titleFallback = $derived(String(pendingEntity.objectId ?? '') || 'Git blob')
+	const titleFallback = $derived(selection.entitySelector.objectId || 'Git blob')
 
 
 	// Components
@@ -49,13 +47,13 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<TruncatedValue value={String(pendingEntity.objectId)} />
+		<TruncatedValue value={selection.entitySelector.objectId} />
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={gitBlob}>
 			{#snippet children(entity)}
-				{(entity.mime ?? '') || String(pendingEntity.objectId) || titleFallback}
+				{(entity.mime ?? '') || selection.entitySelector.objectId || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -65,14 +63,14 @@
 			<div>
 				<dt>object ID</dt>
 				<dd>
-					<TruncatedValue value={String(pendingEntity.objectId)} />
+					<TruncatedValue value={selection.entitySelector.objectId} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>object format</dt>
 				<dd>
-					{pendingEntity.objectFormat}
+					{selection.entitySelector.objectFormat}
 				</dd>
 			</div>
 
@@ -154,15 +152,15 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const gitBlobGitTreeEntriesViewPathsResource = selection.$$paths}
+		{@const pathsResource = selection.$$paths}
 		<ResourceBoundary
-			resource={gitBlobGitTreeEntriesViewPathsResource}
+			resource={pathsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<GitTreeEntriesView
-						selection={gitBlobGitTreeEntriesViewPathsResource}
-						countResource={gitBlobGitTreeEntriesViewPathsResource.count}
+						selection={pathsResource}
+						countResource={pathsResource.count}
 						title='paths'
 						id='paths'
 					/>

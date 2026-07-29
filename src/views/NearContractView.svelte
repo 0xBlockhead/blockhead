@@ -21,19 +21,16 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.NearContract> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const viewSelection = $derived(selection({
+	const nearContract = $derived(selection({
 		sources: selection.sources ?? [
 			Source.NearRpc_JsonRpc,
 		],
-	}))
-	const nearContract = $derived(viewSelection({
+	})({
 		fields: {
 			codeHash: true,
 			codeSizeBytes: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.accountId ?? '') || 'near contract')
 
 
 	// Components
@@ -47,21 +44,21 @@
 <EntityView
 	entityType={EntityType.NearContract}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? (selection.entitySelector.accountId || 'near contract')}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{(pendingEntity.accountId ?? '') || 'near contract'}
+		{selection.entitySelector.accountId || 'near contract'}
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={nearContract}>
 			{#snippet children(entity)}
-				{@const codeHash0 = entity.codeHash}
-				{#if codeHash0 != null}
-					<TruncatedValue value={codeHash0} />
+				{@const codeHash = entity.codeHash}
+				{#if codeHash != null}
+					<TruncatedValue value={codeHash} />
 				{/if}
 			{/snippet}
 		</ResourceBoundary>
@@ -70,11 +67,11 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={nearContract}>
 			{#snippet children(entity)}
-				{@const codeSizeBytes0 = entity.codeSizeBytes}
-				{#if codeSizeBytes0 != null}
+				{@const codeSizeBytes = entity.codeSizeBytes}
+				{#if codeSizeBytes != null}
 					<span data-text="muted">
 						<NumberValue
-							value={codeSizeBytes0}
+							value={codeSizeBytes}
 						/>
 					</span>
 				{/if}
@@ -98,7 +95,7 @@
 			<div>
 				<dt>Account ID</dt>
 				<dd>
-					<TruncatedValue value={pendingEntity.accountId} />
+					<TruncatedValue value={selection.entitySelector.accountId} />
 				</dd>
 			</div>
 

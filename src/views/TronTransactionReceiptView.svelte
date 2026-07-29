@@ -20,8 +20,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.TronTransactionReceipt> = $props()
 
-	const titleFallback = 'tron transaction receipt'
-
 
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -33,7 +31,7 @@
 <EntityView
 	entityType={EntityType.TronTransactionReceipt}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? 'tron transaction receipt'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -70,7 +68,7 @@
 						<div>
 							<dt>Fee sun</dt>
 							<dd>
-								{String(feeSun)}
+								{feeSun}
 							</dd>
 						</div>
 					{/if}
@@ -158,7 +156,7 @@
 						<div>
 							<dt>Energy usage</dt>
 							<dd>
-								{String(energyUsage)}
+								{energyUsage}
 							</dd>
 						</div>
 					{/if}
@@ -180,7 +178,7 @@
 						<div>
 							<dt>Origin energy usage</dt>
 							<dd>
-								{String(originEnergyUsage)}
+								{originEnergyUsage}
 							</dd>
 						</div>
 					{/if}
@@ -202,7 +200,7 @@
 						<div>
 							<dt>Energy usage total</dt>
 							<dd>
-								{String(energyUsageTotal)}
+								{energyUsageTotal}
 							</dd>
 						</div>
 					{/if}
@@ -224,7 +222,7 @@
 						<div>
 							<dt>Energy fee sun</dt>
 							<dd>
-								{String(energyFeeSun)}
+								{energyFeeSun}
 							</dd>
 						</div>
 					{/if}
@@ -246,7 +244,7 @@
 						<div>
 							<dt>Energy penalty total</dt>
 							<dd>
-								{String(energyPenaltyTotal)}
+								{energyPenaltyTotal}
 							</dd>
 						</div>
 					{/if}
@@ -268,7 +266,7 @@
 						<div>
 							<dt>Net usage</dt>
 							<dd>
-								{String(netUsage)}
+								{netUsage}
 							</dd>
 						</div>
 					{/if}
@@ -290,7 +288,7 @@
 						<div>
 							<dt>Net fee sun</dt>
 							<dd>
-								{String(netFeeSun)}
+								{netFeeSun}
 							</dd>
 						</div>
 					{/if}
@@ -312,7 +310,7 @@
 						<div>
 							<dt>Logs</dt>
 							<dd>
-								{String(logCount)}
+								{logCount}
 							</dd>
 						</div>
 					{/if}
@@ -334,7 +332,7 @@
 						<div>
 							<dt>Internal transactions</dt>
 							<dd>
-								{String(internalTransactionCount)}
+								{internalTransactionCount}
 							</dd>
 						</div>
 					{/if}

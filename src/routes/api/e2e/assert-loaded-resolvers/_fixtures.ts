@@ -8,6 +8,7 @@ import { MarketVenueId } from '$/constants/MarketVenue.ts'
 import {
 	Caip2Namespace,
 	Caip2Reference,
+	networkBySlug,
 } from '$/constants/Network.ts'
 import { NetworkStackId } from '$/constants/NetworkStack.ts'
 import { ProposalCategory, SpecificationRealm } from '$/constants/SpecificationProposal.ts'
@@ -16,7 +17,7 @@ import {
 	atprotoNetworkSeedPosts,
 } from '$/constants/Social/Atproto.ts'
 import { cashuMintBySlug } from '$/constants/Cashu.ts'
-import { ElementsPegDirection } from '$/schema/ElementsPeg.ts'
+import { ElementsPegDirection } from '$/schema/ElementsPegDirection.ts'
 import {
 	EntityMetaKey,
 	indexSchema,
@@ -30,14 +31,14 @@ import type {
 } from '$/schema/$schema.ts'
 import type { ResolverValue } from '$/resolvers/$resolvers.ts'
 import { schema } from '$/schema/index.ts'
-import { AssetInstanceKind } from '$/schema/AssetInstance.ts'
-import { CoinInstanceType } from '$/schema/EvmCoinInstance.ts'
-import { ZcashShieldedActionKind } from '$/schema/ZcashShieldedAction.ts'
-import { ZcashShieldedPoolKind } from '$/schema/ZcashShieldedPool.ts'
+import { AssetInstanceKind } from '$/schema/AssetInstanceKind.ts'
+import { CoinInstanceType } from '$/schema/CoinInstanceType.ts'
+import { ZcashShieldedActionKind } from '$/schema/ZcashShieldedActionKind.ts'
+import { ZcashShieldedPoolKind } from '$/schema/ZcashShieldedPoolKind.ts'
 import { Source } from '$/sources/Source.ts'
 import { SourceCredentialScope } from '$/sources/SourceBinding.ts'
 import sourceProviderDefinitions from '$/sources/$sourceProviders.ts'
-import { SolanaInstructionKind } from '$/schema/SolanaInstruction.ts'
+import { SolanaInstructionKind } from '$/schema/SolanaInstructionKind.ts'
 
 const { entityDefinitionByType } = indexSchema(schema)
 
@@ -1824,6 +1825,54 @@ const probeEntitySelectorByType = defineProbeEntitySelectors({
 })
 
 const parentProbeEntitySelectorOverridesByTypeAndName = defineParentProbeEntitySelectors({
+	[EntityType.Account]: {
+		Caip10: {
+			caip10: {
+				namespace: Caip2Namespace.Eip155,
+				reference: Caip2Reference.EthereumMainnet,
+				accountAddress: VITALIK_ADDRESS,
+			},
+		},
+	},
+	[EntityType.AcpAgentProgramVersion]: {
+		ProgramVersion: {
+			$program: {
+				registryAgentId: 'e2e-probe-acp-program',
+			},
+			version: '1',
+		},
+	},
+	[EntityType.AiArtifact]: {
+		ProviderArtifactId: {
+			$provider: { providerId: 'huggingface' },
+			providerArtifactId: 'e2e-probe-artifact',
+		},
+	},
+	[EntityType.AiDocument]: {
+		DocumentUrl: {
+			documentUrl: 'https://example.com/model-card',
+		},
+		KindArtifact: {
+			documentKind: 'model-card',
+			$artifact: {
+				$provider: { providerId: 'mlflow' },
+				providerArtifactId: 'e2e-probe-artifact',
+			},
+		},
+	},
+	[EntityType.AiModelVersion]: {
+		HuggingFaceRepoRevision: {
+			huggingFaceRepo: 'openai/gpt-oss-20b',
+			revision: 'main',
+		},
+		ModelVersionId: {
+			$model: {
+				$provider: { providerId: 'mlflow' },
+				providerModelId: 'e2e-probe-model',
+			},
+			versionId: '1',
+		},
+	},
 	[EntityType.ActivityPubActor]: {
 		ActivityStreamsUri: {
 			activityStreamsUri: 'https://mastodon.social/users/Gargron',
@@ -1853,6 +1902,24 @@ const parentProbeEntitySelectorOverridesByTypeAndName = defineParentProbeEntityS
 	[EntityType.AtprotoActor]: {
 		Handle: { handle: 'bsky.app' },
 	},
+	[EntityType.AtprotoActor_Timestamp]: {
+		AtprotoActorTimestampMsSource: {
+			$actor: atprotoNetworkSeedActors[0],
+			timestampMs: 0,
+			source: Source.Atproto_Xrpc,
+		},
+	},
+	[EntityType.BlockheadFarcasterAccountConnection]: {
+		ConnectionId: {
+			connectionId: 'e2e-probe-farcaster-connection',
+		},
+	},
+	[EntityType.BlockheadLightningNodeState]: {
+		ConnectionIdNetwork: {
+			connectionId: 'e2e-probe-lightning-connection',
+			$network: lightning,
+		},
+	},
 	[EntityType.BlockheadAgentConversationTurn]: {
 		ConversationTurnId: {
 			$conversation: { id: 'e2e-probe-agent-conversation' },
@@ -1871,6 +1938,73 @@ const parentProbeEntitySelectorOverridesByTypeAndName = defineParentProbeEntityS
 		NetworkBlockNo: {
 			$network: { slug: 'cardano' },
 			blockNo: 0n,
+		},
+	},
+	[EntityType.CardanoAddress]: {
+		NetworkAddress: {
+			$network: { slug: 'cardano' },
+			address: 'addr1e2eprobe',
+		},
+	},
+	[EntityType.CardanoCommittee_Epoch]: {
+		NetworkEpochSource: {
+			$network: { slug: 'cardano' },
+			epoch: 0,
+			source: Source.Blockfrost_Rest,
+		},
+	},
+	[EntityType.CardanoDRep]: {
+		NetworkDrepCredential: {
+			$network: { slug: 'cardano' },
+			drepCredential: 'drep1e2eprobe',
+		},
+	},
+	[EntityType.CardanoGovernanceProposal]: {
+		NetworkProposalTxHashProposalIndex: {
+			$network: { slug: 'cardano' },
+			proposalTxHash: 'e2e-probe-cardano-proposal',
+			proposalIndex: 0,
+		},
+	},
+	[EntityType.CardanoGovernanceProposal_Timestamp]: {
+		ProposalEpochSource: {
+			$proposal: {
+				$network: { slug: 'cardano' },
+				proposalTxHash: 'e2e-probe-cardano-proposal',
+				proposalIndex: 0,
+			},
+			epoch: 0,
+			source: Source.Blockfrost_Rest,
+		},
+	},
+	[EntityType.CardanoStakePool]: {
+		NetworkPoolId: {
+			$network: { slug: 'cardano' },
+			poolId: 'pool1e2eprobe',
+		},
+	},
+	[EntityType.CardanoTransaction]: {
+		NetworkHash: {
+			$network: { slug: 'cardano' },
+			hash: 'e2e-probe-cardano-transaction',
+		},
+	},
+	[EntityType.CardanoTxInput]: {
+		TransactionInputIndex: {
+			$transaction: {
+				$network: { slug: 'cardano' },
+				hash: 'e2e-probe-cardano-transaction',
+			},
+			inputIndex: 0,
+		},
+	},
+	[EntityType.CardanoTxOutput]: {
+		TransactionOutputIndex: {
+			$transaction: {
+				$network: { slug: 'cardano' },
+				hash: 'e2e-probe-cardano-transaction',
+			},
+			outputIndex: 0,
 		},
 	},
 	[EntityType.CardanoNetwork_Timestamp]: {
@@ -1904,6 +2038,29 @@ const parentProbeEntitySelectorOverridesByTypeAndName = defineParentProbeEntityS
 			hash: SAMPLE_TX_HASH,
 		},
 	},
+	[EntityType.Eip8004AgentRegistration]: {
+		NamespaceChainIdIdentityRegistryAgentId: {
+			namespace: 'eip155',
+			chainId: 1,
+			identityRegistry: '0x0000000000000000000000000000000000000000',
+			agentId: '1',
+		},
+	},
+	[EntityType.Eip8004AgentServiceEndpoint]: {
+		RegistrationFileEndpointKindEndpointUrl: {
+			$registrationFile: {
+				$registration: {
+					namespace: 'eip155',
+					chainId: 1,
+					identityRegistry: '0x0000000000000000000000000000000000000000',
+					agentId: '1',
+				},
+				fileUrl: 'https://example.com/agent.json',
+			},
+			endpointKind: 'a2a',
+			endpointUrl: 'https://example.com/a2a',
+		},
+	},
 	[EntityType.HederaBlock]: {
 		NetworkBlockNumber: {
 			$network: { slug: 'hedera' },
@@ -1912,6 +2069,23 @@ const parentProbeEntitySelectorOverridesByTypeAndName = defineParentProbeEntityS
 		NetworkBlockHash: {
 			$network: { slug: 'hedera' },
 			blockHash: 'e2e-probe-hedera-block',
+		},
+	},
+	[EntityType.HederaAccount]: {
+		NetworkAccountId: {
+			$network: { slug: 'hedera' },
+			accountId: '0.0.98',
+		},
+	},
+	[EntityType.HederaTransaction]: {
+		NetworkConsensusTimestamp: {
+			$network: { slug: 'hedera' },
+			consensusTimestamp: '1234567890.000000000',
+		},
+		NetworkTransactionIdNonce: {
+			$network: { slug: 'hedera' },
+			transactionId: '0.0.98-1234567890-000000000',
+			nonce: 0,
 		},
 	},
 	[EntityType.EvmNetworkActorCoinBalance]: {
@@ -1937,6 +2111,11 @@ const parentProbeEntitySelectorOverridesByTypeAndName = defineParentProbeEntityS
 	[EntityType.LensAccount]: {
 		LocalName: { localName: 'vitalik' },
 		LegacyProfileId: { legacyProfileId: '0x01' },
+	},
+	[EntityType.LensFeed]: {
+		Address: {
+			address: VITALIK_ADDRESS,
+		},
 	},
 	[EntityType.SolanaInstruction]: {
 		SolanaTransactionIndexInInstruction: {
@@ -2010,6 +2189,18 @@ const parentProbeEntitySelectorOverridesByTypeAndName = defineParentProbeEntityS
 			timestampMs: 0,
 			source: Source.Coingecko_Rest,
 		},
+	},
+	[EntityType._GlobalArweaveNetwork]: {
+		Scope: { scope: '_GlobalArweaveNetwork' },
+	},
+	[EntityType._GlobalIpfsAccess]: {
+		Scope: { scope: '_GlobalIpfsAccess' },
+	},
+	[EntityType._GlobalSwarmAccess]: {
+		Scope: { scope: '_GlobalSwarmAccess' },
+	},
+	[EntityType._GlobalXNetwork]: {
+		Scope: { scope: '_GlobalXNetwork' },
 	},
 	[EntityType._GlobalNostrNetwork]: {
 		Scope: { scope: '_GlobalNostrNetwork' },
@@ -2234,6 +2425,27 @@ const parentProbeEntitySelectorOverridesByTypeAndName = defineParentProbeEntityS
 			source: Source.Local_Internal,
 		},
 	},
+	[EntityType._GlobalEnsNetwork_Timestamp]: {
+		HubTimestampMsSource: {
+			$hub: { scope: '_GlobalEnsNetwork' },
+			timestampMs: 0,
+			source: Source.TheGraph_Graphql,
+		},
+	},
+	[EntityType.EnsName_Timestamp]: {
+		NameTimestampMsSource: {
+			$name: { name: 'vitalik.eth' },
+			timestampMs: 0,
+			source: Source.TheGraph_Graphql,
+		},
+	},
+	[EntityType._GlobalSwarmAccess_Timestamp]: {
+		HubTimestampMsSource: {
+			$hub: { scope: '_GlobalSwarmAccess' },
+			timestampMs: 0,
+			source: Source.Swarm_Rest,
+		},
+	},
 	[EntityType.FilecoinActor_Timestamp]: {
 		ActorTimestampMsSource: {
 			$actor: {
@@ -2241,6 +2453,15 @@ const parentProbeEntitySelectorOverridesByTypeAndName = defineParentProbeEntityS
 				address: 'f01234',
 			},
 			timestampMs: 0,
+			source: Source.Lotus_JsonRpc,
+		},
+		ActorHeightTipsetKeySource: {
+			$actor: {
+				$network: filecoin,
+				address: 'f01234',
+			},
+			height: 4_000_000n,
+			tipsetKey: 'e2e-probe-tipset',
 			source: Source.Lotus_JsonRpc,
 		},
 	},
@@ -2266,17 +2487,55 @@ const parentProbeEntitySelectorOverridesByTypeAndName = defineParentProbeEntityS
 			timestampMs: 0,
 			source: Source.Lotus_JsonRpc,
 		},
+		MinerHeightTipsetKeySource: {
+			$miner: {
+				$network: filecoin,
+				minerAddress: 'f01234',
+			},
+			height: 4_000_000n,
+			tipsetKey: 'e2e-probe-tipset',
+			source: Source.Lotus_JsonRpc,
+		},
 	},
 	[EntityType._GlobalActivityPubNetwork]: {
 		Scope: { scope: '_GlobalActivityPubNetwork' },
 	},
+	[EntityType._GlobalActivityPubNetwork_Timestamp]: {
+		HubTimestampMsSource: {
+			$hub: { scope: '_GlobalActivityPubNetwork' },
+			timestampMs: 0,
+			source: Source.Mastodon_Rest,
+		},
+	},
 	[EntityType.ActivityPubInstance]: {
+		InstanceOrigin: {
+			instanceOrigin: 'https://mastodon.social',
+		},
 		InstanceOriginSource: {
 			instanceOrigin: 'https://mastodon.social',
 			source: Source.Mastodon_Rest,
 		},
 	},
+	[EntityType.ActivityPubInstance_Timestamp]: {
+		InstanceTimestampMsSource: {
+			$instance: {
+				instanceOrigin: 'https://mastodon.social',
+			},
+			timestampMs: 0,
+			source: Source.Mastodon_Rest,
+		},
+	},
 	[EntityType.ActivityPubInstancePeer]: {
+		ObservationPeerDomain: {
+			$observation: {
+				$instance: {
+					instanceOrigin: 'https://mastodon.social',
+				},
+				timestampMs: 0,
+				source: Source.Mastodon_Rest,
+			},
+			peerDomain: 'fosstodon.org',
+		},
 		InstanceOriginPeerDomainSource: {
 			instanceOrigin: 'https://mastodon.social',
 			peerDomain: 'fosstodon.org',
@@ -2284,6 +2543,16 @@ const parentProbeEntitySelectorOverridesByTypeAndName = defineParentProbeEntityS
 		},
 	},
 	[EntityType.ActivityPubInstanceModeratedDomain]: {
+		ObservationDomain: {
+			$observation: {
+				$instance: {
+					instanceOrigin: 'https://mastodon.social',
+				},
+				timestampMs: 0,
+				source: Source.Mastodon_Rest,
+			},
+			domain: 'example.com',
+		},
 		InstanceOriginModeratedDomainSource: {
 			instanceOrigin: 'https://mastodon.social',
 			domain: 'example.com',
@@ -2298,6 +2567,14 @@ const parentProbeEntitySelectorOverridesByTypeAndName = defineParentProbeEntityS
 			},
 			timestampMs: 0,
 		},
+		ActivityPubActorTimestampMsSource: {
+			$actor: {
+				instanceOrigin: 'https://mastodon.social',
+				localAccountId: '13179',
+			},
+			timestampMs: 0,
+			source: Source.Mastodon_Rest,
+		},
 	},
 	[EntityType.ActivityPubNote_Timestamp]: {
 		ActivityPubNoteTimestampMs: {
@@ -2306,6 +2583,14 @@ const parentProbeEntitySelectorOverridesByTypeAndName = defineParentProbeEntityS
 				localStatusId: '116539053870420123',
 			},
 			timestampMs: 0,
+		},
+		ActivityPubNoteTimestampMsSource: {
+			$note: {
+				instanceOrigin: 'https://mastodon.social',
+				localStatusId: '116539053870420123',
+			},
+			timestampMs: 0,
+			source: Source.Mastodon_Rest,
 		},
 	},
 	[EntityType.UrlPreview_Timestamp]: {
@@ -2375,6 +2660,17 @@ const parentProbeEntitySelectorOverridesByTypeAndName = defineParentProbeEntityS
 			source: Source.NearRpc_JsonRpc,
 		},
 	},
+	[EntityType.NearContractStorageEntry]: {
+		ContractKeyBlockHeightSource: {
+			$contract: {
+				$network: nearNetwork,
+				accountId: 'near',
+			},
+			keyBase64: '',
+			blockHeight: 100_000_000n,
+			source: Source.NearRpc_JsonRpc,
+		},
+	},
 	[EntityType.NearValidator_Timestamp]: {
 		ValidatorEpochIdSource: {
 			$validator: {
@@ -2390,6 +2686,105 @@ const parentProbeEntitySelectorOverridesByTypeAndName = defineParentProbeEntityS
 			$network: nearNetwork,
 			timestampMs: 0,
 			source: Source.NearRpc_JsonRpc,
+		},
+	},
+	[EntityType.NostrSearchQuery]: {
+		Query: {
+			query: 'ethereum',
+		},
+	},
+	[EntityType.NostrProfileMetadataEvent]: {
+		CanonicalEventId: {
+			eventId: `${'a'.repeat(64)}`,
+		},
+	},
+	[EntityType.NostrArticleEvent]: {
+		CanonicalEventId: {
+			eventId: NOSTR_PROBE_REACTION_EVENT_ID,
+		},
+	},
+	[EntityType.Network_Activity_Day]: {
+		NetworkDayStartTimestampMsSource: {
+			$network: mainnet,
+			dayStartTimestampMs: 0,
+			source: Source.SpaceAndTime_MakeInfinite,
+		},
+	},
+	[EntityType.PolkadotReferendum_Timestamp]: {
+		ReferendumTimestampMsSource: {
+			$referendum: {
+				$network: polkadot,
+				referendumId: '1',
+			},
+			timestampMs: 0,
+			source: Source.Subscan_Rest,
+		},
+	},
+	[EntityType.StarknetContract]: {
+		NetworkAddress: {
+			$network: {
+				$network: {
+					caip2: networkBySlug.starknet.caip2,
+				},
+			},
+			address: '0x1',
+		},
+	},
+	[EntityType.StarknetAccount_Timestamp]: {
+		ContractBlockNumberSource: {
+			$contract: {
+				$network: {
+					$network: {
+						caip2: networkBySlug.starknet.caip2,
+					},
+				},
+				address: '0x1',
+			},
+			blockNumber: 0n,
+			source: Source.Starknet_JsonRpc,
+		},
+	},
+	[EntityType.TonJetton]: {
+		NetworkMasterAddress: {
+			$network: {
+				caip2: {
+					namespace: Caip2Namespace.Ton,
+					reference: Caip2Reference.TonMainnet,
+				},
+			},
+			masterAddress: 'EQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAM9c',
+		},
+	},
+	[EntityType.TezosAccount]: {
+		NetworkAddress: {
+			$network: {
+				$network: { slug: 'tezos' },
+			},
+			address: 'tz1VSUr8wwNhLAzempoch5d6hLRiTh8Cjcjb',
+		},
+	},
+	[EntityType.TezosBlock]: {
+		NetworkLevel: {
+			$network: {
+				$network: { slug: 'tezos' },
+			},
+			level: 1n,
+		},
+	},
+	[EntityType.XrplAccount]: {
+		NetworkAccount: {
+			$network: { slug: 'xrpl' },
+			account: 'rHb9CJAWyB4rj91VRWn96DkukG4bwdtyTh',
+		},
+	},
+	[EntityType.XrplAccount_Timestamp]: {
+		AccountLedgerIndexSource: {
+			$account: {
+				$network: { slug: 'xrpl' },
+				account: 'rHb9CJAWyB4rj91VRWn96DkukG4bwdtyTh',
+			},
+			ledgerIndex: 0n,
+			source: Source.Xrpl_Rippled,
 		},
 	},
 	[EntityType.NostrRelay_Timestamp]: {
@@ -2903,39 +3298,20 @@ const probeEntitySelectorForType = (
 
 export const resolveProbeEntitySelector = async (
 	entityType: EntityType,
-	selectorName: string
+	selectorName: string,
+	source: Source
 ): Promise<EntitySelector<typeof schema, EntityType>> => {
-	if (entityType === EntityType.Coin_Timestamp) {
-		if (selectorName !== 'CoinTimestampMsSource')
-			throw new Error(`Missing probe entity selector ${entityType}.${selectorName}`)
+	const entitySelector = parentEntitySelectorForResolverValuePart(entityType, selectorName)
 
-		const {
-			blockscoutExplorerRestV2OriginByChainId,
-		} = await import('$/sources/Blockscout/Rest/constants.ts')
-		const { getStats } = await import('$/sources/Blockscout/Rest/queries.ts')
-		const origin = blockscoutExplorerRestV2OriginByChainId[mainnetChainId]
-		if (origin == null) {
-			throw new Error('assert-loaded-resolvers: mainnet Blockscout stats unavailable for Coin_Timestamp probe')
-		}
-		const stats = await getStats({ explorerOrigin: origin })
-		if (stats == null)
-			throw new Error('assert-loaded-resolvers: Blockscout stats unavailable for Coin_Timestamp probe')
-		const updatedAtMs = (
-			stats.gas_price_updated_at != null ?
-				Date.parse(stats.gas_price_updated_at)
-			:
-				NaN
-		)
-		if (!Number.isFinite(updatedAtMs))
-			throw new Error('assert-loaded-resolvers: Blockscout stats clock missing for Coin_Timestamp probe')
-		return {
-			$coin: { coinId: CoinId.ETH },
-			timestampMs: updatedAtMs,
-			source: Source.Blockscout_Rest,
-		}
-	}
-
-	return parentEntitySelectorForResolverValuePart(entityType, selectorName)
+	return entityDefinitionByType[entityType].selectors
+		.find((selector) => selector.name === selectorName)
+		?.fields.includes('source') === true ?
+			{
+				...entitySelector,
+				source,
+			}
+		:
+			entitySelector
 }
 
 

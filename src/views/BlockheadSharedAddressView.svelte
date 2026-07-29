@@ -22,19 +22,16 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.BlockheadSharedAddress> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const viewSelection = $derived(selection({
+	const blockheadSharedAddress = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Local_Internal,
 		],
-	}))
-	const blockheadSharedAddress = $derived(viewSelection({
+	})({
 		fields: {
 			peerId: true,
 			sharedAt: true,
 		},
 	}))
-	const titleFallback = 'blockhead shared address'
 
 
 	// Components
@@ -50,7 +47,7 @@
 <EntityView
 	entityType={EntityType.BlockheadSharedAddress}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? 'blockhead shared address'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -63,7 +60,7 @@
 				<EvmAccountView
 					selection={select(EntityType.EvmAccount, evmAccount[EntityMetaKey.Selector])}
 					prefetched={evmAccount}
-					href=""
+					href={null}
 					layout={EntityLayout.Title}
 					open={false}
 				/>
@@ -74,7 +71,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={blockheadSharedAddress}>
 			{#snippet children(entity)}
-				<Timestamp timestamp={Number(entity.sharedAt)} />
+				<Timestamp timestamp={entity.sharedAt} />
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -84,7 +81,7 @@
 			<div>
 				<dt>ID</dt>
 				<dd>
-					{pendingEntity.id}
+					{selection.entitySelector.id}
 				</dd>
 			</div>
 
@@ -162,7 +159,7 @@
 						resource={blockheadSharedAddress}
 					>
 						{#snippet children(entity)}
-							<Timestamp timestamp={Number(entity.sharedAt)} />
+							<Timestamp timestamp={entity.sharedAt} />
 						{/snippet}
 					</ResourceBoundary>
 				</dd>

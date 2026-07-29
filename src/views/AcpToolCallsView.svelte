@@ -45,11 +45,11 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{(acpToolCall.toolName ?? '')}
+				{acpToolCall.toolName ?? ''}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{(acpToolCall.serverName ?? '')}</span>
+				<span data-text="annotation">{acpToolCall.serverName ?? ''}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

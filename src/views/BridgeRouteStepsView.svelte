@@ -39,6 +39,7 @@
 >
 	{#snippet Item({ item: bridgeRouteStep })}
 		{@const bridgeRouteStepSelector = bridgeRouteStep[EntityMetaKey.Selector]}
+		{@const route = bridgeRouteStepSelector.$route}
 		<EntityView
 			entityType={EntityType.BridgeRouteStep}
 			entitySelector={bridgeRouteStepSelector}
@@ -46,21 +47,21 @@
 				resolve(
 					'/bridge/route/[fromChainId=nonNegativeInteger]/[toChainId=nonNegativeInteger]/[fromToken=stringSegment]/[toToken=stringSegment]/[fromAmount=nonNegativeBigInt]/[fromAddress=evmAddress]/[slippage=nonNegativeNumber]/[toAddress=evmAddress]/(bridgeRoute)/step/[stepIndex=bridgeRouteStepIndex]',
 					{
-						fromChainId: String(bridgeRouteStepSelector.$route.fromChainId),
-						toChainId: String(bridgeRouteStepSelector.$route.toChainId),
-						fromToken: String(bridgeRouteStepSelector.$route.fromToken),
-						toToken: String(bridgeRouteStepSelector.$route.toToken),
-						fromAmount: String(bridgeRouteStepSelector.$route.fromAmount),
-						fromAddress: String(bridgeRouteStepSelector.$route.fromAddress),
-						slippage: String(bridgeRouteStepSelector.$route.slippage),
-						toAddress: String(bridgeRouteStepSelector.$route.toAddress),
+						fromChainId: String(route.fromChainId),
+						toChainId: String(route.toChainId),
+						fromToken: route.fromToken,
+						toToken: route.toToken,
+						fromAmount: String(route.fromAmount),
+						fromAddress: route.fromAddress,
+						slippage: String(route.slippage),
+						toAddress: route.toAddress,
 						stepIndex: String(bridgeRouteStepSelector.indexInRoute),
 					}
 				)
 			}
 		>
 			{#snippet Title()}
-				{(String(bridgeRouteStepSelector.indexInRoute ?? '') ? 'Step #' + String(bridgeRouteStepSelector.indexInRoute ?? '') : '') || 'bridge route step'}
+				{`Step #${bridgeRouteStepSelector.indexInRoute}`}
 			{/snippet}
 
 			{#snippet HeadingAfter()}

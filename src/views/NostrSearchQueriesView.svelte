@@ -47,7 +47,7 @@
 				resolve(
 					'/(social)/(nostr)/nostr/(globalNostrNetwork)/search/[query=stringSegment]',
 					{
-						query: String(nostrSearchQuerySelector.query),
+						query: nostrSearchQuerySelector.query,
 					}
 				)
 			}
@@ -57,7 +57,7 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{String(nostrSearchQuery.resultCount)}
+				{nostrSearchQuery.resultCount}
 			{/snippet}
 		</EntityView>
 	{/snippet}

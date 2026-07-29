@@ -21,7 +21,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.ZeroGNetwork_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.ZeroGStorageScan_Rest,
@@ -32,7 +31,6 @@
 			storageTransactionCount: true,
 		},
 	}))
-	const titleFallback = 'zero g network timestamp'
 
 
 	// Components
@@ -47,7 +45,7 @@
 <EntityView
 	entityType={EntityType.ZeroGNetwork_Timestamp}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? 'zero g network timestamp'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -55,24 +53,23 @@
 	{#snippet Title()}
 		<ZeroGNetworkView
 			selection={select(EntityType.ZeroGNetwork, selection.entitySelector.$network)}
-			href=""
 			layout={EntityLayout.Title}
 			open={false}
 		/>
 	{/snippet}
 
 	{#snippet Value()}
-		<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+		<Timestamp timestamp={selection.entitySelector.timestampMs} />
 	{/snippet}
 
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={zeroGNetworkTimestamp}>
 			{#snippet children(entity)}
-				{@const storageTransactionCount0 = entity.storageTransactionCount}
-				{#if storageTransactionCount0 != null}
+				{@const storageTransactionCount = entity.storageTransactionCount}
+				{#if storageTransactionCount != null}
 					<span data-text="muted">
 						<NumberValue
-							value={storageTransactionCount0}
+							value={storageTransactionCount}
 						/>
 					</span>
 				{/if}
@@ -96,14 +93,14 @@
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+					<Timestamp timestamp={selection.entitySelector.timestampMs} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 		</dl>

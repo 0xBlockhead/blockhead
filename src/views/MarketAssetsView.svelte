@@ -6,7 +6,6 @@
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { MarketAssetKind } from '$/constants/Market.ts'
 
 
 	// State
@@ -44,8 +43,8 @@
 				resolve(
 					'/(assets)/(marketAssets)/market-asset/[kind=stringSegment]/[assetKey=stringSegment]',
 					{
-						kind: String(marketAssetSelector.kind),
-						assetKey: String(marketAssetSelector.assetKey),
+						kind: marketAssetSelector.kind,
+						assetKey: marketAssetSelector.assetKey,
 					}
 				)
 			}

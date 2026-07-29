@@ -41,15 +41,15 @@
 			entitySelector={nearNetworkTimestampSelector}
 		>
 			{#snippet Title()}
-				{String(nearNetworkTimestampSelector.timestampMs) || 'near network timestamp'}
+				{nearNetworkTimestampSelector.timestampMs}
 			{/snippet}
 
 			{#snippet Value()}
-				{String(nearNetworkTimestamp.headHeight ?? '')}
+				{nearNetworkTimestamp.headHeight ?? ''}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{(nearNetworkTimestamp.headHash ?? '')}</span>
+				<span data-text="annotation">{nearNetworkTimestamp.headHash ?? ''}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

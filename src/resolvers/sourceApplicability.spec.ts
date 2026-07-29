@@ -1,10 +1,8 @@
 import { describe, expect, it } from 'vitest'
 import { type as arktype } from 'arktype'
 
-import {
-	EntityFieldCardinality,
-	EntityFieldType,
-} from '$/schema/EntityField.ts'
+import { EntityFieldCardinality } from '$/schema/EntityFieldCardinality.ts'
+import { EntityFieldType } from '$/schema/EntityFieldType.ts'
 import {
 	indexResolvers,
 	resolverPartsKey,

@@ -20,8 +20,7 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.TokenProgramExtension_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const titleFallback = $derived((pendingEntity.extensionKind ?? '') || 'token program extension timestamp')
+	const titleFallback = $derived(selection.entitySelector.extensionKind || 'token program extension timestamp')
 
 
 	// Components
@@ -41,16 +40,16 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{(pendingEntity.extensionKind ?? '') || 'token program extension timestamp'}
+		{selection.entitySelector.extensionKind || 'token program extension timestamp'}
 	{/snippet}
 
 	{#snippet Value()}
-		{(pendingEntity.extensionScope ?? '') || (pendingEntity.extensionKind ?? '') || titleFallback}
+		{selection.entitySelector.extensionScope || selection.entitySelector.extensionKind || titleFallback}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
 		<span data-text="muted">
-			{pendingEntity.source}
+			{selection.entitySelector.source}
 		</span>
 	{/snippet}
 
@@ -59,28 +58,28 @@
 			<div>
 				<dt>Extension kind</dt>
 				<dd>
-					{pendingEntity.extensionKind}
+					{selection.entitySelector.extensionKind}
 				</dd>
 			</div>
 
 			<div>
 				<dt>Extension scope</dt>
 				<dd>
-					{pendingEntity.extensionScope}
+					{selection.entitySelector.extensionScope}
 				</dd>
 			</div>
 
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+					<Timestamp timestamp={selection.entitySelector.timestampMs} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 		</dl>

@@ -42,7 +42,7 @@
 			entitySelector={avalanchePChainTransactionTimestampSelector}
 		>
 			{#snippet Title()}
-				{String(avalanchePChainTransactionTimestampSelector.timestampMs) || 'avalanche p chain transaction timestamp'}
+				{avalanchePChainTransactionTimestampSelector.timestampMs}
 			{/snippet}
 
 			{#snippet Value()}

@@ -21,8 +21,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.DydxChainSubaccount> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const titleFallback = 'dydx chain subaccount'
 	const viewDomId = $derived('dydx-chain-subaccount-' + encodeURIComponent(stringify(selection.entitySelector)))
 
 
@@ -44,7 +42,7 @@
 	entityType={EntityType.DydxChainSubaccount}
 	entitySelector={selection.entitySelector}
 	id={viewDomId}
-	title={title ?? titleFallback}
+	title={title ?? 'dydx chain subaccount'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -52,7 +50,7 @@
 	{#snippet Title()}
 		<CosmosAccountView
 			selection={select(EntityType.CosmosAccount, selection.entitySelector.$account)}
-			href=""
+			href={null}
 			layout={EntityLayout.Title}
 			open={false}
 		/>
@@ -60,7 +58,7 @@
 
 	{#snippet Value()}
 		<NumberValue
-			value={pendingEntity.subaccountNumber}
+			value={selection.entitySelector.subaccountNumber}
 		/>
 	{/snippet}
 
@@ -92,7 +90,7 @@
 				<dt>subaccount number</dt>
 				<dd>
 					<NumberValue
-						value={pendingEntity.subaccountNumber}
+						value={selection.entitySelector.subaccountNumber}
 					/>
 				</dd>
 			</div>

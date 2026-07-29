@@ -23,8 +23,7 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.EvmActorCoinAllowance> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const titleFallback = 'allowance'
+	const contract = $derived(selection.entitySelector.$contract)
 
 
 	// Components
@@ -40,22 +39,25 @@
 <EntityView
 	entityType={EntityType.EvmActorCoinAllowance}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? 'allowance'}
 	href={
-		href ?? (
-			'caip2' in selection.entitySelector.$contract.$network ?
-				resolve(
-					'/~/accounts/allowance/[chainId=eip155ChainId]/[owner=evmAddress]/[coin=evmAddress]/[spender=evmAddress]',
-					{
-						chainId: String(selection.entitySelector.$contract.$network.caip2.reference),
-						owner: String(selection.entitySelector.$actor.address),
-						coin: String(selection.entitySelector.$contract.address),
-						spender: String(selection.entitySelector.$spender.address),
-					}
-				)
-			:
-				undefined
-		)
+		href === undefined ?
+			(
+				'caip2' in contract.$network ?
+					resolve(
+						'/~/accounts/allowance/[chainId=eip155ChainId]/[owner=evmAddress]/[coin=evmAddress]/[spender=evmAddress]',
+						{
+							chainId: contract.$network.caip2.reference,
+							owner: selection.entitySelector.$actor.address,
+							coin: contract.address,
+							spender: selection.entitySelector.$spender.address,
+						}
+					)
+				:
+					undefined
+			)
+		:
+			href ?? undefined
 	}
 	{layout}
 	bind:open
@@ -64,7 +66,7 @@
 	{#snippet Title()}
 		<EvmContractView
 			selection={select(EntityType.EvmContract, selection.entitySelector.$contract)}
-			href=""
+			href={null}
 			layout={EntityLayout.Title}
 			open={false}
 		/>
@@ -73,7 +75,7 @@
 	{#snippet Value()}
 		<EvmAccountView
 			selection={select(EntityType.EvmAccount, selection.entitySelector.$spender)}
-			href=""
+			href={null}
 			layout={EntityLayout.Value}
 			open={false}
 		/>
@@ -137,7 +139,7 @@
 			<div>
 				<dt>Interop address</dt>
 				<dd>
-					<TruncatedValue value={pendingEntity.interopAddress} />
+					<TruncatedValue value={selection.entitySelector.interopAddress} />
 				</dd>
 			</div>
 
@@ -164,15 +166,15 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const evmActorCoinAllowanceEvmActorCoinAllowanceBlocksViewBlocksResource = selection.$$blocks}
+		{@const blocksResource = selection.$$blocks}
 		<ResourceBoundary
-			resource={evmActorCoinAllowanceEvmActorCoinAllowanceBlocksViewBlocksResource}
+			resource={blocksResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<EvmActorCoinAllowance_BlocksView
-						selection={evmActorCoinAllowanceEvmActorCoinAllowanceBlocksViewBlocksResource}
-						countResource={evmActorCoinAllowanceEvmActorCoinAllowanceBlocksViewBlocksResource.count}
+						selection={blocksResource}
+						countResource={blocksResource.count}
 						title='Blocks'
 						id='blocks'
 					/>

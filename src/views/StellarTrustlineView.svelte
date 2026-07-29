@@ -20,8 +20,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.StellarTrustline> = $props()
 
-	const titleFallback = 'stellar trustline'
-
 
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -34,7 +32,7 @@
 <EntityView
 	entityType={EntityType.StellarTrustline}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? 'stellar trustline'}
 	{layout}
 	bind:open
 	{...EntityViewProps}

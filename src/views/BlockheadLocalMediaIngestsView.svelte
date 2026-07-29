@@ -46,11 +46,11 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{(blockheadLocalMediaIngest.mimeType ?? '')}
+				{blockheadLocalMediaIngest.mimeType ?? ''}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{String(blockheadLocalMediaIngest.createdAt)}</span>
+				<span data-text="annotation">{blockheadLocalMediaIngest.createdAt}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

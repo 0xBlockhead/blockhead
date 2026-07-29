@@ -19,7 +19,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType._GlobalActivityPubNetwork> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const titleFallback = 'global ActivityPub network'
 	const viewDomId = $derived('-global-activity-pub-network-' + encodeURIComponent(stringify(selection.entitySelector)))
 
@@ -40,7 +39,12 @@
 	entitySelector={selection.entitySelector}
 	id={viewDomId}
 	title={title ?? titleFallback}
-	href={href ?? resolve('/(social)/(activitypub)/activitypub')}
+	href={
+		href === undefined ?
+			resolve('/(social)/(activitypub)/activitypub')
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -50,7 +54,7 @@
 	{/snippet}
 
 	{#snippet Value()}
-		{(pendingEntity.scope ?? '') || titleFallback}
+		{selection.entitySelector.scope || titleFallback}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -58,7 +62,7 @@
 			<div>
 				<dt>Scope</dt>
 				<dd>
-					{pendingEntity.scope}
+					{selection.entitySelector.scope}
 				</dd>
 			</div>
 		</dl>

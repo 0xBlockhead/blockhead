@@ -44,11 +44,11 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{(blockheadIntentInvocation.resolvedIntentType ?? '')}
+				{blockheadIntentInvocation.resolvedIntentType ?? ''}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{String(blockheadIntentInvocation.createdAt)}</span>
+				<span data-text="annotation">{blockheadIntentInvocation.createdAt}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

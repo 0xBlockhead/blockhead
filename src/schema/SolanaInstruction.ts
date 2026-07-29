@@ -1,15 +1,12 @@
 // Generated from APP.ts. Do not edit by hand.
 
 import { entity } from '$/schema/$schema.ts'
-import { EntityFieldCardinality, EntityFieldType } from '$/schema/EntityField.ts'
+import { EntityFieldCardinality } from '$/schema/EntityFieldCardinality.ts'
+import { EntityFieldType } from '$/schema/EntityFieldType.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { SolanaInstructionKind } from '$/schema/SolanaInstructionKind.ts'
 import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
-
-export enum SolanaInstructionKind {
-	Instruction = 'Instruction',
-	InnerInstruction = 'InnerInstruction',
-}
 
 export default entity({
 	entityType: EntityType.SolanaInstruction,

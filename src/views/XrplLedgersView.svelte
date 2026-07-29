@@ -30,27 +30,26 @@
 >
 	{#snippet Item({ item: xrplLedger })}
 		{@const xrplLedgerSelector = xrplLedger[EntityMetaKey.Selector]}
+		{@const network = xrplLedgerSelector.$network}
 		<EntityView
 			entityType={EntityType.XrplLedger}
 			entitySelector={xrplLedgerSelector}
 			href={
-				(
-					'ledgerIndex' in xrplLedgerSelector ?
-						resolve(
-							'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/ledger/[ledgerIndex=nonNegativeBigInt]',
-							{
-								network: (
-									'caip2' in xrplLedgerSelector.$network ?
-										String(caip2StringFromValue(xrplLedgerSelector.$network.caip2))
-									:
-										String(xrplLedgerSelector.$network.slug)
-								),
-								ledgerIndex: String(xrplLedgerSelector.ledgerIndex),
-							}
-						)
-					:
-						undefined
-				)
+				'ledgerIndex' in xrplLedgerSelector ?
+					resolve(
+						'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/ledger/[ledgerIndex=nonNegativeBigInt]',
+						{
+							network: (
+								'caip2' in network ?
+									caip2StringFromValue(network.caip2)
+								:
+									network.slug
+							),
+							ledgerIndex: String(xrplLedgerSelector.ledgerIndex),
+						}
+					)
+				:
+					undefined
 			}
 		>
 			{#snippet Title()}

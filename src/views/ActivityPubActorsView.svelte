@@ -6,7 +6,6 @@
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { UrlString } from '$/schema/UrlString.ts'
 
 
 	// State
@@ -48,8 +47,8 @@
 				resolve(
 					'/(social)/(activitypub)/activitypub/(globalActivityPubNetwork)/actor/[instanceOrigin=absoluteUrl]/[localAccountId=stringSegment]',
 					{
-						instanceOrigin: encodeURIComponent(String(activityPubActor.instanceOrigin)),
-						localAccountId: String(activityPubActor.localAccountId),
+						instanceOrigin: encodeURIComponent(activityPubActor.instanceOrigin),
+						localAccountId: activityPubActor.localAccountId,
 					}
 				)
 			}

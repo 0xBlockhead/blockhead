@@ -5,7 +5,6 @@
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { stringify } from 'devalue'
-	import { UrlString } from '$/schema/UrlString.ts'
 
 
 	// State
@@ -18,7 +17,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.AiModelProvider> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const aiModelProvider = $derived(selection({
 		fields: {
 			label: true,
@@ -27,7 +25,7 @@
 			domain: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.label ?? '') || [(pendingEntity.providerId ?? ''), (pendingEntity.domain ?? '')].filter(Boolean).join(' ') || 'AI model provider')
+	const titleFallback = $derived((prefetched.label ?? '') || [(prefetched.providerId ?? ''), (prefetched.domain ?? '')].filter(Boolean).join(' ') || 'AI model provider')
 	const viewDomId = $derived('ai-model-provider-' + encodeURIComponent(stringify(selection.entitySelector)))
 
 
@@ -151,11 +149,11 @@
 							<dt>homepage URL</dt>
 							<dd>
 								<a
-									href={String(homepageUrl)}
+									href={homepageUrl}
 									target="_blank"
 									rel="noreferrer noopener"
 								>
-									<TruncatedValue value={String(homepageUrl)} />
+									<TruncatedValue value={homepageUrl} />
 								</a>
 							</dd>
 						</div>
@@ -179,11 +177,11 @@
 							<dt>docs URL</dt>
 							<dd>
 								<a
-									href={String(docsUrl)}
+									href={docsUrl}
 									target="_blank"
 									rel="noreferrer noopener"
 								>
-									<TruncatedValue value={String(docsUrl)} />
+									<TruncatedValue value={docsUrl} />
 								</a>
 							</dd>
 						</div>

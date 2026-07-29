@@ -21,9 +21,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.SuiPackageVersion> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const titleFallback = 'Sui package version'
-
 
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -36,7 +33,7 @@
 <EntityView
 	entityType={EntityType.SuiPackageVersion}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? 'Sui package version'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -81,21 +78,21 @@
 			<div>
 				<dt>package ID</dt>
 				<dd>
-					{pendingEntity.packageId}
+					{selection.entitySelector.packageId}
 				</dd>
 			</div>
 
 			<div>
 				<dt>version</dt>
 				<dd>
-					{String(pendingEntity.version)}
+					{selection.entitySelector.version}
 				</dd>
 			</div>
 
 			<div>
 				<dt>digest</dt>
 				<dd>
-					<TruncatedValue value={pendingEntity.digest} />
+					<TruncatedValue value={selection.entitySelector.digest} />
 				</dd>
 			</div>
 

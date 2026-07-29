@@ -25,8 +25,7 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.FilecoinActor> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const titleFallback = $derived((pendingEntity.address ?? '') || 'filecoin actor')
+	const network = $derived(selection.entitySelector.$network)
 
 
 	// Components
@@ -41,27 +40,30 @@
 <EntityView
 	entityType={EntityType.FilecoinActor}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? (selection.entitySelector.address || 'filecoin actor')}
 	href={
-		href ?? resolve(
-			'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/actor/[address=stringSegment]',
-			{
-				network: (
-					'caip2' in selection.entitySelector.$network ?
-						String(caip2StringFromValue(selection.entitySelector.$network.caip2))
-					:
-						String(selection.entitySelector.$network.slug)
-				),
-				address: String(selection.entitySelector.address),
-			}
-		)
+		href === undefined ?
+			resolve(
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/actor/[address=stringSegment]',
+				{
+					network: (
+						'caip2' in network ?
+							caip2StringFromValue(network.caip2)
+						:
+							network.slug
+					),
+					address: selection.entitySelector.address,
+				}
+			)
+		:
+			href ?? undefined
 	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{(pendingEntity.address ?? '') || 'filecoin actor'}
+		{selection.entitySelector.address || 'filecoin actor'}
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -72,21 +74,21 @@
 					<ResourceBoundary
 						resource={
 							selection
-								.$$timestamps({
-									sources: [
-										Source.Lotus_JsonRpc,
-									],
-									fields: {
-										height: true,
-										timestampMs: true,
-										balanceAttoFil: true,
-										source: true,
-									},
-									limit: 1,
-									orderBy: [
-										[({ fieldRow }) => fieldRow[EntityMetaKey.Value][EntityMetaKey.Selector].height ?? Number.NEGATIVE_INFINITY, 'desc'],
-									],
-								})
+							.$$timestamps({
+								sources: [
+									Source.Lotus_JsonRpc,
+								],
+								fields: {
+									height: true,
+									timestampMs: true,
+									balanceAttoFil: true,
+									source: true,
+								},
+								limit: 1,
+								orderBy: [
+									[({ fieldRow }) => fieldRow[EntityMetaKey.Value][EntityMetaKey.Selector].height ?? Number.NEGATIVE_INFINITY, 'desc'],
+								],
+							})
 						}
 					>
 						{#snippet children(filecoinActorTimestamps)}
@@ -129,22 +131,22 @@
 			<div>
 				<dt>Address</dt>
 				<dd>
-					<TruncatedValue value={pendingEntity.address} />
+					<TruncatedValue value={selection.entitySelector.address} />
 				</dd>
 			</div>
 		</dl>
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const filecoinActorFilecoinActorTimestampsViewTimestampsResource = selection.$$timestamps}
+		{@const timestampsResource = selection.$$timestamps}
 		<ResourceBoundary
-			resource={filecoinActorFilecoinActorTimestampsViewTimestampsResource}
+			resource={timestampsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<FilecoinActor_TimestampsView
-						selection={filecoinActorFilecoinActorTimestampsViewTimestampsResource}
-						countResource={filecoinActorFilecoinActorTimestampsViewTimestampsResource.count}
+						selection={timestampsResource}
+						countResource={timestampsResource.count}
 						title='Observations'
 						id='timestamps'
 					/>

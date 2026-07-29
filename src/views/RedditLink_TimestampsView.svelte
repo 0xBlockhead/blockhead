@@ -45,23 +45,23 @@
 				resolve(
 					'/(social)/(reddit)/reddit/(globalRedditNetwork)/link/[fullname=stringSegment]/(redditLink)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
 					{
-						fullname: encodeURIComponent(String(redditLinkTimestampSelector.$link.fullname)),
+						fullname: encodeURIComponent(redditLinkTimestampSelector.$link.fullname),
 						timestampMs: String(redditLinkTimestampSelector.timestampMs),
-						source: String(redditLinkTimestampSelector.source),
+						source: redditLinkTimestampSelector.source,
 					}
 				)
 			}
 		>
 			{#snippet Title()}
-				{String(redditLinkTimestampSelector.timestampMs) || 'Reddit submission timestamp'}
+				{redditLinkTimestampSelector.timestampMs}
 			{/snippet}
 
 			{#snippet Value()}
-				{String(redditLinkTimestamp.score ?? '')}
+				{redditLinkTimestamp.score ?? ''}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{[redditLinkTimestampSelector.source, (String(redditLinkTimestamp.commentCount ?? '') ? String(redditLinkTimestamp.commentCount ?? '') + ' comments' : '')].filter(Boolean).join(' ')}</span>
+				<span data-text="annotation">{[redditLinkTimestampSelector.source, (redditLinkTimestamp.commentCount != null ? String(redditLinkTimestamp.commentCount) + ' comments' : '')].filter(Boolean).join(' ')}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

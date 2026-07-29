@@ -45,7 +45,7 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{(payjoinEndpoint.protocolVersion ?? '')}
+				{payjoinEndpoint.protocolVersion ?? ''}
 			{/snippet}
 
 			{#snippet HeadingAfter()}

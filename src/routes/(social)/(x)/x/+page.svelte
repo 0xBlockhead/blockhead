@@ -37,7 +37,7 @@
 
 
 <svelte:head>
-	<title>{(data.title ?? (pageSelection.entity == null ? 'X' : pageSelection.entity.protocolName || 'X'))} • X • Blockhead</title>
+	<title>{data.title ?? (pageSelection.entity == null ? 'X' : pageSelection.entity.protocolName || 'X')} • X • Blockhead</title>
 </svelte:head>
 
 

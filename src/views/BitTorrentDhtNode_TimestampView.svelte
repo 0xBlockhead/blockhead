@@ -16,13 +16,12 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.BitTorrentDhtNode_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const bitTorrentDhtNodeTimestamp = $derived(selection({
 		fields: {
 			reachable: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.nodeId ?? '') || 'bit torrent DHT node timestamp')
+	const titleFallback = $derived(selection.entitySelector.nodeId || 'bit torrent DHT node timestamp')
 
 
 	// Components
@@ -42,20 +41,20 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{(pendingEntity.nodeId ?? '') || 'bit torrent DHT node timestamp'}
+		{selection.entitySelector.nodeId || 'bit torrent DHT node timestamp'}
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={bitTorrentDhtNodeTimestamp}>
 			{#snippet children(entity)}
-				{String(entity.reachable ?? '') || pendingEntity.nodeId || titleFallback}
+				{String(entity.reachable ?? '') || selection.entitySelector.nodeId || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
 		<span data-text="muted">
-			<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+			<Timestamp timestamp={selection.entitySelector.timestampMs} />
 		</span>
 	{/snippet}
 
@@ -64,21 +63,21 @@
 			<div>
 				<dt>node ID</dt>
 				<dd>
-					{pendingEntity.nodeId}
+					{selection.entitySelector.nodeId}
 				</dd>
 			</div>
 
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+					<Timestamp timestamp={selection.entitySelector.timestampMs} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 
@@ -159,7 +158,7 @@
 						}
 					>
 						{#snippet children(entity)}
-							<TruncatedValue value={entity.observedInfoHashes.values.join(', ')} />
+							{entity.observedInfoHashes.values.join(', ')}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>

@@ -44,11 +44,11 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{(blockheadPanel.entityType ?? '')}
+				{blockheadPanel.entityType ?? ''}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{String(blockheadPanel.indexInParent)}</span>
+				<span data-text="annotation">{blockheadPanel.indexInParent}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

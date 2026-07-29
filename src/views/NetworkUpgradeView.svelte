@@ -21,18 +21,16 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.NetworkUpgrade> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const viewSelection = $derived(selection({
+	const networkUpgrade = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Constants_Internal,
 		],
-	}))
-	const networkUpgrade = $derived(viewSelection({
+	})({
 		fields: {
 			name: true,
 		},
 	}))
-	const titleFallback = $derived([(pendingEntity.name ?? ''), (pendingEntity.upgradeId ?? '')].filter(Boolean).join(' ') || 'network upgrade')
+	const titleFallback = $derived([(prefetched.name ?? ''), selection.entitySelector.upgradeId].filter(Boolean).join(' ') || 'network upgrade')
 
 
 	// Components
@@ -54,7 +52,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={networkUpgrade}>
 			{#snippet children(entity)}
-				{[entity.name, pendingEntity.upgradeId].filter(Boolean).join(' ') || title || titleFallback}
+				{[entity.name, selection.entitySelector.upgradeId].filter(Boolean).join(' ') || title || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -62,7 +60,7 @@
 	{#snippet Value()}
 		<NetworkView
 			selection={select(EntityType.Network, selection.entitySelector.$network)}
-			href=""
+			href={null}
 			layout={EntityLayout.Value}
 			open={false}
 		/>
@@ -90,7 +88,7 @@
 			<div>
 				<dt>Upgrade ID</dt>
 				<dd>
-					{pendingEntity.upgradeId}
+					{selection.entitySelector.upgradeId}
 				</dd>
 			</div>
 
@@ -110,30 +108,30 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const networkUpgradeSpecificationProposalsViewSpecificationProposalsResource = selection.$$specificationProposals}
+		{@const specificationProposalsResource = selection.$$specificationProposals}
 		<ResourceBoundary
-			resource={networkUpgradeSpecificationProposalsViewSpecificationProposalsResource}
+			resource={specificationProposalsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<SpecificationProposalsView
-						selection={networkUpgradeSpecificationProposalsViewSpecificationProposalsResource}
-						countResource={networkUpgradeSpecificationProposalsViewSpecificationProposalsResource.count}
+						selection={specificationProposalsResource}
+						countResource={specificationProposalsResource.count}
 						title='Specification proposals'
 						id='specification-proposals'
 					/>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>
-		{@const networkUpgradeNetworkUpgradeTimestampsViewTimestampsResource = selection.$$timestamps}
+		{@const timestampsResource = selection.$$timestamps}
 		<ResourceBoundary
-			resource={networkUpgradeNetworkUpgradeTimestampsViewTimestampsResource}
+			resource={timestampsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<NetworkUpgrade_TimestampsView
-						selection={networkUpgradeNetworkUpgradeTimestampsViewTimestampsResource}
-						countResource={networkUpgradeNetworkUpgradeTimestampsViewTimestampsResource.count}
+						selection={timestampsResource}
+						countResource={timestampsResource.count}
 						title='Observations'
 						id='timestamps'
 					/>

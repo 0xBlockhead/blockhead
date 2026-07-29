@@ -41,11 +41,11 @@
 			entitySelector={cardanoGovernanceProposalTimestampSelector}
 		>
 			{#snippet Title()}
-				{(String(cardanoGovernanceProposalTimestampSelector.epoch) ? 'Epoch ' + String(cardanoGovernanceProposalTimestampSelector.epoch) : '') || 'Cardano governance proposal timestamp'}
+				{'Epoch ' + cardanoGovernanceProposalTimestampSelector.epoch}
 			{/snippet}
 
 			{#snippet Value()}
-				{(cardanoGovernanceProposalTimestamp.status ?? '')}
+				{cardanoGovernanceProposalTimestamp.status ?? ''}
 			{/snippet}
 
 			{#snippet HeadingAfter()}

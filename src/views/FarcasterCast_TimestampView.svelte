@@ -23,14 +23,13 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.FarcasterCast_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const cast = $derived(selection.entitySelector.$cast)
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Snapchain_Rest,
 			Source.Neynar_Rest,
 		],
 	}))
-	const titleFallback = 'Farcaster cast observation'
 
 
 	// Components
@@ -44,22 +43,25 @@
 <EntityView
 	entityType={EntityType.FarcasterCast_Timestamp}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? 'Farcaster cast observation'}
 	href={
-		href ?? (
-			'fid' in selection.entitySelector.$cast
-			&& 'hash' in selection.entitySelector.$cast ?
-				resolve(
-					'/(social)/(farcaster)/farcaster/(farcasterNetwork)/cast/[fid=farcasterFid]/[hash=zeroExHex]/(farcasterCast)/observations/[timestampMs=nonNegativeInteger]',
-					{
-						fid: String(selection.entitySelector.$cast.fid),
-						hash: String(selection.entitySelector.$cast.hash),
-						timestampMs: String(selection.entitySelector.timestampMs),
-					}
-				)
-			:
-				undefined
-		)
+		href === undefined ?
+			(
+				'fid' in cast
+				&& 'hash' in cast ?
+					resolve(
+						'/(social)/(farcaster)/farcaster/(farcasterNetwork)/cast/[fid=farcasterFid]/[hash=zeroExHex]/(farcasterCast)/observations/[timestampMs=nonNegativeInteger]',
+						{
+							fid: String(cast.fid),
+							hash: cast.hash,
+							timestampMs: String(selection.entitySelector.timestampMs),
+						}
+					)
+				:
+					undefined
+			)
+		:
+			href ?? undefined
 	}
 	{layout}
 	bind:open
@@ -68,14 +70,14 @@
 	{#snippet Title()}
 		<FarcasterCastView
 			selection={select(EntityType.FarcasterCast, selection.entitySelector.$cast)}
-			href=""
+			href={null}
 			layout={EntityLayout.Title}
 			open={false}
 		/>
 	{/snippet}
 
 	{#snippet Value()}
-		<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+		<Timestamp timestamp={selection.entitySelector.timestampMs} />
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -96,7 +98,7 @@
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+					<Timestamp timestamp={selection.entitySelector.timestampMs} />
 				</dd>
 			</div>
 		</dl>

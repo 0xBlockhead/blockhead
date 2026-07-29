@@ -21,9 +21,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.HederaTokenCustomFee> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const titleFallback = 'hedera token custom fee'
-
 
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -37,7 +34,7 @@
 <EntityView
 	entityType={EntityType.HederaTokenCustomFee}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? 'hedera token custom fee'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -62,7 +59,7 @@
 			<div>
 				<dt>fee index</dt>
 				<dd>
-					{String(pendingEntity.feeIndex)}
+					{selection.entitySelector.feeIndex}
 				</dd>
 			</div>
 
@@ -144,7 +141,7 @@
 						<div>
 							<dt>amount</dt>
 							<dd>
-								{String(amount)}
+								{amount}
 							</dd>
 						</div>
 					{/if}
@@ -166,7 +163,7 @@
 						<div>
 							<dt>numerator</dt>
 							<dd>
-								{String(numerator)}
+								{numerator}
 							</dd>
 						</div>
 					{/if}
@@ -188,7 +185,7 @@
 						<div>
 							<dt>denominator</dt>
 							<dd>
-								{String(denominator)}
+								{denominator}
 							</dd>
 						</div>
 					{/if}
@@ -210,7 +207,7 @@
 						<div>
 							<dt>minimum amount</dt>
 							<dd>
-								{String(minimumAmount)}
+								{minimumAmount}
 							</dd>
 						</div>
 					{/if}
@@ -232,7 +229,7 @@
 						<div>
 							<dt>maximum amount</dt>
 							<dd>
-								{String(maximumAmount)}
+								{maximumAmount}
 							</dd>
 						</div>
 					{/if}

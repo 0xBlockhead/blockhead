@@ -35,7 +35,7 @@
 			resolve(
 				'/(social)/(nostr)/nostr/(globalNostrNetwork)/profile/[pubkey=stringSegment]/(nostrProfile)/reposts',
 				{
-					pubkey: String(params.pubkey),
+					pubkey: params.pubkey,
 				}
 			)
 		}

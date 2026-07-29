@@ -2,11 +2,11 @@ import { entitySelectorKey, type EntitySelector } from '$/schema/$schema.ts'
 import { ActionType } from '$/constants/actions.ts'
 import { networkByCaip2 } from '$/constants/Network.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import { BlockheadAgentConversationTurnStatus } from '$/schema/BlockheadAgentConversationTurn.ts'
-import { BlockheadSessionStatus } from '$/schema/BlockheadSession.ts'
-import { CoinInstanceType } from '$/schema/EvmCoinInstance.ts'
+import { BlockheadAgentConversationTurnStatus } from '$/schema/BlockheadAgentConversationTurnStatus.ts'
+import { BlockheadSessionStatus } from '$/schema/BlockheadSessionStatus.ts'
+import { CoinInstanceType } from '$/schema/CoinInstanceType.ts'
 import { EvmAddress } from '$/schema/ZeroExHex.ts'
-import { XmtpConversationConsentState } from '$/schema/XmtpConversation.ts'
+import { XmtpConversationConsentState } from '$/schema/XmtpConversationConsentState.ts'
 import {
 	WalletCapability,
 	WalletDiscoveryKind,

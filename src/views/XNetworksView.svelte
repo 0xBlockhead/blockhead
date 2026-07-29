@@ -41,12 +41,10 @@
 			entityType={EntityType.XNetwork}
 			entitySelector={xNetworkSelector}
 			href={
-				(
-					xNetworkSelector.scope === 'XNetwork' ?
-						resolve('/(social)/(x)/x')
-					:
-						undefined
-				)
+				xNetworkSelector.scope === 'XNetwork' ?
+					resolve('/(social)/(x)/x')
+				:
+					undefined
 			}
 		>
 			{#snippet Title()}

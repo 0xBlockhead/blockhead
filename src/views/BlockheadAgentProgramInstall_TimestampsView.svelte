@@ -41,11 +41,11 @@
 			entitySelector={blockheadAgentProgramInstallTimestampSelector}
 		>
 			{#snippet Title()}
-				{String(blockheadAgentProgramInstallTimestampSelector.timestampMs) || 'blockhead agent program install timestamp'}
+				{blockheadAgentProgramInstallTimestampSelector.timestampMs}
 			{/snippet}
 
 			{#snippet Value()}
-				{(blockheadAgentProgramInstallTimestamp.status ?? '')}
+				{blockheadAgentProgramInstallTimestamp.status ?? ''}
 			{/snippet}
 
 			{#snippet HeadingAfter()}

@@ -21,13 +21,11 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.CosmosMessage> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const cosmosMessage = $derived(selection({
 		fields: {
 			typeUrl: true,
 		},
 	}))
-	const titleFallback = $derived((String(pendingEntity.indexInTransaction ?? '') ? 'Message #' + String(pendingEntity.indexInTransaction ?? '') : '') || 'Cosmos message')
 
 
 	// Components
@@ -42,8 +40,8 @@
 <EntityView
 	entityType={EntityType.CosmosMessage}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
-	idDragPlainText={String(pendingEntity.indexInTransaction ?? '')}
+	title={title ?? `Message #${selection.entitySelector.indexInTransaction}`}
+	idDragPlainText={String(selection.entitySelector.indexInTransaction)}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -52,14 +50,14 @@
 		<span data-row="inline align-center gap-2 wrap">
 			<span>Message </span>
 			<span data-badge="small">
-				#{String(pendingEntity.indexInTransaction)}
+				#{selection.entitySelector.indexInTransaction}
 			</span>
 		</span>
 	{/snippet}
 
 	{#snippet Value()}
 		<span data-badge="small">
-			#{String(pendingEntity.indexInTransaction)}
+			#{selection.entitySelector.indexInTransaction}
 		</span>
 	{/snippet}
 
@@ -68,11 +66,11 @@
 			{#snippet children(entity)}
 				<span data-text="muted">
 					<a
-						href={String(entity.typeUrl)}
+						href={entity.typeUrl}
 						target="_blank"
 						rel="noreferrer noopener"
 					>
-						<TruncatedValue value={String(entity.typeUrl)} />
+						<TruncatedValue value={entity.typeUrl} />
 					</a>
 				</span>
 			{/snippet}
@@ -84,7 +82,7 @@
 			<div>
 				<dt>Index in transaction</dt>
 				<dd>
-					{String(pendingEntity.indexInTransaction)}
+					{selection.entitySelector.indexInTransaction}
 				</dd>
 			</div>
 
@@ -96,11 +94,11 @@
 					>
 						{#snippet children(entity)}
 							<a
-								href={String(entity.typeUrl)}
+								href={entity.typeUrl}
 								target="_blank"
 								rel="noreferrer noopener"
 							>
-								<TruncatedValue value={String(entity.typeUrl)} />
+								<TruncatedValue value={entity.typeUrl} />
 							</a>
 						{/snippet}
 					</ResourceBoundary>

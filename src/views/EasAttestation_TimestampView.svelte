@@ -4,7 +4,6 @@
 	// Types/constants
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -22,7 +21,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.EasAttestation_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Blockscout_Rest,
@@ -38,7 +36,6 @@
 			revoked: true,
 		},
 	}))
-	const titleFallback = $derived(String(pendingEntity.timestampMs ?? '') || 'EAS attestation timestamp')
 
 
 	// Components
@@ -53,19 +50,19 @@
 <EntityView
 	entityType={EntityType.EasAttestation_Timestamp}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? String(selection.entitySelector.timestampMs)}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+		<Timestamp timestamp={selection.entitySelector.timestampMs} />
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={easAttestationTimestamp}>
 			{#snippet children(entity)}
-				{String(entity.valid ?? '') || String(pendingEntity.timestampMs) || titleFallback}
+				{String(entity.valid ?? '') || String(selection.entitySelector.timestampMs)}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -73,10 +70,10 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={easAttestationTimestamp}>
 			{#snippet children(entity)}
-				{@const revoked0 = entity.revoked}
-				{#if revoked0 != null}
+				{@const revoked = entity.revoked}
+				{#if revoked != null}
 					<span data-text="muted">
-						{revoked0 ? 'Yes' : 'No'}
+						{revoked ? 'Yes' : 'No'}
 					</span>
 				{/if}
 			{/snippet}
@@ -99,14 +96,14 @@
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+					<Timestamp timestamp={selection.entitySelector.timestampMs} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 
@@ -179,7 +176,7 @@
 						<div>
 							<dt>Revocation time</dt>
 							<dd>
-								<Timestamp timestamp={Number(revocationTime)} />
+								<Timestamp timestamp={revocationTime} />
 							</dd>
 						</div>
 					{/if}
@@ -227,7 +224,7 @@
 						<div>
 							<dt>Transaction hash</dt>
 							<dd>
-								<TruncatedValue value={String(transactionHash)} />
+								<TruncatedValue value={transactionHash} />
 							</dd>
 						</div>
 					{/if}
@@ -273,7 +270,7 @@
 						<div>
 							<dt>Revoked transaction hash</dt>
 							<dd>
-								<TruncatedValue value={String(revokedTransactionHash)} />
+								<TruncatedValue value={revokedTransactionHash} />
 							</dd>
 						</div>
 					{/if}

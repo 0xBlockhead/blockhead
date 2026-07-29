@@ -43,11 +43,11 @@
 			entitySelector={blockheadCodexStoredDataTimestampSelector}
 		>
 			{#snippet Title()}
-				{String(blockheadCodexStoredDataTimestampSelector.timestampMs) || 'blockhead codex stored data timestamp'}
+				{blockheadCodexStoredDataTimestampSelector.timestampMs}
 			{/snippet}
 
 			{#snippet Value()}
-				{(blockheadCodexStoredDataTimestamp.downloadStatus ?? '')}
+				{blockheadCodexStoredDataTimestamp.downloadStatus ?? ''}
 			{/snippet}
 
 			{#snippet HeadingAfter()}

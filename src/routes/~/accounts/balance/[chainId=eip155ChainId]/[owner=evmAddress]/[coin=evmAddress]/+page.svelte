@@ -49,7 +49,7 @@
 
 
 <svelte:head>
-	<title>{(pageSelection.entity == null ? 'balance' : pageSelection.entity.symbol || 'balance')} • balance • Blockhead</title>
+	<title>{pageSelection.entity == null ? 'balance' : pageSelection.entity.symbol || 'balance'} • balance • Blockhead</title>
 </svelte:head>
 
 

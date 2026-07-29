@@ -51,7 +51,7 @@
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{String(blockheadAlgorandParticipationKey.firstValidRound ?? '')}</span>
+				<span data-text="annotation">{blockheadAlgorandParticipationKey.firstValidRound ?? ''}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

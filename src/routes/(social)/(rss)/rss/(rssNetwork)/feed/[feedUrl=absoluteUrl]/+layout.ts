@@ -9,7 +9,8 @@ import RssFeedSchema from '$/schema/RssFeed.ts'
 import { type as arktype } from 'arktype'
 
 export const load: LayoutLoad = ({ params }) => {
-	if (!(matchAbsoluteUrl(params.feedUrl))) error(404, 'Route mapping not applicable')
+	if (!(matchAbsoluteUrl(params.feedUrl)))
+		error(404, 'Route mapping not applicable')
 
 	const rssFeedFeedUrlSelector = parseEntitySelector(
 		schema,
@@ -18,7 +19,8 @@ export const load: LayoutLoad = ({ params }) => {
 			feedUrl: decodeURIComponent(params.feedUrl),
 		}
 	)
-	if (rssFeedFeedUrlSelector instanceof arktype.errors) error(404, 'Invalid RssFeed selector')
+	if (rssFeedFeedUrlSelector instanceof arktype.errors)
+		error(404, 'Invalid RssFeed selector')
 
 	return {
 		selector: rssFeedFeedUrlSelector,

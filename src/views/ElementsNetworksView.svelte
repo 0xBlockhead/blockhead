@@ -42,11 +42,11 @@
 			entitySelector={elementsNetworkSelector}
 		>
 			{#snippet Title()}
-				{(elementsNetwork.$network.name || (elementsNetworkSelector.$network.caip2 == null ? '' : `${elementsNetworkSelector.$network.caip2.namespace}:${elementsNetworkSelector.$network.caip2.reference}`) || 'Network')}
+				{elementsNetwork.$network.name || (elementsNetworkSelector.$network.caip2 == null ? '' : `${elementsNetworkSelector.$network.caip2.namespace}:${elementsNetworkSelector.$network.caip2.reference}`) || 'Network'}
 			{/snippet}
 
 			{#snippet Value()}
-				{(elementsNetwork.federationName ?? '')}
+				{elementsNetwork.federationName ?? ''}
 			{/snippet}
 		</EntityView>
 	{/snippet}

@@ -39,6 +39,7 @@
 >
 	{#snippet Item({ item: networkTimestamp })}
 		{@const networkTimestampSelector = networkTimestamp[EntityMetaKey.Selector]}
+		{@const network = networkTimestampSelector.$network}
 		<EntityView
 			entityType={EntityType.Network_Timestamp}
 			entitySelector={networkTimestampSelector}
@@ -47,19 +48,19 @@
 					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/observation/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
 					{
 						network: (
-							'caip2' in networkTimestampSelector.$network ?
-								String(caip2StringFromValue(networkTimestampSelector.$network.caip2))
+							'caip2' in network ?
+								caip2StringFromValue(network.caip2)
 							:
-								String(networkTimestampSelector.$network.slug)
+								network.slug
 						),
 						timestampMs: String(networkTimestampSelector.timestampMs),
-						source: String(networkTimestampSelector.source),
+						source: networkTimestampSelector.source,
 					}
 				)
 			}
 		>
 			{#snippet Title()}
-				{String(networkTimestampSelector.timestampMs) || 'Network timestamp'}
+				{networkTimestampSelector.timestampMs}
 			{/snippet}
 
 			{#snippet Value()}

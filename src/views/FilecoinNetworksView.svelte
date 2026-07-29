@@ -45,7 +45,7 @@
 			entitySelector={filecoinNetworkSelector}
 		>
 			{#snippet Title()}
-				{(filecoinNetwork.$network.name || (filecoinNetworkSelector.$network.caip2 == null ? '' : `${filecoinNetworkSelector.$network.caip2.namespace}:${filecoinNetworkSelector.$network.caip2.reference}`) || 'Network')}
+				{filecoinNetwork.$network.name || (filecoinNetworkSelector.$network.caip2 == null ? '' : `${filecoinNetworkSelector.$network.caip2.namespace}:${filecoinNetworkSelector.$network.caip2.reference}`) || 'Network'}
 			{/snippet}
 		</EntityView>
 	{/snippet}

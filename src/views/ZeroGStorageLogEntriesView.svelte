@@ -51,7 +51,7 @@
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{String(zeroGStorageLogEntry.sequenceNumber ?? '')}</span>
+				<span data-text="annotation">{zeroGStorageLogEntry.sequenceNumber ?? ''}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

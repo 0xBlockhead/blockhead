@@ -39,11 +39,11 @@
 			entitySelector={bitcoinCashCashTokenFungibleAmount[EntityMetaKey.Selector]}
 		>
 			{#snippet Title()}
-				{String(bitcoinCashCashTokenFungibleAmount.amount) || 'Bitcoin Cash CashToken fungible amount'}
+				{bitcoinCashCashTokenFungibleAmount.amount}
 			{/snippet}
 
 			{#snippet Value()}
-				{String(bitcoinCashCashTokenFungibleAmount.amount)}
+				{bitcoinCashCashTokenFungibleAmount.amount}
 			{/snippet}
 
 			{#snippet HeadingAfter()}

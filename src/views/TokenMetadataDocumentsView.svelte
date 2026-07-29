@@ -55,7 +55,7 @@
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{String(tokenMetadataDocumentSelector.timestampMs)}</span>
+				<span data-text="annotation">{tokenMetadataDocumentSelector.timestampMs}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

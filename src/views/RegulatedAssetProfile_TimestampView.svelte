@@ -21,14 +21,10 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.RegulatedAssetProfile_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const titleFallback = 'regulated asset profile timestamp'
-
 
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
-	import TruncatedValue from '$/components/TruncatedValue.svelte'
 	import RegulatedAssetProfileView from '$/views/RegulatedAssetProfileView.svelte'
 	import EvmContractView from '$/views/EvmContractView.svelte'
 </script>
@@ -37,7 +33,7 @@
 <EntityView
 	entityType={EntityType.RegulatedAssetProfile_Timestamp}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? 'regulated asset profile timestamp'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -62,14 +58,14 @@
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+					<Timestamp timestamp={selection.entitySelector.timestampMs} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 		</dl>
@@ -112,7 +108,7 @@
 						<div>
 							<dt>ledger coordinate value</dt>
 							<dd>
-								{String(ledgerCoordinateValue)}
+								{ledgerCoordinateValue}
 							</dd>
 						</div>
 					{/if}

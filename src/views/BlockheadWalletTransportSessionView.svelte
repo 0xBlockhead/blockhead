@@ -22,7 +22,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.BlockheadWalletTransportSession> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Local_Internal,
@@ -35,7 +34,7 @@
 			status: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.transportSessionId ?? '') || 'blockhead wallet transport session')
+	const titleFallback = $derived(selection.entitySelector.transportSessionId || 'blockhead wallet transport session')
 
 
 	// Components
@@ -55,13 +54,13 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{(pendingEntity.transportSessionId ?? '') || 'blockhead wallet transport session'}
+		{selection.entitySelector.transportSessionId || 'blockhead wallet transport session'}
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={blockheadWalletTransportSession}>
 			{#snippet children(entity)}
-				{[entity.status, entity.transportKind].filter(Boolean).join(' ') || pendingEntity.transportSessionId || titleFallback}
+				{[entity.status, entity.transportKind].filter(Boolean).join(' ') || selection.entitySelector.transportSessionId || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -71,14 +70,14 @@
 			<div>
 				<dt>connection key</dt>
 				<dd>
-					{pendingEntity.connectionKey}
+					{selection.entitySelector.connectionKey}
 				</dd>
 			</div>
 
 			<div>
 				<dt>transport session ID</dt>
 				<dd>
-					{pendingEntity.transportSessionId}
+					{selection.entitySelector.transportSessionId}
 				</dd>
 			</div>
 
@@ -225,11 +224,11 @@
 							<dt>bridge URL</dt>
 							<dd>
 								<a
-									href={String(bridgeUrl)}
+									href={bridgeUrl}
 									target="_blank"
 									rel="noreferrer noopener"
 								>
-									<TruncatedValue value={String(bridgeUrl)} />
+									<TruncatedValue value={bridgeUrl} />
 								</a>
 							</dd>
 						</div>
@@ -253,11 +252,11 @@
 							<dt>manifest URL</dt>
 							<dd>
 								<a
-									href={String(manifestUrl)}
+									href={manifestUrl}
 									target="_blank"
 									rel="noreferrer noopener"
 								>
-									<TruncatedValue value={String(manifestUrl)} />
+									<TruncatedValue value={manifestUrl} />
 								</a>
 							</dd>
 						</div>
@@ -324,7 +323,7 @@
 						}
 					>
 						{#snippet children(entity)}
-							<Timestamp timestamp={Number(entity.createdAt)} />
+							<Timestamp timestamp={entity.createdAt} />
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -345,7 +344,7 @@
 						<div>
 							<dt>Updated</dt>
 							<dd>
-								<Timestamp timestamp={Number(updatedAt)} />
+								<Timestamp timestamp={updatedAt} />
 							</dd>
 						</div>
 					{/if}
@@ -367,7 +366,7 @@
 						<div>
 							<dt>expires AT</dt>
 							<dd>
-								<Timestamp timestamp={Number(expiresAt)} />
+								<Timestamp timestamp={expiresAt} />
 							</dd>
 						</div>
 					{/if}

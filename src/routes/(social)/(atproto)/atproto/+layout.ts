@@ -15,7 +15,8 @@ export const load: LayoutLoad = ({ params }) => {
 			scope: '_GlobalAtprotoNetwork',
 		}
 	)
-	if (globalAtprotoNetworkScopeSelector instanceof arktype.errors) error(404, 'Invalid _GlobalAtprotoNetwork selector')
+	if (globalAtprotoNetworkScopeSelector instanceof arktype.errors)
+		error(404, 'Invalid _GlobalAtprotoNetwork selector')
 
 	return {
 		selector: globalAtprotoNetworkScopeSelector,

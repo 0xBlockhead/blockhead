@@ -43,11 +43,11 @@
 			entitySelector={blockheadZcashViewingKeyTimestampSelector}
 		>
 			{#snippet Title()}
-				{String(blockheadZcashViewingKeyTimestampSelector.timestampMs) || 'blockhead zcash viewing key timestamp'}
+				{blockheadZcashViewingKeyTimestampSelector.timestampMs}
 			{/snippet}
 
 			{#snippet Value()}
-				{String(blockheadZcashViewingKeyTimestamp.lastScannedHeight ?? '')}
+				{blockheadZcashViewingKeyTimestamp.lastScannedHeight ?? ''}
 			{/snippet}
 
 			{#snippet HeadingAfter()}

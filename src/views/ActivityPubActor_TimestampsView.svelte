@@ -36,25 +36,24 @@
 >
 	{#snippet Item({ item: activityPubActorTimestamp })}
 		{@const activityPubActorTimestampSelector = activityPubActorTimestamp[EntityMetaKey.Selector]}
+		{@const actor = activityPubActorTimestampSelector.$actor}
 		<EntityView
 			entityType={EntityType.ActivityPubActor_Timestamp}
 			entitySelector={activityPubActorTimestampSelector}
 			href={
-				(
-					'instanceOrigin' in activityPubActorTimestampSelector.$actor
-					&& 'localAccountId' in activityPubActorTimestampSelector.$actor ?
-						resolve(
-							'/(social)/(activitypub)/activitypub/(globalActivityPubNetwork)/actor/[instanceOrigin=absoluteUrl]/[localAccountId=stringSegment]/(activityPubActor)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
-							{
-								instanceOrigin: encodeURIComponent(String(activityPubActorTimestampSelector.$actor.instanceOrigin)),
-								localAccountId: String(activityPubActorTimestampSelector.$actor.localAccountId),
-								timestampMs: String(activityPubActorTimestampSelector.timestampMs),
-								source: String(activityPubActorTimestampSelector.source),
-							}
-						)
-					:
-						undefined
-				)
+				'instanceOrigin' in actor
+				&& 'localAccountId' in actor ?
+					resolve(
+						'/(social)/(activitypub)/activitypub/(globalActivityPubNetwork)/actor/[instanceOrigin=absoluteUrl]/[localAccountId=stringSegment]/(activityPubActor)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
+						{
+							instanceOrigin: encodeURIComponent(actor.instanceOrigin),
+							localAccountId: actor.localAccountId,
+							timestampMs: String(activityPubActorTimestampSelector.timestampMs),
+							source: activityPubActorTimestampSelector.source,
+						}
+					)
+				:
+					undefined
 			}
 		>
 			{#snippet Title()}
@@ -62,7 +61,7 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{String(activityPubActorTimestampSelector.timestampMs)}
+				{activityPubActorTimestampSelector.timestampMs}
 			{/snippet}
 		</EntityView>
 	{/snippet}

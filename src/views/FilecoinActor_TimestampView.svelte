@@ -25,7 +25,7 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.FilecoinActor_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const actor = $derived(selection.entitySelector.$actor)
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Lotus_JsonRpc,
@@ -37,7 +37,6 @@
 			balanceAttoFil: true,
 		},
 	}))
-	const titleFallback = $derived(String(pendingEntity.timestampMs ?? '') || 'filecoin actor timestamp')
 
 
 	// Components
@@ -53,23 +52,26 @@
 <EntityView
 	entityType={EntityType.FilecoinActor_Timestamp}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? (String(prefetched.timestampMs ?? '') || 'filecoin actor timestamp')}
 	href={
-		href ?? resolve(
-			'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/actor/[address=stringSegment]/(filecoinActor)/observations/[height=nonNegativeBigInt]/[tipsetKey=stringSegment]/[source=stringSegment]',
-			{
-				network: (
-					'caip2' in selection.entitySelector.$actor.$network ?
-						String(caip2StringFromValue(selection.entitySelector.$actor.$network.caip2))
-					:
-						String(selection.entitySelector.$actor.$network.slug)
-				),
-				address: String(selection.entitySelector.$actor.address),
-				height: String(selection.entitySelector.height),
-				tipsetKey: String(selection.entitySelector.tipsetKey),
-				source: String(selection.entitySelector.source),
-			}
-		)
+		href === undefined ?
+			resolve(
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/actor/[address=stringSegment]/(filecoinActor)/observations/[height=nonNegativeBigInt]/[tipsetKey=stringSegment]/[source=stringSegment]',
+				{
+					network: (
+						'caip2' in actor.$network ?
+							caip2StringFromValue(actor.$network.caip2)
+						:
+							actor.$network.slug
+					),
+					address: actor.address,
+					height: String(selection.entitySelector.height),
+					tipsetKey: selection.entitySelector.tipsetKey,
+					source: selection.entitySelector.source,
+				}
+			)
+		:
+			href ?? undefined
 	}
 	{layout}
 	bind:open
@@ -78,7 +80,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={filecoinActorTimestamp}>
 			{#snippet children(entity)}
-				<Timestamp timestamp={Number(entity.timestampMs)} />
+				<Timestamp timestamp={entity.timestampMs} />
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -86,10 +88,10 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={filecoinActorTimestamp}>
 			{#snippet children(entity)}
-				{@const balanceAttoFil0 = entity.balanceAttoFil}
-				{#if balanceAttoFil0 != null}
+				{@const balanceAttoFil = entity.balanceAttoFil}
+				{#if balanceAttoFil != null}
 					<NumberValue
-						value={balanceAttoFil0}
+						value={balanceAttoFil}
 					/>
 				{/if}
 			{/snippet}
@@ -99,7 +101,7 @@
 	{#snippet HeadingAfter()}
 		<span data-text="muted">
 			<NumberValue
-				value={pendingEntity.height}
+				value={selection.entitySelector.height}
 			/>
 		</span>
 	{/snippet}
@@ -124,7 +126,7 @@
 						resource={filecoinActorTimestamp}
 					>
 						{#snippet children(entity)}
-							<Timestamp timestamp={Number(entity.timestampMs)} />
+							<Timestamp timestamp={entity.timestampMs} />
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -133,7 +135,7 @@
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 
@@ -141,7 +143,7 @@
 				<dt>Height</dt>
 				<dd>
 					<NumberValue
-						value={pendingEntity.height}
+						value={selection.entitySelector.height}
 					/>
 				</dd>
 			</div>
@@ -149,7 +151,7 @@
 			<div>
 				<dt>Tipset key</dt>
 				<dd>
-					{pendingEntity.tipsetKey}
+					{selection.entitySelector.tipsetKey}
 				</dd>
 			</div>
 

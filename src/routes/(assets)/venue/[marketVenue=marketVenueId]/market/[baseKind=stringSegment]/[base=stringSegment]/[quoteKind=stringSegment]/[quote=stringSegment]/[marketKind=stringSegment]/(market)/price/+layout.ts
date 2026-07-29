@@ -17,7 +17,8 @@ export const load: LayoutLoad = async ({ params, parent }) => {
 			$market: parentData.selector,
 		}
 	)
-	if (marketPriceMarketSelector instanceof arktype.errors) error(404, 'Invalid MarketPrice selector')
+	if (marketPriceMarketSelector instanceof arktype.errors)
+		error(404, 'Invalid MarketPrice selector')
 
 	return {
 		selector: marketPriceMarketSelector,

@@ -4,7 +4,6 @@
 	// Types/constants
 	import type { PageProps } from './$types.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 
 
 	// Context
@@ -28,7 +27,7 @@
 
 
 <svelte:head>
-	<title>{(String(pageSelection.entitySelector.hex) || 'EVM calldata')} • EVM calldata • Blockhead</title>
+	<title>{pageSelection.entitySelector.hex || 'EVM calldata'} • EVM calldata • Blockhead</title>
 </svelte:head>
 
 

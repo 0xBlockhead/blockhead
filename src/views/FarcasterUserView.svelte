@@ -25,7 +25,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.FarcasterUser> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Snapchain_Rest,
@@ -37,7 +36,7 @@
 			username: true,
 		},
 	}))
-	const titleFallback = $derived([(pendingEntity.displayName ?? ''), (pendingEntity.username ?? ''), String(pendingEntity.fid ?? '')].filter(Boolean).join(' ') || 'Farcaster user')
+	const titleFallback = $derived([(prefetched.displayName ?? ''), (prefetched.username ?? ''), String(selection.entitySelector.fid)].filter(Boolean).join(' ') || 'Farcaster user')
 	const viewDomId = $derived('farcaster-user-' + encodeURIComponent(stringify(selection.entitySelector)))
 
 
@@ -61,12 +60,15 @@
 	id={viewDomId}
 	title={title ?? titleFallback}
 	href={
-		href ?? resolve(
-			'/(social)/(farcaster)/farcaster/(farcasterNetwork)/user/[userId=farcasterFid]',
-			{
-				userId: String(selection.entitySelector.fid),
-			}
-		)
+		href === undefined ?
+			resolve(
+				'/(social)/(farcaster)/farcaster/(farcasterNetwork)/user/[userId=farcasterFid]',
+				{
+					userId: String(selection.entitySelector.fid),
+				}
+			)
+		:
+			href ?? undefined
 	}
 	{layout}
 	bind:open
@@ -77,7 +79,7 @@
 		<ResourceBoundary resource={farcasterUser}>
 			{#snippet children(entity)}
 				{@const reference = entity.$icon}
-				{#if reference != null && reference[EntityMetaKey.Selector] !== undefined}
+				{#if reference != null}
 					<MediaView
 						selection={select(EntityType.Media, reference[EntityMetaKey.Selector])}
 						prefetched={reference}
@@ -92,23 +94,23 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={farcasterUser}>
 			{#snippet children(entity)}
-				{[(entity.displayName ?? ''), (entity.username ?? ''), String(pendingEntity.fid)].filter(Boolean).join(' ') || title || titleFallback}
+				{[(entity.displayName ?? ''), (entity.username ?? ''), String(selection.entitySelector.fid)].filter(Boolean).join(' ') || title || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Value()}
-		{String(pendingEntity.fid ?? '') || [(pendingEntity.displayName ?? ''), (pendingEntity.username ?? ''), String(pendingEntity.fid ?? '')].filter(Boolean).join(' ') || titleFallback}
+		{String(selection.entitySelector.fid) || [(prefetched.displayName ?? ''), (prefetched.username ?? ''), String(selection.entitySelector.fid)].filter(Boolean).join(' ') || titleFallback}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={farcasterUser}>
 			{#snippet children(entity)}
-				{@const username0 = entity.username}
-				{#if username0 != null}
+				{@const username = entity.username}
+				{#if username != null}
 					<span data-text="muted">
 						<span>@</span>
-						{username0}
+						{username}
 					</span>
 				{/if}
 			{/snippet}
@@ -121,7 +123,7 @@
 				<dt>FID</dt>
 				<dd>
 					<NumberValue
-						value={pendingEntity.fid}
+						value={selection.entitySelector.fid}
 					/>
 				</dd>
 			</div>
@@ -163,11 +165,11 @@
 							<dt>URL</dt>
 							<dd>
 								<a
-									href={String(url)}
+									href={url}
 									target="_blank"
 									rel="noreferrer noopener"
 								>
-									<TruncatedValue value={String(url)} />
+									<TruncatedValue value={url} />
 								</a>
 							</dd>
 						</div>

@@ -45,7 +45,7 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{(cashuKeyset.unit ?? '')}
+				{cashuKeyset.unit ?? ''}
 			{/snippet}
 
 			{#snippet HeadingAfter()}

@@ -47,11 +47,11 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{String(blockheadFilecoinPendingMessageSelector.observedAtMs)}
+				{blockheadFilecoinPendingMessageSelector.observedAtMs}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{String(blockheadFilecoinPendingMessage.local ?? '')}</span>
+				<span data-text="annotation">{blockheadFilecoinPendingMessage.local ?? ''}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

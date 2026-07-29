@@ -20,13 +20,11 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.AlgorandAsset> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const algorandAsset = $derived(selection({
 		fields: {
 			creator: true,
 		},
 	}))
-	const titleFallback = $derived(String(pendingEntity.assetId ?? '') || 'algorand asset')
 
 
 	// Components
@@ -40,19 +38,18 @@
 <EntityView
 	entityType={EntityType.AlgorandAsset}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? String(selection.entitySelector.assetId)}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{String(pendingEntity.assetId ?? '') || 'algorand asset'}
+		{String(selection.entitySelector.assetId)}
 	{/snippet}
 
 	{#snippet Value()}
 		<AlgorandNetworkView
 			selection={select(EntityType.AlgorandNetwork, selection.entitySelector.$network)}
-			href=""
 			layout={EntityLayout.Value}
 			open={false}
 		/>
@@ -61,10 +58,10 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={algorandAsset}>
 			{#snippet children(entity)}
-				{@const creator0 = entity.creator}
-				{#if creator0 != null}
+				{@const creator = entity.creator}
+				{#if creator != null}
 					<span data-text="muted">
-						{creator0}
+						{creator}
 					</span>
 				{/if}
 			{/snippet}
@@ -87,7 +84,7 @@
 			<div>
 				<dt>asset ID</dt>
 				<dd>
-					{String(pendingEntity.assetId)}
+					{selection.entitySelector.assetId}
 				</dd>
 			</div>
 
@@ -110,30 +107,30 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const algorandAssetAlgorandAssetHoldingRoundsViewHoldingRoundsResource = selection.$$holdingRounds}
+		{@const holdingRoundsResource = selection.$$holdingRounds}
 		<ResourceBoundary
-			resource={algorandAssetAlgorandAssetHoldingRoundsViewHoldingRoundsResource}
+			resource={holdingRoundsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<AlgorandAssetHolding_RoundsView
-						selection={algorandAssetAlgorandAssetHoldingRoundsViewHoldingRoundsResource}
-						countResource={algorandAssetAlgorandAssetHoldingRoundsViewHoldingRoundsResource.count}
+						selection={holdingRoundsResource}
+						countResource={holdingRoundsResource.count}
 						title='holding rounds'
 						id='holding-rounds'
 					/>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>
-		{@const algorandAssetAlgorandAssetTimestampsViewTimestampsResource = selection.$$timestamps}
+		{@const timestampsResource = selection.$$timestamps}
 		<ResourceBoundary
-			resource={algorandAssetAlgorandAssetTimestampsViewTimestampsResource}
+			resource={timestampsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<AlgorandAsset_TimestampsView
-						selection={algorandAssetAlgorandAssetTimestampsViewTimestampsResource}
-						countResource={algorandAssetAlgorandAssetTimestampsViewTimestampsResource.count}
+						selection={timestampsResource}
+						countResource={timestampsResource.count}
 						title='timestamps'
 						id='timestamps'
 					/>

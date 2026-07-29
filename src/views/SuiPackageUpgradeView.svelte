@@ -21,9 +21,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.SuiPackageUpgrade> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const titleFallback = 'Sui package upgrade'
-
 
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -38,7 +35,7 @@
 <EntityView
 	entityType={EntityType.SuiPackageUpgrade}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? 'Sui package upgrade'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -63,7 +60,7 @@
 			<div>
 				<dt>upgraded package ID</dt>
 				<dd>
-					{pendingEntity.upgradedPackageId}
+					{selection.entitySelector.upgradedPackageId}
 				</dd>
 			</div>
 
@@ -82,7 +79,7 @@
 						<div>
 							<dt>upgraded version</dt>
 							<dd>
-								{String(upgradedVersion)}
+								{upgradedVersion}
 							</dd>
 						</div>
 					{/if}
@@ -170,7 +167,7 @@
 						<div>
 							<dt>Timestamp</dt>
 							<dd>
-								<Timestamp timestamp={Number(timestampMs)} />
+								<Timestamp timestamp={timestampMs} />
 							</dd>
 						</div>
 					{/if}

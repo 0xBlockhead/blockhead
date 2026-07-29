@@ -43,7 +43,7 @@
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{(tonAccountTimestamp.status ?? '')}</span>
+				<span data-text="annotation">{tonAccountTimestamp.status ?? ''}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

@@ -2,7 +2,8 @@
 
 import bindings from '$/sources/Mastodon/bindings.ts'
 import { Source } from '$/sources/Source.ts'
-import { SourceProvider, type SourceProviderDefinition } from '$/sources/SourceProvider.ts'
+import { SourceProvider } from '$/sources/SourceProvider.ts'
+import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinition.ts'
 
 export default {
 	provider: SourceProvider.Mastodon,
@@ -13,5 +14,5 @@ export default {
 			label: 'Mastodon REST',
 		},
 	],
-	bindings: bindings[Source.Mastodon_Rest],
+	bindings: Object.values(bindings).flat(),
 } satisfies SourceProviderDefinition

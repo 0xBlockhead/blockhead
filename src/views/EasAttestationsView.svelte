@@ -5,7 +5,6 @@
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { EvmAddress, ZeroExHex } from '$/schema/ZeroExHex.ts'
 
 
 	// State
@@ -43,15 +42,15 @@
 			entitySelector={easAttestationSelector}
 		>
 			{#snippet Title()}
-				{String(easAttestationSelector.uid) || 'EAS attestation'}
+				{easAttestationSelector.uid || 'EAS attestation'}
 			{/snippet}
 
 			{#snippet Value()}
-				{easAttestation.$schema == null ? '' : String(easAttestation.$schema.schemaUid) || 'EAS schema'}
+				{easAttestation.$schema == null ? '' : easAttestation.$schema.schemaUid || 'EAS schema'}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{[String(easAttestation.recipient), String(easAttestation.attester)].filter(Boolean).join(' ')}</span>
+				<span data-text="annotation">{[easAttestation.recipient, easAttestation.attester].filter(Boolean).join(' ')}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

@@ -2,7 +2,8 @@
 
 import bindings from '$/sources/Rss/bindings.ts'
 import { Source } from '$/sources/Source.ts'
-import { SourceProvider, type SourceProviderDefinition } from '$/sources/SourceProvider.ts'
+import { SourceProvider } from '$/sources/SourceProvider.ts'
+import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinition.ts'
 
 export default {
 	provider: SourceProvider.Rss,
@@ -13,5 +14,5 @@ export default {
 			label: 'RSS / Atom direct fetch',
 		},
 	],
-	bindings: bindings[Source.Rss_Rest],
+	bindings: Object.values(bindings).flat(),
 } satisfies SourceProviderDefinition

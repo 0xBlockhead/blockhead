@@ -20,14 +20,13 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.BitTorrentFile> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const bitTorrentFile = $derived(selection({
 		fields: {
 			path: true,
 			length: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.path ?? '') || 'bit torrent file')
+	const titleFallback = $derived((prefetched.path ?? '') || 'bit torrent file')
 
 
 	// Components
@@ -81,7 +80,7 @@
 				<dt>file index</dt>
 				<dd>
 					<NumberValue
-						value={pendingEntity.fileIndex}
+						value={selection.entitySelector.fileIndex}
 					/>
 				</dd>
 			</div>

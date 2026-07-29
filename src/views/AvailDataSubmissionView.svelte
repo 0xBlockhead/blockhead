@@ -21,13 +21,11 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.AvailDataSubmission> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const availDataSubmission = $derived(selection({
 		fields: {
 			blockNumber: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.submissionKey ?? '') || 'avail data submission')
 
 
 	// Components
@@ -43,22 +41,22 @@
 <EntityView
 	entityType={EntityType.AvailDataSubmission}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? (selection.entitySelector.submissionKey || 'avail data submission')}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{(pendingEntity.submissionKey ?? '') || 'avail data submission'}
+		{selection.entitySelector.submissionKey || 'avail data submission'}
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={availDataSubmission}>
 			{#snippet children(entity)}
-				{@const blockNumber0 = entity.blockNumber}
-				{#if blockNumber0 != null}
+				{@const blockNumber = entity.blockNumber}
+				{#if blockNumber != null}
 					<NumberValue
-						value={blockNumber0}
+						value={blockNumber}
 					/>
 				{/if}
 			{/snippet}
@@ -67,7 +65,7 @@
 
 	{#snippet HeadingAfter()}
 		<span data-text="muted">
-			{pendingEntity.source}
+			{selection.entitySelector.source}
 		</span>
 	{/snippet}
 
@@ -87,14 +85,14 @@
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 
 			<div>
 				<dt>submission key</dt>
 				<dd>
-					{pendingEntity.submissionKey}
+					{selection.entitySelector.submissionKey}
 				</dd>
 			</div>
 

@@ -21,8 +21,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.SorobanContract> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const titleFallback = 'soroban contract'
 	const viewDomId = $derived('soroban-contract-' + encodeURIComponent(stringify(selection.entitySelector)))
 
 
@@ -41,7 +39,7 @@
 	entityType={EntityType.SorobanContract}
 	entitySelector={selection.entitySelector}
 	id={viewDomId}
-	title={title ?? titleFallback}
+	title={title ?? 'soroban contract'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -66,7 +64,7 @@
 			<div>
 				<dt>contract ID</dt>
 				<dd>
-					{pendingEntity.contractId}
+					{selection.entitySelector.contractId}
 				</dd>
 			</div>
 		</dl>

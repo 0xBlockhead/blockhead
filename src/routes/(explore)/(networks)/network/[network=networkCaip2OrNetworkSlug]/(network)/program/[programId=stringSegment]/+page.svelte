@@ -31,7 +31,7 @@
 
 
 <svelte:head>
-	<title>{(data.title ?? (pageSelection.entitySelector.programId || 'solana program'))} • solana program • Blockhead</title>
+	<title>{data.title ?? (pageSelection.entitySelector.programId || 'solana program')} • solana program • Blockhead</title>
 </svelte:head>
 
 

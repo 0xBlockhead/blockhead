@@ -22,13 +22,11 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.LitecoinMwebPegOut> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.LitecoinCore_JsonRpc,
 		],
 	}))
-	const titleFallback = 'litecoin MWEB peg out'
 
 
 	// Components
@@ -42,7 +40,7 @@
 <EntityView
 	entityType={EntityType.LitecoinMwebPegOut}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? 'litecoin MWEB peg out'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -50,7 +48,6 @@
 	{#snippet Title()}
 		<LitecoinMwebTransactionView
 			selection={select(EntityType.LitecoinMwebTransaction, selection.entitySelector.$transaction)}
-			href=""
 			layout={EntityLayout.Title}
 			open={false}
 		/>
@@ -58,7 +55,7 @@
 
 	{#snippet Value()}
 		<NumberValue
-			value={pendingEntity.pegOutIndex}
+			value={selection.entitySelector.pegOutIndex}
 		/>
 	{/snippet}
 
@@ -98,7 +95,7 @@
 				<dt>peg out index</dt>
 				<dd>
 					<NumberValue
-						value={pendingEntity.pegOutIndex}
+						value={selection.entitySelector.pegOutIndex}
 					/>
 				</dd>
 			</div>

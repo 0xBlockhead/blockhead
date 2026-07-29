@@ -54,7 +54,6 @@ it('uses generated HttpProxy binding metadata and preserves reserved query ident
 			scope: SourceCredentialScope.PublicConfig,
 			keys: ['PUBLIC_YOUTUBE_API_KEY'],
 		}],
-		proxyId: youtubeBinding.proxyId,
 		endpoints: [{
 			endpointKind: SourceEndpointKind.HttpUrl,
 			locator: 'https://www.googleapis.com',

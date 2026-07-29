@@ -5,7 +5,6 @@
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { EvmAddress } from '$/schema/ZeroExHex.ts'
 
 
 	// State
@@ -44,15 +43,15 @@
 			entitySelector={eip7702AuthorizationSelector}
 		>
 			{#snippet Title()}
-				{String(eip7702AuthorizationSelector.authorizationIndex) || 'eip7702 authorization'}
+				{eip7702AuthorizationSelector.authorizationIndex}
 			{/snippet}
 
 			{#snippet Value()}
-				{String(eip7702Authorization.delegationAddress)}
+				{eip7702Authorization.delegationAddress}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{String(eip7702Authorization.authority ?? '')}</span>
+				<span data-text="annotation">{eip7702Authorization.authority ?? ''}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

@@ -3,7 +3,10 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import bindings from '$/sources/Blockscout/bindings.ts'
 import { getBlockscoutJson } from '$/sources/Blockscout/Rest/client.ts'
 import { Source } from '$/sources/Source.ts'
-import { SourceDelivery } from '$/sources/SourceBinding.ts'
+import {
+	SourceDelivery,
+	sourceBindingId,
+} from '$/sources/SourceBinding.ts'
 
 describe('Blockscout REST client delivery', () => {
 	afterEach(() => {
@@ -31,7 +34,7 @@ describe('Blockscout REST client delivery', () => {
 		expect(binding.delivery).toBe(SourceDelivery.HttpProxy)
 		expect(fetchMock).toHaveBeenCalledOnce()
 		expect(fetchMock).toHaveBeenCalledWith(
-			`/api-proxy/${encodeURIComponent(binding.proxyId)}/0/${encodeURIComponent('https://eth.blockscout.com/api/v2/transactions/0x1234/logs')}`,
+			`/api-proxy/${encodeURIComponent(sourceBindingId(binding))}/0/${encodeURIComponent('https://eth.blockscout.com/api/v2/transactions/0x1234/logs')}`,
 			expect.objectContaining({
 				headers: {
 					accept: 'application/json',

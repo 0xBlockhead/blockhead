@@ -44,7 +44,7 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{String(availAppIdSelector.appId)}
+				{availAppIdSelector.appId}
 			{/snippet}
 		</EntityView>
 	{/snippet}

@@ -5,7 +5,6 @@
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 
 
 	// State
@@ -44,15 +43,15 @@
 			entitySelector={blockheadWakuMessageObservationTimestampSelector}
 		>
 			{#snippet Title()}
-				{String(blockheadWakuMessageObservationTimestampSelector.messageHash) || 'blockhead waku message observation timestamp'}
+				{blockheadWakuMessageObservationTimestampSelector.messageHash || 'blockhead waku message observation timestamp'}
 			{/snippet}
 
 			{#snippet Value()}
-				{String(blockheadWakuMessageObservationTimestampSelector.timestampMs)}
+				{blockheadWakuMessageObservationTimestampSelector.timestampMs}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{(blockheadWakuMessageObservationTimestamp.contentTopic ?? '')}</span>
+				<span data-text="annotation">{blockheadWakuMessageObservationTimestamp.contentTopic ?? ''}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

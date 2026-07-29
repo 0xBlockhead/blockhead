@@ -21,7 +21,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.TokenMetadataDocument> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const tokenMetadataDocument = $derived(selection({
 		fields: {
 			name: true,
@@ -29,7 +28,7 @@
 			metadataStandard: true,
 		},
 	}))
-	const titleFallback = $derived([(pendingEntity.name ?? ''), (pendingEntity.symbol ?? ''), (pendingEntity.metadataKey ?? '')].filter(Boolean).join(' ') || 'token metadata document')
+	const titleFallback = $derived([(prefetched.name ?? ''), (prefetched.symbol ?? ''), selection.entitySelector.metadataKey].filter(Boolean).join(' ') || 'token metadata document')
 
 
 	// Components
@@ -54,7 +53,7 @@
 		<ResourceBoundary resource={tokenMetadataDocument}>
 			{#snippet children(entity)}
 				{@const reference = entity.$media}
-				{#if reference != null && reference[EntityMetaKey.Selector] !== undefined}
+				{#if reference != null}
 					<MediaView
 						selection={select(EntityType.Media, reference[EntityMetaKey.Selector])}
 						prefetched={reference}
@@ -69,7 +68,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={tokenMetadataDocument}>
 			{#snippet children(entity)}
-				{[(entity.name ?? ''), (entity.symbol ?? ''), pendingEntity.metadataKey].filter(Boolean).join(' ') || title || titleFallback}
+				{[(entity.name ?? ''), (entity.symbol ?? ''), selection.entitySelector.metadataKey].filter(Boolean).join(' ') || title || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -77,14 +76,14 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={tokenMetadataDocument}>
 			{#snippet children(entity)}
-				{[(entity.metadataStandard ?? ''), pendingEntity.source].filter(Boolean).join(' ') || [(entity.name ?? ''), (entity.symbol ?? ''), pendingEntity.metadataKey].filter(Boolean).join(' ') || titleFallback}
+				{[(entity.metadataStandard ?? ''), selection.entitySelector.source].filter(Boolean).join(' ') || [(entity.name ?? ''), (entity.symbol ?? ''), selection.entitySelector.metadataKey].filter(Boolean).join(' ') || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
 		<span data-text="muted">
-			<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+			<Timestamp timestamp={selection.entitySelector.timestampMs} />
 		</span>
 	{/snippet}
 
@@ -93,28 +92,28 @@
 			<div>
 				<dt>Metadata subject key</dt>
 				<dd>
-					{pendingEntity.metadataSubjectKey}
+					{selection.entitySelector.metadataSubjectKey}
 				</dd>
 			</div>
 
 			<div>
 				<dt>Metadata key</dt>
 				<dd>
-					{pendingEntity.metadataKey}
+					{selection.entitySelector.metadataKey}
 				</dd>
 			</div>
 
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+					<Timestamp timestamp={selection.entitySelector.timestampMs} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 		</dl>
@@ -208,11 +207,11 @@
 							<dt>URI</dt>
 							<dd>
 								<a
-									href={String(uri)}
+									href={uri}
 									target="_blank"
 									rel="noreferrer noopener"
 								>
-									<TruncatedValue value={String(uri)} />
+									<TruncatedValue value={uri} />
 								</a>
 							</dd>
 						</div>
@@ -258,11 +257,11 @@
 							<dt>Media URL</dt>
 							<dd>
 								<a
-									href={String(mediaUrl)}
+									href={mediaUrl}
 									target="_blank"
 									rel="noreferrer noopener"
 								>
-									<TruncatedValue value={String(mediaUrl)} />
+									<TruncatedValue value={mediaUrl} />
 								</a>
 							</dd>
 						</div>

@@ -49,11 +49,11 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{String(nearValidator.stakeYoctoNear ?? '')}
+				{nearValidator.stakeYoctoNear ?? ''}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{String(nearValidator.isSlashed ?? '')}</span>
+				<span data-text="annotation">{nearValidator.isSlashed ?? ''}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

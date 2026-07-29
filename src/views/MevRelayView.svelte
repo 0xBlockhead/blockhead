@@ -6,7 +6,6 @@
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
-	import { UrlString } from '$/schema/UrlString.ts'
 
 
 	// Context
@@ -24,8 +23,8 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.MevRelay> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const titleFallback = $derived((pendingEntity.host ?? '') || 'MEV relay')
+	const network = $derived(selection.entitySelector.$network)
+	const titleFallback = $derived(selection.entitySelector.host || 'MEV relay')
 
 
 	// Components
@@ -41,29 +40,32 @@
 	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
 	href={
-		href ?? resolve(
-			'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/mev/relay/[host=stringSegment]',
-			{
-				network: (
-					'caip2' in selection.entitySelector.$network ?
-						String(caip2StringFromValue(selection.entitySelector.$network.caip2))
-					:
-						String(selection.entitySelector.$network.slug)
-				),
-				host: String(selection.entitySelector.host),
-			}
-		)
+		href === undefined ?
+			resolve(
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/mev/relay/[host=stringSegment]',
+				{
+					network: (
+						'caip2' in network ?
+							caip2StringFromValue(network.caip2)
+						:
+							network.slug
+					),
+					host: selection.entitySelector.host,
+				}
+			)
+		:
+			href ?? undefined
 	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{(pendingEntity.host ?? '') || 'MEV relay'}
+		{selection.entitySelector.host || 'MEV relay'}
 	{/snippet}
 
 	{#snippet Value()}
-		{(pendingEntity.host ?? '') || titleFallback}
+		{selection.entitySelector.host || titleFallback}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
@@ -81,7 +83,7 @@
 			<div>
 				<dt>Host</dt>
 				<dd>
-					{pendingEntity.host}
+					{selection.entitySelector.host}
 				</dd>
 			</div>
 
@@ -99,11 +101,11 @@
 					>
 						{#snippet children(entity)}
 							<a
-								href={String(entity.url)}
+								href={entity.url}
 								target="_blank"
 								rel="noreferrer noopener"
 							>
-								<TruncatedValue value={String(entity.url)} />
+								<TruncatedValue value={entity.url} />
 							</a>
 						{/snippet}
 					</ResourceBoundary>
@@ -126,15 +128,15 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const mevRelayMevRelayTimestampsViewTimestampsResource = selection.$$timestamps}
+		{@const timestampsResource = selection.$$timestamps}
 		<ResourceBoundary
-			resource={mevRelayMevRelayTimestampsViewTimestampsResource}
+			resource={timestampsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<MevRelay_TimestampsView
-						selection={mevRelayMevRelayTimestampsViewTimestampsResource}
-						countResource={mevRelayMevRelayTimestampsViewTimestampsResource.count}
+						selection={timestampsResource}
+						countResource={timestampsResource.count}
 						title='Timestamps'
 						id='timestamps'
 					/>

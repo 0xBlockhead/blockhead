@@ -1,10 +1,10 @@
 // Generated from APP.ts. Do not edit by hand.
 
 import { Source } from '$/sources/Source.ts'
-import { ApiFamily, SourceArtifactKind, SourceCredentialScope, SourceDelivery, SourceEndpointKind, SourceOperationGroup, SourceTargetKind, WireProtocol, type SourceBindingIndex } from '$/sources/SourceBinding.ts'
+import { ApiFamily, indexSourceBindings, SourceArtifactKind, SourceCredentialScope, SourceDelivery, SourceEndpointKind, SourceOperationGroup, SourceTargetKind, WireProtocol, type SourceBinding } from '$/sources/SourceBinding.ts'
 
-export default {
-	[Source.Atproto_BskySocial_Xrpc]: {
+const bindings = [
+	{
 		source: Source.Atproto_BskySocial_Xrpc,
 		target: {
 			kind: SourceTargetKind.Global,
@@ -29,7 +29,6 @@ export default {
 				scope: SourceCredentialScope.None,
 			},
 		],
-		proxyId: '["Atproto_BskySocial_Xrpc","Global","bsky-social-appview","HttpProxy","XrpcLexicon"]',
 		artifacts: [
 			{
 				kind: SourceArtifactKind.Lexicon,
@@ -43,4 +42,6 @@ export default {
 			},
 		],
 	},
-} as const satisfies SourceBindingIndex
+] as const satisfies readonly SourceBinding[]
+
+export default indexSourceBindings<{ readonly [Source.Atproto_BskySocial_Xrpc]: typeof bindings[0] }>(bindings)

@@ -64,11 +64,22 @@
 			limit: 4096,
 		})
 	}
-	getResourceItems={(marketTimeIntervalTimestamps) => marketTimeIntervalTimestamps.values.filter((marketTimeIntervalTimestamp) => (timeInterval == null || (marketTimeIntervalTimestamp[EntityMetaKey.Selector].timeInterval.unit === timeInterval.unit && marketTimeIntervalTimestamp[EntityMetaKey.Selector].timeInterval.value === timeInterval.value)))}
+	getResourceItems={
+		(marketTimeIntervalTimestamps) => marketTimeIntervalTimestamps.values.filter(
+			(marketTimeIntervalTimestamp) => (
+				timeInterval == null
+				|| (
+					marketTimeIntervalTimestamp[EntityMetaKey.Selector].timeInterval.unit === timeInterval.unit
+					&& marketTimeIntervalTimestamp[EntityMetaKey.Selector].timeInterval.value === timeInterval.value
+				)
+			)
+		)
+	}
 	{placeholderText}
 >
 	{#snippet Item({ item: marketTimeIntervalTimestamp })}
 		{@const marketTimeIntervalTimestampSelector = marketTimeIntervalTimestamp[EntityMetaKey.Selector]}
+		{@const market = marketTimeIntervalTimestampSelector.$market}
 		<EntityView
 			entityType={EntityType.Market_TimeInterval_Timestamp}
 			entitySelector={marketTimeIntervalTimestampSelector}
@@ -76,13 +87,13 @@
 				resolve(
 					'/(assets)/venue/[marketVenue=marketVenueId]/market/[baseKind=stringSegment]/[base=stringSegment]/[quoteKind=stringSegment]/[quote=stringSegment]/[marketKind=stringSegment]/(market)/candles/[timeIntervalUnit=stringSegment]/[timeIntervalValue=nonNegativeInteger]/[timestampMs=nonNegativeInteger]',
 					{
-						marketVenue: String(marketTimeIntervalTimestampSelector.$market.$marketVenue.marketVenueId),
-						baseKind: String(marketAssetRouteLabelByKind[String(marketTimeIntervalTimestampSelector.$market.$base.kind)]),
-						base: String(marketTimeIntervalTimestampSelector.$market.$base.assetKey),
-						quoteKind: String(marketAssetRouteLabelByKind[String(marketTimeIntervalTimestampSelector.$market.$quote.kind)]),
-						quote: String(marketTimeIntervalTimestampSelector.$market.$quote.assetKey),
-						marketKind: String(marketTimeIntervalTimestampSelector.$market.marketKind),
-						timeIntervalUnit: String(marketTimeIntervalTimestampSelector.timeInterval.unit),
+						marketVenue: market.$marketVenue.marketVenueId,
+						baseKind: marketAssetRouteLabelByKind[market.$base.kind],
+						base: market.$base.assetKey,
+						quoteKind: marketAssetRouteLabelByKind[market.$quote.kind],
+						quote: market.$quote.assetKey,
+						marketKind: market.marketKind,
+						timeIntervalUnit: marketTimeIntervalTimestampSelector.timeInterval.unit,
 						timeIntervalValue: String(marketTimeIntervalTimestampSelector.timeInterval.value),
 						timestampMs: String(marketTimeIntervalTimestampSelector.timestampMs),
 					}
@@ -94,11 +105,11 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{String(marketTimeIntervalTimestamp.close ?? '')}
+				{marketTimeIntervalTimestamp.close ?? ''}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{String(marketTimeIntervalTimestampSelector.timestampMs)}</span>
+				<span data-text="annotation">{marketTimeIntervalTimestampSelector.timestampMs}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

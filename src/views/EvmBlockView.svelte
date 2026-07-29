@@ -7,7 +7,6 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
-	import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -27,6 +26,7 @@
 	}: EntitySelectionViewProps<EntityType.EvmBlock> = $props()
 
 	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const network = $derived(selection.entitySelector.$network)
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.SqdPortal_RawHttp,
@@ -41,7 +41,6 @@
 			transactionCount: true,
 		},
 	}))
-	const titleFallback = $derived((String(pendingEntity.blockNumber ?? '') ? 'Block #' + String(pendingEntity.blockNumber ?? '') : '') || String(pendingEntity.hash ?? '') || 'EVM block')
 
 
 	// Components
@@ -58,44 +57,55 @@
 <EntityView
 	entityType={EntityType.EvmBlock}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? `Block #${pendingEntity.blockNumber}`}
 	idDragPlainText={String(pendingEntity.blockNumber ?? '')}
 	href={
-		href ?? (
-			'blockNumber' in selection.entitySelector ?
-				resolve(
-					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(blocks)/block/[blockNumber=nonNegativeBigInt]',
-					{
-						network: (
-							'caip2' in selection.entitySelector.$network ?
-								String(caip2StringFromValue(selection.entitySelector.$network.caip2))
-							:
-								String(selection.entitySelector.$network.slug)
-						),
-						blockNumber: String(selection.entitySelector.blockNumber),
-					}
-				)
-			:
-				undefined
-		)
+		href === undefined ?
+			(
+				'blockNumber' in selection.entitySelector ?
+					resolve(
+						'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(blocks)/block/[blockNumber=nonNegativeBigInt]',
+						{
+							network: (
+								'caip2' in network ?
+									caip2StringFromValue(network.caip2)
+								:
+									network.slug
+							),
+							blockNumber: String(selection.entitySelector.blockNumber),
+						}
+					)
+				:
+					undefined
+			)
+		:
+			href ?? undefined
 	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<span data-row="inline align-center gap-2 wrap">
-			<span>Block </span>
-			<span data-badge="small">
-				#{String(pendingEntity.blockNumber)}
-			</span>
-		</span>
+		<ResourceBoundary resource={evmBlock}>
+			{#snippet children(entity)}
+				<span data-row="inline align-center gap-2 wrap">
+					<span>Block </span>
+					<span data-badge="small">
+						#{entity.blockNumber}
+					</span>
+				</span>
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Value()}
-		<span data-badge="small">
-			#{String(pendingEntity.blockNumber)}
-		</span>
+		<ResourceBoundary resource={evmBlock}>
+			{#snippet children(entity)}
+				<span data-badge="small">
+					#{entity.blockNumber}
+				</span>
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet TypeAnnotationTooltip()}
@@ -113,7 +123,7 @@
 						resource={evmBlock}
 					>
 						{#snippet children(entity)}
-							<TruncatedValue value={String(entity.hash)} />
+							<TruncatedValue value={entity.hash} />
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -146,7 +156,7 @@
 						<div>
 							<dt>Timestamp</dt>
 							<dd>
-								<Timestamp timestamp={Number(timestamp)} />
+								<Timestamp timestamp={timestamp} />
 							</dd>
 						</div>
 					{/if}
@@ -334,15 +344,15 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const evmBlockEvmTransactionsViewTransactionsResource = selection.$$transactions}
+		{@const transactionsResource = selection.$$transactions}
 		<ResourceBoundary
-			resource={evmBlockEvmTransactionsViewTransactionsResource}
+			resource={transactionsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<EvmTransactionsView
-						selection={evmBlockEvmTransactionsViewTransactionsResource}
-						countResource={evmBlockEvmTransactionsViewTransactionsResource.count}
+						selection={transactionsResource}
+						countResource={transactionsResource.count}
 						title='Transactions'
 						id='transactions'
 					/>

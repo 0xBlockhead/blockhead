@@ -134,13 +134,10 @@ const resolverLoaderEntries = [
 	[Source.ZeroGChainScan_Rest, () => import('./ZeroGChainScan-Rest.ts')],
 	[Source.ZeroGStorageNode_JsonRpc, () => import('./ZeroGStorageNode-JsonRpc.ts')],
 	[Source.ZeroGStorageScan_Rest, () => import('./ZeroGStorageScan-Rest.ts')],
-] as const
+] as const satisfies readonly (readonly [Source, () => Promise<{ default: SourceResolverModule<typeof schema, Source> }>])[]
 
-export const loadResolverEntries = async (
-	entries: readonly (readonly [Source, () => Promise<{ default: SourceResolverModule<typeof schema, Source> }>])[],
-	enabledSources: ReadonlySet<Source>
-) => Promise.all(
-	entries
+export const loadResolvers = async (enabledSources: ReadonlySet<Source> = new Set(Object.values(Source))) => Promise.all(
+	resolverLoaderEntries
 		.filter(([source]) => enabledSources.has(source))
 		.map(async ([source, load]) => {
 			const resolverModule = (await load()).default
@@ -150,7 +147,3 @@ export const loadResolverEntries = async (
 			return resolverModule
 		})
 )
-
-export const loadResolvers = async (enabledSources: ReadonlySet<Source>) => loadResolverEntries(resolverLoaderEntries, enabledSources)
-
-export const loadAllResolvers = () => loadResolvers(new Set(resolverLoaderEntries.map(([source]) => source)))

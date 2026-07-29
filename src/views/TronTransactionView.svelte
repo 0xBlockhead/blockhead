@@ -21,13 +21,12 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.TronTransaction> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const tronTransaction = $derived(selection({
 		fields: {
 			result: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.transactionId ?? '') || 'tron transaction')
+	const titleFallback = $derived(selection.entitySelector.transactionId || 'tron transaction')
 
 
 	// Components
@@ -51,13 +50,13 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<TruncatedValue value={pendingEntity.transactionId} />
+		<TruncatedValue value={selection.entitySelector.transactionId} />
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={tronTransaction}>
 			{#snippet children(entity)}
-				{(entity.result ?? '') || pendingEntity.transactionId || titleFallback}
+				{(entity.result ?? '') || selection.entitySelector.transactionId || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -146,7 +145,7 @@
 						<div>
 							<dt>Block height</dt>
 							<dd>
-								{String(blockHeight)}
+								{blockHeight}
 							</dd>
 						</div>
 					{/if}
@@ -168,7 +167,7 @@
 						<div>
 							<dt>Timestamp</dt>
 							<dd>
-								<Timestamp timestamp={Number(timestampMs)} />
+								<Timestamp timestamp={timestampMs} />
 							</dd>
 						</div>
 					{/if}
@@ -190,7 +189,7 @@
 						<div>
 							<dt>Expiration timestamp</dt>
 							<dd>
-								<Timestamp timestamp={Number(expirationTimestampMs)} />
+								<Timestamp timestamp={expirationTimestampMs} />
 							</dd>
 						</div>
 					{/if}
@@ -234,7 +233,7 @@
 						<div>
 							<dt>Fee sun</dt>
 							<dd>
-								{String(feeSun)}
+								{feeSun}
 							</dd>
 						</div>
 					{/if}
@@ -276,7 +275,7 @@
 						<div>
 							<dt>Amount sun</dt>
 							<dd>
-								{String(amountSun)}
+								{amountSun}
 							</dd>
 						</div>
 					{/if}
@@ -340,7 +339,7 @@
 						}
 					>
 						{#snippet children(entity)}
-							<TruncatedValue value={entity.signatures.values.join(', ')} />
+							{entity.signatures.values.join(', ')}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>

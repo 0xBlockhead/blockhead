@@ -50,7 +50,7 @@
 				resolve(
 					'/~/accounts/connections/[connectionKey=stringSegment]',
 					{
-						connectionKey: String(blockheadWalletConnectionSelector.connectionKey),
+						connectionKey: blockheadWalletConnectionSelector.connectionKey,
 					}
 				)
 			}

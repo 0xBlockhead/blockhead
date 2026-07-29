@@ -44,9 +44,9 @@
 				resolve(
 					'/(social)/(youtube)/youtube/(globalYoutubeNetwork)/playlist/[playlistId=stringSegment]/(youtubePlaylist)/observations/[timestampMs=nonNegativeInteger]-[source=stringSegment]',
 					{
-						playlistId: encodeURIComponent(String(youtubePlaylistTimestampSelector.$playlist.playlistId)),
+						playlistId: encodeURIComponent(youtubePlaylistTimestampSelector.$playlist.playlistId),
 						timestampMs: String(youtubePlaylistTimestampSelector.timestampMs),
-						source: String(youtubePlaylistTimestampSelector.source),
+						source: youtubePlaylistTimestampSelector.source,
 					}
 				)
 			}

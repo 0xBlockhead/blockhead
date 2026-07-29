@@ -44,19 +44,19 @@
 				resolve(
 					'/(social)/(reddit)/reddit/(globalRedditNetwork)/comment/[fullname=stringSegment]/(redditComment)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
 					{
-						fullname: encodeURIComponent(String(redditCommentTimestampSelector.$comment.fullname)),
+						fullname: encodeURIComponent(redditCommentTimestampSelector.$comment.fullname),
 						timestampMs: String(redditCommentTimestampSelector.timestampMs),
-						source: String(redditCommentTimestampSelector.source),
+						source: redditCommentTimestampSelector.source,
 					}
 				)
 			}
 		>
 			{#snippet Title()}
-				{String(redditCommentTimestampSelector.timestampMs) || 'Reddit comment timestamp'}
+				{redditCommentTimestampSelector.timestampMs}
 			{/snippet}
 
 			{#snippet Value()}
-				{String(redditCommentTimestamp.score ?? '')}
+				{redditCommentTimestamp.score ?? ''}
 			{/snippet}
 
 			{#snippet HeadingAfter()}

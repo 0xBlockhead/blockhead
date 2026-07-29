@@ -6,7 +6,6 @@
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { EvmAddress } from '$/schema/ZeroExHex.ts'
 
 
 	// State
@@ -45,13 +44,13 @@
 				resolve(
 					'/(explore)/account/[address=evmAddress]',
 					{
-						address: String(evmAccountSelector.address),
+						address: evmAccountSelector.address,
 					}
 				)
 			}
 		>
 			{#snippet Title()}
-				{String(evmAccountSelector.address) || 'EVM account'}
+				{evmAccountSelector.address || 'EVM account'}
 			{/snippet}
 		</EntityView>
 	{/snippet}

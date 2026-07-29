@@ -20,13 +20,11 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.BlockheadCashuMeltQuote_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const blockheadCashuMeltQuoteTimestamp = $derived(selection({
 		fields: {
 			state: true,
 		},
 	}))
-	const titleFallback = $derived(String(pendingEntity.timestampMs ?? '') || 'blockhead Cashu melt quote timestamp')
 
 
 	// Components
@@ -39,26 +37,26 @@
 <EntityView
 	entityType={EntityType.BlockheadCashuMeltQuote_Timestamp}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? String(selection.entitySelector.timestampMs)}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+		<Timestamp timestamp={selection.entitySelector.timestampMs} />
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={blockheadCashuMeltQuoteTimestamp}>
 			{#snippet children(entity)}
-				{entity.state || String(pendingEntity.timestampMs) || titleFallback}
+				{entity.state || String(selection.entitySelector.timestampMs)}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
 		<span data-text="muted">
-			{pendingEntity.source}
+			{selection.entitySelector.source}
 		</span>
 	{/snippet}
 
@@ -78,14 +76,14 @@
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+					<Timestamp timestamp={selection.entitySelector.timestampMs} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 
@@ -119,7 +117,7 @@
 						<div>
 							<dt>expiry ms</dt>
 							<dd>
-								<Timestamp timestamp={Number(expiryMs)} />
+								<Timestamp timestamp={expiryMs} />
 							</dd>
 						</div>
 					{/if}

@@ -39,8 +39,8 @@
 				resolve(
 					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(transactions)/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/(selection)/inputs',
 					{
-						network: String(params.network),
-						transactionId: String(params.transactionId),
+						network: params.network,
+						transactionId: params.transactionId,
 					}
 				)
 			}
@@ -62,8 +62,8 @@
 				resolve(
 					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(transactions)/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/(selection)/inputs',
 					{
-						network: String(params.network),
-						transactionId: String(params.transactionId),
+						network: params.network,
+						transactionId: params.transactionId,
 					}
 				)
 			}

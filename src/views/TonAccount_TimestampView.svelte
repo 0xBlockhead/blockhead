@@ -20,14 +20,12 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.TonAccount_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const tonAccountTimestamp = $derived(selection({
 		fields: {
 			balanceNano: true,
 			status: true,
 		},
 	}))
-	const titleFallback = $derived(String(pendingEntity.balanceNano ?? '') || 'TON account timestamp')
 
 
 	// Components
@@ -42,7 +40,7 @@
 <EntityView
 	entityType={EntityType.TonAccount_Timestamp}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? (String(prefetched.balanceNano ?? '') || 'TON account timestamp')}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -50,10 +48,10 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={tonAccountTimestamp}>
 			{#snippet children(entity)}
-				{@const balanceNano0 = entity.balanceNano}
-				{#if balanceNano0 != null}
+				{@const balanceNano = entity.balanceNano}
+				{#if balanceNano != null}
 					<NumberValue
-						value={balanceNano0}
+						value={balanceNano}
 					/>
 				{/if}
 			{/snippet}
@@ -63,10 +61,10 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={tonAccountTimestamp}>
 			{#snippet children(entity)}
-				{@const status0 = entity.status}
-				{#if status0 != null}
+				{@const status = entity.status}
+				{#if status != null}
 					<span data-text="muted">
-						{status0}
+						{status}
 					</span>
 				{/if}
 			{/snippet}
@@ -124,7 +122,7 @@
 						<div>
 							<dt>last activity</dt>
 							<dd>
-								<Timestamp timestamp={Number(lastActivityTimestampMs)} />
+								<Timestamp timestamp={lastActivityTimestampMs} />
 							</dd>
 						</div>
 					{/if}
@@ -136,14 +134,14 @@
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+					<Timestamp timestamp={selection.entitySelector.timestampMs} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 

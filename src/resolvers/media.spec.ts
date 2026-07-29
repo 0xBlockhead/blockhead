@@ -4,7 +4,8 @@ import {
 	it,
 } from 'vitest'
 
-import { MediaTransport, MediaType } from '$/schema/Media.ts'
+import { MediaTransport } from '$/schema/MediaTransport.ts'
+import { MediaType } from '$/schema/MediaType.ts'
 import { EntityMetaKey, entityFieldAddressKey } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { mediaFromUrl } from '$/resolvers/media.ts'

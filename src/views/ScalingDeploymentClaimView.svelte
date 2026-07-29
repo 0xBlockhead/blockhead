@@ -22,13 +22,12 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.ScalingDeploymentClaim> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const scalingDeploymentClaim = $derived(selection({
 		fields: {
 			scalingDeploymentClaimId: true,
 		},
 	}))
-	const titleFallback = $derived([(pendingEntity.sourceProjectId ?? ''), (pendingEntity.scalingDeploymentClaimId ?? '')].filter(Boolean).join(' ') || 'scaling deployment claim')
+	const titleFallback = $derived([selection.entitySelector.sourceProjectId, (prefetched.scalingDeploymentClaimId ?? '')].filter(Boolean).join(' ') || 'scaling deployment claim')
 
 
 	// Components
@@ -51,7 +50,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={scalingDeploymentClaim}>
 			{#snippet children(entity)}
-				{[pendingEntity.sourceProjectId, (entity.scalingDeploymentClaimId ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+				{[selection.entitySelector.sourceProjectId, (entity.scalingDeploymentClaimId ?? '')].filter(Boolean).join(' ') || title || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -59,14 +58,14 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={scalingDeploymentClaim}>
 			{#snippet children(entity)}
-				{[pendingEntity.sourceProjectId, (entity.scalingDeploymentClaimId ?? '')].filter(Boolean).join(' ') || titleFallback}
+				{[selection.entitySelector.sourceProjectId, (entity.scalingDeploymentClaimId ?? '')].filter(Boolean).join(' ') || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
 		<span data-text="muted">
-			{pendingEntity.source}
+			{selection.entitySelector.source}
 		</span>
 
 		<span data-text="muted">
@@ -94,14 +93,14 @@
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source project ID</dt>
 				<dd>
-					{pendingEntity.sourceProjectId}
+					{selection.entitySelector.sourceProjectId}
 				</dd>
 			</div>
 
@@ -146,30 +145,30 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const scalingDeploymentClaimScalingDeploymentClaimTimestampsViewTimestampsResource = selection.$$timestamps}
+		{@const timestampsResource = selection.$$timestamps}
 		<ResourceBoundary
-			resource={scalingDeploymentClaimScalingDeploymentClaimTimestampsViewTimestampsResource}
+			resource={timestampsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<ScalingDeploymentClaim_TimestampsView
-						selection={scalingDeploymentClaimScalingDeploymentClaimTimestampsViewTimestampsResource}
-						countResource={scalingDeploymentClaimScalingDeploymentClaimTimestampsViewTimestampsResource.count}
+						selection={timestampsResource}
+						countResource={timestampsResource.count}
 						title='Timestamps'
 						id='timestamps'
 					/>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>
-		{@const scalingDeploymentClaimEvmContractsViewSettlementContractsResource = selection.$$settlementContracts}
+		{@const settlementContractsResource = selection.$$settlementContracts}
 		<ResourceBoundary
-			resource={scalingDeploymentClaimEvmContractsViewSettlementContractsResource}
+			resource={settlementContractsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<EvmContractsView
-						selection={scalingDeploymentClaimEvmContractsViewSettlementContractsResource}
-						countResource={scalingDeploymentClaimEvmContractsViewSettlementContractsResource.count}
+						selection={settlementContractsResource}
+						countResource={settlementContractsResource.count}
 						title='Settlement contracts'
 						id='settlement-contracts'
 					/>

@@ -4,7 +4,7 @@ import {
 	it,
 } from 'vitest'
 
-import { MediaTransport } from '$/schema/Media.ts'
+import { MediaTransport } from '$/schema/MediaTransport.ts'
 import { resolveMediaUrlTransport } from '$/lib/media.ts'
 
 const ipfsCid = 'QmYwAPJzv5CZsnA625s3Xf2nemtYgPpHdWEz79ojWnPbdG'

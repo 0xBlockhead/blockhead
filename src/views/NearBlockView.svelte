@@ -22,7 +22,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.NearBlock> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.NearRpc_JsonRpc,
@@ -36,7 +35,6 @@
 			timestampMs: true,
 		},
 	}))
-	const titleFallback = $derived(String(pendingEntity.height ?? '') || 'near block')
 
 
 	// Components
@@ -53,14 +51,14 @@
 <EntityView
 	entityType={EntityType.NearBlock}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? String(selection.entitySelector.height)}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
 		<NumberValue
-			value={pendingEntity.height}
+			value={selection.entitySelector.height}
 		/>
 	{/snippet}
 
@@ -75,10 +73,10 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={nearBlock}>
 			{#snippet children(entity)}
-				{@const timestampMs0 = entity.timestampMs}
-				{#if timestampMs0 != null}
+				{@const timestampMs = entity.timestampMs}
+				{#if timestampMs != null}
 					<span data-text="muted">
-						<Timestamp timestamp={Number(timestampMs0)} />
+						<Timestamp timestamp={timestampMs} />
 					</span>
 				{/if}
 			{/snippet}
@@ -102,7 +100,7 @@
 				<dt>Height</dt>
 				<dd>
 					<NumberValue
-						value={pendingEntity.height}
+						value={selection.entitySelector.height}
 					/>
 				</dd>
 			</div>
@@ -171,7 +169,7 @@
 						<div>
 							<dt>Timestamp</dt>
 							<dd>
-								<Timestamp timestamp={Number(timestampMs)} />
+								<Timestamp timestamp={timestampMs} />
 							</dd>
 						</div>
 					{/if}
@@ -181,15 +179,15 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const nearBlockNearChunksViewChunksResource = selection.$$chunks}
+		{@const chunksResource = selection.$$chunks}
 		<ResourceBoundary
-			resource={nearBlockNearChunksViewChunksResource}
+			resource={chunksResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<NearChunksView
-						selection={nearBlockNearChunksViewChunksResource}
-						countResource={nearBlockNearChunksViewChunksResource.count}
+						selection={chunksResource}
+						countResource={chunksResource.count}
 						title='Chunks'
 						id='chunks'
 					/>

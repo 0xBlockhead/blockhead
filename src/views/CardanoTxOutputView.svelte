@@ -26,7 +26,7 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.CardanoTxOutput> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const transaction = $derived(selection.entitySelector.$transaction)
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Blockfrost_Rest,
@@ -38,7 +38,6 @@
 			address: true,
 		},
 	}))
-	const titleFallback = $derived(String(pendingEntity.outputIndex ?? '') || 'Cardano transaction output')
 	const viewDomId = $derived('cardano-tx-output-' + encodeURIComponent(stringify(selection.entitySelector)))
 
 
@@ -57,34 +56,37 @@
 	entityType={EntityType.CardanoTxOutput}
 	entitySelector={selection.entitySelector}
 	id={viewDomId}
-	title={title ?? titleFallback}
+	title={title ?? String(selection.entitySelector.outputIndex)}
 	href={
-		href ?? resolve(
-			'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(transactions)/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/(selection)/output/[outputIndex=nonNegativeInteger]',
-			{
-				network: (
-					'caip2' in selection.entitySelector.$transaction.$network ?
-						String(caip2StringFromValue(selection.entitySelector.$transaction.$network.caip2))
-					:
-						String(selection.entitySelector.$transaction.$network.slug)
-				),
-				transactionId: String(selection.entitySelector.$transaction.hash),
-				outputIndex: String(selection.entitySelector.outputIndex),
-			}
-		)
+		href === undefined ?
+			resolve(
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(transactions)/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/(selection)/output/[outputIndex=nonNegativeInteger]',
+				{
+					network: (
+						'caip2' in transaction.$network ?
+							caip2StringFromValue(transaction.$network.caip2)
+						:
+							transaction.$network.slug
+					),
+					transactionId: transaction.hash,
+					outputIndex: String(selection.entitySelector.outputIndex),
+				}
+			)
+		:
+			href ?? undefined
 	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{String(pendingEntity.outputIndex ?? '') || 'Cardano transaction output'}
+		{String(selection.entitySelector.outputIndex)}
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={cardanoTxOutput}>
 			{#snippet children(entity)}
-				{String(entity.lovelace ?? '') || String(pendingEntity.outputIndex) || titleFallback}
+				{String(entity.lovelace ?? '') || String(selection.entitySelector.outputIndex)}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -92,10 +94,10 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={cardanoTxOutput}>
 			{#snippet children(entity)}
-				{@const address0 = entity.address}
-				{#if address0 != null}
+				{@const address = entity.address}
+				{#if address != null}
 					<span data-text="muted">
-						<TruncatedValue value={address0} />
+						<TruncatedValue value={address} />
 					</span>
 				{/if}
 			{/snippet}
@@ -118,7 +120,7 @@
 			<div>
 				<dt>output index</dt>
 				<dd>
-					{String(pendingEntity.outputIndex)}
+					{selection.entitySelector.outputIndex}
 				</dd>
 			</div>
 
@@ -167,7 +169,7 @@
 						<div>
 							<dt>lovelace</dt>
 							<dd>
-								{String(lovelace)}
+								{lovelace}
 							</dd>
 						</div>
 					{/if}

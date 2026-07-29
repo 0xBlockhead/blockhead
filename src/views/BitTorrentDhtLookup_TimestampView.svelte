@@ -16,13 +16,12 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.BitTorrentDhtLookup_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const bitTorrentDhtLookupTimestamp = $derived(selection({
 		fields: {
 			status: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.infoHash ?? '') || 'bit torrent DHT lookup timestamp')
+	const titleFallback = $derived(selection.entitySelector.infoHash || 'bit torrent DHT lookup timestamp')
 
 
 	// Components
@@ -42,20 +41,20 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<TruncatedValue value={pendingEntity.infoHash} />
+		<TruncatedValue value={selection.entitySelector.infoHash} />
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={bitTorrentDhtLookupTimestamp}>
 			{#snippet children(entity)}
-				{entity.status || pendingEntity.infoHash || titleFallback}
+				{entity.status || selection.entitySelector.infoHash || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
 		<span data-text="muted">
-			<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+			<Timestamp timestamp={selection.entitySelector.timestampMs} />
 		</span>
 	{/snippet}
 
@@ -64,21 +63,21 @@
 			<div>
 				<dt>info hash</dt>
 				<dd>
-					<TruncatedValue value={pendingEntity.infoHash} />
+					<TruncatedValue value={selection.entitySelector.infoHash} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>observer key</dt>
 				<dd>
-					{pendingEntity.observerKey}
+					{selection.entitySelector.observerKey}
 				</dd>
 			</div>
 
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+					<Timestamp timestamp={selection.entitySelector.timestampMs} />
 				</dd>
 			</div>
 

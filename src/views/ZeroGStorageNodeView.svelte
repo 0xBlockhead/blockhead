@@ -22,8 +22,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.ZeroGStorageNode> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const titleFallback = 'zero g storage node'
 	const viewDomId = $derived('zero-gstorage-node-' + encodeURIComponent(stringify(selection.entitySelector)))
 
 
@@ -43,7 +41,7 @@
 	entityType={EntityType.ZeroGStorageNode}
 	entitySelector={selection.entitySelector}
 	id={viewDomId}
-	title={title ?? titleFallback}
+	title={title ?? 'zero g storage node'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -68,7 +66,7 @@
 			<div>
 				<dt>node ID</dt>
 				<dd>
-					{String(pendingEntity.nodeId)}
+					{selection.entitySelector.nodeId}
 				</dd>
 			</div>
 
@@ -107,7 +105,7 @@
 						<div>
 							<dt>endpoint</dt>
 							<dd>
-								{String(endpoint)}
+								{endpoint}
 							</dd>
 						</div>
 					{/if}

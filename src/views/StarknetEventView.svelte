@@ -22,7 +22,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.StarknetEvent> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Starknet_JsonRpc,
@@ -30,7 +29,6 @@
 			Source.Voyager_Rest,
 		],
 	}))
-	const titleFallback = $derived(String(pendingEntity.eventIndex ?? '') || 'starknet event')
 
 
 	// Components
@@ -44,21 +42,20 @@
 <EntityView
 	entityType={EntityType.StarknetEvent}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? String(selection.entitySelector.eventIndex)}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
 		<NumberValue
-			value={pendingEntity.eventIndex}
+			value={selection.entitySelector.eventIndex}
 		/>
 	{/snippet}
 
 	{#snippet Value()}
 		<StarknetTransactionView
 			selection={select(EntityType.StarknetTransaction, selection.entitySelector.$transaction)}
-			href=""
 			layout={EntityLayout.Value}
 			open={false}
 		/>
@@ -100,7 +97,7 @@
 				<dt>event index</dt>
 				<dd>
 					<NumberValue
-						value={pendingEntity.eventIndex}
+						value={selection.entitySelector.eventIndex}
 					/>
 				</dd>
 			</div>

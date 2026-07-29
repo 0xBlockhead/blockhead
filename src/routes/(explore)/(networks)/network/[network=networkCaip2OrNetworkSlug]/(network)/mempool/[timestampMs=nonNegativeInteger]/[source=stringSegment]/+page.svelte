@@ -31,7 +31,7 @@
 
 
 <svelte:head>
-	<title>{(data.title ?? (pageSelection.entity == null ? 'EVM network txpool timestamp' : ([(String(pageSelection.entity.pendingCount) ? String(pageSelection.entity.pendingCount) + ' pending' : ''), (String(pageSelection.entity.queuedCount) ? String(pageSelection.entity.queuedCount) + ' queued' : '')].filter(Boolean).join(' ')) || 'EVM network txpool timestamp'))} • EVM network txpool timestamp • Blockhead</title>
+	<title>{data.title ?? (pageSelection.entity == null ? 'EVM network txpool timestamp' : [String(pageSelection.entity.pendingCount) + ' pending', String(pageSelection.entity.queuedCount) + ' queued'].filter(Boolean).join(' ') || 'EVM network txpool timestamp')} • EVM network txpool timestamp • Blockhead</title>
 </svelte:head>
 
 

@@ -5,7 +5,6 @@
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { EvmAddress } from '$/schema/ZeroExHex.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -33,7 +32,6 @@
 			amount: true,
 		},
 	}))
-	const titleFallback = 'blockhead bridge intent'
 
 
 	// Components
@@ -50,7 +48,7 @@
 <EntityView
 	entityType={EntityType.BlockheadBridgeIntent}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? 'blockhead bridge intent'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -63,7 +61,6 @@
 				<BlockheadSessionActionView
 					selection={select(EntityType.BlockheadSessionAction, blockheadSessionAction[EntityMetaKey.Selector])}
 					prefetched={blockheadSessionAction}
-					href=""
 					layout={EntityLayout.Title}
 					open={false}
 				/>
@@ -74,10 +71,10 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={blockheadBridgeIntent}>
 			{#snippet children(entity)}
-				{@const amount0 = entity.amount}
-				{#if amount0 != null}
+				{@const amount = entity.amount}
+				{#if amount != null}
 					<NumberValue
-						value={amount0}
+						value={amount}
 					/>
 				{/if}
 			{/snippet}
@@ -337,7 +334,7 @@
 						<div>
 							<dt>from token address</dt>
 							<dd>
-								<TruncatedValue value={String(fromTokenAddress)} />
+								<TruncatedValue value={fromTokenAddress} />
 							</dd>
 						</div>
 					{/if}
@@ -359,7 +356,7 @@
 						<div>
 							<dt>to token address</dt>
 							<dd>
-								<TruncatedValue value={String(toTokenAddress)} />
+								<TruncatedValue value={toTokenAddress} />
 							</dd>
 						</div>
 					{/if}
@@ -535,15 +532,15 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const blockheadBridgeIntentBlockheadIntentQuotesViewQuotesResource = selection.$$quotes}
+		{@const quotesResource = selection.$$quotes}
 		<ResourceBoundary
-			resource={blockheadBridgeIntentBlockheadIntentQuotesViewQuotesResource}
+			resource={quotesResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<BlockheadIntentQuotesView
-						selection={blockheadBridgeIntentBlockheadIntentQuotesViewQuotesResource}
-						countResource={blockheadBridgeIntentBlockheadIntentQuotesViewQuotesResource.count}
+						selection={quotesResource}
+						countResource={quotesResource.count}
 						title='quotes'
 						id='quotes'
 					/>

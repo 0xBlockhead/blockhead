@@ -5,7 +5,6 @@
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { EvmAddress, ZeroExHex } from '$/schema/ZeroExHex.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -23,7 +22,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.BlockheadWalletRequest> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Local_Internal,
@@ -36,7 +34,7 @@
 			requestedAt: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.requestKind ?? '') || 'blockhead wallet request')
+	const titleFallback = $derived((prefetched.requestKind ?? '') || 'blockhead wallet request')
 
 
 	// Components
@@ -80,7 +78,7 @@
 		<ResourceBoundary resource={blockheadWalletRequest}>
 			{#snippet children(entity)}
 				<span data-text="muted">
-					<Timestamp timestamp={Number(entity.requestedAt)} />
+					<Timestamp timestamp={entity.requestedAt} />
 				</span>
 			{/snippet}
 		</ResourceBoundary>
@@ -91,7 +89,7 @@
 			<div>
 				<dt>ID</dt>
 				<dd>
-					{pendingEntity.id}
+					{selection.entitySelector.id}
 				</dd>
 			</div>
 
@@ -266,7 +264,7 @@
 						<div>
 							<dt>from address</dt>
 							<dd>
-								<TruncatedValue value={String(fromAddress)} />
+								<TruncatedValue value={fromAddress} />
 							</dd>
 						</div>
 					{/if}
@@ -288,7 +286,7 @@
 						<div>
 							<dt>to address</dt>
 							<dd>
-								<TruncatedValue value={String(toAddress)} />
+								<TruncatedValue value={toAddress} />
 							</dd>
 						</div>
 					{/if}
@@ -382,7 +380,7 @@
 						<div>
 							<dt>request payload hash</dt>
 							<dd>
-								<TruncatedValue value={String(requestPayloadHash)} />
+								<TruncatedValue value={requestPayloadHash} />
 							</dd>
 						</div>
 					{/if}
@@ -418,7 +416,7 @@
 						resource={blockheadWalletRequest}
 					>
 						{#snippet children(entity)}
-							<Timestamp timestamp={Number(entity.requestedAt)} />
+							<Timestamp timestamp={entity.requestedAt} />
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -439,7 +437,7 @@
 						<div>
 							<dt>submitted AT</dt>
 							<dd>
-								<Timestamp timestamp={Number(submittedAt)} />
+								<Timestamp timestamp={submittedAt} />
 							</dd>
 						</div>
 					{/if}
@@ -449,30 +447,30 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const blockheadWalletRequestBlockheadWalletRequestCallsViewCallsResource = selection.$$calls}
+		{@const callsResource = selection.$$calls}
 		<ResourceBoundary
-			resource={blockheadWalletRequestBlockheadWalletRequestCallsViewCallsResource}
+			resource={callsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<BlockheadWalletRequestCallsView
-						selection={blockheadWalletRequestBlockheadWalletRequestCallsViewCallsResource}
-						countResource={blockheadWalletRequestBlockheadWalletRequestCallsViewCallsResource.count}
+						selection={callsResource}
+						countResource={callsResource.count}
 						title='calls'
 						id='calls'
 					/>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>
-		{@const blockheadWalletRequestBlockheadWalletRequestTimestampsViewTimestampsResource = selection.$$timestamps}
+		{@const timestampsResource = selection.$$timestamps}
 		<ResourceBoundary
-			resource={blockheadWalletRequestBlockheadWalletRequestTimestampsViewTimestampsResource}
+			resource={timestampsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<BlockheadWalletRequest_TimestampsView
-						selection={blockheadWalletRequestBlockheadWalletRequestTimestampsViewTimestampsResource}
-						countResource={blockheadWalletRequestBlockheadWalletRequestTimestampsViewTimestampsResource.count}
+						selection={timestampsResource}
+						countResource={timestampsResource.count}
 						title='timestamps'
 						id='timestamps'
 					/>

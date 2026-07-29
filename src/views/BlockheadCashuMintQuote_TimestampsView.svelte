@@ -41,7 +41,7 @@
 			entitySelector={blockheadCashuMintQuoteTimestampSelector}
 		>
 			{#snippet Title()}
-				{String(blockheadCashuMintQuoteTimestampSelector.timestampMs) || 'blockhead Cashu mint quote timestamp'}
+				{blockheadCashuMintQuoteTimestampSelector.timestampMs}
 			{/snippet}
 
 			{#snippet Value()}

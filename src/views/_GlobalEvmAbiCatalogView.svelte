@@ -18,7 +18,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType._GlobalEvmAbiCatalog> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const titleFallback = 'global EVM ABI catalog'
 	const viewDomId = $derived('-global-evm-abi-catalog-' + encodeURIComponent(stringify(selection.entitySelector)))
 
@@ -48,7 +47,7 @@
 	{/snippet}
 
 	{#snippet Value()}
-		{(pendingEntity.scope ?? '') || titleFallback}
+		{selection.entitySelector.scope || titleFallback}
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}

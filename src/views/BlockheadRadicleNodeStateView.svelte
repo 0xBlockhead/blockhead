@@ -18,7 +18,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.BlockheadRadicleNodeState> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Local_Internal,
@@ -29,7 +28,7 @@
 			did: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.nodeId ?? '') || 'blockhead radicle node state')
+	const titleFallback = $derived(selection.entitySelector.nodeId || 'blockhead radicle node state')
 	const viewDomId = $derived('blockhead-radicle-node-state-' + encodeURIComponent(stringify(selection.entitySelector)))
 
 
@@ -55,20 +54,20 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{(pendingEntity.nodeId ?? '') || 'blockhead radicle node state'}
+		{selection.entitySelector.nodeId || 'blockhead radicle node state'}
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={blockheadRadicleNodeState}>
 			{#snippet children(entity)}
-				{(entity.did ?? '') || pendingEntity.nodeId || titleFallback}
+				{(entity.did ?? '') || selection.entitySelector.nodeId || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
 		<span data-text="muted">
-			{pendingEntity.connectionId}
+			{selection.entitySelector.connectionId}
 		</span>
 	{/snippet}
 
@@ -77,14 +76,14 @@
 			<div>
 				<dt>connection ID</dt>
 				<dd>
-					{pendingEntity.connectionId}
+					{selection.entitySelector.connectionId}
 				</dd>
 			</div>
 
 			<div>
 				<dt>node ID</dt>
 				<dd>
-					{pendingEntity.nodeId}
+					{selection.entitySelector.nodeId}
 				</dd>
 			</div>
 

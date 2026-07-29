@@ -9,7 +9,8 @@ import NostrProfileSchema from '$/schema/NostrProfile.ts'
 import { type as arktype } from 'arktype'
 
 export const load: LayoutLoad = ({ params }) => {
-	if (!(matchStringSegment(params.pubkey))) error(404, 'Route mapping not applicable')
+	if (!(matchStringSegment(params.pubkey)))
+		error(404, 'Route mapping not applicable')
 
 	const nostrProfileCanonicalPubkeySelector = parseEntitySelector(
 		schema,
@@ -18,7 +19,8 @@ export const load: LayoutLoad = ({ params }) => {
 			pubkey: params.pubkey,
 		}
 	)
-	if (nostrProfileCanonicalPubkeySelector instanceof arktype.errors) error(404, 'Invalid NostrProfile selector')
+	if (nostrProfileCanonicalPubkeySelector instanceof arktype.errors)
+		error(404, 'Invalid NostrProfile selector')
 
 	return {
 		selector: nostrProfileCanonicalPubkeySelector,

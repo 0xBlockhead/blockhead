@@ -2,7 +2,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import { createEip6963Adapter, type Eip6963ProviderDetail } from './eip6963.ts'
 import type { Eip1193Provider } from './eip1193.ts'
-import { BlockheadConnectionStatus } from '$/schema/BlockheadWalletConnection.ts'
+import { BlockheadConnectionStatus } from '$/schema/BlockheadConnectionStatus.ts'
 import type { JsonValue } from '$/typescript/JsonValue.ts'
 
 const startAdapter = (provider: Eip1193Provider) => {

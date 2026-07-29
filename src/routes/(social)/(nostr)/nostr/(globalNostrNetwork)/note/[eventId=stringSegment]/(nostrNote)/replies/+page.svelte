@@ -35,7 +35,7 @@
 			resolve(
 				'/(social)/(nostr)/nostr/(globalNostrNetwork)/note/[eventId=stringSegment]/(nostrNote)/replies',
 				{
-					eventId: String(params.eventId),
+					eventId: params.eventId,
 				}
 			)
 		}

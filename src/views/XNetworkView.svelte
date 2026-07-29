@@ -20,13 +20,11 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.XNetwork> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const viewSelection = $derived(selection({
+	const xNetwork = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Constants_Internal,
 		],
-	}))
-	const xNetwork = $derived(viewSelection({
+	})({
 		fields: {
 			protocolName: true,
 			homeUrl: true,
@@ -35,7 +33,7 @@
 			relationshipModel: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.protocolName ?? '') || 'X')
+	const titleFallback = $derived((prefetched.protocolName ?? '') || 'X')
 	const viewDomId = $derived('xnetwork-' + encodeURIComponent(stringify(selection.entitySelector)))
 
 
@@ -55,12 +53,15 @@
 	id={viewDomId}
 	title={title ?? titleFallback}
 	href={
-		href ?? (
-			selection.entitySelector.scope === 'XNetwork' ?
-				resolve('/(social)/(x)/x')
-			:
-				undefined
-		)
+		href === undefined ?
+			(
+				selection.entitySelector.scope === 'XNetwork' ?
+					resolve('/(social)/(x)/x')
+				:
+					undefined
+			)
+		:
+			href ?? undefined
 	}
 	{layout}
 	bind:open
@@ -75,7 +76,7 @@
 	{/snippet}
 
 	{#snippet Value()}
-		{(pendingEntity.protocolName ?? '') || titleFallback}
+		{(prefetched.protocolName ?? '') || titleFallback}
 	{/snippet}
 
 	{#snippet TypeAnnotationTooltip()}
@@ -145,11 +146,11 @@
 					>
 						{#snippet children(entity)}
 							<a
-								href={String(entity.homeUrl)}
+								href={entity.homeUrl}
 								target="_blank"
 								rel="noreferrer noopener"
 							>
-								<TruncatedValue value={String(entity.homeUrl)} />
+								<TruncatedValue value={entity.homeUrl} />
 							</a>
 						{/snippet}
 					</ResourceBoundary>
@@ -168,11 +169,11 @@
 							<dt>Docs URL</dt>
 							<dd>
 								<a
-									href={String(docsUrl)}
+									href={docsUrl}
 									target="_blank"
 									rel="noreferrer noopener"
 								>
-									<TruncatedValue value={String(docsUrl)} />
+									<TruncatedValue value={docsUrl} />
 								</a>
 							</dd>
 						</div>

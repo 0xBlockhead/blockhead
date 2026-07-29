@@ -44,11 +44,11 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{(blockheadActionReadinessCheck.capabilityKey ?? '')}
+				{blockheadActionReadinessCheck.capabilityKey ?? ''}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{String(blockheadActionReadinessCheck.createdAt)}</span>
+				<span data-text="annotation">{blockheadActionReadinessCheck.createdAt}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

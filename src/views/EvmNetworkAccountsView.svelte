@@ -37,6 +37,7 @@
 >
 	{#snippet Item({ item: evmNetworkAccount })}
 		{@const evmNetworkAccountSelector = evmNetworkAccount[EntityMetaKey.Selector]}
+		{@const network = evmNetworkAccountSelector.$network}
 		<EntityView
 			entityType={EntityType.EvmNetworkAccount}
 			entitySelector={evmNetworkAccountSelector}
@@ -45,18 +46,18 @@
 					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(accounts)/account/[accountId=polkadotAccountIdOrStringSegmentOrEvmAddressOrSolanaPubkey]',
 					{
 						network: (
-							'caip2' in evmNetworkAccountSelector.$network ?
-								String(caip2StringFromValue(evmNetworkAccountSelector.$network.caip2))
+							'caip2' in network ?
+								caip2StringFromValue(network.caip2)
 							:
-								String(evmNetworkAccountSelector.$network.slug)
+								network.slug
 						),
-						accountId: String(evmNetworkAccountSelector.$actor.address),
+						accountId: evmNetworkAccountSelector.$actor.address,
 					}
 				)
 			}
 		>
 			{#snippet Title()}
-				{String(evmNetworkAccountSelector.$actor.address) || 'EVM account'}
+				{evmNetworkAccountSelector.$actor.address || 'EVM account'}
 			{/snippet}
 
 			{#snippet Value()}

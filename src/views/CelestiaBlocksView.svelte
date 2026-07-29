@@ -41,11 +41,11 @@
 			entitySelector={celestiaBlockSelector}
 		>
 			{#snippet Title()}
-				{String(celestiaBlockSelector.height) || celestiaBlockSelector.hash || 'celestia block'}
+				{celestiaBlockSelector.height}
 			{/snippet}
 
 			{#snippet Value()}
-				{String(celestiaBlock.timestampMs ?? '')}
+				{celestiaBlock.timestampMs ?? ''}
 			{/snippet}
 		</EntityView>
 	{/snippet}

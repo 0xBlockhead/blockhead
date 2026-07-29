@@ -40,6 +40,7 @@
 >
 	{#snippet Item({ item: ensRecordTimestamp })}
 		{@const ensRecordTimestampSelector = ensRecordTimestamp[EntityMetaKey.Selector]}
+		{@const record = ensRecordTimestampSelector.$record}
 		<EntityView
 			entityType={EntityType.EnsRecord_Timestamp}
 			entitySelector={ensRecordTimestampSelector}
@@ -47,10 +48,10 @@
 				resolve(
 					'/(explore)/(ens)/ens/(globalEnsNetwork)/name/[ensName=stringSegment]/(ensName)/record/[recordId=stringSegment]/(ensRecord)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
 					{
-						ensName: encodeURIComponent(String(ensRecordTimestampSelector.$record.$name.name)),
-						recordId: encodeURIComponent(String(ensRecordTimestampSelector.$record.recordKey)),
+						ensName: encodeURIComponent(record.$name.name),
+						recordId: encodeURIComponent(record.recordKey),
 						timestampMs: String(ensRecordTimestampSelector.timestampMs),
-						source: String(ensRecordTimestampSelector.source),
+						source: ensRecordTimestampSelector.source,
 					}
 				)
 			}
@@ -60,7 +61,7 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{String(ensRecordTimestampSelector.timestampMs)}
+				{ensRecordTimestampSelector.timestampMs}
 			{/snippet}
 		</EntityView>
 	{/snippet}

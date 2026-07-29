@@ -16,13 +16,12 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.FedimintGateway> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const fedimintGateway = $derived(selection({
 		fields: {
 			apiUrl: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.gatewayId ?? '') || 'Fedimint gateway')
+	const titleFallback = $derived(selection.entitySelector.gatewayId || 'Fedimint gateway')
 
 
 	// Components
@@ -42,13 +41,13 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{(pendingEntity.gatewayId ?? '') || 'Fedimint gateway'}
+		{selection.entitySelector.gatewayId || 'Fedimint gateway'}
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={fedimintGateway}>
 			{#snippet children(entity)}
-				{(entity.apiUrl ?? '') || pendingEntity.gatewayId || titleFallback}
+				{(entity.apiUrl ?? '') || selection.entitySelector.gatewayId || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -58,7 +57,7 @@
 			<div>
 				<dt>gateway ID</dt>
 				<dd>
-					{pendingEntity.gatewayId}
+					{selection.entitySelector.gatewayId}
 				</dd>
 			</div>
 
@@ -72,11 +71,11 @@
 							<dt>API URL</dt>
 							<dd>
 								<a
-									href={String(apiUrl)}
+									href={apiUrl}
 									target="_blank"
 									rel="noreferrer noopener"
 								>
-									<TruncatedValue value={String(apiUrl)} />
+									<TruncatedValue value={apiUrl} />
 								</a>
 							</dd>
 						</div>
@@ -109,30 +108,30 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const fedimintGatewayFedimintGatewayTimestampsViewTimestampsResource = selection.$$timestamps}
+		{@const timestampsResource = selection.$$timestamps}
 		<ResourceBoundary
-			resource={fedimintGatewayFedimintGatewayTimestampsViewTimestampsResource}
+			resource={timestampsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<FedimintGateway_TimestampsView
-						selection={fedimintGatewayFedimintGatewayTimestampsViewTimestampsResource}
-						countResource={fedimintGatewayFedimintGatewayTimestampsViewTimestampsResource.count}
+						selection={timestampsResource}
+						countResource={timestampsResource.count}
 						title='timestamps'
 						id='timestamps'
 					/>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>
-		{@const fedimintGatewayFedimintFederationsViewFederationsResource = selection.$$federations}
+		{@const federationsResource = selection.$$federations}
 		<ResourceBoundary
-			resource={fedimintGatewayFedimintFederationsViewFederationsResource}
+			resource={federationsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<FedimintFederationsView
-						selection={fedimintGatewayFedimintFederationsViewFederationsResource}
-						countResource={fedimintGatewayFedimintFederationsViewFederationsResource.count}
+						selection={federationsResource}
+						countResource={federationsResource.count}
 						title='federations'
 						id='federations'
 					/>

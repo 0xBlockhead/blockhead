@@ -24,7 +24,7 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.FarcasterCastEmbed> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const cast = $derived(selection.entitySelector.$cast)
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Snapchain_Rest,
@@ -36,7 +36,6 @@
 			url: true,
 		},
 	}))
-	const titleFallback = $derived([(pendingEntity.title ?? ''), (pendingEntity.url ?? '')].filter(Boolean).join(' ') || 'Farcaster cast embed')
 
 
 	// Components
@@ -51,22 +50,25 @@
 <EntityView
 	entityType={EntityType.FarcasterCastEmbed}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? ([(prefetched.title ?? ''), (prefetched.url ?? '')].filter(Boolean).join(' ') || 'Farcaster cast embed')}
 	href={
-		href ?? (
-			'fid' in selection.entitySelector.$cast
-			&& 'hash' in selection.entitySelector.$cast ?
-				resolve(
-					'/(social)/(farcaster)/farcaster/(farcasterNetwork)/cast/[fid=farcasterFid]/[hash=zeroExHex]/(farcasterCast)/embed/[indexInCast=nonNegativeInteger]',
-					{
-						fid: String(selection.entitySelector.$cast.fid),
-						hash: String(selection.entitySelector.$cast.hash),
-						indexInCast: String(selection.entitySelector.indexInCast),
-					}
-				)
-			:
-				undefined
-		)
+		href === undefined ?
+			(
+				'fid' in cast
+				&& 'hash' in cast ?
+					resolve(
+						'/(social)/(farcaster)/farcaster/(farcasterNetwork)/cast/[fid=farcasterFid]/[hash=zeroExHex]/(farcasterCast)/embed/[indexInCast=nonNegativeInteger]',
+						{
+							fid: String(cast.fid),
+							hash: cast.hash,
+							indexInCast: String(selection.entitySelector.indexInCast),
+						}
+					)
+				:
+					undefined
+			)
+		:
+			href ?? undefined
 	}
 	{layout}
 	bind:open
@@ -77,7 +79,7 @@
 		<ResourceBoundary resource={farcasterCastEmbed}>
 			{#snippet children(entity)}
 				{@const reference = entity.$icon}
-				{#if reference != null && reference[EntityMetaKey.Selector] !== undefined}
+				{#if reference != null}
 					<MediaView
 						selection={select(EntityType.Media, reference[EntityMetaKey.Selector])}
 						prefetched={reference}
@@ -92,13 +94,13 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={farcasterCastEmbed}>
 			{#snippet children(entity)}
-				{@const title0 = entity.title}
-				{#if title0 != null}
-					{title0}
+				{@const title = entity.title}
+				{#if title != null}
+					{title}
 				{/if}
-				{@const url1 = entity.url}
-				{#if url1 != null}
-					<TruncatedValue value={url1} />
+				{@const url = entity.url}
+				{#if url != null}
+					<TruncatedValue value={url} />
 				{/if}
 
 				<ResourceBoundary
@@ -109,7 +111,7 @@
 							<FarcasterCastView
 								selection={select(EntityType.FarcasterCast, farcasterCast[EntityMetaKey.Selector])}
 								prefetched={farcasterCast}
-								href=""
+								href={null}
 								layout={EntityLayout.Title}
 								open={false}
 							/>
@@ -122,7 +124,7 @@
 
 	{#snippet Value()}
 		<NumberValue
-			value={pendingEntity.indexInCast}
+			value={selection.entitySelector.indexInCast}
 		/>
 	{/snippet}
 
@@ -145,7 +147,7 @@
 				<dt>Index in cast</dt>
 				<dd>
 					<NumberValue
-						value={pendingEntity.indexInCast}
+						value={selection.entitySelector.indexInCast}
 					/>
 				</dd>
 			</div>
@@ -162,11 +164,11 @@
 							<dt>URL</dt>
 							<dd>
 								<a
-									href={String(url)}
+									href={url}
 									target="_blank"
 									rel="noreferrer noopener"
 								>
-									<TruncatedValue value={String(url)} />
+									<TruncatedValue value={url} />
 								</a>
 							</dd>
 						</div>

@@ -17,20 +17,18 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.BlockheadEnsNameSearch> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const viewSelection = $derived(selection({
+	const blockheadEnsNameSearch = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Local_Internal,
 			Source.TheGraph_Graphql,
 		],
-	}))
-	const blockheadEnsNameSearch = $derived(viewSelection({
+	})({
 		fields: {
 			createdAt: true,
 			resultLimit: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.query ?? '') || 'blockhead ENS name search')
+	const titleFallback = $derived(selection.entitySelector.query || 'blockhead ENS name search')
 
 
 	// Components
@@ -49,13 +47,13 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{(pendingEntity.query ?? '') || 'blockhead ENS name search'}
+		{selection.entitySelector.query || 'blockhead ENS name search'}
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={blockheadEnsNameSearch}>
 			{#snippet children(entity)}
-				{String(entity.resultLimit ?? '') || pendingEntity.query || titleFallback}
+				{String(entity.resultLimit ?? '') || selection.entitySelector.query || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -65,7 +63,7 @@
 			<div>
 				<dt>Query</dt>
 				<dd>
-					{pendingEntity.query}
+					{selection.entitySelector.query}
 				</dd>
 			</div>
 
@@ -78,7 +76,7 @@
 						<div>
 							<dt>Created</dt>
 							<dd>
-								<Timestamp timestamp={Number(createdAt)} />
+								<Timestamp timestamp={createdAt} />
 							</dd>
 						</div>
 					{/if}
@@ -94,7 +92,7 @@
 						<div>
 							<dt>result limit</dt>
 							<dd>
-								{String(resultLimit)}
+								{resultLimit}
 							</dd>
 						</div>
 					{/if}
@@ -104,15 +102,15 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const blockheadEnsNameSearchEnsNamesViewMatchingNamesResource = selection.$$matchingNames}
+		{@const matchingNamesResource = selection.$$matchingNames}
 		<ResourceBoundary
-			resource={blockheadEnsNameSearchEnsNamesViewMatchingNamesResource}
+			resource={matchingNamesResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<EnsNamesView
-						selection={blockheadEnsNameSearchEnsNamesViewMatchingNamesResource}
-						countResource={blockheadEnsNameSearchEnsNamesViewMatchingNamesResource.count}
+						selection={matchingNamesResource}
+						countResource={matchingNamesResource.count}
 						title='matching names'
 						id='matching-names'
 					/>

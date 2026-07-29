@@ -41,11 +41,11 @@
 			entitySelector={pythPriceFeedTimestampSelector}
 		>
 			{#snippet Title()}
-				{String(pythPriceFeedTimestampSelector.publishTimeMs) || 'Pyth price feed timestamp'}
+				{pythPriceFeedTimestampSelector.publishTimeMs}
 			{/snippet}
 
 			{#snippet Value()}
-				{String(pythPriceFeedTimestamp.price ?? '')}
+				{pythPriceFeedTimestamp.price ?? ''}
 			{/snippet}
 
 			{#snippet HeadingAfter()}

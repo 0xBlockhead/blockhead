@@ -22,7 +22,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.BlockheadFilecoinPendingMessage> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Local_Internal,
@@ -33,7 +32,6 @@
 			local: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.messageCid ?? '') || 'blockhead filecoin pending message')
 
 
 	// Components
@@ -49,26 +47,26 @@
 <EntityView
 	entityType={EntityType.BlockheadFilecoinPendingMessage}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? (selection.entitySelector.messageCid || 'blockhead filecoin pending message')}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<TruncatedValue value={pendingEntity.messageCid} />
+		<TruncatedValue value={selection.entitySelector.messageCid} />
 	{/snippet}
 
 	{#snippet Value()}
-		<Timestamp timestamp={Number(pendingEntity.observedAtMs)} />
+		<Timestamp timestamp={selection.entitySelector.observedAtMs} />
 	{/snippet}
 
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={blockheadFilecoinPendingMessage}>
 			{#snippet children(entity)}
-				{@const local0 = entity.local}
-				{#if local0 != null}
+				{@const local = entity.local}
+				{#if local != null}
 					<span data-text="muted">
-						{local0 ? 'Yes' : 'No'}
+						{local ? 'Yes' : 'No'}
 					</span>
 				{/if}
 			{/snippet}
@@ -80,21 +78,21 @@
 			<div>
 				<dt>node ID</dt>
 				<dd>
-					{pendingEntity.nodeId}
+					{selection.entitySelector.nodeId}
 				</dd>
 			</div>
 
 			<div>
 				<dt>message CID</dt>
 				<dd>
-					<TruncatedValue value={pendingEntity.messageCid} />
+					<TruncatedValue value={selection.entitySelector.messageCid} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>observed AT ms</dt>
 				<dd>
-					<Timestamp timestamp={Number(pendingEntity.observedAtMs)} />
+					<Timestamp timestamp={selection.entitySelector.observedAtMs} />
 				</dd>
 			</div>
 
@@ -195,7 +193,7 @@
 						<div>
 							<dt>nonce</dt>
 							<dd>
-								{String(nonce)}
+								{nonce}
 							</dd>
 						</div>
 					{/if}
@@ -217,7 +215,7 @@
 						<div>
 							<dt>method</dt>
 							<dd>
-								{String(method)}
+								{method}
 							</dd>
 						</div>
 					{/if}
@@ -239,7 +237,7 @@
 						<div>
 							<dt>value atto fil</dt>
 							<dd>
-								{String(valueAttoFil)}
+								{valueAttoFil}
 							</dd>
 						</div>
 					{/if}
@@ -261,7 +259,7 @@
 						<div>
 							<dt>gas limit</dt>
 							<dd>
-								{String(gasLimit)}
+								{gasLimit}
 							</dd>
 						</div>
 					{/if}
@@ -283,7 +281,7 @@
 						<div>
 							<dt>gas fee cap atto fil</dt>
 							<dd>
-								{String(gasFeeCapAttoFil)}
+								{gasFeeCapAttoFil}
 							</dd>
 						</div>
 					{/if}
@@ -305,7 +303,7 @@
 						<div>
 							<dt>gas premium atto fil</dt>
 							<dd>
-								{String(gasPremiumAttoFil)}
+								{gasPremiumAttoFil}
 							</dd>
 						</div>
 					{/if}
@@ -327,7 +325,7 @@
 						<div>
 							<dt>signature type</dt>
 							<dd>
-								<TruncatedValue value={String(signatureType)} />
+								{signatureType}
 							</dd>
 						</div>
 					{/if}

@@ -5,7 +5,6 @@
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 
 
 	// Context
@@ -22,13 +21,12 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.GitCommit> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const gitCommit = $derived(selection({
 		fields: {
 			message: true,
 		},
 	}))
-	const titleFallback = $derived(String(pendingEntity.objectId ?? '') || 'Git commit')
+	const titleFallback = $derived(selection.entitySelector.objectId || 'Git commit')
 
 
 	// Components
@@ -49,20 +47,20 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<TruncatedValue value={String(pendingEntity.objectId)} />
+		<TruncatedValue value={selection.entitySelector.objectId} />
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={gitCommit}>
 			{#snippet children(entity)}
-				{(entity.message ?? '') || String(pendingEntity.objectId) || titleFallback}
+				{(entity.message ?? '') || selection.entitySelector.objectId || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
 		<span data-text="muted">
-			{pendingEntity.objectFormat}
+			{selection.entitySelector.objectFormat}
 		</span>
 	{/snippet}
 
@@ -71,14 +69,14 @@
 			<div>
 				<dt>object ID</dt>
 				<dd>
-					<TruncatedValue value={String(pendingEntity.objectId)} />
+					<TruncatedValue value={selection.entitySelector.objectId} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>object format</dt>
 				<dd>
-					{pendingEntity.objectFormat}
+					{selection.entitySelector.objectFormat}
 				</dd>
 			</div>
 
@@ -95,7 +93,7 @@
 						}
 					>
 						{#snippet children(entity)}
-							<TruncatedValue value={String(entity.treeObjectId)} />
+							<TruncatedValue value={entity.treeObjectId} />
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -180,7 +178,7 @@
 						<div>
 							<dt>author timestamp ms</dt>
 							<dd>
-								<Timestamp timestamp={Number(authorTimestampMs)} />
+								<Timestamp timestamp={authorTimestampMs} />
 							</dd>
 						</div>
 					{/if}
@@ -246,7 +244,7 @@
 						<div>
 							<dt>committer timestamp ms</dt>
 							<dd>
-								<Timestamp timestamp={Number(committerTimestampMs)} />
+								<Timestamp timestamp={committerTimestampMs} />
 							</dd>
 						</div>
 					{/if}
@@ -267,15 +265,15 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const gitCommitGitSignaturesViewSignaturesResource = selection.$$signatures}
+		{@const signaturesResource = selection.$$signatures}
 		<ResourceBoundary
-			resource={gitCommitGitSignaturesViewSignaturesResource}
+			resource={signaturesResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<GitSignaturesView
-						selection={gitCommitGitSignaturesViewSignaturesResource}
-						countResource={gitCommitGitSignaturesViewSignaturesResource.count}
+						selection={signaturesResource}
+						countResource={signaturesResource.count}
 						title='signatures'
 						id='signatures'
 					/>

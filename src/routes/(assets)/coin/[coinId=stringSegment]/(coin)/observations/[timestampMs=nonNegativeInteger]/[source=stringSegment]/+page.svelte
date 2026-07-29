@@ -48,7 +48,7 @@
 
 
 <svelte:head>
-	<title>{('coin timestamp')} • coin timestamp • Blockhead</title>
+	<title>{'coin timestamp'} • coin timestamp • Blockhead</title>
 </svelte:head>
 
 

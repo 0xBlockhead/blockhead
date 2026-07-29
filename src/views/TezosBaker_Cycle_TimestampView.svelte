@@ -20,9 +20,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.TezosBaker_Cycle_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const titleFallback = 'tezos baker cycle timestamp'
-
 
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -33,7 +30,7 @@
 <EntityView
 	entityType={EntityType.TezosBaker_Cycle_Timestamp}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? 'tezos baker cycle timestamp'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -58,14 +55,14 @@
 			<div>
 				<dt>cycle</dt>
 				<dd>
-					{String(pendingEntity.cycle)}
+					{selection.entitySelector.cycle}
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 
@@ -84,7 +81,7 @@
 						<div>
 							<dt>snapshot level</dt>
 							<dd>
-								{String(snapshotLevel)}
+								{snapshotLevel}
 							</dd>
 						</div>
 					{/if}
@@ -106,7 +103,7 @@
 						<div>
 							<dt>staking balance mutez</dt>
 							<dd>
-								{String(stakingBalanceMutez)}
+								{stakingBalanceMutez}
 							</dd>
 						</div>
 					{/if}
@@ -128,7 +125,7 @@
 						<div>
 							<dt>delegated balance mutez</dt>
 							<dd>
-								{String(delegatedBalanceMutez)}
+								{delegatedBalanceMutez}
 							</dd>
 						</div>
 					{/if}
@@ -150,7 +147,7 @@
 						<div>
 							<dt>expected blocks</dt>
 							<dd>
-								{String(expectedBlocks)}
+								{expectedBlocks}
 							</dd>
 						</div>
 					{/if}
@@ -172,7 +169,7 @@
 						<div>
 							<dt>produced blocks</dt>
 							<dd>
-								{String(producedBlocks)}
+								{producedBlocks}
 							</dd>
 						</div>
 					{/if}
@@ -194,7 +191,7 @@
 						<div>
 							<dt>missed blocks</dt>
 							<dd>
-								{String(missedBlocks)}
+								{missedBlocks}
 							</dd>
 						</div>
 					{/if}
@@ -216,7 +213,7 @@
 						<div>
 							<dt>expected endorsements</dt>
 							<dd>
-								{String(expectedEndorsements)}
+								{expectedEndorsements}
 							</dd>
 						</div>
 					{/if}
@@ -238,7 +235,7 @@
 						<div>
 							<dt>missed endorsements</dt>
 							<dd>
-								{String(missedEndorsements)}
+								{missedEndorsements}
 							</dd>
 						</div>
 					{/if}
@@ -260,7 +257,7 @@
 						<div>
 							<dt>rewards mutez</dt>
 							<dd>
-								{String(rewardsMutez)}
+								{rewardsMutez}
 							</dd>
 						</div>
 					{/if}
@@ -282,7 +279,7 @@
 						<div>
 							<dt>fees mutez</dt>
 							<dd>
-								{String(feesMutez)}
+								{feesMutez}
 							</dd>
 						</div>
 					{/if}

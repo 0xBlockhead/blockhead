@@ -25,7 +25,7 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.LightningChannel> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const network = $derived(selection.entitySelector.$network)
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.LightningMempoolSpace_Rest,
@@ -39,7 +39,7 @@
 			fundingOutputIndex: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.shortChannelId ?? '') || (pendingEntity.channelId ?? '') || 'Lightning channel')
+	const titleFallback = $derived((prefetched.shortChannelId ?? '') || selection.entitySelector.channelId || 'Lightning channel')
 
 
 	// Components
@@ -59,18 +59,21 @@
 	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
 	href={
-		href ?? resolve(
-			'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/channels/[channelId=stringSegment]',
-			{
-				network: (
-					'caip2' in selection.entitySelector.$network ?
-						String(caip2StringFromValue(selection.entitySelector.$network.caip2))
-					:
-						String(selection.entitySelector.$network.slug)
-				),
-				channelId: String(selection.entitySelector.channelId),
-			}
-		)
+		href === undefined ?
+			resolve(
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/channels/[channelId=stringSegment]',
+				{
+					network: (
+						'caip2' in network ?
+							caip2StringFromValue(network.caip2)
+						:
+							network.slug
+					),
+					channelId: selection.entitySelector.channelId,
+				}
+			)
+		:
+			href ?? undefined
 	}
 	{layout}
 	bind:open
@@ -93,7 +96,7 @@
 					<LightningNodeView
 						selection={select(EntityType.LightningNode, lightningNode[EntityMetaKey.Selector])}
 						prefetched={lightningNode}
-						href=""
+						href={null}
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -107,7 +110,7 @@
 			<div>
 				<dt>Channel ID</dt>
 				<dd>
-					<TruncatedValue value={pendingEntity.channelId} />
+					<TruncatedValue value={selection.entitySelector.channelId} />
 				</dd>
 			</div>
 
@@ -209,7 +212,7 @@
 						<div>
 							<dt>Opened</dt>
 							<dd>
-								<Timestamp timestamp={Number(openedAtMs)} />
+								<Timestamp timestamp={openedAtMs} />
 							</dd>
 						</div>
 					{/if}
@@ -219,30 +222,30 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const lightningChannelLightningChannelTimestampsViewTimestampsResource = selection.$$timestamps}
+		{@const timestampsResource = selection.$$timestamps}
 		<ResourceBoundary
-			resource={lightningChannelLightningChannelTimestampsViewTimestampsResource}
+			resource={timestampsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<LightningChannel_TimestampsView
-						selection={lightningChannelLightningChannelTimestampsViewTimestampsResource}
-						countResource={lightningChannelLightningChannelTimestampsViewTimestampsResource.count}
+						selection={timestampsResource}
+						countResource={timestampsResource.count}
 						title='Observations'
 						id='timestamps'
 					/>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>
-		{@const lightningChannelBlockheadLightningChannelStatesViewLocalStatesResource = selection.$$localStates}
+		{@const localStatesResource = selection.$$localStates}
 		<ResourceBoundary
-			resource={lightningChannelBlockheadLightningChannelStatesViewLocalStatesResource}
+			resource={localStatesResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<BlockheadLightningChannelStatesView
-						selection={lightningChannelBlockheadLightningChannelStatesViewLocalStatesResource}
-						countResource={lightningChannelBlockheadLightningChannelStatesViewLocalStatesResource.count}
+						selection={localStatesResource}
+						countResource={localStatesResource.count}
 						title='Local states'
 						id='local-states'
 					/>

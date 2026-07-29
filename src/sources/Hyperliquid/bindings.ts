@@ -1,10 +1,10 @@
 // Generated from APP.ts. Do not edit by hand.
 
 import { Source } from '$/sources/Source.ts'
-import { ApiFamily, SourceArtifactKind, SourceCredentialScope, SourceDelivery, SourceEndpointKind, SourceOperationGroup, SourceTargetKind, WireProtocol, type SourceBindingIndex } from '$/sources/SourceBinding.ts'
+import { ApiFamily, indexSourceBindings, SourceArtifactKind, SourceCredentialScope, SourceDelivery, SourceEndpointKind, SourceOperationGroup, SourceTargetKind, WireProtocol, type SourceBinding } from '$/sources/SourceBinding.ts'
 
-export default {
-	[Source.Hyperliquid_Rest]: {
+const bindings = [
+	{
 		source: Source.Hyperliquid_Rest,
 		target: {
 			kind: SourceTargetKind.NetworkSlug,
@@ -37,7 +37,7 @@ export default {
 			},
 		],
 	},
-	[Source.Hyperliquid_JsonRpc]: {
+	{
 		source: Source.Hyperliquid_JsonRpc,
 		target: {
 			kind: SourceTargetKind.Eip155Chain,
@@ -75,4 +75,9 @@ export default {
 			},
 		],
 	},
-} as const satisfies SourceBindingIndex
+] as const satisfies readonly SourceBinding[]
+
+export default indexSourceBindings<{
+	readonly [Source.Hyperliquid_Rest]: typeof bindings[0]
+	readonly [Source.Hyperliquid_JsonRpc]: typeof bindings[1]
+}>(bindings)

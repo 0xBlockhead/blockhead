@@ -45,7 +45,7 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{(elementsAsset.ticker ?? '')}
+				{elementsAsset.ticker ?? ''}
 			{/snippet}
 
 			{#snippet HeadingAfter()}

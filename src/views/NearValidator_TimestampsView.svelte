@@ -45,11 +45,11 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{(nearValidatorTimestamp.validatorSetRole ?? '')}
+				{nearValidatorTimestamp.validatorSetRole ?? ''}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{String(nearValidatorTimestamp.timestampMs ?? '')}</span>
+				<span data-text="annotation">{nearValidatorTimestamp.timestampMs ?? ''}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

@@ -56,7 +56,7 @@
 	{#snippet Title()}
 		<NetworkView
 			selection={select(EntityType.Network, selection.entitySelector.$network)}
-			href=""
+			href={null}
 			layout={EntityLayout.Title}
 			open={false}
 		/>
@@ -194,15 +194,15 @@
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}
-		{@const elementsNetworkElementsAssetsViewAssetsResource = selection.$$assets}
+		{@const assetsResource = selection.$$assets}
 		<ResourceBoundary
-			resource={elementsNetworkElementsAssetsViewAssetsResource}
+			resource={assetsResource}
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
 					<ElementsAssetsView
-						selection={elementsNetworkElementsAssetsViewAssetsResource}
-						countResource={elementsNetworkElementsAssetsViewAssetsResource.count}
+						selection={assetsResource}
+						countResource={assetsResource.count}
 						title='Assets'
 						id='assets'
 					/>

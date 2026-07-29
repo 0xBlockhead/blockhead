@@ -19,13 +19,11 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.XmtpConversation> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const viewSelection = $derived(selection({
+	const xmtpConversation = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Local_Internal,
 		],
-	}))
-	const xmtpConversation = $derived(viewSelection({
+	})({
 		fields: {
 			peerInboxId: true,
 			topic: true,
@@ -33,7 +31,7 @@
 			consentState: true,
 		},
 	}))
-	const titleFallback = $derived([(pendingEntity.topic ?? ''), (pendingEntity.peerInboxId ?? ''), (pendingEntity.id ?? '')].filter(Boolean).join(' ') || 'XMTP conversation')
+	const titleFallback = $derived([(prefetched.topic ?? ''), (prefetched.peerInboxId ?? ''), selection.entitySelector.id].filter(Boolean).join(' ') || 'XMTP conversation')
 
 
 	// Components
@@ -48,12 +46,15 @@
 	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
 	href={
-		href ?? resolve(
-			'/(social)/(xmtp)/xmtp/(xmtpNetwork)/conversation/[conversationId=stringSegment]',
-			{
-				conversationId: String(selection.entitySelector.id),
-			}
-		)
+		href === undefined ?
+			resolve(
+				'/(social)/(xmtp)/xmtp/(xmtpNetwork)/conversation/[conversationId=stringSegment]',
+				{
+					conversationId: selection.entitySelector.id,
+				}
+			)
+		:
+			href ?? undefined
 	}
 	{layout}
 	bind:open
@@ -62,22 +63,22 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={xmtpConversation}>
 			{#snippet children(entity)}
-				{[(entity.topic ?? ''), (entity.peerInboxId ?? ''), pendingEntity.id].filter(Boolean).join(' ') || title || titleFallback}
+				{[(entity.topic ?? ''), (entity.peerInboxId ?? ''), selection.entitySelector.id].filter(Boolean).join(' ') || title || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Value()}
-		<TruncatedValue value={pendingEntity.id} />
+		<TruncatedValue value={selection.entitySelector.id} />
 	{/snippet}
 
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={xmtpConversation}>
 			{#snippet children(entity)}
-				{@const createdAtMs0 = entity.createdAtMs}
-				{#if createdAtMs0 != null}
+				{@const createdAtMs = entity.createdAtMs}
+				{#if createdAtMs != null}
 					<span data-text="muted">
-						<Timestamp timestamp={Number(createdAtMs0)} />
+						<Timestamp timestamp={createdAtMs} />
 					</span>
 				{/if}
 			{/snippet}
@@ -149,7 +150,7 @@
 						<div>
 							<dt>Created</dt>
 							<dd>
-								<Timestamp timestamp={Number(createdAtMs)} />
+								<Timestamp timestamp={createdAtMs} />
 							</dd>
 						</div>
 					{/if}
@@ -161,7 +162,7 @@
 			<div>
 				<dt>ID</dt>
 				<dd>
-					<TruncatedValue value={pendingEntity.id} />
+					<TruncatedValue value={selection.entitySelector.id} />
 				</dd>
 			</div>
 		</dl>

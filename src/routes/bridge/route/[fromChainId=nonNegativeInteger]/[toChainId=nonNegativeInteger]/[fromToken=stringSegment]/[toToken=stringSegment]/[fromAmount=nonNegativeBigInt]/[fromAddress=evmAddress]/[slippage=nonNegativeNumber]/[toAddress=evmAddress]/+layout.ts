@@ -13,7 +13,17 @@ import { schema } from '$/schema/index.ts'
 import { type as arktype } from 'arktype'
 
 export const load: LayoutLoad = ({ params }) => {
-	if (!(matchNonNegativeInteger(params.fromChainId) && matchNonNegativeInteger(params.toChainId) && matchStringSegment(params.fromToken) && matchStringSegment(params.toToken) && matchNonNegativeBigInt(params.fromAmount) && matchEvmAddress(params.fromAddress) && matchNonNegativeNumber(params.slippage) && matchEvmAddress(params.toAddress))) error(404, 'Route mapping not applicable')
+	if (!(
+		matchNonNegativeInteger(params.fromChainId)
+		&& matchNonNegativeInteger(params.toChainId)
+		&& matchStringSegment(params.fromToken)
+		&& matchStringSegment(params.toToken)
+		&& matchNonNegativeBigInt(params.fromAmount)
+		&& matchEvmAddress(params.fromAddress)
+		&& matchNonNegativeNumber(params.slippage)
+		&& matchEvmAddress(params.toAddress)
+	))
+		error(404, 'Route mapping not applicable')
 
 	const bridgeRouteQuoteSelector = parseEntitySelector(
 		schema,
@@ -29,7 +39,8 @@ export const load: LayoutLoad = ({ params }) => {
 			toAddress: params.toAddress,
 		}
 	)
-	if (bridgeRouteQuoteSelector instanceof arktype.errors) error(404, 'Invalid BridgeRoute selector')
+	if (bridgeRouteQuoteSelector instanceof arktype.errors)
+		error(404, 'Invalid BridgeRoute selector')
 
 	return {
 		selector: bridgeRouteQuoteSelector,

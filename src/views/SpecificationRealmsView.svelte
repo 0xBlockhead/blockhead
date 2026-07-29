@@ -44,7 +44,7 @@
 				resolve(
 					'/(proposals)/proposals/[specificationRealmSlug=specificationRealmSlug]',
 					{
-						specificationRealmSlug: String(specificationRealmById[String(specificationRealmSelector.realm)].slug),
+						specificationRealmSlug: specificationRealmById[specificationRealmSelector.realm].slug,
 					}
 				)
 			}

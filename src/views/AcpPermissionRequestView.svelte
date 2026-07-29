@@ -21,7 +21,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.AcpPermissionRequest> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.AcpLocal_JsonRpc,
@@ -33,7 +32,7 @@
 			decision: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.requestId ?? '') || 'ACP permission request')
+	const titleFallback = $derived(selection.entitySelector.requestId || 'ACP permission request')
 
 
 	// Components
@@ -52,13 +51,13 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{(pendingEntity.requestId ?? '') || 'ACP permission request'}
+		{selection.entitySelector.requestId || 'ACP permission request'}
 	{/snippet}
 
 	{#snippet Value()}
 		<ResourceBoundary resource={acpPermissionRequest}>
 			{#snippet children(entity)}
-				{entity.requestKind || pendingEntity.requestId || titleFallback}
+				{entity.requestKind || selection.entitySelector.requestId || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -66,10 +65,10 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={acpPermissionRequest}>
 			{#snippet children(entity)}
-				{@const decision0 = entity.decision}
-				{#if decision0 != null}
+				{@const decision = entity.decision}
+				{#if decision != null}
 					<span data-text="muted">
-						{decision0}
+						{decision}
 					</span>
 				{/if}
 			{/snippet}
@@ -92,7 +91,7 @@
 			<div>
 				<dt>request ID</dt>
 				<dd>
-					{pendingEntity.requestId}
+					{selection.entitySelector.requestId}
 				</dd>
 			</div>
 
@@ -142,7 +141,7 @@
 						<div>
 							<dt>Created</dt>
 							<dd>
-								<Timestamp timestamp={Number(createdAt)} />
+								<Timestamp timestamp={createdAt} />
 							</dd>
 						</div>
 					{/if}
@@ -164,7 +163,7 @@
 						<div>
 							<dt>resolved AT</dt>
 							<dd>
-								<Timestamp timestamp={Number(resolvedAt)} />
+								<Timestamp timestamp={resolvedAt} />
 							</dd>
 						</div>
 					{/if}

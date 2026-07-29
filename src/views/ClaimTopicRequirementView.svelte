@@ -20,9 +20,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.ClaimTopicRequirement> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const titleFallback = 'claim topic requirement'
-
 
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -33,7 +30,7 @@
 <EntityView
 	entityType={EntityType.ClaimTopicRequirement}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? 'claim topic requirement'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -58,7 +55,7 @@
 			<div>
 				<dt>topic key</dt>
 				<dd>
-					{pendingEntity.topicKey}
+					{selection.entitySelector.topicKey}
 				</dd>
 			</div>
 
@@ -77,7 +74,7 @@
 						<div>
 							<dt>claim topic</dt>
 							<dd>
-								{String(claimTopic)}
+								{claimTopic}
 							</dd>
 						</div>
 					{/if}

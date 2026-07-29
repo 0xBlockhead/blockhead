@@ -20,9 +20,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.TronWitness_Timestamp> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const titleFallback = 'tron witness timestamp'
-
 
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -35,7 +32,7 @@
 <EntityView
 	entityType={EntityType.TronWitness_Timestamp}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? 'tron witness timestamp'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -60,14 +57,14 @@
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<Timestamp timestamp={Number(pendingEntity.timestampMs)} />
+					<Timestamp timestamp={selection.entitySelector.timestampMs} />
 				</dd>
 			</div>
 
 			<div>
 				<dt>Source</dt>
 				<dd>
-					{pendingEntity.source}
+					{selection.entitySelector.source}
 				</dd>
 			</div>
 
@@ -87,11 +84,11 @@
 							<dt>URL</dt>
 							<dd>
 								<a
-									href={String(url)}
+									href={url}
 									target="_blank"
 									rel="noreferrer noopener"
 								>
-									<TruncatedValue value={String(url)} />
+									<TruncatedValue value={url} />
 								</a>
 							</dd>
 						</div>
@@ -114,7 +111,7 @@
 						<div>
 							<dt>Votes</dt>
 							<dd>
-								{String(voteCount)}
+								{voteCount}
 							</dd>
 						</div>
 					{/if}
@@ -136,7 +133,7 @@
 						<div>
 							<dt>Total produced</dt>
 							<dd>
-								{String(totalProduced)}
+								{totalProduced}
 							</dd>
 						</div>
 					{/if}
@@ -158,7 +155,7 @@
 						<div>
 							<dt>Total missed</dt>
 							<dd>
-								{String(totalMissed)}
+								{totalMissed}
 							</dd>
 						</div>
 					{/if}
@@ -180,7 +177,7 @@
 						<div>
 							<dt>Latest block height</dt>
 							<dd>
-								{String(latestBlockHeight)}
+								{latestBlockHeight}
 							</dd>
 						</div>
 					{/if}
@@ -202,7 +199,7 @@
 						<div>
 							<dt>Latest slot number</dt>
 							<dd>
-								{String(latestSlotNumber)}
+								{latestSlotNumber}
 							</dd>
 						</div>
 					{/if}

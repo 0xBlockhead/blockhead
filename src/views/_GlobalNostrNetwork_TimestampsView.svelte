@@ -46,7 +46,7 @@
 			entitySelector={globalNostrNetworkTimestampSelector}
 		>
 			{#snippet Title()}
-				{String(globalNostrNetworkTimestampSelector.timestampMs) || 'global Nostr network timestamp'}
+				{globalNostrNetworkTimestampSelector.timestampMs}
 			{/snippet}
 
 			{#snippet Value()}
@@ -54,7 +54,7 @@
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{String(globalNostrNetworkTimestamp.observedNoteCount ?? '')}</span>
+				<span data-text="annotation">{globalNostrNetworkTimestamp.observedNoteCount ?? ''}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

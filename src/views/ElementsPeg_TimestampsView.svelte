@@ -41,15 +41,15 @@
 			entitySelector={elementsPegTimestampSelector}
 		>
 			{#snippet Title()}
-				{String(elementsPegTimestampSelector.timestampMs) || 'Elements peg observation'}
+				{elementsPegTimestampSelector.timestampMs}
 			{/snippet}
 
 			{#snippet Value()}
-				{(elementsPegTimestamp.status ?? '')}
+				{elementsPegTimestamp.status ?? ''}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{String(elementsPegTimestamp.confirmations ?? '')}</span>
+				<span data-text="annotation">{elementsPegTimestamp.confirmations ?? ''}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

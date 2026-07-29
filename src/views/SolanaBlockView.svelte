@@ -24,13 +24,12 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.SolanaBlock> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const network = $derived(selection.entitySelector.$network)
 	const solanaBlock = $derived(selection({
 		fields: {
 			blockHeight: true,
 		},
 	}))
-	const titleFallback = $derived((String(pendingEntity.slot ?? '') ? 'Slot #' + String(pendingEntity.slot ?? '') : '') || 'solana block')
 
 
 	// Components
@@ -46,21 +45,24 @@
 <EntityView
 	entityType={EntityType.SolanaBlock}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
-	idDragPlainText={String(pendingEntity.slot ?? '')}
+	title={title ?? `Slot #${selection.entitySelector.slot}`}
+	idDragPlainText={String(selection.entitySelector.slot)}
 	href={
-		href ?? resolve(
-			'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(blocks)/block/[blockNumber=nonNegativeBigInt]',
-			{
-				network: (
-					'caip2' in selection.entitySelector.$network ?
-						String(caip2StringFromValue(selection.entitySelector.$network.caip2))
-					:
-						String(selection.entitySelector.$network.slug)
-				),
-				blockNumber: String(selection.entitySelector.slot),
-			}
-		)
+		href === undefined ?
+			resolve(
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(blocks)/block/[blockNumber=nonNegativeBigInt]',
+				{
+					network: (
+						'caip2' in network ?
+							caip2StringFromValue(network.caip2)
+						:
+							network.slug
+					),
+					blockNumber: String(selection.entitySelector.slot),
+				}
+			)
+		:
+			href ?? undefined
 	}
 	{layout}
 	bind:open
@@ -70,24 +72,24 @@
 		<span data-row="inline align-center gap-2 wrap">
 			<span>Slot </span>
 			<span data-badge="small">
-				#{String(pendingEntity.slot)}
+				#{selection.entitySelector.slot}
 			</span>
 		</span>
 	{/snippet}
 
 	{#snippet Value()}
 		<span data-badge="small">
-			#{String(pendingEntity.slot)}
+			#{selection.entitySelector.slot}
 		</span>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={solanaBlock}>
 			{#snippet children(entity)}
-				{@const blockHeight0 = entity.blockHeight}
-				{#if blockHeight0 != null}
+				{@const blockHeight = entity.blockHeight}
+				{#if blockHeight != null}
 					<span data-text="muted">
-						{String(blockHeight0)}
+						{blockHeight}
 					</span>
 				{/if}
 			{/snippet}
@@ -99,7 +101,7 @@
 			<div>
 				<dt>Slot</dt>
 				<dd>
-					{String(pendingEntity.slot)}
+					{selection.entitySelector.slot}
 				</dd>
 			</div>
 
@@ -112,7 +114,7 @@
 						<div>
 							<dt>Block height</dt>
 							<dd>
-								{String(blockHeight)}
+								{blockHeight}
 							</dd>
 						</div>
 					{/if}
@@ -180,7 +182,7 @@
 						<div>
 							<dt>Parent slot</dt>
 							<dd>
-								{String(parentSlot)}
+								{parentSlot}
 							</dd>
 						</div>
 					{/if}
@@ -202,7 +204,7 @@
 						<div>
 							<dt>Timestamp</dt>
 							<dd>
-								<Timestamp timestamp={Number(timestampMs)} />
+								<Timestamp timestamp={timestampMs} />
 							</dd>
 						</div>
 					{/if}
@@ -224,7 +226,7 @@
 						<div>
 							<dt>Transaction count</dt>
 							<dd>
-								{String(transactionCount)}
+								{transactionCount}
 							</dd>
 						</div>
 					{/if}

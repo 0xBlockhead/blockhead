@@ -20,14 +20,13 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.AvalancheDelegator> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const avalancheDelegator = $derived(selection({
 		fields: {
 			delegatorAddress: true,
 			stakeAmountNavax: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.delegatorAddress ?? '') || (pendingEntity.txId ?? '') || 'avalanche delegator')
+	const titleFallback = $derived((prefetched.delegatorAddress ?? '') || selection.entitySelector.txId || 'avalanche delegator')
 
 
 	// Components
@@ -58,10 +57,10 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={avalancheDelegator}>
 			{#snippet children(entity)}
-				{@const stakeAmountNavax0 = entity.stakeAmountNavax}
-				{#if stakeAmountNavax0 != null}
+				{@const stakeAmountNavax = entity.stakeAmountNavax}
+				{#if stakeAmountNavax != null}
 					<NumberValue
-						value={stakeAmountNavax0}
+						value={stakeAmountNavax}
 					/>
 				{/if}
 			{/snippet}
@@ -84,7 +83,7 @@
 			<div>
 				<dt>transaction ID</dt>
 				<dd>
-					<TruncatedValue value={pendingEntity.txId} />
+					<TruncatedValue value={selection.entitySelector.txId} />
 				</dd>
 			</div>
 
@@ -163,7 +162,7 @@
 						<div>
 							<dt>start time ms</dt>
 							<dd>
-								<Timestamp timestamp={Number(startTimeMs)} />
+								<Timestamp timestamp={startTimeMs} />
 							</dd>
 						</div>
 					{/if}
@@ -185,7 +184,7 @@
 						<div>
 							<dt>end time ms</dt>
 							<dd>
-								<Timestamp timestamp={Number(endTimeMs)} />
+								<Timestamp timestamp={endTimeMs} />
 							</dd>
 						</div>
 					{/if}

@@ -42,7 +42,7 @@
 			entitySelector={bitTorrentSwarmObservationTimestampSelector}
 		>
 			{#snippet Title()}
-				{String(bitTorrentSwarmObservationTimestampSelector.timestampMs) || 'bit torrent swarm observation timestamp'}
+				{bitTorrentSwarmObservationTimestampSelector.timestampMs}
 			{/snippet}
 
 			{#snippet Value()}

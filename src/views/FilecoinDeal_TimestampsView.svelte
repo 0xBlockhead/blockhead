@@ -41,15 +41,15 @@
 			entitySelector={filecoinDealTimestampSelector}
 		>
 			{#snippet Title()}
-				{String(filecoinDealTimestampSelector.timestampMs) || 'filecoin deal timestamp'}
+				{filecoinDealTimestampSelector.timestampMs}
 			{/snippet}
 
 			{#snippet Value()}
-				{String(filecoinDealTimestamp.verifiedDeal ?? '')}
+				{filecoinDealTimestamp.verifiedDeal ?? ''}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{String(filecoinDealTimestamp.height ?? '')}</span>
+				<span data-text="annotation">{filecoinDealTimestamp.height ?? ''}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

@@ -54,7 +54,7 @@
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{[(evmContractCompilation.$contract.precompileName ?? ''), String(evmContractCompilationSelector.$contract.address)].filter(Boolean).join(' ') || 'EVM contract'}</span>
+				<span data-text="annotation">{[(evmContractCompilation.$contract.precompileName ?? ''), evmContractCompilationSelector.$contract.address].filter(Boolean).join(' ') || 'EVM contract'}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

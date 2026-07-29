@@ -44,47 +44,46 @@
 >
 	{#snippet Item({ item: solanaInstruction })}
 		{@const solanaInstructionSelector = solanaInstruction[EntityMetaKey.Selector]}
+		{@const transaction = solanaInstructionSelector.$transaction}
 		<EntityView
 			entityType={EntityType.SolanaInstruction}
 			entitySelector={solanaInstructionSelector}
 			href={
-				(
-					solanaInstructionSelector.instructionKind === 'InnerInstruction'
-					&& 'indexInInstruction' in solanaInstructionSelector ?
+				solanaInstructionSelector.instructionKind === 'InnerInstruction'
+				&& 'indexInInstruction' in solanaInstructionSelector ?
+					resolve(
+						'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(transactions)/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/(selection)/instruction/[instructionKind=stringSegment]/[indexInTransaction=nonNegativeInteger]/(solanaInstruction)/inner/[indexInInstruction=nonNegativeInteger]',
+						{
+							network: (
+								'caip2' in transaction.$network ?
+									caip2StringFromValue(transaction.$network.caip2)
+								:
+									transaction.$network.slug
+							),
+							transactionId: transaction.signature,
+							instructionKind: solanaInstructionSelector.instructionKind,
+							indexInTransaction: String(solanaInstructionSelector.indexInTransaction),
+							indexInInstruction: String(solanaInstructionSelector.indexInInstruction),
+						}
+					)
+				:
+					solanaInstructionSelector.instructionKind === 'Instruction' ?
 						resolve(
-							'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(transactions)/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/(selection)/instruction/[instructionKind=stringSegment]/[indexInTransaction=nonNegativeInteger]/(solanaInstruction)/inner/[indexInInstruction=nonNegativeInteger]',
+							'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(transactions)/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/(selection)/instruction/[instructionKind=stringSegment]/[indexInTransaction=nonNegativeInteger]',
 							{
 								network: (
-									'caip2' in solanaInstructionSelector.$transaction.$network ?
-										String(caip2StringFromValue(solanaInstructionSelector.$transaction.$network.caip2))
+									'caip2' in transaction.$network ?
+										caip2StringFromValue(transaction.$network.caip2)
 									:
-										String(solanaInstructionSelector.$transaction.$network.slug)
+										transaction.$network.slug
 								),
-								transactionId: String(solanaInstructionSelector.$transaction.signature),
-								instructionKind: String(solanaInstructionSelector.instructionKind),
+								transactionId: transaction.signature,
+								instructionKind: solanaInstructionSelector.instructionKind,
 								indexInTransaction: String(solanaInstructionSelector.indexInTransaction),
-								indexInInstruction: String(solanaInstructionSelector.indexInInstruction),
 							}
 						)
 					:
-						solanaInstructionSelector.instructionKind === 'Instruction' ?
-							resolve(
-								'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(transactions)/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/(selection)/instruction/[instructionKind=stringSegment]/[indexInTransaction=nonNegativeInteger]',
-								{
-									network: (
-										'caip2' in solanaInstructionSelector.$transaction.$network ?
-											String(caip2StringFromValue(solanaInstructionSelector.$transaction.$network.caip2))
-										:
-											String(solanaInstructionSelector.$transaction.$network.slug)
-									),
-									transactionId: String(solanaInstructionSelector.$transaction.signature),
-									instructionKind: String(solanaInstructionSelector.instructionKind),
-									indexInTransaction: String(solanaInstructionSelector.indexInTransaction),
-								}
-							)
-						:
-							undefined
-				)
+						undefined
 			}
 		>
 			{#snippet Title()}

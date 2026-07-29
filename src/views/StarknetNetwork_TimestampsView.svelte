@@ -41,15 +41,15 @@
 			entitySelector={starknetNetworkTimestampSelector}
 		>
 			{#snippet Title()}
-				{(starknetNetworkTimestamp.$network.$network.name || (starknetNetworkTimestampSelector.$network.$network.caip2 == null ? '' : `${starknetNetworkTimestampSelector.$network.$network.caip2.namespace}:${starknetNetworkTimestampSelector.$network.$network.caip2.reference}`) || 'Network')}
+				{starknetNetworkTimestamp.$network.$network.name || (starknetNetworkTimestampSelector.$network.$network.caip2 == null ? '' : `${starknetNetworkTimestampSelector.$network.$network.caip2.namespace}:${starknetNetworkTimestampSelector.$network.$network.caip2.reference}`) || 'Network'}
 			{/snippet}
 
 			{#snippet Value()}
-				{String(starknetNetworkTimestampSelector.timestampMs)}
+				{starknetNetworkTimestampSelector.timestampMs}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{String(starknetNetworkTimestamp.latestBlockNumber ?? '')}</span>
+				<span data-text="annotation">{starknetNetworkTimestamp.latestBlockNumber ?? ''}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

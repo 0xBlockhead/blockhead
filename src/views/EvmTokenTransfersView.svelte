@@ -6,7 +6,6 @@
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { EvmTokenStandard } from '$/constants/Evm.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
 	import { Source } from '$/sources/Source.ts'
 
@@ -58,6 +57,7 @@
 >
 	{#snippet Item({ item: evmTokenTransfer })}
 		{@const evmTokenTransferSelector = evmTokenTransfer[EntityMetaKey.Selector]}
+		{@const log = evmTokenTransferSelector.$log}
 		{@const selection = select(EntityType.EvmTokenTransfer, evmTokenTransferSelector)}
 		<ProjectionBoundary
 			resource={selection.Nft}
@@ -75,24 +75,24 @@
 									'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(transactions)/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/(selection)/log/[indexInTransaction=nonNegativeInteger]/(evmLog)/token-transfer/[transferIndex=nonNegativeInteger]',
 									{
 										network: (
-											'caip2' in evmTokenTransferSelector.$log.$transaction.$network ?
-												String(caip2StringFromValue(evmTokenTransferSelector.$log.$transaction.$network.caip2))
+											'caip2' in log.$transaction.$network ?
+												caip2StringFromValue(log.$transaction.$network.caip2)
 											:
-												String(evmTokenTransferSelector.$log.$transaction.$network.slug)
+												log.$transaction.$network.slug
 										),
-										transactionId: String(evmTokenTransferSelector.$log.$transaction.txHash),
-										indexInTransaction: String(evmTokenTransferSelector.$log.indexInTransaction),
+										transactionId: log.$transaction.txHash,
+										indexInTransaction: String(log.indexInTransaction),
 										transferIndex: String(evmTokenTransferSelector.indexInLog),
 									}
 								)
 							}
 						>
 							{#snippet Title()}
-								{(String(evmTokenTransferSelector.indexInLog ?? '') ? 'Transfer #' + String(evmTokenTransferSelector.indexInLog ?? '') : '') || ([(String(evmTokenTransferSelector.indexInLog) ? 'Transfer #' + String(evmTokenTransferSelector.indexInLog) : ''), evmTokenTransfer.standard, String(evmTokenTransfer.amount)].filter(Boolean).join(' ')) || (String(evmTokenTransferSelector.indexInLog) ? '#' + String(evmTokenTransferSelector.indexInLog) : '') || 'Token transfer'}
+								{`Transfer #${evmTokenTransferSelector.indexInLog}`}
 							{/snippet}
 
 							{#snippet HeadingAfter()}
-								<span data-text="annotation">{[(evmTokenTransfer.tokenSymbol ?? ''), String(nftTokenId0 ?? '')].filter(Boolean).join(' ')}</span>
+								<span data-text="annotation">{[(evmTokenTransfer.tokenSymbol ?? ''), String(nftTokenId0)].filter(Boolean).join(' ')}</span>
 							{/snippet}
 						</EntityView>
 					{/snippet}

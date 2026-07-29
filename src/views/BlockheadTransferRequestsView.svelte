@@ -51,7 +51,7 @@
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{String(blockheadTransferRequest.createdAt)}</span>
+				<span data-text="annotation">{blockheadTransferRequest.createdAt}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

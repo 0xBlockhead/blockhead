@@ -2,7 +2,8 @@
 
 import bindings from '$/sources/Github/bindings.ts'
 import { Source } from '$/sources/Source.ts'
-import { SourceProvider, type SourceProviderDefinition } from '$/sources/SourceProvider.ts'
+import { SourceProvider } from '$/sources/SourceProvider.ts'
+import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinition.ts'
 
 export default {
 	provider: SourceProvider.Github,
@@ -17,8 +18,5 @@ export default {
 			label: 'GitHub Git',
 		},
 	],
-	bindings: [
-		bindings[Source.Github_Rest],
-		bindings[Source.Github_Git],
-	],
+	bindings: Object.values(bindings).flat(),
 } satisfies SourceProviderDefinition

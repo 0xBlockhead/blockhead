@@ -39,28 +39,27 @@
 >
 	{#snippet Item({ item: blockheadBridgeTransaction })}
 		{@const blockheadBridgeTransactionSelector = blockheadBridgeTransaction[EntityMetaKey.Selector]}
+		{@const sourceTx = blockheadBridgeTransactionSelector.$sourceTx}
 		<EntityView
 			entityType={EntityType.BlockheadBridgeTransaction}
 			entitySelector={blockheadBridgeTransactionSelector}
 			href={
-				(
-					'caip2' in blockheadBridgeTransactionSelector.$sourceTx.$network ?
-						resolve(
-							'/~/accounts/transaction/[chainId=eip155ChainId]/[address=evmAddress]/[sourceTxHash=stringSegment]/[createdAt=nonNegativeInteger]',
-							{
-								chainId: String(blockheadBridgeTransactionSelector.$sourceTx.$network.caip2.reference),
-								address: String(blockheadBridgeTransactionSelector.$account.address),
-								sourceTxHash: encodeURIComponent(String(blockheadBridgeTransactionSelector.$sourceTx.txHash)),
-								createdAt: String(blockheadBridgeTransactionSelector.createdAt),
-							}
-						)
-					:
-						undefined
-				)
+				'caip2' in sourceTx.$network ?
+					resolve(
+						'/~/accounts/transaction/[chainId=eip155ChainId]/[address=evmAddress]/[sourceTxHash=stringSegment]/[createdAt=nonNegativeInteger]',
+						{
+							chainId: sourceTx.$network.caip2.reference,
+							address: blockheadBridgeTransactionSelector.$account.address,
+							sourceTxHash: encodeURIComponent(sourceTx.txHash),
+							createdAt: String(blockheadBridgeTransactionSelector.createdAt),
+						}
+					)
+				:
+					undefined
 			}
 		>
 			{#snippet Title()}
-				{String(blockheadBridgeTransactionSelector.createdAt) || 'bridge transaction'}
+				{blockheadBridgeTransactionSelector.createdAt}
 			{/snippet}
 
 			{#snippet Value()}
@@ -68,7 +67,7 @@
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{String(blockheadBridgeTransactionSelector.$account.address) || 'EVM account'}</span>
+				<span data-text="annotation">{blockheadBridgeTransactionSelector.$account.address || 'EVM account'}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

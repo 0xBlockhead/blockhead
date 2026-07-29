@@ -47,11 +47,11 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{(nearContractStorageEntry.valueHash ?? '')}
+				{nearContractStorageEntry.valueHash ?? ''}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{String(nearContractStorageEntrySelector.blockHeight)}</span>
+				<span data-text="annotation">{nearContractStorageEntrySelector.blockHeight}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

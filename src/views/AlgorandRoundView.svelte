@@ -4,7 +4,6 @@
 	// Types/constants
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 
 
 	// Context
@@ -21,9 +20,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.AlgorandRound> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
-	const titleFallback = 'algorand round'
-
 
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -36,7 +32,7 @@
 <EntityView
 	entityType={EntityType.AlgorandRound}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? 'algorand round'}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -61,7 +57,7 @@
 			<div>
 				<dt>round</dt>
 				<dd>
-					{String(pendingEntity.round)}
+					{selection.entitySelector.round}
 				</dd>
 			</div>
 
@@ -80,7 +76,7 @@
 						<div>
 							<dt>Hash</dt>
 							<dd>
-								<TruncatedValue value={String(hash)} />
+								<TruncatedValue value={hash} />
 							</dd>
 						</div>
 					{/if}
@@ -104,7 +100,7 @@
 						<div>
 							<dt>Timestamp</dt>
 							<dd>
-								<Timestamp timestamp={Number(timestampMs)} />
+								<Timestamp timestamp={timestampMs} />
 							</dd>
 						</div>
 					{/if}
@@ -126,7 +122,7 @@
 						<div>
 							<dt>genesis hash</dt>
 							<dd>
-								<TruncatedValue value={String(genesisHash)} />
+								<TruncatedValue value={genesisHash} />
 							</dd>
 						</div>
 					{/if}

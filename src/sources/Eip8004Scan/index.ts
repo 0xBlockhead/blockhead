@@ -2,7 +2,8 @@
 
 import bindings from '$/sources/Eip8004Scan/bindings.ts'
 import { Source } from '$/sources/Source.ts'
-import { SourceProvider, type SourceProviderDefinition } from '$/sources/SourceProvider.ts'
+import { SourceProvider } from '$/sources/SourceProvider.ts'
+import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinition.ts'
 
 export default {
 	provider: SourceProvider.Eip8004Scan,
@@ -13,5 +14,5 @@ export default {
 			label: '8004scan REST',
 		},
 	],
-	bindings: [bindings[Source.Eip8004Scan_Rest]],
+	bindings: Object.values(bindings).flat(),
 } satisfies SourceProviderDefinition

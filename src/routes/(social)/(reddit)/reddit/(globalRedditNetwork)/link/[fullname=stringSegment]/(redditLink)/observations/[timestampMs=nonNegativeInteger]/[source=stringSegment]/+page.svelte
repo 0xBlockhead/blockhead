@@ -43,7 +43,7 @@
 
 
 <svelte:head>
-	<title>{(String(pageSelection.entitySelector.timestampMs) || 'Reddit submission timestamp')} • Reddit submission timestamp • Blockhead</title>
+	<title>{String(pageSelection.entitySelector.timestampMs) || 'Reddit submission timestamp'} • Reddit submission timestamp • Blockhead</title>
 </svelte:head>
 
 

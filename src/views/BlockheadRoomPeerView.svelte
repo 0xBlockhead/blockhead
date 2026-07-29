@@ -24,7 +24,6 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.BlockheadRoomPeer> = $props()
 
-	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Local_Internal,
@@ -38,7 +37,7 @@
 			joinedAt: true,
 		},
 	}))
-	const titleFallback = $derived((pendingEntity.displayName ?? '') || (pendingEntity.peerId ?? '') || 'contact')
+	const titleFallback = $derived((prefetched.displayName ?? '') || (prefetched.peerId ?? '') || 'contact')
 
 
 	// Components
@@ -54,12 +53,15 @@
 	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
 	href={
-		href ?? resolve(
-			'/~/multiplayer/contact/[contactId=stringSegment]',
-			{
-				contactId: String(selection.entitySelector.id),
-			}
-		)
+		href === undefined ?
+			resolve(
+				'/~/multiplayer/contact/[contactId=stringSegment]',
+				{
+					contactId: selection.entitySelector.id,
+				}
+			)
+		:
+			href ?? undefined
 	}
 	{layout}
 	bind:open
@@ -136,7 +138,7 @@
 						resource={blockheadRoomPeer}
 					>
 						{#snippet children(entity)}
-							<Timestamp timestamp={Number(entity.joinedAt)} />
+							<Timestamp timestamp={entity.joinedAt} />
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -157,7 +159,7 @@
 						<div>
 							<dt>Last seen</dt>
 							<dd>
-								<Timestamp timestamp={Number(lastSeenAt)} />
+								<Timestamp timestamp={lastSeenAt} />
 							</dd>
 						</div>
 					{/if}
@@ -179,7 +181,7 @@
 						<div>
 							<dt>Connected</dt>
 							<dd>
-								<Timestamp timestamp={Number(connectedAt)} />
+								<Timestamp timestamp={connectedAt} />
 							</dd>
 						</div>
 					{/if}
@@ -201,7 +203,7 @@
 						<div>
 							<dt>Disconnected</dt>
 							<dd>
-								<Timestamp timestamp={Number(disconnectedAt)} />
+								<Timestamp timestamp={disconnectedAt} />
 							</dd>
 						</div>
 					{/if}

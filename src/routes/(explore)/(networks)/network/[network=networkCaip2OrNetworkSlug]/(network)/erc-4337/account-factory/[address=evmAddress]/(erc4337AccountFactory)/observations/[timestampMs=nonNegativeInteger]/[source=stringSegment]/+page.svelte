@@ -40,7 +40,7 @@
 
 
 <svelte:head>
-	<title>{(data.title ?? (String(pageSelection.entitySelector.timestampMs) || 'ERC-4337 account factory timestamp'))} • ERC-4337 account factory timestamp • Blockhead</title>
+	<title>{data.title ?? (String(pageSelection.entitySelector.timestampMs) || 'ERC-4337 account factory timestamp')} • ERC-4337 account factory timestamp • Blockhead</title>
 </svelte:head>
 
 

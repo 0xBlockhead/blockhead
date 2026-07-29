@@ -41,15 +41,15 @@
 			entitySelector={oracleFeedRoundSelector}
 		>
 			{#snippet Title()}
-				{String(oracleFeedRoundSelector.roundId) || 'oracle feed round'}
+				{oracleFeedRoundSelector.roundId}
 			{/snippet}
 
 			{#snippet Value()}
-				{String(oracleFeedRound.answer ?? '')}
+				{oracleFeedRound.answer ?? ''}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{String(oracleFeedRound.updatedAtMs ?? '')}</span>
+				<span data-text="annotation">{oracleFeedRound.updatedAtMs ?? ''}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

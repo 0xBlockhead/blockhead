@@ -45,7 +45,7 @@
 
 
 <svelte:head>
-	<title>{(pageSelection.entity == null ? 'agent conversation turn' : pageSelection.entity.userPrompt || 'agent conversation turn')} • agent conversation turn • Blockhead</title>
+	<title>{pageSelection.entity == null ? 'agent conversation turn' : pageSelection.entity.userPrompt || 'agent conversation turn'} • agent conversation turn • Blockhead</title>
 </svelte:head>
 
 

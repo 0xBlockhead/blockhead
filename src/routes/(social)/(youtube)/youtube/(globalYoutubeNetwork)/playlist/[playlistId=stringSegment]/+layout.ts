@@ -9,7 +9,8 @@ import YoutubePlaylistSchema from '$/schema/YoutubePlaylist.ts'
 import { type as arktype } from 'arktype'
 
 export const load: LayoutLoad = ({ params }) => {
-	if (!(matchStringSegment(params.playlistId))) error(404, 'Route mapping not applicable')
+	if (!(matchStringSegment(params.playlistId)))
+		error(404, 'Route mapping not applicable')
 
 	const youtubePlaylistPlaylistIdSelector = parseEntitySelector(
 		schema,
@@ -18,7 +19,8 @@ export const load: LayoutLoad = ({ params }) => {
 			playlistId: decodeURIComponent(params.playlistId),
 		}
 	)
-	if (youtubePlaylistPlaylistIdSelector instanceof arktype.errors) error(404, 'Invalid YoutubePlaylist selector')
+	if (youtubePlaylistPlaylistIdSelector instanceof arktype.errors)
+		error(404, 'Invalid YoutubePlaylist selector')
 
 	return {
 		selector: youtubePlaylistPlaylistIdSelector,
