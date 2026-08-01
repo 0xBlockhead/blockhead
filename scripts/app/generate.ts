@@ -334,11 +334,6 @@ type RouteFixtureMetadata = {
 	probeAtoms: readonly string[]
 	boundaryLiveOptional?: true
 }
-type CompiledSourceProviderFacts = {
-	provider: SourceProviderDefinition
-	sources: readonly SourceDefinition[]
-	bindings: readonly SourceBindingEntry[]
-}
 type NamedSourceSelectionPlan = {
 	selection: _SourceSelection
 	functionName: string
@@ -369,8 +364,8 @@ type CompiledAppFacts = Readonly<{
 	facetAncestorConditionsByPath: Readonly<Record<string, readonly _AppFacetCondition[]>>
 	facetDependencyConditionsByPath: Readonly<Record<string, NonNullable<EntityRouteLink['conditions']>>>
 	valueTypeById: Readonly<Record<string, ValueType>>
+	sourceProviders: readonly SourceProviderDefinition[]
 	sources: readonly SourceDefinition[]
-	sourceProviderPlans: readonly CompiledSourceProviderFacts[]
 	sourceBindings: readonly SourceBindingEntry[]
 	resolverModules: readonly App['resolvers']['modules'][number][]
 	navigationItems: readonly App['navigation']['items'][number][]
@@ -411,8 +406,8 @@ type SourcesMarkdownInput = Readonly<{
 type GenerationInput = Readonly<{
 	indexes: GenerationIndexes
 	entities: readonly Entity[]
+	sourceProviders: readonly SourceProviderDefinition[]
 	sources: readonly SourceDefinition[]
-	sourceProviderPlans: readonly CompiledSourceProviderFacts[]
 	navigationItems: readonly App['navigation']['items'][number][]
 	resolverModules: readonly App['resolvers']['modules'][number][]
 	routeFixturePlans: readonly RouteFixturePlan[]
@@ -5579,18 +5574,6 @@ export const compileApp = (sourceApp: App): CompiledApp => {
 		facetAncestorConditionsByPath,
 		facetDependencyConditionsByPath,
 	} = normalizeApp(sourceApp)
-	const sourceProviderPlans = sourceProviders.map((provider) => {
-		const providerSources = sources.filter((source) => source.provider === provider.provider)
-		const providerBindings = compiledSourceBindings.filter((sourceBinding) => (
-			sourceDefinitionById[sourceBinding.source].provider === provider.provider
-		))
-
-		return {
-			provider,
-			sources: providerSources,
-			bindings: providerBindings,
-		}
-	})
 	const resolverModules = Object.freeze([...app.resolvers.modules])
 	const navigationItems = Object.freeze([...app.navigation.items])
 	const activeEntities = Object.freeze([...app.schema.entities]
@@ -6240,8 +6223,8 @@ export const compileApp = (sourceApp: App): CompiledApp => {
 		facetAncestorConditionsByPath,
 		facetDependencyConditionsByPath,
 		valueTypeById: nullPrototypeRecord([...valueTypeById]),
+		sourceProviders,
 		sources,
-		sourceProviderPlans,
 		sourceBindings: compiledSourceBindings,
 		resolverModules,
 		navigationItems,
@@ -6290,8 +6273,8 @@ export const compileApp = (sourceApp: App): CompiledApp => {
 			valueTypeById: compiledApp.valueTypeById,
 		},
 		entities: compiledApp.activeEntities,
+		sourceProviders: compiledApp.sourceProviders,
 		sources: compiledApp.sources,
-		sourceProviderPlans: compiledApp.sourceProviderPlans,
 		navigationItems: compiledApp.navigationItems,
 		resolverModules: compiledApp.resolverModules,
 		routeFixturePlans: compiledApp.routeFixturePlans,
@@ -6309,8 +6292,12 @@ export const compileApp = (sourceApp: App): CompiledApp => {
 const generateFiles = (generationInput: GenerationInput): GeneratedFile[] => {
 	const indexes = generationInput.indexes
 	const entityTypes = generationInput.entities.map(({ entityType }) => entityType)
-	const sourceProviders = generationInput.sourceProviderPlans.map(({ provider }) => provider)
+	const sourceProviders = generationInput.sourceProviders
 	const sourceProviderNames = sourceProviders.map(({ provider }) => provider)
+	const sourceDefinitionById = nullPrototypeRecord(generationInput.sources.map((source) => [
+		String(source.source),
+		source,
+	]))
 	const namedSourceSelections = [...new Map(unique(generationInput.entities.flatMap(entityNamedSourceSelections))
 		.map((selection) => [sourceSelectionFunctionName(selection), {
 			selection,
@@ -6402,10 +6389,19 @@ const generateFiles = (generationInput: GenerationInput): GeneratedFile[] => {
 		),
 		generateSourceBindingFile(),
 		generateSourceProviderEnumFile(sourceProviderNames),
-		...generationInput.sourceProviderPlans.flatMap((sourceProviderPlan) => [
-			generateSourceProviderBindingsFile(sourceProviderPlan),
-			generateSourceProviderDefinitionFile(sourceProviderPlan),
-		]),
+		...sourceProviders.flatMap((provider) => {
+			const providerBindings = indexes.sourceBindings.filter((sourceBinding) => (
+				sourceDefinitionById[sourceBinding.source].provider === provider.provider
+			))
+			return [
+				generateSourceProviderBindingsFile(provider, providerBindings),
+				generateSourceProviderDefinitionFile(
+					provider,
+					generationInput.sources.filter((source) => source.provider === provider.provider),
+					providerBindings
+				),
+			]
+		}),
 		generateSourceProvidersFile(sourceProviderNames),
 		generateSourceServerCredentialsFile(indexes.sourceBindings),
 		...generateSourceSelectionFiles(namedSourceSelections),
@@ -7328,10 +7324,10 @@ const planRepeatedBindingValues = (
 	}
 }
 
-const generateSourceProviderBindingsFile = ({
-	provider,
-	bindings,
-}: CompiledSourceProviderFacts) => {
+const generateSourceProviderBindingsFile = (
+	provider: SourceProviderDefinition,
+	bindings: readonly SourceBindingEntry[]
+) => {
 	// Binding rows keep scalars inline and share repeated arrays across the
 	// provider file, including when sibling sources use the same endpoint or
 	// credential catalog.
@@ -7731,11 +7727,11 @@ const generateSourceProviderBindingsFile = ({
 	)
 }
 
-const generateSourceProviderDefinitionFile = ({
-	provider,
-	sources,
-	bindings,
-}: CompiledSourceProviderFacts) => tsFile(
+const generateSourceProviderDefinitionFile = (
+	provider: SourceProviderDefinition,
+	sources: readonly SourceDefinition[],
+	bindings: readonly SourceBindingEntry[]
+) => tsFile(
 		`src/sources/${provider.provider}/index.ts`,
 		{
 			imports: [

@@ -163,6 +163,15 @@ test('retains only canonical source binding facts in compiler rows', async () =>
 	assert.match(generatorSource, /sourceBindingRows\.flatMap\(\(\{ binding, bindingNumber \}\) => \(binding\.artifacts \?\? \[\]\)\.map/)
 })
 
+test('derives provider partitions only at their emitter invocation', async () => {
+	const generatorSource = await readFile('scripts/app/generate.ts', 'utf8')
+
+	assert.doesNotMatch(generatorSource, /CompiledSourceProviderFacts|sourceProviderPlans/)
+	assert.match(generatorSource, /type CompiledAppFacts = Readonly<\{[\s\S]*?sourceProviders: readonly SourceProviderDefinition\[\][\s\S]*?sources: readonly SourceDefinition\[\][\s\S]*?sourceBindings: readonly SourceBindingEntry\[\]/)
+	assert.match(generatorSource, /type GenerationInput = Readonly<\{[\s\S]*?sourceProviders: readonly SourceProviderDefinition\[\][\s\S]*?sources: readonly SourceDefinition\[\]/)
+	assert.match(generatorSource, /sourceProviders\.flatMap\(\(provider\) => \{[\s\S]*?const providerBindings = indexes\.sourceBindings\.filter[\s\S]*?generateSourceProviderBindingsFile\(provider, providerBindings\)[\s\S]*?generationInput\.sources\.filter\(\(source\) => source\.provider === provider\.provider\)/)
+})
+
 test('owns Esplora target identities without object stringification', () => {
 	assert.deepEqual(
 		sourceBindingRows
