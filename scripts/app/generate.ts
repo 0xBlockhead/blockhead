@@ -207,10 +207,6 @@ type SelectorRouteMapping = {
 	projectionRouteParam?: string
 	page?: NonNullable<NonNullable<App['routes']['children'][string]['selectors']>[string]>[string]['page']
 }
-type SelectorRouteVariant = {
-	ownerNodeId: string
-	mapping: SelectorRouteMapping
-}
 type SelectorOutcome =
 	| {
 		kind: 'VisibleRoute'
@@ -263,7 +259,7 @@ type RouteNode = {
 		page?: NonNullable<App['routes']['children'][string]['collections']>[number]['page']
 	}[]
 	selectorMappings: readonly SelectorRouteMapping[]
-	selectorVariant?: SelectorRouteVariant
+	selectorVariant?: SelectorRouteMapping
 	detail?: {
 		group: string
 		mappings: readonly {
@@ -2623,7 +2619,6 @@ type RouteDetail = {
 	selectorName: string
 	selector: _Expression
 	component: string
-	href: string
 	sourceSelection?: readonly string[] | _SourceSelection
 }
 type RouteDetailLayoutPlan = {
@@ -3995,7 +3990,6 @@ const compileRouteTree = (
 				throw new Error(`${routeId(routePath)} selector variant has no stable route segment`)
 
 			return {
-				ownerNodeId: owner.ancestorNodeId,
 				svelteKitPath: owner.descendantSvelteKitPath,
 				mapping: {
 					...owner.mapping,
@@ -4081,10 +4075,7 @@ const compileRouteTree = (
 			})),
 			selectorMappings: normalizedSelectorMappings,
 			...(selectorVariant == null ? {} : {
-				selectorVariant: {
-					ownerNodeId: selectorVariant.ownerNodeId,
-					mapping: selectorVariant.mapping,
-				},
+				selectorVariant: selectorVariant.mapping,
 			}),
 			...(ownDetailGroup == null ? {} : {
 				detail: {
@@ -4133,7 +4124,7 @@ const viewConditionFromFacetCondition = (
 const selectorMappingOwnsDetailPage = (
 	node: RouteNode,
 	mapping: SelectorRouteMapping
-) => node.selectorVariant?.mapping === mapping || node.detail?.mappings.some((detail) => (
+) => node.selectorVariant === mapping || node.detail?.mappings.some((detail) => (
 	detail.entityType === mapping.entityType
 	&& detail.selectorName === mapping.selectorName
 )) === true
@@ -4577,7 +4568,7 @@ const indexRouteProbeMappings = (
 ) => {
 	for (const node of nodes) {
 		const mappings = node.selectorVariant != null ?
-			[node.selectorVariant.mapping]
+			[node.selectorVariant]
 		: node.selectorMappings.length === 0 ?
 			ancestorMappings
 		:
@@ -4604,7 +4595,7 @@ const compileRouteEntries = (
 ): RouteRenderEntry[] => nodes.flatMap((node) => {
 	const renderMappings = [
 		...node.selectorMappings,
-		...(node.selectorVariant == null ? [] : [node.selectorVariant.mapping]),
+		...(node.selectorVariant == null ? [] : [node.selectorVariant]),
 	]
 	const mappingPages = [
 		...renderMappings.flatMap((mapping) => mapping.page == null ? [] : [mapping.page]),
@@ -4630,22 +4621,14 @@ const compileRouteEntries = (
 					value,
 				})),
 			},
-			href: node.svelteKitPath,
 		} satisfies RouteDetail]
 	}) ?? []
 	const detailLayout = ownDetails.length === 0 ? undefined : (() => {
-		const href = ownDetails[0]?.href
-		if (href == null || ownDetails.some((detail) => detail.href !== href))
-			throw new Error(`${node.internalPath} detail layout requires one shared href`)
-
 		const detailEntityTypes = unique(ownDetails.map((detail) => detail.entityType))
 		for (const detailIdentity of detailEntityTypes) {
 			const entityDetails = ownDetails.filter((detail) => detail.entityType === detailIdentity)
-			if (
-				unique(entityDetails.map((detail) => detail.component)).length > 1
-				|| unique(entityDetails.map((detail) => detail.href)).length > 1
-			)
-				throw new Error(`${node.internalPath} detail layout assigns ambiguous components or hrefs to ${detailIdentity}`)
+			if (unique(entityDetails.map((detail) => detail.component)).length > 1)
+				throw new Error(`${node.internalPath} detail layout assigns ambiguous components to ${detailIdentity}`)
 		}
 		const dispatchDetails = ownDetails.filter((detail, index) => (
 			ownDetails.findIndex((candidate) => (
@@ -4657,12 +4640,12 @@ const compileRouteEntries = (
 			dispatchDetails.findIndex((candidate) => candidate.entityType === detail.entityType) === index
 		))
 
-		const hrefParamNames = routeParamNames(href)
+		const hrefParamNames = routeParamNames(node.svelteKitPath)
 		const detailSourcesExpression = renderDispatchedSourceSelectionExpression(dispatchDetails)
 		return {
 			details: ownDetails,
 			components: unique(ownDetails.map((detail) => detail.component)),
-			hrefExpression: renderResolveExpression(href, hrefParamNames.map((param) => [param, `params.${param}`])),
+			hrefExpression: renderResolveExpression(node.svelteKitPath, hrefParamNames.map((param) => [param, `params.${param}`])),
 			...(hrefParamNames.length === 0 ? {} : {
 				keyExpression: hrefParamNames.length === 1 ?
 					`params.${hrefParamNames[0]}`
@@ -4762,18 +4745,8 @@ const compileRouteEntries = (
 	]
 })
 
-const validateNormalizedRouteNodes = (indexedNodes: readonly RouteNode[]) => {
+const validateRouteParamAlternativeCoverage = (indexedNodes: readonly RouteNode[]) => {
 	const errors = [
-		...indexedNodes.flatMap((node) => (
-			node.detail == null
-			|| node.detail.mappings.every((detail) => node.selectorMappings.some((mapping) => (
-				mapping.entityType === detail.entityType
-				&& mapping.selectorName === detail.selectorName
-			))) ?
-				[]
-			:
-				[`${node.internalPath} detail mappings do not all reference local selector mappings`]
-		)),
 		...indexedNodes.flatMap((node) => node.selectorMappings.flatMap((mapping) => [
 			...(!selectorMappingOwnsDetailPage(node, mapping) || mapping.href?.entityHref === false ? [] : mapping.routeParamAlternatives.flatMap((routeParams) => node.params.flatMap(({ name }) => (
 				routeParams.some(({ param }) => param === name) ?
@@ -4783,66 +4756,13 @@ const validateNormalizedRouteNodes = (indexedNodes: readonly RouteNode[]) => {
 			)))),
 		])),
 		...indexedNodes.flatMap((node) => node.selectorVariant == null ? [] : [
-			...(indexedNodes.some((ancestor) => (
-				ancestor.internalPath === node.selectorVariant?.ownerNodeId
-				&& node.internalPath.startsWith(`${ancestor.internalPath}/`)
-				&& ancestor.selectorMappings.some((mapping) => (
-					mapping.entityType === node.selectorVariant?.mapping.entityType
-					&& mapping.selectorName === node.selectorVariant.mapping.selectorName
-				))
-			)) ? [] : [`${node.internalPath} selector variant references missing ancestor owner ${node.selectorVariant.ownerNodeId}`]),
-			...node.selectorVariant.mapping.routeParamAlternatives.flatMap((routeParams) => node.params.flatMap(({ name }) => (
+			...node.selectorVariant.routeParamAlternatives.flatMap((routeParams) => node.params.flatMap(({ name }) => (
 				routeParams.some(({ param }) => param === name) ?
 					[]
 				:
-					[`${node.internalPath} ${node.selectorVariant.mapping.entityType}.${node.selectorVariant.mapping.selectorName} selector variant href is missing route parameter ${name}`]
+					[`${node.internalPath} ${node.selectorVariant.entityType}.${node.selectorVariant.selectorName} selector variant href is missing route parameter ${name}`]
 			))),
 		]),
-	]
-	if (new Set(indexedNodes.map((node) => node.internalPath)).size !== indexedNodes.length)
-		errors.push('Normalized route node internal paths are not unique')
-	if (errors.length > 0)
-		throw new Error(errors.join('\n'))
-}
-
-const validateCompiledRoutes = (
-	nodeByInternalPath: ReadonlyMap<string, RouteNode>,
-	entries: readonly RouteRenderEntry[]
-) => {
-	const errors = [
-		...entries.flatMap((entry) => {
-			const node = nodeByInternalPath.get(entry.internalPath)
-			if (node == null)
-				return [`${entry.routePath} render entry has no normalized route node`]
-
-			const normalizedMappings = [
-				...node.selectorMappings,
-				...(node.selectorVariant == null ? [] : [node.selectorVariant.mapping]),
-			].map((mapping) => selectorRouteMappingKey(
-				mapping.entityType,
-				mapping.selectorName
-			))
-			return entry.files
-				.filter((file) => file.mappings != null)
-				.every((file) => JSON.stringify(file.mappings?.map((mapping) => selectorRouteMappingKey(
-					mapping.entityType,
-					mapping.selectorName
-				))) === JSON.stringify(normalizedMappings)) ?
-					[]
-			:
-					[`${entry.routePath} rendered selector mappings diverge from the normalized route node`]
-			}),
-		...[...nodeByInternalPath.values()].flatMap((node) => (
-			node.selectorMappings.length === 0
-			&& node.selectorVariant == null
-			&& node.page == null
-			&& node.layout == null ?
-				[]
-			: entries.some((entry) => entry.internalPath === node.internalPath) ?
-				[]
-			:
-				[`${node.internalPath} normalized route node did not produce a route entry`]
-		)),
 	]
 	if (errors.length > 0)
 		throw new Error(errors.join('\n'))
@@ -5899,9 +5819,8 @@ export const compileApp = (sourceApp: App): CompiledApp => {
 			if (list.href != null && !routeNodeByInternalPath.has(routeId(list.href)))
 				throw new Error(`${entity.entityType}.${list.field} list references missing internal route ${list.href}`)
 	}
-	validateNormalizedRouteNodes(indexedRouteNodes)
+	validateRouteParamAlternativeCoverage(indexedRouteNodes)
 	const routeEntryList = Object.freeze(compileRouteEntries(compiledRouteNodes, routeNodeByInternalPath))
-	validateCompiledRoutes(routeNodeByInternalPath, routeEntryList)
 	const routeNodesByPublicShape = Map.groupBy(indexedRouteNodes, (node) => publicRouteShape(node.publicPath))
 	const selectorMappingEntries = indexedRouteNodes.flatMap((node) => node.selectorMappings.map((mapping) => ({
 		node,
@@ -6124,7 +6043,7 @@ export const compileApp = (sourceApp: App): CompiledApp => {
 
 		for (const mapping of [
 			...node.selectorMappings,
-			...(node.selectorVariant == null ? [] : [node.selectorVariant.mapping]),
+			...(node.selectorVariant == null ? [] : [node.selectorVariant]),
 		]) {
 			const entityRouteLinks = routeLinksFromMapping(
 				node,

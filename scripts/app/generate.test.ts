@@ -4455,6 +4455,8 @@ test('groups inherited selector fields under one route mapping', () => {
 	assert.doesNotMatch(generatorSource, /\b(?:compiledRoutes|compiledNodes)\b|children\.nodes/)
 	assert.match(generatorSource, /type RouteParam = \{[\s\S]*?encoding\?: _RouteParamEncoding\n\}\ntype RouteParamCompilationContext = RouteParam & \{\n\texplicitValueTypes: readonly string\[\]/)
 	assert.match(generatorSource, /params: routeParams\.map\(\(\{\n\s+explicitValueTypes: _explicitValueTypes,\n\s+\.\.\.routeParam/)
+	assert.match(generatorSource, /const validateRouteParamAlternativeCoverage =/)
+	assert.doesNotMatch(generatorSource, /SelectorRouteVariant|ownerNodeId|validateNormalizedRouteNodes|validateCompiledRoutes|detail layout requires one shared href/)
 })
 
 test('retains only physical route file facts consumed by route emitters', () => {
@@ -4500,6 +4502,73 @@ test('rejects undeclared regular and selector-variant route parameters upstream'
 	assert.throws(
 		() => compileApp(variantParamApp),
 		/\/\(explore\)\/\(ipfs\)\/\[namespace\]\/\[target\]\/path\/\[\.\.\.contentPath\] IpfsResource\.ResourceAddress selector variant binds missing route parameter undeclared/
+	)
+})
+
+test('rejects regular detail href alternatives missing declared route parameters', () => {
+	const mutatedApp = structuredClone(app)
+	const networkNode = mutatedApp.routes.children['(explore)']?.children?.['(networks)']?.children?.network?.children?.['[network]']
+	const networkChildren = networkNode?.children
+	const caip2Mapping = networkNode?.selectors?.[EntityType.Network]?.Caip2
+
+	assert.ok(networkChildren)
+	assert.ok(caip2Mapping)
+	Object.defineProperty(networkChildren, '[unused]', {
+		enumerable: true,
+		value: {
+			params: {
+				unused: ['string'],
+			},
+			selectors: {
+				[EntityType.Network]: {
+					Caip2: caip2Mapping,
+				},
+			},
+		},
+	})
+	assert.throws(
+		() => compileApp(mutatedApp),
+		/\/\(explore\)\/\(networks\)\/network\/\[network\]\/\[unused\] Network\.Caip2 href is missing route parameter unused/
+	)
+})
+
+test('rejects selector-variant href alternatives missing declared route parameters', () => {
+	const mutatedApp = structuredClone(app)
+	const pathChildren = mutatedApp.routes.children['(explore)']?.children?.['(ipfs)']?.children?.['[namespace]']?.children?.['[target]']?.children?.path?.children
+	const variantNode = pathChildren?.['[...contentPath]']
+
+	assert.ok(pathChildren)
+	assert.ok(variantNode)
+	Object.defineProperty(pathChildren, '[...contentPath]-[unused]', {
+		enumerable: true,
+		value: {
+			...variantNode,
+			params: {
+				...variantNode.params,
+				unused: ['string'],
+			},
+		},
+	})
+	assert.throws(
+		() => compileApp(mutatedApp),
+		/\/\(explore\)\/\(ipfs\)\/\[namespace\]\/\[target\]\/path\/\[\.\.\.contentPath\]-\[unused\] IpfsResource\.ResourceAddress selector variant href is missing route parameter unused/
+	)
+})
+
+test('rejects ambiguous same-entity detail components', () => {
+	const mutatedApp = structuredClone(app)
+	const slugPage = mutatedApp.routes.children['(explore)']?.children?.['(networks)']?.children?.network?.children?.['[network]']?.selectors?.[EntityType.Network]?.Slug?.page
+
+	assert.ok(slugPage)
+	Object.defineProperty(slugPage, 'view', {
+		enumerable: true,
+		value: {
+			component: 'CoinView',
+		},
+	})
+	assert.throws(
+		() => compileApp(mutatedApp),
+		/\/\(explore\)\/\(networks\)\/network\/\[network\] detail layout assigns ambiguous components to Network/
 	)
 })
 
