@@ -2617,12 +2617,10 @@ const entityRawSnippets = (entity: Entity) => {
 type RouteDetail = {
 	entityType: EntityType
 	selectorName: string
-	selector: _Expression
 	component: string
 	sourceSelection?: readonly string[] | _SourceSelection
 }
 type RouteDetailLayoutPlan = {
-	details: readonly RouteDetail[]
 	components: readonly string[]
 	hrefExpression: string
 	keyExpression?: string
@@ -4614,13 +4612,6 @@ const compileRouteEntries = (
 		return mapping == null ? [] : [{
 			...detail,
 			...(mapping.sourceSelection == null ? {} : { sourceSelection: mapping.sourceSelection }),
-			selector: {
-				kind: 'object' as const,
-				fields: mapping.fields.map(({ field, value }) => ({
-					name: field,
-					value,
-				})),
-			},
 		} satisfies RouteDetail]
 	}) ?? []
 	const detailLayout = ownDetails.length === 0 ? undefined : (() => {
@@ -4643,7 +4634,6 @@ const compileRouteEntries = (
 		const hrefParamNames = routeParamNames(node.svelteKitPath)
 		const detailSourcesExpression = renderDispatchedSourceSelectionExpression(dispatchDetails)
 		return {
-			details: ownDetails,
 			components: unique(ownDetails.map((detail) => detail.component)),
 			hrefExpression: renderResolveExpression(node.svelteKitPath, hrefParamNames.map((param) => [param, `params.${param}`])),
 			...(hrefParamNames.length === 0 ? {} : {
@@ -6168,14 +6158,6 @@ export const compileApp = (sourceApp: App): CompiledApp => {
 		.filter((filePath, index, paths) => paths.indexOf(filePath) !== index)
 	if (duplicatePhysicalPaths.length > 0)
 		throw new Error(`Duplicate physical route file plans:\n${unique(duplicatePhysicalPaths).join('\n')}`)
-	for (const plan of compiledApp.physicalRouteFiles) {
-		const detailKeys = (plan.routeFile.detailLayout?.details ?? []).map((detail) => selectorRouteMappingKey(
-			detail.entityType,
-			detail.selectorName
-		))
-		if (unique(detailKeys).length !== detailKeys.length)
-			throw new Error(`${plan.path} has duplicate detail selector plans`)
-	}
 
 	// Emitters receive only the indexes and ordered plans they consume. APP.ts is
 	// deliberately not available below this boundary.

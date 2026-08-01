@@ -4457,6 +4457,8 @@ test('groups inherited selector fields under one route mapping', () => {
 	assert.match(generatorSource, /params: routeParams\.map\(\(\{\n\s+explicitValueTypes: _explicitValueTypes,\n\s+\.\.\.routeParam/)
 	assert.match(generatorSource, /const validateRouteParamAlternativeCoverage =/)
 	assert.doesNotMatch(generatorSource, /SelectorRouteVariant|ownerNodeId|validateNormalizedRouteNodes|validateCompiledRoutes|detail layout requires one shared href/)
+	assert.match(generatorSource, /type RouteDetail = \{\n\tentityType: EntityType\n\tselectorName: string\n\tcomponent: string\n\tsourceSelection\?: readonly string\[\] \| _SourceSelection\n\}\ntype RouteDetailLayoutPlan = \{\n\tcomponents:/)
+	assert.doesNotMatch(generatorSource, /duplicate detail selector plans/)
 })
 
 test('retains only physical route file facts consumed by route emitters', () => {
@@ -4475,6 +4477,18 @@ test('retains only physical route file facts consumed by route emitters', () => 
 	assert.match(physicalRoutePlanSource, /const inheritedMappings = [^\n]+[\s\S]*?routeFile: inheritedMappings \? \{[\s\S]*?mappings: pageModule\?\.mappings/)
 	assert.match(physicalRoutePlanSource, /const generatedPageModule = [\s\S]*?plan\.generatedPageModule === true/)
 	assert.match(physicalRoutePlanSource, /routeNeedsPageModule[\s\S]*?!routeProjectionOwnedByAncestor/)
+})
+
+test('retains only rendered detail layout facts', () => {
+	const generatorSource = readFileSync(path.join(root, 'scripts/app/generate.ts'), 'utf8')
+	const detailPlanSource = generatorSource.slice(
+		generatorSource.indexOf('type RouteDetail ='),
+		generatorSource.indexOf('type RouteAncestorSelector =')
+	)
+
+	assert.doesNotMatch(detailPlanSource, /\n\tselector:/)
+	assert.doesNotMatch(detailPlanSource, /\n\tdetails:/)
+	assert.doesNotMatch(generatorSource, /duplicate detail selector plans/)
 })
 
 test('rejects undeclared regular and selector-variant route parameters upstream', () => {
